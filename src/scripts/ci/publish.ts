@@ -318,13 +318,36 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   // If the current version would be 2.4.7, we would end up with 2.5.7
   const nextStable = zeroOutPatch(await getNextMinorStable())
 
-  console.log(`Next minor stable: ${nextStable}`)
+  console.log(`getNewDevVersion: Next minor stable: ${nextStable}`)
 
   const versions = await getAllVersions(packages, 'dev', nextStable + '-dev')
-  const devVersions = getDevVersionIncrements(versions)
-  const maxDev = Math.max(...devVersions, 0)
+  const maxDev = getMaxDevVersionIncrement(versions)
 
   const version = `${nextStable}-dev.${maxDev + 1}`
+  console.log(`Got ${version} in ${Date.now() - before}ms`)
+  return version
+}
+
+/**
+ * Takes the max dev version + 1
+ * For now supporting 2.Y.Z-dev.#
+ * @param packages Local package definitions
+ */
+async function getNewIntegrationVersion(packages: Packages, branch: string): Promise<string> {
+  const before = Date.now()
+  console.log('\nCalculating new dev version...')
+  // Why are we calling zeroOutPatch?
+  // Because here we're only interested in the 2.5.0 <- the next minor stable version
+  // If the current version would be 2.4.7, we would end up with 2.5.7
+  const nextStable = zeroOutPatch(await getNextMinorStable())
+
+  console.log(`getNewIntegrationVersion: Next minor stable: ${nextStable}`)
+
+  const branchWithoutPrefix = branch.replace(/^integration\//, '')
+  const versions = await getAllVersions(packages, 'integration', `${nextStable}-integration-${branchWithoutPrefix}`)
+  const maxIntegration = getMaxIntegrationVersionIncrement(versions)
+
+  const version = `${nextStable}-integration-${branchWithoutPrefix}.${maxIntegration + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
   return version
 }
@@ -369,7 +392,6 @@ async function getCurrentPatchForMinor(minor: number): Promise<number> {
   return relevantVersions[0].patch
 }
 
-// TODO: This logic needs to be updated for the next time we want to patch
 async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
@@ -384,9 +406,9 @@ async function getNewPatchDevVersion(
   return `${newVersion}-dev.${maxIncrement + 1}`
 }
 
-function getDevVersionIncrements(versions: string[]): number[] {
+function getMaxDevVersionIncrement(versions: string[]): number {
   const regex = /2\.\d+\.\d+-dev\.(\d+)/
-  return versions
+  const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
       const match = regex.exec(v)
@@ -396,6 +418,23 @@ function getDevVersionIncrements(versions: string[]): number[] {
       return null
     })
     .filter((v) => v)
+  return Math.max(...increments, 0)
+}
+
+function getMaxIntegrationVersionIncrement(versions: string[]): number {
+  const regex = /2\.\d+\.\d+-integration.*\.(\d+)/
+  const increments = versions
+    .filter((v) => v.trim().length > 0)
+    .map((v) => {
+      const match = regex.exec(v)
+      if (match) {
+        return Number(match[1])
+      }
+      return null
+    })
+    .filter((v) => v)
+
+  return Math.max(...increments, 0)
 }
 
 // TODO: Adjust this for stable releases
@@ -573,23 +612,25 @@ async function publish() {
     }
 
     let prisma2Version
+    let tag: undefined | string
     const patchBranch = getPatchBranch()
+    const branch = await getPrismaBranch()
     console.log({ patchBranch })
     if (args['--release']) {
       prisma2Version = args['--release']
+      tag = 'latest'
     } else if (patchBranch) {
       // TODO Check if PATCH_BRANCH work!
       prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
+      tag = 'patch-dev'
+    } else if (branch.startsWith('integration/')) {
+      prisma2Version = await getNewIntegrationVersion(packages, branch)
+      tag = 'integration'
     } else {
       prisma2Version = await getNewDevVersion(packages)
+      tag = 'dev'
     }
 
-    const tag =
-      patchBranch && !process.env.BUILDKITE_TAG
-        ? 'patch-dev'
-        : prisma2Version.includes('dev')
-          ? 'dev'
-          : 'latest'
 
     const packagesWithVersions = await getNewPackageVersions(
       packages,
@@ -1064,6 +1105,15 @@ if (!module.parent) {
 
 async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
+}
+
+async function getPrismaBranch(): Promise<string | undefined> {
+  try {
+    return await runResult('.', 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
+  } catch (e) {
+
+  }
+  return process.env.BUILDKITE_BRANCH
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
