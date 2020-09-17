@@ -95,11 +95,11 @@ export function getErrorMessageWithLink({
     `Hi Prisma Team! My Prisma Client just crashed. This is the report:
 ## Versions
 
-| Name     | Version            |
-|----------|--------------------|
-| Node     | ${process.version.padEnd(19)}| 
-| OS       | ${platform.padEnd(19)}|
-| Prisma   | ${version.padEnd(19)}|
+| Name            | Version            |
+|-----------------|--------------------|
+| Node            | ${process.version.padEnd(19)}| 
+| OS              | ${platform.padEnd(19)}|
+| Prisma Client   | ${version.padEnd(19)}|
 
 ${moreInfo}
 
