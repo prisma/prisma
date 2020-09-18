@@ -140,6 +140,12 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 1. `cd src/packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts up`
 
+To force the Migration Engine Panic you can set the following ENV VAR
+
+```
+FORCE_PANIC_MIGRATION_ENGINE
+``` 
+
 ### Developing `prisma init` Command
 
 1. `cd src/packages/introspection`
