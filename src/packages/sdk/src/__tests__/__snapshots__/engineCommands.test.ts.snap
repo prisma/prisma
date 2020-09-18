@@ -384,7 +384,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -648,13 +648,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -794,13 +794,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -946,13 +946,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -1092,13 +1092,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -1130,6 +1130,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
@@ -1214,6 +1219,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
@@ -2312,7 +2322,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -2481,7 +2491,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -2660,7 +2670,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -2851,7 +2861,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -3728,13 +3738,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -3907,13 +3917,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -3945,13 +3955,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedBoolFilter",
+                "kind": "scalar",
+                "type": "Boolean",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Boolean",
+                "kind": "object",
+                "type": "NestedBoolFilter",
               },
             ],
             "isNullable": true,
@@ -4519,13 +4529,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -4665,13 +4675,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -4703,13 +4713,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedBoolFilter",
+                "kind": "scalar",
+                "type": "Boolean",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Boolean",
+                "kind": "object",
+                "type": "NestedBoolFilter",
               },
             ],
             "isNullable": true,
@@ -5213,6 +5223,11 @@ Object {
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -5294,6 +5309,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
@@ -5405,6 +5425,11 @@ Object {
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -5486,6 +5511,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
@@ -5597,6 +5627,11 @@ Object {
                     "kind": "object",
                     "type": "User1OrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -5678,6 +5713,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "User1OrderByInput",
                   },
@@ -5789,6 +5829,11 @@ Object {
                     "kind": "object",
                     "type": "User2OrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -5870,6 +5915,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "User2OrderByInput",
                   },
@@ -6970,6 +7020,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
@@ -8202,7 +8257,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -8371,7 +8426,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -8550,7 +8605,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -8741,7 +8796,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -9618,13 +9673,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -9797,13 +9852,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -9835,13 +9890,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedBoolFilter",
+                "kind": "scalar",
+                "type": "Boolean",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Boolean",
+                "kind": "object",
+                "type": "NestedBoolFilter",
               },
             ],
             "isNullable": true,
@@ -10457,13 +10512,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -10603,13 +10658,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -10641,13 +10696,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedBoolFilter",
+                "kind": "scalar",
+                "type": "Boolean",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Boolean",
+                "kind": "object",
+                "type": "NestedBoolFilter",
               },
             ],
             "isNullable": true,
@@ -11217,6 +11272,11 @@ Object {
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -11298,6 +11358,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
@@ -11409,6 +11474,11 @@ Object {
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -11490,6 +11560,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "UserOrderByInput",
                   },
@@ -11601,6 +11676,11 @@ Object {
                     "kind": "object",
                     "type": "User1OrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -11682,6 +11762,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "User1OrderByInput",
                   },
@@ -11793,6 +11878,11 @@ Object {
                     "kind": "object",
                     "type": "User2OrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -11874,6 +11964,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "User2OrderByInput",
                   },
@@ -12977,6 +13072,11 @@ Object {
                     "kind": "object",
                     "type": "PostOrderByInput",
                   },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
                 ],
                 "isNullable": false,
                 "isRequired": false,
@@ -13644,11 +13744,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `55881382`;
+exports[`getDMMF big schema 1`] = `56514706`;
 
-exports[`getDMMF chinook introspected schema 1`] = `353618`;
+exports[`getDMMF chinook introspected schema 1`] = `355733`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `369532`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `371647`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -13886,7 +13986,7 @@ Object {
       Object {
         "constraints": Object {
           "maxNumFields": 1,
-          "minNumFields": 1,
+          "minNumFields": 0,
         },
         "fields": Array [
           Object {
@@ -14150,13 +14250,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -14296,13 +14396,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -14448,13 +14548,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedIntFilter",
+                "kind": "scalar",
+                "type": "Int",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "Int",
+                "kind": "object",
+                "type": "NestedIntFilter",
               },
             ],
             "isNullable": true,
@@ -14594,13 +14694,13 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
-                "kind": "object",
-                "type": "NestedStringFilter",
+                "kind": "scalar",
+                "type": "String",
               },
               Object {
                 "isList": false,
-                "kind": "scalar",
-                "type": "String",
+                "kind": "object",
+                "type": "NestedStringFilter",
               },
             ],
             "isNullable": true,
@@ -14632,6 +14732,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "AOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "AOrderByInput",
                   },
@@ -14716,6 +14821,11 @@ Object {
                 "inputTypes": Array [
                   Object {
                     "isList": true,
+                    "kind": "object",
+                    "type": "AOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
                     "kind": "object",
                     "type": "AOrderByInput",
                   },
