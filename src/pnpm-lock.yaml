@@ -664,6 +664,7 @@ importers:
       ink-spinner: 3.1.0_ink@2.7.1+react@16.11.0
       is-ci: 2.0.0
       log-update: 4.0.0
+      new-github-issue-url: 0.2.1
       open: 7.0.4
       p-map: 4.0.0
       prompts: 2.3.2
@@ -758,6 +759,7 @@ importers:
       log-update: ^4.0.0
       make-dir: 3.1.0
       mock-stdin: 1.0.0
+      new-github-issue-url: ^0.2.1
       open: ^7.0.3
       p-map: ^4.0.0
       prettier: 2.1.2
@@ -1846,12 +1848,14 @@ packages:
     resolution:
       integrity: sha512-TORZP+FSjTYMWwKadftmqEn6bziN5RnfygehByGsjxoK5ydnClddtv6GikGWPvCm24oI+YBwck5WDxIIyNxUrA==
   /@types/prop-types/15.7.3:
+    dev: true
     resolution:
       integrity: sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
   /@types/react/16.9.11:
     dependencies:
       '@types/prop-types': 15.7.3
       csstype: 2.6.10
+    dev: true
     resolution:
       integrity: sha512-UBT4GZ3PokTXSWmdgC/GeCGEJXE5ofWyibCcecRLUVN2ZBpXQGVgQGtG2foS7CrTKFKlQVVswLvf7Js6XA/CVQ==
   /@types/redis/2.8.27:
@@ -2967,6 +2971,7 @@ packages:
     resolution:
       integrity: sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==
   /csstype/2.6.10:
+    dev: true
     resolution:
       integrity: sha512-D34BqZU4cIlMCY93rZHbrq9pjTAQJ3U8S8rfBqjwHxkGPThWFjzZDQpgMJY0QViLxth6ZKYiwFBo14RdN44U/w==
   /dashdash/1.14.1:
@@ -6826,6 +6831,7 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       prop-types: 15.7.2
+    dev: true
     engines:
       node: '>=0.10.0'
     resolution:
