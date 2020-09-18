@@ -751,14 +751,14 @@ ${indent(
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
-    if (outputType.isRequired && !outputType.isList) {
+    if (field.isRequired && !outputType.isList) {
       return str
     }
     if (outputType.isList) {
       return `Array<${str}>`
     }
-    if (!outputType.isRequired) {
-      return `${str} | null`
+    if (str === 'Null') {
+      return 'null'
     }
     return str
   }
@@ -855,14 +855,18 @@ ${aggregateTypes.length > 1
           .map((type) => {
             const newType: DMMF.InputType = {
               name: getAggregateInputType(type.name),
+              constraints: {
+                maxNumFields: null,
+                minNumFields: null
+              },
               fields: type.fields.map((field) => ({
                 ...field,
                 name: field.name,
-                inputType: [
+                isNullable: false,
+                isRequired: false,
+                inputTypes: [
                   {
                     isList: false,
-                    isNullable: false,
-                    isRequired: false,
                     kind: 'scalar',
                     type: 'true',
                   },
@@ -1272,8 +1276,8 @@ export class InputField implements Generatable {
     const { field } = this
     let fieldType
     let hasNull = false
-    if (Array.isArray(field.inputType)) {
-      fieldType = flatMap(field.inputType, (t) => {
+    if (Array.isArray(field.inputTypes)) {
+      fieldType = flatMap(field.inputTypes, (t) => {
         let type =
           typeof t.type === 'string'
             ? GraphQLScalarToJSTypeTable[t.type] || t.type
@@ -1284,11 +1288,14 @@ export class InputField implements Generatable {
         if (type === 'null') {
           hasNull = true
         }
+        if (type === 'Null') {
+          type = 'null'
+        }
         return type
       }).join(' | ')
     }
-    const fieldInputType = field.inputType[0]
-    const optionalStr = fieldInputType.isRequired ? '' : '?'
+    const fieldInputType = field.inputTypes[0]
+    const optionalStr = field.isRequired ? '' : '?'
     if (fieldInputType.isList) {
       if (field.name === 'OR') {
         fieldType = `Array<${fieldType}>`
@@ -1296,12 +1303,8 @@ export class InputField implements Generatable {
         fieldType = `Enumerable<${fieldType}>`
       }
     }
-    const nullableStr =
-      !fieldInputType.isRequired && !hasNull && fieldInputType.isNullable
-        ? ' | null'
-        : ''
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
-    return `${jsdoc}${field.name}${optionalStr}: ${fieldType}${nullableStr}`
+    return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
 }
 
@@ -1337,7 +1340,7 @@ export class SchemaOutputField implements Generatable {
     }
     const arrayStr = field.outputType.isList ? `[]` : ''
     const nullableStr =
-      !field.outputType.isRequired && !field.outputType.isList ? ' | null' : ''
+      !field.isRequired && !field.outputType.isList ? ' | null' : ''
     return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
   }
 }
@@ -1468,13 +1471,13 @@ export class ArgsType implements Generatable {
     const bothArgsOptional: DMMF.SchemaArg[] = [
       {
         name: 'select',
-        inputType: [
+        isRequired: false,
+        isNullable: true,
+        inputTypes: [
           {
             type: getSelectName(name),
             kind: 'object',
             isList: false,
-            isRequired: false,
-            isNullable: true,
           },
         ],
         comment: `Select specific fields to fetch from the ${name}`,
@@ -1486,13 +1489,13 @@ export class ArgsType implements Generatable {
     if (hasRelationField) {
       bothArgsOptional.push({
         name: 'include',
-        inputType: [
+        isRequired: false,
+        isNullable: true,
+        inputTypes: [
           {
             type: getIncludeName(name),
             kind: 'object',
             isList: false,
-            isRequired: false,
-            isNullable: true,
           },
         ],
         comment: `Choose, which related nodes to fetch as well.`,

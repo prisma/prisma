@@ -9,6 +9,7 @@ import {
   FieldError,
   InvalidArgError,
   InvalidFieldError,
+  MissingArgError,
 } from './error-types'
 import {
   getGraphQLType,
@@ -20,7 +21,6 @@ import {
   stringifyInputType,
   unionBy,
   wrapWithList,
-  isScalar,
 } from './utils/common'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
@@ -33,7 +33,6 @@ import {
 } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
-import { visit } from './visit'
 import stripAnsi from 'strip-ansi'
 import { flatMap } from './utils/flatMap'
 
@@ -75,8 +74,8 @@ ${indent(this.children.map(String).join('\n'), tab)}
       select && select.select
         ? 'select'
         : select.include
-        ? 'include'
-        : undefined
+          ? 'include'
+          : undefined
 
     for (const child of invalidChildren) {
       const errors = child.collectErrors(prefix)
@@ -166,15 +165,24 @@ ${indent(this.children.map(String).join('\n'), tab)}
         valuePaths.push(path)
       } else if (argError.error.type === 'missingArg') {
         const type =
-          argError.error.missingType.length === 1
-            ? argError.error.missingType[0].type
-            : argError.error.missingType
-                .map((t) => getInputTypeName(t.type))
-                .join(' | ')
+          argError.error.missingArg.inputTypes.length === 1
+            ? argError.error.missingArg.inputTypes[0].type
+            : argError.error.missingArg.inputTypes
+              .map((t) => {
+                const inputTypeName = getInputTypeName(t.type)
+                if (inputTypeName === 'Null') {
+                  return 'null'
+                }
+                if (t.isList) {
+                  return inputTypeName + '[]'
+                }
+                return inputTypeName
+              })
+              .join(' | ')
         missingItems.push({
           path,
           type: inputTypeToJson(type, true, path.split('where.').length === 2),
-          isRequired: argError.error.missingType[0].isRequired,
+          isRequired: argError.error.missingArg.isRequired
         })
       }
     }
@@ -182,12 +190,12 @@ ${indent(this.children.map(String).join('\n'), tab)}
     const renderErrorStr = (callsite?: string) => {
       const hasRequiredMissingArgsErrors = argErrors.some(
         (e) =>
-          e.error.type === 'missingArg' && e.error.missingType[0].isRequired,
+          e.error.type === 'missingArg' && e.error.missingArg.isRequired,
       )
-      const hasOptionalMissingArgsErrors = argErrors.some(
+      const hasOptionalMissingArgsErrors = Boolean(argErrors.find(
         (e) =>
-          e.error.type === 'missingArg' && !e.error.missingType[0].isRequired,
-      )
+          e.error.type === 'missingArg' && !e.error.missingArg.isRequired,
+      ))
       const hasMissingArgsErrors =
         hasOptionalMissingArgsErrors || hasRequiredMissingArgsErrors
 
@@ -217,7 +225,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       const errorMessages = `${argErrors
         .filter(
           (e) =>
-            e.error.type !== 'missingArg' || e.error.missingType[0].isRequired,
+            e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
         )
         .map((e) =>
           this.printArgError(
@@ -228,8 +236,8 @@ ${indent(this.children.map(String).join('\n'), tab)}
         ) // if no callsite is provided, just render the minimal error
         .join('\n')}
 ${fieldErrors
-  .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
-  .join('\n')}`
+          .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
+          .join('\n')}`
 
       if (errorFormat === 'minimal') {
         return stripAnsi(errorMessages)
@@ -315,9 +323,6 @@ ${errorMessages}${missingArgsLegend}\n`
       )} must not be empty.${additional}`
     }
     if (error.type === 'noTrueSelect') {
-      const additional = minimal
-        ? ''
-        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       return `The ${chalk.redBright(
         '`select`',
       )} statement for type ${chalk.bold(
@@ -337,10 +342,10 @@ ${errorMessages}${missingArgsLegend}\n`
       const additional = minimal
         ? ''
         : error.isInclude && missingItems.length === 0
-        ? `\nThis model has no relations, so you can't use ${chalk.redBright(
+          ? `\nThis model has no relations, so you can't use ${chalk.redBright(
             'include',
           )} with it.`
-        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
+          : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
       let str = `${wording} field ${chalk.redBright(
         `\`${error.providedName}\``,
       )} for ${chalk.bold(statement)} statement on model ${chalk.bold.white(
@@ -393,9 +398,9 @@ ${errorMessages}${missingArgsLegend}\n`
           'select',
         )}\`? ${chalk.dim(
           'e.g. ' +
-            chalk.greenBright(
-              `{ select: { ${error.providedName}: ${error.providedValue} } }`,
-            ),
+          chalk.greenBright(
+            `{ select: { ${error.providedName}: ${error.providedValue} } }`,
+          ),
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
@@ -429,28 +434,27 @@ ${errorMessages}${missingArgsLegend}\n`
       if (error.requiredType.bestFittingType.kind === 'enum') {
         return `Argument ${chalk.bold(
           error.argName,
-        )}: Provided value ${chalk.redBright(valueStr)}${
-          multilineValue ? '' : ' '
-        }of type ${chalk.redBright(
-          getGraphQLType(error.providedValue),
-        )} on ${chalk.bold(
-          `prisma.${this.children[0].name}`,
-        )} is not a ${chalk.greenBright(
-          wrapWithList(
-            stringifyGraphQLType(error.requiredType.bestFittingType.kind),
-            error.requiredType.bestFittingType.isList,
-          ),
-        )}.
-→ Possible values: ${(error.requiredType.bestFittingType
-          .type as DMMF.Enum).values
-          .map((v) =>
-            chalk.greenBright(
-              `${stringifyGraphQLType(
-                error.requiredType.bestFittingType.type,
-              )}.${v}`,
+        )}: Provided value ${chalk.redBright(valueStr)}${multilineValue ? '' : ' '
+          }of type ${chalk.redBright(
+            getGraphQLType(error.providedValue),
+          )} on ${chalk.bold(
+            `prisma.${this.children[0].name}`,
+          )} is not a ${chalk.greenBright(
+            wrapWithList(
+              stringifyGraphQLType(error.requiredType.bestFittingType.kind),
+              error.requiredType.bestFittingType.isList,
             ),
-          )
-          .join(', ')}`
+          )}.
+→ Possible values: ${(error.requiredType.bestFittingType
+            .type as DMMF.Enum).values
+            .map((v) =>
+              chalk.greenBright(
+                `${stringifyGraphQLType(
+                  error.requiredType.bestFittingType.type,
+                )}.${v}`,
+              ),
+            )
+            .join(', ')}`
       }
 
       let typeStr = '.'
@@ -477,13 +481,12 @@ ${errorMessages}${missingArgsLegend}\n`
       }
       return `Argument ${chalk.bold(
         error.argName,
-      )}: Got invalid value ${chalk.redBright(valueStr)}${
-        multilineValue ? '' : ' '
-      }on ${chalk.bold(
-        `prisma.${this.children[0].name}`,
-      )}. Provided ${chalk.redBright(
-        getGraphQLType(error.providedValue),
-      )}, expected ${expected}`
+      )}: Got invalid value ${chalk.redBright(valueStr)}${multilineValue ? '' : ' '
+        }on ${chalk.bold(
+          `prisma.${this.children[0].name}`,
+        )}. Provided ${chalk.redBright(
+          getGraphQLType(error.providedValue),
+        )}, expected ${expected}`
     }
 
     if (error.type === 'invalidNullArg') {
@@ -522,8 +525,8 @@ ${errorMessages}${missingArgsLegend}\n`
       const additional = minimal
         ? ''
         : ` Please choose one. ${chalk.dim(
-            'Available args:',
-          )} \n${stringifyInputType(error.inputType, true)}`
+          'Available args:',
+        )} \n${stringifyInputType(error.inputType, true)}`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
       )} needs ${chalk.greenBright(
@@ -566,7 +569,7 @@ ${errorMessages}${missingArgsLegend}\n`
   }
 }
 
-export class PrismaClientValidationError extends Error {}
+export class PrismaClientValidationError extends Error { }
 
 export interface FieldArgs {
   name: string
@@ -592,8 +595,8 @@ export class Field {
     this.schemaField = schemaField
     this.hasInvalidChild = children
       ? children.some((child) =>
-          Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild),
-        )
+        Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild),
+      )
       : false
     this.hasInvalidArg = args ? args.hasInvalidArg : false
   }
@@ -769,8 +772,8 @@ export class Arg {
     this.error = error
     this.schemaArg = schemaArg
     this.isNullable =
-      schemaArg?.inputType.reduce<boolean>(
-        (isNullable, inputType) => isNullable && inputType.isNullable,
+      schemaArg?.inputTypes.reduce<boolean>(
+        (isNullable, inputType) => isNullable && schemaArg.isRequired,
         true,
       ) || false
     this.hasError =
@@ -788,7 +791,7 @@ export class Arg {
       if (
         value.args.length === 1 &&
         value.args[0].key === 'set' &&
-        value.args[0].schemaArg?.inputType[0].type === 'Json'
+        value.args[0].schemaArg?.inputTypes[0].type === 'Json'
       ) {
         return `${key}: {
   set: ${stringify(value.args[0].value, null, 2, this.isEnum, true)}
@@ -901,8 +904,7 @@ export function makeDocument({
   rootTypeName,
   rootField,
   select,
-}: DocumentInput): any {
-  // TODO: remove any
+}: DocumentInput): Document {
   if (!select) {
     select = {}
   }
@@ -912,10 +914,10 @@ export function makeDocument({
     args: [],
     outputType: {
       isList: false,
-      isRequired: true,
       type: rootType,
       kind: 'object',
     },
+    isRequired: true,
     name: rootTypeName,
   }
   const children = selectionToFields(
@@ -924,244 +926,12 @@ export function makeDocument({
     fakeRootField,
     [rootTypeName],
   )
-  return new Document(rootTypeName, children)
+  return new Document(rootTypeName, children) as any
 }
 
+// TODO: get rid of this function
 export function transformDocument(document: Document): Document {
-  function transformWhereArgs(args: Args) {
-    return new Args(
-      args.args.map((ar) => {
-        // for NOT, AND, OR
-        if (isArgsArray(ar.value)) {
-          // long variable name to prevent shadowing
-          const value = ar.value.map((argsInstance) => {
-            return transformWhereArgs(argsInstance)
-          })
-          return new Arg({ ...ar, value })
-        } else if (ar.value instanceof Args) {
-          if (ar.schemaArg && !ar.schemaArg.isRelationFilter) {
-            for (let i = ar.value.args.length; i--; ) {
-              const a = ar.value.args[i]
-              if (
-                a.key === 'not' &&
-                (typeof a.value !== 'object' ||
-                  a.argType === 'DateTime' ||
-                  a.argType === 'Json')
-              ) {
-                // if it's already an equals { X } do not add equals
-                if (!(a.value instanceof Args)) {
-                  a.value = new Args([
-                    new Arg({
-                      key: 'equals',
-                      value: a.value,
-                      argType: a.argType,
-                      schemaArg: a.schemaArg,
-                    }),
-                  ])
-                }
-              }
-              if (a.key === 'notIn') {
-                let notField = ar.value.args.find(
-                  (theArg) => theArg.key === 'not',
-                )
-                if (!notField) {
-                  notField = new Arg({
-                    key: 'not',
-                    value: new Args(),
-                    // this is probably completely wrong, but doesn't matter, as this value is not used anymore
-                    argType: a.argType,
-                    // same: this is probably completely wrong, but doesn't matter, as this value is not used anymore
-                    schemaArg: a.schemaArg,
-                  })
-                  // yes we push into the array that we're looping over
-                  // js will not end up in an infinite loop, don't worry
-                  ar.value.args.push(notField)
-                }
-                // we might be ahead of time...
-                if (
-                  typeof notField.value !== 'object' ||
-                  notField.argType === 'DateTime' ||
-                  notField.value === null ||
-                  notField.argType === 'Json'
-                ) {
-                  // if it's already an equals { X } do not add equals
-                  if (!(notField.value instanceof Args)) {
-                    notField.value = new Args([
-                      new Arg({
-                        key: 'equals',
-                        value: notField.value,
-                        argType: notField.argType,
-                        schemaArg: notField.schemaArg,
-                      }),
-                    ])
-                  }
-                }
-                const index = (notField!.value as Args).args.findIndex(
-                  (arg) => arg.key === 'in',
-                )
-                const inArg = new Arg({
-                  key: 'in',
-                  value: a.value,
-                  argType: a.argType,
-                  schemaArg: a.schemaArg,
-                })
-                // merge values
-                if (index > -1) {
-                  ;(inArg.value as any).push(
-                    ...((notField!.value! as Args).args[index].value as any[]),
-                  )
-                  ;(notField!.value as Args).args[index] = inArg
-                } else {
-                  ;(notField!.value as Args).args.push(inArg)
-                }
-                // we're looping reverse, so splice is ok
-                ar.value.args.splice(i, 1)
-              }
-            }
-          }
-        }
-        if (
-          ar.isEnum ||
-          (typeof ar.argType === 'string' && isScalar(ar.argType))
-        ) {
-          if (
-            typeof ar.value !== 'object' ||
-            ar.argType === 'DateTime' ||
-            ar.argType === 'Json' ||
-            ar.value === null
-          ) {
-            // if it's already an equals { X } do not add equals
-            if (!(ar.value instanceof Args)) {
-              ar.value = new Args([
-                new Arg({
-                  key: 'equals',
-                  value: ar.value,
-                  argType: ar.argType, // probably wrong but fine
-                  schemaArg: ar.schemaArg, // probably wrong but fine
-                }),
-              ])
-            }
-          }
-        } else if (
-          typeof ar.value === 'object' &&
-          ar.schemaArg?.inputType[0].kind === 'object' &&
-          // don't do the "is" nesting if we're already on a field called "is"
-          ar.key !== 'is' &&
-          ar.argType !== 'Json' &&
-          // do not add `is` on ...ListRelationFilter
-          // https://github.com/prisma/prisma/issues/3342
-          !(
-            typeof ar.schemaArg?.inputType[0].type === 'object' &&
-            ar.schemaArg?.inputType[0].type.name.includes('ListRelationFilter')
-          ) &&
-          // don't do the "is" nesting for Json types
-          !(
-            typeof ar.argType === 'object' &&
-            (ar.argType as DMMF.InputType)?.name?.startsWith('Json')
-          ) &&
-          !(
-            typeof ar.argType === 'object' &&
-            (ar.argType as DMMF.InputType)?.name?.startsWith('NestedJson')
-          )
-        ) {
-          if (ar.value instanceof Args) {
-            if (!ar.value.args.find((a) => a.key === 'is')) {
-              ar.value = new Args([
-                new Arg({
-                  key: 'is',
-                  value: ar.value,
-                  argType: ar.argType, // probably wrong but fine
-                  schemaArg: ar.schemaArg, // probably wrong but fine
-                }),
-              ])
-            }
-          } else if (ar.value === null) {
-            ar.value = new Args([
-              new Arg({
-                key: 'is',
-                value: ar.value,
-                argType: ar.argType, // probably wrong but fine
-                schemaArg: ar.schemaArg, // probably wrong but fine
-              }),
-            ])
-          }
-        }
-        return ar
-      }),
-    )
-  }
-  function transformUpdateArg(arg: Arg): Arg {
-    const { value } = arg
-
-    if (value instanceof Args) {
-      value.args = value.args.map((ar) => {
-        if (
-          ar.schemaArg?.inputType.length === 2 &&
-          (ar.schemaArg.inputType[0].kind === 'scalar' ||
-            ar.schemaArg.inputType[0].kind === 'enum') &&
-          !(
-            ar.value instanceof Args &&
-            ['set', 'increment', 'decrement', 'multiply', 'divide'].includes(
-              ar.value.args[0].key,
-            )
-          )
-        ) {
-          const operationsInputType = ar.schemaArg?.inputType[1]
-          ar.argType = (operationsInputType?.type as DMMF.InputType).name
-          ar.value = new Args([
-            new Arg({
-              key: 'set',
-              value: ar.value,
-              schemaArg: ar.schemaArg,
-            }),
-          ])
-        } else if (
-          ar.schemaArg?.inputType.length === 1 &&
-          ar.schemaArg?.inputType[0].type === 'Json'
-        ) {
-          const operationsInputType = ar.schemaArg?.inputType[0]
-          ar.argType = (operationsInputType?.type as DMMF.InputType).name
-          ar.value = new Args([
-            new Arg({
-              key: 'set',
-              value: ar.value,
-              schemaArg: ar.schemaArg,
-              argType: 'Json',
-            }),
-          ])
-        }
-        return ar
-      })
-    }
-
-    return arg
-  }
-  return visit(document, {
-    Arg: {
-      enter(arg) {
-        const { argType, schemaArg } = arg
-        if (!argType) {
-          return undefined
-        }
-        if (isInputArgType(argType)) {
-          if (argType.isWhereType && schemaArg) {
-            let { value } = arg
-            if (isArgsArray(arg.value)) {
-              value = arg.value.map((val) => transformWhereArgs(val))
-            } else if (arg.value instanceof Args) {
-              value = transformWhereArgs(arg.value)
-            }
-            return new Arg({ ...arg, value })
-          }
-          if (argType.isUpdateType && schemaArg) {
-            return transformUpdateArg(arg)
-          }
-        }
-
-        return undefined
-      },
-    },
-  })
+  return document
 }
 
 function isArgsArray(input: any): input is Args[] {
@@ -1253,18 +1023,22 @@ export function selectionToFields(
     const transformedField = {
       name: field.name,
       fields: field.args,
+      constraints: {
+        minNumFields: null,
+        maxNumFields: null
+      }
     }
     const argsWithoutIncludeAndSelect =
       typeof value === 'object' ? omit(value, ['include', 'select']) : undefined
     const args = argsWithoutIncludeAndSelect
       ? objectToArgs(
-          argsWithoutIncludeAndSelect,
-          transformedField,
-          [],
-          typeof field === 'string'
-            ? undefined
-            : (field.outputType.type as DMMF.OutputType),
-        )
+        argsWithoutIncludeAndSelect,
+        transformedField,
+        [],
+        typeof field === 'string'
+          ? undefined
+          : (field.outputType.type as DMMF.OutputType),
+      )
       : undefined
     const isRelation = field.outputType.kind === 'object'
 
@@ -1454,7 +1228,7 @@ function getInvalidTypeArg(
       providedValue: value,
       argName: key,
       requiredType: {
-        inputType: arg.inputType,
+        inputType: arg.inputTypes,
 
         bestFittingType,
       },
@@ -1469,8 +1243,7 @@ function hasCorrectScalarType(
   arg: DMMF.SchemaArg,
   inputType: DMMF.SchemaArgInputType,
 ): boolean {
-  const { type } = inputType
-  const isList = arg.inputType[0].isList
+  const { type, isList } = inputType
   const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
   const graphQLType = getGraphQLType(value, type)
 
@@ -1531,19 +1304,20 @@ function hasCorrectScalarType(
     return true
   }
 
-  if (!inputType.isRequired && value === null) {
+  if (!arg.isRequired && value === null) {
     return true
   }
   return false
 }
 
+
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
-  const argInputType = arg.inputType[0]
+  const argInputType = arg.inputTypes[0]
   if (typeof value === 'undefined') {
     // the arg is undefined and not required - we're fine
-    if (!argInputType.isRequired) {
+    if (!arg.isRequired) {
       return null
     }
 
@@ -1555,32 +1329,27 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       error: {
         type: 'missingArg',
         missingName: key,
-        missingType: arg.inputType,
+        missingArg: arg,
         atLeastOne: false,
         atMostOne: false,
       },
     })
   }
 
-  if (value === null && arg.inputType.length === 1) {
-    const t = arg.inputType[0]
-    if (isInputArgType(t.type) && t.type.isOrderType) {
-      return null
-    }
-  }
+  // TODO: Maybe we have to enable this again
+  // if (value === null && arg.inputTypes.length === 1) {
+  //   const t = arg.inputTypes[0]
+  //   if (isInputArgType(t.type) && t.type.isOrderType) {
+  //     return null
+  //   }
+  // }
 
-  // optimization of [0] and [1] as we know, that we only have max 2 input types
-  // if null is provided but not allowed, let the user know in an error.
-  const isNullable =
-    arg.inputType[0].isNullable ||
-    (arg.inputType.length > 1 ? arg.inputType[1].isNullable : false)
-  const isRequired =
-    arg.inputType[0].isRequired ||
-    (arg.inputType.length > 1 ? arg.inputType[1].isRequired : false)
+  const { isNullable, isRequired } = arg
+
   if (value === null && !isNullable && !isRequired) {
     // we don't need to execute this ternery if not necessary
-    const isAtLeastOne = isInputArgType(arg.inputType[0].type)
-      ? arg.inputType[0].type.atLeastOne
+    const isAtLeastOne = isInputArgType(arg.inputTypes[0].type)
+      ? (arg.inputTypes[0].type.constraints.minNumFields !== null && arg.inputTypes[0].type.constraints.minNumFields > 0)
       : false
     if (!isAtLeastOne) {
       return new Arg({
@@ -1590,7 +1359,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         error: {
           type: 'invalidNullArg',
           name: key,
-          invalidType: arg.inputType,
+          invalidType: arg.inputTypes,
           atLeastOne: false,
           atMostOne: false,
         },
@@ -1598,123 +1367,69 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
   }
 
-  // then the first
-  if (!argInputType.isList) {
-    const args = arg.inputType.map((t) => {
-      if (isInputArgType(t.type)) {
-        if (typeof value !== 'object') {
-          return getInvalidTypeArg(key, value, arg, t)
-        } else {
-          let val = cleanObject(value)
-          if (t.type.isWhereType && val) {
-            for (const field of t.type.fields) {
-              if (field.nullEqualsUndefined && val[field.name] === null) {
-                delete val[field.name] // it's fine to touch val, as it's already a copy here
-              }
-            }
-          }
-          if (t.type.isOrderType) {
-            val = filterObject(val, (k, v) => v !== null)
-          }
-          let error: AtMostOneError | AtLeastOneError | undefined
-          const keys = Object.keys(val || {})
-          const numKeys = keys.length
-
-          if (numKeys === 0 && t.type.atLeastOne) {
-            error = {
-              type: 'atLeastOne',
-              key,
-              inputType: t.type,
-            }
-          } else if (numKeys > 1 && t.type.isOneOf) {
-            error = {
-              type: 'atMostOne',
-              key,
-              inputType: t.type,
-              providedKeys: keys,
-            }
-          } else if (numKeys > 1 && t.type.atMostOne) {
-            error = {
-              type: 'atMostOne',
-              key,
-              inputType: t.type,
-              providedKeys: keys,
-            }
-          }
-
-          return new Arg({
-            key,
-            value:
-              val === null ? null : objectToArgs(val, t.type, arg.inputType),
-            isEnum: argInputType.kind === 'enum',
-            error,
-            argType: t.type,
-            schemaArg: arg,
-          })
-        }
-      } else {
-        return scalarToArg(key, value, arg, t)
-      }
-    })
-
-    // is it just one possible type? Then no matter what just return that one
-    if (args.length === 1) {
-      return args[0]
-    }
-
-    // do we have more then one, but does it fit one of the args? Then let's just take that one arg
-    const argWithoutError = args.find((a) => !a.hasError)
-    if (argWithoutError) {
-      return argWithoutError
-    }
-
-    const hasSameKind = (argType: DMMF.ArgType, val: any) => {
-      if (val === null && (argType === 'null' || !isInputArgType(argType))) {
-        return true
-      }
-      return isInputArgType(argType)
-        ? typeof val === 'object'
-        : typeof val !== 'object'
-    }
-
-    /**
-     * If there are more than 1 args, do the following:
-     * First check if there are any possible arg types which at least have the
-     * correct base type (scalar, null or object)
-     * Take either these, or if they don't exist just again the normal args and
-     * take the arg with the minimum amount of errors
-     */
-    if (args.length > 1) {
-      const argsWithSameKind = args.filter((a) =>
-        hasSameKind(a.argType!, value),
-      )
-      const argsToFilter = argsWithSameKind.length > 0 ? argsWithSameKind : args
-
-      const argWithMinimumErrors = argsToFilter.reduce<{
-        arg: null | Arg
-        numErrors: number
-      }>(
-        (acc, curr) => {
-          const numErrors = curr.collectErrors().length
-          if (numErrors < acc.numErrors) {
-            return {
-              arg: curr,
-              numErrors,
-            }
-          }
-          return acc
-        },
-        {
-          arg: null,
-          numErrors: Infinity,
-        },
-      )
-      return argWithMinimumErrors.arg!
+  /**
+   * Go through the possible union input types.
+   * Stop on the first successful one
+   */
+  let maybeArg: Arg | null = null
+  for (const inputType of arg.inputTypes) {
+    maybeArg = tryInferArgs(key, value, arg, inputType)
+    if (maybeArg?.collectErrors().length === 0) {
+      return maybeArg
     }
   }
 
-  if (arg.inputType.length > 1) {
-    throw new Error(`List types with union input types are not supported`)
+  return maybeArg
+}
+
+/**
+ * Running through the possible input types of a union.
+ * @param key 
+ * @param value 
+ * @param arg 
+ * @param inputType 
+ */
+function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg | null {
+  // then the first
+  if (!inputType.isList) {
+    if (isInputArgType(inputType.type)) {
+      if (typeof value !== 'object') {
+        return getInvalidTypeArg(key, value, arg, inputType)
+      } else {
+        let val = cleanObject(value)
+        let error: AtMostOneError | AtLeastOneError | undefined
+        const keys = Object.keys(val || {})
+        const numKeys = keys.length
+
+        if (numKeys === 0 && (typeof inputType.type.constraints.minNumFields === 'number' && inputType.type.constraints.minNumFields > 0)) {
+          // continue here
+          error = {
+            type: 'atLeastOne',
+            key,
+            inputType: inputType.type,
+          }
+        } else if (numKeys > 1 && (typeof inputType.type.constraints.maxNumFields === 'number' && inputType.type.constraints.maxNumFields < 2)) {
+          error = {
+            type: 'atMostOne',
+            key,
+            inputType: inputType.type,
+            providedKeys: keys,
+          }
+        }
+
+        return new Arg({
+          key,
+          value:
+            val === null ? null : objectToArgs(val, inputType.type, arg.inputTypes),
+          isEnum: inputType.kind === 'enum',
+          error,
+          argType: inputType.type,
+          schemaArg: arg,
+        })
+      }
+    } else {
+      return scalarToArg(key, value, arg, inputType)
+    }
   }
 
   // the provided arg should be a list, but isn't
@@ -1722,52 +1437,66 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   // and GraphQL even allows this. We're going the conservative route though
   // and actually generate the [] around the value
 
-  if (!Array.isArray(value)) {
-    if (key === 'OR' && arg.name === 'OR' && arg.isRelationFilter) {
-      return scalarToArg(key, value, arg, argInputType)
+  if (!Array.isArray(value) && inputType.isList) {
+    // TODO: This "if condition" is just a hack until the query engine is fixed
+    if (key !== 'updateMany') {
+      value = [value]
     }
-    value = [value]
   }
 
-  if (argInputType.kind === 'enum' || argInputType.kind === 'scalar') {
+  if (inputType.kind === 'enum' || inputType.kind === 'scalar') {
     // if no value is incorrect
-    return scalarToArg(key, value, arg, argInputType)
+    return scalarToArg(key, value, arg, inputType)
   }
 
-  const inputType = argInputType.type as DMMF.InputType
-  const hasAtLeastOneError = inputType.atLeastOne
-    ? value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
+  const argInputType = inputType.type as DMMF.InputType
+  const hasAtLeastOneError = (typeof argInputType.constraints.minNumFields === 'number' && argInputType.constraints.minNumFields > 0)
+    ? Array.isArray(value) && value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
     : false
   let err: AtLeastOneError | undefined | AtMostOneError = hasAtLeastOneError
     ? {
-        inputType,
-        key,
-        type: 'atLeastOne',
-      }
+      inputType: argInputType,
+      key,
+      type: 'atLeastOne',
+    }
     : undefined
   if (!err) {
-    const hasOneOfError = inputType.isOneOf
-      ? value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
+    const hasOneOfError = (typeof argInputType.constraints.maxNumFields === 'number' && argInputType.constraints.maxNumFields < 2)
+      ? Array.isArray(value) && value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
       : false
     if (hasOneOfError) {
       err = {
-        inputType,
+        inputType: argInputType,
         key,
         type: 'atMostOne',
         providedKeys: Object.keys(hasOneOfError),
       }
     }
   }
+
+  if (!Array.isArray(value)) {
+    for (const argInputType of arg.inputTypes) {
+      const args = objectToArgs(value, argInputType.type as DMMF.InputType)
+      if (args.collectErrors().length === 0) {
+        return new Arg({ key, value: args, isEnum: false, argType: argInputType.type, schemaArg: arg, })
+      }
+    }
+  }
+
+
   return new Arg({
     key,
     value: value.map((v) => {
-      if (typeof v !== 'object' || !value) {
-        return getInvalidTypeArg(key, v, arg, argInputType)
+      if ((inputType.isList) && typeof v !== 'object') {
+        return v
       }
-      return objectToArgs(v, argInputType.type as DMMF.InputType)
+      if (typeof v !== 'object' || !value) {
+        return getInvalidTypeArg(key, v, arg, inputType)
+      }
+      return objectToArgs(v, argInputType)
     }),
     isEnum: false,
-    argType: argInputType.type,
+    argType: argInputType,
     schemaArg: arg,
     error: err,
   })
@@ -1796,7 +1525,7 @@ function scalarToArg(
     return new Arg({
       key,
       value,
-      isEnum: arg.inputType[0].kind === 'enum',
+      isEnum: arg.inputTypes[0].kind === 'enum',
       argType: inputType.type,
       schemaArg: arg,
     })
@@ -1814,9 +1543,9 @@ function objectToArgs(
   const obj = cleanObject(initialObj)
   const { fields: args, fieldMap } = inputType
   const requiredArgs: any = args
-    .filter((arg) => arg.inputType.some((t) => t.isRequired))
     .map((arg) => [arg.name, undefined])
-  const entries = unionBy(Object.entries(obj || {}), requiredArgs, (a) => a[0])
+  const objEntries = Object.entries(obj || {})
+  const entries = unionBy(objEntries, requiredArgs, (a) => a[0])
   const argsList = entries.reduce((acc, [argName, value]: any) => {
     const schemaArg = fieldMap
       ? fieldMap[argName]
@@ -1824,8 +1553,8 @@ function objectToArgs(
     if (!schemaArg) {
       const didYouMeanField =
         typeof value === 'boolean' &&
-        outputType &&
-        outputType.fields.some((f) => f.name === argName)
+          outputType &&
+          outputType.fields.some((f) => f.name === argName)
           ? argName
           : null
       acc.push(
@@ -1863,15 +1592,16 @@ function objectToArgs(
   }, [] as Arg[])
   // Also show optional neighbour args, if there is any arg missing
   if (
-    (entries.length === 0 && inputType.atLeastOne) ||
-    argsList.find((arg) => arg.error && arg.error.type === 'missingArg')
+    // (entries.length === 0 && inputType.constraints.minNumFields) ||
+    (typeof inputType.constraints.minNumFields === 'number' && objEntries.length < inputType.constraints.minNumFields) ||
+    argsList.find((arg) => (arg.error?.type === 'missingArg' || arg.error?.type === 'atLeastOne'))
   ) {
     const optionalMissingArgs = inputType.fields.filter(
-      (arg) => !entries.some(([entry]) => entry === arg.name),
+      field => !field.isRequired && (obj && (typeof obj[field.name] === 'undefined' || obj[field.name] === null))
     )
     argsList.push(
       ...optionalMissingArgs.map((arg) => {
-        const argInputType = arg.inputType[0]
+        const argInputType = arg.inputTypes[0]
         return new Arg({
           key: arg.name,
           value: undefined,
@@ -1879,9 +1609,9 @@ function objectToArgs(
           error: {
             type: 'missingArg',
             missingName: arg.name,
-            missingType: arg.inputType,
-            atLeastOne: inputType.atLeastOne || false,
-            atMostOne: inputType.atMostOne || false,
+            missingArg: arg,
+            atLeastOne: Boolean(inputType.constraints.minNumFields) || false,
+            atMostOne: inputType.constraints.maxNumFields === 1 || false,
           },
         })
       }),

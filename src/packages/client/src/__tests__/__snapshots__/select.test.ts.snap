@@ -346,8 +346,8 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   id?: String,
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
-?   content?: String,
-?   optionnal?: Float,
+?   content?: String | null,
+?   optionnal?: Float | null,
 ?   author?: {
 ?     create?: UserCreateWithoutPostsInput,
 ?     connect?: UserWhereUniqueInput
@@ -403,8 +403,8 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   id?: String,
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
-?   content?: String,
-?   optionnal?: Float,
+?   content?: String | null,
+?   optionnal?: Float | null,
 ?   categories?: {
 ?     create?: CategoryCreateWithoutPostsInput,
 ?     connect?: CategoryWhereUniqueInput
@@ -608,217 +608,217 @@ Invalid \`prisma.findManyUser()\` invocation:
 
 Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?
@@ -893,217 +893,217 @@ Invalid \`prisma.findManyUser()\` invocation:
 
 Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_arbitrary for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereInput. Available args:
 
 type UserWhereInput {
-  AND?: UserWhereInput
-  OR?: UserWhereInput
-  NOT?: UserWhereInput
-  id?: String | StringFilter
-  email?: String | StringFilter
-  name?: String | StringNullableFilter | null
+  AND?: List<UserWhereInput>
+  OR?: List<UserWhereInput>
+  NOT?: List<UserWhereInput>
+  id?: StringFilter | String
+  email?: StringFilter | String
+  name?: StringNullableFilter | String | Null
   posts?: PostListRelationFilter
-  profile?: ProfileWhereInput
-  json?: JsonNullableFilter | null
-  countFloat?: Float | FloatNullableFilter | null
-  countInt1?: Int | IntNullableFilter | null
-  countInt2?: Int | IntNullableFilter | null
-  countInt3?: Int | IntNullableFilter | null
-  countInt4?: Int | IntNullableFilter | null
-  countInt5?: Int | IntNullableFilter | null
-  countInt6?: Int | IntNullableFilter | null
-  lastLoginAt?: DateTime | DateTimeFilter
-  coinflips?: List<Boolean> | BoolNullableListFilter
+  profile?: ProfileRelationFilter | ProfileWhereInput | Null
+  json?: JsonNullableFilter
+  countFloat?: FloatNullableFilter | Float | Null
+  countInt1?: IntNullableFilter | Int | Null
+  countInt2?: IntNullableFilter | Int | Null
+  countInt3?: IntNullableFilter | Int | Null
+  countInt4?: IntNullableFilter | Int | Null
+  countInt5?: IntNullableFilter | Int | Null
+  countInt6?: IntNullableFilter | Int | Null
+  lastLoginAt?: DateTimeFilter | DateTime
+  coinflips?: BoolNullableListFilter
 }
 Invalid value 'asd' of type String for field name on model User. Expected either true or false.
 Unknown field \`name2\` for select statement on model User. Available options are listed in green. Did you mean \`name\`?

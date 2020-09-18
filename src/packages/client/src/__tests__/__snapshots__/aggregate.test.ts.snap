@@ -48,11 +48,11 @@ Invalid \`prisma.user()\` invocation:
 Unknown arg \`mount\` in mount for type AggregateUser. Did you mean \`where\`? Available args:
 type aggregateUser {
   where?: UserWhereInput
-  orderBy?: UserOrderByInput
+  orderBy?: List<UserOrderByInput> | UserOrderByInput
   cursor?: UserWhereUniqueInput
   take?: Int
   skip?: Int
-  distinct?: UserDistinctFieldEnum
+  distinct?: List<UserDistinctFieldEnum>
 }
 
 

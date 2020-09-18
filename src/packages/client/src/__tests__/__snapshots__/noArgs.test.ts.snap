@@ -77,10 +77,18 @@ Invalid \`prisma.user()\` invocation:
 {
   data: {
     likedArticles: {
-      connect: {
+?     create?: {
+?       id: Int,
+?       url: String,
+?       title: String,
+?       content: String,
+?       date: DateTime,
+?       link: LinkCreateOneWithoutArticleInput
+?     },
+?     connect?: {
 ?       id?: Int,
 ?       url?: String
-      }
+?     }
     }
   }
 }
@@ -105,12 +113,12 @@ Invalid \`prisma.user()\` invocation:
 ?   AND?: UserWhereInput,
 ?   OR?: UserWhereInput,
 ?   NOT?: UserWhereInput,
-?   id?: Int,
-?   name?: String,
-?   email?: String,
+?   id?: IntFilter,
+?   name?: StringFilter,
+?   email?: StringFilter,
 ?   likedArticles?: ArticleListRelationFilter,
-?   personaId?: Int,
-?   persona?: PersonaWhereInput
+?   personaId?: IntFilter,
+?   persona?: PersonaRelationFilter
 ? }
 }
 

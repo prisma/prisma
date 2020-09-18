@@ -50,39 +50,42 @@ describe('at least one validation', () => {
       document.validate(select, false, 'users')
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        Invalid \`prisma.users()\` invocation:
 
-        {
-          where: {
-            OR: {
-              email: {}
-            }
-            ~~~~~~~~~~~
-          }
-        }
+                        Invalid \`prisma.users()\` invocation:
 
-        Argument OR: Got invalid value 
-        {
-          email: {}
-        }
-        on prisma.findManyUser. Provided Json, expected List<UserWhereInput>:
-        type UserWhereInput {
-          id?: String | StringFilter
-          name?: String | StringFilter
-          email?: String | StringFilter
-          status?: String | StringFilter
-          favoriteTree?: Tree | TreeFilter
-          locationId?: Int | IntFilter
-          posts?: PostFilter
-          AND?: UserWhereInput
-          OR?: UserWhereInput
-          NOT?: UserWhereInput
-          location?: LocationWhereInput
-        }
+                        {
+                          where: {
+                            OR: {
+                              email: {}
+                            }
+                            ~~~~~~~~~~~
+                          }
+                        }
 
-        "
-      `)
+                        Argument OR: Got invalid value 
+                        {
+                          email: {}
+                        }
+                        on prisma.findManyUser. Provided Json, expected List<UserWhereInput>:
+                        type UserWhereInput {
+                          AND?: UserWhereInput
+                          OR?: UserWhereInput
+                          NOT?: UserWhereInput
+                          id?: StringFilter | String
+                          name?: StringFilter | String
+                          email?: StringFilter | String
+                          status?: StringFilter | String
+                          nicknames?: StringNullableListFilter
+                          permissions?: EnumPermissionNullableListFilter
+                          favoriteTree?: EnumTreeFilter | Tree
+                          locationId?: IntFilter | Int
+                          location?: LocationRelationFilter | LocationWhereInput
+                          posts?: PostListRelationFilter
+                          someFloats?: FloatNullableListFilter
+                        }
+
+
+                  `)
     }
   })
   test('valid or query', () => {

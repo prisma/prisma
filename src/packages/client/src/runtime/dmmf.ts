@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf-types'
+import { DMMF } from '@prisma/generator-helper'
 import { Dictionary, keyBy, ScalarTypeTable, keyBy2 } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
@@ -71,27 +71,27 @@ export class DMMFClass implements DMMF.Document {
   protected resolveInputTypes(types: DMMF.InputType[]) {
     for (const type of types) {
       for (const field of type.fields) {
-        const first = field.inputType[0].type
+        const first = field.inputTypes[0].type
         if (
           typeof first === 'string' &&
           !ScalarTypeTable[first] &&
           (this.inputTypeMap[first] || this.enumMap[first])
         ) {
-          field.inputType[0].type =
+          field.inputTypes[0].type =
             this.inputTypeMap[first] ||
             this.enumMap[first] ||
-            field.inputType[0].type
+            field.inputTypes[0].type
         }
-        const second = field.inputType[1] && field.inputType[1].type
+        const second = field.inputTypes[1] && field.inputTypes[1].type
         if (
           typeof second === 'string' &&
           !ScalarTypeTable[second] &&
           (this.inputTypeMap[second] || this.enumMap[second])
         ) {
-          field.inputType[1].type =
+          field.inputTypes[1].type =
             this.inputTypeMap[second] ||
             this.enumMap[second] ||
-            field.inputType[1].type
+            field.inputTypes[1].type
         }
       }
       type.fieldMap = keyBy(type.fields, 'name')
@@ -104,23 +104,23 @@ export class DMMFClass implements DMMF.Document {
     for (const type of types) {
       for (const field of type.fields) {
         for (const arg of field.args) {
-          const first = arg.inputType[0].type
+          const first = arg.inputTypes[0].type
           if (typeof first === 'string' && !ScalarTypeTable[first]) {
-            arg.inputType[0].type =
+            arg.inputTypes[0].type =
               inputTypeMap[first] ||
               this.enumMap[first] ||
-              arg.inputType[0].type
+              arg.inputTypes[0].type
           }
-          const second = arg.inputType[1] && arg.inputType[1].type
+          const second = arg.inputTypes[1] && arg.inputTypes[1].type
           if (
             second &&
             typeof second === 'string' &&
             !ScalarTypeTable[second]
           ) {
-            arg.inputType[1].type =
+            arg.inputTypes[1].type =
               inputTypeMap[second] ||
               this.enumMap[second] ||
-              arg.inputType[1].type
+              arg.inputTypes[1].type
           }
         }
       }
