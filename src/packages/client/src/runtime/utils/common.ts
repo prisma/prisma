@@ -214,23 +214,22 @@ export function stringifyInputType(
     const body = indent(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map((arg) => {
-          const argInputType = arg.inputType[0]
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${
-            argInputType.isRequired ? '' : '?'
-          }: ${chalk.white(
-            arg.inputType
-              .map((argType) =>
-                argIsInputType(argType.type)
-                  ? argType.type.name
-                  : wrapWithList(
-                      stringifyGraphQLType(argType.type),
-                      argType.isList,
-                    ),
-              )
-              .join(' | '),
-          )}`
-          if (!argInputType.isRequired) {
+          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'
+            }: ${chalk.white(
+              arg.inputTypes
+                .map((argType) => {
+                  return wrapWithList(argIsInputType(argType.type)
+                    ? argType.type.name
+                    :
+                    stringifyGraphQLType(argType.type),
+                    argType.isList,
+                  )
+                }
+                )
+                .join(' | '),
+            )}`
+          if (!arg.isRequired) {
             return chalk.dim(str)
           }
 
@@ -292,19 +291,17 @@ export function inputTypeToJson(
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
     isRequired &&
-    inputType.fields.every((arg) => arg.inputType[0].kind === 'object') &&
-    !inputType.isWhereType &&
-    !inputType.atLeastOne
+    inputType.fields.every((arg) => arg.inputTypes[0].kind === 'object')
   if (nameOnly) {
     return getInputTypeName(input)
   }
 
   return inputType.fields.reduce((acc, curr) => {
-    const argInputType = curr.inputType[0]
-    acc[curr.name + (argInputType.isRequired ? '' : '?')] =
-      curr.isRelationFilter && !showDeepType && !argInputType.isRequired
+    const argInputType = curr.inputTypes[0]
+    acc[curr.name + (curr.isRequired ? '' : '?')] =
+      !showDeepType && !curr.isRequired
         ? getInputTypeName(argInputType.type)
-        : inputTypeToJson(argInputType.type, argInputType.isRequired, true)
+        : inputTypeToJson(argInputType.type, curr.isRequired, true)
     return acc
   }, {})
 }

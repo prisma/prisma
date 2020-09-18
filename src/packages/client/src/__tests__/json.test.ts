@@ -102,9 +102,7 @@ describe('json', () => {
       mutation {
         updateOneUser(
           data: {
-            json: {
-              set: "[\\"value1\\",\\"value2\\"]"
-            }
+            json: "[\\"value1\\",\\"value2\\"]"
           }
         ) {
           id

@@ -121,24 +121,18 @@ describe('scalar where transformation', () => {
                 {
                   name: {
                     equals: "5"
-                    not: {
-                      equals: "7"
-                    }
+                    not: "7"
                   }
                   OR: [
                     {
                       id: {
-                        not: {
-                          equals: "8"
-                          in: ["7"]
-                        }
+                        not: "8"
+                        notIn: ["7"]
                       }
                     },
                     {
                       id: {
-                        not: {
-                          equals: "9"
-                        }
+                        not: "9"
                       }
                     }
                   ]
@@ -233,16 +227,12 @@ describe('scalar where transformation', () => {
                     OR: [
                       {
                         id: {
-                          not: {
-                            equals: "8"
-                          }
+                          not: "8"
                         }
                       },
                       {
                         id: {
-                          not: {
-                            equals: "9"
-                          }
+                          not: "9"
                         }
                       }
                     ]
@@ -285,9 +275,7 @@ describe('scalar where transformation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         findManyTest(where: {
-          id: {
-            equals: "806c902c-eab3-4e6e-ba4a-99c135389118"
-          }
+          id: "806c902c-eab3-4e6e-ba4a-99c135389118"
         }) {
           id
           name
@@ -319,9 +307,7 @@ describe('scalar where transformation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         findManyTest(where: {
-          id: {
-            equals: "asd"
-          }
+          id: "asd"
         }) {
           id
           name
@@ -365,11 +351,11 @@ describe('scalar where transformation', () => {
     }
   })
 
-  test('filter by enum', () => {
+  test.only('filter by enum', () => {
     const select = {
       where: {
         favoriteTree: {
-          in: ['OAK', 'BLASKASH'],
+          in: ['OAK', 'BLACKASH'],
         },
       },
     }
@@ -384,7 +370,7 @@ describe('scalar where transformation', () => {
       query {
         findManyUser(where: {
           favoriteTree: {
-            in: [OAK, BLASKASH]
+            in: [OAK, BLACKASH]
           }
         }) {
           id
@@ -399,5 +385,7 @@ describe('scalar where transformation', () => {
         }
       }
     `)
+
+    document.validate(select, false, 'user')
   })
 })

@@ -18,7 +18,12 @@ function getTransformedDocument(select) {
 
 describe('minimal atomic update transformation', () => {
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    dmmf = new DMMFClass(
+      await getDMMF({
+        datamodel: blog,
+        enableExperimental: ['atomicNumberOperations'],
+      }),
+    )
   })
 
   test('atomic set operation without object wrapping', () => {
@@ -33,12 +38,8 @@ describe('minimal atomic update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            countFloat: {
-              set: 3.1415926
-            }
-            countInt1: {
-              set: 3
-            }
+            countFloat: 3.1415926
+            countInt1: 3
           }
         ) {
           id
@@ -60,7 +61,7 @@ describe('minimal atomic update transformation', () => {
   })
 
   test('atomic operations with object wrapping', () => {
-    const transformedDocument = getTransformedDocument({
+    const select = {
       data: {
         countFloat: {
           set: null,
@@ -84,9 +85,19 @@ describe('minimal atomic update transformation', () => {
           divide: 4,
         },
       },
+      where: {
+        email: 'a@a.de',
+      },
+    }
+
+    const document = makeDocument({
+      dmmf,
+      select,
+      rootTypeName: 'mutation',
+      rootField: 'updateOneUser',
     })
 
-    expect(transformedDocument).toMatchInlineSnapshot(`
+    expect(String(document)).toMatchInlineSnapshot(`
       mutation {
         updateOneUser(
           data: {
@@ -112,6 +123,9 @@ describe('minimal atomic update transformation', () => {
               divide: 4
             }
           }
+          where: {
+            email: "a@a.de"
+          }
         ) {
           id
           email
@@ -129,5 +143,7 @@ describe('minimal atomic update transformation', () => {
         }
       }
     `)
+
+    expect(() => document.validate(select, false)).not.toThrowError()
   })
 })
