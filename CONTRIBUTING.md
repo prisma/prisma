@@ -157,3 +157,24 @@ List of packages:
 - migrate
 - sdk
 - introspection
+
+# Graphs
+
+## To Generate/Update
+
+Install [GraphViz](http://graphviz.org/download/)
+```
+cd src
+ts-node scripts/graph-dependencies.ts
+```
+## Dependencies
+
+<img src="./graphs/dependencies.png">
+
+## Dev Dependencies
+
+<img src="./graphs/devDependencies.png">
+
+## Peer Dependencies
+
+<img src="./graphs/peerDependencies.png">
