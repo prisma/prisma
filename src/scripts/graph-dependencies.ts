@@ -13,8 +13,6 @@ const getDirectories = async (path: string) => {
   }))
   return result
 }
-const getPackageJSON = (packagePath: string) =>
-  require(join(packagePath, './package.json')) // tslint:disable-line
 
 const getKeys = (obj: any, name) => {
   if (obj && obj[name]) {
