@@ -1,5 +1,5 @@
 {
-  "version": "2.8.0-dev.3",
+  "version": "2.8.0-dev.21",
   "name": "@prisma/cli",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "2b4c3254badf30765f7839e350e4aa11a0842a8d",
-    "prismaCommit": "ae6e0f4fbfb669597f6f2d8cfe8ef1ba715d48bf"
+    "version": "16b2e7be003d50a60b7f0ebff88ae7e2c8caf863",
+    "prismaCommit": "05015ba2ba16c5e0b411ec761b4d605c0217e023"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,8 +68,8 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.289.0",
-    "@prisma/studio-server": "0.289.0",
+    "@prisma/studio": "0.291.0",
+    "@prisma/studio-server": "0.291.0",
     "@types/debug": "4.1.5",
     "@types/jest": "26.0.14",
     "@types/pg": "7.14.5",
@@ -109,7 +109,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.2.0",
+    "sqlite3": "4.1",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.7.0",
