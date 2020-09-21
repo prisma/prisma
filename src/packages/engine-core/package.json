@@ -15,15 +15,15 @@
     "eslint": "7.9.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.0.1",
+    "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.3.0",
     "jest": "26.4.2",
     "lint-staged": "10.4.0",
     "prettier": "2.1.2",
     "strip-ansi": "6.0.0",
-    "ts-jest": "26.3.0",
-    "typescript": "4.0.2"
+    "ts-jest": "26.4.0",
+    "typescript": "4.0.3"
   },
   "scripts": {
     "build": "tsc -d",
