@@ -41,7 +41,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
    yarn test:sqlite -t 'findOne where PK'
    ```
 
-### Developing Prisma Client JS
+## Developing Prisma Client JS
 
 1. `cd src/packages/client`
 1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
@@ -51,7 +51,11 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 1. `npx @prisma/cli migrate save --create-db --name init --experimental && npx @prisma/cli migrate up --experimental`
 1. `ts-node main`
 
-### Running integration tests for Prisma Client JS
+### Integration tests
+
+#### Running integration tests for Prisma Client JS
+
+The integration tests for Prisma Client js are located in [src/**tests**/integration](./src/packages/client/src/__tests__/integration).
 
 Start the test databases (see [readme](./src/docker) for various ways to run these)
 
@@ -61,20 +65,65 @@ Start the test databases (see [readme](./src/docker) for various ways to run the
 Start the tests
 
 1. `cd src/packages/cli`
-2. `pnpm run test`
+2. `pnpm run test integration`
 
 Notes:
 
 - To update the snapshots run script with Yarn and add `-u` flag like this: `yarn run test -u`
 - If on a patch branch then the latest engine binary patch version for that semver-minor series will be used. If not on a patch branch then the current `master` engine binary version will be used. A patch branch is a branch whose name matches semver pattern `2.<minor>.x`. The Test suite will log which engine binary is being used at the start of testing.
 
-### Working on code generation
+#### Creating a new integration test
+
+Prisma Client JS integration tests are located in https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration
+If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
+It will give you an in-memory Prisma Client instance to use in the test. It utilizes the [`getTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/src/packages/client/src/utils/getTestClient.ts#L23) helper method.
+
+Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case your friend is [`generatedTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/src/packages/client/src/utils/getTestClient.ts#L59). An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration/happy/blog)
+
+### Debugging a local project with your custom Prisma Client (aka `yarn link`)
+
+If you want to debug a project that you have on your local dev machine and run it with your local Prisma Client, we have something for you ;)
+The Prisma Client JS core authors need this all the time to debug projects, especially if databases like Postgres or MySQL are involved.
+
+Let's say your project that uses Prisma Client is located in `~/reproduction/repro1`. We got this fresh reproduction from a support engineer or a Prisma user.
+
+1. If you did not already, please go into `./src/packages/client` in your terminal.
+2. The magic script is located in `fixtures/generate.ts`. It has a couple of different modes in which it can run, depending on your needs.
+
+#### Basic Usage: `ts-node fixtures/generate.ts ~/reproduction/repro1`
+
+If you execute `ts-node fixtures/generate.ts ~/reproduction/repro1`, a Prisma Client will be generated to `~/reproduction/repro1/node_modules/.prisma/client` and `~/reproduction/repro1/node_modules/@prisma/client`.
+It is the nearest it gets to a "production" environment, in which it uses `npm pack` of your local `client` package. That means if you want to see any change in this approach, you need to run `yarn build` every time, before you re-generate the client for your reproduction project.
+Although `yarn build` is already quite quick, we might even have something faster for you:
+
+#### Faster iterations (TS only): `ts-node fixtures/generate.ts ~/reproduction/repro1 --skip-transpile`
+
+In this case, we're not generating the Prisma Client as usual into `./project/node_modules/@prisma/client` but just to `./project/@prisma/client`.
+That means in your project you need to change the import. What is the advantage of this approach? You don't need to run `yarn build` every time you have a change.
+Note however, that this **just works with TypeScript**, as that client in `./@prisma/client` directly imports the runtime from the `./src/runtime/` dir in your local client code.
+You will need to have a `tsconfig.json` in that project, with strict mode disabled. You can [use the one of the blog fixture project](./src/packages/client/fixtures/blog/tsconfig.json).
+
+#### Faster iterations (also JS): `ts-node fixtures/generate.ts ~/reproduction/repro1 --skip-transpile --built-runtime`
+
+There are also cases, in which you still want faster iterations, but have a JavaScript example and don't want to port it to TypeScript.
+In this case, you can still do `yarn build`, but you don't need to rerun `ts-node fixtures/generate.ts ...` all the time.
+It will be a client, that again gets generated to `./project/@prisma/client` (note that the node_modules is intentionally missing here) and points to the already built runtime dir in `./runtime` in the client code.
+
+With these 3 options you should be able to tackle any bug in any reproduction you get :)
+Note, that sometimes you need to debug bugs in the [`engine-core`](./src/packages/engine-core/) package.
+You'll need to build `engine-core` with `yarn build` if you want that change to end up in the reproduction project.
+
+### Code generation
+
+#### Working on code generation
 
 If you have your local blog fixture running, you can now do changes to `TSClient.ts` and re-execute `npx ts-node fixtures/generate.ts ./fixtures/blog/`.
 
 When doing changes and working on a fixture use `yarn build && rm -rf fixtures/blog/node_modules/ && ts-node fixtures/generate.ts fixtures/blog`
 
-### Working with the runtime
+### Runtime
+
+#### Working with the runtime
 
 If you want to use the local runtime in the blog fixture, run
 
@@ -83,6 +132,8 @@ ts-node fixtures/generate.ts ./fixtures/blog/ --local-runtime
 ```
 
 Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts`
+
+## Migrate
 
 ### Developing Prisma Migrate
 
@@ -108,7 +159,7 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 pnpm run download
 ```
 
-### Running the CI system locally
+## Running the CI system locally
 
 ```bash
 cd src/.buildkite/test
@@ -116,7 +167,7 @@ docker-compose up -d
 docker-compose logs -f app
 ```
 
-### Git Commit Messages
+## Git Commit Messages
 
 We structure our messages like this:
 
