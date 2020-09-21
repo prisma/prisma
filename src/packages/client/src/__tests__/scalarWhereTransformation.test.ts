@@ -351,7 +351,7 @@ describe('scalar where transformation', () => {
     }
   })
 
-  test.only('filter by enum', () => {
+  test('filter by enum', () => {
     const select = {
       where: {
         favoriteTree: {

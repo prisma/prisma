@@ -26,13 +26,11 @@ describe('at least one validation', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         findManyUser(where: {
-          OR: [
-            {
-              email: {
+          OR: {
+            email: {
 
-              }
             }
-          ]
+          }
         }) {
           id
           name
@@ -51,41 +49,41 @@ describe('at least one validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-                        Invalid \`prisma.users()\` invocation:
+                                Invalid \`prisma.users()\` invocation:
 
-                        {
-                          where: {
-                            OR: {
-                              email: {}
-                            }
-                            ~~~~~~~~~~~
-                          }
-                        }
+                                {
+                                  where: {
+                                    OR: {
+                                      email: {}
+                                    }
+                                    ~~~~~~~~~~~
+                                  }
+                                }
 
-                        Argument OR: Got invalid value 
-                        {
-                          email: {}
-                        }
-                        on prisma.findManyUser. Provided Json, expected List<UserWhereInput>:
-                        type UserWhereInput {
-                          AND?: UserWhereInput
-                          OR?: UserWhereInput
-                          NOT?: UserWhereInput
-                          id?: StringFilter | String
-                          name?: StringFilter | String
-                          email?: StringFilter | String
-                          status?: StringFilter | String
-                          nicknames?: StringNullableListFilter
-                          permissions?: EnumPermissionNullableListFilter
-                          favoriteTree?: EnumTreeFilter | Tree
-                          locationId?: IntFilter | Int
-                          location?: LocationRelationFilter | LocationWhereInput
-                          posts?: PostListRelationFilter
-                          someFloats?: FloatNullableListFilter
-                        }
+                                Argument OR: Got invalid value 
+                                {
+                                  email: {}
+                                }
+                                on prisma.findManyUser. Provided Json, expected List<UserWhereInput>:
+                                type UserWhereInput {
+                                  AND?: UserWhereInput
+                                  OR?: UserWhereInput
+                                  NOT?: UserWhereInput
+                                  id?: StringFilter | String
+                                  name?: StringFilter | String
+                                  email?: StringFilter | String
+                                  status?: StringFilter | String
+                                  nicknames?: StringNullableListFilter
+                                  permissions?: EnumPermissionNullableListFilter
+                                  favoriteTree?: EnumTreeFilter | Tree
+                                  locationId?: IntFilter | Int
+                                  location?: LocationRelationFilter | LocationWhereInput
+                                  posts?: PostListRelationFilter
+                                  someFloats?: FloatNullableListFilter
+                                }
 
 
-                  `)
+                        `)
     }
   })
   test('valid or query', () => {
