@@ -77,18 +77,8 @@ Invalid \`prisma.user()\` invocation:
 {
   data: {
     likedArticles: {
-?     create?: {
-?       id: Int,
-?       url: String,
-?       title: String,
-?       content: String,
-?       date: DateTime,
-?       link: LinkCreateOneWithoutArticleInput
-?     },
-?     connect?: {
-?       id?: Int,
-?       url?: String
-?     }
+?     create?: ArticleCreateWithoutLikedByInput | ArticleCreateWithoutLikedByInput[],
+?     connect?: ArticleWhereUniqueInput | ArticleWhereUniqueInput[]
     }
   }
 }
@@ -105,20 +95,20 @@ Invalid \`prisma.user()\` invocation:
 
 {
 + data: {
-+   id?: Int,
-+   name?: String,
-+   email?: String
++   id?: Int | IntFieldUpdateOperationsInput,
++   name?: String | StringFieldUpdateOperationsInput,
++   email?: String | StringFieldUpdateOperationsInput
 + },
 ? where?: {
-?   AND?: UserWhereInput,
-?   OR?: UserWhereInput,
-?   NOT?: UserWhereInput,
-?   id?: IntFilter,
-?   name?: StringFilter,
-?   email?: StringFilter,
+?   AND?: UserWhereInput | UserWhereInput,
+?   OR?: UserWhereInput | UserWhereInput,
+?   NOT?: UserWhereInput | UserWhereInput,
+?   id?: IntFilter | Int,
+?   name?: StringFilter | String,
+?   email?: StringFilter | String,
 ?   likedArticles?: ArticleListRelationFilter,
-?   personaId?: IntFilter,
-?   persona?: PersonaRelationFilter
+?   personaId?: IntFilter | Int,
+?   persona?: PersonaRelationFilter | PersonaWhereInput
 ? }
 }
 
@@ -145,9 +135,9 @@ Invalid \`prisma.user()\` invocation:
 +   persona: PersonaCreateOneWithoutUserInput
 + },
 + update: {
-+   id?: Int,
-+   name?: String,
-+   email?: String,
++   id?: Int | IntFieldUpdateOperationsInput,
++   name?: String | StringFieldUpdateOperationsInput,
++   email?: String | StringFieldUpdateOperationsInput,
 +   likedArticles?: ArticleUpdateManyWithoutLikedByInput,
 +   persona?: PersonaUpdateOneRequiredWithoutUserInput
 + }

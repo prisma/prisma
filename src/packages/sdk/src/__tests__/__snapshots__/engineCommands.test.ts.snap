@@ -311,6 +311,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -323,6 +328,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -334,6 +344,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -2198,6 +2213,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereInput",
@@ -2210,6 +2230,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereInput",
@@ -2221,6 +2246,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -2406,6 +2436,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -2418,6 +2453,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -2429,6 +2469,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -2563,6 +2608,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User1WhereInput",
@@ -2575,6 +2625,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User1WhereInput",
@@ -2586,6 +2641,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -2754,6 +2814,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User2WhereInput",
@@ -2766,6 +2831,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User2WhereInput",
@@ -2777,6 +2847,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4289,6 +4364,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateWithoutAuthorInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostCreateWithoutAuthorInput",
@@ -4300,6 +4380,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4322,6 +4407,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateWithoutAuthorInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostCreateWithoutAuthorInput",
@@ -4333,6 +4423,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4346,6 +4441,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereUniqueInput",
@@ -4357,6 +4457,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4370,6 +4475,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereUniqueInput",
@@ -4381,6 +4491,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostUpdateWithWhereUniqueWithoutAuthorInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4394,22 +4509,27 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
-                "isList": true,
+                "isList": false,
                 "kind": "object",
                 "type": "PostUpdateManyWithWhereNestedInput",
               },
               Object {
-                "isList": false,
-                "kind": "scalar",
-                "type": "Null",
+                "isList": true,
+                "kind": "object",
+                "type": "PostUpdateManyWithWhereNestedInput",
               },
             ],
-            "isNullable": true,
+            "isNullable": false,
             "isRequired": false,
             "name": "updateMany",
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4422,6 +4542,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -4929,6 +5054,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostScalarWhereInput",
@@ -4941,6 +5071,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostScalarWhereInput",
@@ -4952,6 +5087,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -8133,6 +8273,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereInput",
@@ -8145,6 +8290,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereInput",
@@ -8156,6 +8306,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -8341,6 +8496,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -8353,6 +8513,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "UserWhereInput",
@@ -8364,6 +8529,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -8498,6 +8668,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User1WhereInput",
@@ -8510,6 +8685,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User1WhereInput",
@@ -8521,6 +8701,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User1WhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -8689,6 +8874,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User2WhereInput",
@@ -8701,6 +8891,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "User2WhereInput",
@@ -8712,6 +8907,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "User2WhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10248,6 +10448,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateWithoutAuthorInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostCreateWithoutAuthorInput",
@@ -10260,6 +10465,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereUniqueInput",
@@ -10271,6 +10481,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10293,6 +10508,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateWithoutAuthorInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostCreateWithoutAuthorInput",
@@ -10304,6 +10524,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10317,6 +10542,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereUniqueInput",
@@ -10328,6 +10558,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10341,6 +10576,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostWhereUniqueInput",
@@ -10352,6 +10592,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostUpdateWithWhereUniqueWithoutAuthorInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10365,22 +10610,27 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
-                "isList": true,
+                "isList": false,
                 "kind": "object",
                 "type": "PostUpdateManyWithWhereNestedInput",
               },
               Object {
-                "isList": false,
-                "kind": "scalar",
-                "type": "Null",
+                "isList": true,
+                "kind": "object",
+                "type": "PostUpdateManyWithWhereNestedInput",
               },
             ],
-            "isNullable": true,
+            "isNullable": false,
             "isRequired": false,
             "name": "updateMany",
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10394,6 +10644,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
@@ -10405,6 +10660,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -10978,6 +11238,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostScalarWhereInput",
@@ -10990,6 +11255,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "PostScalarWhereInput",
@@ -11001,6 +11271,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostScalarWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",
@@ -13744,11 +14019,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `56514706`;
+exports[`getDMMF big schema 1`] = `57434428`;
 
-exports[`getDMMF chinook introspected schema 1`] = `355733`;
+exports[`getDMMF chinook introspected schema 1`] = `367903`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `371647`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `385737`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -13913,6 +14188,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "AWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "AWhereInput",
@@ -13925,6 +14205,11 @@ Object {
           Object {
             "inputTypes": Array [
               Object {
+                "isList": false,
+                "kind": "object",
+                "type": "AWhereInput",
+              },
+              Object {
                 "isList": true,
                 "kind": "object",
                 "type": "AWhereInput",
@@ -13936,6 +14221,11 @@ Object {
           },
           Object {
             "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "AWhereInput",
+              },
               Object {
                 "isList": true,
                 "kind": "object",

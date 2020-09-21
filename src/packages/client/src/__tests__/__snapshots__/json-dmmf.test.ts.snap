@@ -11,6 +11,11 @@ Array [
       Object {
         inputTypes: Array [
           Object {
+            isList: false,
+            kind: object,
+            type: UserWhereInput,
+          },
+          Object {
             isList: true,
             kind: object,
             type: UserWhereInput,
@@ -23,6 +28,11 @@ Array [
       Object {
         inputTypes: Array [
           Object {
+            isList: false,
+            kind: object,
+            type: UserWhereInput,
+          },
+          Object {
             isList: true,
             kind: object,
             type: UserWhereInput,
@@ -34,6 +44,11 @@ Array [
       },
       Object {
         inputTypes: Array [
+          Object {
+            isList: false,
+            kind: object,
+            type: UserWhereInput,
+          },
           Object {
             isList: true,
             kind: object,

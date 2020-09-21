@@ -19,7 +19,6 @@ function getTransformedDocument(select) {
 describe('minimal update transformation', () => {
   beforeAll(async () => {
     dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
-    debugger
   })
 
   test('set null values', () => {
