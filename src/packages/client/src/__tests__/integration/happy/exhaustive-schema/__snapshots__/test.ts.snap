@@ -703,7 +703,7 @@ export type PostMaxAggregateInputType = {
 
 export type AggregatePostArgs = {
   where?: PostWhereInput
-  orderBy?: Enumerable<PostOrderByInput>
+  orderBy?: Enumerable<PostOrderByInput | PostOrderByInput>
   cursor?: PostWhereUniqueInput
   take?: number
   skip?: number
@@ -964,11 +964,11 @@ export type FindOnePostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * Filter, which Post to fetch.
   **/
@@ -983,11 +983,11 @@ export type FindManyPostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * Filter, which Posts to fetch.
   **/
@@ -995,7 +995,7 @@ export type FindManyPostArgs = {
   /**
    * Determine the order of the Posts to fetch.
   **/
-  orderBy?: Enumerable<PostOrderByInput>
+  orderBy?: Enumerable<PostOrderByInput | PostOrderByInput>
   /**
    * Sets the position for listing Posts.
   **/
@@ -1019,11 +1019,11 @@ export type PostCreateArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * The data needed to create a Post.
   **/
@@ -1038,11 +1038,11 @@ export type PostUpdateArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * The data needed to update a Post.
   **/
@@ -1070,11 +1070,11 @@ export type PostUpsertArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * The filter to search for the Post to update in case it exists.
   **/
@@ -1097,11 +1097,11 @@ export type PostDeleteArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
   /**
    * Filter which Post to delete.
   **/
@@ -1124,11 +1124,11 @@ export type PostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: PostSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: PostInclude
 }
 
 
@@ -1166,9 +1166,9 @@ export type AggregateUser = {
 export type UserAvgAggregateOutputType = {
   id: number
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type UserSumAggregateOutputType = {
@@ -1230,7 +1230,7 @@ export type UserMaxAggregateInputType = {
 
 export type AggregateUserArgs = {
   where?: UserWhereInput
-  orderBy?: Enumerable<UserOrderByInput>
+  orderBy?: Enumerable<UserOrderByInput | UserOrderByInput>
   cursor?: UserWhereUniqueInput
   take?: number
   skip?: number
@@ -1499,11 +1499,11 @@ export type FindOneUserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * Filter, which User to fetch.
   **/
@@ -1518,11 +1518,11 @@ export type FindManyUserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * Filter, which Users to fetch.
   **/
@@ -1530,7 +1530,7 @@ export type FindManyUserArgs = {
   /**
    * Determine the order of the Users to fetch.
   **/
-  orderBy?: Enumerable<UserOrderByInput>
+  orderBy?: Enumerable<UserOrderByInput | UserOrderByInput>
   /**
    * Sets the position for listing Users.
   **/
@@ -1554,11 +1554,11 @@ export type UserCreateArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * The data needed to create a User.
   **/
@@ -1573,11 +1573,11 @@ export type UserUpdateArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * The data needed to update a User.
   **/
@@ -1605,11 +1605,11 @@ export type UserUpsertArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * The filter to search for the User to update in case it exists.
   **/
@@ -1632,11 +1632,11 @@ export type UserDeleteArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
   /**
    * Filter which User to delete.
   **/
@@ -1659,11 +1659,11 @@ export type UserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: UserSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: UserInclude
 }
 
 
@@ -1700,9 +1700,9 @@ export type AggregateM = {
 export type MAvgAggregateOutputType = {
   id: number
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type MSumAggregateOutputType = {
@@ -1764,7 +1764,7 @@ export type MMaxAggregateInputType = {
 
 export type AggregateMArgs = {
   where?: MWhereInput
-  orderBy?: Enumerable<MOrderByInput>
+  orderBy?: Enumerable<MOrderByInput | MOrderByInput>
   cursor?: MWhereUniqueInput
   take?: number
   skip?: number
@@ -2032,11 +2032,11 @@ export type FindOneMArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * Filter, which M to fetch.
   **/
@@ -2051,11 +2051,11 @@ export type FindManyMArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * Filter, which MS to fetch.
   **/
@@ -2063,7 +2063,7 @@ export type FindManyMArgs = {
   /**
    * Determine the order of the MS to fetch.
   **/
-  orderBy?: Enumerable<MOrderByInput>
+  orderBy?: Enumerable<MOrderByInput | MOrderByInput>
   /**
    * Sets the position for listing MS.
   **/
@@ -2087,11 +2087,11 @@ export type MCreateArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * The data needed to create a M.
   **/
@@ -2106,11 +2106,11 @@ export type MUpdateArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * The data needed to update a M.
   **/
@@ -2138,11 +2138,11 @@ export type MUpsertArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * The filter to search for the M to update in case it exists.
   **/
@@ -2165,11 +2165,11 @@ export type MDeleteArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
   /**
    * Filter which M to delete.
   **/
@@ -2192,11 +2192,11 @@ export type MArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: MSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: MInclude
 }
 
 
@@ -2233,9 +2233,9 @@ export type AggregateN = {
 export type NAvgAggregateOutputType = {
   id: number
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type NSumAggregateOutputType = {
@@ -2297,7 +2297,7 @@ export type NMaxAggregateInputType = {
 
 export type AggregateNArgs = {
   where?: NWhereInput
-  orderBy?: Enumerable<NOrderByInput>
+  orderBy?: Enumerable<NOrderByInput | NOrderByInput>
   cursor?: NWhereUniqueInput
   take?: number
   skip?: number
@@ -2565,11 +2565,11 @@ export type FindOneNArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * Filter, which N to fetch.
   **/
@@ -2584,11 +2584,11 @@ export type FindManyNArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * Filter, which NS to fetch.
   **/
@@ -2596,7 +2596,7 @@ export type FindManyNArgs = {
   /**
    * Determine the order of the NS to fetch.
   **/
-  orderBy?: Enumerable<NOrderByInput>
+  orderBy?: Enumerable<NOrderByInput | NOrderByInput>
   /**
    * Sets the position for listing NS.
   **/
@@ -2620,11 +2620,11 @@ export type NCreateArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * The data needed to create a N.
   **/
@@ -2639,11 +2639,11 @@ export type NUpdateArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * The data needed to update a N.
   **/
@@ -2671,11 +2671,11 @@ export type NUpsertArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * The filter to search for the N to update in case it exists.
   **/
@@ -2698,11 +2698,11 @@ export type NDeleteArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
   /**
    * Filter which N to delete.
   **/
@@ -2725,11 +2725,11 @@ export type NArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: NSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: NInclude
 }
 
 
@@ -2766,9 +2766,9 @@ export type AggregateOneOptional = {
 export type OneOptionalAvgAggregateOutputType = {
   id: number
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type OneOptionalSumAggregateOutputType = {
@@ -2830,7 +2830,7 @@ export type OneOptionalMaxAggregateInputType = {
 
 export type AggregateOneOptionalArgs = {
   where?: OneOptionalWhereInput
-  orderBy?: Enumerable<OneOptionalOrderByInput>
+  orderBy?: Enumerable<OneOptionalOrderByInput | OneOptionalOrderByInput>
   cursor?: OneOptionalWhereUniqueInput
   take?: number
   skip?: number
@@ -3098,11 +3098,11 @@ export type FindOneOneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * Filter, which OneOptional to fetch.
   **/
@@ -3117,11 +3117,11 @@ export type FindManyOneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * Filter, which OneOptionals to fetch.
   **/
@@ -3129,7 +3129,7 @@ export type FindManyOneOptionalArgs = {
   /**
    * Determine the order of the OneOptionals to fetch.
   **/
-  orderBy?: Enumerable<OneOptionalOrderByInput>
+  orderBy?: Enumerable<OneOptionalOrderByInput | OneOptionalOrderByInput>
   /**
    * Sets the position for listing OneOptionals.
   **/
@@ -3153,11 +3153,11 @@ export type OneOptionalCreateArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * The data needed to create a OneOptional.
   **/
@@ -3172,11 +3172,11 @@ export type OneOptionalUpdateArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * The data needed to update a OneOptional.
   **/
@@ -3204,11 +3204,11 @@ export type OneOptionalUpsertArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * The filter to search for the OneOptional to update in case it exists.
   **/
@@ -3231,11 +3231,11 @@ export type OneOptionalDeleteArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
   /**
    * Filter which OneOptional to delete.
   **/
@@ -3258,11 +3258,11 @@ export type OneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: OneOptionalSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: OneOptionalInclude
 }
 
 
@@ -3299,11 +3299,11 @@ export type AggregateManyRequired = {
 
 export type ManyRequiredAvgAggregateOutputType = {
   id: number
-  oneOptionalId: number
+  oneOptionalId: number | null
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type ManyRequiredSumAggregateOutputType = {
@@ -3372,7 +3372,7 @@ export type ManyRequiredMaxAggregateInputType = {
 
 export type AggregateManyRequiredArgs = {
   where?: ManyRequiredWhereInput
-  orderBy?: Enumerable<ManyRequiredOrderByInput>
+  orderBy?: Enumerable<ManyRequiredOrderByInput | ManyRequiredOrderByInput>
   cursor?: ManyRequiredWhereUniqueInput
   take?: number
   skip?: number
@@ -3428,14 +3428,14 @@ export type ManyRequiredGetPayload<
     ? ManyRequired  & {
       [P in TrueKeys<S['include']>]:
       P extends 'one'
-      ? OneOptionalGetPayload<S['include'][P]> | null : never
+      ? OneOptionalGetPayload<S['include'][P]> : never
     }
   : 'select' extends U
     ? {
       [P in TrueKeys<S['select']>]:P extends keyof ManyRequired ? ManyRequired[P]
 : 
       P extends 'one'
-      ? OneOptionalGetPayload<S['select'][P]> | null : never
+      ? OneOptionalGetPayload<S['select'][P]> : never
     }
   : ManyRequired
 : ManyRequired
@@ -3641,11 +3641,11 @@ export type FindOneManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * Filter, which ManyRequired to fetch.
   **/
@@ -3660,11 +3660,11 @@ export type FindManyManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * Filter, which ManyRequireds to fetch.
   **/
@@ -3672,7 +3672,7 @@ export type FindManyManyRequiredArgs = {
   /**
    * Determine the order of the ManyRequireds to fetch.
   **/
-  orderBy?: Enumerable<ManyRequiredOrderByInput>
+  orderBy?: Enumerable<ManyRequiredOrderByInput | ManyRequiredOrderByInput>
   /**
    * Sets the position for listing ManyRequireds.
   **/
@@ -3696,11 +3696,11 @@ export type ManyRequiredCreateArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * The data needed to create a ManyRequired.
   **/
@@ -3715,11 +3715,11 @@ export type ManyRequiredUpdateArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * The data needed to update a ManyRequired.
   **/
@@ -3747,11 +3747,11 @@ export type ManyRequiredUpsertArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * The filter to search for the ManyRequired to update in case it exists.
   **/
@@ -3774,11 +3774,11 @@ export type ManyRequiredDeleteArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
   /**
    * Filter which ManyRequired to delete.
   **/
@@ -3801,11 +3801,11 @@ export type ManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: ManyRequiredSelect
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: ManyRequiredInclude
 }
 
 
@@ -3842,11 +3842,11 @@ export type AggregateOptionalSide1 = {
 
 export type OptionalSide1AvgAggregateOutputType = {
   id: number
-  optionalSide2Id: number
+  optionalSide2Id: number | null
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type OptionalSide1SumAggregateOutputType = {
@@ -3915,7 +3915,7 @@ export type OptionalSide1MaxAggregateInputType = {
 
 export type AggregateOptionalSide1Args = {
   where?: OptionalSide1WhereInput
-  orderBy?: Enumerable<OptionalSide1OrderByInput>
+  orderBy?: Enumerable<OptionalSide1OrderByInput | OptionalSide1OrderByInput>
   cursor?: OptionalSide1WhereUniqueInput
   take?: number
   skip?: number
@@ -3971,14 +3971,14 @@ export type OptionalSide1GetPayload<
     ? OptionalSide1  & {
       [P in TrueKeys<S['include']>]:
       P extends 'opti'
-      ? OptionalSide2GetPayload<S['include'][P]> | null : never
+      ? OptionalSide2GetPayload<S['include'][P]> : never
     }
   : 'select' extends U
     ? {
       [P in TrueKeys<S['select']>]:P extends keyof OptionalSide1 ? OptionalSide1[P]
 : 
       P extends 'opti'
-      ? OptionalSide2GetPayload<S['select'][P]> | null : never
+      ? OptionalSide2GetPayload<S['select'][P]> : never
     }
   : OptionalSide1
 : OptionalSide1
@@ -4184,11 +4184,11 @@ export type FindOneOptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * Filter, which OptionalSide1 to fetch.
   **/
@@ -4203,11 +4203,11 @@ export type FindManyOptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * Filter, which OptionalSide1s to fetch.
   **/
@@ -4215,7 +4215,7 @@ export type FindManyOptionalSide1Args = {
   /**
    * Determine the order of the OptionalSide1s to fetch.
   **/
-  orderBy?: Enumerable<OptionalSide1OrderByInput>
+  orderBy?: Enumerable<OptionalSide1OrderByInput | OptionalSide1OrderByInput>
   /**
    * Sets the position for listing OptionalSide1s.
   **/
@@ -4239,11 +4239,11 @@ export type OptionalSide1CreateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * The data needed to create a OptionalSide1.
   **/
@@ -4258,11 +4258,11 @@ export type OptionalSide1UpdateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * The data needed to update a OptionalSide1.
   **/
@@ -4290,11 +4290,11 @@ export type OptionalSide1UpsertArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * The filter to search for the OptionalSide1 to update in case it exists.
   **/
@@ -4317,11 +4317,11 @@ export type OptionalSide1DeleteArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
   /**
    * Filter which OptionalSide1 to delete.
   **/
@@ -4344,11 +4344,11 @@ export type OptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: OptionalSide1Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: OptionalSide1Include
 }
 
 
@@ -4385,9 +4385,9 @@ export type AggregateOptionalSide2 = {
 export type OptionalSide2AvgAggregateOutputType = {
   id: number
   int: number
-  optionalInt: number
+  optionalInt: number | null
   float: number
-  optionalFloat: number
+  optionalFloat: number | null
 }
 
 export type OptionalSide2SumAggregateOutputType = {
@@ -4449,7 +4449,7 @@ export type OptionalSide2MaxAggregateInputType = {
 
 export type AggregateOptionalSide2Args = {
   where?: OptionalSide2WhereInput
-  orderBy?: Enumerable<OptionalSide2OrderByInput>
+  orderBy?: Enumerable<OptionalSide2OrderByInput | OptionalSide2OrderByInput>
   cursor?: OptionalSide2WhereUniqueInput
   take?: number
   skip?: number
@@ -4504,14 +4504,14 @@ export type OptionalSide2GetPayload<
     ? OptionalSide2  & {
       [P in TrueKeys<S['include']>]:
       P extends 'opti'
-      ? OptionalSide1GetPayload<S['include'][P]> | null : never
+      ? OptionalSide1GetPayload<S['include'][P]> : never
     }
   : 'select' extends U
     ? {
       [P in TrueKeys<S['select']>]:P extends keyof OptionalSide2 ? OptionalSide2[P]
 : 
       P extends 'opti'
-      ? OptionalSide1GetPayload<S['select'][P]> | null : never
+      ? OptionalSide1GetPayload<S['select'][P]> : never
     }
   : OptionalSide2
 : OptionalSide2
@@ -4717,11 +4717,11 @@ export type FindOneOptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * Filter, which OptionalSide2 to fetch.
   **/
@@ -4736,11 +4736,11 @@ export type FindManyOptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * Filter, which OptionalSide2s to fetch.
   **/
@@ -4748,7 +4748,7 @@ export type FindManyOptionalSide2Args = {
   /**
    * Determine the order of the OptionalSide2s to fetch.
   **/
-  orderBy?: Enumerable<OptionalSide2OrderByInput>
+  orderBy?: Enumerable<OptionalSide2OrderByInput | OptionalSide2OrderByInput>
   /**
    * Sets the position for listing OptionalSide2s.
   **/
@@ -4772,11 +4772,11 @@ export type OptionalSide2CreateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * The data needed to create a OptionalSide2.
   **/
@@ -4791,11 +4791,11 @@ export type OptionalSide2UpdateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * The data needed to update a OptionalSide2.
   **/
@@ -4823,11 +4823,11 @@ export type OptionalSide2UpsertArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * The filter to search for the OptionalSide2 to update in case it exists.
   **/
@@ -4850,11 +4850,11 @@ export type OptionalSide2DeleteArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
   /**
    * Filter which OptionalSide2 to delete.
   **/
@@ -4877,11 +4877,11 @@ export type OptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: OptionalSide2Select
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: OptionalSide2Include
 }
 
 
@@ -4892,16 +4892,16 @@ export type OptionalSide2Args = {
 
 
 export type PostWhereInput = {
-  AND?: Enumerable<PostWhereInput>
-  OR?: Array<PostWhereInput>
-  NOT?: Enumerable<PostWhereInput>
-  id?: number | IntFilter
-  createdAt?: Date | string | DateTimeFilter
-  title?: string | StringFilter
-  content?: string | StringNullableFilter | null
-  published?: boolean | BoolFilter
-  author?: UserWhereInput | null
-  authorId?: number | IntFilter
+  AND?: PostWhereInput | PostWhereInput
+  OR?: PostWhereInput | PostWhereInput
+  NOT?: PostWhereInput | PostWhereInput
+  id?: IntFilter | number
+  createdAt?: DateTimeFilter | Date | string
+  title?: StringFilter | string
+  content?: StringNullableFilter | string | null
+  published?: BoolFilter | boolean
+  author?: UserRelationFilter | UserWhereInput
+  authorId?: IntFilter | number
 }
 
 export type PostOrderByInput = {
@@ -4918,23 +4918,23 @@ export type PostWhereUniqueInput = {
 }
 
 export type UserWhereInput = {
-  AND?: Enumerable<UserWhereInput>
-  OR?: Array<UserWhereInput>
-  NOT?: Enumerable<UserWhereInput>
-  id?: number | IntFilter
-  email?: string | StringFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: UserWhereInput | UserWhereInput
+  OR?: UserWhereInput | UserWhereInput
+  NOT?: UserWhereInput | UserWhereInput
+  id?: IntFilter | number
+  email?: StringFilter | string
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
   posts?: PostListRelationFilter
 }
 
@@ -4961,23 +4961,23 @@ export type UserWhereUniqueInput = {
 }
 
 export type MWhereInput = {
-  AND?: Enumerable<MWhereInput>
-  OR?: Array<MWhereInput>
-  NOT?: Enumerable<MWhereInput>
-  id?: number | IntFilter
+  AND?: MWhereInput | MWhereInput
+  OR?: MWhereInput | MWhereInput
+  NOT?: MWhereInput | MWhereInput
+  id?: IntFilter | number
   n?: NListRelationFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type MOrderByInput = {
@@ -5001,23 +5001,23 @@ export type MWhereUniqueInput = {
 }
 
 export type NWhereInput = {
-  AND?: Enumerable<NWhereInput>
-  OR?: Array<NWhereInput>
-  NOT?: Enumerable<NWhereInput>
-  id?: number | IntFilter
+  AND?: NWhereInput | NWhereInput
+  OR?: NWhereInput | NWhereInput
+  NOT?: NWhereInput | NWhereInput
+  id?: IntFilter | number
   m?: MListRelationFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type NOrderByInput = {
@@ -5041,23 +5041,23 @@ export type NWhereUniqueInput = {
 }
 
 export type OneOptionalWhereInput = {
-  AND?: Enumerable<OneOptionalWhereInput>
-  OR?: Array<OneOptionalWhereInput>
-  NOT?: Enumerable<OneOptionalWhereInput>
-  id?: number | IntFilter
+  AND?: OneOptionalWhereInput | OneOptionalWhereInput
+  OR?: OneOptionalWhereInput | OneOptionalWhereInput
+  NOT?: OneOptionalWhereInput | OneOptionalWhereInput
+  id?: IntFilter | number
   many?: ManyRequiredListRelationFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type OneOptionalOrderByInput = {
@@ -5081,24 +5081,24 @@ export type OneOptionalWhereUniqueInput = {
 }
 
 export type ManyRequiredWhereInput = {
-  AND?: Enumerable<ManyRequiredWhereInput>
-  OR?: Array<ManyRequiredWhereInput>
-  NOT?: Enumerable<ManyRequiredWhereInput>
-  id?: number | IntFilter
-  one?: OneOptionalWhereInput | null
-  oneOptionalId?: number | IntNullableFilter | null
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: ManyRequiredWhereInput | ManyRequiredWhereInput
+  OR?: ManyRequiredWhereInput | ManyRequiredWhereInput
+  NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput
+  id?: IntFilter | number
+  one?: OneOptionalRelationFilter | OneOptionalWhereInput | null
+  oneOptionalId?: IntNullableFilter | number | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type ManyRequiredOrderByInput = {
@@ -5123,24 +5123,24 @@ export type ManyRequiredWhereUniqueInput = {
 }
 
 export type OptionalSide1WhereInput = {
-  AND?: Enumerable<OptionalSide1WhereInput>
-  OR?: Array<OptionalSide1WhereInput>
-  NOT?: Enumerable<OptionalSide1WhereInput>
-  id?: number | IntFilter
-  opti?: OptionalSide2WhereInput | null
-  optionalSide2Id?: number | IntNullableFilter | null
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: OptionalSide1WhereInput | OptionalSide1WhereInput
+  OR?: OptionalSide1WhereInput | OptionalSide1WhereInput
+  NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput
+  id?: IntFilter | number
+  opti?: OptionalSide2RelationFilter | OptionalSide2WhereInput | null
+  optionalSide2Id?: IntNullableFilter | number | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type OptionalSide1OrderByInput = {
@@ -5165,23 +5165,23 @@ export type OptionalSide1WhereUniqueInput = {
 }
 
 export type OptionalSide2WhereInput = {
-  AND?: Enumerable<OptionalSide2WhereInput>
-  OR?: Array<OptionalSide2WhereInput>
-  NOT?: Enumerable<OptionalSide2WhereInput>
-  id?: number | IntFilter
-  opti?: OptionalSide1WhereInput | null
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: OptionalSide2WhereInput | OptionalSide2WhereInput
+  OR?: OptionalSide2WhereInput | OptionalSide2WhereInput
+  NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput
+  id?: IntFilter | number
+  opti?: OptionalSide1RelationFilter | OptionalSide1WhereInput | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type OptionalSide2OrderByInput = {
@@ -5598,15 +5598,15 @@ export type StringFilter = {
 
 export type StringNullableFilter = {
   equals?: string | null
-  in?: Enumerable<string> | null
-  notIn?: Enumerable<string> | null
-  lt?: string | null
-  lte?: string | null
-  gt?: string | null
-  gte?: string | null
-  contains?: string | null
-  startsWith?: string | null
-  endsWith?: string | null
+  in?: Enumerable<string | null>
+  notIn?: Enumerable<string | null>
+  lt?: string
+  lte?: string
+  gt?: string
+  gte?: string
+  contains?: string
+  startsWith?: string
+  endsWith?: string
   mode?: QueryMode
   not?: string | NestedStringNullableFilter | null
 }
@@ -5617,18 +5617,18 @@ export type BoolFilter = {
 }
 
 export type UserRelationFilter = {
-  is?: UserWhereInput | null
-  isNot?: UserWhereInput | null
+  is?: UserWhereInput
+  isNot?: UserWhereInput
 }
 
 export type IntNullableFilter = {
   equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
-  lt?: number | null
-  lte?: number | null
-  gt?: number | null
-  gte?: number | null
+  in?: Enumerable<number | null>
+  notIn?: Enumerable<number | null>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
   not?: number | NestedIntNullableFilter | null
 }
 
@@ -5645,18 +5645,18 @@ export type FloatFilter = {
 
 export type FloatNullableFilter = {
   equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
-  lt?: number | null
-  lte?: number | null
-  gt?: number | null
-  gte?: number | null
+  in?: Enumerable<number | null>
+  notIn?: Enumerable<number | null>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
   not?: number | NestedFloatNullableFilter | null
 }
 
 export type JsonFilter = {
   equals?: InputJsonValue
-  not?: InputJsonValue | NestedJsonFilter
+  not?: InputJsonValue
 }
 
 export type JsonNullableFilter = {
@@ -5673,8 +5673,8 @@ export type EnumABeautifulEnumFilter = {
 
 export type EnumABeautifulEnumNullableFilter = {
   equals?: ABeautifulEnum | null
-  in?: Enumerable<ABeautifulEnum> | null
-  notIn?: Enumerable<ABeautifulEnum> | null
+  in?: Enumerable<ABeautifulEnum | null>
+  notIn?: Enumerable<ABeautifulEnum | null>
   not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
 }
 
@@ -5751,8 +5751,8 @@ export type UserUpdateOneRequiredWithoutPostsInput = {
 }
 
 export type PostCreateManyWithoutAuthorInput = {
-  create?: Enumerable<PostCreateWithoutAuthorInput>
-  connect?: Enumerable<PostWhereUniqueInput>
+  create?: PostCreateWithoutAuthorInput | PostCreateWithoutAuthorInput
+  connect?: PostWhereUniqueInput | PostWhereUniqueInput
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -5771,14 +5771,6 @@ export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
 }
 
-export type JsonFieldUpdateOperationsInput = {
-  set?: InputJsonValue
-}
-
-export type NullableJsonFieldUpdateOperationsInput = {
-  set?: InputJsonValue | null
-}
-
 export type EnumABeautifulEnumFieldUpdateOperationsInput = {
   set?: ABeautifulEnum
 }
@@ -5792,66 +5784,66 @@ export type NullableBoolFieldUpdateOperationsInput = {
 }
 
 export type PostUpdateManyWithoutAuthorInput = {
-  create?: Enumerable<PostCreateWithoutAuthorInput>
-  connect?: Enumerable<PostWhereUniqueInput>
-  set?: Enumerable<PostWhereUniqueInput>
-  disconnect?: Enumerable<PostWhereUniqueInput>
-  delete?: Enumerable<PostWhereUniqueInput>
-  update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
-  updateMany?: Enumerable<PostUpdateManyWithWhereNestedInput> | null
-  deleteMany?: Enumerable<PostScalarWhereInput>
-  upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
+  create?: PostCreateWithoutAuthorInput | PostCreateWithoutAuthorInput
+  connect?: PostWhereUniqueInput | PostWhereUniqueInput
+  set?: PostWhereUniqueInput | PostWhereUniqueInput
+  disconnect?: PostWhereUniqueInput | PostWhereUniqueInput
+  delete?: PostWhereUniqueInput | PostWhereUniqueInput
+  update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput
+  updateMany?: PostUpdateManyWithWhereNestedInput | PostUpdateManyWithWhereNestedInput
+  deleteMany?: PostScalarWhereInput | PostScalarWhereInput
+  upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput
 }
 
 export type NCreateManyWithoutMInput = {
-  create?: Enumerable<NCreateWithoutMInput>
-  connect?: Enumerable<NWhereUniqueInput>
+  create?: NCreateWithoutMInput | NCreateWithoutMInput
+  connect?: NWhereUniqueInput | NWhereUniqueInput
 }
 
 export type NUpdateManyWithoutMInput = {
-  create?: Enumerable<NCreateWithoutMInput>
-  connect?: Enumerable<NWhereUniqueInput>
-  set?: Enumerable<NWhereUniqueInput>
-  disconnect?: Enumerable<NWhereUniqueInput>
-  delete?: Enumerable<NWhereUniqueInput>
-  update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
-  updateMany?: Enumerable<NUpdateManyWithWhereNestedInput> | null
-  deleteMany?: Enumerable<NScalarWhereInput>
-  upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
+  create?: NCreateWithoutMInput | NCreateWithoutMInput
+  connect?: NWhereUniqueInput | NWhereUniqueInput
+  set?: NWhereUniqueInput | NWhereUniqueInput
+  disconnect?: NWhereUniqueInput | NWhereUniqueInput
+  delete?: NWhereUniqueInput | NWhereUniqueInput
+  update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput
+  updateMany?: NUpdateManyWithWhereNestedInput | NUpdateManyWithWhereNestedInput
+  deleteMany?: NScalarWhereInput | NScalarWhereInput
+  upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput
 }
 
 export type MCreateManyWithoutNInput = {
-  create?: Enumerable<MCreateWithoutNInput>
-  connect?: Enumerable<MWhereUniqueInput>
+  create?: MCreateWithoutNInput | MCreateWithoutNInput
+  connect?: MWhereUniqueInput | MWhereUniqueInput
 }
 
 export type MUpdateManyWithoutNInput = {
-  create?: Enumerable<MCreateWithoutNInput>
-  connect?: Enumerable<MWhereUniqueInput>
-  set?: Enumerable<MWhereUniqueInput>
-  disconnect?: Enumerable<MWhereUniqueInput>
-  delete?: Enumerable<MWhereUniqueInput>
-  update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
-  updateMany?: Enumerable<MUpdateManyWithWhereNestedInput> | null
-  deleteMany?: Enumerable<MScalarWhereInput>
-  upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
+  create?: MCreateWithoutNInput | MCreateWithoutNInput
+  connect?: MWhereUniqueInput | MWhereUniqueInput
+  set?: MWhereUniqueInput | MWhereUniqueInput
+  disconnect?: MWhereUniqueInput | MWhereUniqueInput
+  delete?: MWhereUniqueInput | MWhereUniqueInput
+  update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput
+  updateMany?: MUpdateManyWithWhereNestedInput | MUpdateManyWithWhereNestedInput
+  deleteMany?: MScalarWhereInput | MScalarWhereInput
+  upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput
 }
 
 export type ManyRequiredCreateManyWithoutOneInput = {
-  create?: Enumerable<ManyRequiredCreateWithoutOneInput>
-  connect?: Enumerable<ManyRequiredWhereUniqueInput>
+  create?: ManyRequiredCreateWithoutOneInput | ManyRequiredCreateWithoutOneInput
+  connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput
 }
 
 export type ManyRequiredUpdateManyWithoutOneInput = {
-  create?: Enumerable<ManyRequiredCreateWithoutOneInput>
-  connect?: Enumerable<ManyRequiredWhereUniqueInput>
-  set?: Enumerable<ManyRequiredWhereUniqueInput>
-  disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
-  delete?: Enumerable<ManyRequiredWhereUniqueInput>
-  update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
-  updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereNestedInput> | null
-  deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
-  upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
+  create?: ManyRequiredCreateWithoutOneInput | ManyRequiredCreateWithoutOneInput
+  connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput
+  set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput
+  disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput
+  delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput
+  update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput
+  updateMany?: ManyRequiredUpdateManyWithWhereNestedInput | ManyRequiredUpdateManyWithWhereNestedInput
+  deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput
+  upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput
 }
 
 export type OneOptionalCreateOneWithoutManyInput = {
@@ -5904,7 +5896,7 @@ export type NestedIntFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: NestedIntFilter | null
+  not?: number | NestedIntFilter
 }
 
 export type NestedDateTimeFilter = {
@@ -5915,7 +5907,7 @@ export type NestedDateTimeFilter = {
   lte?: Date | string
   gt?: Date | string
   gte?: Date | string
-  not?: NestedDateTimeFilter | null
+  not?: Date | string | NestedDateTimeFilter
 }
 
 export type NestedStringFilter = {
@@ -5929,37 +5921,37 @@ export type NestedStringFilter = {
   contains?: string
   startsWith?: string
   endsWith?: string
-  not?: NestedStringFilter | null
+  not?: string | NestedStringFilter
 }
 
 export type NestedStringNullableFilter = {
   equals?: string | null
-  in?: Enumerable<string> | null
-  notIn?: Enumerable<string> | null
-  lt?: string | null
-  lte?: string | null
-  gt?: string | null
-  gte?: string | null
-  contains?: string | null
-  startsWith?: string | null
-  endsWith?: string | null
-  not?: NestedStringNullableFilter | null
+  in?: Enumerable<string | null>
+  notIn?: Enumerable<string | null>
+  lt?: string
+  lte?: string
+  gt?: string
+  gte?: string
+  contains?: string
+  startsWith?: string
+  endsWith?: string
+  not?: string | NestedStringNullableFilter | null
 }
 
 export type NestedBoolFilter = {
   equals?: boolean
-  not?: NestedBoolFilter | null
+  not?: boolean | NestedBoolFilter
 }
 
 export type NestedIntNullableFilter = {
   equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
-  lt?: number | null
-  lte?: number | null
-  gt?: number | null
-  gte?: number | null
-  not?: NestedIntNullableFilter | null
+  in?: Enumerable<number | null>
+  notIn?: Enumerable<number | null>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: number | NestedIntNullableFilter | null
 }
 
 export type NestedFloatFilter = {
@@ -5970,47 +5962,37 @@ export type NestedFloatFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: NestedFloatFilter | null
+  not?: number | NestedFloatFilter
 }
 
 export type NestedFloatNullableFilter = {
   equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
-  lt?: number | null
-  lte?: number | null
-  gt?: number | null
-  gte?: number | null
-  not?: NestedFloatNullableFilter | null
-}
-
-export type NestedJsonFilter = {
-  equals?: InputJsonValue
-  not?: NestedJsonFilter | null
-}
-
-export type NestedJsonNullableFilter = {
-  equals?: InputJsonValue | null
-  not?: NestedJsonNullableFilter | null
+  in?: Enumerable<number | null>
+  notIn?: Enumerable<number | null>
+  lt?: number
+  lte?: number
+  gt?: number
+  gte?: number
+  not?: number | NestedFloatNullableFilter | null
 }
 
 export type NestedEnumABeautifulEnumFilter = {
   equals?: ABeautifulEnum
   in?: Enumerable<ABeautifulEnum>
   notIn?: Enumerable<ABeautifulEnum>
-  not?: NestedEnumABeautifulEnumFilter | null
+  not?: ABeautifulEnum | NestedEnumABeautifulEnumFilter
 }
 
 export type NestedEnumABeautifulEnumNullableFilter = {
   equals?: ABeautifulEnum | null
-  in?: Enumerable<ABeautifulEnum> | null
-  notIn?: Enumerable<ABeautifulEnum> | null
-  not?: NestedEnumABeautifulEnumNullableFilter | null
+  in?: Enumerable<ABeautifulEnum | null>
+  notIn?: Enumerable<ABeautifulEnum | null>
+  not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
 }
 
 export type NestedBoolNullableFilter = {
   equals?: boolean | null
-  not?: NestedBoolNullableFilter | null
+  not?: boolean | NestedBoolNullableFilter | null
 }
 
 export type UserCreateWithoutPostsInput = {
@@ -6068,15 +6050,15 @@ export type PostUpdateManyWithWhereNestedInput = {
 }
 
 export type PostScalarWhereInput = {
-  AND?: Enumerable<PostScalarWhereInput>
-  OR?: Array<PostScalarWhereInput>
-  NOT?: Enumerable<PostScalarWhereInput>
-  id?: number | IntFilter
-  createdAt?: Date | string | DateTimeFilter
-  title?: string | StringFilter
-  content?: string | StringNullableFilter | null
-  published?: boolean | BoolFilter
-  authorId?: number | IntFilter
+  AND?: PostScalarWhereInput | PostScalarWhereInput
+  OR?: PostScalarWhereInput | PostScalarWhereInput
+  NOT?: PostScalarWhereInput | PostScalarWhereInput
+  id?: IntFilter | number
+  createdAt?: DateTimeFilter | Date | string
+  title?: StringFilter | string
+  content?: StringNullableFilter | string | null
+  published?: BoolFilter | boolean
+  authorId?: IntFilter | number
 }
 
 export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
@@ -6111,22 +6093,22 @@ export type NUpdateManyWithWhereNestedInput = {
 }
 
 export type NScalarWhereInput = {
-  AND?: Enumerable<NScalarWhereInput>
-  OR?: Array<NScalarWhereInput>
-  NOT?: Enumerable<NScalarWhereInput>
-  id?: number | IntFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: NScalarWhereInput | NScalarWhereInput
+  OR?: NScalarWhereInput | NScalarWhereInput
+  NOT?: NScalarWhereInput | NScalarWhereInput
+  id?: IntFilter | number
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type NUpsertWithWhereUniqueWithoutMInput = {
@@ -6161,22 +6143,22 @@ export type MUpdateManyWithWhereNestedInput = {
 }
 
 export type MScalarWhereInput = {
-  AND?: Enumerable<MScalarWhereInput>
-  OR?: Array<MScalarWhereInput>
-  NOT?: Enumerable<MScalarWhereInput>
-  id?: number | IntFilter
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: MScalarWhereInput | MScalarWhereInput
+  OR?: MScalarWhereInput | MScalarWhereInput
+  NOT?: MScalarWhereInput | MScalarWhereInput
+  id?: IntFilter | number
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type MUpsertWithWhereUniqueWithoutNInput = {
@@ -6211,23 +6193,23 @@ export type ManyRequiredUpdateManyWithWhereNestedInput = {
 }
 
 export type ManyRequiredScalarWhereInput = {
-  AND?: Enumerable<ManyRequiredScalarWhereInput>
-  OR?: Array<ManyRequiredScalarWhereInput>
-  NOT?: Enumerable<ManyRequiredScalarWhereInput>
-  id?: number | IntFilter
-  oneOptionalId?: number | IntNullableFilter | null
-  int?: number | IntFilter
-  optionalInt?: number | IntNullableFilter | null
-  float?: number | FloatFilter
-  optionalFloat?: number | FloatNullableFilter | null
-  string?: string | StringFilter
-  optionalString?: string | StringNullableFilter | null
+  AND?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput
+  OR?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput
+  NOT?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput
+  id?: IntFilter | number
+  oneOptionalId?: IntNullableFilter | number | null
+  int?: IntFilter | number
+  optionalInt?: IntNullableFilter | number | null
+  float?: FloatFilter | number
+  optionalFloat?: FloatNullableFilter | number | null
+  string?: StringFilter | string
+  optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
-  optionalJson?: JsonNullableFilter | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFilter
-  optionalEnum?: ABeautifulEnum | EnumABeautifulEnumNullableFilter | null
-  boolean?: boolean | BoolFilter
-  optionalBoolean?: boolean | BoolNullableFilter | null
+  optionalJson?: JsonNullableFilter
+  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  boolean?: BoolFilter | boolean
+  optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {

@@ -773,7 +773,7 @@ export class Arg {
     this.schemaArg = schemaArg
     this.isNullable =
       schemaArg?.inputTypes.reduce<boolean>(
-        (isNullable, inputType) => isNullable && schemaArg.isRequired,
+        (isNullable, inputType) => isNullable && schemaArg.isNullable,
         true,
       ) || false
     this.hasError =
@@ -1314,59 +1314,6 @@ function hasCorrectScalarType(
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
-  const argInputType = arg.inputTypes[0]
-  if (typeof value === 'undefined') {
-    // the arg is undefined and not required - we're fine
-    if (!arg.isRequired) {
-      return null
-    }
-
-    // the provided value is 'undefined' but shouldn't be
-    return new Arg({
-      key,
-      value,
-      isEnum: argInputType.kind === 'enum',
-      error: {
-        type: 'missingArg',
-        missingName: key,
-        missingArg: arg,
-        atLeastOne: false,
-        atMostOne: false,
-      },
-    })
-  }
-
-  // TODO: Maybe we have to enable this again
-  // if (value === null && arg.inputTypes.length === 1) {
-  //   const t = arg.inputTypes[0]
-  //   if (isInputArgType(t.type) && t.type.isOrderType) {
-  //     return null
-  //   }
-  // }
-
-  const { isNullable, isRequired } = arg
-
-  if (value === null && !isNullable && !isRequired) {
-    // we don't need to execute this ternery if not necessary
-    const isAtLeastOne = isInputArgType(arg.inputTypes[0].type)
-      ? (arg.inputTypes[0].type.constraints.minNumFields !== null && arg.inputTypes[0].type.constraints.minNumFields > 0)
-      : false
-    if (!isAtLeastOne) {
-      return new Arg({
-        key,
-        value,
-        isEnum: argInputType.kind === 'enum',
-        error: {
-          type: 'invalidNullArg',
-          name: key,
-          invalidType: arg.inputTypes,
-          atLeastOne: false,
-          atMostOne: false,
-        },
-      })
-    }
-  }
-
   /**
    * Go through the possible union input types.
    * Stop on the first successful one
@@ -1390,6 +1337,49 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
  * @param inputType 
  */
 function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg | null {
+  if (typeof value === 'undefined') {
+    // the arg is undefined and not required - we're fine
+    if (!arg.isRequired) {
+      return null
+    }
+
+    // the provided value is 'undefined' but shouldn't be
+    return new Arg({
+      key,
+      value,
+      isEnum: inputType.kind === 'enum',
+      error: {
+        type: 'missingArg',
+        missingName: key,
+        missingArg: arg,
+        atLeastOne: false,
+        atMostOne: false,
+      },
+    })
+  }
+
+  const { isNullable, isRequired } = arg
+
+  if (value === null && !isNullable && !isRequired) {
+    // we don't need to execute this ternery if not necessary
+    const isAtLeastOne = isInputArgType(inputType.type)
+      ? (inputType.type.constraints.minNumFields !== null && inputType.type.constraints.minNumFields > 0)
+      : false
+    if (!isAtLeastOne) {
+      return new Arg({
+        key,
+        value,
+        isEnum: inputType.kind === 'enum',
+        error: {
+          type: 'invalidNullArg',
+          name: key,
+          invalidType: arg.inputTypes,
+          atLeastOne: false,
+          atMostOne: false,
+        },
+      })
+    }
+  }
   // then the first
   if (!inputType.isList) {
     if (isInputArgType(inputType.type)) {
@@ -1592,7 +1582,6 @@ function objectToArgs(
   }, [] as Arg[])
   // Also show optional neighbour args, if there is any arg missing
   if (
-    // (entries.length === 0 && inputType.constraints.minNumFields) ||
     (typeof inputType.constraints.minNumFields === 'number' && objEntries.length < inputType.constraints.minNumFields) ||
     argsList.find((arg) => (arg.error?.type === 'missingArg' || arg.error?.type === 'atLeastOne'))
   ) {
