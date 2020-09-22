@@ -1280,7 +1280,7 @@ export class InputField implements Generatable {
     let fieldType
 
     if (Array.isArray(field.inputTypes)) {
-      fieldType = flatMap(field.inputTypes, (t) => {
+      fieldType = field.inputTypes.map((t) => {
         let type =
           typeof t.type === 'string'
             ? GraphQLScalarToJSTypeTable[t.type] || t.type
@@ -1290,11 +1290,19 @@ export class InputField implements Generatable {
         type = JSOutputTypeToInputType[type] ?? type
 
         if (type === 'Null') {
-          type = 'null'
+          return 'null'
         }
 
         if (t.isList) {
-          type = `Enumerable<${type}>`
+          if (Array.isArray(type)) {
+            return type.map(t => `Enumerable<${t}>`).join(' | ')
+          } else {
+            return `Enumerable<${type}>`
+          }
+        }
+
+        if (Array.isArray(type)) {
+          type = type.join(' | ')
         }
 
         return type
