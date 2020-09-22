@@ -27,16 +27,12 @@ test('document stringify', () => {
               inputType: [
                 {
                   isList: false,
-                  isRequired: false,
-                  isNullable: true,
                   kind: 'scalar',
                   type: 'number',
                 },
               ],
               bestFittingType: {
                 isList: false,
-                isRequired: false,
-                isNullable: true,
                 kind: 'scalar',
                 type: 'number',
               },

@@ -45,14 +45,6 @@ test('relations', async () => {
 
   expect(resultWhereORDateNotNull).toEqual([])
 
-  const resultWhereNullSingularRelationField = await prisma.location.findMany({
-    where: {
-      company: null,
-    },
-  })
-
-  expect(resultWhereNullSingularRelationField).toEqual([])
-
   await db.$disconnect()
   await prisma.$disconnect()
 })

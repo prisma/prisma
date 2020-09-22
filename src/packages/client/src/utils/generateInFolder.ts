@@ -13,6 +13,9 @@ import { getPackedPackage } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 const debug = Debug('generateInFolder')
 import copy from '@timsuchanek/copy'
+import rimraf from 'rimraf'
+import { promisify } from 'util'
+const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
   projectDir: string
@@ -53,6 +56,8 @@ export async function generateInFolder({
     ? path.join(projectDir, 'node_modules/@prisma/client')
     : path.join(projectDir, '@prisma/client')
 
+  await del(outputDir)
+
   if (transpile) {
     if (packageSource) {
       await copy({
@@ -90,8 +95,7 @@ export async function generateInFolder({
       queryEngine: {
         [platform]: path.join(
           __dirname,
-          `../../query-engine-${platform}${
-          platform === 'windows' ? '.exe' : ''
+          `../../query-engine-${platform}${platform === 'windows' ? '.exe' : ''
           }`,
         ),
       },
