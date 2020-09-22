@@ -760,6 +760,9 @@ ${indent(
     if (str === 'Null') {
       return 'null'
     }
+    if (field.isNullable) {
+      str += ' | null'
+    }
     return str
   }
 }
@@ -1275,7 +1278,7 @@ export class InputField implements Generatable {
   public toTS(): string {
     const { field } = this
     let fieldType
-    let hasNull = false
+
     if (Array.isArray(field.inputTypes)) {
       fieldType = flatMap(field.inputTypes, (t) => {
         let type =
@@ -1285,25 +1288,22 @@ export class InputField implements Generatable {
               ? `Base${t.type.name}`
               : t.type.name
         type = JSOutputTypeToInputType[type] ?? type
-        if (type === 'null') {
-          hasNull = true
-        }
+
         if (type === 'Null') {
           type = 'null'
         }
+
+        if (t.isList) {
+          type = `Enumerable<${type}>`
+        }
+
         return type
       }).join(' | ')
+
     }
-    const fieldInputType = field.inputTypes[0]
     const optionalStr = field.isRequired ? '' : '?'
-    if (fieldInputType.isList) {
-      if (field.name === 'OR') {
-        fieldType = `Array<${fieldType}>`
-      } else {
-        fieldType = `Enumerable<${fieldType}>`
-      }
-    }
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
+
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
 }
@@ -1479,6 +1479,11 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
           },
+          {
+            type: 'null',
+            kind: 'scalar',
+            isList: false
+          }
         ],
         comment: `Select specific fields to fetch from the ${name}`,
       },
@@ -1497,6 +1502,11 @@ export class ArgsType implements Generatable {
             kind: 'object',
             isList: false,
           },
+          {
+            type: 'null',
+            kind: 'scalar',
+            isList: false
+          }
         ],
         comment: `Choose, which related nodes to fetch as well.`,
       })
