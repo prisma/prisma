@@ -85,6 +85,9 @@ Sometimes you need an actual generated Client, that has been generated to the fi
 If you want to debug a project that you have on your local dev machine and run it with your local Prisma Client, we have something for you ;)
 The Prisma Client JS core authors need this all the time to debug projects, especially if databases like Postgres or MySQL are involved.
 
+<details>
+  <summary>Click to expand</summary>
+
 Let's say your project that uses Prisma Client is located in `~/reproduction/repro1`. We got this fresh reproduction from a support engineer or a Prisma user.
 
 1. If you did not already, please go into `./src/packages/client` in your terminal.
@@ -112,6 +115,8 @@ It will be a client, that again gets generated to `./project/@prisma/client` (no
 With these 3 options you should be able to tackle any bug in any reproduction you get :)
 Note, that sometimes you need to debug bugs in the [`engine-core`](./src/packages/engine-core/) package.
 You'll need to build `engine-core` with `yarn build` if you want that change to end up in the reproduction project.
+
+</details>
 
 ### Code generation
 
@@ -211,9 +216,7 @@ List of packages:
 
 # Graphs
 
-## To Generate/Update
-
-Install [GraphViz](http://graphviz.org/download/)
+To Generate/Update install [GraphViz](http://graphviz.org/download/)
 ```
 cd src
 ts-node scripts/graph-dependencies.ts
