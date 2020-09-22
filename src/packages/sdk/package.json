@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.8.0-dev.3",
+  "version": "2.8.0-dev.21",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,26 +21,26 @@
     "scripts"
   ],
   "prisma": {
-    "version": "2b4c3254badf30765f7839e350e4aa11a0842a8d"
+    "version": "16b2e7be003d50a60b7f0ebff88ae7e2c8caf863"
   },
   "devDependencies": {
-    "@types/jest": "26.0.13",
-    "@types/node": "12.12.58",
+    "@types/jest": "26.0.14",
+    "@types/node": "12.12.62",
     "@types/tar": "4.0.3",
-    "@typescript-eslint/eslint-plugin": "4.1.0",
-    "@typescript-eslint/parser": "4.1.0",
-    "eslint": "7.8.1",
+    "@typescript-eslint/eslint-plugin": "4.1.1",
+    "@typescript-eslint/parser": "4.1.1",
+    "eslint": "7.9.0",
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.0.0",
+    "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
     "husky": "4.3.0",
     "jest": "26.4.2",
-    "lint-staged": "10.3.0",
-    "prettier": "2.1.1",
-    "ts-jest": "26.3.0",
+    "lint-staged": "10.4.0",
+    "prettier": "2.1.2",
+    "ts-jest": "26.4.0",
     "ts-node": "9.0.0",
-    "typescript": "4.0.2"
+    "typescript": "4.0.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
@@ -71,7 +71,7 @@
     "tar": "^6.0.1",
     "temp-dir": "^2.0.0",
     "temp-write": "^4.0.0",
-    "tempy": "^0.6.0",
+    "tempy": "^0.7.0",
     "terminal-link": "^2.1.1",
     "tmp": "0.2.1",
     "url-parse": "^1.4.7"
