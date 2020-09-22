@@ -7,19 +7,10 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
     "resolveJsonModule": true,
     "jsx": "react",
     "incremental": true
-  },
-  "exclude": [
-    "dist",
-    "build",
-    "fixtures",
-    "fixtures_old",
-    "src/__tests__",
-    "tmp"
-  ]
+  }
 }
