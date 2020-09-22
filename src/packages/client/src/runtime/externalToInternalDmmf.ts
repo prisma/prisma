@@ -2,27 +2,6 @@ import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
 import { DMMF } from './dmmf-types'
 import { lowerCase } from './utils/common'
-import { uniqueBy } from './utils/uniqueBy'
-
-function transformFieldKind(model: ExternalDMMF.Model): DMMF.Model {
-  return {
-    ...model,
-    fields: model.fields.map((field) => ({
-      ...field,
-      kind: field.kind === 'relation' ? ('object' as any) : field.kind,
-    })),
-  }
-}
-
-function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
-  return {
-    enums: datamodel.enums.map((enumValue) => ({
-      ...enumValue,
-      values: enumValue.values.map((v) => v.name),
-    })),
-    models: datamodel.models.map(transformFieldKind),
-  }
-}
 
 /**
  * Turns type: string into type: string[] for all args in order to support union input types
@@ -31,40 +10,9 @@ function transformDatamodel(datamodel: ExternalDMMF.Datamodel): DMMF.Datamodel {
 export function externalToInternalDmmf(
   document: ExternalDMMF.Document,
 ): DMMF.Document {
-  const datamodel = transformDatamodel(document.datamodel)
   return {
-    datamodel,
-    mappings: getMappings(document.mappings, datamodel),
-    schema: transformSchema(document.schema),
-  }
-}
-
-function transformSchema(schema: ExternalDMMF.Schema): DMMF.Schema {
-  return {
-    enums: schema.enums,
-    inputTypes: schema.inputTypes.map((t) => ({
-      ...t,
-      fields: uniqueBy(transformArgs(t.fields), (f) => f.name),
-    })),
-    outputTypes: schema.outputTypes.map((o) => ({
-      ...o,
-      fields: o.fields.map((f) => ({ ...f, args: transformArgs(f.args) })),
-    })),
-  }
-}
-
-function transformArgs(args: ExternalDMMF.SchemaArg[]): DMMF.SchemaArg[] {
-  return args.map(transformArg)
-}
-
-/**
- * Turns the input types into lists
- * @param arg ExternalDMMF.SchemaArg
- */
-function transformArg(arg: ExternalDMMF.SchemaArg): DMMF.SchemaArg {
-  return {
-    name: arg.name,
-    inputType: [arg.inputType],
+    ...document,
+    mappings: getMappings(document.mappings, document.datamodel),
   }
 }
 

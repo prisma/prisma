@@ -48,30 +48,22 @@ describe('minimal update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            name: {
-              set: null
-            }
+            name: null
             profile: {
               set: null
             }
             posts: {
-              updateMany: [
-                {
-                  data: {
-                    optionnal: {
-                      set: null
-                    }
-                    content: {
-                      set: null
-                    }
-                  }
-                  where: {
-                    id: {
-                      equals: "someid"
-                    }
+              updateMany: {
+                data: {
+                  optionnal: null
+                  content: {
+                    set: null
                   }
                 }
-              ]
+                where: {
+                  id: "someid"
+                }
+              }
             }
           }
         ) {
@@ -114,24 +106,16 @@ describe('minimal update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            lastLoginAt: {
-              set: "2020-09-04T07:45:24.484Z"
-            }
+            lastLoginAt: "2020-09-04T07:45:24.484Z"
             posts: {
-              updateMany: [
-                {
-                  data: {
-                    updatedAt: {
-                      set: "2020-09-04T07:45:24.484Z"
-                    }
-                  }
-                  where: {
-                    id: {
-                      equals: "someid"
-                    }
-                  }
+              updateMany: {
+                data: {
+                  updatedAt: "2020-09-04T07:45:24.484Z"
                 }
-              ]
+                where: {
+                  id: "someid"
+                }
+              }
             }
           }
         ) {
@@ -182,20 +166,16 @@ describe('minimal update transformation', () => {
               set: "2020-09-04T07:45:24.484Z"
             }
             posts: {
-              updateMany: [
-                {
-                  data: {
-                    updatedAt: {
-                      set: "2020-09-04T07:45:24.484Z"
-                    }
-                  }
-                  where: {
-                    id: {
-                      equals: "someid"
-                    }
+              updateMany: {
+                data: {
+                  updatedAt: {
+                    set: "2020-09-04T07:45:24.484Z"
                   }
                 }
-              ]
+                where: {
+                  id: "someid"
+                }
+              }
             }
           }
         ) {
@@ -265,13 +245,7 @@ describe('minimal update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            coinflips: {
-              0: true
-              1: true
-              2: true
-              3: false
-              4: true
-            }
+            coinflips: [true, true, true, false, true]
           }
         ) {
           id

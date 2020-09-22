@@ -53,23 +53,19 @@ describe('minimal where transformation', () => {
                   OR: [
                     {
                       author: {
-                        is: {
-                          OR: [
-                            {
-                              AND: [
-                                {
-                                  OR: [
-                                    {
-                                      id: {
-                                        equals: "10"
-                                      }
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        }
+                        OR: [
+                          {
+                            AND: [
+                              {
+                                OR: [
+                                  {
+                                    id: "10"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
                       }
                     }
                   ]

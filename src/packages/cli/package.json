@@ -55,8 +55,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "16b2e7be003d50a60b7f0ebff88ae7e2c8caf863",
-    "prismaCommit": "05015ba2ba16c5e0b411ec761b4d605c0217e023"
+    "version": "7aef029819840cd88e6333b5037105264c82e2f4",
+    "prismaCommit": "ae6e0f4fbfb669597f6f2d8cfe8ef1ba715d48bf"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",

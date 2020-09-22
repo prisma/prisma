@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { saleBuyers } from '../fixtures/saleBuyers'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
 chalk.level = 0
 
@@ -11,7 +11,7 @@ describe('minimal where transformation', () => {
   })
 
   test('where OR not null', () => {
-    const transformedDocument = getTransformedDocument({
+    const transformedDocument = getDocument({
       where: {
         OR: [
           {
@@ -27,9 +27,7 @@ describe('minimal where transformation', () => {
           OR: [
             {
               date: {
-                not: {
-                  equals: null
-                }
+                not: null
               }
             }
           ]
@@ -42,12 +40,12 @@ describe('minimal where transformation', () => {
   })
 })
 
-function getTransformedDocument(select) {
+function getDocument(select) {
   const document = makeDocument({
     dmmf,
     select,
     rootTypeName: 'query',
     rootField: 'findManySale',
   })
-  return String(transformDocument(document))
+  return String(document)
 }

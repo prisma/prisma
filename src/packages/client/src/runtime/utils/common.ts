@@ -214,23 +214,22 @@ export function stringifyInputType(
     const body = indent(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map((arg) => {
-          const argInputType = arg.inputType[0]
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${
-            argInputType.isRequired ? '' : '?'
-          }: ${chalk.white(
-            arg.inputType
-              .map((argType) =>
-                argIsInputType(argType.type)
-                  ? argType.type.name
-                  : wrapWithList(
-                      stringifyGraphQLType(argType.type),
-                      argType.isList,
-                    ),
-              )
-              .join(' | '),
-          )}`
-          if (!argInputType.isRequired) {
+          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'
+            }: ${chalk.white(
+              arg.inputTypes
+                .map((argType) => {
+                  return wrapWithList(argIsInputType(argType.type)
+                    ? argType.type.name
+                    :
+                    stringifyGraphQLType(argType.type),
+                    argType.isList,
+                  )
+                }
+                )
+                .join(' | '),
+            )}`
+          if (!arg.isRequired) {
             return chalk.dim(str)
           }
 
@@ -257,6 +256,9 @@ export function getInputTypeName(
   input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum,
 ) {
   if (typeof input === 'string') {
+    if (input === 'Null') {
+      return 'null'
+    }
     return input
   }
 
@@ -279,6 +281,9 @@ export function inputTypeToJson(
   nameOnly: boolean = false,
 ): string | object {
   if (typeof input === 'string') {
+    if (input === 'Null') {
+      return 'null'
+    }
     return input
   }
 
@@ -288,23 +293,28 @@ export function inputTypeToJson(
 
   // TS "Trick" :/
   const inputType: DMMF.InputType = input as DMMF.InputType
+
+
   // If the parent type is required and all fields are non-scalars,
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
     isRequired &&
-    inputType.fields.every((arg) => arg.inputType[0].kind === 'object') &&
-    !inputType.isWhereType &&
-    !inputType.atLeastOne
+    inputType.fields.every((arg) => arg.inputTypes[0].kind === 'object' || arg.inputTypes[1]?.kind === 'object')
+
   if (nameOnly) {
     return getInputTypeName(input)
   }
 
   return inputType.fields.reduce((acc, curr) => {
-    const argInputType = curr.inputType[0]
-    acc[curr.name + (argInputType.isRequired ? '' : '?')] =
-      curr.isRelationFilter && !showDeepType && !argInputType.isRequired
-        ? getInputTypeName(argInputType.type)
-        : inputTypeToJson(argInputType.type, argInputType.isRequired, true)
+    let str = ''
+
+    if (!showDeepType && !curr.isRequired) {
+      str = curr.inputTypes.map(argType => getInputTypeName(argType.type)).join(' | ')
+    } else {
+      str = curr.inputTypes.map(argInputType => inputTypeToJson(argInputType.type, curr.isRequired, true)).join(' | ')
+    }
+
+    acc[curr.name + (curr.isRequired ? '' : '?')] = str
     return acc
   }, {})
 }
