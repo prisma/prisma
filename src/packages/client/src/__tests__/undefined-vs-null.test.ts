@@ -38,16 +38,41 @@ describe('select validation', () => {
 
         {
           data: {
-            id: null
-                ~~~~
+        ?   id?: String | StringFieldUpdateOperationsInput,
+        ?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+        ?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
+        ?   published?: Boolean | BoolFieldUpdateOperationsInput,
+        ?   title?: String | StringFieldUpdateOperationsInput,
+        ?   content?: String | NullableStringFieldUpdateOperationsInput | null,
+        ?   optionnal?: Float | NullableFloatFieldUpdateOperationsInput | null,
+        ?   author?: {
+        ?     create?: UserCreateWithoutPostsInput,
+        ?     connect?: UserWhereUniqueInput,
+        ?     disconnect?: Boolean,
+        ?     delete?: Boolean,
+        ?     update?: UserUpdateWithoutPostsDataInput,
+        ?     upsert?: UserUpsertWithoutPostsInput
+        ?   },
+        ?   categories?: {
+        ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
+        ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+        ?     set?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+        ?     disconnect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+        ?     delete?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+        ?     update?: CategoryUpdateWithWhereUniqueWithoutPostsInput | CategoryUpdateWithWhereUniqueWithoutPostsInput,
+        ?     updateMany?: CategoryUpdateManyWithWhereNestedInput | CategoryUpdateManyWithWhereNestedInput,
+        ?     deleteMany?: CategoryScalarWhereInput | CategoryScalarWhereInput,
+        ?     upsert?: CategoryUpsertWithWhereUniqueWithoutPostsInput | CategoryUpsertWithWhereUniqueWithoutPostsInput
+        ?   }
           },
           where: {
             id: 'abc'
           }
         }
 
-        Argument id for data.id must not be null. Please use undefined instead.
+        Argument data.id of type StringFieldUpdateOperationsInput needs at least one argument. Available args are listed in green.
 
+        Note: Lines with ? are optional.
 
       `)
     }
@@ -73,20 +98,20 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.createOnePost()\` invocation:
+                Invalid \`prisma.createOnePost()\` invocation:
 
-        {
-          data: {
-            published: true,
-            title: null
-                   ~~~~
-          }
-        }
+                {
+                  data: {
+                    published: true,
+                    title: null
+                           ~~~~
+                  }
+                }
 
-        Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
+                Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
 
 
-      `)
+            `)
     }
   })
 })
