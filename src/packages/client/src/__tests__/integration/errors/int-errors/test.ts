@@ -30,6 +30,7 @@ describe('int-errors', () => {
           url: originalConnectionString,
         },
       },
+      errorFormat: 'minimal',
     })
   })
 
