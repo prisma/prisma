@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should display a update message w/ dev tag 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1 -> 2.7.0                        │
+│  Run the following to update                            │
+│    yarn add --dev @prisma/cli@dev                       │
+│    yarn add @prisma/client@dev                          │
+└─────────────────────────────────────────────────────────┘
+`;
+
+exports[`should display a update message w/o tag 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1 -> 2.7.0                        │
+│  Run the following to update                            │
+│    yarn add --dev @prisma/cli                           │
+│    yarn add @prisma/client                              │
+└─────────────────────────────────────────────────────────┘
+`;
