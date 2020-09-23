@@ -51,8 +51,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.291.0
-      '@prisma/studio-server': 0.291.0
+      '@prisma/studio': 0.292.0
+      '@prisma/studio-server': 0.292.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
@@ -110,8 +110,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.291.0
-      '@prisma/studio-server': 0.291.0
+      '@prisma/studio': 0.292.0
+      '@prisma/studio-server': 0.292.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
@@ -206,6 +206,7 @@ importers:
       klona: 1.1.2
       lint-staged: 10.4.0
       make-dir: 3.1.0
+      mariadb: 2.4.2
       node-fetch: 2.6.1
       node-tcp-proxy: 0.0.17
       packwatch: 2.0.0
@@ -271,6 +272,7 @@ importers:
       klona: 1.1.2
       lint-staged: 10.4.0
       make-dir: 3.1.0
+      mariadb: ^2.4.2
       node-fetch: 2.6.1
       node-tcp-proxy: 0.0.17
       packwatch: 2.0.0
@@ -643,8 +645,8 @@ importers:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/get-platform': 'link:../get-platform'
       '@prisma/ink-components': 'link:../ink-components'
-      '@prisma/studio-server': 0.291.0
-      '@prisma/studio-types': 0.291.0
+      '@prisma/studio-server': 0.292.0
+      '@prisma/studio-types': 0.292.0
       ansi-escapes: 4.3.1
       cli-cursor: 3.1.0
       dashify: 2.0.0
@@ -714,8 +716,8 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@prisma/ink-components': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio-server': 0.291.0
-      '@prisma/studio-types': 0.291.0
+      '@prisma/studio-server': 0.292.0
+      '@prisma/studio-types': 0.292.0
       '@types/charm': 1.0.2
       '@types/debug': 4.1.5
       '@types/diff': 4.0.2
@@ -1520,32 +1522,32 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-dJccdruoEf9T5eUAghVvPfR3OPBmxdLiYMVlFEvu0GEBAlxRPlVQuLTHGDpU9fZcaLwmGvA4AQYe0LG/wTMY9A==
-  /@prisma/studio-server/0.291.0:
+  /@prisma/studio-server/0.292.0:
     dependencies:
       '@prisma/get-platform': 2.7.0-dev.72
       '@prisma/sdk': 2.7.0-dev.72
-      '@prisma/studio': 0.291.0
-      '@prisma/studio-transports': 0.291.0
-      '@prisma/studio-types': 0.291.0
+      '@prisma/studio': 0.292.0
+      '@prisma/studio-transports': 0.292.0
+      '@prisma/studio-types': 0.292.0
       '@sentry/node': 5.15.5
       checkpoint-client: 1.1.11
       express: 4.17.1
       ws: 7.3.1
     resolution:
-      integrity: sha512-QCtX4Rmg2nH0yuFWIldG//o40Nh/CmBnYcFVFhX4ixlBSbaGMFsthMCL2tYf1g1ry2NA6xVImTMZXLYhLA8T0g==
-  /@prisma/studio-transports/0.291.0:
+      integrity: sha512-vh6zJ7WQBlncfl+NLNhwHaLjgK2KOVUu++HhW4LjL7FMOXfGKKYAL24U0czvGyQn1W/0zAUeOXti1DOvd+mCVA==
+  /@prisma/studio-transports/0.292.0:
     dependencies:
       '@prisma/sdk': 2.7.0-dev.72
-      '@prisma/studio-types': 0.291.0
+      '@prisma/studio-types': 0.292.0
       '@sentry/node': 5.15.5
     resolution:
-      integrity: sha512-5yNVWOL6Xw1j7Pk9JyEFNIaI8Hyz2Zqvos43CtOnzngavglhADqo6k9k3JgPwpN9qt6oDOu9j1TRfV03ysxyrg==
-  /@prisma/studio-types/0.291.0:
+      integrity: sha512-g+gHp9ZiAUnvOBMnCDUoCGVSsbcA8DbyNE0+ghRL/r4/PZ8sl6HD0yQo7g1RjmMKm+Q0sZSWeeLgF836pjPOBQ==
+  /@prisma/studio-types/0.292.0:
     resolution:
-      integrity: sha512-y2CboWBL6qIDVWKWgfLh2ws6tlcMBqUrZRy7AUZMc7OoSJG6ejLgQWDiH8gOK7S+vF7NWMo/jM34b6GU5V/fGg==
-  /@prisma/studio/0.291.0:
+      integrity: sha512-8dZL0KAKPqYTiRUzJqC69mKTynzFRJ5EUGyRJPPHf3+xiPwZ7jDDagHK+yCljfbGIF24a+6t55N+6nzjKgtdew==
+  /@prisma/studio/0.292.0:
     resolution:
-      integrity: sha512-QZLnnpm0X4/sC92GKy6ONIBbGY2eueyDy56X/u2P/PZ+9NTMubDlapfzqiS1FL/KmDMBNR8noxWDEp2st+0H8w==
+      integrity: sha512-aOnnZpmyHakpEhpAP8xAKKEsmmm1gmCt+mOiyFY+qDnqawgaOQpqTwJWZ31Uzsg2fW6Pd3VLyqil78up3QHAFQ==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
@@ -1846,14 +1848,12 @@ packages:
     resolution:
       integrity: sha512-TORZP+FSjTYMWwKadftmqEn6bziN5RnfygehByGsjxoK5ydnClddtv6GikGWPvCm24oI+YBwck5WDxIIyNxUrA==
   /@types/prop-types/15.7.3:
-    dev: true
     resolution:
       integrity: sha512-KfRL3PuHmqQLOG+2tGpRO26Ctg+Cq1E01D2DMriKEATHgWLfeNDmq9e29Q9WIky0dQ3NPkd1mzYH8Lm936Z9qw==
   /@types/react/16.9.11:
     dependencies:
       '@types/prop-types': 15.7.3
       csstype: 2.6.10
-    dev: true
     resolution:
       integrity: sha512-UBT4GZ3PokTXSWmdgC/GeCGEJXE5ofWyibCcecRLUVN2ZBpXQGVgQGtG2foS7CrTKFKlQVVswLvf7Js6XA/CVQ==
   /@types/redis/2.8.27:
@@ -2969,7 +2969,6 @@ packages:
     resolution:
       integrity: sha512-AZL67abkUzIuvcHqk7c09cezpGNcxUxU4Ioi/05xHk4DQeTkWmGYftIE6ctU6AEt+Gn4n1lDStOtj7FKycP71A==
   /csstype/2.6.10:
-    dev: true
     resolution:
       integrity: sha512-D34BqZU4cIlMCY93rZHbrq9pjTAQJ3U8S8rfBqjwHxkGPThWFjzZDQpgMJY0QViLxth6ZKYiwFBo14RdN44U/w==
   /dashdash/1.14.1:
@@ -6829,7 +6828,6 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       prop-types: 15.7.2
-    dev: true
     engines:
       node: '>=0.10.0'
     resolution:
