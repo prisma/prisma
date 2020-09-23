@@ -58,6 +58,34 @@ export class MigrateEngine {
     this.child!.kill()
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
+
+  public initialize(args: EngineArgs.InitializeInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('initialize', args))
+  }
+  public diagnoseMigrationHistory(
+    args: EngineArgs.DiagnoseMigrationHistoryInput,
+  ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+    return this.runCommand(this.getRPCPayload('diagnoseMigrationHistory', args))
+  }
+  public planMigration(
+    args: EngineArgs.PlanMigrationInput,
+  ): Promise<EngineResults.PlanMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('planMigration', args))
+  }
+  public createMigration(
+    args: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('createMigration', args))
+  }
+  public applyMigrations(
+    args: EngineArgs.ApplyMigrationsInput,
+  ): Promise<EngineResults.ApplyMigrationsOutput> {
+    return this.runCommand(this.getRPCPayload('applyMigrations', args))
+  }
+  public reset(): Promise<void> {
+    return this.runCommand(this.getRPCPayload('reset', null))
+  }
+
   public schemaPush(
     args: EngineArgs.SchemaPush,
   ): Promise<EngineResults.SchemaPush> {

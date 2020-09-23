@@ -307,6 +307,12 @@ export class Migrate {
     return initLockFile()
   }
 
+  public async initialize(): Promise<void> {
+    await this.engine.initialize({
+      migrationsDirectoryPath: './prisma/migrations',
+    })
+  }
+
   public async push({ force = false }: PushOptions = {}): Promise<
     EngineResults.SchemaPush
   > {

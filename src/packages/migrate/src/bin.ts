@@ -18,6 +18,7 @@ import path from 'path'
 
 import { HelpError, isError } from '@prisma/sdk'
 import { MigrateCommand } from './commands/MigrateCommand'
+import { MigrateInit } from './commands/MigrateInit'
 import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
@@ -45,6 +46,7 @@ const providerAliases: ProviderAliases = {
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = MigrateCommand.new({
+    init: MigrateInit.new(),
     save: MigrateSave.new(),
     up: MigrateUp.new(),
     down: MigrateDown.new(),

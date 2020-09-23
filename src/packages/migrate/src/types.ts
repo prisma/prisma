@@ -47,11 +47,59 @@ export interface UnexecutableMigration {
   description: string
 }
 
+export type HistoryDiagnostic =
+  | { diagnostic: 'MigrationsEdited'; editedMigrationNames: string[] }
+  | { diagnostic: 'MigrationsFailed'; failedMigrationName: string } // idea: rollforward: string | null, rollback: string | null
+  | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
+  | {
+      diagnostic: 'MigrationsDirectoryIsBehind'
+      unpersistedMigrationNames: string[]
+    }
+  | {
+      diagnostic: 'HistoriesDiverge'
+      lastCommonMigrationName: string
+      unpersistedMigrationNames: string[]
+      unappliedMigrationNames: string[]
+    }
+  | { diagnostic: 'DriftDetected' } // idea: fixupScript: string | null
+  // A migration failed to cleanly apply to a temporary database.
+  | {
+      diagnostic: 'MigrationFailedToApply'
+      migrationName: string
+      error: string
+    }
+
+export interface MigrationFeedback {
+  message: string
+  stepIndex: number
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
+  export interface InitializeInput {
+    migrationsDirectoryPath: string
+  }
+  export interface DiagnoseMigrationHistoryInput {
+    migrationsDirectoryPath: string
+  }
+  export interface PlanMigrationInput {
+    migrationsDirectoryPath: string
+    prismaSchema: string
+  }
+  export interface CreateMigrationInput {
+    migrationsDirectoryPath: string
+    prismaSchema: string
+    draft: boolean // if true, always generate a migration, but do not apply
+    /// The user-given name for the migration. This will be used in the migration directory.
+    migration_name: string
+  }
+  export interface ApplyMigrationsInput {
+    migrationsDirectoryPath: string
+  }
+
   export interface SchemaPush {
     schema: string
     force: boolean
@@ -93,6 +141,26 @@ export namespace EngineArgs {
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
+  export interface DiagnoseMigrationHistoryOutput {
+    historyProblems: HistoryDiagnostic[]
+  }
+  export interface PlanMigrationOutput {
+    /// The migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
+    migrationSteps: string[]
+
+    /// The warnings and unexecutable migration messages that apply to the _development database_.
+    /// The warnings for the production databases are written as comments into the migration scripts.
+    warnings: MigrationFeedback[]
+    unexecutableSteps: MigrationFeedback[]
+  }
+  export interface CreateMigrationOutput {
+    /// The name of the newly generated migration directory, if any.
+    generatedMigrationName: string | null
+  }
+  export interface ApplyMigrationsOutput {
+    appliedMigrationNames: string[]
+  }
+
   export interface SchemaPush {
     executedSteps: number
     warnings: string[]
