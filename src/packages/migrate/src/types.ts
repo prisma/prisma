@@ -94,7 +94,7 @@ export namespace EngineArgs {
     prismaSchema: string
     draft: boolean // if true, always generate a migration, but do not apply
     /// The user-given name for the migration. This will be used in the migration directory.
-    migration_name: string
+    migrationName?: string
   }
   export interface ApplyMigrationsInput {
     migrationsDirectoryPath: string

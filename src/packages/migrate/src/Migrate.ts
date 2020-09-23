@@ -63,6 +63,10 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
+export interface MigrateOptions {
+  name?: string
+  draft?: boolean
+}
 export interface PushOptions {
   force?: boolean
 }
@@ -250,8 +254,13 @@ export class Migrate {
   // tsline:enable
   private datamodelBeforeWatch = ''
   private schemaPath: string
+  private migrationsDirectoryPath: string
   constructor(schemaPath?: string) {
     this.schemaPath = this.getSchemaPath(schemaPath)
+    this.migrationsDirectoryPath = path.join(
+      path.dirname(this.schemaPath),
+      'migrations',
+    )
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
@@ -309,8 +318,27 @@ export class Migrate {
 
   public async initialize(): Promise<void> {
     await this.engine.initialize({
-      migrationsDirectoryPath: './prisma/migrations',
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
+  }
+  public async reset(): Promise<void> {
+    await this.engine.reset()
+  }
+
+  public async migrate({
+    draft = false,
+    name = '',
+  }: MigrateOptions = {}): Promise<string> {
+    const datamodel = this.getDatamodel()
+
+    const result = await this.engine.createMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: name,
+      draft,
+      prismaSchema: datamodel,
+    })
+
+    return result.generatedMigrationName
   }
 
   public async push({ force = false }: PushOptions = {}): Promise<

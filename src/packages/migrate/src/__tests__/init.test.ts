@@ -4,7 +4,7 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 
 it('init should create the migrations folder', async () => {
-  ctx.fixture('init')
+  ctx.fixture('schema-only')
   const result = MigrateInit.new().parse(['--experimental'])
   await expect(result).resolves.toEqual('Everything in sync 🔄')
   expect(

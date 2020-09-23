@@ -6,15 +6,23 @@ import {
   HelpError,
   isError,
   unknownCommand,
+  getSchemaPath,
+  getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { getNextFreePort } from '../utils/occupyPath'
+import prompt from 'prompts'
+import isCi from 'is-ci'
+import fs from 'fs'
+import path from 'path'
+import { Migrate } from '../Migrate'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../utils/experimental'
 
 /**
  * Migrate command
  */
 export class MigrateCommand implements Command {
-  public static new(cmds: Commands): MigrateCommand {
+  public static new(cmds?: Commands): MigrateCommand {
     return new MigrateCommand(cmds)
   }
 
@@ -44,6 +52,7 @@ export class MigrateCommand implements Command {
     ${chalk.bold('Options')}
 
       -h, --help   Display this help message
+      -n, --name   Name the migration
 
     ${chalk.bold('Commands')}
 
@@ -53,8 +62,8 @@ export class MigrateCommand implements Command {
 
     ${chalk.bold('Examples')}
 
-      Create new migration
-      ${chalk.dim('$')} prisma migrate save --experimental
+      Create new migration and apply it
+      ${chalk.dim('$')} prisma migrate --experimental
 
       Migrate up to the latest datamodel
       ${chalk.dim('$')} prisma migrate up --experimental
@@ -68,13 +77,16 @@ export class MigrateCommand implements Command {
       Get more help on a migrate up
       ${chalk.dim('$')} prisma migrate up -h --experimental
   `)
-  private constructor(private readonly cmds: Commands) {}
+  private constructor(private readonly cmds?: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--name': String,
+      '-n': '--name',
+      '--draft': Boolean,
       '--experimental': Boolean,
       '--telemetry-information': String,
     })
@@ -83,38 +95,86 @@ export class MigrateCommand implements Command {
       return this.help(args.message)
     }
 
-    // display help for help flag or no subcommand
-    if (args._.length === 0 || args['--help']) {
+    if (args['--help']) {
       return this.help()
     }
 
-    // check if we have that subcommand
-    const cmd = this.cmds[args._[0]]
-    if (cmd) {
-      const nextFreePort = await getNextFreePort(process.cwd())
-      if (typeof nextFreePort !== 'number') {
-        const command = `prisma migrate ${argv.join(' ')}`
-        throw new Error(`Cannot run ${chalk.bold(
-          command,
-        )} because there is a ${chalk.bold(
-          'prisma dev',
-        )} command running in this directory.
-Please ${chalk.rgb(
-          228,
-          155,
-          15,
-        )(
-          `stop ${chalk.bold('prisma dev')} first`,
-        )}, then try ${chalk.greenBright.bold(command)} again`)
+    // running a subcommand
+    if (args._[0] && this.cmds) {
+      // check if we have that subcommand
+      const cmd = this.cmds[args._[0]]
+      if (cmd) {
+        const argsForCmd = args['--experimental']
+          ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+          : args._.slice(1)
+        return cmd.parse(argsForCmd)
       }
 
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
-        : args._.slice(1)
-      return cmd.parse(argsForCmd)
-    }
+      return unknownCommand(MigrateCommand.help, args._[0])
+    } else {
+      // prisma migrate
+      if (!args['--experimental']) {
+        throw new ExperimentalFlagError()
+      }
 
-    return unknownCommand(MigrateCommand.help, args._[0])
+      const schemaPath = await getSchemaPath(args['--schema'])
+
+      if (!schemaPath) {
+        throw new Error(
+          `Could not find a ${chalk.bold(
+            'schema.prisma',
+          )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+            '--schema',
+          )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+            './prisma/schema.prisma',
+          )} https://pris.ly/d/prisma-schema-location`,
+        )
+      }
+
+      console.log(
+        chalk.dim(
+          `Prisma Schema loaded from ${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
+      )
+
+      // Automtically create the database if it doesn't exist
+      await ensureDatabaseExists('create', true, schemaPath)
+
+      const migrate = new Migrate(schemaPath)
+
+      let migrationName: string | undefined
+      if (process.stdout.isTTY && !isCi && !process.env.GITHUB_ACTIONS) {
+        migrationName = await this.promptForMigrationName()
+      }
+
+      const result = await migrate.migrate({
+        draft: args['--draft'],
+        name: migrationName,
+      })
+      await migrate.stop()
+
+      return `\nSuccess!\n`
+    }
+  }
+
+  public async promptForMigrationName(
+    name?: string,
+  ): Promise<string | undefined> {
+    if (name === '') {
+      return undefined
+    }
+    if (name) {
+      return name
+    }
+    const response = await prompt({
+      type: 'text',
+      name: 'name',
+      message: `Name of migration`,
+    })
+    return response.name || undefined
   }
 
   public help(error?: string): string | HelpError {

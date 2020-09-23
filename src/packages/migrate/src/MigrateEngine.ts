@@ -286,7 +286,8 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
-        if (response.result) {
+        // can be null, for reset RPC for example
+        if (response.result !== undefined) {
           resolve(response.result)
         } else {
           if (response.error) {

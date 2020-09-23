@@ -41,16 +41,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-    `  The ${chalk.redBright(
-      'prisma2',
-    )} command is deprecated and has been renamed to ${chalk.greenBright(
-      'prisma',
-    )}.\nPlease execute ${chalk.bold.greenBright(
-      'prisma' +
-      (process.argv.length > 2
-        ? ' ' + process.argv.slice(2).join(' ')
-        : ''),
-    )} instead.\n`,
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
+      )} instead.\n`,
   )
 }
 
@@ -80,6 +80,8 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
+  MigrateInit,
+  MiMigrateReset,
   MigrateSave,
   MigrateUp,
   MigrateDown,
@@ -125,6 +127,8 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       migrate: MigrateCommand.new({
+        init: MigrateInit.new(),
+        reset: MigrateReset.new(),
         save: MigrateSave.new(),
         up: MigrateUp.new(),
         down: MigrateDown.new(),
@@ -248,13 +252,14 @@ async function main(): Promise<number> {
         drawBox({
           height: 4,
           width: 59,
-          str: `\n${chalk.blue('Update available')} ${checkResult.data.previous_version
-            } -> ${checkResult.data.current_version}\nRun ${chalk.bold(
-              makeInstallCommand(
-                checkResult.data.package,
-                checkResult.data.release_tag,
-              ),
-            )} to update`,
+          str: `\n${chalk.blue('Update available')} ${
+            checkResult.data.previous_version
+          } -> ${checkResult.data.current_version}\nRun ${chalk.bold(
+            makeInstallCommand(
+              checkResult.data.package,
+              checkResult.data.release_tag,
+            ),
+          )} to update`,
           horizontalPadding: 2,
         }),
       )
