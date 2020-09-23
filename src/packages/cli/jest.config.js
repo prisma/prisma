@@ -9,6 +9,7 @@ module.exports = {
     '**/src/__tests__/studio*',
     '**/src/__tests__/integration*',
     '**/src/__tests__/introspect*',
+    '**/src/__tests__/update*',
   ],
   // todo duplicated serializer from client package, should share
   snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
