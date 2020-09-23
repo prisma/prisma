@@ -38,7 +38,7 @@ function generateGraph(
       g.addEdge(json.name, key, {})
     })
   })
-  g.output('png', `../graphs/${type}.png`, (err, stdout, stderr) => {
+  g.output('png', `./graphs/${type}.png`, (err, stdout, stderr) => {
     console.log(stderr)
   })
 }
