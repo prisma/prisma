@@ -229,12 +229,12 @@ ts-node scripts/graph-dependencies.ts
 ```
 ## Dependencies
 
-<img src="./graphs/dependencies.png">
+<img src="./src/graphs/dependencies.png">
 
 ## Dev Dependencies
 
-<img src="./graphs/devDependencies.png">
+<img src="./src/graphs/devDependencies.png">
 
 ## Peer Dependencies
 
-<img src="./graphs/peerDependencies.png">
+<img src="./src/graphs/peerDependencies.png">
