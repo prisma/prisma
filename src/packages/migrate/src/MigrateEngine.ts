@@ -242,6 +242,9 @@ export class MigrateEngine {
     })
   }
   private async runCommand(request: RPCPayload): Promise<any> {
+    if (process.env.FORCE_PANIC_MIGRATION_ENGINE) {
+      request = this.getRPCPayload('debugPanic', undefined)
+    }
     await this.init()
     if (this.child?.killed) {
       throw new Error(
