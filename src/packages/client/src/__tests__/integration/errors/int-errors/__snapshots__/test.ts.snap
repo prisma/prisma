@@ -1,10 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`int-errors char-int 1`] = `
-Argument age: Got invalid value 'thisisastringwith30characters' on prisma.updateOneUser. Provided String, expected Int or NullableIntFieldUpdateOperationsInput.
-type NullableIntFieldUpdateOperationsInput {
-  set?: Int
-}
+Argument age: Got invalid value 'thisisastringwith30characters' on prisma.updateOneUser. Provided String, expected Int or NullableIntFieldUpdateOperationsInput or Null.
 
 `;
 
