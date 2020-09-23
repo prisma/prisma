@@ -1174,7 +1174,7 @@ export class PrismaClientFetcher {
         })
         message = stack + '\n  ' + e.message
       }
-
+      
       message = this.sanitizeMessage(message)
       // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
@@ -1194,7 +1194,7 @@ export class PrismaClientFetcher {
   }
 
   sanitizeMessage(message) {
-    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
+    if (this.prisma._errorFormat && this.prisma._errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
     return message
