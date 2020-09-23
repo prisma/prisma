@@ -1,7 +1,6 @@
 #!/usr/bin/env ts-node
 import {
   arg,
-  drawBox,
   getCLIPathHash,
   getProjectHash,
   getSchema,
@@ -97,6 +96,7 @@ import { Format } from './Format'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
+import { printUpdateMessage } from './utils/printUpdateMessage'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -196,31 +196,7 @@ async function main(): Promise<number> {
       //
       debug(e)
     }
-
-    function makeInstallCommand(packageName: string, tag: string): string {
-      // Examples
-      // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
-      // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
-      const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
-
-      let command = ''
-      if (isPrismaInstalledGlobally === 'yarn') {
-        command = `yarn global add ${packageName}`
-      } else if (isPrismaInstalledGlobally === 'npm') {
-        command = `npm i -g ${packageName}`
-      } else if (yarnUsed) {
-        command = `yarn add --dev ${packageName}`
-      } else {
-        command = `npm i --save-dev ${packageName}`
-      }
-
-      if (tag && tag !== 'latest') {
-        command += `@${tag}`
-      }
-
-      return command
-    }
-
+    
     // check prisma for updates
     const checkResult = await checkpoint.check({
       product: 'prisma',
@@ -244,20 +220,7 @@ async function main(): Promise<number> {
       checkResult.data.outdated &&
       !shouldHide
     ) {
-      console.error(
-        drawBox({
-          height: 4,
-          width: 59,
-          str: `\n${chalk.blue('Update available')} ${checkResult.data.previous_version
-            } -> ${checkResult.data.current_version}\nRun ${chalk.bold(
-              makeInstallCommand(
-                checkResult.data.package,
-                checkResult.data.release_tag,
-              ),
-            )} to update`,
-          horizontalPadding: 2,
-        }),
-      )
+      printUpdateMessage(checkResult)
     }
   } catch (e) {
     debug(e)
