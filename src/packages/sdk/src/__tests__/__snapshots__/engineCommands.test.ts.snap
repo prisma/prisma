@@ -14,7 +14,7 @@ generator client {
 }
 
 model User {
-  id    String  @default(cuid()) @id
+  id    String  @id @default(cuid())
   email String  @unique
   name  String?
   posts Post[]
@@ -22,7 +22,7 @@ model User {
 }
 
 model Post {
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
@@ -34,7 +34,7 @@ model Post {
 }
 
 model Like {
-  id     String @default(cuid()) @id
+  id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id])
   postId String
@@ -56,7 +56,7 @@ generator client {
 }
 
 model User {
-  id    String  @default(cuid()) @id
+  id    String  @id @default(cuid())
   email String  @unique
   name  String?
   posts Post[]
@@ -64,7 +64,7 @@ model User {
 }
 
 model Post {
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
@@ -76,7 +76,7 @@ model Post {
 }
 
 model Like {
-  id     String @default(cuid()) @id
+  id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id])
   postId String
