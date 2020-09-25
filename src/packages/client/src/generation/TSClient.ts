@@ -508,6 +508,7 @@ export type LogEvent = {
 export type PrismaAction =
   | 'findOne'
   | 'findMany'
+  | 'findFirst'
   | 'create'
   | 'update'
   | 'updateMany'
@@ -1047,7 +1048,7 @@ const ${lowerCase(mapping.model)}With${capitalize(
         )}Only = await ${method}({ select: { ${firstScalar.name}: true } })`
         : ''
 
-      return `Find zero or more ${plural}.
+      return `Find zero or more ${plural} that matches the filter.
 @param {${getModelArgName(
         model.name,
         action,
@@ -1062,7 +1063,21 @@ ${onlySelect}
 `
     }
     case DMMF.ModelAction.findOne: {
-      return `Find zero or one ${singular}.
+      return `Find zero or one ${singular} that matches the filter.
+@param {${getModelArgName(
+        model.name,
+        action,
+      )}} args - Arguments to find a ${singular}
+@example
+// Get one ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  }
+})`
+    }
+    case DMMF.ModelAction.findFirst: {
+      return `Find the first ${singular} that matches the filter.
 @param {${getModelArgName(
         model.name,
         action,
@@ -1421,6 +1436,9 @@ ${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const topLevelArgsJsDocs = {
   findOne: {
+    where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
+  },
+  findFirst: {
     where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
   },
   findMany: {
