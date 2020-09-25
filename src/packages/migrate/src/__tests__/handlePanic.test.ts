@@ -105,9 +105,9 @@ describe('handlePanic', () => {
       await handlePanic(error, packageJsonVersion, prismaVersion)
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
+      expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{\\"rustStack\\":\\"\\",\\"schemaPath\\":\\"Some Schema Path\\",\\"area\\":\\"LIFT_CLI\\"}"`,
+        `{"rustStack":"","schemaPath":"Some Schema Path","area":"LIFT_CLI"}`,
       )
     }
   })
@@ -152,36 +152,36 @@ describe('handlePanic', () => {
     }
     if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
       expect(error).toMatchInlineSnapshot(`
-      [Error: Error in migration engine.
-      Reason: [/rustc/04488afe34512aa4c33566eb16d8c912a3ae04f9/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic
+        Error in migration engine.
+        Reason: [/rustc/04488afe34512aa4c33566eb16d8c912a3ae04f9/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic
 
-      Please create an issue in the migrate repo with
-      your \`schema.prisma\` and the prisma command you tried to use 🙏:
-      https://github.com/prisma/migrate/issues/new
-      ]
-    `)
+        Please create an issue in the migrate repo with
+        your \`schema.prisma\` and the prisma command you tried to use 🙏:
+        https://github.com/prisma/migrate/issues/new
+
+      `)
     } else {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
-      "
-        console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/rustc/04488afe34512aa4c33566eb16d8c912a3ae04f9/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic        Please create an issue in the migrate repo with    your \`schema.prisma\` and the prisma command you tried to use 🙏:    https://github.com/prisma/migrate/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:29:11)
+              "
+                console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/rustc/04488afe34512aa4c33566eb16d8c912a3ae04f9/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic        Please create an issue in the migrate repo with    your \`schema.prisma\` and the prisma command you tried to use 🙏:    https://github.com/prisma/migrate/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:29:11)
 
-      ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
+              ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
 
-      ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
+              ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
 
-      ✔ Submit error report › No
+              ✔ Submit error report › No
 
 
 
-      ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
+              ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
 
-      ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
+              ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
 
-      ✔ Would you like to create a Github issue? › No
+              ✔ Would you like to create a Github issue? › No
 
-      "
-    `)
+              "
+          `)
     }
     captureStdout.stopCapture()
   })
@@ -211,9 +211,9 @@ describe('handlePanic', () => {
       const migrate = new Migrate(schemaPath)
       await migrate.createMigration('setup')
     } catch (err) {
-      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
+      expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{\\"rustStack\\":\\"\\",\\"schemaPath\\":\\"Some Schema Path\\",\\"area\\":\\"LIFT_CLI\\"}"`,
+        `{"rustStack":"","schemaPath":"Some Schema Path","area":"LIFT_CLI"}`,
       )
     }
   })
