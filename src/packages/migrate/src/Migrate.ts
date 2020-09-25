@@ -65,7 +65,7 @@ const exists = promisify(fs.exists)
 
 export interface MigrateOptions {
   name?: string
-  draft?: boolean
+  isDraft?: boolean
 }
 export interface PushOptions {
   force?: boolean
@@ -316,29 +316,145 @@ export class Migrate {
     return initLockFile()
   }
 
-  public async initialize(): Promise<void> {
-    await this.engine.initialize({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-    })
+  public async checkMigrationsDirectory(): Promise<boolean> {
+    return await exists(this.migrationsDirectoryPath)
   }
+
+  public async initialize(): Promise<void> {
+    return fs.mkdirSync(this.migrationsDirectoryPath)
+
+    // not implemented yet
+    // await this.engine.initialize({
+    //   migrationsDirectoryPath: this.migrationsDirectoryPath,
+    // })
+  }
+
   public async reset(): Promise<void> {
     await this.engine.reset()
   }
 
-  public async migrate({
-    draft = false,
-    name = '',
-  }: MigrateOptions = {}): Promise<string> {
+  public async draft({ name = '' }: MigrateOptions = {}): Promise<
+    string | undefined
+  > {
     const datamodel = this.getDatamodel()
-
-    const result = await this.engine.createMigration({
+    const createMigrationResult = await this.engine.createMigration({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: name,
-      draft,
+      draft: true,
       prismaSchema: datamodel,
     })
 
-    return result.generatedMigrationName
+    // A migration was created
+    if (createMigrationResult.generatedMigrationName) {
+      return createMigrationResult.generatedMigrationName
+    }
+
+    // No migration created
+    return
+  }
+
+  public async checkHistory(): Promise<string[] | undefined> {
+    const { historyProblems } = await this.engine.diagnoseMigrationHistory({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+
+    // if (historyProblems.includes) {
+    //       MigrationsEdited
+    // MigrationsFailed
+
+    // DatabaseIsBehind
+    // MigrationsDirectoryIsBehind
+
+    // HistoriesDiverge
+    // DriftDetected
+    // MigrationFailedToApply
+    // }
+
+    // soon
+    // interface DiagnoseMigrationHistoryOutput {
+    //   drift: { tag: 'DriftDetected' } | { tag: 'MigrationFailedToApply', error: string, migrationName: string },
+    //   history: { tag: 'DatabaseIsBehind', ... } | { tag: 'HistoriesDiverge', ... } | ...
+    //   failedMigrationNames: string[],
+    //   editedMigrationNames: string[],
+    // }
+
+    //   export type HistoryDiagnostic =
+    // | { diagnostic: 'MigrationsEdited'; editedMigrationNames: string[] }
+    // | { diagnostic: 'MigrationsFailed'; failedMigrationName: string } // idea: rollforward: string | null, rollback: string | null
+    // | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
+    // | {
+    //     diagnostic: 'MigrationsDirectoryIsBehind'
+    //     unpersistedMigrationNames: string[]
+    //   }
+    // | {
+    //     diagnostic: 'HistoriesDiverge'
+    //     lastCommonMigrationName: string
+    //     unpersistedMigrationNames: string[]
+    //     unappliedMigrationNames: string[]
+    //   }
+    // | { diagnostic: 'DriftDetected' } // idea: fixupScript: string | null
+    // // A migration failed to cleanly apply to a temporary database.
+    // | {
+    //     diagnostic: 'MigrationFailedToApply'
+    //     migrationName: string
+    //     error: string
+    //   }
+
+    if (historyProblems.length > 0) {
+      // ask user if reset or abort
+      console.error({ historyProblems })
+      // throw new Error('history problem')
+    }
+
+    // reset succes?
+    const { appliedMigrationNames } = await this.engine.applyMigrations({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+    console.debug({ appliedMigrationNames })
+
+    return appliedMigrationNames
+  }
+
+  public async plan(): Promise<EngineResults.PlanMigrationOutput> {
+    const datamodel = this.getDatamodel()
+
+    // const {
+    //   migrationSteps,
+    //   warnings,
+    //   unexecutableSteps,
+    // }
+
+    const planMigrationResult = await this.engine.planMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      prismaSchema: datamodel,
+    })
+
+    console.debug({ planMigrationResult })
+
+    return planMigrationResult
+  }
+
+  public async createAndApply({ name = '' }: MigrateOptions = {}): Promise<
+    string[]
+  > {
+    const datamodel = this.getDatamodel()
+
+    // success?
+    const createMigrationResult = await this.engine.createMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: name,
+      draft: false,
+      prismaSchema: datamodel,
+    })
+    console.debug({ createMigrationResult })
+
+    // success?
+    const { appliedMigrationNames } = await this.engine.applyMigrations({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+    console.debug({ appliedMigrationNames })
+
+    return appliedMigrationNames
   }
 
   public async push({ force = false }: PushOptions = {}): Promise<

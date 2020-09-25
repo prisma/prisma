@@ -116,12 +116,9 @@ export class MigrateDown implements Command {
       )
     }
 
-    console.log(
+    console.info(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

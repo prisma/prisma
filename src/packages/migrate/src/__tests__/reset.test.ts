@@ -5,7 +5,7 @@ const ctx = Context.new().add(consoleContext()).assemble()
 
 // That should fail though?
 it('reset in empty migrations folder', async () => {
-  ctx.fixture('init')
+  ctx.fixture('initialized-sqlite')
   const result = MigrateReset.new().parse(['--force', '--experimental'])
   await expect(result).resolves.toMatchInlineSnapshot(`Reset successful.`)
   expect(

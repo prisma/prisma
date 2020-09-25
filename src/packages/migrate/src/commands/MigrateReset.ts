@@ -76,7 +76,7 @@ export class MigrateReset implements Command {
       )
     }
 
-    console.log(
+    console.info(
       chalk.dim(
         `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),

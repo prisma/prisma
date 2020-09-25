@@ -50,6 +50,12 @@ export interface UnexecutableMigration {
 export type HistoryDiagnostic =
   | { diagnostic: 'MigrationsEdited'; editedMigrationNames: string[] }
   | { diagnostic: 'MigrationsFailed'; failedMigrationName: string } // idea: rollforward: string | null, rollback: string | null
+  // DatabaseIsBehind, MigrationsDirectoryIsBehind, HistoriesDiverge are mutually exclusive
+  | HistoryDiagnostic_DatabaseIsBehind_or_MigrationsDirectoryIsBehind_or_HistoriesDiverge
+  // DriftDetected, MigrationFailedToApply are mutually exclusive
+  | HistoryDiagnostic_DriftDetected_or_MigrationFailedToApply
+
+type HistoryDiagnostic_DatabaseIsBehind_or_MigrationsDirectoryIsBehind_or_HistoriesDiverge =
   | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
   | {
       diagnostic: 'MigrationsDirectoryIsBehind'
@@ -61,6 +67,8 @@ export type HistoryDiagnostic =
       unpersistedMigrationNames: string[]
       unappliedMigrationNames: string[]
     }
+
+type HistoryDiagnostic_DriftDetected_or_MigrationFailedToApply =
   | { diagnostic: 'DriftDetected' } // idea: fixupScript: string | null
   // A migration failed to cleanly apply to a temporary database.
   | {

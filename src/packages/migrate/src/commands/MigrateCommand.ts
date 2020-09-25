@@ -17,6 +17,8 @@ import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
+import { printMigrationId } from '../utils/printMigrationId'
+import { printFiles } from '../utils/printFiles'
 
 /**
  * Migrate command
@@ -77,19 +79,25 @@ export class MigrateCommand implements Command {
       Get more help on a migrate up
       ${chalk.dim('$')} prisma migrate up -h --experimental
   `)
+
+  private argsSpec = {
+    '--help': Boolean,
+    '-h': '--help',
+    '--name': String,
+    '-n': '--name',
+    '--force': Boolean,
+    '-f': '--force',
+    '--draft': Boolean,
+    '--schema': String,
+    '--experimental': Boolean,
+    '--telemetry-information': String,
+  }
+
   private constructor(private readonly cmds?: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--name': String,
-      '-n': '--name',
-      '--draft': Boolean,
-      '--experimental': Boolean,
-      '--telemetry-information': String,
-    })
+    const args = arg(argv, this.argsSpec)
 
     if (isError(args)) {
       return this.help(args.message)
@@ -117,64 +125,176 @@ export class MigrateCommand implements Command {
         throw new ExperimentalFlagError()
       }
 
-      const schemaPath = await getSchemaPath(args['--schema'])
-
-      if (!schemaPath) {
-        throw new Error(
-          `Could not find a ${chalk.bold(
-            'schema.prisma',
-          )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-            '--schema',
-          )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-            './prisma/schema.prisma',
-          )} https://pris.ly/d/prisma-schema-location`,
-        )
-      }
-
-      console.log(
-        chalk.dim(
-          `Prisma Schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      // Automtically create the database if it doesn't exist
-      await ensureDatabaseExists('create', true, schemaPath)
-
-      const migrate = new Migrate(schemaPath)
-
-      let migrationName: string | undefined
-      if (process.stdout.isTTY && !isCi && !process.env.GITHUB_ACTIONS) {
-        migrationName = await this.promptForMigrationName()
-      }
-
-      const result = await migrate.migrate({
-        draft: args['--draft'],
-        name: migrationName,
-      })
-      await migrate.stop()
-
-      return `\nSuccess!\n`
+      return await this.migrate(argv)
     }
   }
 
-  public async promptForMigrationName(
-    name?: string,
-  ): Promise<string | undefined> {
-    if (name === '') {
-      return undefined
+  // All-in-One command
+  public async migrate(argv: string[]): Promise<string> {
+    // parse the arguments according to the spec
+    const args = arg(argv, this.argsSpec)
+
+    const schemaPath = await getSchemaPath(args['--schema'])
+
+    if (!schemaPath) {
+      throw new Error(
+        `Could not find a ${chalk.bold(
+          'schema.prisma',
+        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+          '--schema',
+        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+          './prisma/schema.prisma',
+        )} https://pris.ly/d/prisma-schema-location`,
+      )
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
+    }
+
+    const migrate = new Migrate(schemaPath)
+
+    if (!(await migrate.checkMigrationsDirectory())) {
+      throw new Error(
+        `You need to initialize the migrations by running ${chalk.greenBright(
+          getCommandWithExecutor('prisma migrate init --experimental'),
+        )}.`,
+      )
+    }
+
+    if (args['--draft']) {
+      const migrationName = await this.getMigrationName(args['--name'])
+      const migrationId = await migrate.draft({
+        name: migrationName,
+      })
+      migrate.stop()
+
+      if (migrationId) {
+        // return `${migrationId}`
+        return `\nPrisma Migrate created a draft migration ${printMigrationId(
+          migrationId,
+        )}\n\nYou can now edit it and then apply it by running ${chalk.greenBright(
+          getCommandWithExecutor('prisma migrate --experimental'),
+        )} again.`
+      } else {
+        return `\nNo migration was created. Your Prisma schema and database are already in sync.\n`
+      }
+    }
+
+    const historyDiagnostics = await migrate.checkHistory()
+
+    if (historyDiagnostics) {
+      // if reset needed
+      const reset = await migrate.reset()
+      console.debug({ reset })
+    }
+
+    const planMigrationResult = await migrate.plan()
+    console.debug({ planMigrationResult })
+
+    if (
+      planMigrationResult.unexecutableSteps &&
+      planMigrationResult.unexecutableSteps.length > 0
+    ) {
+      const messages: string[] = []
+      messages.push(
+        `${chalk.bold.red('\n⚠️ We found changes that cannot be executed:\n')}`,
+      )
+      for (const item of planMigrationResult.unexecutableSteps) {
+        messages.push(`${chalk(`  • ${item}`)}`)
+      }
+      console.info() // empty line
+      // Exit
+      throw new Error(`${messages.join('\n')}\n`)
+    }
+
+    if (
+      planMigrationResult.warnings &&
+      planMigrationResult.warnings.length > 0
+    ) {
+      console.log(
+        chalk.bold(
+          `\n\n⚠️  There will be data loss when applying the migration:\n`,
+        ),
+      )
+      for (const warning of planMigrationResult.warnings) {
+        console.log(chalk(`  • ${warning.message}`))
+      }
+      console.info() // empty line
+
+      if (this.isInteractiveTerminal()) {
+        const confirmation = await prompt({
+          type: 'confirm',
+          name: 'value',
+          message: `Are you sure you want create and apply this migration? ${chalk.red(
+            'Some data will be lost',
+          )}.`,
+        })
+
+        if (!confirmation.value) {
+          console.info('Migration cancelled.')
+          process.exit(0)
+        }
+      } else {
+        if (!args['--force']) {
+          console.info(
+            `Migration cancelled. (Non interactive environnment detected)
+            Use the --force flag ignore the dataloss warnings.`,
+          )
+          process.exit(0)
+        }
+      }
+    }
+
+    const migrationName = await this.getMigrationName(args['--name'])
+    console.debug({ migrationName })
+
+    const migrationIds = await migrate.createAndApply({
+      name: migrationName,
+    })
+    migrate.stop()
+
+    // if (!process.env.SKIP_GENERATE) {
+    //   // call prisma generate
+    // }
+    console.debug({ migrationIds })
+    // return `${migrationIds}`
+
+    return `\nPrisma Migrate created and applied the migration ${printMigrationId(
+      migrationIds[0],
+    )} in\n\n${chalk.dim(
+      printFiles(`migrations/${migrationIds[0]}`, {
+        'migration.sql': '',
+      }),
+    )}\n\n`
+  }
+
+  private isInteractiveTerminal() {
+    return process.stdout.isTTY && !isCi && !process.env.GITHUB_ACTIONS
+  }
+
+  private async getMigrationName(name?: string): Promise<string> {
     if (name) {
       return name
+    } else if (!this.isInteractiveTerminal()) {
+      return ''
     }
+
     const response = await prompt({
       type: 'text',
       name: 'name',
       message: `Name of migration`,
     })
-    return response.name || undefined
+    return response.name || ''
   }
 
   public help(error?: string): string | HelpError {

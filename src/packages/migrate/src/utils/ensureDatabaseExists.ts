@@ -8,6 +8,7 @@ import {
   canConnectToDatabase,
 } from '@prisma/sdk'
 import prompt from 'prompts'
+import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 
@@ -45,7 +46,16 @@ export async function ensureDatabaseExists(
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
   if (forceCreate) {
-    await createDatabase(activeDatasource.url.value, schemaDir)
+    const result = await createDatabase(activeDatasource.url.value, schemaDir)
+    if (result?.exitCode === 0) {
+      const credentials = uriToCredentials(activeDatasource.url.value)
+      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
+        credentials,
+      )
+      return `${dbType} ${schemaWord} ${chalk.bold(
+        dbName,
+      )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+    }
   } else {
     await interactivelyCreateDatabase(
       activeDatasource.url.value,
@@ -67,20 +77,9 @@ export async function askToCreateDb(
   connectionString: string,
   action: MigrateAction,
   schemaDir: string,
-): Promise<void> {
+): Promise<execa.ExecaReturnValue | undefined | void> {
   const credentials = uriToCredentials(connectionString)
-  const dbName = credentials.database
-  const dbType =
-    credentials.type === 'mysql'
-      ? 'MySQL'
-      : credentials.type === 'postgresql'
-      ? 'PostgreSQL'
-      : credentials.type === 'sqlite'
-      ? 'SQLite'
-      : credentials.type
-
-  const schemaWord = 'database'
-
+  const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
   const message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
     dbName,
   )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(
@@ -88,7 +87,7 @@ export async function askToCreateDb(
   )}\n`
 
   // empty line
-  console.log()
+  console.info()
   const response = await prompt({
     type: 'select',
     name: 'value',
@@ -121,4 +120,30 @@ function getDbLocation(credentials: DatabaseCredentials): string {
   }
 
   return `${credentials.host}:${credentials.port}`
+}
+
+function getDbinfoFromCredentials(
+  credentials,
+): {
+  dbName: string
+  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite'
+  schemaWord: 'database'
+} {
+  const dbName = credentials.database
+  const dbType =
+    credentials.type === 'mysql'
+      ? 'MySQL'
+      : credentials.type === 'postgresql'
+      ? 'PostgreSQL'
+      : credentials.type === 'sqlite'
+      ? 'SQLite'
+      : credentials.type
+
+  const schemaWord = 'database'
+
+  return {
+    dbName,
+    dbType,
+    schemaWord,
+  }
 }

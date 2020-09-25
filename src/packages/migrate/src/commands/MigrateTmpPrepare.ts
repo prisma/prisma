@@ -37,12 +37,9 @@ export class MigrateTmpPrepare implements Command {
       throw new Error('Could not find a `schema.prisma` file')
     }
 
-    console.log(
+    console.info(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

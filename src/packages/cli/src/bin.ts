@@ -81,7 +81,7 @@ import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
   MigrateInit,
-  MiMigrateReset,
+  MigrateReset,
   MigrateSave,
   MigrateUp,
   MigrateDown,

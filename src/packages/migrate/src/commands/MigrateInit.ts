@@ -73,18 +73,19 @@ export class MigrateInit implements Command {
       )
     }
 
-    console.log(
+    console.info(
       chalk.dim(
         `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
-    // Automtically create the database if it doesn't exist
+    // Automatically create the database if it doesn't exist
     await ensureDatabaseExists('create', true, schemaPath)
 
     const migrate = new Migrate(schemaPath)
     await migrate.initialize()
-    await migrate.stop()
+    // after engine init is implemented
+    // migrate.stop()
 
     return `\nInitialization complete.\n\nRun ${chalk.greenBright(
       getCommandWithExecutor('prisma migrate --experimental'),
