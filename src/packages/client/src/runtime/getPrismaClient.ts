@@ -43,6 +43,7 @@ import { omit } from './utils/omit'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
+import { clientVersion } from './utils/clientVersion'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -170,10 +171,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-  > = T extends LogDefinition
+> = T extends LogDefinition
   ? T['emit'] extends 'event'
-  ? T['level']
-  : never
+    ? T['level']
+    : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -260,124 +261,132 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }>
     private _middlewares: Middleware[] = []
     private _engineMiddlewares: EngineMiddleware[] = []
+    private _clientVersion: string
     constructor(optionsArg?: PrismaClientOptions) {
-      const options: PrismaClientOptions = optionsArg ?? {}
-      const internal = options.__internal ?? {}
+      this._clientVersion = config.clientVersion ?? clientVersion
+      try {
+        const options: PrismaClientOptions = optionsArg ?? {}
+        const internal = options.__internal ?? {}
 
-      const useDebug = internal.debug === true
-      if (useDebug) {
-        Debug.enable('prisma-client')
-      }
+        const useDebug = internal.debug === true
+        if (useDebug) {
+          Debug.enable('prisma-client')
+        }
 
-      if (internal.hooks) {
-        this._hooks = internal.hooks
-      }
+        if (internal.hooks) {
+          this._hooks = internal.hooks
+        }
 
-      let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
-      predefinedDatasources = predefinedDatasources.map((d) => ({
-        name: d.name,
-        url: 'file:' + path.resolve(config.dirname, d.url),
-      }))
+        let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
+        predefinedDatasources = predefinedDatasources.map((d) => ({
+          name: d.name,
+          url: 'file:' + path.resolve(config.dirname, d.url),
+        }))
 
-      const inputDatasources = Object.entries(options.datasources || {})
-        .filter(([_, source]) => {
-          return source && source.url
-        })
-        .map(([name, { url }]: any) => ({ name, url }))
+        const inputDatasources = Object.entries(options.datasources || {})
+          .filter(([_, source]) => {
+            return source && source.url
+          })
+          .map(([name, { url }]: any) => ({ name, url }))
 
-      const datasources = mergeBy(
-        predefinedDatasources,
-        inputDatasources,
-        (source) => source.name,
-      )
+        const datasources = mergeBy(
+          predefinedDatasources,
+          inputDatasources,
+          (source) => source.name,
+        )
 
-      const engineConfig = internal.engine || {}
+        const engineConfig = internal.engine || {}
 
-      if (options.errorFormat) {
-        this._errorFormat = options.errorFormat
-      } else if (process.env.NODE_ENV === 'production') {
-        this._errorFormat = 'minimal'
-      } else if (process.env.NO_COLOR) {
-        this._errorFormat = 'colorless'
-      } else {
-        this._errorFormat = 'colorless' // default errorFormat
-      }
+        if (options.errorFormat) {
+          this._errorFormat = options.errorFormat
+        } else if (process.env.NODE_ENV === 'production') {
+          this._errorFormat = 'minimal'
+        } else if (process.env.NO_COLOR) {
+          this._errorFormat = 'colorless'
+        } else {
+          this._errorFormat = 'colorless' // default errorFormat
+        }
 
-      const envFile = this.readEnv()
+        const envFile = this.readEnv()
 
-      this._dmmf = new DMMFClass(config.document)
+        this._dmmf = new DMMFClass(config.document)
 
-      let cwd = path.resolve(config.dirname, config.relativePath)
+        let cwd = path.resolve(config.dirname, config.relativePath)
 
-      if (!fs.existsSync(cwd)) {
-        cwd = config.dirname
-      }
+        if (!fs.existsSync(cwd)) {
+          cwd = config.dirname
+        }
 
-      const previewFeatures = config.generator?.previewFeatures ?? []
+        const previewFeatures = config.generator?.previewFeatures ?? []
 
-      this._engineConfig = {
-        cwd,
-        enableDebugLogs: useDebug,
-        enableEngineDebugMode: engineConfig.enableEngineDebugMode,
-        datamodelPath: path.join(config.dirname, 'schema.prisma'),
-        prismaPath: engineConfig.binaryPath ?? undefined,
-        engineEndpoint: engineConfig.endpoint,
-        datasources,
-        generator: config.generator,
-        showColors: this._errorFormat === 'pretty',
-        logLevel: options.log && (getLogLevel(options.log) as any), // TODO
-        logQueries:
-          options.log &&
-          Boolean(
-            typeof options.log === 'string'
-              ? options.log === 'query'
-              : options.log.find((o) =>
-                typeof o === 'string' ? o === 'query' : o.level === 'query',
-              ),
-          ),
-        env: envFile,
-        flags: [],
-        clientVersion: config.clientVersion,
-        enableExperimental: mapPreviewFeatures(previewFeatures),
-        useUds: internal.useUds,
-      }
+        this._engineConfig = {
+          cwd,
+          enableDebugLogs: useDebug,
+          enableEngineDebugMode: engineConfig.enableEngineDebugMode,
+          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          prismaPath: engineConfig.binaryPath ?? undefined,
+          engineEndpoint: engineConfig.endpoint,
+          datasources,
+          generator: config.generator,
+          showColors: this._errorFormat === 'pretty',
+          logLevel: options.log && (getLogLevel(options.log) as any), // TODO
+          logQueries:
+            options.log &&
+            Boolean(
+              typeof options.log === 'string'
+                ? options.log === 'query'
+                : options.log.find((o) =>
+                    typeof o === 'string' ? o === 'query' : o.level === 'query',
+                  ),
+            ),
+          env: envFile,
+          flags: [],
+          clientVersion: config.clientVersion,
+          enableExperimental: mapPreviewFeatures(previewFeatures),
+          useUds: internal.useUds,
+        }
 
-      const sanitizedEngineConfig = omit(this._engineConfig, [
-        'env',
-        'datasources',
-      ])
-      debug({ engineConfig: sanitizedEngineConfig })
+        const sanitizedEngineConfig = omit(this._engineConfig, [
+          'env',
+          'datasources',
+        ])
+        debug({ engineConfig: sanitizedEngineConfig })
 
-      this._engine = new NodeEngine(this._engineConfig)
-      this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
+        this._engine = new NodeEngine(this._engineConfig)
+        this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
-      if (options.log) {
-        for (const log of options.log) {
-          const level =
-            typeof log === 'string'
-              ? log
-              : log.emit === 'stdout'
+        if (options.log) {
+          for (const log of options.log) {
+            const level =
+              typeof log === 'string'
+                ? log
+                : log.emit === 'stdout'
                 ? log.level
                 : null
-          if (level) {
-            this.$on(level, (event) => {
-              const colorMap = {
-                query: 'blue',
-                info: 'cyan',
-                warn: 'yellow',
-                error: 'red',
-              }
-              console.error(
-                chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                (event.message || event.query),
-              )
-            })
+            if (level) {
+              this.$on(level, (event) => {
+                const colorMap = {
+                  query: 'blue',
+                  info: 'cyan',
+                  warn: 'yellow',
+                  error: 'red',
+                }
+                console.error(
+                  chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
+                    (event.message || event.query),
+                )
+              })
+            }
           }
         }
-      }
 
-      this._bootstrapClient()
+        this._bootstrapClient()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
+
     private readEnv() {
       const dotEnvPath = path.resolve(
         config.dirname,
@@ -457,7 +466,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.$connect()
     }
     async $connect() {
-      return this._engine.start()
+      try {
+        return this._engine.start()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
     /**
      * @private
@@ -481,7 +495,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Disconnect from the database
      */
     async $disconnect() {
-      return this._engine.stop()
+      try {
+        return this._engine.stop()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
 
     private async _getActiveProvider(): Promise<ConnectorType> {
@@ -501,7 +520,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $executeRaw(stringOrTemplateStringsArray, ...values) {
+    private async $executeRawInternal(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -555,6 +574,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    /**
+     * Executes a raw query. Always returns a number
+     */
+    async $executeRaw(stringOrTemplateStringsArray, ...values) {
+      try {
+        return this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
+    }
+
     private _getCallsite() {
       if (this._errorFormat !== 'minimal') {
         return new Error().stack
@@ -574,7 +605,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $queryRaw(stringOrTemplateStringsArray, ...values) {
+    private async $queryRawInternal(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -628,6 +659,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    /**
+     * Executes a raw query. Always returns a number
+     */
+    async $queryRaw(stringOrTemplateStringsArray, ...values) {
+      try {
+        return this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
+    }
+
     async __internal_triggerPanic(fatal: boolean) {
       if (!this._engineConfig.enableEngineDebugMode) {
         throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
@@ -668,7 +711,8 @@ new PrismaClient({
       )
       return this.$transaction(promises)
     }
-    async $transaction(promises: Array<any>): Promise<any> {
+
+    private async $transactionInternal(promises: Array<any>): Promise<any> {
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (
@@ -685,6 +729,15 @@ new PrismaClient({
         throw new Error(
           `In order to use the .transaction() api, please enable 'previewFeatures = "transactionApi" in your schema.`,
         )
+      }
+    }
+
+    async $transaction(promises: Array<any>): Promise<any> {
+      try {
+        return this.$transactionInternal(promises)
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
       }
     }
 
@@ -736,9 +789,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ; (params as InternalRequestParams).clientMethod = clientMethod
-        ; (params as InternalRequestParams).callsite = callsite
-        ; (params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).callsite = callsite
+      ;(params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -934,8 +987,8 @@ new PrismaClient({
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
-                  ? 'include'
-                  : 'select'
+                ? 'include'
+                : 'select'
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
@@ -993,9 +1046,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                ...args,
-                select: { count: true },
-              }
+                  ...args,
+                  select: { count: true },
+                }
               : undefined,
             dataPath: ['count'],
           })
@@ -1011,7 +1064,7 @@ new PrismaClient({
               if (!acc.select) {
                 acc.select = {}
               }
-              // `count` doesn't have a subselection
+              // `count` doesn't have a sub-selection
               if (key === 'count') {
                 acc.select[key] = value
               } else {
@@ -1178,16 +1231,35 @@ export class PrismaClientFetcher {
       message = this.sanitizeMessage(message)
       // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
-        throw new PrismaClientKnownRequestError(message, e.code, e.meta)
+        throw new PrismaClientKnownRequestError(
+          message,
+          e.code,
+          this.prisma._clientVersion,
+          e.meta,
+        )
       } else if (e.isPanic) {
-        throw new PrismaClientRustPanicError(message)
+        throw new PrismaClientRustPanicError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientUnknownRequestError) {
-        throw new PrismaClientUnknownRequestError(message)
+        throw new PrismaClientUnknownRequestError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientInitializationError) {
-        throw new PrismaClientInitializationError(message)
+        throw new PrismaClientInitializationError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientRustPanicError) {
-        throw new PrismaClientRustPanicError(message)
+        throw new PrismaClientRustPanicError(
+          message,
+          this.prisma._clientVersion,
+        )
       }
+
+      e.clientVersion = this.prisma._clientVersion
 
       throw e
     }
