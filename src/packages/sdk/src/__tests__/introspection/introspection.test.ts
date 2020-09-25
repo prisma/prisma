@@ -450,6 +450,7 @@ test('introspection basic', async () => {
               ],
               "constraintName": null,
               "onDeleteAction": "restrict",
+              "onUpdateAction": "noAction",
               "referencedColumns": Array [
                 "id",
               ],
