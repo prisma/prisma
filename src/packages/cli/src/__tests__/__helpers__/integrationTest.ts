@@ -1,5 +1,5 @@
-import { getLatestTag } from '@prisma/fetch-engine'
 import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
+import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
@@ -35,7 +35,7 @@ type Scenario = {
   /**
    * SQL to teardown pre-test condition.
    */
-  down: string
+  down?: string
   /**
    * Arbitrary Prisma client logic to test.
    */
@@ -49,11 +49,19 @@ type Scenario = {
 /**
  * Contextual data and API attached to each integration test run.
  */
-type Context = {
+export type Context = {
   /**
    * Jetpack instance bound to the integration test temporary directory.
    */
   fs: FSJetpack
+  /**
+   * The name of the current test being run.
+   */
+  scenarioName: string
+  /**
+   * The name of the current test being run, slugified.
+   */
+  scenarioSlug: string
 }
 
 /**
@@ -104,6 +112,10 @@ type Database<Client> = {
          */
         provider?: string
       }
+  /**
+   * SQL to setup and select a database before running a test scenario.
+   */
+  up?: (ctx: Context) => string
 }
 
 /**
@@ -122,12 +134,16 @@ type Settings = {
    * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
    */
   engineVersion?: MaybePromise<string>
+  /**
+   * After a test scenario is done, should its temporary directory be removed from disk?
+   */
+  cleanupTempDirs?: boolean
 }
 
 /**
  * Integration test keyword arguments
  */
-type Input<Client> = {
+export type Input<Client = any> = {
   database: Database<Client>
   scenarios: Scenario[]
   settings?: Settings
@@ -137,56 +153,30 @@ process.env.SKIP_GENERATE = 'true'
 const pkgDir = pkgup.sync() || __dirname
 const engine = new IntrospectionEngine()
 
-export function integrationTest<Client>(input: Input<Client>) {
-  type ScenarioState = {
-    scenario: Scenario
-    ctx: Context
-    database: Input<Client>['database']
-    db: Client
-    prisma: any
-  }
+type ScenarioState<Client = any> = {
+  scenario: Scenario
+  ctx: Context
+  database: Input<Client>['database']
+  db: Client
+  prisma: any
+  input: Input<Client>
+}
+
+/**
+ * Run introspection integration test
+ */
+export function introspection<Client>(input: Input<Client>) {
+  const kind = 'introspection'
 
   let engineVersion
-  const state: ScenarioState = {} as any
+  const states: Record<string, ScenarioState<Client>> = {}
 
-  beforeAll(async () => {
-    // Remove old stuff if it is still around for some reason
-    fs.remove(getScenarioDir(input.database.name, ''))
-    engineVersion = await (input.settings?.engineVersion
-      ? input.settings.engineVersion
-      : getLatestTag())
+  beforeAll(() => {
+    engineVersion = beforeAllScenarios(kind, input).engineVersion
   })
 
-  afterEach(async () => {
-    const errors: any[] = []
-
-    // props might be missing if test errors out before they are set.
-    if (state.db) {
-      await Promise.resolve(input.database.send(state.db, state.scenario.down))
-        .catch((e) => errors.push(e))
-        .then(() => input.database.afterEach?.(state.db))
-        .catch((e) => errors.push(e))
-        .then(() => state.prisma?.$disconnect())
-        .catch((e) => errors.push(e))
-    }
-
-    if (errors.length) {
-      // TODO use an error aggreggator lib like "ono"
-      throw new Error(
-        `Got Errors while running scenario "afterEach" hook: \n-> ${errors.join(
-          '\n ->',
-        )}`,
-      )
-    }
-  }, 10_000)
-
   afterAll(async () => {
-    engine.stop()
-    // props might be missing if test errors out before they are set.
-    if (state.db && input.database.close) {
-      await input.database.close(state.db)
-    }
-    fs.remove(getScenarioDir(input.database.name, ''))
+    await afterAllScenarios(kind, states)
   })
 
   /**
@@ -199,45 +189,52 @@ export function integrationTest<Client>(input: Input<Client>) {
    * https://github.com/facebook/jest/issues/10513
    */
   it.each(prepareTestScenarios(input.scenarios))(
-    `%s`,
-    async (scenarioName, scenario) => {
-      const ctx: Context = {} as any
-      ctx.fs = fs.cwd(getScenarioDir(input.database.name, scenarioName))
-      state.ctx = ctx
-      state.scenario = scenario
+    `${kind}: %s`,
+    async (_, scenario) => {
+      const { state, introspectionResult } = await setupScenario(
+        kind,
+        input,
+        scenario,
+      )
+      states[scenario.name] = state
 
-      await ctx.fs.dirAsync('.')
+      // prettier-ignore
+      expect(prepareSchemaForSnapshot(introspectionResult.datamodel)).toMatchSnapshot(`datamodel`)
+      expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
 
-      const dbClient = await input.database.connect(ctx)
+      await teardownScenario(state)
+    },
+    input.settings?.timeout ?? 15_000,
+  )
+}
 
-      state.db = dbClient
+/**
+ * Run a runtime integration tests
+ */
+export function runtime<Client>(input: Input<Client>) {
+  const kind = 'runtime'
 
-      await input.database.send(dbClient, scenario.up)
+  let engineVersion
+  const states: Record<string, ScenarioState<Client>> = {}
 
-      const datasourceBlock =
-        'raw' in input.database.datasource
-          ? input.database.datasource.raw(ctx)
-          : makeDatasourceBlock(
-              input.database.datasource.provider ?? input.database.name,
-              typeof input.database.datasource.url === 'function'
-                ? input.database.datasource.url(ctx)
-                : input.database.datasource.url,
-            )
+  beforeAll(() => {
+    engineVersion = beforeAllScenarios(kind, input).engineVersion
+  })
 
-      const schema = `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${ctx.fs.path()}"
-        }
+  afterAll(async () => {
+    await afterAllScenarios(kind, states)
+  })
 
-        ${datasourceBlock}
-      `
+  it.concurrent.each(prepareTestScenarios(input.scenarios))(
+    `${kind}: %s`,
+    async (_, scenario) => {
+      const { ctx, state, prismaSchemaPath } = await setupScenario(
+        kind,
+        input,
+        scenario,
+      )
+      states[scenario.name] = state
 
-      const introspectionResult = await engine.introspect(schema)
-      const datamodel = introspectionResult.datamodel
-      const prismaSchemaPath = ctx.fs.path('schema.prisma')
-
-      await fs.writeAsync(prismaSchemaPath, datamodel)
       await generate(prismaSchemaPath, engineVersion)
 
       const prismaClientPath = ctx.fs.path('index.js')
@@ -255,13 +252,117 @@ export function integrationTest<Client>(input: Input<Client>) {
       await state.prisma.$connect()
 
       const result = await scenario.do(state.prisma)
-
       expect(result).toEqual(scenario.expect)
-      expect(prepareSchemaForSnapshot(datamodel)).toMatchSnapshot(`datamodel`)
-      expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
+
+      await teardownScenario(state)
     },
     input.settings?.timeout ?? 15_000,
   )
+}
+
+async function afterAllScenarios(
+  kind: string,
+  states: Record<string, ScenarioState>,
+) {
+  engine.stop()
+  Object.entries(states).forEach(async ([_, state]) => {
+    // props might be missing if test errors out before they are set.
+    if (state.db && state.input.database.close) {
+      await state.input.database.close(state.db)
+    }
+    if (state.input.settings?.cleanupTempDirs !== false) {
+      fs.remove(getScenarioDir(state.input.database.name, kind, ''))
+    }
+  })
+}
+
+function beforeAllScenarios(kind: string, input: Input) {
+  // Remove old stuff if it is still around for some reason
+  fs.remove(getScenarioDir(input.database.name, kind, ''))
+  // todo need a synchronous getLatestTag
+  const engineVersion = '2b4c3254badf30765f7839e350e4aa11a0842a8d'
+  // engineVersion = await (input.settings?.engineVersion
+  //   ? input.settings.engineVersion
+  //   : getLatestTag())
+  return { engineVersion }
+}
+
+async function setupScenario(kind: string, input: Input, scenario: Scenario) {
+  const state: ScenarioState = {} as any
+  const ctx: Context = {} as any
+  ctx.fs = fs.cwd(getScenarioDir(input.database.name, kind, scenario.name))
+  ctx.scenarioName = `${kind}: ${scenario.name}`
+  ctx.scenarioSlug = slugify(ctx.scenarioName, { separator: '_' })
+  state.input = input
+  state.ctx = ctx
+  state.scenario = scenario
+
+  await ctx.fs.dirAsync('.')
+
+  const dbClient = await input.database.connect(ctx)
+
+  state.db = dbClient
+
+  const databaseUpSQL = input.database.up?.(ctx) ?? ''
+  const upSQL = databaseUpSQL + scenario.up
+  await input.database.send(dbClient, upSQL)
+
+  const datasourceBlock =
+    'raw' in input.database.datasource
+      ? input.database.datasource.raw(ctx)
+      : makeDatasourceBlock(
+          input.database.datasource.provider ?? input.database.name,
+          typeof input.database.datasource.url === 'function'
+            ? input.database.datasource.url(ctx)
+            : input.database.datasource.url,
+        )
+
+  const schemaBase = `
+        generator client {
+          provider = "prisma-client-js"
+          output   = "${ctx.fs.path()}"
+        }
+
+        ${datasourceBlock}
+      `
+
+  const introspectionResult = await engine.introspect(schemaBase)
+  const prismaSchemaPath = ctx.fs.path('schema.prisma')
+
+  await fs.writeAsync(prismaSchemaPath, introspectionResult.datamodel)
+  return {
+    introspectionResult,
+    state,
+    ctx,
+    prismaSchemaPath,
+  }
+}
+
+async function teardownScenario(state: ScenarioState) {
+  const errors: any[] = []
+
+  // props might be missing if test errors out before they are set.
+  if (state.db) {
+    await Promise.resolve(
+      state.scenario.down
+        ? state.input.database.send(state.db, state.scenario.down)
+        : undefined,
+    )
+      .catch((e) => errors.push(e))
+      .then(() => state.input.database.afterEach?.(state.db))
+      .catch((e) => errors.push(e))
+      .then(() => state.prisma?.$disconnect())
+      .catch((e) => errors.push(e))
+  }
+
+  if (errors.length) {
+    // TODO use an error aggreggator lib like "ono"
+    throw new Error(
+      `Got Errors while running scenario "afterEach" hook: \n-> ${errors.join(
+        '\n ->',
+      )}`,
+    )
+  }
 }
 
 /**
@@ -282,12 +383,16 @@ function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
 /**
  * Get the temporary directory for the scenario
  */
-function getScenarioDir(databaseName: string, scenarioName: string) {
+function getScenarioDir(
+  databaseName: string,
+  kind: string,
+  scenarioName: string,
+) {
   return Path.join(
     Path.dirname(pkgDir),
     'src',
     '__tests__',
-    `tmp-integration-test-${databaseName}`,
+    `tmp-integration-test-${databaseName}-${kind}`,
     scenarioName,
   )
 }

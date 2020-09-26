@@ -1,7 +1,7 @@
 import Database from 'sqlite-async'
-import { integrationTest } from './__helpers__/integrationTest'
+import { runtime } from './__helpers__/integrationTest'
 
-integrationTest<any>({
+runtime<any>({
   database: {
     name: 'sqlite',
     datasource: {
