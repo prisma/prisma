@@ -34,12 +34,20 @@ describe('generator', () => {
       skipDownload: true,
     })
 
-    expect(
-      omit<any, any>(generator.manifest, ['version']),
-    ).toMatchInlineSnapshot(`
+    const manifest = omit<any, any>(generator.manifest, ['version']) as any
+
+    if (manifest.requiresEngineVersion.length !== 40) {
+      throw new Error(
+        `Generator manifest should have "requiresEngineVersion" with length 40`,
+      )
+    }
+    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
+
+    expect(manifest).toMatchInlineSnapshot(`
       Object {
         defaultOutput: @prisma/client,
         prettyName: Prisma Client,
+        requiresEngineVersion: ENGINE_VERSION_TEST,
         requiresEngines: Array [
           queryEngine,
         ],
