@@ -1,3 +1,8 @@
+[![npm version](https://img.shields.io/npm/v/@prisma/client.svg?style=flat)](https://www.npmjs.com/package/@prisma/client)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md)
+[![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/master/LICENSE)
+[![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
+
 Prisma Client JS is an **auto-generated query builder** that enables **type-safe** database access and **reduces boilerplate**. You can use it as an alternative to traditional ORMs such as Sequelize, TypeORM or SQL query builders like knex.js.
 
 It is part of the [Prisma](https://www.prisma.io/) ecosystem. Prisma provides database tools for data access, declarative data modeling, schema migrations and visual data management. Learn more in the main [`prisma`](https://github.com/prisma/prisma/) repository or read the [documentation](https://www.prisma.io/docs/).
@@ -15,6 +20,11 @@ Alternatively you can explore the ready-to-run [examples](https://github.com/pri
 
 ## Contributing
 
-Read more about how to contribute to Prisma Client JS [here](https://github.com/prisma/prisma-client-js/blob/master/CONTRIBUTING.md).
+Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
 
-[![Build status](https://badge.buildkite.com/fa6027d11848231f2bc194aaffcf5dbc2ee0a83d666af0806e.svg)](https://buildkite.com/prisma/prisma-client-js)
+## Build Status
+
+- Prisma Tests Status:  
+  [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=master)](https://buildkite.com/prisma/prisma2-test)
+- E2E Tests Status:  
+  [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
