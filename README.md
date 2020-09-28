@@ -19,7 +19,13 @@
   <a href="https://www.youtube.com/watch?v=0RhtQgIs-TE&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=1">Demo videos</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/prisma/prisma1">Prisma 1</a>
+  <br />
 </div>
+
+[![npm version](https://img.shields.io/npm/v/@prisma/cli.svg?style=flat)](https://www.npmjs.com/package/@prisma/cli)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/prisma/prisma/blob/master/LICENSE)
+[![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
 
 ## What is Prisma?
 
