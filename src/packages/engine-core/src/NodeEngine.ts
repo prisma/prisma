@@ -690,7 +690,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine exited with code ${code}\n` + this.stderrLogs,
               )
-            } else if (this.child.signalCode) {
+            } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
@@ -1169,7 +1169,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         let description =
           error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
         description =
-          `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
+          `signalCode: ${this.child?.signalCode} | exitCode: ${this.child?.exitCode} | killed: ${this.child?.killed}\n` +
           description
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({

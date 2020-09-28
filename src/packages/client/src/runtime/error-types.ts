@@ -86,7 +86,7 @@ export interface InvalidArgNameError {
 export interface MissingArgError {
   type: 'missingArg'
   missingName: string
-  missingType: DMMF.SchemaArgInputType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
+  missingArg: DMMF.SchemaArg // context of the schema arg to show a nice error
   atLeastOne: boolean
   atMostOne: boolean
 }

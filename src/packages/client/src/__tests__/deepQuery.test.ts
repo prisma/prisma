@@ -48,17 +48,15 @@ describe('minimal where transformation', () => {
             some: {
               likedBy: {
                 some: {
-                  AND: [
-                    {
-                      likedArticles: {
-                        some: {
-                          likedBy: {
-                            some: {
-                              likedArticles: {
-                                some: {
-                                  title: {
-                                    contains: "A string"
-                                  }
+                  AND: {
+                    likedArticles: {
+                      some: {
+                        likedBy: {
+                          some: {
+                            likedArticles: {
+                              some: {
+                                title: {
+                                  contains: "A string"
                                 }
                               }
                             }
@@ -66,7 +64,7 @@ describe('minimal where transformation', () => {
                         }
                       }
                     }
-                  ]
+                  }
                 }
               }
             }

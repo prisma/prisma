@@ -207,6 +207,7 @@ export interface GetPrismaClientOptions {
 
 export type Action =
   | 'findOne'
+  | 'findFirst'
   | 'findMany'
   | 'create'
   | 'update'
@@ -220,6 +221,7 @@ export type Action =
 
 const actionOperationMap = {
   findOne: 'query',
+  findFirst: 'query',
   findMany: 'query',
   count: 'query',
   create: 'mutation',
@@ -1194,7 +1196,7 @@ export class PrismaClientFetcher {
   }
 
   sanitizeMessage(message) {
-    if (this.prisma.errorFormat && this.prisma.errorFormat !== 'pretty') {
+    if (this.prisma._errorFormat && this.prisma._errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
     return message
@@ -1215,7 +1217,8 @@ export class PrismaClientFetcher {
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne
+    action === DMMF.ModelAction.findOne ||
+    action === DMMF.ModelAction.findFirst
   ) {
     return 'query'
   }

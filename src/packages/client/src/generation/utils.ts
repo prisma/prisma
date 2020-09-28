@@ -97,6 +97,8 @@ export function getModelArgName(
       return `FindMany${modelName}Args`
     case DMMF.ModelAction.findOne:
       return `FindOne${modelName}Args`
+    case DMMF.ModelAction.findFirst:
+      return `FindFirst${modelName}Args`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
@@ -123,7 +125,7 @@ export function getDefaultArgName(
   const operation = getOperation(action)
   const queryType = operation === 'query' ? dmmf.queryType : dmmf.mutationType
   const field = queryType.fields.find((f) => f.name === fieldName)!
-  return (field.args[0].inputType[0].type as DMMF.InputType).name
+  return (field.args[0].inputTypes[0].type as DMMF.InputType).name
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
@@ -221,11 +223,9 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
-    actionName === 'findOne' ? ' | null' : ''
-  }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
-    actionName === 'findOne' ? ' | null' : ''
-  }>>`
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${actionName === 'findOne' ? ' | null' : ''
+    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${actionName === 'findOne' ? ' | null' : ''
+    }>>`
 }
 
 export function isQueryAction(

@@ -40,18 +40,12 @@ describe('minimal where transformation', () => {
           posts: {
             some: {
               author: {
-                is: {
-                  posts: {
-                    some: {
-                      author: {
-                        is: {
-                          posts: {
-                            some: {
-                              id: {
-                                equals: "5"
-                              }
-                            }
-                          }
+                posts: {
+                  some: {
+                    author: {
+                      posts: {
+                        some: {
+                          id: "5"
                         }
                       }
                     }

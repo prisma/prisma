@@ -26,121 +26,130 @@ describe('dmmf', () => {
       dmmf.schema.inputTypes.find((i) => i.name === 'NestedEnumPostKindFilter'),
     ).toMatchInlineSnapshot(`
       Object {
+        constraints: Object {
+          maxNumFields: null,
+          minNumFields: null,
+        },
         fields: Array [
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: equals,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: in,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: notIn,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: true,
-                isRequired: false,
+                kind: enum,
+                type: PostKind,
+              },
+              Object {
+                isList: false,
                 kind: object,
                 type: NestedEnumPostKindFilter,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: not,
           },
         ],
-        isOneOf: false,
         name: NestedEnumPostKindFilter,
       }
     `)
     expect(dmmf.schema.inputTypes.find((i) => i.name === 'EnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       Object {
+        constraints: Object {
+          maxNumFields: null,
+          minNumFields: null,
+        },
         fields: Array [
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: equals,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: in,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: notIn,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                isNullable: true,
-                isRequired: false,
                 kind: object,
                 type: NestedEnumPostKindFilter,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: not,
           },
         ],
-        isOneOf: false,
         name: EnumPostKindFilter,
       }
     `)
@@ -170,121 +179,130 @@ describe('dmmf', () => {
       dmmf.schema.inputTypes.find((i) => i.name === 'NestedEnumPostKindFilter'),
     ).toMatchInlineSnapshot(`
       Object {
+        constraints: Object {
+          maxNumFields: null,
+          minNumFields: null,
+        },
         fields: Array [
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: equals,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: in,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: notIn,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: true,
-                isRequired: false,
+                kind: enum,
+                type: PostKind,
+              },
+              Object {
+                isList: false,
                 kind: object,
                 type: NestedEnumPostKindFilter,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: not,
           },
         ],
-        isOneOf: false,
         name: NestedEnumPostKindFilter,
       }
     `)
     expect(dmmf.schema.inputTypes.find((i) => i.name === 'EnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       Object {
+        constraints: Object {
+          maxNumFields: null,
+          minNumFields: null,
+        },
         fields: Array [
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: equals,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: in,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: true,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: notIn,
           },
           Object {
-            inputType: Array [
+            inputTypes: Array [
               Object {
                 isList: false,
-                isNullable: false,
-                isRequired: false,
                 kind: enum,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                isNullable: true,
-                isRequired: false,
                 kind: object,
                 type: NestedEnumPostKindFilter,
               },
             ],
+            isNullable: false,
+            isRequired: false,
             name: not,
           },
         ],
-        isOneOf: false,
         name: EnumPostKindFilter,
       }
     `)

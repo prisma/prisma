@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { RustPanic, sendPanic, link } from '@prisma/sdk'
 import isCi from 'is-ci'
 import prompt from 'prompts'
+import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 
 export async function handlePanic(
   error: RustPanic,
@@ -56,11 +57,6 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 
   const reportFailedMessage = `${chalk.bold.red(
     'Oops. We could not send the error report.',
-  )}
-  ${chalk.bold(
-    `To help us still receive this error, please create an issue in ${link(
-      'https://github.com/prisma/prisma/issues/new',
-    )}`,
   )}`
 
   if (response.value) {
@@ -74,17 +70,15 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 
     if (reportId) {
       console.log(
-        `\n${chalk.bold('We successfully received the error report.')}
-
-${chalk.bold(
-  `To help us even more, please create an issue at ${link(
-    'https://github.com/prisma/prisma/issues/new',
-  )}\nMentioning the ${chalk.underline(`report id ${reportId}`)}.`,
-)}`,
+        `\n${chalk.bold(`We successfully received the error report id:${reportId}`)}`,
       )
-    } else {
-      console.log(reportFailedMessage)
+      console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
     }
-    console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
   }
+  await wouldYouLikeToCreateANewIssue({
+    prompt: !response.value,
+    error,
+    cliVersion,
+    binaryVersion,
+  })
 }

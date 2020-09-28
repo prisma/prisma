@@ -207,9 +207,7 @@ describe('minimal where transformation', () => {
           posts(where: {
             OR: [
               {
-                createdAt: {
-                  equals: "2020-08-19T10:02:43.353Z"
-                }
+                createdAt: "2020-08-19T10:02:43.353Z"
               }
             ]
           }) {
@@ -283,9 +281,7 @@ describe('minimal where transformation', () => {
       query {
         findManyUser {
           posts(where: {
-            content: {
-              equals: null
-            }
+            content: null
           }) {
             id
             createdAt
@@ -311,9 +307,7 @@ describe('minimal where transformation', () => {
     expect(transformedDocument).toMatchInlineSnapshot(`
       query {
         findManyUser(where: {
-          name: {
-            equals: null
-          }
+          name: null
         }) {
           id
           email
@@ -346,10 +340,8 @@ describe('minimal where transformation', () => {
       query {
         findManyUser(where: {
           profile: {
-            is: {
-              bio: {
-                not: null
-              }
+            bio: {
+              not: null
             }
           }
         }) {
