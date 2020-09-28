@@ -24,7 +24,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@prisma/cli.svg?style=flat)](https://www.npmjs.com/package/@prisma/cli)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md)
-[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/prisma/prisma/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/master/LICENSE)
 [![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
 
 ## What is Prisma?
