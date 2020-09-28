@@ -207,6 +207,7 @@ export interface GetPrismaClientOptions {
 
 export type Action =
   | 'findOne'
+  | 'findFirst'
   | 'findMany'
   | 'create'
   | 'update'
@@ -220,6 +221,7 @@ export type Action =
 
 const actionOperationMap = {
   findOne: 'query',
+  findFirst: 'query',
   findMany: 'query',
   count: 'query',
   create: 'mutation',
@@ -1174,7 +1176,7 @@ export class PrismaClientFetcher {
         })
         message = stack + '\n  ' + e.message
       }
-      
+
       message = this.sanitizeMessage(message)
       // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
@@ -1215,7 +1217,8 @@ export class PrismaClientFetcher {
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne
+    action === DMMF.ModelAction.findOne ||
+    action === DMMF.ModelAction.findFirst
   ) {
     return 'query'
   }

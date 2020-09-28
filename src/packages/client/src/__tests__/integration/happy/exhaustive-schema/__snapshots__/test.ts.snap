@@ -210,6 +210,7 @@ export type LogEvent = {
 export type PrismaAction =
   | 'findOne'
   | 'findMany'
+  | 'findFirst'
   | 'create'
   | 'update'
   | 'updateMany'
@@ -766,7 +767,7 @@ export type PostGetPayload<
 
 export interface PostDelegate {
   /**
-   * Find zero or one Post.
+   * Find zero or one Post that matches the filter.
    * @param {FindOnePostArgs} args - Arguments to find a Post
    * @example
    * // Get one Post
@@ -780,7 +781,21 @@ export interface PostDelegate {
     args: Subset<T, FindOnePostArgs>
   ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
   /**
-   * Find zero or more Posts.
+   * Find the first Post that matches the filter.
+   * @param {FindFirstPostArgs} args - Arguments to find a Post
+   * @example
+   * // Get one Post
+   * const post = await prisma.post.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstPostArgs>(
+    args: Subset<T, FindFirstPostArgs>
+  ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+  /**
+   * Find zero or more Posts that matches the filter.
    * @param {FindManyPostArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all Posts
@@ -973,6 +988,30 @@ export type FindOnePostArgs = {
    * Filter, which Post to fetch.
   **/
   where: PostWhereUniqueInput
+}
+
+
+/**
+ * Post findFirst
+ */
+export type FindFirstPostArgs = {
+  /**
+   * Select specific fields to fetch from the Post
+  **/
+  select?: PostSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: PostInclude | null
+  /**
+   * Filter, which Post to fetch.
+  **/
+  where?: PostWhereInput
+  orderBy?: Enumerable<PostOrderByInput> | PostOrderByInput
+  cursor?: PostWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<PostDistinctFieldEnum>
 }
 
 
@@ -1301,7 +1340,7 @@ export type UserGetPayload<
 
 export interface UserDelegate {
   /**
-   * Find zero or one User.
+   * Find zero or one User that matches the filter.
    * @param {FindOneUserArgs} args - Arguments to find a User
    * @example
    * // Get one User
@@ -1315,7 +1354,21 @@ export interface UserDelegate {
     args: Subset<T, FindOneUserArgs>
   ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
   /**
-   * Find zero or more Users.
+   * Find the first User that matches the filter.
+   * @param {FindFirstUserArgs} args - Arguments to find a User
+   * @example
+   * // Get one User
+   * const user = await prisma.user.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstUserArgs>(
+    args: Subset<T, FindFirstUserArgs>
+  ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+  /**
+   * Find zero or more Users that matches the filter.
    * @param {FindManyUserArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all Users
@@ -1508,6 +1561,30 @@ export type FindOneUserArgs = {
    * Filter, which User to fetch.
   **/
   where: UserWhereUniqueInput
+}
+
+
+/**
+ * User findFirst
+ */
+export type FindFirstUserArgs = {
+  /**
+   * Select specific fields to fetch from the User
+  **/
+  select?: UserSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: UserInclude | null
+  /**
+   * Filter, which User to fetch.
+  **/
+  where?: UserWhereInput
+  orderBy?: Enumerable<UserOrderByInput> | UserOrderByInput
+  cursor?: UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<UserDistinctFieldEnum>
 }
 
 
@@ -1834,7 +1911,7 @@ export type MGetPayload<
 
 export interface MDelegate {
   /**
-   * Find zero or one M.
+   * Find zero or one M that matches the filter.
    * @param {FindOneMArgs} args - Arguments to find a M
    * @example
    * // Get one M
@@ -1848,7 +1925,21 @@ export interface MDelegate {
     args: Subset<T, FindOneMArgs>
   ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
   /**
-   * Find zero or more Ms.
+   * Find the first M that matches the filter.
+   * @param {FindFirstMArgs} args - Arguments to find a M
+   * @example
+   * // Get one M
+   * const m = await prisma.m.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstMArgs>(
+    args: Subset<T, FindFirstMArgs>
+  ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+  /**
+   * Find zero or more Ms that matches the filter.
    * @param {FindManyMArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all Ms
@@ -2041,6 +2132,30 @@ export type FindOneMArgs = {
    * Filter, which M to fetch.
   **/
   where: MWhereUniqueInput
+}
+
+
+/**
+ * M findFirst
+ */
+export type FindFirstMArgs = {
+  /**
+   * Select specific fields to fetch from the M
+  **/
+  select?: MSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: MInclude | null
+  /**
+   * Filter, which M to fetch.
+  **/
+  where?: MWhereInput
+  orderBy?: Enumerable<MOrderByInput> | MOrderByInput
+  cursor?: MWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<MDistinctFieldEnum>
 }
 
 
@@ -2367,7 +2482,7 @@ export type NGetPayload<
 
 export interface NDelegate {
   /**
-   * Find zero or one N.
+   * Find zero or one N that matches the filter.
    * @param {FindOneNArgs} args - Arguments to find a N
    * @example
    * // Get one N
@@ -2381,7 +2496,21 @@ export interface NDelegate {
     args: Subset<T, FindOneNArgs>
   ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
   /**
-   * Find zero or more Ns.
+   * Find the first N that matches the filter.
+   * @param {FindFirstNArgs} args - Arguments to find a N
+   * @example
+   * // Get one N
+   * const n = await prisma.n.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstNArgs>(
+    args: Subset<T, FindFirstNArgs>
+  ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+  /**
+   * Find zero or more Ns that matches the filter.
    * @param {FindManyNArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all Ns
@@ -2574,6 +2703,30 @@ export type FindOneNArgs = {
    * Filter, which N to fetch.
   **/
   where: NWhereUniqueInput
+}
+
+
+/**
+ * N findFirst
+ */
+export type FindFirstNArgs = {
+  /**
+   * Select specific fields to fetch from the N
+  **/
+  select?: NSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: NInclude | null
+  /**
+   * Filter, which N to fetch.
+  **/
+  where?: NWhereInput
+  orderBy?: Enumerable<NOrderByInput> | NOrderByInput
+  cursor?: NWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<NDistinctFieldEnum>
 }
 
 
@@ -2900,7 +3053,7 @@ export type OneOptionalGetPayload<
 
 export interface OneOptionalDelegate {
   /**
-   * Find zero or one OneOptional.
+   * Find zero or one OneOptional that matches the filter.
    * @param {FindOneOneOptionalArgs} args - Arguments to find a OneOptional
    * @example
    * // Get one OneOptional
@@ -2914,7 +3067,21 @@ export interface OneOptionalDelegate {
     args: Subset<T, FindOneOneOptionalArgs>
   ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
   /**
-   * Find zero or more OneOptionals.
+   * Find the first OneOptional that matches the filter.
+   * @param {FindFirstOneOptionalArgs} args - Arguments to find a OneOptional
+   * @example
+   * // Get one OneOptional
+   * const oneOptional = await prisma.oneOptional.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstOneOptionalArgs>(
+    args: Subset<T, FindFirstOneOptionalArgs>
+  ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+  /**
+   * Find zero or more OneOptionals that matches the filter.
    * @param {FindManyOneOptionalArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all OneOptionals
@@ -3107,6 +3274,30 @@ export type FindOneOneOptionalArgs = {
    * Filter, which OneOptional to fetch.
   **/
   where: OneOptionalWhereUniqueInput
+}
+
+
+/**
+ * OneOptional findFirst
+ */
+export type FindFirstOneOptionalArgs = {
+  /**
+   * Select specific fields to fetch from the OneOptional
+  **/
+  select?: OneOptionalSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OneOptionalInclude | null
+  /**
+   * Filter, which OneOptional to fetch.
+  **/
+  where?: OneOptionalWhereInput
+  orderBy?: Enumerable<OneOptionalOrderByInput> | OneOptionalOrderByInput
+  cursor?: OneOptionalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OneOptionalDistinctFieldEnum>
 }
 
 
@@ -3443,7 +3634,7 @@ export type ManyRequiredGetPayload<
 
 export interface ManyRequiredDelegate {
   /**
-   * Find zero or one ManyRequired.
+   * Find zero or one ManyRequired that matches the filter.
    * @param {FindOneManyRequiredArgs} args - Arguments to find a ManyRequired
    * @example
    * // Get one ManyRequired
@@ -3457,7 +3648,21 @@ export interface ManyRequiredDelegate {
     args: Subset<T, FindOneManyRequiredArgs>
   ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
   /**
-   * Find zero or more ManyRequireds.
+   * Find the first ManyRequired that matches the filter.
+   * @param {FindFirstManyRequiredArgs} args - Arguments to find a ManyRequired
+   * @example
+   * // Get one ManyRequired
+   * const manyRequired = await prisma.manyRequired.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstManyRequiredArgs>(
+    args: Subset<T, FindFirstManyRequiredArgs>
+  ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+  /**
+   * Find zero or more ManyRequireds that matches the filter.
    * @param {FindManyManyRequiredArgs=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all ManyRequireds
@@ -3650,6 +3855,30 @@ export type FindOneManyRequiredArgs = {
    * Filter, which ManyRequired to fetch.
   **/
   where: ManyRequiredWhereUniqueInput
+}
+
+
+/**
+ * ManyRequired findFirst
+ */
+export type FindFirstManyRequiredArgs = {
+  /**
+   * Select specific fields to fetch from the ManyRequired
+  **/
+  select?: ManyRequiredSelect | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: ManyRequiredInclude | null
+  /**
+   * Filter, which ManyRequired to fetch.
+  **/
+  where?: ManyRequiredWhereInput
+  orderBy?: Enumerable<ManyRequiredOrderByInput> | ManyRequiredOrderByInput
+  cursor?: ManyRequiredWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
 }
 
 
@@ -3986,7 +4215,7 @@ export type OptionalSide1GetPayload<
 
 export interface OptionalSide1Delegate {
   /**
-   * Find zero or one OptionalSide1.
+   * Find zero or one OptionalSide1 that matches the filter.
    * @param {FindOneOptionalSide1Args} args - Arguments to find a OptionalSide1
    * @example
    * // Get one OptionalSide1
@@ -4000,7 +4229,21 @@ export interface OptionalSide1Delegate {
     args: Subset<T, FindOneOptionalSide1Args>
   ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
   /**
-   * Find zero or more OptionalSide1s.
+   * Find the first OptionalSide1 that matches the filter.
+   * @param {FindFirstOptionalSide1Args} args - Arguments to find a OptionalSide1
+   * @example
+   * // Get one OptionalSide1
+   * const optionalSide1 = await prisma.optionalSide1.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstOptionalSide1Args>(
+    args: Subset<T, FindFirstOptionalSide1Args>
+  ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+  /**
+   * Find zero or more OptionalSide1s that matches the filter.
    * @param {FindManyOptionalSide1Args=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all OptionalSide1s
@@ -4193,6 +4436,30 @@ export type FindOneOptionalSide1Args = {
    * Filter, which OptionalSide1 to fetch.
   **/
   where: OptionalSide1WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide1 findFirst
+ */
+export type FindFirstOptionalSide1Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide1
+  **/
+  select?: OptionalSide1Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide1Include | null
+  /**
+   * Filter, which OptionalSide1 to fetch.
+  **/
+  where?: OptionalSide1WhereInput
+  orderBy?: Enumerable<OptionalSide1OrderByInput> | OptionalSide1OrderByInput
+  cursor?: OptionalSide1WhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
 }
 
 
@@ -4519,7 +4786,7 @@ export type OptionalSide2GetPayload<
 
 export interface OptionalSide2Delegate {
   /**
-   * Find zero or one OptionalSide2.
+   * Find zero or one OptionalSide2 that matches the filter.
    * @param {FindOneOptionalSide2Args} args - Arguments to find a OptionalSide2
    * @example
    * // Get one OptionalSide2
@@ -4533,7 +4800,21 @@ export interface OptionalSide2Delegate {
     args: Subset<T, FindOneOptionalSide2Args>
   ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
   /**
-   * Find zero or more OptionalSide2s.
+   * Find the first OptionalSide2 that matches the filter.
+   * @param {FindFirstOptionalSide2Args} args - Arguments to find a OptionalSide2
+   * @example
+   * // Get one OptionalSide2
+   * const optionalSide2 = await prisma.optionalSide2.findFirst({
+   *   where: {
+   *     // ... provide filter here
+   *   }
+   * })
+  **/
+  findFirst<T extends FindFirstOptionalSide2Args>(
+    args: Subset<T, FindFirstOptionalSide2Args>
+  ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+  /**
+   * Find zero or more OptionalSide2s that matches the filter.
    * @param {FindManyOptionalSide2Args=} args - Arguments to filter and select certain fields only.
    * @example
    * // Get all OptionalSide2s
@@ -4726,6 +5007,30 @@ export type FindOneOptionalSide2Args = {
    * Filter, which OptionalSide2 to fetch.
   **/
   where: OptionalSide2WhereUniqueInput
+}
+
+
+/**
+ * OptionalSide2 findFirst
+ */
+export type FindFirstOptionalSide2Args = {
+  /**
+   * Select specific fields to fetch from the OptionalSide2
+  **/
+  select?: OptionalSide2Select | null
+  /**
+   * Choose, which related nodes to fetch as well.
+  **/
+  include?: OptionalSide2Include | null
+  /**
+   * Filter, which OptionalSide2 to fetch.
+  **/
+  where?: OptionalSide2WhereInput
+  orderBy?: Enumerable<OptionalSide2OrderByInput> | OptionalSide2OrderByInput
+  cursor?: OptionalSide2WhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
 }
 
 
