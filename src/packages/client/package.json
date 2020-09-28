@@ -78,6 +78,7 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "dotenv": "8.2.0",
+    "esbuild": "^0.7.7",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
