@@ -43,6 +43,7 @@ importers:
   packages/cli:
     devDependencies:
       '@apexearth/copy': 1.4.5
+      '@jsdevtools/ono': 7.1.3
       '@prisma/client': 'link:../client'
       '@prisma/debug': 'link:../debug'
       '@prisma/fetch-engine': 'link:../fetch-engine'
@@ -58,6 +59,7 @@ importers:
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
+      '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
@@ -100,9 +102,11 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       typescript: 4.0.3
+      verror: 1.10.0
       ws: 7.3.1
     specifiers:
       '@apexearth/copy': 1.4.5
+      '@jsdevtools/ono': ^7.1.3
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
@@ -118,6 +122,7 @@ importers:
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
+      '@types/verror': ^1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
@@ -160,6 +165,7 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
+      verror: ^1.10.0
       ws: 7.3.1
   packages/client:
     dependencies:
@@ -1410,6 +1416,10 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-BDPG23U0qDeAvU4f99haztXwdAg3hz4El95LkAM+tHAqqhiVzRpEGHHU8EDxT/AnxOrA65YjLBwDahdJ9pTLJQ==
+  /@jsdevtools/ono/7.1.3:
+    dev: true
+    resolution:
+      integrity: sha512-4JQNk+3mVzK3xh2rqd6RB4J46qUR19azEHBneZyTZM+c456qOrbbM/5xcR8huNCCcbVt7+UmizG6GuUvPvKUYg==
   /@nodelib/fs.scandir/2.1.3:
     dependencies:
       '@nodelib/fs.stat': 2.0.3
@@ -1904,6 +1914,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
+  /@types/verror/1.10.4:
+    dev: true
+    resolution:
+      integrity: sha512-OjJdqx6QlbyZw9LShPwRW+Kmiegeg3eWNI41MQQKaG3vjdU2L9SRElntM51HmHBY1cu7izxQJ1lMYioQh3XMBg==
   /@types/ws/7.2.6:
     dependencies:
       '@types/node': 14.0.27
@@ -3818,6 +3832,12 @@ packages:
       '0': node >=0.6.0
     resolution:
       integrity: sha1-lpGEQOMEGnpBT4xS48V06zw+HgU=
+  /extsprintf/1.4.0:
+    dev: true
+    engines:
+      '0': node >=0.6.0
+    resolution:
+      integrity: sha1-4mifjzVvrWLMplo6kcXfX5VRaS8=
   /fast-clone/1.5.13:
     dev: true
     resolution:
@@ -8506,7 +8526,7 @@ packages:
     dependencies:
       assert-plus: 1.0.0
       core-util-is: 1.0.2
-      extsprintf: 1.3.0
+      extsprintf: 1.4.0
     dev: true
     engines:
       '0': node >=0.6.0

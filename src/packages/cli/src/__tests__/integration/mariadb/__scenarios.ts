@@ -1,6 +1,6 @@
 import { Input } from '../../__helpers__/integrationTest'
 
-export default [
+export const scenarios = [
   {
     name: 'findOne where PK',
     up: `

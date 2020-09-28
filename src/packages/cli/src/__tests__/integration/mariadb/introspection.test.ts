@@ -1,6 +1,6 @@
 import * as IntegrationTest from '../../__helpers__/integrationTest'
-import database from './database'
-import scenarios from './scenarios'
+import { database } from './__database'
+import { scenarios } from './__scenarios'
 
 IntegrationTest.introspection({
   scenarios,

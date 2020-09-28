@@ -1,9 +1,11 @@
+import { getLatestTag } from '@prisma/fetch-engine'
 import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import pkgup from 'pkg-up'
+import VError, { MultiError } from 'verror'
 
 process.setMaxListeners(100)
 
@@ -168,11 +170,10 @@ type ScenarioState<Client = any> = {
 export function introspection<Client>(input: Input<Client>) {
   const kind = 'introspection'
 
-  let engineVersion
   const states: Record<string, ScenarioState<Client>> = {}
 
   beforeAll(() => {
-    engineVersion = beforeAllScenarios(kind, input).engineVersion
+    beforeAllScenarios(kind, input)
   })
 
   afterAll(async () => {
@@ -198,8 +199,7 @@ export function introspection<Client>(input: Input<Client>) {
       )
       states[scenario.name] = state
 
-      // prettier-ignore
-      expect(prepareSchemaForSnapshot(introspectionResult.datamodel)).toMatchSnapshot(`datamodel`)
+      expect(introspectionResult.datamodel).toMatchSnapshot(`datamodel`)
       expect(introspectionResult.warnings).toMatchSnapshot(`warnings`)
 
       await teardownScenario(state)
@@ -214,20 +214,24 @@ export function introspection<Client>(input: Input<Client>) {
 export function runtime<Client>(input: Input<Client>) {
   const kind = 'runtime'
 
-  let engineVersion
   const states: Record<string, ScenarioState<Client>> = {}
 
   beforeAll(() => {
-    engineVersion = beforeAllScenarios(kind, input).engineVersion
+    beforeAllScenarios(kind, input)
   })
 
   afterAll(async () => {
     await afterAllScenarios(kind, states)
   })
 
+  const engineVersionPromise = input.settings?.engineVersion
+    ? input.settings.engineVersion
+    : getLatestTag()
+
   it.concurrent.each(prepareTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
+      const engineVersion = await engineVersionPromise
       const { ctx, state, prismaSchemaPath } = await setupScenario(
         kind,
         input,
@@ -235,7 +239,9 @@ export function runtime<Client>(input: Input<Client>) {
       )
       states[scenario.name] = state
 
+      console.log(1)
       await generate(prismaSchemaPath, engineVersion)
+      console.log(1)
 
       const prismaClientPath = ctx.fs.path('index.js')
       const prismaClientDeclarationPath = ctx.fs.path('index.d.ts')
@@ -279,12 +285,6 @@ async function afterAllScenarios(
 function beforeAllScenarios(kind: string, input: Input) {
   // Remove old stuff if it is still around for some reason
   fs.remove(getScenarioDir(input.database.name, kind, ''))
-  // todo need a synchronous getLatestTag
-  const engineVersion = '2b4c3254badf30765f7839e350e4aa11a0842a8d'
-  // engineVersion = await (input.settings?.engineVersion
-  //   ? input.settings.engineVersion
-  //   : getLatestTag())
-  return { engineVersion }
 }
 
 async function setupScenario(kind: string, input: Input, scenario: Scenario) {
@@ -356,11 +356,9 @@ async function teardownScenario(state: ScenarioState) {
   }
 
   if (errors.length) {
-    // TODO use an error aggreggator lib like "ono"
-    throw new Error(
-      `Got Errors while running scenario "afterEach" hook: \n-> ${errors.join(
-        '\n ->',
-      )}`,
+    throw new VError(
+      new MultiError(errors),
+      'Got Errors while running scenario teardown',
     )
   }
 }
@@ -411,28 +409,6 @@ async function generate(schemaPath: string, engineVersion: string) {
   await generator.generate()
 
   generator.stop()
-}
-
-/**
- * Replace dynamic variable bits of Prisma Schema with static strings.
- */
-export function prepareSchemaForSnapshot(schema: string): string {
-  const urlRegex = /url\s*=\s*.+/
-  const outputRegex = /output\s*=\s*.+/
-  return schema
-    .split('\n')
-    .map((line) => {
-      const urlMatch = urlRegex.exec(line)
-      if (urlMatch) {
-        return `${line.slice(0, urlMatch.index)}url = "***"`
-      }
-      const outputMatch = outputRegex.exec(line)
-      if (outputMatch) {
-        return `${line.slice(0, outputMatch.index)}output = "***"`
-      }
-      return line
-    })
-    .join('\n')
 }
 
 /**

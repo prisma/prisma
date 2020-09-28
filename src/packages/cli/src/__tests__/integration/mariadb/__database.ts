@@ -2,7 +2,7 @@ import { uriToCredentials } from '@prisma/sdk'
 import mariadb from 'mariadb'
 import { Context, Input } from '../../__helpers__/integrationTest'
 
-export default {
+export const database = {
   name: 'mariadb',
   datasource: {
     url: (ctx) => getConnectionInfo(ctx).connectionString,
