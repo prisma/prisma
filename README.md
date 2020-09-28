@@ -1,7 +1,11 @@
 ![Prisma](https://i.imgur.com/SFzi1NE.png)
 
 <div align="center">
-  <h1>Prisma</h1>
+  <h1>Prisma &middot; <a href="https://www.npmjs.com/package/@prisma/cli"><img src="https://img.shields.io/npm/v/@prisma/cli.svg?style=flat" /></a>
+  <a href="https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
+  <a href="https://github.com/prisma/prisma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+</h1>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
