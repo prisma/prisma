@@ -1,6 +1,6 @@
 {
   "name": "@prisma/sdk",
-  "version": "2.8.0-dev.33",
+  "version": "2.8.0-dev.47",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
@@ -21,16 +21,16 @@
     "scripts"
   ],
   "prisma": {
-    "version": "4f4fb2e5ea3d830a9cf8f4e83b824f844fa43a0d"
+    "version": "2c65c7e137baad4c34f9d7c410633f3b0398a373"
   },
   "devDependencies": {
     "@types/jest": "26.0.14",
     "@types/node": "12.12.62",
     "@types/tar": "4.0.3",
-    "@typescript-eslint/eslint-plugin": "4.1.1",
-    "@typescript-eslint/parser": "4.1.1",
-    "eslint": "7.9.0",
-    "eslint-config-prettier": "6.11.0",
+    "@typescript-eslint/eslint-plugin": "4.2.0",
+    "@typescript-eslint/parser": "4.2.0",
+    "eslint": "7.10.0",
+    "eslint-config-prettier": "6.12.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
