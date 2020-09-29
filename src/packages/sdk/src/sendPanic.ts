@@ -54,7 +54,7 @@ export async function sendPanic(
       }
     }
 
-    const liftRequest = error.request
+    const migrateRequest = error.request
       ? JSON.stringify(
           mapScalarValues(error.request, (value) => {
             if (typeof value === 'string') {
@@ -75,7 +75,7 @@ export async function sendPanic(
       rustStackTrace: error.rustStack,
       operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
       platform: await getPlatform(),
-      liftRequest,
+      liftRequest: migrateRequest,
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
       sqlDump,
