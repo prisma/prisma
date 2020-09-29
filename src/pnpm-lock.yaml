@@ -58,16 +58,16 @@ importers:
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
-      '@typescript-eslint/eslint-plugin': 4.1.1_97a6c696058c61405b3d4d883f393658
-      '@typescript-eslint/parser': 4.1.1_eslint@7.9.0+typescript@4.0.3
+      '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
+      '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0_eslint@7.9.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.9.0
-      eslint-plugin-jest: 24.0.2_eslint@7.9.0+typescript@4.0.3
-      eslint-plugin-prettier: 3.1.4_eslint@7.9.0+prettier@2.1.2
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0_eslint@7.10.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
+      eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
+      eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
       execa: 4.0.3
       fast-deep-equal: 3.1.3
       fs-jetpack: 3.1.0
@@ -92,10 +92,10 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      tempy: 0.7.0
+      tempy: 0.7.1
       terminal-link: 2.1.1
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       typescript: 4.0.3
@@ -117,13 +117,13 @@ importers:
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
       '@types/ws': 7.2.6
-      '@typescript-eslint/eslint-plugin': 4.1.1
-      '@typescript-eslint/parser': 4.1.1
+      '@typescript-eslint/eslint-plugin': 4.2.0
+      '@typescript-eslint/parser': 4.2.0
       '@zeit/ncc': 0.22.3
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.2
       eslint-plugin-prettier: 3.1.4
@@ -151,10 +151,10 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.2.0
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      tempy: 0.7.0
+      tempy: 0.7.1
       terminal-link: 2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
@@ -177,18 +177,18 @@ importers:
       '@types/node': 12.12.62
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.5
-      '@typescript-eslint/eslint-plugin': 4.1.1_97a6c696058c61405b3d4d883f393658
-      '@typescript-eslint/parser': 4.1.1_eslint@7.9.0+typescript@4.0.3
+      '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
+      '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
       dotenv: 8.2.0
       escape-string-regexp: 4.0.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0_eslint@7.9.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.9.0
-      eslint-plugin-jest: 24.0.2_eslint@7.9.0+typescript@4.0.3
-      eslint-plugin-prettier: 3.1.4_eslint@7.9.0+prettier@2.1.2
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0_eslint@7.10.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
+      eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
+      eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
       execa: 4.0.3
       fast-clone: 1.5.13
       fast-copy: 2.1.0
@@ -216,8 +216,8 @@ importers:
       prettier: 2.1.2
       replace-string: 3.1.0
       rimraf: 3.0.2
-      rollup: 2.28.1
-      rollup-plugin-dts: 1.4.13_rollup@2.28.1+typescript@4.0.3
+      rollup: 2.28.2
+      rollup-plugin-dts: 1.4.13_rollup@2.28.2+typescript@4.0.3
       set-value: 3.0.2
       sql-template-tag: 3.4.0
       stacktrace-parser: 0.1.10
@@ -243,15 +243,15 @@ importers:
       '@types/node': 12.12.62
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.5
-      '@typescript-eslint/eslint-plugin': 4.1.1
-      '@typescript-eslint/parser': 4.1.1
+      '@typescript-eslint/eslint-plugin': 4.2.0
+      '@typescript-eslint/parser': 4.2.0
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
       dotenv: 8.2.0
       escape-string-regexp: 4.0.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.2
       eslint-plugin-prettier: 3.1.4
@@ -283,7 +283,7 @@ importers:
       prettier: 2.1.2
       replace-string: 3.1.0
       rimraf: 3.0.2
-      rollup: 2.28.1
+      rollup: 2.28.2
       rollup-plugin-dts: 1.4.13
       set-value: 3.0.2
       sql-template-tag: 3.4.0
@@ -595,20 +595,20 @@ importers:
       '@prisma/sdk': 'link:../sdk'
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
-      '@typescript-eslint/eslint-plugin': 4.1.1_97a6c696058c61405b3d4d883f393658
-      '@typescript-eslint/parser': 4.1.1_eslint@7.9.0+typescript@4.0.3
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0_eslint@7.9.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.9.0
-      eslint-plugin-jest: 24.0.2_eslint@7.9.0+typescript@4.0.3
-      eslint-plugin-prettier: 3.1.4_eslint@7.9.0+prettier@2.1.2
+      '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
+      '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0_eslint@7.10.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
+      eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
+      eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
       husky: 4.3.0
       indent-string: 4.0.0
       jest: 26.4.2
       lint-staged: 10.4.0
       prettier: 2.1.2
       rimraf: 3.0.2
-      tempy: 0.7.0
+      tempy: 0.7.1
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       ts-node: 9.0.0_typescript@4.0.3
       typescript: 4.0.3
@@ -618,11 +618,11 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
-      '@typescript-eslint/eslint-plugin': 4.1.1
-      '@typescript-eslint/parser': 4.1.1
+      '@typescript-eslint/eslint-plugin': 4.2.0
+      '@typescript-eslint/parser': 4.2.0
       chalk: ^4.0.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.2
       eslint-plugin-prettier: 3.1.4
@@ -635,7 +635,7 @@ importers:
       prettier: 2.1.2
       rimraf: 3.0.2
       strip-ansi: ^6.0.0
-      tempy: 0.7.0
+      tempy: 0.7.1
       ts-jest: 26.4.0
       ts-node: 9.0.0
       typescript: 4.0.3
@@ -686,16 +686,16 @@ importers:
       '@types/prompts': 2.0.9
       '@types/react': 16.9.11
       '@types/sqlite3': 3.1.6
-      '@typescript-eslint/eslint-plugin': 4.1.1_97a6c696058c61405b3d4d883f393658
-      '@typescript-eslint/parser': 4.1.1_eslint@7.9.0+typescript@4.0.3
+      '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
+      '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
       '@zeit/ncc': 0.22.3
       chalk: 4.1.0
       del: 5.1.0
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0_eslint@7.9.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.9.0
-      eslint-plugin-jest: 24.0.2_eslint@7.9.0+typescript@4.0.3
-      eslint-plugin-prettier: 3.1.4_eslint@7.9.0+prettier@2.1.2
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0_eslint@7.10.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
+      eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
+      eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
       husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.4.0
@@ -705,7 +705,7 @@ importers:
       react: 16.11.0
       sqlite-async: 1.1.0
       sqlite3: 5.0.0
-      tempy: 0.7.0
+      tempy: 0.7.1
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       typescript: 4.0.3
     specifiers:
@@ -727,8 +727,8 @@ importers:
       '@types/prompts': 2.0.9
       '@types/react': 16.9.11
       '@types/sqlite3': 3.1.6
-      '@typescript-eslint/eslint-plugin': 4.1.1
-      '@typescript-eslint/parser': 4.1.1
+      '@typescript-eslint/eslint-plugin': 4.2.0
+      '@typescript-eslint/parser': 4.2.0
       '@zeit/ncc': 0.22.3
       ansi-escapes: ^4.3.1
       chalk: 4.1.0
@@ -736,8 +736,8 @@ importers:
       dashify: 2.0.0
       del: 5.1.0
       diff: 4.0.2
-      eslint: 7.9.0
-      eslint-config-prettier: 6.11.0
+      eslint: 7.10.0
+      eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.0.2
       eslint-plugin-prettier: 3.1.4
@@ -772,7 +772,7 @@ importers:
       string-width: ^4.2.0
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
-      tempy: 0.7.0
+      tempy: 0.7.1
       ts-jest: 26.4.0
       typescript: 4.0.3
   packages/sdk:
@@ -1975,6 +1975,7 @@ packages:
       eslint: 7.9.0
       eslint-scope: 5.1.0
       eslint-utils: 2.1.0
+      typescript: 4.0.3
     dev: true
     engines:
       node: ^10.12.0 || >=12.0.0
@@ -3243,6 +3244,21 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-wH9xOVHnczo9jN2IW68BabcecVPxacIA3g/7z6vhSU/4stOKQzeCRK0yD0A24WiAAUJmmVpWqrERcTxnLo3AnA==
+  /del/6.0.0:
+    dependencies:
+      globby: 11.0.1
+      graceful-fs: 4.2.4
+      is-glob: 4.0.1
+      is-path-cwd: 2.2.0
+      is-path-inside: 3.0.2
+      p-map: 4.0.0
+      rimraf: 3.0.2
+      slash: 3.0.0
+    dev: true
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-1shh9DQ23L16oXSZKB2JxpL7iMy2E0S9d517ptA1P8iw0alkPtQcrKH7ru31rYtKwF499HkTu+DRzq3TCKDFRQ==
   /delayed-stream/1.0.0:
     dev: true
     engines:
@@ -3512,6 +3528,7 @@ packages:
     dependencies:
       '@typescript-eslint/experimental-utils': 4.1.1_eslint@7.9.0+typescript@4.0.3
       eslint: 7.9.0
+      typescript: 4.0.3
     dev: true
     engines:
       node: '>=10'
@@ -7354,9 +7371,9 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
-  /rollup-plugin-dts/1.4.13_rollup@2.28.1+typescript@4.0.3:
+  /rollup-plugin-dts/1.4.13_rollup@2.28.2+typescript@4.0.3:
     dependencies:
-      rollup: 2.28.1
+      rollup: 2.28.2
       typescript: 4.0.3
     dev: true
     optionalDependencies:
@@ -7366,7 +7383,7 @@ packages:
       typescript: ^4.0.2
     resolution:
       integrity: sha512-7mxoQ6PcmCkBE5ZhrjGDL4k42XLy8BkSqpiRi1MipwiGs+7lwi4mQkp2afX+OzzLjJp/TGM8llfe8uayIUhPEw==
-  /rollup/2.28.1:
+  /rollup/2.28.2:
     dev: true
     engines:
       node: '>=10.0.0'
@@ -7374,7 +7391,7 @@ packages:
     optionalDependencies:
       fsevents: 2.1.3
     resolution:
-      integrity: sha512-DOtVoqOZt3+FjPJWLU8hDIvBjUylc9s6IZvy76XklxzcLvAQLtVAG/bbhsMhcWnYxC0TKKcf1QQ/tg29zeID0Q==
+      integrity: sha512-8txbsFBFLmm9Xdt4ByTOGa9Muonmc8MfNjnGAR8U8scJlF1ZW7AgNZa7aqBXaKtlvnYP/ab++fQIq9dB9NWUbg==
   /rsvp/4.8.5:
     dev: true
     engines:
@@ -7787,15 +7804,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
-  /sqlite3/4.1.1:
-    dependencies:
-      nan: 2.14.1
-      node-pre-gyp: 0.11.0
-      request: 2.88.2
-    dev: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -8181,10 +8189,23 @@ packages:
       temp-dir: 2.0.0
       type-fest: 0.16.0
       unique-string: 2.0.0
+    dev: false
     engines:
       node: '>=10'
     resolution:
       integrity: sha512-YcFJbGum4B10jqKroKsci0kE5eEzRCMCTCa0ATtRC6zApBboaOnug1igqAbRC9SCvyqTRI9Xt8NYVggQr4k9hw==
+  /tempy/0.7.1:
+    dependencies:
+      del: 6.0.0
+      is-stream: 2.0.0
+      temp-dir: 2.0.0
+      type-fest: 0.16.0
+      unique-string: 2.0.0
+    dev: true
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-vXPxwOyaNVi9nyczO16mxmHGpl6ASC5/TVhRRHpqeYHvKQm58EaWNvZXxAhR0lYYnBOQFjXjhzeLsaXdjxLjRg==
   /terminal-link/2.1.1:
     dependencies:
       ansi-escapes: 4.3.1
