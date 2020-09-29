@@ -1,15 +1,16 @@
+import { getPlatform } from '@prisma/get-platform'
 import {
+  arg,
   Command,
+  getConfig,
+  getSchema,
+  getSchemaPath,
   getVersion,
   resolveBinary,
-  arg,
-  getSchemaPath,
-  getSchema,
-  getConfig,
 } from '@prisma/sdk'
-import { getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
+import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface BinaryInfo {
@@ -54,8 +55,11 @@ export class Version implements Command {
       platform,
     )
 
+    const prismaClientVersion = await getInstalledPrismaClientVersion()
+
     const rows = [
       [packageJson.name, packageJson.version],
+      ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       ['Query Engine', this.printBinaryInfo(queryEngine)],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
