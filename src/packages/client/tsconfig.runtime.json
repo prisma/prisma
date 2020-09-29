@@ -11,7 +11,8 @@
     "rootDir": "src/runtime",
     "declaration": true,
     "incremental": true,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "tsBuildInfoFile": "tsconfig.runtime.tsbuildinfo"
   },
   "include": ["src/runtime"],
   "exclude": [

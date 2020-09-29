@@ -19,4 +19,5 @@ module.exports = {
     },
   },
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
+  testTimeout: 10000
 }

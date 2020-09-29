@@ -132,6 +132,7 @@ export namespace DMMF {
     model: string
     plural: string
     findOne?: string | null
+    findFirst?: string | null
     findMany?: string | null
     create?: string | null
     update?: string | null
@@ -144,6 +145,7 @@ export namespace DMMF {
 
   export enum ModelAction {
     findOne = 'findOne',
+    findFirst = 'findFirst',
     findMany = 'findMany',
     create = 'create',
     update = 'update',

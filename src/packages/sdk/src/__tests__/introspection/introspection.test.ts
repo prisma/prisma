@@ -24,8 +24,8 @@ test('introspection basic', async () => {
       age     Int     @default(0)
       amount  Float   @default(0)
       balance Float   @default(0)
-      email   String  @default(\\"\\") @unique
-      id      Int     @default(autoincrement()) @id
+      email   String  @unique @default(\\"\\")
+      id      Int     @id @default(autoincrement())
       name    String?
       role    String  @default(\\"USER\\")
       Post    Post[]
@@ -450,6 +450,7 @@ test('introspection basic', async () => {
               ],
               "constraintName": null,
               "onDeleteAction": "restrict",
+              "onUpdateAction": "noAction",
               "referencedColumns": Array [
                 "id",
               ],
