@@ -1,6 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
+Prisma Schema loaded from prisma/reintrospection.prisma
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
