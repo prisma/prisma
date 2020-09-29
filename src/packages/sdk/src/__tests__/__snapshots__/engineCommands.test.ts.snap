@@ -301,6 +301,13 @@ Object {
           "desc",
         ],
       },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
+        ],
+      },
     ],
     "inputTypes": Array [
       Object {
@@ -805,6 +812,18 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "endsWith",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
           },
           Object {
             "inputTypes": Array [
@@ -2294,6 +2313,13 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
         ],
       },
     ],
@@ -4081,6 +4107,18 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "endsWith",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
           },
           Object {
             "inputTypes": Array [
@@ -8716,6 +8754,13 @@ Object {
           "desc",
         ],
       },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
+        ],
+      },
     ],
     "inputTypes": Array [
       Object {
@@ -10501,6 +10546,18 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "endsWith",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
           },
           Object {
             "inputTypes": Array [
@@ -14829,7 +14886,7 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `62580552`;
+exports[`getDMMF big schema 1`] = `62580727`;
 
 exports[`getDMMF chinook introspected schema 1`] = `379408`;
 
