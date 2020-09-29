@@ -52,7 +52,11 @@ describe('int-errors', () => {
       })
       expect(1).toEqual(0) //should never reach.
     } catch (e) {
-      expect(e).toMatchSnapshot()
+      expect(e.clientVersion).toMatchInlineSnapshot(`local`)
+      expect(e).toMatchInlineSnapshot(`
+        Argument age: Got invalid value 'thisisastringwith30characters' on prisma.updateOneUser. Provided String, expected Int or NullableIntFieldUpdateOperationsInput or Null.
+
+      `)
     }
   })
 
@@ -66,7 +70,17 @@ describe('int-errors', () => {
       })
       expect(1).toEqual(0) //should never reach.
     } catch (e) {
-      expect(e).toMatchSnapshot()
+      expect(e.clientVersion).toMatchInlineSnapshot(`local`)
+      expect(e).toMatchInlineSnapshot(`
+        error: Environment variable not found: TEST_MYSQL_URI.
+          -->  schema.prisma:3
+           | 
+         2 |   provider = "mysql"
+         3 |   url      = env("TEST_MYSQL_URI")
+           | 
+
+        Validation Error Count: 1
+      `)
     }
   })
 
@@ -80,7 +94,19 @@ describe('int-errors', () => {
       })
       expect(1).toEqual(0) //should never reach.
     } catch (e) {
-      expect(e).toMatchSnapshot()
+      expect(e.clientVersion).toMatchInlineSnapshot(`local`)
+      expect(e).toMatchInlineSnapshot(`
+        error: Environment variable not found: TEST_MYSQL_URI.
+          -->  schema.prisma:3
+           | 
+         2 |   provider = "mysql"
+         3 |   url      = env("TEST_MYSQL_URI")
+           | 
+
+        Validation Error Count: 1
+      `)
+
+      prisma.$disconnect()
     }
   })
 })

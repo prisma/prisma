@@ -290,6 +290,7 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     throw error
   }
+
   protected printFieldError = (
     { error, path }: FieldError,
     missingItems: MissingItem[],

@@ -4,8 +4,6 @@ import { getPlatform } from '@prisma/get-platform'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('corruption', async () => {
-  expect.assertions(1)
-
   await generateTestClient()
   const { PrismaClient } = require('./node_modules/@prisma/client')
   const platform = await getPlatform()
@@ -26,5 +24,16 @@ test('corruption', async () => {
     errorFormat: 'minimal',
   })
 
-  await expect(prisma.user.findMany()).rejects.toThrowError('not found')
+  try {
+    await prisma.user.findMany()
+  } catch (e) {
+    expect(e.clientVersion).toMatchInlineSnapshot(`local`)
+    expect(e).toMatchInlineSnapshot(`
+      Query engine exited with code 127
+
+      /client/src/__tests__/integration/errors/corruption/node_modules/.prisma/client/query-engine-TEST_PLATFORM: line 1: hello: command not found
+    `)
+
+    prisma.$disconnect()
+  }
 })

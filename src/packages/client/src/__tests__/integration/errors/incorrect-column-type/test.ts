@@ -1,7 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('incorrect-column-type', async () => {
-  expect.assertions(1)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient({
     log: [
@@ -12,14 +11,19 @@ test('incorrect-column-type', async () => {
     ],
   })
 
-  await expect(prisma.user.findMany()).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
+  try {
+    await prisma.user.findMany()
+  } catch (e) {
+    expect(e.clientVersion).toMatchInlineSnapshot(`client-test-version`)
+    expect(e).toMatchInlineSnapshot(`
 
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:15:28
+      Invalid \`prisma.user.findMany()\` invocation in
+      /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:15:23
 
 
-            Attempted to serialize scalar '123' with incompatible type 'String'
-        `)
-  prisma.$disconnect()
+        Attempted to serialize scalar '123' with incompatible type 'String'
+    `)
+
+    prisma.$disconnect()
+  }
 })
