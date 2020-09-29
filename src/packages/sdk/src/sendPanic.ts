@@ -38,11 +38,13 @@ export async function sendPanic(
     }
 
     let sqlDump: string | undefined
+    let dbVersion: string | undefined
     if (error.area === ErrorArea.INTROSPECTION_CLI && error.introspectionUrl) {
       let engine: undefined | IntrospectionEngine
       try {
         engine = new IntrospectionEngine()
         sqlDump = await engine.getDatabaseDescription(error.introspectionUrl)
+        dbVersion = await engine.getDatabaseVersion(error.introspectionUrl)
         engine.stop()
       } catch (e) {
         if (engine && engine.isRunning) {
@@ -77,6 +79,7 @@ export async function sendPanic(
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
       sqlDump,
+      dbVersion,
     })
 
     if (error.schemaPath) {
@@ -173,6 +176,7 @@ export interface CreateErrorReportInput {
   schemaFile?: string
   fingerprint?: string
   sqlDump?: string
+  dbVersion?: string
 }
 
 export enum ErrorKind {

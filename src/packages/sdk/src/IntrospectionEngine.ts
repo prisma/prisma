@@ -198,6 +198,9 @@ export class IntrospectionEngine {
       this.getRPCPayload('getDatabaseDescription', { schema }),
     )
   }
+  public getDatabaseVersion(schema: string): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
+  }
   public introspect(
     schema: string,
     force?: Boolean,
