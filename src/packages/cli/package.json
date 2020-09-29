@@ -1,5 +1,5 @@
 {
-  "version": "2.8.0-dev.33",
+  "version": "2.8.0-dev.47",
   "name": "@prisma/cli",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
@@ -18,12 +18,16 @@
   ],
   "main": "build/index.js",
   "repository": "git@github.com:prisma/prisma.git",
-  "homepage": "https://github.com/prisma/prisma",
+  "homepage": "https://www.prisma.io",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "maintainers": [
+    "Tim Suchanek <suchanek@prisma.io>",
+    "Joël Galeran <galeran@prisma.io>"
+  ],
   "bugs": {
     "url": "https://github.com/prisma/prisma/issues",
     "email": "suchanek@prisma.io"
   },
-  "author": "Tim Suchanek <suchanek@prisma.io>",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=10"
@@ -55,8 +59,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "fc6db18a9ab2e659cbf600340f5d4f4abb0b1974",
-    "prismaCommit": "705c60fb0de2628c574174f46a747a6155293c39"
+    "version": "e6c9b4b2b7fa162d0d459d1863321f547498fcfe",
+    "prismaCommit": "251b3e81afcbf627a50688e6e8356c92f7326ef2"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -68,20 +72,20 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.292.0",
-    "@prisma/studio-server": "0.292.0",
+    "@prisma/studio": "0.294.0",
+    "@prisma/studio-server": "0.294.0",
     "@types/debug": "4.1.5",
     "@types/jest": "26.0.14",
     "@types/pg": "7.14.5",
     "@types/sqlite3": "3.1.6",
     "@types/ws": "7.2.6",
-    "@typescript-eslint/eslint-plugin": "4.1.1",
-    "@typescript-eslint/parser": "4.1.1",
+    "@typescript-eslint/eslint-plugin": "4.2.0",
+    "@typescript-eslint/parser": "4.2.0",
     "@zeit/ncc": "0.22.3",
     "checkpoint-client": "1.1.12",
     "dotenv": "8.2.0",
-    "eslint": "7.9.0",
-    "eslint-config-prettier": "6.11.0",
+    "eslint": "7.10.0",
+    "eslint-config-prettier": "6.12.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
@@ -109,10 +113,10 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.1",
+    "sqlite3": "4.2.0",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
-    "tempy": "0.7.0",
+    "tempy": "0.7.1",
     "terminal-link": "2.1.1",
     "ts-jest": "26.4.0",
     "typescript": "4.0.3",
@@ -126,6 +130,7 @@
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --forceExit",
+    "jest": "jest",
     "install": "node download-build/index.js",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",

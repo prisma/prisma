@@ -13,19 +13,32 @@ async function main() {
     copyFile('./scripts/backup-index.js', 'index.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
   ]
+
+  // do the job for typescript
+  if (!fs.existsSync('./runtime-dist') && fs.existsSync('./tsconfig.runtime.tsbuildinfo')) {
+    try {
+      console.log('unlinking')
+      fs.unlinkSync('./tsconfig.tsbuildinfo')
+    } catch (e) {
+      console.error(e)
+      //
+    }
+  }
+
   await Promise.all([
-    run('tsc --build tsconfig.runtime.json'),
+    run('tsc --build tsconfig.runtime.json', true),
     run(
       'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
       false,
-    ),
+    )
   ])
+
   await Promise.all([
-    run('rollup -c'),
     run(
       'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --sourcemap --minify --target=node10',
       false,
     ),
+    run('rollup -c'),
   ])
 
   await Promise.all(copyPromises)
@@ -46,8 +59,7 @@ async function main() {
 }
 
 function run(command, preferLocal = true) {
-  console.log(chalk.bold.green(command))
-  return execa.command(command, { stdio: 'inherit', preferLocal })
+  return execa.command(command, { preferLocal, shell: true, stdio: 'inherit' })
 }
 
 main().catch((e) => {

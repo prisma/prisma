@@ -186,13 +186,14 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
+      'insensitiveFilters'
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
     if (removedFlagsUsed.length > 0) {
       console.log(
-        `Info: The preview flags \`${removedFlagsUsed.join(
+        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
@@ -245,6 +246,7 @@ export class NodeEngine {
 You may have to run ${chalk.greenBright(
             'prisma generate',
           )} for your changes to take effect.`,
+          this.clientVersion,
         )
       }
     } else {
@@ -371,8 +373,8 @@ You may have to run ${chalk.greenBright(
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-          `${this.incorrectlyPinnedBinaryTarget}`,
-        )}\n`
+            `${this.incorrectlyPinnedBinaryTarget}`,
+          )}\n`
         : ''
 
       const dir = path.dirname(prismaPath)
@@ -400,10 +402,11 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
           this.generator.binaryTargets.includes('native')
         ) {
           errorText += `
-You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''
-            } ${this.generator.binaryTargets
-              .map((t) => `"${chalk.bold(t)}"`)
-              .join(', ')} to the "${chalk.underline('generator')}" block
+You already added the platform${
+            this.generator.binaryTargets.length > 1 ? 's' : ''
+          } ${this.generator.binaryTargets
+            .map((t) => `"${chalk.bold(t)}"`)
+            .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -411,22 +414,23 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform
-            }" to the "${chalk.underline(
-              'generator',
-            )}" block in the "schema.prisma" file:
+          errorText += `\n\nTo solve this problem, add the platform "${
+            this.platform
+          }" to the "${chalk.underline(
+            'generator',
+          )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-              'prisma generate',
-            )}" for your changes to take effect.
+            'prisma generate',
+          )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
         errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
       }
 
-      throw new PrismaClientInitializationError(errorText)
+      throw new PrismaClientInitializationError(errorText, this.clientVersion)
     }
 
     if (this.incorrectlyPinnedBinaryTarget) {
@@ -548,8 +552,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-            Array.isArray(this.enableExperimental) &&
-            this.enableExperimental.length > 0
+          Array.isArray(this.enableExperimental) &&
+          this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -590,6 +594,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               if (this.engineStartDeferred) {
                 const err = new PrismaClientInitializationError(
                   this.lastError.message,
+                  this.clientVersion,
                 )
                 this.engineStartDeferred.reject(err)
               }
@@ -689,15 +694,20 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (code !== null) {
               err = new PrismaClientInitializationError(
                 `Query engine exited with code ${code}\n` + this.stderrLogs,
+                this.clientVersion,
               )
             } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                this.stderrLogs,
+                  this.stderrLogs,
+                this.clientVersion,
               )
             } else {
-              err = new PrismaClientInitializationError(this.stderrLogs)
+              err = new PrismaClientInitializationError(
+                this.stderrLogs,
+                this.clientVersion,
+              )
             }
 
             this.engineStartDeferred.reject(err)
@@ -756,6 +766,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
                 description: this.stderrLogs,
                 version: this.clientVersion,
               }),
+              this.clientVersion,
             )
             this.logEmitter.emit('error', error)
           } else if (
@@ -773,6 +784,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}`,
                 version: this.clientVersion,
               }),
+              this.clientVersion,
             )
             this.logEmitter.emit('error', error)
           }
@@ -780,13 +792,19 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         if (this.lastError) {
           return reject(
-            new PrismaClientInitializationError(getMessage(this.lastError)),
+            new PrismaClientInitializationError(
+              getMessage(this.lastError),
+              this.clientVersion,
+            ),
           )
         }
 
         if (this.lastErrorLog) {
           return reject(
-            new PrismaClientInitializationError(getMessage(this.lastErrorLog)),
+            new PrismaClientInitializationError(
+              getMessage(this.lastErrorLog),
+              this.clientVersion,
+            ),
           )
         }
 
@@ -801,12 +819,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         this.url = `http://localhost:${this.port}`
 
-          // don't wait for this
-          ; (async () => {
-            const engineVersion = await this.version()
-            debug(`Client Version ${this.clientVersion}`)
-            debug(`Engine Version ${engineVersion}`)
-          })()
+        // don't wait for this
+        ;(async () => {
+          const engineVersion = await this.version()
+          debug(`Client Version ${this.clientVersion}`)
+          debug(`Engine Version ${engineVersion}`)
+        })()
 
         this.stopPromise = undefined
         resolve()
@@ -954,8 +972,10 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
         `Can't perform request, as the Engine has already been stopped`,
+        this.clientVersion,
       )
     }
+
 
     this.currentRequestPromise = this.undici.request(
       stringifyQuery(query),
@@ -1006,6 +1026,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
         `Can't perform request, as the Engine has already been stopped`,
+        this.clientVersion,
       )
     }
 
@@ -1067,6 +1088,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             title: getMessage(this.lastError),
             version: this.clientVersion,
           }),
+          this.clientVersion,
         )
         this.lastPanic = err
       } else {
@@ -1076,6 +1098,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             title: getMessage(this.lastError),
             version: this.clientVersion,
           }),
+          this.clientVersion,
         )
       }
     } else if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
@@ -1086,6 +1109,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             title: getMessage(this.lastErrorLog),
             version: this.clientVersion,
           }),
+          this.clientVersion,
         )
         this.lastPanic = err
       } else {
@@ -1095,6 +1119,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
             title: getMessage(this.lastErrorLog),
             version: this.clientVersion,
           }),
+          this.clientVersion,
         )
       }
     } else if (
@@ -1103,14 +1128,19 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       (error.code === 'UND_ERR_SOCKET' &&
         error.message.toLowerCase().includes('closed')) ||
       error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed')
+      error.message.toLowerCase().includes('other side closed') || (
+        error.code === 'UND_ERR_CLOSED'
+      )
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
-        throw new PrismaClientUnknownRequestError(`The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
+        throw new PrismaClientUnknownRequestError(
+          `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
 and your request can't be processed.
 You probably have some open handle that prevents your process from exiting.
 It could be an open http server or stream that didn't close yet.
-We recommend using the \`wtfnode\` package to debug open handles.`)
+We recommend using the \`wtfnode\` package to debug open handles.`,
+          this.clientVersion,
+        )
       }
 
       if (this.restartCount > 4) {
@@ -1126,6 +1156,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
               title: getMessage(this.lastError),
               version: this.clientVersion,
             }),
+            this.clientVersion,
           )
           this.lastPanic = err
         } else {
@@ -1135,6 +1166,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
               title: getMessage(this.lastError),
               version: this.clientVersion,
             }),
+            this.clientVersion,
           )
         }
       } else if (this.lastErrorLog) {
@@ -1145,6 +1177,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
               title: getMessage(this.lastErrorLog),
               version: this.clientVersion,
             }),
+            this.clientVersion,
           )
           this.lastPanic = err
         } else {
@@ -1154,6 +1187,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
               title: getMessage(this.lastErrorLog),
               version: this.clientVersion,
             }),
+            this.clientVersion,
           )
         }
       }
@@ -1178,6 +1212,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
             version: this.clientVersion,
             description,
           }),
+          this.clientVersion,
         )
         debug(err.message)
         if (graceful) {
@@ -1220,11 +1255,15 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       return new PrismaClientKnownRequestError(
         error.user_facing_error.message,
         error.user_facing_error.error_code,
+        this.clientVersion,
         error.user_facing_error.meta,
       )
     }
 
-    return new PrismaClientUnknownRequestError(error.user_facing_error.message)
+    return new PrismaClientUnknownRequestError(
+      error.user_facing_error.message,
+      this.clientVersion,
+    )
   }
 }
 

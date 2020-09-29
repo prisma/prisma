@@ -276,6 +276,7 @@ Object {
       "createOne": "createOneUser",
       "deleteMany": "deleteManyUser",
       "deleteOne": "deleteOneUser",
+      "findFirst": "findFirstUser",
       "findMany": "findManyUser",
       "findOne": "findOneUser",
       "model": "User",
@@ -298,6 +299,13 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
         ],
       },
     ],
@@ -809,6 +817,18 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
                 "kind": "scalar",
                 "type": "String",
               },
@@ -1127,6 +1147,95 @@ Object {
     "outputTypes": Array [
       Object {
         "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "UserDistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User",
+            },
+          },
           Object {
             "args": Array [
               Object {
@@ -2115,6 +2224,7 @@ Object {
       "createOne": "createOnePost",
       "deleteMany": "deleteManyPost",
       "deleteOne": "deleteOnePost",
+      "findFirst": "findFirstPost",
       "findMany": "findManyPost",
       "findOne": "findOnePost",
       "model": "Post",
@@ -2127,6 +2237,7 @@ Object {
       "createOne": "createOneUser",
       "deleteMany": "deleteManyUser",
       "deleteOne": "deleteOneUser",
+      "findFirst": "findFirstUser",
       "findMany": "findManyUser",
       "findOne": "findOneUser",
       "model": "User",
@@ -2139,6 +2250,7 @@ Object {
       "createOne": "createOneUser1",
       "deleteMany": "deleteManyUser1",
       "deleteOne": "deleteOneUser1",
+      "findFirst": "findFirstUser1",
       "findMany": "findManyUser1",
       "findOne": "findOneUser1",
       "model": "User1",
@@ -2151,6 +2263,7 @@ Object {
       "createOne": "createOneUser2",
       "deleteMany": "deleteManyUser2",
       "deleteOne": "deleteOneUser2",
+      "findFirst": "findFirstUser2",
       "findMany": "findManyUser2",
       "findOne": "findOneUser2",
       "model": "User2",
@@ -2200,6 +2313,13 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
         ],
       },
     ],
@@ -3992,6 +4112,18 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
                 "kind": "scalar",
                 "type": "String",
               },
@@ -5422,6 +5554,95 @@ Object {
                 "name": "distinct",
               },
             ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstPost",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "Post",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "PostDistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
             "isNullable": false,
             "isRequired": true,
             "name": "findManyPost",
@@ -5542,6 +5763,95 @@ Object {
               "isList": false,
               "kind": "object",
               "type": "Post",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "UserDistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User",
             },
           },
           Object {
@@ -5826,6 +6136,95 @@ Object {
                 "name": "distinct",
               },
             ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser1",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1WhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1WhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "User1DistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
             "isNullable": false,
             "isRequired": true,
             "name": "findManyUser1",
@@ -5946,6 +6345,95 @@ Object {
               "isList": false,
               "kind": "object",
               "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2WhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2WhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "User2DistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser2",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User2",
             },
           },
           Object {
@@ -8175,6 +8663,7 @@ Object {
       "createOne": "createOnePost",
       "deleteMany": "deleteManyPost",
       "deleteOne": "deleteOnePost",
+      "findFirst": "findFirstPost",
       "findMany": "findManyPost",
       "findOne": "findOnePost",
       "model": "Post",
@@ -8187,6 +8676,7 @@ Object {
       "createOne": "createOneUser",
       "deleteMany": "deleteManyUser",
       "deleteOne": "deleteOneUser",
+      "findFirst": "findFirstUser",
       "findMany": "findManyUser",
       "findOne": "findOneUser",
       "model": "User",
@@ -8199,6 +8689,7 @@ Object {
       "createOne": "createOneUser1",
       "deleteMany": "deleteManyUser1",
       "deleteOne": "deleteOneUser1",
+      "findFirst": "findFirstUser1",
       "findMany": "findManyUser1",
       "findOne": "findOneUser1",
       "model": "User1",
@@ -8211,6 +8702,7 @@ Object {
       "createOne": "createOneUser2",
       "deleteMany": "deleteManyUser2",
       "deleteOne": "deleteOneUser2",
+      "findFirst": "findFirstUser2",
       "findMany": "findManyUser2",
       "findOne": "findOneUser2",
       "model": "User2",
@@ -8260,6 +8752,13 @@ Object {
         "values": Array [
           "asc",
           "desc",
+        ],
+      },
+      Object {
+        "name": "QueryMode",
+        "values": Array [
+          "default",
+          "insensitive",
         ],
       },
     ],
@@ -10052,6 +10551,18 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
+                "kind": "enum",
+                "type": "QueryMode",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "mode",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
                 "kind": "scalar",
                 "type": "String",
               },
@@ -11606,6 +12117,95 @@ Object {
                 "name": "distinct",
               },
             ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstPost",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "Post",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "PostWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "PostDistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
             "isNullable": false,
             "isRequired": true,
             "name": "findManyPost",
@@ -11726,6 +12326,95 @@ Object {
               "isList": false,
               "kind": "object",
               "type": "Post",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "UserWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "UserDistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User",
             },
           },
           Object {
@@ -12010,6 +12699,95 @@ Object {
                 "name": "distinct",
               },
             ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser1",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1WhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1OrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User1WhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "User1DistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
             "isNullable": false,
             "isRequired": true,
             "name": "findManyUser1",
@@ -12130,6 +12908,95 @@ Object {
               "isList": false,
               "kind": "object",
               "type": "User1",
+            },
+          },
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2WhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2OrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "User2WhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "User2DistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstUser2",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "User2",
             },
           },
           Object {
@@ -14019,11 +14886,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `57520212`;
+exports[`getDMMF big schema 1`] = `62580727`;
 
-exports[`getDMMF chinook introspected schema 1`] = `368273`;
+exports[`getDMMF chinook introspected schema 1`] = `379408`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `386107`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397242`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -14153,6 +15020,7 @@ Object {
       "createOne": "createOneA",
       "deleteMany": "deleteManyA",
       "deleteOne": "deleteOneA",
+      "findFirst": "findFirstA",
       "findMany": "findManyA",
       "findOne": "findOneA",
       "model": "A",
@@ -15004,6 +15872,95 @@ Object {
     "outputTypes": Array [
       Object {
         "fields": Array [
+          Object {
+            "args": Array [
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "AWhereInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "where",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "object",
+                    "type": "AOrderByInput",
+                  },
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "AOrderByInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "orderBy",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "object",
+                    "type": "AWhereUniqueInput",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "cursor",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "take",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": false,
+                    "kind": "scalar",
+                    "type": "Int",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "skip",
+              },
+              Object {
+                "inputTypes": Array [
+                  Object {
+                    "isList": true,
+                    "kind": "enum",
+                    "type": "ADistinctFieldEnum",
+                  },
+                ],
+                "isNullable": false,
+                "isRequired": false,
+                "name": "distinct",
+              },
+            ],
+            "isNullable": true,
+            "isRequired": false,
+            "name": "findFirstA",
+            "outputType": Object {
+              "isList": false,
+              "kind": "object",
+              "type": "A",
+            },
+          },
           Object {
             "args": Array [
               Object {

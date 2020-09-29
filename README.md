@@ -1,7 +1,11 @@
 ![Prisma](https://i.imgur.com/SFzi1NE.png)
 
 <div align="center">
-  <h1>Prisma</h1>
+  <h1>Prisma &middot; <a href="https://www.npmjs.com/package/@prisma/cli"><img src="https://img.shields.io/npm/v/@prisma/cli.svg?style=flat" /></a>
+  <a href="https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
+  <a href="https://github.com/prisma/prisma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+</h1>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
@@ -19,6 +23,7 @@
   <a href="https://www.youtube.com/watch?v=0RhtQgIs-TE&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=1">Demo videos</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/prisma/prisma1">Prisma 1</a>
+  <br />
 </div>
 
 ## What is Prisma?
@@ -27,7 +32,7 @@ Prisma is a **database toolkit** that consists of these tools:
 
 - [**Prisma Client**](https://github.com/prisma/prisma-client-js): Auto-generated and type-safe query builder for Node.js & TypeScript
 - [**Prisma Migrate**](https://github.com/prisma/migrate) (_experimental_): Declarative data modeling & migration system
-- [**Prisma Studio**](https://github.com/prisma/studio) (_experimental_): GUI to view and edit data in your database
+- [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
 

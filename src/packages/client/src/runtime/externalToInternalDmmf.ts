@@ -32,6 +32,7 @@ function getMappings(
       model: mapping.model,
       plural: pluralize(lowerCase(mapping.model)),
       findOne: mapping.findSingle || mapping.findOne,
+      findFirst: mapping.findFirst,
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
       delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
