@@ -70,7 +70,7 @@ export async function getDMMF({
       } catch (err) {
         throw new Error(
           chalk.redBright.bold('Get DMMF ') +
-            'unable to write temp data model path',
+          'unable to write temp data model path',
         )
       }
     }
@@ -86,8 +86,20 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
+    const removedFeatureFlagMap = {
+      'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`
+    }
+
     if (enableExperimental) {
-      enableExperimental = enableExperimental.filter(
+      enableExperimental = enableExperimental.filter(f => {
+        const removeMessage = removedFeatureFlagMap[f]
+        if (removeMessage) {
+          console.log(removeMessage)
+          return false
+        }
+
+        return true
+      }).filter(
         (e) =>
           !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(
             e,
@@ -97,8 +109,8 @@ export async function getDMMF({
 
     const experimentalFlags =
       enableExperimental &&
-      Array.isArray(enableExperimental) &&
-      enableExperimental.length > 0
+        Array.isArray(enableExperimental) &&
+        enableExperimental.length > 0
         ? [`--enable-experimental=${enableExperimental.join(',')}`]
         : []
 
@@ -205,7 +217,7 @@ export async function getConfig({
     } catch (err) {
       throw new Error(
         chalk.redBright.bold('Get DMMF ') +
-          'unable to write temp data model path',
+        'unable to write temp data model path',
       )
     }
   }

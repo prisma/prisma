@@ -97,6 +97,8 @@ export function getModelArgName(
       return `FindMany${modelName}Args`
     case DMMF.ModelAction.findOne:
       return `FindOne${modelName}Args`
+    case DMMF.ModelAction.findFirst:
+      return `FindFirst${modelName}Args`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:

@@ -186,13 +186,14 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
+      'insensitiveFilters'
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
     if (removedFlagsUsed.length > 0) {
       console.log(
-        `Info: The preview flags \`${removedFlagsUsed.join(
+        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
@@ -695,7 +696,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                 `Query engine exited with code ${code}\n` + this.stderrLogs,
                 this.clientVersion,
               )
-            } else if (this.child.signalCode) {
+            } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
@@ -975,6 +976,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
+
     this.currentRequestPromise = this.undici.request(
       stringifyQuery(query),
       headers,
@@ -1126,7 +1128,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       (error.code === 'UND_ERR_SOCKET' &&
         error.message.toLowerCase().includes('closed')) ||
       error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed')
+      error.message.toLowerCase().includes('other side closed') || (
+        error.code === 'UND_ERR_CLOSED'
+      )
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(
@@ -1199,7 +1203,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
         let description =
           error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
         description =
-          `signalCode: ${this.child.signalCode} | exitCode: ${this.child.exitCode} | killed: ${this.child.killed}\n` +
+          `signalCode: ${this.child?.signalCode} | exitCode: ${this.child?.exitCode} | killed: ${this.child?.killed}\n` +
           description
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
