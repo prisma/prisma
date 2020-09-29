@@ -59,7 +59,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "2c65c7e137baad4c34f9d7c410633f3b0398a373",
+    "version": "c5bd735eaf2d2c43fa45eb6d32e9194b477b2970",
     "prismaCommit": "251b3e81afcbf627a50688e6e8356c92f7326ef2"
   },
   "devDependencies": {
@@ -130,6 +130,7 @@
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --forceExit",
+    "jest": "jest",
     "install": "node download-build/index.js",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
