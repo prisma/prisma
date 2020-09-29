@@ -873,7 +873,7 @@ model users {
 
 exports[`findMany where unique: warnings 1`] = `Array []`;
 
-exports[`findOne where PK with select: datamodel 1`] = `
+exports[`findOne where PK with include: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -893,16 +893,31 @@ model posts {
   @@index([user_id], name: "user_id")
 }
 
-model teams {
-  id    Int    @id
-  name  String @unique
-  email String @unique
-}
-
 model users {
   id    Int     @id @default(autoincrement())
   email String  @unique
   posts posts[]
+}
+
+`;
+
+exports[`findOne where PK with include: warnings 1`] = `Array []`;
+
+exports[`findOne where PK with select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource mysql {
+  provider = "mysql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @id
+  name  String @unique
+  email String @unique
 }
 
 `;
@@ -920,24 +935,9 @@ datasource mysql {
   url = "***"
 }
 
-model posts {
-  id      Int    @id @default(autoincrement())
-  user_id Int
-  title   String
-  users   users  @relation(fields: [user_id], references: [id])
-
-  @@index([user_id], name: "user_id")
-}
-
 model teams {
   id   Int    @id
   name String @unique
-}
-
-model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  posts posts[]
 }
 
 `;
