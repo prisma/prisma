@@ -31,5 +31,5 @@ async function saveVersions() {
   fs.writeFileSync(path.join(__dirname, 'versions.json'), str, 'utf-8')
 }
 
-saveVersions()
+// saveVersions()
 
