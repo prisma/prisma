@@ -186,13 +186,14 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
+      'insensitiveFilters'
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
     if (removedFlagsUsed.length > 0) {
       console.log(
-        `Info: The preview flags \`${removedFlagsUsed.join(
+        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
