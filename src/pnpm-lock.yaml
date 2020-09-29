@@ -346,7 +346,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: github.com/nodejs/undici/e76f6a37836537f08c2d9b7d8805d6ff21d1e744
+      undici: 2.0.5
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.14
@@ -396,7 +396,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
-      undici: 'git://github.com/nodejs/undici.git#e76f6a37836537f08c2d9b7d8805d6ff21d1e744'
+      undici: 2.0.5
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -8480,6 +8480,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=
+  /undici/2.0.5:
+    dev: false
+    resolution:
+      integrity: sha512-KluDT7X78oGS+/3bxwGE06e/4x4wbuK7TNmTMLPJNmEOkzrLGBMwAnWMxm3PukR9BnB7k20IzOpGjl90AltwFQ==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0

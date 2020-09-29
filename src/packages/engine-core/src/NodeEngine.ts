@@ -957,6 +957,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       )
     }
 
+
     this.currentRequestPromise = this.undici.request(
       stringifyQuery(query),
       headers,
@@ -1103,7 +1104,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       (error.code === 'UND_ERR_SOCKET' &&
         error.message.toLowerCase().includes('closed')) ||
       error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed')
+      error.message.toLowerCase().includes('other side closed') || (
+        error.code === 'UND_ERR_CLOSED'
+      )
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(`The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
