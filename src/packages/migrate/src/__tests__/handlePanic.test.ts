@@ -1,4 +1,4 @@
-import { ErrorArea, RustPanic } from '@prisma/sdk'
+import { ErrorArea, RustPanic, isCi } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
@@ -10,7 +10,6 @@ import { promisify } from 'util'
 import { Migrate } from '../Migrate'
 import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
-import isCi from 'is-ci'
 
 const keys = {
   up: '\x1B\x5B\x41',
@@ -150,7 +149,7 @@ describe('handlePanic', () => {
         error = err
       }
     }
-    if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
+    if (isCi) {
       expect(error).toMatchInlineSnapshot(`
         Error in migration engine.
         Reason: [/rustc/04488afe34512aa4c33566eb16d8c912a3ae04f9/src/libstd/macros.rs:13:23] This is the debugPanic artificial panic

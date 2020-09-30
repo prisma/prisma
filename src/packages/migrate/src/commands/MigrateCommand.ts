@@ -8,11 +8,10 @@ import {
   unknownCommand,
   getSchemaPath,
   getCommandWithExecutor,
+  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
-import isCi from 'is-ci'
-import fs from 'fs'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
@@ -231,7 +230,7 @@ export class MigrateCommand implements Command {
       }
       console.info() // empty line
 
-      if (this.isInteractiveTerminal()) {
+      if (!isCi) {
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
@@ -278,14 +277,10 @@ export class MigrateCommand implements Command {
     )}\n\n`
   }
 
-  private isInteractiveTerminal() {
-    return process.stdout.isTTY && !isCi && !process.env.GITHUB_ACTIONS
-  }
-
   private async getMigrationName(name?: string): Promise<string> {
     if (name) {
       return name
-    } else if (!this.isInteractiveTerminal()) {
+    } else if (isCi) {
       return ''
     }
 

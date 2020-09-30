@@ -1,6 +1,5 @@
 import chalk from 'chalk'
-import { RustPanic, sendPanic, link } from '@prisma/sdk'
-import isCi from 'is-ci'
+import { RustPanic, sendPanic, link, isCi } from '@prisma/sdk'
 import prompt from 'prompts'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 
@@ -10,7 +9,7 @@ export async function handlePanic(
   binaryVersion: string,
 ): Promise<boolean> {
   return new Promise(async function (resolve, reject) {
-    if (!process.stdout.isTTY || isCi || process.env.GITHUB_ACTIONS) {
+    if (isCi) {
       return reject(error)
     }
 

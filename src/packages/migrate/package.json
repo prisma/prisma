@@ -75,7 +75,6 @@
     "ink": "2.7.1",
     "ink-link": "1.1.0",
     "ink-spinner": "3.1.0",
-    "is-ci": "^2.0.0",
     "log-update": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
     "open": "^7.0.3",
