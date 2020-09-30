@@ -1,0 +1,430 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`introspection: create with data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`introspection: create with data: warnings 1`] = `Array []`;
+
+exports[`introspection: create with empty data and SQL default: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @default("alice")
+}
+
+`;
+
+exports[`introspection: create with empty data and SQL default: warnings 1`] = `Array []`;
+
+exports[`introspection: delete where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`introspection: delete where composite unique: warnings 1`] = `Array []`;
+
+exports[`introspection: findMany - email text: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String?
+}
+
+`;
+
+exports[`introspection: findMany - email text: warnings 1`] = `Array []`;
+
+exports[`introspection: findMany - email varchar(50) not null unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`introspection: findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
+
+exports[`introspection: findMany where contains and boolean: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  id        Int     @default(autoincrement()) @id
+  title     String
+  published Boolean @default(false)
+}
+
+`;
+
+exports[`introspection: findMany where contains and boolean: warnings 1`] = `Array []`;
+
+exports[`introspection: findMany where unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`introspection: findMany where unique: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where PK with include: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  user_id Int
+  title   String
+  users   users  @relation(fields: [user_id], references: [id])
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  posts posts[]
+}
+
+`;
+
+exports[`introspection: findOne where PK with include: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where PK with select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id    Int    @id
+  name  String @unique
+  email String @unique
+}
+
+`;
+
+exports[`introspection: findOne where PK with select: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where PK: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @id
+  name String @unique
+}
+
+`;
+
+exports[`introspection: findOne where PK: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`introspection: findOne where composite unique: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where unique with foreign key and unpack: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model posts {
+  id      Int    @default(autoincrement()) @id
+  user_id Int
+  title   String
+  users   users  @relation(fields: [user_id], references: [id])
+}
+
+model users {
+  id    Int     @default(autoincrement()) @id
+  email String  @unique
+  posts posts[]
+}
+
+`;
+
+exports[`introspection: findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
+
+exports[`introspection: findOne where unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String @unique
+}
+
+`;
+
+exports[`introspection: findOne where unique: warnings 1`] = `Array []`;
+
+exports[`introspection: update where composite unique: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model users {
+  id    Int    @default(autoincrement()) @id
+  email String
+  name  String
+
+  @@unique([email, name], name: "users_email_name_key")
+}
+
+`;
+
+exports[`introspection: update where composite unique: warnings 1`] = `Array []`;
+
+exports[`introspection: update where with boolean data and select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id     Int     @default(autoincrement()) @id
+  name   String  @unique
+  active Boolean @default(true)
+}
+
+`;
+
+exports[`introspection: update where with boolean data and select: warnings 1`] = `Array []`;
+
+exports[`introspection: update where with boolean data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id     Int     @default(autoincrement()) @id
+  name   String  @unique
+  active Boolean @default(true)
+}
+
+`;
+
+exports[`introspection: update where with boolean data: warnings 1`] = `Array []`;
+
+exports[`introspection: update where with numeric data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`introspection: update where with numeric data: warnings 1`] = `Array []`;
+
+exports[`introspection: update where with string data: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String @unique
+}
+
+`;
+
+exports[`introspection: update where with string data: warnings 1`] = `Array []`;
+
+exports[`introspection: updateMany where with string data - check findMany: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String
+}
+
+`;
+
+exports[`introspection: updateMany where with string data - check findMany: warnings 1`] = `Array []`;
+
+exports[`introspection: updateMany where with string data - check returned count: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource postgresql {
+  provider = "postgresql"
+  url = "***"
+}
+
+model teams {
+  id   Int    @default(autoincrement()) @id
+  name String
+}
+
+`;
+
+exports[`introspection: updateMany where with string data - check returned count: warnings 1`] = `Array []`;

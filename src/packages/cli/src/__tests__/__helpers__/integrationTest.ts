@@ -5,9 +5,15 @@ import fs from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import pkgup from 'pkg-up'
+import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
 process.setMaxListeners(100)
+
+process.env.SKIP_GENERATE = 'true'
+
+const pkgDir = pkgup.sync() || __dirname
+const engine = new IntrospectionEngine()
 
 /**
  * A potentially async value
@@ -64,6 +70,10 @@ export type Context = {
    * The name of the current test being run, slugified.
    */
   scenarioSlug: string
+  /**
+   * The ID for the current scenario test being run.
+   */
+  id: string
 }
 
 /**
@@ -151,10 +161,6 @@ export type Input<Client = any> = {
   settings?: Settings
 }
 
-process.env.SKIP_GENERATE = 'true'
-const pkgDir = pkgup.sync() || __dirname
-const engine = new IntrospectionEngine()
-
 type ScenarioState<Client = any> = {
   scenario: Scenario
   ctx: Context
@@ -167,7 +173,7 @@ type ScenarioState<Client = any> = {
 /**
  * Run introspection integration test
  */
-export function introspection<Client>(input: Input<Client>) {
+export function introspectionIntegrationTest<Client>(input: Input<Client>) {
   const kind = 'introspection'
 
   const states: Record<string, ScenarioState<Client>> = {}
@@ -211,7 +217,7 @@ export function introspection<Client>(input: Input<Client>) {
 /**
  * Run a runtime integration tests
  */
-export function runtime<Client>(input: Input<Client>) {
+export function runtimeIntegrationTest<Client>(input: Input<Client>) {
   const kind = 'runtime'
 
   const states: Record<string, ScenarioState<Client>> = {}
@@ -239,9 +245,7 @@ export function runtime<Client>(input: Input<Client>) {
       )
       states[scenario.name] = state
 
-      console.log(1)
       await generate(prismaSchemaPath, engineVersion)
-      console.log(1)
 
       const prismaClientPath = ctx.fs.path('index.js')
       const prismaClientDeclarationPath = ctx.fs.path('index.d.ts')
@@ -283,16 +287,19 @@ async function afterAllScenarios(
 }
 
 function beforeAllScenarios(kind: string, input: Input) {
-  // Remove old stuff if it is still around for some reason
   fs.remove(getScenarioDir(input.database.name, kind, ''))
 }
 
+/**
+ * Setup the scenario test context and state and Prisma datamodel.
+ */
 async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   const state: ScenarioState = {} as any
   const ctx: Context = {} as any
   ctx.fs = fs.cwd(getScenarioDir(input.database.name, kind, scenario.name))
   ctx.scenarioName = `${kind}: ${scenario.name}`
   ctx.scenarioSlug = slugify(ctx.scenarioName, { separator: '_' })
+  ctx.id = `${ctx.scenarioSlug.slice(0, 7)}_${hash(ctx.scenarioSlug)}`
   state.input = input
   state.ctx = ctx
   state.scenario = scenario
@@ -390,7 +397,8 @@ function getScenarioDir(
     Path.dirname(pkgDir),
     'src',
     '__tests__',
-    `tmp-integration-test-${databaseName}-${kind}`,
+    'tmp',
+    `integration-test-${databaseName}-${kind}`,
     scenarioName,
   )
 }

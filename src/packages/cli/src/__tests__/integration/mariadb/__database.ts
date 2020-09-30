@@ -23,15 +23,15 @@ export const database = {
   close: (db) => db.end(),
   up: (ctx) => {
     return `
-      DROP DATABASE IF EXISTS ${ctx.scenarioSlug};
-      CREATE DATABASE ${ctx.scenarioSlug};
-      USE ${ctx.scenarioSlug};
+      DROP DATABASE IF EXISTS ${ctx.id};
+      CREATE DATABASE ${ctx.id};
+      USE ${ctx.id};
     `
   },
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const connectionString = `mysql://root:root@localhost:4306/${ctx.scenarioSlug}`
+  const connectionString = `mysql://root:root@localhost:4306/${ctx.id}`
   const credentials = uriToCredentials(connectionString)
 
   return {

@@ -59,6 +59,7 @@ importers:
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
+      '@types/string-hash': 1.1.1
       '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
@@ -96,6 +97,7 @@ importers:
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
       sqlite3: 4.2.0
+      string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.7.1
@@ -122,6 +124,7 @@ importers:
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
+      '@types/string-hash': ^1.1.1
       '@types/verror': ^1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
@@ -159,6 +162,7 @@ importers:
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
       sqlite3: 4.2.0
+      string-hash: ^1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.7.1
@@ -1907,6 +1911,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-l42BggppR6zLmpfU6fq9HEa2oGPEI8yrSPL3GITjfRInppYFahObbIQOQK3UGxEnyQpltZLaPe75046NOZQikw==
+  /@types/string-hash/1.1.1:
+    dev: true
+    resolution:
+      integrity: sha512-ijt3zdHi2DmZxQpQTmozXszzDo78V4R3EdvX0jFMfnMH2ZzQSmCbaWOMPGXFUYSzSIdStv78HDjg32m5dxc+tA==
   /@types/tar/4.0.3:
     dependencies:
       '@types/minipass': 2.2.0
@@ -7800,6 +7808,10 @@ packages:
       node: '>=0.6.19'
     resolution:
       integrity: sha512-a1uQGz7IyVy9YwhqjZIZu1c8JO8dNIe20xBmSS6qu9kv++k3JGzCVmprbNN5Kn+BgzD5E7YYwg1CcjuJMRNsvg==
+  /string-hash/1.1.3:
+    dev: true
+    resolution:
+      integrity: sha1-6Kr8CsGFW0Zmkp7X3RJ1311sgRs=
   /string-length/3.1.0:
     dependencies:
       astral-regex: 1.0.0

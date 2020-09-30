@@ -26,3 +26,4 @@ test
 /prisma-client
 write-test
 prisma-cli*.tgz
+__tests__/tmp

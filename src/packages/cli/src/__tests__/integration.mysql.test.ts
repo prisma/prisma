@@ -1,14 +1,14 @@
 import { uriToCredentials } from '@prisma/sdk'
 import assert from 'assert'
 import mariadb from 'mariadb'
-import { runtime } from './__helpers__/integrationTest'
+import { runtimeIntegrationTest } from './__helpers__/integrationTest'
 
 const connectionString =
   process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
 
 const credentials = uriToCredentials(connectionString)
 
-runtime<mariadb.Connection>({
+runtimeIntegrationTest<mariadb.Connection>({
   database: {
     name: 'mysql',
     datasource: {
