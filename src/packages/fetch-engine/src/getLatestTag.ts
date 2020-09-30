@@ -17,6 +17,10 @@ export async function getLatestTag(): Promise<any> {
   }
 
   let branch = await getBranch()
+  if (branch !== 'master' && (!isPatchBranch(branch) || !branch.startsWith('integration/'))) {
+    branch = 'master'
+  }
+
   // remove the "integration/" part
   branch = branch.replace(/^integration\//, '')
 
@@ -226,7 +230,6 @@ async function getCommits(branch: string): Promise<string[] | null> {
   } as any).then((res) => res.json())
 
   if (!Array.isArray(result)) {
-    console.error(branch, result)
     return null
   }
 
