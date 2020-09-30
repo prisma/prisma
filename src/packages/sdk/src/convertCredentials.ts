@@ -131,6 +131,8 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
       return 'mongodb:'
     case 'sqlite':
       return 'sqlite:'
+    case 'sqlserver':
+      return 'sqlserver:'
   }
 }
 
@@ -146,6 +148,9 @@ function protocolToDatabaseType(protocol: string): ConnectorType {
     case 'file:':
     case 'sqlite:':
       return 'sqlite'
+    case 'sqlserver:':
+    case 'jdbc:sqlserver:':
+      return 'sqlserver'
   }
 
   throw new Error(`Unknown database type ${protocol}`)
@@ -161,6 +166,8 @@ export function databaseTypeToConnectorType(
       return 'mysql'
     case 'sqlite':
       return 'sqlite'
+    case 'sqlserver':
+      return 'sqlserver'
   }
 
   throw new Error(`Mongo is not yet supported`)

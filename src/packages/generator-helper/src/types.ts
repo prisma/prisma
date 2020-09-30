@@ -45,7 +45,7 @@ export interface EnvValue {
   value: string
 }
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
+export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql' | 'sqlserver'
 
 export interface DataSource {
   name: string
