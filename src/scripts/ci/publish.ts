@@ -613,6 +613,7 @@ async function publish() {
 
     let prisma2Version
     let tag: undefined | string
+    let tagForE2ECheck: undefined | string
     const patchBranch = getPatchBranch()
     const branch = await getPrismaBranch()
     console.log({ patchBranch })
@@ -620,12 +621,15 @@ async function publish() {
       prisma2Version = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     } else if (patchBranch) {
-      // TODO Check if PATCH_BRANCH work!
       prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
+      if (args['--release']) {
+        tagForE2ECheck = 'patch-dev' //?
+      }
     } else if (args['--release']) {
       prisma2Version = args['--release']
       tag = 'latest'
+      tagForE2ECheck = 'dev'
     } else {
       prisma2Version = await getNewDevVersion(packages)
       tag = 'dev'
@@ -671,7 +675,10 @@ async function publish() {
 
     if (args['--publish'] || dryRun) {
       if (args['--release']) {
-        const passing = await areEndToEndTestsPassing(tag)
+        if (!tagForE2ECheck) {
+          throw new Error(`tagForE2ECheck missing`)
+        }
+        const passing = await areEndToEndTestsPassing(tagForE2ECheck)
         if (!passing) {
           throw new Error(`We can't release, as the e2e tests are not passing for the ${tag} npm tag!
 Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
