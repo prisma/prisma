@@ -91,7 +91,7 @@ async function getFirstFinishedCommit(commits: string[]): Promise<string> {
     if (!hasMissing) {
       return commit
     } else {
-      const missing = urls.filter((_, i) => exist[i])
+      const missing = urls.filter((_, i) => !exist[i])
       // if all are missing, we don't have to talk about it
       // it might just be a broken commit or just still building
       if (missing.length !== urls.length) {
@@ -106,11 +106,14 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
     const urls = getAllUrls(commit)
     let exist = await pMap(urls, urlExists, { concurrency: 10 })
     let hasMissing = exist.some(e => !e)
+    let missing = urls.filter((_, i) => !exist[i])
+    if (missing.length === urls.length) {
+      continue
+    }
 
     if (!hasMissing) {
       return commit
     } else {
-      let missing = urls.filter((_, i) => exist[i])
       // if all are missing, we don't have to talk about it
       // it might just be a broken commit or just still building
       if (missing.length !== urls.length) {
