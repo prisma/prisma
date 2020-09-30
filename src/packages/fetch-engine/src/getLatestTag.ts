@@ -128,7 +128,7 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
           }
           console.log(`The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 10 seconds`)
           exist = await pMap(urls, urlExists, { concurrency: 10 })
-          missing = urls.filter((_, i) => exist[i])
+          missing = urls.filter((_, i) => !exist[i])
           hasMissing = exist.some(e => !e)
           if (!hasMissing) {
             return commit
