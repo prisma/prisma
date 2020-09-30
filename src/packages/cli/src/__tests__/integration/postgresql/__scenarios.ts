@@ -1382,13 +1382,14 @@ export const scenarios = [
   {
     name: 'findMany where - case insensitive field',
     up: `
-        create extension citext;
-        create table users (
-          id serial primary key not null,
-          email citext not null unique
-        );
-        insert into users ("email") values ('max@prisma.io');
-      `,
+      drop extension if exists citext cascade;
+      create extension citext;
+      create table users (
+        id serial primary key not null,
+        email citext not null unique
+      );
+      insert into users ("email") values ('max@prisma.io');
+    `,
     do: async (client) => {
       return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
     },

@@ -8,7 +8,7 @@ import pkgup from 'pkg-up'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
-process.setMaxListeners(100)
+process.setMaxListeners(200)
 
 process.env.SKIP_GENERATE = 'true'
 
