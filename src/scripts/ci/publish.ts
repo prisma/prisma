@@ -616,7 +616,6 @@ async function publish() {
     let tagForE2ECheck: undefined | string
     const patchBranch = getPatchBranch()
     const branch = await getPrismaBranch()
-    console.log({ patchBranch })
     if (branch.startsWith('integration/')) {
       prisma2Version = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
@@ -634,6 +633,8 @@ async function publish() {
       prisma2Version = await getNewDevVersion(packages)
       tag = 'dev'
     }
+
+    console.log({ patchBranch, tag, tagForE2ECheck, prisma2Version })
 
 
     const packagesWithVersions = await getNewPackageVersions(
@@ -1115,12 +1116,14 @@ async function getBranch(dir: string) {
 }
 
 async function getPrismaBranch(): Promise<string | undefined> {
+  if (process.env.BUILDKITE_BRANCH) {
+    return process.env.BUILDKITE_BRANCH
+  }
   try {
     return await runResult('.', 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
   } catch (e) {
 
   }
-  return process.env.BUILDKITE_BRANCH
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
