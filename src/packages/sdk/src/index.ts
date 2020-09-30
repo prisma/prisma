@@ -38,6 +38,7 @@ export { maskSchema } from './utils/maskSchema'
 export { drawBox } from './drawBox'
 export { isCurrentBinInstalledGlobally } from './isCurrentBinInstalledGlobally'
 export { getCommandWithExecutor } from './getCommandWithExecutor'
+export { isCi } from './isCi'
 
 export { HelpError, unknownCommand } from './cli/Help'
 export {
