@@ -2,25 +2,24 @@ import {
   arg,
   Command,
   format,
-  getCommandWithExecutor,
   getSchemaPath,
   HelpError,
   isError,
-  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import prompt from 'prompts'
 import { Migrate } from '../Migrate'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
 
-export class MigrateReset implements Command {
-  public static new(): MigrateReset {
-    return new MigrateReset()
+export class MigrateUpUp implements Command {
+  public static new(): MigrateUpUp {
+    return new MigrateUpUp()
   }
 
+  // static help template
   private static help = format(`
-    Reset your database and reapply migrations
+    Migrate your database up to a specific state.
 
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in an experimental state.",
@@ -31,25 +30,34 @@ export class MigrateReset implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate reset --experimental
+      ${chalk.dim('$')} prisma migrate up --experimental
+
 
     ${chalk.bold('Options')}
 
-      -h, --help       Displays this help message
-      -f, --force      Skip the confirmation prompt
+      -h, --help            Displays this help message
+      --dev                 Checks thedatabase state and interactively ask to reset if needed before applying migrations.
+      --prod, --production  Applies unapplied migrations only.
 
   `)
 
+  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--force': Boolean,
-      '-f': '--force',
-      '--experimental': Boolean,
-      '--schema': String,
-      '--telemetry-information': String,
-    })
+    // parse the arguments according to the spec
+    const args = arg(
+      argv,
+      {
+        '--help': Boolean,
+        '-h': '--help',
+        '--experimental': Boolean,
+        '--dev': Boolean,
+        '--production': Boolean,
+        '-prod': '--production',
+        '--schema': String,
+        '--telemetry-information': String,
+      },
+      false,
+    )
 
     if (isError(args)) {
       return this.help(args.message)
@@ -83,42 +91,23 @@ export class MigrateReset implements Command {
       ),
     )
 
-    if (!args['--force']) {
-      if (isCi) {
-        throw Error(
-          `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma reset --force --experimental'),
-          )}`,
-        )
-      }
-
-      const confirmation = await prompt({
-        type: 'confirm',
-        name: 'value',
-        message: `Are you sure you want to reset your database? ${chalk.red(
-          'All data will be lost',
-        )}.`,
-      })
-
-      if (!confirmation.value) {
-        console.info('Reset cancelled.')
-        process.exit(0)
-      }
-    }
-
     const migrate = new Migrate(schemaPath)
-    await migrate.reset()
-    await migrate.stop()
 
-    return `Reset successful.`
+    await ensureDatabaseExists('apply', true, schemaPath)
+
+    const result = await migrate.upup()
+    migrate.stop()
+
+    return ``
   }
 
+  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateReset.help}`,
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateUpUp.help}`,
       )
     }
-    return MigrateReset.help
+    return MigrateUpUp.help
   }
 }

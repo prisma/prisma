@@ -24,6 +24,7 @@ import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { MigrateUp } from './commands/MigrateUp'
+import { MigrateUpUp } from './commands/MigrateUpUp'
 import { handlePanic } from './utils/handlePanic'
 import { ProviderAliases } from '@prisma/sdk'
 
@@ -51,6 +52,7 @@ async function main(): Promise<number> {
     reset: MigrateReset.new(),
     save: MigrateSave.new(),
     up: MigrateUp.new(),
+    upup: MigrateUpUp.new(),
     down: MigrateDown.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
   })

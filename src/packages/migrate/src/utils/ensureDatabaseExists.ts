@@ -114,7 +114,7 @@ export async function askToCreateDb(
   }
 }
 
-function getDbLocation(credentials: DatabaseCredentials): string {
+export function getDbLocation(credentials: DatabaseCredentials): string {
   if (credentials.type === 'sqlite') {
     return credentials.uri!
   }
@@ -122,7 +122,7 @@ function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
-function getDbinfoFromCredentials(
+export function getDbinfoFromCredentials(
   credentials,
 ): {
   dbName: string

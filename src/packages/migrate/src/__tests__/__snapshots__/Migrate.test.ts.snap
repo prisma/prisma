@@ -265,7 +265,7 @@ migrations/
     └─ schema.prisma
     └─ README.md
 
-Run yarn prisma migrate up --experimental to apply the migration
+Run prisma migrate up --experimental to apply the migration
 
 `;
 

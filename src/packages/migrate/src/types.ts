@@ -47,15 +47,17 @@ export interface UnexecutableMigration {
   description: string
 }
 
-export type HistoryDiagnostic =
-  | { diagnostic: 'MigrationsEdited'; editedMigrationNames: string[] }
-  | { diagnostic: 'MigrationsFailed'; failedMigrationName: string } // idea: rollforward: string | null, rollback: string | null
-  // DatabaseIsBehind, MigrationsDirectoryIsBehind, HistoriesDiverge are mutually exclusive
-  | HistoryDiagnostic_DatabaseIsBehind_or_MigrationsDirectoryIsBehind_or_HistoriesDiverge
-  // DriftDetected, MigrationFailedToApply are mutually exclusive
-  | HistoryDiagnostic_DriftDetected_or_MigrationFailedToApply
+export type DriftDiagnostic =
+  /// The current database schema does not match the schema that would be expected from applying the migration history.
+  | { diagnostic: 'DriftDetected' }
+  // A migration failed to cleanly apply to a temporary database.
+  | {
+      diagnostic: 'MigrationFailedToApply'
+      migrationName: string
+      error: string
+    }
 
-type HistoryDiagnostic_DatabaseIsBehind_or_MigrationsDirectoryIsBehind_or_HistoriesDiverge =
+export type HistoryDiagnostic =
   | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
   | {
       diagnostic: 'MigrationsDirectoryIsBehind'
@@ -66,15 +68,6 @@ type HistoryDiagnostic_DatabaseIsBehind_or_MigrationsDirectoryIsBehind_or_Histor
       lastCommonMigrationName: string
       unpersistedMigrationNames: string[]
       unappliedMigrationNames: string[]
-    }
-
-type HistoryDiagnostic_DriftDetected_or_MigrationFailedToApply =
-  | { diagnostic: 'DriftDetected' } // idea: fixupScript: string | null
-  // A migration failed to cleanly apply to a temporary database.
-  | {
-      diagnostic: 'MigrationFailedToApply'
-      migrationName: string
-      error: string
     }
 
 export interface MigrationFeedback {
@@ -150,8 +143,16 @@ export namespace EngineArgs {
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
   export interface DiagnoseMigrationHistoryOutput {
-    historyProblems: HistoryDiagnostic[]
+    /// Null means no drift was detected.
+    drift: DriftDiagnostic | null
+    /// Null means the database and the migrations directory are in sync and up to date.
+    history: HistoryDiagnostic | null
+    /// The name of the migrations that failed to apply completely to the database.
+    failedMigrationNames: string[]
+    /// The names of the migrations that were edited after they were applied to the database.
+    editedMigrationNames: string[]
   }
+
   export interface PlanMigrationOutput {
     /// The migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
     migrationSteps: string[]

@@ -189,13 +189,7 @@ export class MigrateCommand implements Command {
       }
     }
 
-    const historyDiagnostics = await migrate.checkHistory()
-
-    if (historyDiagnostics) {
-      // if reset needed
-      const reset = await migrate.reset()
-      console.debug({ reset })
-    }
+    await migrate.checkHistoryAndReset({ force: args['--force'] })
 
     const planMigrationResult = await migrate.plan()
     console.debug({ planMigrationResult })
@@ -230,26 +224,25 @@ export class MigrateCommand implements Command {
       }
       console.info() // empty line
 
-      if (!isCi) {
-        const confirmation = await prompt({
-          type: 'confirm',
-          name: 'value',
-          message: `Are you sure you want create and apply this migration? ${chalk.red(
-            'Some data will be lost',
-          )}.`,
-        })
-
-        if (!confirmation.value) {
-          console.info('Migration cancelled.')
-          process.exit(0)
-        }
-      } else {
-        if (!args['--force']) {
-          console.info(
-            `Migration cancelled. (Non interactive environnment detected)
-            Use the --force flag ignore the dataloss warnings.`,
+      if (!args['--force']) {
+        if (isCi) {
+          throw Error(
+            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
+              getCommandWithExecutor('prisma migrate --force --experimental'),
+            )}`,
           )
-          process.exit(0)
+        } else {
+          const confirmation = await prompt({
+            type: 'confirm',
+            name: 'value',
+            message: `Are you sure you want create and apply this migration? ${chalk.red(
+              'Some data will be lost',
+            )}.`,
+          })
+
+          if (!confirmation.value) {
+            return `Migration cancelled.`
+          }
         }
       }
     }

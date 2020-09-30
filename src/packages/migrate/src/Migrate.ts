@@ -7,6 +7,9 @@ import {
   getCommandWithExecutor,
   highlightDatamodel,
   maskSchema,
+  uriToCredentials,
+  getConfig,
+  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -53,6 +56,10 @@ import {
 } from './utils/printDatabaseSteps'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
+import {
+  getDbinfoFromCredentials,
+  getDbLocation,
+} from './utils/ensureDatabaseExists'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
@@ -333,6 +340,15 @@ export class Migrate {
     await this.engine.reset()
   }
 
+  public async upup(): Promise<void> {
+    return
+
+    // not implemented yet
+    // await this.engine.initialize({
+    //   migrationsDirectoryPath: this.migrationsDirectoryPath,
+    // })
+  }
+
   public async draft({ name = '' }: MigrateOptions = {}): Promise<
     string | undefined
   > {
@@ -353,60 +369,112 @@ export class Migrate {
     return
   }
 
-  public async checkHistory(): Promise<string[] | undefined> {
-    const { historyProblems } = await this.engine.diagnoseMigrationHistory({
+  public async checkHistoryAndReset({
+    force = false,
+  }): Promise<string[] | undefined> {
+    const {
+      drift,
+      history,
+      failedMigrationNames,
+      editedMigrationNames,
+    } = await this.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
 
-    // if (historyProblems.includes) {
-    //       MigrationsEdited
-    // MigrationsFailed
+    let isResetNeeded = false
 
-    // DatabaseIsBehind
-    // MigrationsDirectoryIsBehind
-
-    // HistoriesDiverge
-    // DriftDetected
-    // MigrationFailedToApply
-    // }
-
-    // soon
-    // interface DiagnoseMigrationHistoryOutput {
-    //   drift: { tag: 'DriftDetected' } | { tag: 'MigrationFailedToApply', error: string, migrationName: string },
-    //   history: { tag: 'DatabaseIsBehind', ... } | { tag: 'HistoriesDiverge', ... } | ...
-    //   failedMigrationNames: string[],
-    //   editedMigrationNames: string[],
-    // }
-
-    //   export type HistoryDiagnostic =
-    // | { diagnostic: 'MigrationsEdited'; editedMigrationNames: string[] }
-    // | { diagnostic: 'MigrationsFailed'; failedMigrationName: string } // idea: rollforward: string | null, rollback: string | null
-    // | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
-    // | {
-    //     diagnostic: 'MigrationsDirectoryIsBehind'
-    //     unpersistedMigrationNames: string[]
-    //   }
-    // | {
-    //     diagnostic: 'HistoriesDiverge'
-    //     lastCommonMigrationName: string
-    //     unpersistedMigrationNames: string[]
-    //     unappliedMigrationNames: string[]
-    //   }
-    // | { diagnostic: 'DriftDetected' } // idea: fixupScript: string | null
-    // // A migration failed to cleanly apply to a temporary database.
-    // | {
-    //     diagnostic: 'MigrationFailedToApply'
-    //     migrationName: string
-    //     error: string
-    //   }
-
-    if (historyProblems.length > 0) {
-      // ask user if reset or abort
-      console.error({ historyProblems })
-      // throw new Error('history problem')
+    if (failedMigrationNames.length > 0) {
+      console.debug({ failedMigrationNames })
+      // migration(s), usually one, that failed to apply the the database (which may have data)
+      console.info(
+        `The following migrations failed to apply:\n- ${failedMigrationNames.join(
+          '\n- ',
+        )}\n`,
+      )
+      isResetNeeded = true
     }
 
-    // reset succes?
+    if (editedMigrationNames.length > 0) {
+      // migration(s) that were edited since they were applied to the db.
+      console.debug({ editedMigrationNames })
+      console.info(
+        `The following migrations where edited after they were applied:\n- ${editedMigrationNames.join(
+          '\n- ',
+        )}\n`,
+      )
+      isResetNeeded = true
+    }
+
+    if (drift) {
+      console.debug({ drift })
+      if (drift.diagnostic === 'MigrationFailedToApply') {
+        // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
+        throw new Error(
+          `The migration "${drift.migrationName}" failed to apply:\n${drift.error}`,
+        )
+      } else if (drift.diagnostic === 'DriftDetected') {
+        // we could try to fix the drift in the future
+        isResetNeeded = true
+      }
+    }
+
+    if (history) {
+      console.debug({ history })
+      if (history.diagnostic === 'DatabaseIsBehind') {
+        return this.applyOnly()
+      } else if (history.diagnostic === 'MigrationsDirectoryIsBehind') {
+        isResetNeeded = true
+        console.debug({
+          unpersistedMigrationNames: history.unpersistedMigrationNames,
+        })
+      } else if (history.diagnostic === 'HistoriesDiverge') {
+        isResetNeeded = true
+        console.debug({
+          lastCommonMigrationName: history.lastCommonMigrationName,
+        })
+        console.debug({
+          unappliedMigrationNames: history.unappliedMigrationNames,
+        })
+        console.debug({
+          unpersistedMigrationNames: history.unpersistedMigrationNames,
+        })
+      }
+    }
+
+    if (isResetNeeded) {
+      if (!force && isCi) {
+        throw Error(
+          `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
+            getCommandWithExecutor('prisma reset --force --experimental'),
+          )}`,
+        )
+      }
+      await this.confirmReset()
+      await this.reset()
+    }
+  }
+
+  public async confirmReset(): Promise<void> {
+    const datamodel = this.getDatamodel()
+    const config = await getConfig({ datamodel })
+    const activeDatasource = config.datasources[0]
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+
+    const confirmation = await prompt({
+      type: 'confirm',
+      name: 'value',
+      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${getDbLocation(
+        credentials,
+      )}". ${chalk.red('All data will be lost')}.\nDo you want to continue?`,
+    })
+
+    if (!confirmation.value) {
+      await exit()
+    }
+  }
+
+  public async applyOnly(): Promise<string[]> {
     const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })

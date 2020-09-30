@@ -83,7 +83,10 @@ export class MigrateEngine {
     return this.runCommand(this.getRPCPayload('applyMigrations', args))
   }
   public reset(): Promise<void> {
-    return this.runCommand(this.getRPCPayload('reset', null))
+    return this.runCommand(this.getRPCPayload('reset', undefined))
+  }
+  public getDatabaseVersion(): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
 
   public schemaPush(
