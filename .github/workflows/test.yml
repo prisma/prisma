@@ -36,7 +36,7 @@ jobs:
   # CLI-INTEGRATION
   #
   cli-integration:
-    timeout-minutes: 15
+    timeout-minutes: 25
     runs-on: ubuntu-latest
 
     strategy:
