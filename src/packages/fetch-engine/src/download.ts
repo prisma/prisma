@@ -21,6 +21,7 @@ import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
 import { flatMap } from './flatMap'
 import { getLatestTag } from './getLatestTag'
+import { getHash } from './getHash'
 
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
@@ -77,8 +78,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (['arm', 'nixos'].includes(os.distro)) {
     console.error(
-      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
-        os.distro
+      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${os.distro
       }.`,
     )
   } else if (
@@ -278,21 +278,14 @@ async function binaryNeedsToBeDownloaded(
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')
-      // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
-      const sha256Cache = await hasha.fromFileSync(cachedFile, {
-        algorithm: 'sha256',
-      })
+      const sha256Cache = await getHash(cachedFile)
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           await copy(cachedFile, job.targetFilePath)
         }
-        // TODO: Use `fromFile` as soon as https://github.com/nodejs/node/issues/33263 is fixed
-        const targetSha256 = await hasha.fromFileSync(job.targetFilePath, {
-          algorithm: 'sha256',
-        })
+        const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
           await copy(cachedFile, job.targetFilePath)
-        } else {
         }
         return false
       } else {
