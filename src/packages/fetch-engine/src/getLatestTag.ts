@@ -220,10 +220,14 @@ async function getCommits(branch: string): Promise<string[] | null> {
   const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
+    headers: {
+      Authorization: process.env.GITHUB_TOKEN ? `token ${process.env.GITHUB_TOKEN}` : undefined
+    }
   } as any).then((res) => res.json())
 
   if (!Array.isArray(result)) {
-    return null
+    console.error(result)
+    throw new Error(`Got invalid result from GitHub api`)
   }
 
   const commits = result.map((r) => r.sha)
