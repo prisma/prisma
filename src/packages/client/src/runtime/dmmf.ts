@@ -11,7 +11,7 @@ export class DMMFClass implements DMMF.Document {
   public outputTypeMap: Dictionary<DMMF.OutputType> = {}
   public inputTypes: DMMF.InputType[]
   public inputTypeMap: Dictionary<DMMF.InputType>
-  public enumMap: Dictionary<DMMF.Enum>
+  public enumMap: Dictionary<DMMF.SchemaEnum>
   public modelMap: Dictionary<DMMF.Model>
   public mappingsMap: Dictionary<DMMF.Mapping>
   public rootFieldMap: Dictionary<DMMF.SchemaField>
@@ -135,7 +135,7 @@ export class DMMFClass implements DMMF.Document {
   protected getOutputTypes(): DMMF.OutputType[] {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
   }
-  protected getEnumMap(): Dictionary<DMMF.Enum> {
+  protected getEnumMap(): Dictionary<DMMF.SchemaEnum> {
     return keyBy(this.schema.enums, 'name')
   }
   protected getModelMap(): Dictionary<DMMF.Model> {
