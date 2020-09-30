@@ -9,6 +9,7 @@ import {
   join,
   empty,
   raw,
+  Sql
 } from '@prisma/client'
 
 // tslint:disable
@@ -35,7 +36,7 @@ async function main() {
 
   prismaVersion.client
 
-  sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([1, 2, 3])} ${empty} `
+  const x: Sql = sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([1, 2, 3])} ${empty} `
 
   const result1 = await prisma.user.findMany({
     where: {

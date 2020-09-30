@@ -4,6 +4,8 @@ import { getDownloadUrl } from './util'
 import { platforms } from '@prisma/get-platform'
 import PQueue from 'p-queue'
 import execa from 'execa'
+import pMap from 'p-map'
+import chalk from 'chalk'
 
 export async function getLatestTag(): Promise<any> {
   if (process.env.RELEASE_PROMOTE_DEV) {
@@ -15,6 +17,10 @@ export async function getLatestTag(): Promise<any> {
   }
 
   let branch = await getBranch()
+  if (branch !== 'master' && (!isPatchBranch(branch) || !branch.startsWith('integration/'))) {
+    branch = 'master'
+  }
+
   // remove the "integration/" part
   branch = branch.replace(/^integration\//, '')
 
@@ -30,9 +36,15 @@ export async function getLatestTag(): Promise<any> {
     commits = await getCommits(branch)
   }
 
-  const commit = await getFirstExistingCommit(commits)
-  const queue = new PQueue({ concurrency: 30 })
-  const promises = []
+  if (process.env.CI) {
+    return getCommitAndWaitIfNotDone(commits)
+  }
+
+  return getFirstFinishedCommit(commits)
+}
+
+function getAllUrls(commit: string): string[] {
+  const urls = []
   const excludedPlatforms = [
     'freebsd',
     'arm',
@@ -66,41 +78,64 @@ export async function getLatestTag(): Promise<any> {
           engine,
           extension,
         )
-        promises.push(
-          queue.add(async () => ({
-            downloadUrl,
-            exists: await urlExists(downloadUrl),
-          })),
-        )
+        urls.push(downloadUrl)
       }
     }
   }
 
-  // wait for all queue items to finish
-  const exist: Array<{
-    downloadUrl: string
-    exists: boolean
-  }> = await Promise.all(promises)
-
-  const missing = exist.filter((e) => !e.exists)
-  if (missing.length > 0) {
-    throw new Error(
-      `Could not get new tag, as some assets don't exist: ${missing
-        .map((m) => m.downloadUrl)
-        .join(', ')}`,
-    )
-  }
-
-  return commit
+  return urls
 }
 
-async function getFirstExistingCommit(commits: string[]): Promise<string> {
+async function getFirstFinishedCommit(commits: string[]): Promise<string> {
   for (const commit of commits) {
-    const exists = await urlExists(
-      getDownloadUrl('all_commits', commit, 'darwin', 'query-engine'),
-    )
-    if (exists) {
+    const urls = getAllUrls(commit)
+    const exist = await pMap(urls, urlExists, { concurrency: 10 })
+    const hasMissing = exist.some(e => !e)
+
+    if (!hasMissing) {
       return commit
+    } else {
+      const missing = urls.filter((_, i) => !exist[i])
+      // if all are missing, we don't have to talk about it
+      // it might just be a broken commit or just still building
+      if (missing.length !== urls.length) {
+        console.log(`${chalk.blueBright('info')} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. The following urls are missing:\n\n${missing.join('\n')}`)
+      }
+    }
+  }
+}
+
+async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
+  for (const commit of commits) {
+    const urls = getAllUrls(commit)
+    let exist = await pMap(urls, urlExists, { concurrency: 10 })
+    let hasMissing = exist.some(e => !e)
+    let missing = urls.filter((_, i) => !exist[i])
+    if (missing.length === urls.length) {
+      continue
+    }
+
+    if (!hasMissing) {
+      return commit
+    } else {
+      // if all are missing, we don't have to talk about it
+      // it might just be a broken commit or just still building
+      if (missing.length !== urls.length) {
+        const started = Date.now()
+        while (hasMissing) {
+          if ((Date.now() - started) > 1000 * 60 * 20) {
+            throw new Error(`No new engine for commit ${commit} ready after waiting for 20 minutes.`)
+          }
+          console.log(`The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 10 seconds`)
+          exist = await pMap(urls, urlExists, { concurrency: 10 })
+          missing = urls.filter((_, i) => exist[i])
+          hasMissing = exist.some(e => !e)
+          if (!hasMissing) {
+            return commit
+          }
+          await new Promise(r => setTimeout(r, 10000))
+        }
+      }
     }
   }
 }
@@ -189,6 +224,9 @@ async function getCommits(branch: string): Promise<string[] | null> {
   const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
+    headers: {
+      Authorization: process.env.GITHUB_TOKEN ? `token ${process.env.GITHUB_TOKEN}` : undefined,
+    }
   } as any).then((res) => res.json())
 
   if (!Array.isArray(result)) {
