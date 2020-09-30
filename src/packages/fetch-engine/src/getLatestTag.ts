@@ -36,6 +36,11 @@ export async function getLatestTag(): Promise<any> {
     commits = await getCommits(branch)
   }
 
+  if (!Array.isArray(commits)) {
+    console.error(commits)
+    throw new Error(`Could not fetch commits from github: ${JSON.stringify(commits, null, 2)}`)
+  }
+
   if (process.env.CI) {
     return getCommitAndWaitIfNotDone(commits)
   }
@@ -220,7 +225,7 @@ async function getVersionHashes(
     }))
 }
 
-async function getCommits(branch: string): Promise<string[] | null> {
+async function getCommits(branch: string): Promise<string[] | object> {
   const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
@@ -230,7 +235,7 @@ async function getCommits(branch: string): Promise<string[] | null> {
   } as any).then((res) => res.json())
 
   if (!Array.isArray(result)) {
-    return null
+    return result
   }
 
   const commits = result.map((r) => r.sha)
