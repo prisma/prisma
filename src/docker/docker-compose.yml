@@ -20,6 +20,17 @@ services:
     ports:
       - '5432:5432'
 
+  postgres-isolated:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5435:5432'
+
   mysql:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password

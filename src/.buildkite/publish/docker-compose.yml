@@ -29,10 +29,20 @@ services:
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
     depends_on:
       - postgres
+      - postgres-isolated
       - mysql
       - mariadb
 
   postgres:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  postgres-isolated:
     image: postgres:10
     restart: always
     environment:
