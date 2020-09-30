@@ -49,7 +49,7 @@ const options = {
 let targetDir = path.join(__dirname, '../runtime')
 let sourceFile = path.join(__dirname, '../src/runtime/index.ts')
 
-require('@zeit/ncc')(sourceFile, options)
+require('@vercel/ncc')(sourceFile, options)
   .then(async ({ code, map, assets }) => {
     // Assets is an object of asset file names to { source, permissions, symlinks }
     // expected relative to the output code (if any)
