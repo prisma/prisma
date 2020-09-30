@@ -119,14 +119,14 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
           if ((Date.now() - started) > 1000 * 60 * 20) {
             throw new Error(`No new engine for commit ${commit} ready after waiting for 20 mintues.`)
           }
-          console.log(`The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 5 seconds`)
+          console.log(`The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 10 seconds`)
           exist = await pMap(urls, urlExists, { concurrency: 10 })
           missing = urls.filter((_, i) => exist[i])
           hasMissing = exist.some(e => !e)
           if (!hasMissing) {
             return commit
           }
-          await new Promise(r => setTimeout(r, 5000))
+          await new Promise(r => setTimeout(r, 10000))
         }
       }
     }
