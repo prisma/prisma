@@ -6,17 +6,18 @@ on:
     branches:
       - master
     paths-ignore:
-      - "*.md"
-      - ".buildkite/**"
-      - "docs/**"
-      - "scripts/**"
-      - ".prettierrc.yml"
-      - ".dockerignore"
-      - "LICENSE"
+      - '*.md'
+      - '.buildkite/**'
+      - 'docs/**'
+      - 'scripts/**'
+      - '.prettierrc.yml'
+      - '.dockerignore'
+      - 'LICENSE'
   pull_request:
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 jobs:
   # From https://github.com/marketplace/actions/workflow-run-cleanup-action
@@ -28,7 +29,7 @@ jobs:
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
 
   #
@@ -338,7 +339,7 @@ jobs:
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3 
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
 
     steps:
       - uses: actions/checkout@v2
@@ -567,7 +568,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "debug"
+        name: 'debug'
         working-directory: src/packages/debug
         env:
           CI: true
@@ -575,7 +576,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "engine-core"
+        name: 'engine-core'
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -583,7 +584,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "fetch-engine"
+        name: 'fetch-engine'
         working-directory: src/packages/fetch-engine
         env:
           CI: true
@@ -591,7 +592,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "generator-helper"
+        name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
           CI: true
@@ -599,7 +600,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "get-platform"
+        name: 'get-platform'
         working-directory: src/packages/get-platform
         env:
           CI: true
