@@ -81,7 +81,7 @@ export const JSTypeToGraphQLType = {
 }
 
 export function stringifyGraphQLType(
-  type: string | DMMF.InputType | DMMF.Enum,
+  type: string | DMMF.InputType | DMMF.SchemaEnum,
 ) {
   if (typeof type === 'string') {
     return type
@@ -99,7 +99,7 @@ export function wrapWithList(str: string, isList: boolean) {
 
 export function getGraphQLType(
   value: any,
-  potentialType?: string | DMMF.Enum | DMMF.InputType,
+  potentialType?: string | DMMF.SchemaEnum | DMMF.InputType,
 ): string {
   if (value === null) {
     return 'null'
@@ -143,8 +143,8 @@ export function getGraphQLType(
     if (
       potentialType &&
       typeof potentialType === 'object' &&
-      (potentialType as DMMF.Enum).values &&
-      (potentialType as DMMF.Enum).values.includes(value)
+      (potentialType as DMMF.SchemaEnum).values &&
+      (potentialType as DMMF.SchemaEnum).values.includes(value)
     ) {
       return potentialType.name
     }
@@ -199,15 +199,15 @@ export function getSuggestion(
 }
 
 export function stringifyInputType(
-  input: string | DMMF.InputType | DMMF.Enum,
+  input: string | DMMF.InputType | DMMF.SchemaEnum,
   greenKeys: boolean = false,
 ): string {
   if (typeof input === 'string') {
     return input
   }
-  if ((input as DMMF.Enum).values) {
+  if ((input as DMMF.SchemaEnum).values) {
     return `enum ${input.name} {\n${indent(
-      (input as DMMF.Enum).values.join(', '),
+      (input as DMMF.SchemaEnum).values.join(', '),
       2,
     )}\n}`
   } else {
@@ -253,7 +253,7 @@ function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
 }
 
 export function getInputTypeName(
-  input: string | DMMF.InputType | DMMF.SchemaField | DMMF.Enum,
+  input: string | DMMF.InputType | DMMF.SchemaField | DMMF.SchemaEnum,
 ) {
   if (typeof input === 'string') {
     if (input === 'Null') {
@@ -266,7 +266,7 @@ export function getInputTypeName(
 }
 
 export function getOutputTypeName(
-  input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.Enum,
+  input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.SchemaEnum,
 ) {
   if (typeof input === 'string') {
     return input
@@ -276,7 +276,7 @@ export function getOutputTypeName(
 }
 
 export function inputTypeToJson(
-  input: string | DMMF.InputType | DMMF.Enum,
+  input: string | DMMF.InputType | DMMF.SchemaEnum,
   isRequired: boolean,
   nameOnly: boolean = false,
 ): string | object {
@@ -287,8 +287,8 @@ export function inputTypeToJson(
     return input
   }
 
-  if ((input as DMMF.Enum).values) {
-    return (input as DMMF.Enum).values.join(' | ')
+  if ((input as DMMF.SchemaEnum).values) {
+    return (input as DMMF.SchemaEnum).values.join(' | ')
   }
 
   // TS "Trick" :/
