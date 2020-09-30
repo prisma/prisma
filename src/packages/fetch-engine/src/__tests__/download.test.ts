@@ -327,7 +327,6 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
-        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
@@ -353,12 +352,10 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
-        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
     const after2 = Date.now()
-    // if binaries are already there, it should take less than 100ms to check all of them
     // value on Mac: 33ms
     // value on GH Actions: ?
     // https://github.com/prisma/prisma/runs/1176632754
