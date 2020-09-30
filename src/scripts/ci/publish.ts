@@ -616,16 +616,16 @@ async function publish() {
     const patchBranch = getPatchBranch()
     const branch = await getPrismaBranch()
     console.log({ patchBranch })
-    if (args['--release']) {
-      prisma2Version = args['--release']
-      tag = 'latest'
+    if (branch.startsWith('integration/')) {
+      prisma2Version = await getNewIntegrationVersion(packages, branch)
+      tag = 'integration'
     } else if (patchBranch) {
       // TODO Check if PATCH_BRANCH work!
       prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
-    } else if (branch.startsWith('integration/')) {
-      prisma2Version = await getNewIntegrationVersion(packages, branch)
-      tag = 'integration'
+    } else if (args['--release']) {
+      prisma2Version = args['--release']
+      tag = 'latest'
     } else {
       prisma2Version = await getNewDevVersion(packages)
       tag = 'dev'

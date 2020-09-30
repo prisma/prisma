@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.8.0-dev.21",
+  "version": "2.8.0-dev.47",
   "description": "Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.",
   "keywords": [
     "orm",
@@ -48,7 +48,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "prisma": {
-    "version": "latest"
+    "version": "e6c9b4b2b7fa162d0d459d1863321f547498fcfe"
   },
   "files": [
     "runtime",
@@ -72,15 +72,15 @@
     "@types/node": "12.12.62",
     "@types/node-fetch": "2.5.7",
     "@types/pg": "7.14.5",
-    "@typescript-eslint/eslint-plugin": "4.1.1",
-    "@typescript-eslint/parser": "4.1.1",
+    "@typescript-eslint/eslint-plugin": "4.2.0",
+    "@typescript-eslint/parser": "4.2.0",
     "arg": "4.1.3",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "dotenv": "8.2.0",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.9.0",
-    "eslint-config-prettier": "6.11.0",
+    "eslint": "7.10.0",
+    "eslint-config-prettier": "6.12.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
@@ -101,7 +101,7 @@
     "klona": "1.1.2",
     "lint-staged": "10.4.0",
     "make-dir": "3.1.0",
-    "mariadb": "^2.4.2",
+    "mariadb": "2.4.2",
     "node-fetch": "2.6.1",
     "node-tcp-proxy": "0.0.17",
     "packwatch": "2.0.0",
@@ -111,7 +111,7 @@
     "prettier": "2.1.2",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.28.1",
+    "rollup": "2.28.2",
     "rollup-plugin-dts": "1.4.13",
     "set-value": "3.0.2",
     "sql-template-tag": "3.4.0",

@@ -8,11 +8,11 @@ const prisma = new PrismaClient({
 } as any)
 
 async function main() {
-  const x = await prisma.post.findMany({
-    where: {
-      // author: null
-      id: 'asd',
-    },
+  const x = await prisma.post.findFirst({
+    // where: {
+    //   // author: null
+    //   id: 'asd',
+    // },
   })
   console.log(x)
   prisma.$disconnect()

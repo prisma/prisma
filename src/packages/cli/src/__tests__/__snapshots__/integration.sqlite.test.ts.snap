@@ -31,7 +31,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -51,7 +51,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @default("alice")
 }
 
@@ -95,7 +95,7 @@ datasource sqlite {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String?
 }
 
@@ -115,7 +115,7 @@ datasource sqlite {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -135,7 +135,7 @@ datasource sqlite {
 }
 
 model column_name_that_becomes_empty_string {
-  field1   Int  @default(autoincrement()) @id
+  field1   Int  @id @default(autoincrement())
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
 }
@@ -148,7 +148,7 @@ model column_name_that_becomes_empty_string {
 // }
 
 model unsupported_type {
-  field1         Int         @default(autoincrement()) @id
+  field1         Int         @id @default(autoincrement())
   // This type is currently not supported.
   // unsupported binary(50)?
 }
@@ -207,7 +207,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -228,7 +228,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -249,7 +249,7 @@ datasource sqlite {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -269,7 +269,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -290,7 +290,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -311,7 +311,7 @@ datasource sqlite {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -332,7 +332,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -352,7 +352,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -372,7 +372,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -392,7 +392,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -412,7 +412,7 @@ datasource sqlite {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -433,7 +433,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -453,7 +453,7 @@ datasource sqlite {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -473,7 +473,7 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
+  id       Int   @id @default(autoincrement())
   distance Float
 }
 
@@ -493,7 +493,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -514,7 +514,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -535,7 +535,7 @@ datasource sqlite {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -556,7 +556,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -577,7 +577,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -598,7 +598,7 @@ datasource sqlite {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -619,7 +619,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -640,7 +640,7 @@ datasource sqlite {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -661,7 +661,7 @@ datasource sqlite {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -682,7 +682,7 @@ datasource sqlite {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -703,7 +703,7 @@ datasource sqlite {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -724,7 +724,7 @@ datasource sqlite {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -744,13 +744,13 @@ datasource sqlite {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String  @unique
   posts posts[]
 }
 
 model posts {
-  id      Int    @default(autoincrement()) @id
+  id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
@@ -821,7 +821,7 @@ model a {
 }
 
 model b {
-  id  Int @default(autoincrement()) @id
+  id  Int @id @default(autoincrement())
   one Int
   two Int
   a   a   @relation(fields: [one, two], references: [one, two])
@@ -867,8 +867,8 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
-  distance Float @default(12.3) @unique
+  id       Int   @id @default(autoincrement())
+  distance Float @unique @default(12.3)
 }
 
 `;
@@ -887,7 +887,7 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
+  id       Int   @id @default(autoincrement())
   distance Float @unique
 }
 
@@ -932,7 +932,7 @@ datasource sqlite {
 }
 
 model variables {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   name  String
   key   String
   value String
@@ -957,13 +957,13 @@ datasource sqlite {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String  @unique
   posts posts[]
 }
 
 model posts {
-  id      Int    @default(autoincrement()) @id
+  id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
@@ -985,7 +985,7 @@ datasource sqlite {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -1029,7 +1029,7 @@ datasource sqlite {
 }
 
 model teams {
-  id    Int @default(autoincrement()) @id
+  id    Int @id @default(autoincrement())
   token Int @unique
 }
 
@@ -1049,7 +1049,7 @@ datasource sqlite {
 }
 
 model teams {
-  id     Int     @default(autoincrement()) @id
+  id     Int     @id @default(autoincrement())
   name   String  @unique
   active Boolean @default(true)
 }
@@ -1070,7 +1070,7 @@ datasource sqlite {
 }
 
 model teams {
-  id     Int     @default(autoincrement()) @id
+  id     Int     @id @default(autoincrement())
   name   String  @unique
   active Boolean @default(true)
 }
@@ -1091,7 +1091,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -1111,7 +1111,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -1131,7 +1131,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int     @default(autoincrement()) @id
+  id   Int     @id @default(autoincrement())
   name String?
 }
 
@@ -1151,7 +1151,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String
 }
 
@@ -1171,7 +1171,7 @@ datasource sqlite {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String
 }
 
@@ -1191,7 +1191,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -1212,7 +1212,7 @@ datasource sqlite {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
