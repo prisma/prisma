@@ -59,6 +59,7 @@
     "global-dirs": "^2.0.1",
     "globby": "^11.0.0",
     "has-yarn": "^2.1.0",
+    "is-ci": "^2.0.0",
     "make-dir": "^3.0.2",
     "node-fetch": "2.6.1",
     "p-map": "^4.0.0",
