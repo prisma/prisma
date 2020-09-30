@@ -24,7 +24,7 @@
     "@types/sqlite3": "3.1.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
-    "@zeit/ncc": "0.22.3",
+    "@vercel/ncc": "0.22.3",
     "chalk": "4.1.0",
     "del": "5.1.0",
     "eslint": "7.10.0",
