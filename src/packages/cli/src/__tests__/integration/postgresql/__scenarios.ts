@@ -30,9 +30,6 @@ export const scenarios = [
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.findOne({
         where: { id: 2 },
@@ -60,10 +57,6 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (1, 'A');
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
-      `,
-    down: `
-        drop table if exists posts cascade;
-        drop table if exists users cascade;
       `,
     do: async (client) => {
       return client.users.findOne({
@@ -96,9 +89,6 @@ export const scenarios = [
           name text not null unique
         );
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.create({ data: { name: 'c' } })
     },
@@ -114,9 +104,6 @@ export const scenarios = [
           id serial primary key not null,
           name text not null default 'alice'
         );
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.create({ data: {} })
@@ -134,9 +121,6 @@ export const scenarios = [
           id serial primary key not null
         );
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.create({ data: {} })
     },
@@ -153,9 +137,6 @@ export const scenarios = [
           name text not null unique
         );
         insert into teams ("name") values ('c');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.update({
@@ -177,9 +158,6 @@ export const scenarios = [
           active boolean not null default true
         );
         insert into teams ("name") values ('c');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.update({
@@ -203,9 +181,6 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.update({
         where: { id: 1 },
@@ -225,9 +200,6 @@ export const scenarios = [
           name text not null unique
         );
         insert into teams ("name") values ('c');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.update({
@@ -250,9 +222,6 @@ export const scenarios = [
         insert into teams ("name") values ('c');
         insert into teams ("name") values ('c');
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.updateMany({
         where: { name: 'c' },
@@ -272,9 +241,6 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
         insert into teams ("name") values ('c');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       await client.teams.updateMany({
@@ -303,9 +269,6 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-    down: `
-        drop table if exists users cascade;
-      `,
     do: async (client) => {
       return client.users.findOne({ where: { email: 'ada@prisma.io' } })
     },
@@ -324,9 +287,6 @@ export const scenarios = [
           unique(email, name)
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
-      `,
-    down: `
-        drop table if exists users cascade;
       `,
     do: async (client) => {
       return client.users.findOne({
@@ -351,9 +311,6 @@ export const scenarios = [
           unique(email, name)
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
-      `,
-    down: `
-        drop table if exists users cascade;
       `,
     do: async (client) => {
       return client.users.update({
@@ -380,9 +337,6 @@ export const scenarios = [
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
-    down: `
-        drop table if exists users cascade;
-      `,
     do: async (client) => {
       return client.users.delete({
         where: {
@@ -405,9 +359,6 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values (null);
-      `,
-    down: `
-        drop table if exists users cascade;
       `,
     do: async (client) => {
       return client.users.findMany()
@@ -432,9 +383,6 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-    down: `
-        drop table if exists users cascade;
-      `,
     do: async (client) => {
       return client.users.findMany({ where: { email: 'ada@prisma.io' } })
     },
@@ -454,9 +402,6 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
-      `,
-    down: `
-        drop table if exists users cascade;
       `,
     do: async (client) => {
       return client.users.findMany()
@@ -490,10 +435,6 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
       `,
-    down: `
-        drop table if exists posts cascade;
-        drop table if exists users cascade;
-      `,
     do: async (client) => {
       return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
     },
@@ -522,9 +463,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       return client.posts.findMany({
         where: {
@@ -552,9 +490,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('A', true);
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     do: async (client) => {
       return client.posts.findMany({
@@ -589,9 +524,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       return client.posts.upsert({
         where: { id: 1 },
@@ -617,9 +549,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       return client.posts.upsert({
         where: { id: 4 },
@@ -644,9 +573,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('A', true);
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     do: async (client) => {
       return client.posts.findMany({
@@ -684,9 +610,6 @@ export const scenarios = [
         insert into posts ("title", "published") values ('A', true);
         insert into posts ("title", "published") values ('B', false);
         insert into posts ("title", "published") values ('C', true);
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     do: async (client) => {
       return client.posts.findMany({
@@ -726,10 +649,6 @@ export const scenarios = [
         insert into posts ("title") values ('B');
         insert into posts ("title") values ('C');
       `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
-      `,
     do: async (client) => {
       return client.posts.findMany()
     },
@@ -765,10 +684,6 @@ export const scenarios = [
         insert into posts ("title") values ('B');
         insert into posts ("title") values ('C');
       `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
-      `,
     do: async (client) => {
       return client.posts.create({ data: { title: 'D' } })
     },
@@ -786,10 +701,6 @@ export const scenarios = [
         insert into posts ("title") values ('A');
         insert into posts ("title") values ('B');
         insert into posts ("title") values ('C');
-      `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
       `,
     do: async (client) => {
       return client.posts.update({
@@ -816,10 +727,6 @@ export const scenarios = [
         insert into posts ("title") values ('B');
         insert into posts ("title") values ('C');
       `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
-      `,
     do: async (client) => {
       return client.posts.updateMany({
         data: { published: 'PUBLISHED' },
@@ -841,10 +748,6 @@ export const scenarios = [
         insert into posts ("title") values ('A');
         insert into posts ("title") values ('B');
         insert into posts ("title") values ('C');
-      `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
       `,
     do: async (client) => {
       await client.posts.updateMany({
@@ -883,10 +786,6 @@ export const scenarios = [
         insert into posts ("title") values ('B');
         insert into posts ("title","published") values ('C', 'PUBLISHED');
       `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
-      `,
     do: async (client) => {
       return await client.posts.deleteMany({
         where: { published: 'DRAFT' },
@@ -908,10 +807,6 @@ export const scenarios = [
         insert into posts ("title") values ('A');
         insert into posts ("title") values ('B');
         insert into posts ("title","published") values ('C', 'PUBLISHED');
-      `,
-    down: `
-        drop table if exists posts cascade;
-        drop type if exists posts_status cascade;
       `,
     do: async (client) => {
       await client.posts.deleteMany({
@@ -938,9 +833,6 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
-      `,
-    down: `
-        drop table if exists crons cascade;
       `,
     do: async (client) => {
       return client.crons.findMany({ where: { job: { contains: 'j2' } } })
@@ -970,9 +862,6 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    down: `
-        drop table if exists crons cascade;
-      `,
     do: async (client) => {
       return client.crons.findMany({ where: { job: { startsWith: 'j2' } } })
     },
@@ -1001,9 +890,6 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    down: `
-        drop table if exists crons cascade;
-      `,
     do: async (client) => {
       return client.crons.findMany({ where: { job: { endsWith: '1' } } })
     },
@@ -1031,9 +917,6 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
-      `,
-    down: `
-        drop table if exists crons cascade;
       `,
     do: async (client) => {
       return client.crons.findMany({
@@ -1066,9 +949,6 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    down: `
-        drop table if exists crons cascade;
-      `,
     do: async (client) => {
       return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
     },
@@ -1096,9 +976,6 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     // todo: true,
     do: async (client) => {
@@ -1138,9 +1015,6 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       return client.posts.findMany({
         where: { created_at: { gte: new Date() } },
@@ -1160,9 +1034,6 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       return client.posts.findMany({
         where: { created_at: { gt: new Date() } },
@@ -1181,9 +1052,6 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     do: async (client) => {
       const posts = await client.posts.findMany({
@@ -1219,9 +1087,6 @@ export const scenarios = [
         );
         insert into teams (token) values (11);
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.update({
         where: { token: 11 },
@@ -1241,9 +1106,6 @@ export const scenarios = [
           "time" timestamp with time zone
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-    down: `
-        drop table if exists events cascade;
       `,
     do: async (client) => {
       return client.events.findMany({
@@ -1266,9 +1128,6 @@ export const scenarios = [
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
-    down: `
-        drop table if exists events cascade;
-      `,
     do: async (client) => {
       return client.events.findMany({
         where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
@@ -1284,9 +1143,6 @@ export const scenarios = [
           "time" timestamp with time zone
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-    down: `
-        drop table if exists events cascade;
       `,
     do: async (client) => {
       return client.events.findMany({
@@ -1311,9 +1167,6 @@ export const scenarios = [
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
-    down: `
-        drop table if exists events cascade;
-      `,
     do: async (client) => {
       return client.events.findMany({
         where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
@@ -1329,9 +1182,6 @@ export const scenarios = [
           "time" timestamp with time zone
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
-      `,
-    down: `
-        drop table if exists events cascade;
       `,
     do: async (client) => {
       return client.events.findMany({
@@ -1356,9 +1206,6 @@ export const scenarios = [
         );
         insert into events ("time") values ('2018-09-04 00:00:00+00');
       `,
-    down: `
-        drop table if exists events cascade;
-      `,
     do: async (client) => {
       return client.events.findMany({
         where: {
@@ -1378,9 +1225,6 @@ export const scenarios = [
         insert into events ("time") values (NULL);
         insert into events ("time") values (NULL);
         insert into events ("time") values (NULL);
-      `,
-    down: `
-        drop table if exists events cascade;
       `,
     do: async (client) => {
       return client.events.findMany({ where: { time: null } })
@@ -1411,9 +1255,6 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.findMany({ where: { id: { in: [] } } })
     },
@@ -1429,9 +1270,6 @@ export const scenarios = [
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.findMany({
@@ -1450,9 +1288,6 @@ export const scenarios = [
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.findMany({ where: { token: { in: [11, 22] } } })
@@ -1481,9 +1316,6 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    down: `
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.teams.findMany({
         where: { token: { notIn: [11, 22] } },
@@ -1501,9 +1333,6 @@ export const scenarios = [
         );
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       return client.teams.findMany({ where: { token: { notIn: [] } } })
@@ -1539,10 +1368,6 @@ export const scenarios = [
         insert into users ("email", team_id) values ('a', NULL);
         insert into users ("email", "team_id") values ('b', 1);
       `,
-    down: `
-        drop table if exists users cascade;
-        drop table if exists teams cascade;
-      `,
     do: async (client) => {
       return client.users.findMany({ where: { team_id: null } })
     },
@@ -1564,10 +1389,6 @@ export const scenarios = [
         );
         insert into users ("email") values ('max@prisma.io');
       `,
-    down: `
-        drop table if exists users cascade;
-        drop extension if exists citext cascade;
-      `,
     do: async (client) => {
       return client.users.findMany({ where: { email: 'MAX@PRISMA.IO' } })
     },
@@ -1586,9 +1407,6 @@ export const scenarios = [
           distance decimal(5, 3) not null
         );
         insert into exercises (distance) values (12.213);
-      `,
-    down: `
-        drop table if exists exercises cascade;
       `,
     do: async (client) => {
       return client.exercises.findMany({ where: { distance: 12.213 } })
@@ -1609,9 +1427,6 @@ export const scenarios = [
         );
         insert into exercises (distance) values (12.213);
       `,
-    down: `
-        drop table if exists exercises cascade;
-      `,
     do: async (client) => {
       return client.exercises.findOne({ where: { distance: 12.213 } })
     },
@@ -1630,9 +1445,6 @@ export const scenarios = [
         insert into exercises (distance) values (12.213);
         insert into exercises (id) values (2);
       `,
-    down: `
-        drop table if exists exercises cascade;
-      `,
     do: async (client) => {
       return client.exercises.findOne({ where: { distance: 12.3 } })
     },
@@ -1647,9 +1459,6 @@ export const scenarios = [
         create table migrate (
           version bigint not null primary key
         );
-      `,
-    down: `
-        drop table if exists migrate cascade;
       `,
     do: async (client) => {
       return client.migrate.create({ data: { version: 1 } })
@@ -1669,9 +1478,6 @@ export const scenarios = [
           primary key(name, key)
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
-      `,
-    down: `
-        drop table if exists variables cascade;
       `,
     do: async (client) => {
       return client.variables.findOne({
@@ -1697,9 +1503,6 @@ export const scenarios = [
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
-    down: `
-        drop table if exists variables cascade;
-      `,
     do: async (client) => {
       return client.variables.update({
         where: { name_key: { key: 'b', name: 'a' } },
@@ -1724,9 +1527,6 @@ export const scenarios = [
           primary key(name, key)
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
-      `,
-    down: `
-        drop table if exists variables cascade;
       `,
     do: async (client) => {
       return client.variables.upsert({
@@ -1754,9 +1554,6 @@ export const scenarios = [
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
-    down: `
-        drop table if exists variables cascade;
-      `,
     do: async (client) => {
       return client.variables.upsert({
         where: { name_key: { key: 'd', name: 'a' } },
@@ -1783,9 +1580,6 @@ export const scenarios = [
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
-    down: `
-        drop table if exists variables cascade;
-      `,
     do: async (client) => {
       return client.variables.delete({
         where: { name_key: { key: 'b', name: 'a' } },
@@ -1810,9 +1604,6 @@ export const scenarios = [
           unique(name, key)
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
-      `,
-    down: `
-        drop table if exists variables cascade;
       `,
     do: async (client) => {
       return client.variables.findOne({
@@ -1839,9 +1630,6 @@ export const scenarios = [
           unique(value, email)
         );
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
-      `,
-    down: `
-        drop table if exists variables cascade;
       `,
     do: async (client) => {
       return client.variables.findOne({
@@ -1872,10 +1660,6 @@ export const scenarios = [
           insert into a ("one", "two") values (1, 2);
           insert into b ("one", "two") values (1, 2);
         `,
-    down: `
-        drop table if exists a cascade;
-        drop table if exists b cascade;
-      `,
     do: async (client) => {
       return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
     },
@@ -2065,9 +1849,6 @@ export const scenarios = [
           c190 xml[]
         );
       `,
-    down: `
-        drop table if exists crazy cascade;
-      `,
     do: async (client) => {
       return client.crazy.findOne({
         where: { value_email: { value: 'c', email: 'd' } },
@@ -2087,9 +1868,6 @@ export const scenarios = [
         insert into teams (name) values ('a');
         insert into teams (name) values (NULL);
         insert into teams (name) values (NULL);
-      `,
-    down: `
-        drop table if exists teams cascade;
       `,
     do: async (client) => {
       await client.teams.updateMany({
@@ -2138,13 +1916,6 @@ export const scenarios = [
           unsupported polygon DEFAULT NULL
         );
       `,
-    down: `
-        drop table if exists column_name_that_becomes_empty_string cascade;
-        drop table if exists invalid_enum_value_name cascade;
-        drop table if exists no_unique_identifier cascade;
-        drop table if exists unsupported_type cascade;
-        drop type if exists invalid_enum;
-      `,
     do: async (client) => {
       return await client.column_name_that_becomes_empty_string.findMany({})
     },
@@ -2158,9 +1929,6 @@ export const scenarios = [
           title text not null,
           data jsonb
         );
-      `,
-    down: `
-        drop table if exists posts cascade;
       `,
     do: async (client) => {
       const created = await client.posts.create({
@@ -2199,9 +1967,6 @@ export const scenarios = [
         );
         insert into posts ("title", "data") values ('A', '"2020-01-14T11:10:19.573Z"');
       `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       const created = await client.posts.create({
         data: {
@@ -2237,9 +2002,6 @@ export const scenarios = [
           data jsonb not null
         );
         `,
-    down: `
-        drop table if exists posts cascade;
-      `,
     do: async (client) => {
       await client.posts.create({
         data: {
