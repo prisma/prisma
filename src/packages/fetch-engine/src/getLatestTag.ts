@@ -226,7 +226,7 @@ async function getVersionHashes(
 }
 
 async function getCommits(branch: string): Promise<string[] | object> {
-  const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
+  const url = `https://github-cache.prisma.workers.dev/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
     headers: {
