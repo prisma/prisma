@@ -327,6 +327,7 @@ describe('download', () => {
         'rhel-openssl-1.1.x',
         'windows',
         'linux-musl',
+        'freebsd12',
       ],
       version: FIXED_BINARIES_HASH,
     })
@@ -334,7 +335,8 @@ describe('download', () => {
     // cache should take less than 2s
     // value on Mac: 1440
     // value on GH Actions: ~5812
-    expect(after - before).toBeLessThan(6200)
+    const took = after - before
+    expect(took).toBeLessThan(6200)
     const before2 = Date.now()
     await download({
       binaries: {
@@ -360,7 +362,8 @@ describe('download', () => {
     // value on Mac: 33ms
     // value on GH Actions: ~6258
     // https://github.com/prisma/prisma/runs/1176632754
-    expect(after2 - before2).toBeLessThan(10000)
+    const took2 = after2 - before2
+    expect(took2).toBeLessThan(3000)
   })
 })
 
