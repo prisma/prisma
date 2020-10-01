@@ -124,6 +124,7 @@ const commonCodeTS = ({
   empty,
   join,
   raw,
+  Sql,
 } from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
@@ -135,7 +136,7 @@ export { PrismaClientValidationError }
 /**
  * Re-export of sql-template-tag
  */
-export { sql, empty, join, raw }
+export { sql, empty, join, raw, Sql }
 
 /**
  * Prisma Client JS version: ${clientVersion}

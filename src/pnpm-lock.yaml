@@ -60,7 +60,7 @@ importers:
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      '@zeit/ncc': 0.22.3
+      '@vercel/ncc': 0.23.0
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
       eslint: 7.10.0
@@ -119,7 +119,7 @@ importers:
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
-      '@zeit/ncc': 0.22.3
+      '@vercel/ncc': 0.23.0
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
       eslint: 7.10.0
@@ -662,7 +662,6 @@ importers:
       ink: 2.7.1_25417382793f8b9d506bef5a668275ff
       ink-link: 1.1.0_ink@2.7.1+react@16.11.0
       ink-spinner: 3.1.0_ink@2.7.1+react@16.11.0
-      is-ci: 2.0.0
       log-update: 4.0.0
       new-github-issue-url: 0.2.1
       open: 7.0.4
@@ -688,7 +687,7 @@ importers:
       '@types/sqlite3': 3.1.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      '@zeit/ncc': 0.22.3
+      '@vercel/ncc': 0.23.0
       chalk: 4.1.0
       del: 5.1.0
       eslint: 7.10.0
@@ -729,7 +728,7 @@ importers:
       '@types/sqlite3': 3.1.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
-      '@zeit/ncc': 0.22.3
+      '@vercel/ncc': 0.23.0
       ansi-escapes: ^4.3.1
       chalk: 4.1.0
       cli-cursor: 3.1.0
@@ -753,7 +752,6 @@ importers:
       ink: 2.7.1
       ink-link: 1.1.0
       ink-spinner: 3.1.0
-      is-ci: ^2.0.0
       jest: 26.4.2
       lint-staged: 10.4.0
       log-update: ^4.0.0
@@ -793,6 +791,7 @@ importers:
       global-dirs: 2.0.1
       globby: 11.0.1
       has-yarn: 2.1.0
+      is-ci: 2.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.1
       p-map: 4.0.0
@@ -855,6 +854,7 @@ importers:
       globby: ^11.0.0
       has-yarn: ^2.1.0
       husky: 4.3.0
+      is-ci: ^2.0.0
       jest: 26.4.2
       lint-staged: 10.4.0
       make-dir: ^3.0.2
@@ -2129,11 +2129,11 @@ packages:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
     resolution:
       integrity: sha512-WIf4BNOlFOH2W+YqGWa6YKLcK/EB3gEj2apCrqLw6mme1RzBy0jtJ9ewJgnrZDB640zfnv8L+/gwGH5sYp/rGw==
-  /@zeit/ncc/0.22.3:
+  /@vercel/ncc/0.23.0:
     dev: true
     hasBin: true
     resolution:
-      integrity: sha512-jnCLpLXWuw/PAiJiVbLjA8WBC0IJQbFeUwF4I9M+23MvIxTxk5pD4Q8byQBSPmHQjz5aBoA7AKAElQxMpjrCLQ==
+      integrity: sha512-Fcr1qlG9t54X4X9qbo/+jr1+t5Qc6H3TgIRBXmKkF/WDs6YFulAN6ilq2Ehx38RbgIOFxaZnjlAQ50GyexnMpQ==
   /abab/2.0.3:
     dev: true
     resolution:

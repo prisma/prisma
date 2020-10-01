@@ -59,7 +59,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "e6c9b4b2b7fa162d0d459d1863321f547498fcfe",
+    "version": "fe6af85d8ad59c60ec7081422f25d0b5e32e8239",
     "prismaCommit": "251b3e81afcbf627a50688e6e8356c92f7326ef2"
   },
   "devDependencies": {
@@ -81,7 +81,7 @@
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
-    "@zeit/ncc": "0.22.3",
+    "@vercel/ncc": "0.23.0",
     "checkpoint-client": "1.1.12",
     "dotenv": "8.2.0",
     "eslint": "7.10.0",
@@ -124,12 +124,12 @@
   },
   "scripts": {
     "test:sqlite": "jest integration.sqlite --forceExit",
-    "test:postgresql": "jest integration.postgresql --forceExit",
-    "test:mysql": "jest integration.mysql --forceExit",
-    "test:mariadb": "jest integration.mariadb --forceExit",
+    "test:postgresql": "jest integration.postgresql --forceExit --maxConcurrency=10",
+    "test:mysql": "jest integration.mysql --forceExit --maxConcurrency=5",
+    "test:mariadb": "jest integration.mariadb --forceExit --maxConcurrency=5",
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
     "test": "pnpm run test:commands && pnpm run test:integration",
-    "test:integration": "jest integration --forceExit",
+    "test:integration": "jest integration --forceExit --maxConcurrency=5",
     "jest": "jest",
     "install": "node download-build/index.js",
     "format": "prettier --write .",
