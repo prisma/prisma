@@ -178,7 +178,6 @@ export class MigrateCommand implements Command {
       migrate.stop()
 
       if (migrationId) {
-        // return `${migrationId}`
         return `\nPrisma Migrate created a draft migration ${printMigrationId(
           migrationId,
         )}\n\nYou can now edit it and then apply it by running ${chalk.greenBright(
@@ -192,8 +191,6 @@ export class MigrateCommand implements Command {
     await migrate.checkHistoryAndReset({ force: args['--force'] })
 
     const planMigrationResult = await migrate.plan()
-    console.debug({ planMigrationResult })
-
     if (
       planMigrationResult.unexecutableSteps &&
       planMigrationResult.unexecutableSteps.length > 0
@@ -248,7 +245,6 @@ export class MigrateCommand implements Command {
     }
 
     const migrationName = await this.getMigrationName(args['--name'])
-    console.debug({ migrationName })
 
     const migrationIds = await migrate.createAndApply({
       name: migrationName,
@@ -258,16 +254,18 @@ export class MigrateCommand implements Command {
     // if (!process.env.SKIP_GENERATE) {
     //   // call prisma generate
     // }
-    console.debug({ migrationIds })
-    // return `${migrationIds}`
 
-    return `\nPrisma Migrate created and applied the migration ${printMigrationId(
-      migrationIds[0],
-    )} in\n\n${chalk.dim(
-      printFiles(`migrations/${migrationIds[0]}`, {
-        'migration.sql': '',
-      }),
-    )}\n\n`
+    if (migrationIds.length === 0) {
+      return `\nEverything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.\n`
+    } else {
+      return `\nPrisma Migrate created and applied the migration ${printMigrationId(
+        migrationIds[0],
+      )} in\n\n${chalk.dim(
+        printFiles(`migrations/${migrationIds[0]}`, {
+          'migration.sql': '',
+        }),
+      )}\n`
+    }
   }
 
   private async getMigrationName(name?: string): Promise<string> {

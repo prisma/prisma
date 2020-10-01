@@ -384,7 +384,6 @@ export class Migrate {
     let isResetNeeded = false
 
     if (failedMigrationNames.length > 0) {
-      console.debug({ failedMigrationNames })
       // migration(s), usually one, that failed to apply the the database (which may have data)
       console.info(
         `The following migrations failed to apply:\n- ${failedMigrationNames.join(
@@ -396,7 +395,6 @@ export class Migrate {
 
     if (editedMigrationNames.length > 0) {
       // migration(s) that were edited since they were applied to the db.
-      console.debug({ editedMigrationNames })
       console.info(
         `The following migrations where edited after they were applied:\n- ${editedMigrationNames.join(
           '\n- ',
@@ -486,18 +484,10 @@ export class Migrate {
   public async plan(): Promise<EngineResults.PlanMigrationOutput> {
     const datamodel = this.getDatamodel()
 
-    // const {
-    //   migrationSteps,
-    //   warnings,
-    //   unexecutableSteps,
-    // }
-
     const planMigrationResult = await this.engine.planMigration({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       prismaSchema: datamodel,
     })
-
-    console.debug({ planMigrationResult })
 
     return planMigrationResult
   }
