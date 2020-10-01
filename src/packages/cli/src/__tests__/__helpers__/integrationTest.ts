@@ -210,7 +210,7 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
 
       await teardownScenario(state)
     },
-    input.settings?.timeout ?? 15_000,
+    input.settings?.timeout ?? 30_000,
   )
 }
 
