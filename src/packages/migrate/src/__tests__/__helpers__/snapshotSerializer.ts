@@ -5,6 +5,10 @@ function normalizeMigrateTimestamps(str) {
   return str.replace(/\d{14}/g, '20201231000000')
 }
 
+function normalizeDbUrl(str) {
+  return str.replace(/localhost:\d+/g, 'localhost:5432')
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -16,7 +20,7 @@ const serializer = {
         : value instanceof Error
         ? value.message
         : ''
-    return normalizeMigrateTimestamps(stripAnsi(message))
+    return normalizeDbUrl(normalizeMigrateTimestamps(stripAnsi(message)))
   },
 }
 
