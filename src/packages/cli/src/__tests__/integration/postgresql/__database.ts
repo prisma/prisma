@@ -28,7 +28,7 @@ export const database = {
 function getConnectionString(ctx: Context) {
   const serviceConnectionString =
     process.env.TEST_POSTGRES_URI ||
-    'postgres://prisma:prisma@localhost:5432/postgres'
+    'postgres://prisma:prisma@localhost:5432/tests'
   const connectionString = `${serviceConnectionString}?schema=${ctx.id}`
   return connectionString
 }
