@@ -53,6 +53,7 @@ jobs:
       postgres:
         image: postgres:9
         env:
+          POSTGRES_DB: tests
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
         ports:
@@ -186,6 +187,7 @@ jobs:
       postgres:
         image: postgres:9
         env:
+          POSTGRES_DB: tests
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
         ports:
@@ -238,7 +240,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
 
   #
@@ -353,6 +355,7 @@ jobs:
       postgres:
         image: postgres:9
         env:
+          POSTGRES_DB: tests
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
         ports:
@@ -391,7 +394,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
 
   #
   # All the other packages!
