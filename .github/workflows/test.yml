@@ -33,16 +33,20 @@ jobs:
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
 
   #
-  # CLI-POSTGRESQL
+  # CLI-INTEGRATION
   #
-  cli-postgresql:
-    timeout-minutes: 7
+  cli-integration:
+    timeout-minutes: 8
     runs-on: ubuntu-latest
 
     strategy:
-      # fail-fast: true
+      fail-fast: false
       matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
+        test:
+          - sqlite
+          - postgresql
+          - mysql
+          - mariadb
         node: [12]
 
     services:
@@ -55,54 +59,6 @@ jobs:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test:postgresql
-        working-directory: src/packages/cli
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
-
-  #
-  # CLI-MYSQL
-  #
-  cli-mysql:
-    timeout-minutes: 7
-    runs-on: ubuntu-latest
-
-    strategy:
-      # fail-fast: true
-      matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    services:
       # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
       # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
       mysql:
@@ -117,54 +73,6 @@ jobs:
           - 3306
         options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
 
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test:mysql
-        working-directory: src/packages/cli
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
-
-  #
-  # CLI-MARIADB
-  #
-  cli-mariadb:
-    timeout-minutes: 7
-    runs-on: ubuntu-latest
-
-    strategy:
-      # fail-fast: true
-      matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    services:
       mariadb:
         image: mariadb:10
         env:
@@ -201,62 +109,19 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:mariadb
-        working-directory: src/packages/cli
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_MARIADB_URI: mysql://prisma:prisma@localhost:${{ job.services.mariadb.ports[3306] }}/tests
-
-  #
-  # CLI-SQLITE
-  #
-  cli-sqlite:
-    timeout-minutes: 7
-    runs-on: ubuntu-latest
-
-    strategy:
-      # fail-fast: true
-      matrix:
-        # os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2-beta
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
       - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
+        if: ${{ matrix.test == 'sqlite' }}
         working-directory: src/packages/cli
 
-      - run: pnpm run test:sqlite
+      - run: pnpm run jest integration.${{ matrix.test }}.test.ts -- --forceExit
         working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+          TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
+          TEST_MARIADB_URI: mysql://prisma:prisma@localhost:${{ job.services.mariadb.ports[3306] }}/tests
 
   #
   # CLI-COMMANDS
