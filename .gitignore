@@ -3,7 +3,6 @@ node_modules
 yarn-error.log
 dist
 build
-examples
 tmp
 pnpm-debug.log
 sandbox
