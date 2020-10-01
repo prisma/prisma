@@ -161,7 +161,8 @@ describe('sqlite', () => {
 describe('posgresql', () => {
   const SetupParams: SetupParams = {
     connectionString:
-      process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/tests',
+      process.env.TEST_POSTGRES_URI ||
+      'postgres://prisma:prisma@localhost:5432/tests',
     dirname: './fixtures',
   }
 

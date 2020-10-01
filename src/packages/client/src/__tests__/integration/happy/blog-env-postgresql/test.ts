@@ -15,8 +15,8 @@ test('blog-env-postgresql', async () => {
   } = require('./node_modules/@prisma/client')
 
   let originalConnectionString =
-    process.env.TEST_POSTGRES_URI || 'postgres://localhost:5432/tests'
-
+    process.env.TEST_POSTGRES_URI ||
+    'postgres://prisma:prisma@localhost:5432/tests'
   originalConnectionString += '-blog-env-postgresql'
 
   const SetupParams: SetupParams = {
