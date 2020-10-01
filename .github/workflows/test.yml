@@ -36,17 +36,17 @@ jobs:
   # CLI-INTEGRATION
   #
   cli-integration:
-    timeout-minutes: 7
+    timeout-minutes: 8
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
-        test-file:
-          - integration.sqlite.test.ts
-          - integration.postgresql.test.ts
-          - integration.mysql.test.ts
-          - integration.mariadb.test.ts
+        test:
+          - sqlite
+          - postgresql
+          - mysql
+          - mariadb
         node: [12]
 
     services:
@@ -110,9 +110,10 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
+        if: matrix.test === 'sqlite'
         working-directory: src/packages/cli
 
-      - run: pnpm run jest ${{ matrix['test-file'] }} -- --forceExit
+      - run: pnpm run jest integration.${{ matrix.test }}.test.ts -- --forceExit
         working-directory: src/packages/cli
         env:
           CI: true
