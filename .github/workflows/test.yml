@@ -122,7 +122,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}
-          TEST_MARIADB_URI: mysql://prisma:prisma@localhost:${{ job.services.mariadb.ports[3306] }}
+          TEST_MARIADB_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}
 
   #
   # CLI-COMMANDS
