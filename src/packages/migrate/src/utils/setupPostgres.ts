@@ -28,7 +28,7 @@ export async function tearDownPostgres(options: SetupParams) {
   const { connectionString } = options
   const credentials = uriToCredentials(connectionString)
   const credentialsClone = { ...credentials }
-  credentialsClone.database = ''
+  credentialsClone.database = 'tests'
   credentialsClone.schema = ''
   const connectionStringCopy = credentialsToUri(credentialsClone)
 
