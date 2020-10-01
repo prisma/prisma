@@ -8,9 +8,7 @@ beforeAll(async () => {
 })
 
 afterAll(() => {
-  setTimeout(() => {
-    prisma.$disconnect()
-  }, 500)
+  prisma.$disconnect()
 })
 
 test('raw-transaction: queryRaw', async () => {
@@ -20,12 +18,16 @@ test('raw-transaction: queryRaw', async () => {
           Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.
         `)
 
+
+  const executePromise = prisma.$executeRaw`UPDATE User SET name = 'Bob' WHERE id = ''`
   await expect(async () =>
     prisma.$transaction([
-      prisma.$executeRaw`UPDATE User SET name = 'Bob' WHERE id = ''`,
+      executePromise
     ]),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
           $executeRaw is not yet supported within $transaction.
           Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature
         `)
+
+  await executePromise
 })
