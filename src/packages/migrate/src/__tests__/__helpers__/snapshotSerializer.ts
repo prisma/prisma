@@ -6,7 +6,7 @@ function normalizeMigrateTimestamps(str) {
 }
 
 function normalizeDbUrl(str) {
-  return str.replace(/localhost:\d+/g, 'localhost:5432')
+  return str.replace(/(localhost|postgres):\d+/g, 'localhost:5432')
 }
 
 const serializer = {
