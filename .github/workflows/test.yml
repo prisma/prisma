@@ -40,9 +40,9 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      # fail-fast: true
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        # os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -97,9 +97,9 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      # fail-fast: true
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        # os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -159,9 +159,9 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      # fail-fast: true
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        # os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     services:
@@ -217,9 +217,9 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      # fail-fast: true
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        # os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
     steps:
