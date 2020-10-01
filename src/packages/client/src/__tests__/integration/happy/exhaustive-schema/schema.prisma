@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["insensitiveFilters"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -9,7 +8,7 @@ datasource db {
 }
 
 model Post {
-  id        Int      @default(autoincrement()) @id
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   title     String
   content   String?
@@ -19,7 +18,7 @@ model Post {
 }
 
 model User {
-  id              Int             @default(autoincrement()) @id
+  id              Int             @id @default(autoincrement())
   email           String          @unique
   int             Int
   optionalInt     Int?
@@ -37,7 +36,7 @@ model User {
 }
 
 model M {
-  id              Int             @default(autoincrement()) @id
+  id              Int             @id @default(autoincrement())
   n               N[]
   int             Int
   optionalInt     Int?
@@ -54,7 +53,7 @@ model M {
 }
 
 model N {
-  id              Int             @default(autoincrement()) @id
+  id              Int             @id @default(autoincrement())
   m               M[]
   int             Int
   optionalInt     Int?
@@ -71,7 +70,7 @@ model N {
 }
 
 model OneOptional {
-  id              Int             @default(autoincrement()) @id
+  id              Int             @id @default(autoincrement())
   many            ManyRequired[]
   int             Int
   optionalInt     Int?
@@ -88,7 +87,7 @@ model OneOptional {
 }
 
 model ManyRequired {
-  id  Int          @default(autoincrement()) @id
+  id  Int          @id @default(autoincrement())
   one OneOptional? @relation(fields: [oneOptionalId], references: [id])
 
   oneOptionalId   Int?
@@ -107,7 +106,7 @@ model ManyRequired {
 }
 
 model OptionalSide1 {
-  id   Int            @default(autoincrement()) @id
+  id   Int            @id @default(autoincrement())
   opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
   optionalSide2Id Int?
@@ -126,7 +125,7 @@ model OptionalSide1 {
 }
 
 model OptionalSide2 {
-  id              Int             @default(autoincrement()) @id
+  id              Int             @id @default(autoincrement())
   opti            OptionalSide1?
   int             Int
   optionalInt     Int?
