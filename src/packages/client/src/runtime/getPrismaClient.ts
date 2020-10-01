@@ -171,10 +171,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-> = T extends LogDefinition
+  > = T extends LogDefinition
   ? T['emit'] extends 'event'
-    ? T['level']
-    : never
+  ? T['level']
+  : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -338,8 +338,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof options.log === 'string'
                 ? options.log === 'query'
                 : options.log.find((o) =>
-                    typeof o === 'string' ? o === 'query' : o.level === 'query',
-                  ),
+                  typeof o === 'string' ? o === 'query' : o.level === 'query',
+                ),
             ),
           env: envFile,
           flags: [],
@@ -363,8 +363,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof log === 'string'
                 ? log
                 : log.emit === 'stdout'
-                ? log.level
-                : null
+                  ? log.level
+                  : null
             if (level) {
               this.$on(level, (event) => {
                 const colorMap = {
@@ -375,7 +375,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 }
                 console.error(
                   chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                    (event.message || event.query),
+                  (event.message || event.query),
                 )
               })
             }
@@ -579,9 +579,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $executeRaw(stringOrTemplateStringsArray, ...values) {
+    $executeRaw(stringOrTemplateStringsArray, ...values) {
       try {
-        return this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
+        const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
+          ; (promise as any).isExecuteRaw = true
+        return promise
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
@@ -664,9 +666,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $queryRaw(stringOrTemplateStringsArray, ...values) {
+    $queryRaw(stringOrTemplateStringsArray, ...values) {
       try {
-        return this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
+        const promise = this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
+          ; (promise as any).isQueryRaw = true
+        return promise
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
@@ -717,6 +721,14 @@ new PrismaClient({
     private async $transactionInternal(promises: Array<any>): Promise<any> {
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
+          if (p.isQueryRaw) {
+            throw new Error(`$queryRaw is not yet supported with $transaction.
+Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.`)
+          }
+          if (p.isExecuteRaw) {
+            throw new Error(`$executeRaw is not yet supported with $transaction.
+Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature`)
+          }
           if (
             !p.requestTransaction ||
             typeof p.requestTransaction !== 'function'
@@ -796,9 +808,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ;(params as InternalRequestParams).clientMethod = clientMethod
-      ;(params as InternalRequestParams).callsite = callsite
-      ;(params as InternalRequestParams).headers = headers
+      ; (params as InternalRequestParams).clientMethod = clientMethod
+        ; (params as InternalRequestParams).callsite = callsite
+        ; (params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -994,8 +1006,8 @@ new PrismaClient({
               const prefix = dataPath.includes('select')
                 ? 'select'
                 : dataPath.includes('include')
-                ? 'include'
-                : 'select'
+                  ? 'include'
+                  : 'select'
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
@@ -1053,9 +1065,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                  ...args,
-                  select: { count: true },
-                }
+                ...args,
+                select: { count: true },
+              }
               : undefined,
             dataPath: ['count'],
           })
