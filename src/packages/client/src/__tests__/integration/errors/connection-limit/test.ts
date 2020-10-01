@@ -14,7 +14,8 @@ describe('connection-limit', () => {
     for (let i = 0; i <= 100; i++) {
       const prismaClient = await getTestClient()
       const connectionString =
-        process.env.TEST_POSTGRES_ISOLATED_URI || 'postgres://localhost:5435/'
+        process.env.TEST_POSTGRES_ISOLATED_URI ||
+        'postgres://prisma:prisma@localhost:5435/'
       const client = new prismaClient({
         formatting: 'minimal',
         datasources: {
