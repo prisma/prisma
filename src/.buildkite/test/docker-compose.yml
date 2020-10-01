@@ -9,7 +9,7 @@ services:
     environment:
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
-      - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:3306/tests
+      - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
