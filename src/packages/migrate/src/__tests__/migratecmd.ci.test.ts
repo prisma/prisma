@@ -41,14 +41,14 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created and applied the migration 20201231000000_first in
+                                    Prisma Migrate created and applied the migration 20201231000000_first in
 
-            migrations/
-              └─ 20201231000000_first/
-                └─ migration.sql
+                                    migrations/
+                                      └─ 20201231000000_first/
+                                        └─ migration.sql
 
 
-          `)
+                              `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -70,14 +70,14 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                            Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                                                    Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                                                            migrations/
-                                                                                                              └─ 20201231000000_first/
-                                                                                                                └─ migration.sql
+                                                                                                                                    migrations/
+                                                                                                                                      └─ 20201231000000_first/
+                                                                                                                                        └─ migration.sql
 
 
-                                                                                          `)
+                                                                                                              `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -99,24 +99,24 @@ describe('sqlite', () => {
     ])
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                                Prisma Migrate created a draft migration 20201231000000_first
+            Prisma Migrate created a draft migration 20201231000000_first
 
-                                                You can now edit it and then apply it by running prisma migrate --experimental again.
-                                        `)
+            You can now edit it and then apply it by running prisma migrate --experimental again.
+          `)
 
     const applyResult = MigrateCommand.new().parse(['--experimental'])
     console.debug('hello', await applyResult)
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                                            Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                                                    Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                                                            migrations/
-                                                                                                              └─ 20201231000000_first/
-                                                                                                                └─ migration.sql
+                                                                                                                                    migrations/
+                                                                                                                                      └─ 20201231000000_first/
+                                                                                                                                        └─ migration.sql
 
 
-                                                                                          `)
+                                                                                                              `)
 
     expect(
       (fs.list('prisma/migrations')?.length || 0) > 0,
@@ -166,10 +166,10 @@ describe.skip('posgresql', () => {
     ])
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                    Prisma Migrate created a draft migration 20201231000000_first
+                                                                                                                                                                                                                                                                                                                                                                                            Prisma Migrate created a draft migration 20201231000000_first
 
-                                                                                                                                                                                                                                                                                                                                                                    You can now edit it and then apply it by running yarn prisma migrate --experimental again.
-                                                                                                                                                                                                                                                                                                      `)
+                                                                                                                                                                                                                                                                                                                                                                                            You can now edit it and then apply it by running yarn prisma migrate --experimental again.
+                                                                                                                                                                                                                                                                                                                          `)
 
     const applyResult = MigrateCommand.new().parse(['--experimental'])
     await expect(applyResult).resolves.toMatchInlineSnapshot(
