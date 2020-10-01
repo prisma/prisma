@@ -5,6 +5,14 @@ Argument age: Got invalid value 'thisisastringwith30characters' on prisma.update
 
 `;
 
-exports[`int-errors overflow-int 1`] = `Value out of range for the type. Out of range value for column 'age' at row 1`;
+exports[`int-errors overflow-int 1`] = `
+Authentication failed against database server at \`localhost\`, the provided database credentials for \`root\` are not valid.
 
-exports[`int-errors signed-int 1`] = `Value out of range for the type. Out of range value for column 'age' at row 1`;
+Please make sure to provide valid database credentials for the database server at \`localhost\`.
+`;
+
+exports[`int-errors signed-int 1`] = `
+Authentication failed against database server at \`localhost\`, the provided database credentials for \`root\` are not valid.
+
+Please make sure to provide valid database credentials for the database server at \`localhost\`.
+`;
