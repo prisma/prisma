@@ -31,7 +31,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -51,7 +51,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @default("alice")
 }
 
@@ -95,7 +95,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String
   name  String
 
@@ -118,7 +118,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -144,7 +144,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -170,7 +170,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -196,7 +196,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String?
 }
 
@@ -216,7 +216,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -236,13 +236,13 @@ datasource mysql {
 }
 
 model column_name_that_becomes_empty_string {
-  field1   Int  @default(autoincrement()) @id
+  field1   Int  @id @default(autoincrement())
   // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
 }
 
 model invalid_enum_value_name {
-  field1       Int                                   @default(autoincrement()) @id
+  field1       Int                                   @id @default(autoincrement())
   here_be_enum invalid_enum_value_name_here_be_enum?
 }
 
@@ -253,7 +253,7 @@ model invalid_enum_value_name {
 // }
 
 model unsupported_type {
-  field1         Int     @default(autoincrement()) @id
+  field1         Int     @id @default(autoincrement())
   // This type is currently not supported.
   // unsupported binary?
 }
@@ -328,7 +328,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -349,7 +349,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -370,7 +370,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -390,7 +390,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -411,7 +411,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -432,7 +432,7 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -453,7 +453,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -473,7 +473,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -493,7 +493,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -513,7 +513,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -533,7 +533,7 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -554,7 +554,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -574,7 +574,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -594,7 +594,7 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
+  id       Int   @id @default(autoincrement())
   distance Float
 }
 
@@ -614,7 +614,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -635,7 +635,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -656,7 +656,7 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -677,7 +677,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -698,7 +698,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -719,7 +719,7 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -740,7 +740,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   token Int    @unique
   name  String
 }
@@ -761,7 +761,7 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @default(autoincrement()) @id
+  id   Int       @id @default(autoincrement())
   time DateTime?
 }
 
@@ -781,7 +781,7 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   job       String  @unique
   frequency String?
 }
@@ -802,7 +802,7 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -823,7 +823,7 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -844,7 +844,7 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @default(autoincrement()) @id
+  id         Int      @id @default(autoincrement())
   title      String
   created_at DateTime @default(now())
 }
@@ -865,7 +865,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -885,7 +885,7 @@ datasource mysql {
 }
 
 model posts {
-  id      Int    @default(autoincrement()) @id
+  id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
@@ -894,7 +894,7 @@ model posts {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String  @unique
   posts posts[]
 }
@@ -964,7 +964,7 @@ model a {
 }
 
 model b {
-  id  Int @default(autoincrement()) @id
+  id  Int @id @default(autoincrement())
   one Int
   two Int
   a   a   @relation(fields: [one, two], references: [one, two])
@@ -1012,7 +1012,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String
   name  String
 
@@ -1035,7 +1035,7 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @default(autoincrement()) @id
+  id       Int   @id @default(autoincrement())
   distance Float @unique
 }
 
@@ -1080,7 +1080,7 @@ datasource mysql {
 }
 
 model variables {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   name  String
   key   String
   value String
@@ -1105,7 +1105,7 @@ datasource mysql {
 }
 
 model posts {
-  id      Int    @default(autoincrement()) @id
+  id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
@@ -1114,7 +1114,7 @@ model posts {
 }
 
 model users {
-  id    Int     @default(autoincrement()) @id
+  id    Int     @id @default(autoincrement())
   email String  @unique
   posts posts[]
 }
@@ -1135,7 +1135,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String @unique
 }
 
@@ -1179,7 +1179,7 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @default(autoincrement()) @id
+  id    Int    @id @default(autoincrement())
   email String
   name  String
 
@@ -1202,7 +1202,7 @@ datasource mysql {
 }
 
 model teams {
-  id    Int @default(autoincrement()) @id
+  id    Int @id @default(autoincrement())
   token Int @unique
 }
 
@@ -1222,7 +1222,7 @@ datasource mysql {
 }
 
 model teams {
-  id     Int     @default(autoincrement()) @id
+  id     Int     @id @default(autoincrement())
   name   String  @unique
   active Boolean @default(true)
 }
@@ -1243,7 +1243,7 @@ datasource mysql {
 }
 
 model teams {
-  id     Int     @default(autoincrement()) @id
+  id     Int     @id @default(autoincrement())
   name   String  @unique
   active Boolean @default(true)
 }
@@ -1264,7 +1264,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -1284,7 +1284,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String @unique
 }
 
@@ -1304,7 +1304,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -1330,7 +1330,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -1356,7 +1356,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int     @default(autoincrement()) @id
+  id   Int     @id @default(autoincrement())
   name String?
 }
 
@@ -1376,7 +1376,7 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @default(autoincrement()) @id
+  id   Int    @id @default(autoincrement())
   name String
 }
 
@@ -1396,7 +1396,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @default(autoincrement()) @id
+  id        Int             @id @default(autoincrement())
   title     String
   published posts_published @default(DRAFT)
 }
@@ -1422,7 +1422,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
@@ -1443,7 +1443,7 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @default(autoincrement()) @id
+  id        Int     @id @default(autoincrement())
   title     String
   published Boolean @default(false)
 }
