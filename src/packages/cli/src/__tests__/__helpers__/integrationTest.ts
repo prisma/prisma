@@ -281,13 +281,13 @@ async function afterAllScenarios(
       await state.input.database.close(state.db)
     }
     if (state.input.settings?.cleanupTempDirs !== false) {
-      fs.remove(getScenarioDir(state.input.database.name, kind, ''))
+      fs.remove(getScenariosDir(state.input.database.name, kind))
     }
   })
 }
 
-function beforeAllScenarios(kind: string, input: Input) {
-  fs.remove(getScenarioDir(input.database.name, kind, ''))
+function beforeAllScenarios(testKind: string, input: Input) {
+  fs.remove(getScenariosDir(input.database.name, testKind))
 }
 
 /**
@@ -390,16 +390,22 @@ function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
  */
 function getScenarioDir(
   databaseName: string,
-  kind: string,
+  testKind: string,
   scenarioName: string,
 ) {
+  return Path.join(getScenariosDir(databaseName, testKind), scenarioName)
+}
+
+/**
+ * Get the temporary directory for the scenarios
+ */
+function getScenariosDir(databaseName: string, testKind: string) {
   return Path.join(
     Path.dirname(pkgDir),
     'src',
     '__tests__',
     'tmp',
-    `integration-test-${databaseName}-${kind}`,
-    scenarioName,
+    `integration-test-${databaseName}-${testKind}`,
   )
 }
 
