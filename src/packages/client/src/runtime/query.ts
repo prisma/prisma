@@ -446,7 +446,7 @@ ${errorMessages}${missingArgsLegend}\n`
             ),
           )}.
 → Possible values: ${(error.requiredType.bestFittingType
-            .type as DMMF.Enum).values
+            .type as DMMF.SchemaEnum).values
             .map((v) =>
               chalk.greenBright(
                 `${stringifyGraphQLType(

@@ -124,6 +124,7 @@ const commonCodeTS = ({
   empty,
   join,
   raw,
+  Sql,
 } from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
@@ -135,7 +136,7 @@ export { PrismaClientValidationError }
 /**
  * Re-export of sql-template-tag
  */
-export { sql, empty, join, raw }
+export { sql, empty, join, raw, Sql }
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -1576,7 +1577,7 @@ export type ${type.name} = ${body}`
 }
 
 export class Enum implements Generatable {
-  constructor(protected readonly type: DMMF.Enum) { }
+  constructor(protected readonly type: DMMF.SchemaEnum) { }
   public toJS(): string {
     const { type } = this
     return `exports.${type.name} = makeEnum({

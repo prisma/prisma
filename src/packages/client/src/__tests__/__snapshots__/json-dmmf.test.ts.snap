@@ -399,6 +399,18 @@ Array [
         inputTypes: Array [
           Object {
             isList: false,
+            kind: enum,
+            type: QueryMode,
+          },
+        ],
+        isNullable: false,
+        isRequired: false,
+        name: mode,
+      },
+      Object {
+        inputTypes: Array [
+          Object {
+            isList: false,
             kind: scalar,
             type: String,
           },

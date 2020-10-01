@@ -7,16 +7,26 @@ export namespace DMMF {
     mappings: Mapping[]
   }
 
-  export interface Enum {
+  export interface DatamodelEnum {
     name: string
-    values: string[]
+    values: EnumValue[]
     dbName?: string | null
     documentation?: string
   }
 
+  export interface SchemaEnum {
+    name: string
+    values: string[]
+  }
+
+  export interface EnumValue {
+    name: string
+    dbName: string | null
+  }
+
   export interface Datamodel {
     models: Model[]
-    enums: Enum[]
+    enums: DatamodelEnum[]
   }
 
   export interface uniqueIndex {
@@ -68,7 +78,7 @@ export namespace DMMF {
     rootMutationType?: string
     inputTypes: InputType[]
     outputTypes: OutputType[]
-    enums: Enum[]
+    enums: SchemaEnum[]
   }
 
   export interface Query {
@@ -83,7 +93,7 @@ export namespace DMMF {
     isList: boolean
   }
 
-  export type ArgType = string | InputType | Enum
+  export type ArgType = string | InputType | SchemaEnum
 
   export interface SchemaArgInputType {
     isList: boolean
@@ -111,7 +121,7 @@ export namespace DMMF {
     isRequired: boolean
     isNullable?: boolean
     outputType: {
-      type: string | OutputType | Enum // note that in the serialized state we don't have the reference to MergedOutputTypes
+      type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes
       isList: boolean
       kind: FieldKind
     }

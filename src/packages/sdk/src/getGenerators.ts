@@ -4,7 +4,7 @@ import path from 'path'
 import {
   GeneratorOptions,
   GeneratorConfig,
-  EngineType,
+  EngineType, BinaryPaths, GeneratorManifest
 } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import {
@@ -16,7 +16,7 @@ import { getPlatform, Platform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
 
 import { getConfig, getDMMF, ConfigMetaFormat } from './engineCommands'
-import { unique } from './unique'
+import makeDir from 'make-dir'
 import { pick } from './pick'
 import { Generator } from './Generator'
 import { resolveOutput } from './resolveOutput'
@@ -28,6 +28,7 @@ import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
+import { engineVersions } from './getAllVersions'
 
 const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
@@ -119,6 +120,7 @@ export async function getGenerators({
     throw new Error(missingModelMessage)
   }
 
+
   const generatorConfigs = overrideGenerators || config.generators
 
   await validateGenerators(generatorConfigs)
@@ -180,7 +182,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           dmmf,
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
-          version: version || defaultEngineVersion,
+          version: version || defaultEngineVersion, // this version makes no sense anymore and should be ignored
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -197,56 +199,113 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     )
 
     // 2. Download all binaries and binary targets needed
-    const binaries = flatMap(generators, (g) =>
-      g.manifest ? g.manifest.requiresEngines || [] : [],
-    )
 
-    let binaryTargets = unique(
-      flatMap(generatorConfigs, (g) => g.binaryTargets || []),
-    ).map((t) => (t === 'native' ? platform : t))
+    const neededVersions = Object.create(null)
+    for (const g of generators) {
+      if (g.manifest?.requiresEngines && Array.isArray(g.manifest?.requiresEngines) && g.manifest.requiresEngines.length > 0) {
+        const neededVersion = getEngineVersionForGenerator(g.manifest, version)
 
-    if (binaryTargets.length === 0) {
-      binaryTargets = [platform]
+        if (!neededVersions[neededVersion]) {
+          neededVersions[neededVersion] = { engines: [], binaryTargets: [] }
+        }
+        for (const engine of g.manifest?.requiresEngines) {
+          if (!neededVersions[neededVersion].engines.includes(engine)) {
+            neededVersions[neededVersion].engines.push(engine)
+          }
+        }
+        if (g.options?.generator?.binaryTargets && g.options?.generator?.binaryTargets.length > 0) {
+          for (let binaryTarget of g.options?.generator?.binaryTargets) {
+            if (binaryTarget === 'native') {
+              binaryTarget = platform
+            }
+            if (!neededVersions[neededVersion].binaryTargets.includes(binaryTarget)) {
+              neededVersions[neededVersion].binaryTargets.push(binaryTarget)
+            }
+          }
+        }
+      }
     }
 
-    if (process.env.NETLIFY && !binaryTargets.includes('rhel-openssl-1.0.x')) {
-      binaryTargets.push('rhel-openssl-1.0.x')
+    // eval so that ncc doesn't interfere
+
+    const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
+
+    // make sure, that at least the current platform is being fetched
+    for (let currentVersion in neededVersions) {
+      // ensure binaryTargets are set correctly
+      const neededVersion = neededVersions[currentVersion]
+      if (neededVersion.binaryTargets.length === 0) {
+        neededVersion.binaryTargets.push(platform)
+        if (neededVersion.binaryTargets.length === 0) {
+          neededVersion.binaryTargets = [platform]
+        }
+
+        if (process.env.NETLIFY && !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')) {
+          neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
+        }
+      }
+
+      // download
+      let binaryTargetBaseDir = eval(
+        `require('path').join(__dirname, '..')`,
+      )
+
+      if (version !== currentVersion) {
+        binaryTargetBaseDir = path.join(binaryTargetBaseDir, `./engines/${currentVersion}/`)
+        await makeDir(binaryTargetBaseDir).catch(e => console.error(e))
+      }
+
+      const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce(
+        (acc, curr) => {
+          acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
+          return acc
+        },
+        Object.create(null),
+      )
+
+      const downloadParams: DownloadOptions = {
+        binaries: binariesConfig,
+        binaryTargets: neededVersion.binaryTargets,
+        showProgress:
+          typeof printDownloadProgress === 'boolean'
+            ? printDownloadProgress
+            : true,
+        version: currentVersion || defaultEngineVersion,
+        skipDownload,
+      }
+
+      const binaryPathsWithEngineType = await download(downloadParams)
+      const binaryPaths = mapKeys(
+        binaryPathsWithEngineType,
+        binaryTypeToEngineType,
+      )
+      binaryPathsByVersion[currentVersion] = binaryPaths
     }
-
-    const binariesConfig: BinaryDownloadConfiguration = binaries.reduce(
-      (acc, curr) => {
-        acc[engineTypeToBinaryType(curr)] = eval(
-          `require('path').join(__dirname, '..')`,
-        )
-        return acc
-      },
-      {},
-    )
-
-    const downloadParams: DownloadOptions = {
-      binaries: binariesConfig,
-      binaryTargets: binaryTargets as any[],
-      showProgress:
-        typeof printDownloadProgress === 'boolean'
-          ? printDownloadProgress
-          : true,
-      version: version || defaultEngineVersion,
-      skipDownload,
-    }
-
-    const binaryPathsWithEngineType = await download(downloadParams)
-    const binaryPaths = mapKeys(
-      binaryPathsWithEngineType,
-      binaryTypeToEngineType,
-    )
 
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
+        const engineVersion = getEngineVersionForGenerator(generator.manifest, version)
+        const binaryPaths = binaryPathsByVersion[engineVersion]
+        // pick only the engines that we need for this generator
         const generatorBinaryPaths = pick(
           binaryPaths,
           generator.manifest.requiresEngines,
         )
+
         generator.setBinaryPaths(generatorBinaryPaths)
+
+        // in case cli engine version !== client engine version
+        // we need to re-generate the dmmf and pass it in to the generator
+        if (engineVersion !== version && generator.options && generator.manifest.requiresEngines.includes('queryEngine') && generatorBinaryPaths.queryEngine && generatorBinaryPaths.queryEngine[platform]) {
+          const customDmmf = await getDMMF({
+            datamodel,
+            datamodelPath: schemaPath,
+            prismaPath: generatorBinaryPaths.queryEngine[platform],
+            enableExperimental: experimentalFeatures
+          })
+          const options = { ...generator.options, dmmf: customDmmf }
+          generator.setOptions(options)
+        }
       }
     }
 
@@ -314,8 +373,8 @@ async function validateGenerators(
         '@prisma/photon',
       )} dependency to ${chalk.green('@prisma/client')}
   3. Replace ${chalk.red(
-    "import { Photon } from '@prisma/photon'",
-  )} with ${chalk.green(
+        "import { Photon } from '@prisma/photon'",
+      )} with ${chalk.green(
         "import { PrismaClient } from '@prisma/client'",
       )} in your code.
   4. Run ${chalk.green('prisma generate')} again.
@@ -378,28 +437,28 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           )}.
     To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
     ${chalk.greenBright(
-      printGeneratorConfig({
-        ...generator,
-        binaryTargets: fixBinaryTargets(
-          generator.binaryTargets as any[],
-          platform,
-        ),
-      }),
-    )}
+            printGeneratorConfig({
+              ...generator,
+              binaryTargets: fixBinaryTargets(
+                generator.binaryTargets as any[],
+                platform,
+              ),
+            }),
+          )}
     ${chalk.gray(
-      `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+            `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
     Read more about deploying Prisma Client: ${chalk.underline(
-      'https://github.com/prisma/prisma/blob/master/docs/core/generators/prisma-client-js.md',
-    )}`,
-    )}\n`)
+              'https://github.com/prisma/prisma/blob/master/docs/core/generators/prisma-client-js.md',
+            )}`,
+          )}\n`)
         } else {
           console.log(
             `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
               binaryTargets,
             )} don't include your local platform ${platform}, which you can also point to with \`native\`.
     In case you want to fix this, you can provide ${chalk.greenBright(
-      `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-    )} in the schema.prisma file.`,
+              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
+            )} in the schema.prisma file.`,
           )
         }
       }
@@ -457,4 +516,13 @@ function mapKeys<T extends object>(
     acc[mapper(key as keyof T)] = value
     return acc
   }, {})
+}
+
+function getEngineVersionForGenerator(manifest?: GeneratorManifest, defaultVersion?: string | undefined): string {
+  let neededVersion: string = manifest?.requiresEngineVersion!
+  if (manifest?.version && engineVersions[manifest?.version]) {
+    neededVersion = engineVersions[manifest?.version]
+  }
+  neededVersion = neededVersion ?? defaultVersion // default to CLI version otherwise, if not provided
+  return neededVersion ?? 'latest'
 }
