@@ -12,7 +12,6 @@ export const database = {
     return mariadb.createConnection({
       host: credentials.host,
       port: credentials.port,
-      // database: credentials.database,
       user: credentials.user,
       password: credentials.password,
       multipleStatements: true,
