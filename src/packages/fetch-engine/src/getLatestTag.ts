@@ -36,6 +36,11 @@ export async function getLatestTag(): Promise<any> {
     commits = await getCommits(branch)
   }
 
+  if (!Array.isArray(commits)) {
+    console.error(commits)
+    throw new Error(`Could not fetch commits from github: ${JSON.stringify(commits, null, 2)}`)
+  }
+
   if (process.env.CI) {
     return getCommitAndWaitIfNotDone(commits)
   }
@@ -128,7 +133,7 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
           }
           console.log(`The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 10 seconds`)
           exist = await pMap(urls, urlExists, { concurrency: 10 })
-          missing = urls.filter((_, i) => exist[i])
+          missing = urls.filter((_, i) => !exist[i])
           hasMissing = exist.some(e => !e)
           if (!hasMissing) {
             return commit
@@ -220,8 +225,8 @@ async function getVersionHashes(
     }))
 }
 
-async function getCommits(branch: string): Promise<string[] | null> {
-  const url = `https://api.github.com/repos/prisma/prisma-engines/commits?sha=${branch}`
+async function getCommits(branch: string): Promise<string[] | object> {
+  const url = `https://github-cache.prisma.workers.dev/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
     agent: getProxyAgent(url),
     headers: {
@@ -230,7 +235,7 @@ async function getCommits(branch: string): Promise<string[] | null> {
   } as any).then((res) => res.json())
 
   if (!Array.isArray(result)) {
-    return null
+    return result
   }
 
   const commits = result.map((r) => r.sha)
