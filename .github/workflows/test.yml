@@ -326,7 +326,7 @@ jobs:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
-      postgres-isolated:
+      postgres_isolated:
         image: postgres:9
         env:
           POSTGRES_USER: prisma
@@ -382,6 +382,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5435] }}/postgres
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
 
   #
