@@ -110,7 +110,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
-        if: matrix.test === 'sqlite'
+        if: ${{ matrix.test == 'sqlite' }}
         working-directory: src/packages/cli
 
       - run: pnpm run jest integration.${{ matrix.test }}.test.ts -- --forceExit
