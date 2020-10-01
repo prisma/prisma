@@ -113,7 +113,7 @@ jobs:
         if: ${{ matrix.test == 'sqlite' }}
         working-directory: src/packages/cli
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency 20
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
         working-directory: src/packages/cli
         env:
           CI: true
