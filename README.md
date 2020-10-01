@@ -71,8 +71,8 @@ model Post {
   title     String
   content   String?
   published Boolean @default(false)
-  author    User?   @relation(fields:  [authorId], references: [id])
-  authorId  Int?
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int 
 }
 
 model User {
@@ -97,7 +97,7 @@ On this page, the focus is on the data model. You can learn more about [Data sou
 
 #### Functions of Prisma models
 
-The data model is a collection of [models](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/models). A model has two major functions:
+The data model is a collection of [models](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#defining-models). A model has two major functions:
 
 - Represent a table in the underlying database
 - Provide the foundation for the queries in the Prisma Client API
