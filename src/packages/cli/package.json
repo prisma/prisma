@@ -79,6 +79,8 @@
     "@types/jest": "26.0.14",
     "@types/pg": "7.14.5",
     "@types/sqlite3": "3.1.6",
+    "@types/string-hash": "^1.1.1",
+    "@types/verror": "^1.10.4",
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
@@ -115,12 +117,14 @@
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
     "sqlite3": "4.2.0",
+    "string-hash": "^1.1.3",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "tempy": "0.7.1",
     "terminal-link": "2.1.1",
     "ts-jest": "26.4.0",
     "typescript": "4.0.3",
+    "verror": "^1.10.0",
     "ws": "7.3.1"
   },
   "scripts": {
