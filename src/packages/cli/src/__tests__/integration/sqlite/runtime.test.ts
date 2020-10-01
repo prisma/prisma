@@ -1,5 +1,5 @@
-import * as IntegrationTest from '../../__helpers__/integrationTest'
+import { runtimeIntegrationTest } from '../../__helpers__/integrationTest'
 import { database } from './__database'
 import { scenarios } from './__scenarios'
 
-IntegrationTest.runtimeIntegrationTest({ database, scenarios })
+runtimeIntegrationTest({ database, scenarios })
