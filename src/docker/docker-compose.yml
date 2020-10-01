@@ -2,12 +2,12 @@ version: '3.7'
 services:
   # In Docker
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/tests
-  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres:5435/tests
+  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres:5435/postgres
   # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
   # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
   # Outside Docker
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests
-  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@localhost:5435/tests
+  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@localhost:5435/postgres
   # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
   # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
 
@@ -27,7 +27,6 @@ services:
     image: postgres:10
     restart: always
     environment:
-      - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
     volumes:

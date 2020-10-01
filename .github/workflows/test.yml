@@ -250,7 +250,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
-          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5435] }}/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5435] }}/postgres
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
 
   #
