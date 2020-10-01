@@ -722,11 +722,11 @@ new PrismaClient({
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
           if (p.isQueryRaw) {
-            throw new Error(`$queryRaw is not yet supported with $transaction.
+            throw new Error(`$queryRaw is not yet supported within $transaction.
 Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.`)
           }
           if (p.isExecuteRaw) {
-            throw new Error(`$executeRaw is not yet supported with $transaction.
+            throw new Error(`$executeRaw is not yet supported within $transaction.
 Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature`)
           }
           if (
