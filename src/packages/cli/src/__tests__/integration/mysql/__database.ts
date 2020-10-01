@@ -30,7 +30,7 @@ export const database = {
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const connectionString = `mysql://root:root@localhost:4306/${ctx.id}`
+  const connectionString = `mysql://root:root@localhost:3306/${ctx.id}`
   const credentials = uriToCredentials(connectionString)
 
   return {
