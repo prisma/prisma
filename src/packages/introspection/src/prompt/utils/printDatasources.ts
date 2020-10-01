@@ -1,7 +1,7 @@
 // This is copied from prisma-client-js/runtime/utils. It needs to be moved into a separate package
 import indent from 'indent-string'
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql'
+export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql' | 'sqlserver' | 'jdbc:sqlserver'
 
 export interface GeneratorConfig {
   name: string
@@ -13,9 +13,9 @@ export interface GeneratorConfig {
 export type Datasource =
   | string
   | {
-      url: string
-      [key: string]: any | undefined
-    }
+    url: string
+    [key: string]: any | undefined
+  }
 
 export interface InternalDatasource {
   name: string
@@ -42,7 +42,7 @@ export function printDatasources(
 const tab = 2
 
 class InternalDataSourceClass {
-  constructor(private readonly dataSource: InternalDatasource) {}
+  constructor(private readonly dataSource: InternalDatasource) { }
 
   public toString(): string {
     const { dataSource } = this
@@ -67,10 +67,9 @@ export function printDatamodelObject(obj: any): string {
   return Object.entries(obj)
     .map(
       ([key, value]: [string, any]) =>
-        `${key.padEnd(maxLength)} = ${
-          typeof value === 'object' && value && value.value
-            ? JSON.stringify(value.value)
-            : JSON.stringify(value)
+        `${key.padEnd(maxLength)} = ${typeof value === 'object' && value && value.value
+          ? JSON.stringify(value.value)
+          : JSON.stringify(value)
         }`,
     )
     .join('\n')

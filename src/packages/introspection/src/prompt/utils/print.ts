@@ -20,7 +20,7 @@ export function beautifyLanguage(language: string): string {
 
 export function prettyDb(
   type: ConnectorType,
-): 'mongo' | 'sqlite' | 'MySQL' | 'PostgreSQL' {
+): 'mongo' | 'sqlite' | 'MySQL' | 'PostgreSQL' | string {
   switch (type) {
     case 'mysql': {
       return 'MySQL'

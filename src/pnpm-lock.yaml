@@ -662,7 +662,6 @@ importers:
       ink: 2.7.1_25417382793f8b9d506bef5a668275ff
       ink-link: 1.1.0_ink@2.7.1+react@16.11.0
       ink-spinner: 3.1.0_ink@2.7.1+react@16.11.0
-      is-ci: 2.0.0
       log-update: 4.0.0
       new-github-issue-url: 0.2.1
       open: 7.0.4
@@ -753,7 +752,6 @@ importers:
       ink: 2.7.1
       ink-link: 1.1.0
       ink-spinner: 3.1.0
-      is-ci: ^2.0.0
       jest: 26.4.2
       lint-staged: 10.4.0
       log-update: ^4.0.0
@@ -793,6 +791,7 @@ importers:
       global-dirs: 2.0.1
       globby: 11.0.1
       has-yarn: 2.1.0
+      is-ci: 2.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.1
       p-map: 4.0.0
@@ -855,6 +854,7 @@ importers:
       globby: ^11.0.0
       has-yarn: ^2.1.0
       husky: 4.3.0
+      is-ci: ^2.0.0
       jest: 26.4.2
       lint-staged: 10.4.0
       make-dir: ^3.0.2
