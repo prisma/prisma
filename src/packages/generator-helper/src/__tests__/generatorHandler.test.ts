@@ -54,7 +54,7 @@ describe('generatorHandler', () => {
     const generator = new GeneratorProcess(
       path.join(__dirname, 'invalid-executable'),
     )
-    await expect(generator.init()).rejects.toThrow(
+    await expect(() => generator.init()).rejects.toThrow(
       `Cannot find module 'ms-node/register'`,
     )
   })

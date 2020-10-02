@@ -167,7 +167,7 @@ FORCE_PANIC_MIGRATION_ENGINE=1
 
 ```bash
 # In the root directory
-pnpm run download
+pnpm run download-all
 ```
 
 ## Running the CI system locally

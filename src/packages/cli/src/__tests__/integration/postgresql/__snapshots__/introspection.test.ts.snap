@@ -253,9 +253,9 @@ model invalid_enum_value_name {
 // }
 
 model unsupported_type {
-  field1         Int        @id @default(autoincrement())
+  field1         Int      @id @default(autoincrement())
   // This type is currently not supported.
-  // unsupported geometric?
+  // unsupported polygon?
 }
 
 enum invalid_enum {
@@ -293,7 +293,7 @@ Array [
       Object {
         field: unsupported,
         model: unsupported_type,
-        tpe: geometric,
+        tpe: polygon,
       },
     ],
     code: 3,
