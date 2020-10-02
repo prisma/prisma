@@ -132,7 +132,7 @@
     "test:postgresql": "jest integration.postgresql --forceExit --maxConcurrency=10",
     "test:mysql": "jest integration.mysql --forceExit --maxConcurrency=5",
     "test:mariadb": "jest integration.mariadb --forceExit --maxConcurrency=5",
-    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest introspect --forceExit",
+    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest --forceExit tests__/introspect",
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --forceExit --maxConcurrency=5",
     "jest": "jest",
