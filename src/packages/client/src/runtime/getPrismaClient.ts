@@ -721,11 +721,16 @@ new PrismaClient({
     private async $transactionInternal(promises: Array<any>): Promise<any> {
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
-          if (p.isQueryRaw) {
+          if (!p) {
+            throw new Error(
+              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+            )
+          }
+          if (p?.isQueryRaw) {
             throw new Error(`$queryRaw is not yet supported within $transaction.
 Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.`)
           }
-          if (p.isExecuteRaw) {
+          if (p?.isExecuteRaw) {
             throw new Error(`$executeRaw is not yet supported within $transaction.
 Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature`)
           }
@@ -734,7 +739,7 @@ Please report in https://github.com/prisma/prisma/issues/3828 if you need this f
             typeof p.requestTransaction !== 'function'
           ) {
             throw new Error(
-              `All elements of the array need to be Prisma Client promises.`,
+              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
             )
           }
         }
