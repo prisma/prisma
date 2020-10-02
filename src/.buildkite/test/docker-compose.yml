@@ -7,9 +7,12 @@ services:
     working_dir: /app
     command: /app/src/.buildkite/test/run.sh
     environment:
+      - TEST_POSTGRES_BASE_URI=postgres://prisma:prisma@postgres:5432
+      - TEST_MYSQL_BASE_URI=mysql://root:root@mysql:3306
+      - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
-      - TEST_MYSQL_URI=mysql://root:root@mysql:3306
-      - TEST_MARIADB_URI=mysql://root:root@mariadb:3306
+      - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
+      - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
