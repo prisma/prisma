@@ -39,6 +39,7 @@
   "scripts": {
     "build": "node helpers/build.js",
     "test": "jest",
+    "test:unit": "jest unit",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
     "download": "node scripts/download.js",
