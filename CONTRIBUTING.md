@@ -21,6 +21,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ### Tips
 
+
 1. Use [TablePlus](https://tableplus.com/) for managing sqlite database fixtures.
 
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
