@@ -16,7 +16,16 @@ model User {
   name  String
   email String @unique
   json  Json
-}`
+}
+
+
+model OptionalUser {
+  id    Int @id @default(autoincrement())
+  name  String
+  email String @unique
+  json  Json?
+}
+`
 
 let dmmf
 beforeAll(async () => {
@@ -58,6 +67,40 @@ describe('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+
+  test('should be able filter json null', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            equals: null
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyOptionalUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+
+  test('should be able filter json "null"', async () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            equals: "null"
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyOptionalUser',
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
