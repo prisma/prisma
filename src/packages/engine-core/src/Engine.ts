@@ -8,19 +8,6 @@ import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
 
-export class PrismaQueryEngineError extends Error {
-  /**
-   * HTTP Code
-   */
-  code: number
-
-  constructor(message: string, code: number) {
-    super(message)
-
-    this.code = code
-  }
-}
-
 export function getMessage(log: string | RustLog | RustError | any): string {
   if (typeof log === 'string') {
     return log

@@ -2,7 +2,8 @@ import * as PG from 'pg'
 import { integrationTest } from './__helpers__/integrationTest'
 
 const connectionString =
-  process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/'
+  process.env.TEST_POSTGRES_URI ||
+  'postgres://prisma:prisma@localhost:5432/tests'
 
 integrationTest<PG.Client>({
   database: {
