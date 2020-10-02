@@ -49,18 +49,18 @@ test('introspection basic', async () => {
   `)
   const metadata = await engine.getDatabaseMetadata(schema)
   expect(metadata).toMatchInlineSnapshot(`
-          Object {
-            "size_in_bytes": 0,
-            "table_count": 3,
-          }
-      `)
+    Object {
+      "size_in_bytes": 53248,
+      "table_count": 3,
+    }
+  `)
   const databases = await engine.listDatabases(schema)
   expect(databases).toMatchInlineSnapshot(`
-          Array [
-            "",
-            "blog.db",
-          ]
-      `)
+    Array [
+      "blog.db",
+      "blog.db",
+    ]
+  `)
   const description = await engine.getDatabaseDescription(schema)
   expect(JSON.parse(description)).toMatchInlineSnapshot(`
     Object {
