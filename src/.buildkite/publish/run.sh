@@ -9,7 +9,7 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
 fi
 
-npm i --silent -g pnpm@5.1.7 esbuild@0.7.1 --unsafe-perm
+npm i --silent -g pnpm@5.1.7 esbuild@0.7.8 --unsafe-perm
 npm i --silent -g yarn || echo "Ok"
 yarn --version || echo "Ok"
 pnpm i --no-prefer-frozen-lockfile --reporter=silent
