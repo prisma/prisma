@@ -320,7 +320,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         const previewFeatures = config.generator?.previewFeatures ?? []
-        
+
         this._engineConfig = {
           cwd,
           enableDebugLogs: useDebug,
@@ -347,7 +347,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           enableExperimental: mapPreviewFeatures(previewFeatures),
           useUds: internal.useUds,
         }
-        debug({config: this._engineConfig})
 
         const sanitizedEngineConfig = omit(this._engineConfig, [
           'env',
