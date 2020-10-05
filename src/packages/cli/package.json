@@ -59,7 +59,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "f0b84b2b6f0f9e7ba070da74b8bf0c9950d08d45",
+    "version": "79631d01e87bf49f9b221539df1cdf336bde2d6b",
     "prismaCommit": "251b3e81afcbf627a50688e6e8356c92f7326ef2"
   },
   "devDependencies": {
@@ -74,6 +74,7 @@
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.294.0",
     "@prisma/studio-server": "0.294.0",
+    "@timsuchanek/copy": "^1.4.5",
     "@types/debug": "4.1.5",
     "@types/jest": "26.0.14",
     "@types/pg": "7.14.5",
@@ -81,9 +82,9 @@
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
-    "@vercel/ncc": "0.23.0",
     "checkpoint-client": "1.1.12",
     "dotenv": "8.2.0",
+    "escape-string-regexp": "^4.0.0",
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -136,10 +137,7 @@
     "lint": "eslint --fix --ext .js,.ts .",
     "download": "rm -f download-done && node scripts/updateTag.js && node scripts/download.js || echo \"\"",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
-    "ncc": "ncc build dist/bin.js -o build -m",
-    "ncc:download": "rm -rf download-build && ncc build scripts/download.js -o download-build --minify",
-    "ncc:preinstall": "rm -rf preinstall && ncc build scripts/preinstall.js -o preinstall --minify",
-    "build": "pnpm run tsc && pnpm run ncc:preinstall && pnpm run ncc:download && rm -rf build && pnpm run ncc && sed -i.bak 's/env ts-node/env node/g' 'build/index.js' && rm -f build/index.js.bak && bash scripts/copy-runtime.sh",
+    "build": "node helpers/build.js",
     "pkg": "pkg . -o pkg-build",
     "prepublishOnly": "pnpm run build",
     "preinstall": "node preinstall/index.js"
