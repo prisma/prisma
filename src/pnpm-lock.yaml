@@ -77,6 +77,7 @@ importers:
       husky: 4.3.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
+      line-replace: 2.0.1
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
@@ -137,6 +138,7 @@ importers:
       husky: 4.3.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
+      line-replace: ^2.0.1
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
@@ -427,7 +429,7 @@ importers:
       '@types/progress': 2.0.3
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      del: 5.1.0
+      del: 6.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0_eslint@7.10.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
@@ -450,7 +452,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
       chalk: ^4.0.0
-      del: 5.1.0
+      del: 6.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -659,7 +661,7 @@ importers:
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
       '@vercel/ncc': 0.23.0
       chalk: 4.1.0
-      del: 5.1.0
+      del: 6.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0_eslint@7.10.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
@@ -702,7 +704,7 @@ importers:
       chalk: 4.1.0
       cli-cursor: 3.1.0
       dashify: 2.0.0
-      del: 5.1.0
+      del: 6.0.0
       diff: 4.0.2
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
@@ -5579,6 +5581,11 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==
+  /line-replace/2.0.1:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-CSr3f6gynLCA9R+RBS0IDIfv7a8OAXcuyq+CHgq0WzbQ7KSJQfF5DgtpRVxpSp1KBNXogtzbNqAeUjrmHYTPYA==
   /lines-and-columns/1.1.6:
     resolution:
       integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=
