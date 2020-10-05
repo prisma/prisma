@@ -5,8 +5,8 @@ const pkgUp = require('pkg-up')
 const Debug = require('debug')
 const debug = Debug('prisma:download')
 
-const binaryDir = eval(`require('path').join(__dirname, '../')`)
-const pkg = eval(`require(require('path').join(binaryDir, 'package.json'))`)
+const binaryDir = path.join(__dirname, '../')
+const pkg = require(path.join(binaryDir, 'package.json'))
 
 const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
 
