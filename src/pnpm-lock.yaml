@@ -53,6 +53,7 @@ importers:
       '@prisma/sdk': 'link:../sdk'
       '@prisma/studio': 0.294.0
       '@prisma/studio-server': 0.294.0
+      '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
@@ -60,7 +61,6 @@ importers:
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      '@vercel/ncc': 0.23.0
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
       eslint: 7.10.0
@@ -112,6 +112,7 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.294.0
       '@prisma/studio-server': 0.294.0
+      '@timsuchanek/copy': ^1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
@@ -119,7 +120,6 @@ importers:
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
-      '@vercel/ncc': 0.23.0
       checkpoint-client: 1.1.12
       dotenv: 8.2.0
       eslint: 7.10.0
