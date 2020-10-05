@@ -59,7 +59,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "f0b84b2b6f0f9e7ba070da74b8bf0c9950d08d45",
+    "version": "79631d01e87bf49f9b221539df1cdf336bde2d6b",
     "prismaCommit": "251b3e81afcbf627a50688e6e8356c92f7326ef2"
   },
   "devDependencies": {
@@ -134,7 +134,7 @@
     "test:mariadb": "jest integration.mariadb --forceExit --maxConcurrency=10",
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest --forceExit tests__/introspect",
     "test": "pnpm run test:commands && pnpm run test:integration",
-    "test:integration": "jest integration --forceExit --maxConcurrency=10",
+    "test:integration": "jest integration --forceExit --maxConcurrency=1",
     "jest": "jest",
     "install": "node download-build/index.js",
     "format": "prettier --write .",
