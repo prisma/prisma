@@ -98,6 +98,7 @@
     "husky": "4.3.0",
     "is-installed-globally": "0.3.2",
     "jest": "26.4.2",
+    "line-replace": "^2.0.1",
     "lint-staged": "10.4.0",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",

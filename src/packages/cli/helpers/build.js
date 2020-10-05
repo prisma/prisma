@@ -6,6 +6,7 @@ const makeDir = require('make-dir')
 const path = require('path')
 const {promisify} = require('util')
 const copyFile = promisify(fs.copyFile)
+const lineReplace = require('line-replace')
 
 async function main() {
   const before = Date.now()
@@ -16,7 +17,7 @@ async function main() {
     run('node ./scripts/copy-prisma-client.js'),
     run('tsc --build tsconfig.build.json', true),
     run(
-      'esbuild src/bin.ts --outfile=build/index.js --bundle --platform=node --target=node10',
+      'esbuild src/bin.ts --outfile=build/index.js --bundle --platform=node --target=node10 --minify --sourcemap',
       false,
     ),
     run(
@@ -38,13 +39,16 @@ async function main() {
     copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open'),
   ])
 
-  await copy({
-    from: path.join(require.resolve('@prisma/studio/package.json'), '../build'),
-    to: './dist/public',
-    recursive: true,
-    parallelJobs: process.platform === 'win32' ? 1 : 20,
-    overwrite: true
-  })
+  await Promise.all([
+    copy({
+      from: path.join(require.resolve('@prisma/studio/package.json'), '../build'),
+      to: './dist/public',
+      recursive: true,
+      parallelJobs: process.platform === 'win32' ? 1 : 20,
+      overwrite: true
+    }),
+    replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
+  ])
 
   const after = Date.now()
   console.log(
@@ -54,6 +58,18 @@ async function main() {
       )}s`,
     ),
   )
+}
+
+function replaceFirstLine(filePath, line) {
+  return new Promise((resolve, reject) => {
+    lineReplace({
+      file: filePath,
+      line: 1,
+      text: line,
+      addNewLine: false,
+      callback: resolve
+    })
+  })
 }
 
 function run(command, preferLocal = true) {
