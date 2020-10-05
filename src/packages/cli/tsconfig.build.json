@@ -9,6 +9,7 @@
     "runtime",
     "examples",
     "src/__tests__",
-    "fixtures"
+    "fixtures",
+    "**/node_modules/**"
   ]
 }
