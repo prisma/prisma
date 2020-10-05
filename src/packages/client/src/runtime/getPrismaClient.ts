@@ -320,12 +320,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         const previewFeatures = config.generator?.previewFeatures ?? []
-
+        
         this._engineConfig = {
           cwd,
           enableDebugLogs: useDebug,
           enableEngineDebugMode: engineConfig.enableEngineDebugMode,
-          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          datamodelPath: path.join(config.generator?.output ? config.generator?.output : config.dirname, 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
@@ -347,6 +347,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           enableExperimental: mapPreviewFeatures(previewFeatures),
           useUds: internal.useUds,
         }
+        debug({config: this._engineConfig})
 
         const sanitizedEngineConfig = omit(this._engineConfig, [
           'env',

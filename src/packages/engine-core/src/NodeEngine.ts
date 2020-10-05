@@ -334,7 +334,7 @@ You may have to run ${chalk.greenBright(
       }
       const dirnamePath = await this.getQueryEnginePath(
         this.platform,
-        eval('__dirname'),
+        this.generator.output ? this.generator.output : eval('__dirname') ,
       )
       debug({ dirnamePath })
       if (fs.existsSync(dirnamePath)) {
