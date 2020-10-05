@@ -1,6 +1,8 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  collectCoverage: true,
+  coverageDirectory: 'src/__tests__/coverage',
   testMatch: [
     '**/src/__tests__/doctor*',
     '**/src/__tests__/format*',

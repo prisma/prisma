@@ -1,0 +1,9 @@
+flags:
+  cli:
+    carryforward: true
+    paths:
+      - src/packages/cli/
+  client:
+    carryforward: true
+    paths:
+      - src/packages/client/
