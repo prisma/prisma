@@ -1,5 +1,5 @@
 {
-  "version": "2.9.0-dev.43",
+  "version": "2.9.0-dev.44",
   "name": "@prisma/cli",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
@@ -59,8 +59,8 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "b110f021d196515a1c10d785ead0c7536fcd0f7b",
-    "prismaCommit": "febe0c4396ad911ef557ba9639fe24348b6d3624"
+    "version": "b34dd57d8a66a51054625244215b303fd7655413",
+    "prismaCommit": "33a97150acd2b6b0c448177f26b88d60373fed96"
   },
   "devDependencies": {
     "@apexearth/copy": "1.4.5",
@@ -72,8 +72,8 @@
     "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.295.0",
-    "@prisma/studio-server": "0.295.0",
+    "@prisma/studio": "0.296.0",
+    "@prisma/studio-server": "0.296.0",
     "@timsuchanek/copy": "^1.4.5",
     "@types/debug": "4.1.5",
     "@types/jest": "26.0.14",
