@@ -38,6 +38,13 @@ async function main() {
     copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open'),
   ])
 
+  await copy({
+    from: path.join(require.resolve('@prisma/studio/package.json'), '../build'),
+    to: './dist/public',
+    recursive: true,
+    parallelJobs: process.platform === 'win32' ? 1 : 20,
+    overwrite: true
+  })
 
   const after = Date.now()
   console.log(
