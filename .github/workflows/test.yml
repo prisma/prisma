@@ -115,10 +115,10 @@ jobs:
         working-directory: src/packages/cli
 
       # temp
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=1
         working-directory: src/packages/cli
         env:
           CI: true
