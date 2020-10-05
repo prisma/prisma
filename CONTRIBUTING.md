@@ -5,7 +5,7 @@ To setup and build the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
-npm i -g pnpm@5.1.7 esbuild@0.7.1 --unsafe-perm
+npm i -g pnpm@5.1.7 esbuild --unsafe-perm
 cd prisma/src
 pnpm i --ignore-scripts
 pnpm run setup
@@ -167,7 +167,7 @@ FORCE_PANIC_MIGRATION_ENGINE=1
 
 ```bash
 # In the root directory
-pnpm run download
+pnpm run download-all
 ```
 
 ## Running the CI system locally

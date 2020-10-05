@@ -1,10 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`json should be able filter json "null" 1`] = `
+query {
+  findManyOptionalUser(where: {
+    json: {
+      equals: "\\"null\\""
+    }
+  }) {
+    id
+    name
+    email
+    json
+  }
+}
+`;
+
 exports[`json should be able filter json 1`] = `
 query {
   findManyUser(where: {
     json: {
       equals: "{\\"hello\\":\\"world\\"}"
+    }
+  }) {
+    id
+    name
+    email
+    json
+  }
+}
+`;
+
+exports[`json should be able filter json null 1`] = `
+query {
+  findManyOptionalUser(where: {
+    json: {
+      equals: null
     }
   }) {
     id

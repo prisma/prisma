@@ -17,6 +17,9 @@ describe('int-errors', () => {
 
     originalConnectionString += '-signed-int'
 
+
+    console.log({ originalConnectionString })
+
     SetupParams = {
       connectionString: originalConnectionString,
       dirname: __dirname,
