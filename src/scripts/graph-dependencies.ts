@@ -31,12 +31,16 @@ function generateGraph(
   const g = digraph('G')
   g.set('splines', 'ortho')
   packages?.forEach((pkg) => {
-    const json = require(pkg.jsonPath)
-    g.addNode(json.name, { shape: 'box' })
-    const keys = getKeys(json, type)
-    const depNodes = keys.map((key) => {
-      g.addEdge(json.name, key, {})
-    })
+    try{
+      const json = require(pkg.jsonPath)
+      g.addNode(json.name, { shape: 'box' })
+      const keys = getKeys(json, type)
+      const depNodes = keys.map((key) => {
+        g.addEdge(json.name, key, {})
+      })
+    } catch {
+      
+    }
   })
   g.output('png', `./graphs/${type}.png`, (err, stdout, stderr) => {
     console.log(stderr)
