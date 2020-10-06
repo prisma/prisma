@@ -85,7 +85,7 @@
     "precommit": "lint-staged && FORCE_COLOR=0 jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "test": "FORCE_COLOR=0 jest --forceExit",
+    "test": "jest --forceExit",
     "build": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build"
   },
