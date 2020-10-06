@@ -9,7 +9,7 @@ describe('getErrorMessageWithLink', () => {
     })
 
     expect(stripAnsi(message)).toMatchInlineSnapshot(
-      `"https://github.com/prisma/migrate/issues/new?body=This+is+a+body&title=This+is+a+title&template=bug_report.md"`,
+      `https://github.com/prisma/migrate/issues/new?body=This+is+a+body&title=This+is+a+title&template=bug_report.md`,
     )
   })
 })

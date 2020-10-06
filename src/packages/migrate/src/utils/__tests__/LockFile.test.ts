@@ -19,25 +19,25 @@ describe('LockFile', () => {
   >>>>>>> master
   `)
     expect(deserializeLockFile(file)).toMatchInlineSnapshot(`
-                  Object {
-                    "localBranch": "HEAD",
-                    "localMigrations": Array [
-                      "20190528171624-test",
-                      "20190528171724-test-2",
-                      "20190528171624-test-3",
-                      "20190528171724-test-4",
-                      "20190528171724-teasdasdst-6",
-                    ],
-                    "remoteBranch": "master",
-                    "remoteMigrations": Array [
-                      "20190528171624-test",
-                      "20190528171724-test-2",
-                      "20190528171624-test-3",
-                      "20190528171724-test-4",
-                      "20190528171724-test-5",
-                    ],
-                  }
-            `)
+      Object {
+        localBranch: HEAD,
+        localMigrations: Array [
+          20201231000000-test,
+          20201231000000-test-2,
+          20201231000000-test-3,
+          20201231000000-test-4,
+          20201231000000-teasdasdst-6,
+        ],
+        remoteBranch: master,
+        remoteMigrations: Array [
+          20201231000000-test,
+          20201231000000-test-2,
+          20201231000000-test-3,
+          20201231000000-test-4,
+          20201231000000-test-5,
+        ],
+      }
+    `)
   })
 
   test('parse correct file', () => {
@@ -52,25 +52,25 @@ describe('LockFile', () => {
   20190528171724-test-5
   `)
     expect(deserializeLockFile(file)).toMatchInlineSnapshot(`
-            Object {
-              "localBranch": undefined,
-              "localMigrations": Array [
-                "20190528171624-test",
-                "20190528171724-test-2",
-                "20190528171624-test-3",
-                "20190528171724-test-4",
-                "20190528171724-test-5",
-              ],
-              "remoteBranch": undefined,
-              "remoteMigrations": Array [
-                "20190528171624-test",
-                "20190528171724-test-2",
-                "20190528171624-test-3",
-                "20190528171724-test-4",
-                "20190528171724-test-5",
-              ],
-            }
-        `)
+      Object {
+        localBranch: undefined,
+        localMigrations: Array [
+          20201231000000-test,
+          20201231000000-test-2,
+          20201231000000-test-3,
+          20201231000000-test-4,
+          20201231000000-test-5,
+        ],
+        remoteBranch: undefined,
+        remoteMigrations: Array [
+          20201231000000-test,
+          20201231000000-test-2,
+          20201231000000-test-3,
+          20201231000000-test-4,
+          20201231000000-test-5,
+        ],
+      }
+    `)
   })
 
   test('serialize file correctly', () => {
@@ -84,12 +84,12 @@ describe('LockFile', () => {
       remoteMigrations: [],
     }
     expect(serializeLockFile(lockFile)).toMatchInlineSnapshot(`
-      "# Prisma Migrate lockfile v1
+      # Prisma Migrate lockfile v1
 
-      20190528171624-test
-      20190528171724-test-2
-      20190528171624-test-3
-      20190528171724-test-4"
+      20201231000000-test
+      20201231000000-test-2
+      20201231000000-test-3
+      20201231000000-test-4
     `)
   })
 })
