@@ -56,11 +56,11 @@ test('introspection basic', async () => {
   `)
   const databases = await engine.listDatabases(schema)
   expect(databases).toMatchInlineSnapshot(`
-          Array [
-            "",
-            "blog.db",
-          ]
-      `)
+    Array [
+      "blog.db",
+      "blog.db",
+    ]
+  `)
 
   const dbVersion = await engine.getDatabaseVersion(schema)
   expect(dbVersion.length > 0)
