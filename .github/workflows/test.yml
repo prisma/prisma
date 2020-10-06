@@ -169,6 +169,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: upload coverage report
         working-directory: src/packages/cli
         run: |
@@ -246,9 +247,13 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
+
       - name: upload coverage report
         working-directory: src/packages/cli
         run: |
+          echo $PWD
+          ls ./ 
+          ls ./src/__tests__/coverage
           bash <(curl -s https://codecov.io/bash) -F client -f ./src/__tests__/coverage/clover.xml
 
   #
