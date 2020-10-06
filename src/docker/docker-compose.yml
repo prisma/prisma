@@ -8,7 +8,7 @@ services:
   # Outside Docker
   # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests
-  # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
+  # - TEST_MYSQL_URI=mysql://root:root@localhost:3306/tests
   # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
 
   postgres:
