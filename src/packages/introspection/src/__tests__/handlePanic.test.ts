@@ -1,11 +1,11 @@
 import path from 'path'
 import { Introspect } from '../commands/Introspect'
-// import CaptureStdout from './__helpers__/captureStdout'
 
-describe('panic', () => {
-  test('should panic', async () => {
+describe('introspection panic', () => {
+  test('force panic', async () => {
     process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
     process.chdir(path.join(__dirname, 'fixture'))
+
     const introspect = new Introspect()
     try {
       await introspect.parse(['--print'])

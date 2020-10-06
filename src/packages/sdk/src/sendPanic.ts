@@ -37,23 +37,6 @@ export async function sendPanic(
       maskedSchema = maskSchema(schema)
     }
 
-    let sqlDump: string | undefined
-    let dbVersion: string | undefined
-    if (error.area === ErrorArea.INTROSPECTION_CLI && error.introspectionUrl) {
-      let engine: undefined | IntrospectionEngine
-      try {
-        engine = new IntrospectionEngine()
-        sqlDump = await engine.getDatabaseDescription(error.introspectionUrl)
-        dbVersion = await engine.getDatabaseVersion(error.introspectionUrl)
-        engine.stop()
-      } catch (e) {
-        if (engine && engine.isRunning) {
-          engine.stop()
-        }
-        debug(e)
-      }
-    }
-
     const migrateRequest = error.request
       ? JSON.stringify(
           mapScalarValues(error.request, (value) => {
@@ -65,7 +48,7 @@ export async function sendPanic(
         )
       : undefined
 
-    const signedUrl = await createErrorReport({
+    const params = {
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
@@ -78,9 +61,11 @@ export async function sendPanic(
       liftRequest: migrateRequest,
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
-      sqlDump,
-      dbVersion,
-    })
+      sqlDump: error.sqlDump,
+      dbVersion: error.dbVersion,
+    }
+
+    const signedUrl = await createErrorReport(params)
 
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)

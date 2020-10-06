@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import Debug from '@prisma/debug'
 import byline from './utils/byline'
+const debugCli = Debug('IntrospectionEngine:cli')
 const debugRpc = Debug('IntrospectionEngine:rpc')
 const debugStderr = Debug('IntrospectionEngine:stderr')
 const debugStdin = Debug('IntrospectionEngine:stdin')
@@ -299,10 +300,14 @@ export class IntrospectionEngine {
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {
               let sqlDump: string | undefined
+              let dbVersion: string | undefined
               if (this.lastUrl) {
                 try {
                   sqlDump = await this.getDatabaseDescription(this.lastUrl)
-                } catch (e) {} // eslint-disable-line no-empty
+                  dbVersion = await this.getDatabaseVersion(this.lastUrl)
+                } catch (e) {
+                  debugCli(e)
+                }
               }
               const err = new RustPanic(
                 this.lastError.message,
@@ -312,6 +317,7 @@ export class IntrospectionEngine {
                 /* schemaPath */ undefined,
                 /* schema */ undefined,
                 sqlDump,
+                dbVersion,
               )
               this.rejectAll(err)
               reject(err)
@@ -359,7 +365,7 @@ export class IntrospectionEngine {
                 this.lastError = json
               }
             } catch (e) {
-              //
+              debugCli(e)
             }
           })
 
@@ -381,7 +387,7 @@ export class IntrospectionEngine {
     if (process.env.FORCE_PANIC_INTROSPECTION_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)
     }
-  
+
     if (this.child?.killed) {
       throw new Error(
         `Can't execute ${JSON.stringify(
@@ -404,10 +410,14 @@ export class IntrospectionEngine {
                 response.error.data?.error?.message ?? response.error.message
               // Handle error and displays the interactive dialog to send panic error
               let sqlDump: string | undefined
+              let dbVersion: string | undefined
               if (this.lastUrl) {
                 try {
                   sqlDump = await this.getDatabaseDescription(this.lastUrl)
-                } catch (e) {} // eslint-disable-line no-empty
+                  dbVersion = await this.getDatabaseVersion(this.lastUrl)
+                } catch (e) {
+                  debugCli(e)
+                }
               }
               reject(
                 new RustPanic(
@@ -418,6 +428,7 @@ export class IntrospectionEngine {
                   undefined,
                   undefined,
                   sqlDump,
+                  dbVersion,
                 ),
               )
             } else if (response.error.data?.message) {
@@ -505,7 +516,7 @@ Please put that file into a gist and post it in Slack.
       id: messageId++,
       jsonrpc: '2.0',
       method,
-      params: params ? [{...params}] : undefined,
+      params: params ? [{ ...params }] : undefined,
     }
   }
 }
