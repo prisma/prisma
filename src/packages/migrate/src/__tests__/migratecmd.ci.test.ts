@@ -17,9 +17,13 @@ describe('common', () => {
     )
     expect(ctx.mocked['console.log'].mock.calls.length).toEqual(0)
     expect(ctx.mocked['console.error'].mock.calls.length).toEqual(0)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      PostgreSQL database tests-migrate created at localhost:5432
+
+    `)
   })
 
   it('migrate should fail if no schema file', async () => {
@@ -41,9 +45,9 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                            Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
+                                                                                    Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
 
-                                                  `)
+                                                                      `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -64,13 +68,13 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                        migrations/
-                                                                          └─ 20201231000000_first/
-                                                                            └─ migration.sql
+                                                                                                migrations/
+                                                                                                  └─ 20201231000000_first/
+                                                                                                    └─ migration.sql
 
-                                                            `)
+                                                                                `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -92,13 +96,13 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                        migrations/
-                                                                          └─ 20201231000000_first/
-                                                                            └─ migration.sql
+                                                                                                migrations/
+                                                                                                  └─ 20201231000000_first/
+                                                                                                    └─ migration.sql
 
-                                                            `)
+                                                                                `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -120,23 +124,23 @@ describe('sqlite', () => {
     ])
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                        Prisma Migrate created a draft migration 20201231000000_first
+                                                Prisma Migrate created a draft migration 20201231000000_first
 
-                        You can now edit it and then apply it by running prisma migrate --experimental again.
-                    `)
+                                                You can now edit it and then apply it by running prisma migrate --experimental again.
+                                        `)
 
     const applyResult = MigrateCommand.new().parse(['--experimental'])
     console.debug('hello', await applyResult)
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                    Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                            Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                                    migrations/
-                                                                                      └─ 20201231000000_first/
-                                                                                        └─ migration.sql
+                                                                                                            migrations/
+                                                                                                              └─ 20201231000000_first/
+                                                                                                                └─ migration.sql
 
-                                                                      `)
+                                                                                          `)
 
     expect(
       (fs.list('prisma/migrations')?.length || 0) > 0,
@@ -158,11 +162,11 @@ describe('sqlite', () => {
   })
 })
 
-describe('posgresql', () => {
+describe('postgresql', () => {
   const SetupParams: SetupParams = {
     connectionString:
-      process.env.TEST_POSTGRES_URI + '-migrate' ||
-      'postgres://prisma:prisma@localhost:5432/tests',
+      process.env.TEST_POSTGRES_URI_MIGRATE ||
+      'postgres://prisma:prisma@localhost:5432/tests-migrate',
     dirname: './fixtures',
   }
 
@@ -186,15 +190,15 @@ describe('posgresql', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
+                                                                        Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
 
-                                        `)
+                                                            `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/empty.prisma
 
-      PostgreSQL database tests created at localhost:5432
+      PostgreSQL database tests-migrate created at localhost:5432
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.length).toEqual(0)
@@ -209,19 +213,19 @@ describe('posgresql', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                        migrations/
-                                                                          └─ 20201231000000_first/
-                                                                            └─ migration.sql
+                                                                                                migrations/
+                                                                                                  └─ 20201231000000_first/
+                                                                                                    └─ migration.sql
 
-                                                            `)
+                                                                                `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
 
-      PostgreSQL database tests created at localhost:5432
+      PostgreSQL database tests-migrate created at localhost:5432
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.length).toEqual(0)
@@ -237,19 +241,19 @@ describe('posgresql', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                                                Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                                        migrations/
-                                                                          └─ 20201231000000_first/
-                                                                            └─ migration.sql
+                                                                                                migrations/
+                                                                                                  └─ 20201231000000_first/
+                                                                                                    └─ migration.sql
 
-                                                            `)
+                                                                                `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
 
-      PostgreSQL database tests created at localhost:5432
+      PostgreSQL database tests-migrate created at localhost:5432
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.length).toEqual(0)
@@ -265,27 +269,27 @@ describe('posgresql', () => {
     ])
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created a draft migration 20201231000000_first
+                                    Prisma Migrate created a draft migration 20201231000000_first
 
-            You can now edit it and then apply it by running prisma migrate --experimental again.
-          `)
+                                    You can now edit it and then apply it by running prisma migrate --experimental again.
+                              `)
 
     const applyResult = MigrateCommand.new().parse(['--experimental'])
     await expect(applyResult).resolves.toMatchInlineSnapshot(`
 
-                                                Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                migrations/
-                                                  └─ 20201231000000_first/
-                                                    └─ migration.sql
+                                                                        migrations/
+                                                                          └─ 20201231000000_first/
+                                                                            └─ migration.sql
 
-                                        `)
+                                                            `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
 
-      PostgreSQL database tests created at localhost:5432
+      PostgreSQL database tests-migrate created at localhost:5432
 
       Prisma Schema loaded from prisma/schema.prisma
     `)
@@ -303,19 +307,19 @@ describe('posgresql', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                Prisma Migrate created and applied the migration 20201231000000_first in
+                                                                        Prisma Migrate created and applied the migration 20201231000000_first in
 
-                                                migrations/
-                                                  └─ 20201231000000_first/
-                                                    └─ migration.sql
+                                                                        migrations/
+                                                                          └─ 20201231000000_first/
+                                                                            └─ migration.sql
 
-                                        `)
+                                                            `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
 
-      PostgreSQL database tests created at localhost:5432
+      PostgreSQL database tests-migrate created at localhost:5432
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.length).toEqual(0)
