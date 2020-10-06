@@ -139,18 +139,19 @@ ts-node fixtures/generate.ts ./fixtures/blog/ --local-runtime
 
 Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts`
 
+## ENV Variables for debugging
+
+| ENV                                | Info                                     |
+| ---------------------------------- | ---------------------------------------- |
+| FORCE_PANIC_MIGRATION_ENGINE=1     | Forces the Migration Engine to Panic     |
+| FORCE_PANIC_INTROSPECTION_ENGINE=1 | Forces the Introspection Engine to Panic |
+
 ## Migrate
 
 ### Developing Prisma Migrate
 
 1. `cd src/packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts up`
-
-To force the Migration Engine Panic you can set the following env var
-
-```
-FORCE_PANIC_MIGRATION_ENGINE=1
-```
 
 ### Developing `prisma init` Command
 
