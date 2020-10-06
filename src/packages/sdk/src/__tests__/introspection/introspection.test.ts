@@ -49,11 +49,11 @@ test('introspection basic', async () => {
   `)
   const metadata = await engine.getDatabaseMetadata(schema)
   expect(metadata).toMatchInlineSnapshot(`
-          Object {
-            "size_in_bytes": 0,
-            "table_count": 3,
-          }
-      `)
+    Object {
+      "size_in_bytes": 53248,
+      "table_count": 3,
+    }
+  `)
   const databases = await engine.listDatabases(schema)
   expect(databases).toMatchInlineSnapshot(`
           Array [
@@ -84,6 +84,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -96,6 +97,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -108,6 +110,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -120,6 +123,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -132,6 +136,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -144,6 +149,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -156,6 +162,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -168,6 +175,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -180,6 +188,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -192,6 +201,7 @@ test('introspection basic', async () => {
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
+                "nativeType": null,
               },
             },
             Object {
@@ -204,6 +214,7 @@ test('introspection basic', async () => {
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
+                "nativeType": null,
               },
             },
           ],
@@ -232,6 +243,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -244,8 +256,9 @@ test('introspection basic', async () => {
                 "arity": "required",
                 "characterMaximumLength": null,
                 "dataType": "REAL",
-                "family": "float",
+                "family": "decimal",
                 "fullDataType": "REAL",
+                "nativeType": null,
               },
             },
             Object {
@@ -258,8 +271,9 @@ test('introspection basic', async () => {
                 "arity": "required",
                 "characterMaximumLength": null,
                 "dataType": "REAL",
-                "family": "float",
+                "family": "decimal",
                 "fullDataType": "REAL",
+                "nativeType": null,
               },
             },
             Object {
@@ -274,6 +288,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -286,6 +301,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -298,6 +314,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -312,6 +329,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
           ],
@@ -353,6 +371,7 @@ test('introspection basic', async () => {
                 "dataType": "INTEGER",
                 "family": "int",
                 "fullDataType": "INTEGER",
+                "nativeType": null,
               },
             },
             Object {
@@ -365,6 +384,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -379,6 +399,7 @@ test('introspection basic', async () => {
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
+                "nativeType": null,
               },
             },
             Object {
@@ -391,6 +412,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -405,6 +427,7 @@ test('introspection basic', async () => {
                 "dataType": "BOOLEAN",
                 "family": "boolean",
                 "fullDataType": "BOOLEAN",
+                "nativeType": null,
               },
             },
             Object {
@@ -419,6 +442,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
             Object {
@@ -433,6 +457,7 @@ test('introspection basic', async () => {
                 "dataType": "DATE",
                 "family": "dateTime",
                 "fullDataType": "DATE",
+                "nativeType": null,
               },
             },
             Object {
@@ -445,6 +470,7 @@ test('introspection basic', async () => {
                 "dataType": "TEXT",
                 "family": "string",
                 "fullDataType": "TEXT",
+                "nativeType": null,
               },
             },
           ],

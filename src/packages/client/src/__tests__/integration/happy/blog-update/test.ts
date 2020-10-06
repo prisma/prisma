@@ -1,6 +1,12 @@
 import { getTestClient } from '../../../../utils/getTestClient'
+import fs from 'fs'
+import path from 'path'
+import { promisify } from 'util'
+const copyFile = promisify(fs.copyFile)
 
 test('blog-update', async () => {
+  await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
+
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
 

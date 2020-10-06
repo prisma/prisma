@@ -26,7 +26,6 @@ import { Readable } from 'stream'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
 import { blue } from '@prisma/sdk/dist/highlight/theme'
-import { DevComponentRenderer } from './ink/DevComponentRenderer'
 import { MigrateEngine } from './MigrateEngine'
 import {
   EngineResults,
@@ -107,9 +106,7 @@ export class Migrate {
         onWarnings,
         autoApprove,
       }: WatchOptions = { clear: true, providerAliases: {} },
-      renderer?: DevComponentRenderer,
     ) => {
-      renderer && renderer.setState({ error: undefined })
       const datamodel = this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
@@ -133,8 +130,6 @@ export class Migrate {
         if (migration) {
           debug('There is a migration we are going to apply now')
           const before = Date.now()
-          renderer && renderer.setState({ lastChanged: new Date() })
-          renderer && renderer.setState({ migrating: true })
           await this.engine.applyMigration({
             force: true,
             migrationId: migration.id,
@@ -152,18 +147,8 @@ export class Migrate {
             lastMigration: lastWatchMigration,
           })
           const after = Date.now()
-          renderer &&
-            renderer.setState({ migrating: false, migratedIn: after - before })
         } else {
           debug(`No migration to apply`)
-        }
-
-        if (datamodel !== this.datamodelBeforeWatch) {
-          renderer &&
-            renderer.setState({
-              datamodelBefore: this.datamodelBeforeWatch,
-              datamodelAfter: datamodel,
-            })
         }
 
         const generators = await getGenerators({
@@ -181,27 +166,6 @@ export class Migrate {
           generatedIn: undefined,
           generating: false,
         }))
-
-        const addedGenerators = newGenerators.filter(
-          (g) =>
-            renderer &&
-            !renderer.state.generators.some((gg) => gg.name === g.name),
-        )
-        const removedGenerators =
-          (renderer &&
-            renderer.state.generators.filter((g) =>
-              newGenerators.some((gg) => gg.name === g.name),
-            )) ||
-          []
-
-        if (
-          (renderer &&
-            renderer.state.generators.length !== newGenerators.length) ||
-          addedGenerators.length > 0 ||
-          removedGenerators.length > 0
-        ) {
-          renderer && renderer.setState({ generators: newGenerators })
-        }
 
         const version =
           packageJson.name === '@prisma/cli' ? packageJson.version : null
@@ -224,26 +188,15 @@ export class Migrate {
           }
 
           const before = Date.now()
-          renderer &&
-            renderer.setGeneratorState(i, {
-              generating: true,
-            })
           try {
             debug(`Generating ${generator.manifest!.prettyName}`)
             await generator.generate()
             generator.stop()
             const after = Date.now()
-            renderer &&
-              renderer.setGeneratorState(i, {
-                generating: false,
-                generatedIn: after - before,
-              })
           } catch (error) {
-            renderer && renderer.setState({ error })
           }
         }
       } catch (error) {
-        renderer && renderer.setState({ error })
       }
     },
   )
@@ -447,26 +400,6 @@ export class Migrate {
     const relativeDatamodelPath = path.relative(process.cwd(), this.schemaPath)
 
     // From here on, we render the dev ui
-    const renderer = new DevComponentRenderer({
-      initialState: {
-        datamodelBefore: this.datamodelBeforeWatch,
-        datamodelAfter: datamodel,
-        generators: generators.map((gen) => ({
-          name:
-            (gen.manifest
-              ? gen.manifest.prettyName
-              : gen.options!.generator.provider) || 'Generator',
-          generatedIn: undefined,
-          generating: false,
-        })),
-        datamodelPath: this.schemaPath,
-        migrating: false,
-        migratedIn: undefined,
-        lastChanged: undefined,
-        relativeDatamodelPath,
-      },
-    })
-
     // silent everyone else. this is not a democracy 👹
     console.log = (...args): void => {
       debug(...args)
@@ -479,22 +412,16 @@ export class Migrate {
     const { migrationsToApply } = await this.getMigrationsToApply()
 
     if (migrationsToApply.length > 0) {
-      renderer.setState({ migrating: true }) // TODO: Show that this is actually applying real migrations, not just watch migrations
       // TODO: Ask for permission if we actually want to do it?
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
       await this.up({
         short: true,
         autoApprove: options.autoApprove,
-        onWarnings: async (warnings): Promise<boolean> =>
-          renderer.promptForWarnings(warnings),
       })
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
-      renderer.setState({ migrating: false })
     }
 
-    options.onWarnings = (warnings): Promise<boolean> =>
-      renderer.promptForWarnings(warnings)
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
@@ -510,25 +437,21 @@ export class Migrate {
         localMigrations[localMigrations.length - 1].id.split('-')[0],
       )
     }
-    renderer.setState({ lastChanged })
 
     if (localMigrations.length > 0) {
       this.datamodelBeforeWatch =
         localMigrations[localMigrations.length - 1].datamodel
-      renderer.setState({
-        datamodelBefore: this.datamodelBeforeWatch,
-      })
     }
 
     await makeDir(this.devMigrationsDir)
 
     fs.watch(this.schemaPath, (eventType, filename) => {
       if (eventType === 'change') {
-        this.watchUp(options, renderer)
+        this.watchUp(options)
       }
     })
 
-    this.watchUp(options, renderer)
+    this.watchUp(options)
     return ''
   }
 
@@ -587,8 +510,7 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${
-          appliedMigrations.length
+        )}, but there are only ${appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -614,9 +536,8 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({
@@ -646,8 +567,7 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${
-          process.platform === 'win32' ? '' : '🏋️‍  '
+        `${process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -813,11 +733,9 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    }  Done with ${migrationsToApply.length} migration${
-      migrationsToApply.length > 1 ? 's' : ''
-    } in ${formatms(Date.now() - before)}.\n`
+    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
+      } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -1005,10 +923,9 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
-          localMigrationIds.length > 0
-            ? localMigrationIds.join(', ')
-            : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
+          ? localMigrationIds.join(', ')
+          : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1145,8 +1062,7 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${
-              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )

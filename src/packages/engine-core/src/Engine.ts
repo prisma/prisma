@@ -7,19 +7,6 @@ import {
 import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
-import os from 'os'
-// import chalk from 'chalk'
-
-export class PrismaQueryEngineError extends Error {
-  /**
-   * HTTP Code
-   */
-  code: number
-  constructor(message: string, code: number) {
-    super(message)
-    this.code = code
-  }
-}
 
 export function getMessage(log: string | RustLog | RustError | any): string {
   if (typeof log === 'string') {
@@ -49,28 +36,49 @@ export interface RequestError {
 export class PrismaClientKnownRequestError extends Error {
   code: string
   meta?: object
-  constructor(message: string, code: string, meta?: any) {
+  clientVersion: string
+
+  constructor(
+    message: string,
+    code: string,
+    clientVersion: string,
+    meta?: any,
+  ) {
     super(message)
+
     this.code = code
+    this.clientVersion = clientVersion
     this.meta = meta
   }
 }
 
 export class PrismaClientUnknownRequestError extends Error {
-  constructor(message: string) {
+  clientVersion: string
+
+  constructor(message: string, clientVersion: string) {
     super(message)
+
+    this.clientVersion = clientVersion
   }
 }
 
 export class PrismaClientRustPanicError extends Error {
-  constructor(message: string) {
+  clientVersion: string
+
+  constructor(message: string, clientVersion: string) {
     super(message)
+
+    this.clientVersion = clientVersion
   }
 }
 
 export class PrismaClientInitializationError extends Error {
-  constructor(message: string) {
+  clientVersion: string
+
+  constructor(message: string, clientVersion: string) {
     super(message)
+
+    this.clientVersion = clientVersion
   }
 }
 

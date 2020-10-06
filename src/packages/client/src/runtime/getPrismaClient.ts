@@ -43,6 +43,7 @@ import { omit } from './utils/omit'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
+import { clientVersion } from './utils/clientVersion'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -262,124 +263,132 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }>
     private _middlewares: Middleware[] = []
     private _engineMiddlewares: EngineMiddleware[] = []
+    private _clientVersion: string
     constructor(optionsArg?: PrismaClientOptions) {
-      const options: PrismaClientOptions = optionsArg ?? {}
-      const internal = options.__internal ?? {}
+      this._clientVersion = config.clientVersion ?? clientVersion
+      try {
+        const options: PrismaClientOptions = optionsArg ?? {}
+        const internal = options.__internal ?? {}
 
-      const useDebug = internal.debug === true
-      if (useDebug) {
-        Debug.enable('prisma-client')
-      }
+        const useDebug = internal.debug === true
+        if (useDebug) {
+          Debug.enable('prisma-client')
+        }
 
-      if (internal.hooks) {
-        this._hooks = internal.hooks
-      }
+        if (internal.hooks) {
+          this._hooks = internal.hooks
+        }
 
-      let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
-      predefinedDatasources = predefinedDatasources.map((d) => ({
-        name: d.name,
-        url: 'file:' + path.resolve(config.dirname, d.url),
-      }))
+        let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
+        predefinedDatasources = predefinedDatasources.map((d) => ({
+          name: d.name,
+          url: 'file:' + path.resolve(config.dirname, d.url),
+        }))
 
-      const inputDatasources = Object.entries(options.datasources || {})
-        .filter(([_, source]) => {
-          return source && source.url
-        })
-        .map(([name, { url }]: any) => ({ name, url }))
+        const inputDatasources = Object.entries(options.datasources || {})
+          .filter(([_, source]) => {
+            return source && source.url
+          })
+          .map(([name, { url }]: any) => ({ name, url }))
 
-      const datasources = mergeBy(
-        predefinedDatasources,
-        inputDatasources,
-        (source) => source.name,
-      )
+        const datasources = mergeBy(
+          predefinedDatasources,
+          inputDatasources,
+          (source) => source.name,
+        )
 
-      const engineConfig = internal.engine || {}
+        const engineConfig = internal.engine || {}
 
-      if (options.errorFormat) {
-        this._errorFormat = options.errorFormat
-      } else if (process.env.NODE_ENV === 'production') {
-        this._errorFormat = 'minimal'
-      } else if (process.env.NO_COLOR) {
-        this._errorFormat = 'colorless'
-      } else {
-        this._errorFormat = 'colorless' // default errorFormat
-      }
+        if (options.errorFormat) {
+          this._errorFormat = options.errorFormat
+        } else if (process.env.NODE_ENV === 'production') {
+          this._errorFormat = 'minimal'
+        } else if (process.env.NO_COLOR) {
+          this._errorFormat = 'colorless'
+        } else {
+          this._errorFormat = 'colorless' // default errorFormat
+        }
 
-      const envFile = this.readEnv()
+        const envFile = this.readEnv()
 
-      this._dmmf = new DMMFClass(config.document)
+        this._dmmf = new DMMFClass(config.document)
 
-      let cwd = path.resolve(config.dirname, config.relativePath)
+        let cwd = path.resolve(config.dirname, config.relativePath)
 
-      if (!fs.existsSync(cwd)) {
-        cwd = config.dirname
-      }
+        if (!fs.existsSync(cwd)) {
+          cwd = config.dirname
+        }
 
-      const previewFeatures = config.generator?.previewFeatures ?? []
+        const previewFeatures = config.generator?.previewFeatures ?? []
 
-      this._engineConfig = {
-        cwd,
-        enableDebugLogs: useDebug,
-        enableEngineDebugMode: engineConfig.enableEngineDebugMode,
-        datamodelPath: path.join(config.dirname, 'schema.prisma'),
-        prismaPath: engineConfig.binaryPath ?? undefined,
-        engineEndpoint: engineConfig.endpoint,
-        datasources,
-        generator: config.generator,
-        showColors: this._errorFormat === 'pretty',
-        logLevel: options.log && (getLogLevel(options.log) as any), // TODO
-        logQueries:
-          options.log &&
-          Boolean(
-            typeof options.log === 'string'
-              ? options.log === 'query'
-              : options.log.find((o) =>
-                typeof o === 'string' ? o === 'query' : o.level === 'query',
-              ),
-          ),
-        env: envFile,
-        flags: [],
-        clientVersion: config.clientVersion,
-        enableExperimental: mapPreviewFeatures(previewFeatures),
-        useUds: internal.useUds,
-      }
+        this._engineConfig = {
+          cwd,
+          enableDebugLogs: useDebug,
+          enableEngineDebugMode: engineConfig.enableEngineDebugMode,
+          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          prismaPath: engineConfig.binaryPath ?? undefined,
+          engineEndpoint: engineConfig.endpoint,
+          datasources,
+          generator: config.generator,
+          showColors: this._errorFormat === 'pretty',
+          logLevel: options.log && (getLogLevel(options.log) as any), // TODO
+          logQueries:
+            options.log &&
+            Boolean(
+              typeof options.log === 'string'
+                ? options.log === 'query'
+                : options.log.find((o) =>
+                  typeof o === 'string' ? o === 'query' : o.level === 'query',
+                ),
+            ),
+          env: envFile,
+          flags: [],
+          clientVersion: config.clientVersion,
+          enableExperimental: mapPreviewFeatures(previewFeatures),
+          useUds: internal.useUds,
+        }
 
-      const sanitizedEngineConfig = omit(this._engineConfig, [
-        'env',
-        'datasources',
-      ])
-      debug({ engineConfig: sanitizedEngineConfig })
+        const sanitizedEngineConfig = omit(this._engineConfig, [
+          'env',
+          'datasources',
+        ])
+        debug({ engineConfig: sanitizedEngineConfig })
 
-      this._engine = new NodeEngine(this._engineConfig)
-      this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
+        this._engine = new NodeEngine(this._engineConfig)
+        this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
-      if (options.log) {
-        for (const log of options.log) {
-          const level =
-            typeof log === 'string'
-              ? log
-              : log.emit === 'stdout'
-                ? log.level
-                : null
-          if (level) {
-            this.$on(level, (event) => {
-              const colorMap = {
-                query: 'blue',
-                info: 'cyan',
-                warn: 'yellow',
-                error: 'red',
-              }
-              console.error(
-                chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                (event.message || event.query),
-              )
-            })
+        if (options.log) {
+          for (const log of options.log) {
+            const level =
+              typeof log === 'string'
+                ? log
+                : log.emit === 'stdout'
+                  ? log.level
+                  : null
+            if (level) {
+              this.$on(level, (event) => {
+                const colorMap = {
+                  query: 'blue',
+                  info: 'cyan',
+                  warn: 'yellow',
+                  error: 'red',
+                }
+                console.error(
+                  chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
+                  (event.message || event.query),
+                )
+              })
+            }
           }
         }
-      }
 
-      this._bootstrapClient()
+        this._bootstrapClient()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
+
     private readEnv() {
       const dotEnvPath = path.resolve(
         config.dirname,
@@ -459,7 +468,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.$connect()
     }
     async $connect() {
-      return this._engine.start()
+      try {
+        return this._engine.start()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
     /**
      * @private
@@ -483,7 +497,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Disconnect from the database
      */
     async $disconnect() {
-      return this._engine.stop()
+      try {
+        return this._engine.stop()
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
 
     private async _getActiveProvider(): Promise<ConnectorType> {
@@ -503,7 +522,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $executeRaw(stringOrTemplateStringsArray, ...values) {
+    private async $executeRawInternal(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -557,6 +576,20 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    /**
+     * Executes a raw query. Always returns a number
+     */
+    $executeRaw(stringOrTemplateStringsArray, ...values) {
+      try {
+        const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
+          ; (promise as any).isExecuteRaw = true
+        return promise
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
+    }
+
     private _getCallsite() {
       if (this._errorFormat !== 'minimal') {
         return new Error().stack
@@ -576,7 +609,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    async $queryRaw(stringOrTemplateStringsArray, ...values) {
+    private async $queryRawInternal(stringOrTemplateStringsArray, ...values) {
       let query = ''
       let parameters: any = undefined
 
@@ -630,6 +663,20 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       })
     }
 
+    /**
+     * Executes a raw query. Always returns a number
+     */
+    $queryRaw(stringOrTemplateStringsArray, ...values) {
+      try {
+        const promise = this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
+          ; (promise as any).isQueryRaw = true
+        return promise
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
+    }
+
     async __internal_triggerPanic(fatal: boolean) {
       if (!this._engineConfig.enableEngineDebugMode) {
         throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
@@ -670,15 +717,29 @@ new PrismaClient({
       )
       return this.$transaction(promises)
     }
-    async $transaction(promises: Array<any>): Promise<any> {
+
+    private async $transactionInternal(promises: Array<any>): Promise<any> {
       if (config.generator?.previewFeatures?.includes('transactionApi')) {
         for (const p of promises) {
+          if (!p) {
+            throw new Error(
+              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+            )
+          }
+          if (p?.isQueryRaw) {
+            throw new Error(`$queryRaw is not yet supported within $transaction.
+Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.`)
+          }
+          if (p?.isExecuteRaw) {
+            throw new Error(`$executeRaw is not yet supported within $transaction.
+Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature`)
+          }
           if (
             !p.requestTransaction ||
             typeof p.requestTransaction !== 'function'
           ) {
             throw new Error(
-              `All elements of the array need to be Prisma Client promises.`,
+              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
             )
           }
         }
@@ -690,31 +751,45 @@ new PrismaClient({
       }
     }
 
-    private _request(internalParams: InternalRequestParams) {
-      const resource = new AsyncResource('prisma-client-request')
-      if (this._middlewares.length > 0) {
-        // https://perf.link/#eyJpZCI6Img4bmd0anp5eGxrIiwidGl0bGUiOiJGaW5kaW5nIG51bWJlcnMgaW4gYW4gYXJyYXkgb2YgMTAwMCIsImJlZm9yZSI6ImNvbnN0IGRhdGEgPSB7XG4gIG9wZXJhdGlvbjogXCJxdWVyeVwiLFxuICByb290RmllbGQ6IFwiZmluZE1hbnlVc2VyXCIsXG4gIGFyZ3M6IHtcbiAgICB3aGVyZTogeyBpZDogeyBndDogNSB9IH1cbiAgfSxcbiAgZGF0YVBhdGg6IFtdLFxuICBjbGllbnRNZXRob2Q6ICd1c2VyLmZpbmRNYW55J1xufSIsInRlc3RzIjpbeyJuYW1lIjoiZm9yIGluIiwiY29kZSI6ImNvbnN0IG5ld0RhdGEgPSB7fVxuZm9yIChjb25zdCBrZXkgaW4gZGF0YSkge1xuICBpZiAoa2V5ICE9PSAnY2xpZW50TWV0aG9kJykge1xuICAgIG5ld0RhdGFba2V5XSA9IGRhdGFba2V5XVxuICB9XG59IiwicnVucyI6WzU1MzAwMCw0OTAwMDAsMzQ0MDAwLDYyNDAwMCwxMzkxMDAwLDEyMjQwMDAsMTA2NDAwMCwxMjE3MDAwLDc0MDAwLDM3MzAwMCw5MDUwMDAsNTM3MDAwLDE3MDYwMDAsOTAzMDAwLDE0MjUwMDAsMTMxMjAwMCw3NjkwMDAsMTM0NTAwMCwxOTQ4MDAwLDk5MDAwMCw5MDAwMDAsMTM0ODAwMCwxMDk2MDAwLDM4NjAwMCwxNTE3MDAwLDE5MzYwMDAsMTAwMCwyMTM0MDAwLDEzMjgwMDAsODI5MDAwLDE1ODYwMDAsMTc2MzAwMCw1MDgwMDAsOTg2MDAwLDE5NDkwMDAsMjEwODAwMCwxNjA4MDAwLDIyNDAwMCwxOTAyMDAwLDEyNjgwMDAsMjEzNDAwMCwxNzEwMDAwLDEzNzIwMDAsMjExMDAwMCwxNzgwMDAwLDc3NzAwMCw1NzgwMDAsNDAwMCw4OTAwMDAsMTEwMTAwMCwxNTk0MDAwLDE3ODAwMDAsMzU0MDAwLDU0NDAwMCw4MjQwMDAsNzEwMDAwLDg0OTAwMCwxNjQwMDAwLDE5ODQwMDAsNzAzMDAwLDg4MjAwMCw4NTAwMDAsMTA2MDAwLDMwMzAwMCwxMzMwMDAsNjA4MDAwLDIxMzQwMDAsNTUxMDAwLDc0MjAwMCwyMDcwMDAsMTU3NTAwMCwxMzQwMDAsNDAwMCwxMDAwLDQ5NDAwMCwyNTAwMDAsMTQwMjAwMCw2OTgwMDAsNTgxMDAwLDQ4MDAwMCwyMDMwMDAsMTY4MzAwMCwxNjcxMDAwLDEyNDAwMDAsMTk1NjAwMCwzMDUwMDAsODkwMDAsNjUzMDAwLDE3MDgwMDAsMTYwMTAwMCwxOTg0MDAwLDg4ODAwMCwyMTAwMDAwLDE5NzUwMDAsNTM2MDAwLDU3NTAwMCwyMTM0MDAwLDEwMTcwMDAsMTI5NzAwMCw3NTYwMDBdLCJvcHMiOjEwNDUxNTB9LHsibmFtZSI6IkRlY29uc3RydWN0b3IiLCJjb2RlIjoiY29uc3QgeyBjbGllbnRNZXRob2QsIC4uLnJlc3QgfSA9IGRhdGEiLCJydW5zIjpbMjE0MDAwLDUxMDAwLDg2NDAwMCw3MjcwMDAsNDMxMDAwLDIyMDAwMCwzOTAwMDAsODQxMDAwLDIyOTAwMCw3MjIwMDAsNDEzMDAwLDYwODAwMCwyOTgwMDAsMzY4MDAwLDg2NDAwMCw5MjQwMDAsMTI4MDAwLDU1MzAwMCw4ODAwMDAsNTQ1MDAwLDc3NTAwMCw0MzAwMDAsMjM3MDAwLDc4NjAwMCw1NTUwMDAsNTI2MDAwLDMyNzAwMCw2MzAwMCw5MTIwMDAsMTgxMDAwLDMzMTAwMCw0MzAwMCwyMjUwMDAsNTQ3MDAwLDgyMjAwMCw3OTMwMDAsMTA1NzAwMCw1NjAwMCwyNzUwMDAsMzkzMDAwLDgwNTAwMCw5MzAwMCw3NjYwMDAsODM0MDAwLDUwMzAwMCw4MDAwMCwyMzgwMDAsNDY0MDAwLDU2NDAwMCw3MzAwMDAsOTU1MDAwLDgwOTAwMCwyMDMwMDAsNDEzMDAwLDM0NDAwMCw1MDIwMDAsNjEzMDAwLDEwMDAwMCw0MzIwMDAsNjcwMDAwLDQ1MzAwMCw4OTEwMDAsNTUwMDAsMjMwMDAwLDM5MTAwMCw3NTQwMDAsMTEyMjAwMCw3NjIwMDAsMzU3MDAwLDQ3MDAwLDc5MjAwMCwzNTQwMDAsMTA4MDAwMCwxNjAwMCwxODgwMDAsMTQxMDAwLDIxMDAwMCw2MDcwMDAsOTAyMDAwLDgyNTAwMCwxOTAwMDAsMjMzMDAwLDI4MzAwMCwyMzgwMDAsNjk2MDAwLDc2ODAwMCw3NTgwMDAsMTk0MDAwLDI3OTAwMCwyMjMwMDAsMjM4MDAwLDkzNDAwMCw2MDUwMDAsMTcwMDAsMjEwMDAwLDMyMjAwMCwxMDM0MDAwLDgxMjAwMCw0NDYwMDAsNjMxMDAwXSwib3BzIjo0OTAxMDB9LHsibmFtZSI6ImRlbGV0ZSIsImNvZGUiOiJjb25zdCB7IGNsaWVudE1ldGhvZCB9ID0gZGF0YVxuZGVsZXRlIGRhdGEuY2xpZW50TWV0aG9kIiwicnVucyI6WzI3NjIwMDAsNjIyMDAwLDEwNTcwMDAsMzIzMTAwMCwzNDQ2MDAwLDIwNzMwMDAsMzM4MjAwMCwyNzA0MDAwLDM4ODEwMDAsMTIwMTAwMCwzNzk3MDAwLDI1OTAwMCwxMDI4MDAwLDI1MTgwMDAsMjEwMjAwMCwxOTczMDAwLDM0MTIwMDAsMzU4MDAwLDExNDcwMDAsMTA3NDAwMCwzMTk1MDAwLDM2NzUwMDAsNTQ3MDAwLDIwNzkwMDAsMjc0NTAwMCwyNDE1MDAwLDIxOTAwMCwzNzM3MDAwLDM2OTIwMDAsMTY0MDAwLDI0MzMwMDAsNjQzMDAwLDcxODAwMCw0Mzg2MDAwLDE3MDIwMDAsMTAyNDAwMCw1NjUwMDAsNDIxOTAwMCwxMTk3MDAwLDE4MzkwMDAsMzgyMTAwMCwxMTUyMDAwLDg1MzAwMCwxMzczMDAwLDI5NTAwMCwxNDg5MDAwLDE0MjEwMDAsMjcyNDAwMCw1MDYxMDAwLDI2NTcwMDAsMjYzNzAwMCwyOTkwMDAsMjE1NzAwMCwxNTAxMDAwLDM2OTAwMDAsMzU3OTAwMCw0MjE5MDAwLDI4NTgwMDAsNTI0MzAwMCwxNTA0MDAwLDEyMTMwMDAsMjM4NDAwMCw3NzgwMDAsMjgyNjAwMCwxNzQ5MDAwLDM2MjAwMCwyNzEzMDAwLDMzODYwMDAsMzE2NjAwMCwxNTMwMDAsNzk0MDAwLDMyMTcwMDAsMjA4MjAwMCw0MTUwMDAsMzMyMDAwMCwyMTA1MDAwLDE1NzYwMDAsMjUxMDAwLDIzMjkwMDAsOTI1MDAwLDM3MTUwMDAsNjkyMDAwLDE5MDIwMDAsMjA0NzAwMCwyNTM5MDAwLDIwMjkwMDAsMzE3OTAwMCwyMTA2MDAwLDg5NTAwMCwxNTUwMDAwLDYwNzAwMCw0MTA1MDAwLDM0ODMwMDAsMzcxNTAwMCw0OTQwMDAwLDIyODAwMCw0MDI2MDAwLDE2MTYwMDAsMzMxNDAwMCwyNDIyMDAwXSwib3BzIjoyMTY2MDgwfSx7Im5hbWUiOiJDcmVhdGUgbmV3IG9iamVjdCIsImNvZGUiOiJjb25zdCBuZXdEYXRhID0ge1xuICBvcGVyYXRpb246IGRhdGEub3BlcmF0aW9uLFxuICByb290RmllbGQ6IGRhdGEucm9vdEZpZWxkLFxuICBhcmdzOiBkYXRhLmFyZ3MsXG4gIGRhdGFQYXRoOiBkYXRhLmRhdGFQYXRoXG59IiwicnVucyI6WzcwNTAwMCwxMTAwMDAsMzI3NTAwMCwxOTgwMDAsMjE5OTAwMCw0MzYwMDAsODI4MDAwLDI5MjcwMDAsNzI0MDAwLDI1NDAwMCwyOTgzMDAwLDI2NzIwMDAsMjUzMDAwLDI4MjcwMDAsMzA0ODAwMCwyOTA3MDAwLDM0OTkwMDAsMjY1OTAwMCwzODIyMDAwLDI3NzcwMDAsMzc5NzAwMCw4MDAwMDAsNDM1MDAwLDExOTMwMDAsMTAwMDAsMTQ0MDAwMCw3NTcwMDAsMTMyMDAwMCwzMjIwMDAsMjA3MDAwLDM2ODAwMDAsMzkxMTAwMCwzMjQxMDAwLDExMDcwMDAsNDM4MDAwLDMwNDQwMDAsMTA3NjAwMCwyMTAwMDAsNDIxOTAwMCwzNzQ4MDAwLDQwNjcwMDAsNzc0MDAwLDYzMDAwLDMyMTAwMCwzMDQ4MDAwLDMxMjgwMDAsMTg3MTAwMCwzNTkxMDAwLDI0MzcwMDAsNjcxMDAwLDc5OTAwMCwxMTUzMDAwLDIxMTMwMDAsOTUwMDAsNTg3MDAwLDYyMzAwMCwxMzEzMDAwLDMxNTgwMDAsMzMyNzAwMCwxNTkwMDAsNDg4MDAwLDIxMTAwMCwxMjk0MDAwLDExNTcwMDAsNDA0MDAwLDM2MjMwMDAsMjY4NDAwMCw4NzkwMDAsMjE4NTAwMCwxNTkyMDAwLDM2ODcwMDAsMjI0ODAwMCwyMjE4MDAwLDE3NDMwMDAsNzg4MDAwLDQwODYwMDAsMjExNTAwMCwzOTE0MDAwLDM5MjgwMDAsNDM3MjAwMCwxOTkwMDAsMzc1MzAwMCwzNjQ3MDAwLDE2MjcwMDAsMTQ5OTAwMCwxODQyMDAwLDIxMjkwMDAsNDAwMCwxMjIzMDAwLDI4NjMwMDAsMzgzNDAwMCwzNjk0MDAwLDYzNjAwMCw0MjQ3MDAwLDQwMjIwMDAsMTAwMDAsMTcxNDAwMCwxNzUwMDAwLDI5MDEwMDAsMTM0NjAwMF0sIm9wcyI6MTkzOTEyMH1dLCJ1cGRhdGVkIjoiMjAyMC0wNy0xNVQxMTowMDo1Ny45MzhaIn0%3D
-        const params: MiddlewareParams = {
-          args: internalParams.args,
-          dataPath: internalParams.dataPath,
-          runInTransaction: internalParams.runInTransaction,
-          action: internalParams.action,
-          model: internalParams.model,
-        }
-        return resource.runInAsyncScope(() =>
-          this._requestWithMiddlewares(
-            params,
-            this._middlewares.slice(),
-            internalParams.clientMethod,
-            internalParams.callsite,
-            internalParams.headers,
-          ),
-        )
+    async $transaction(promises: Array<any>): Promise<any> {
+      try {
+        return this.$transactionInternal(promises)
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
       }
+    }
 
-      return resource.runInAsyncScope(() =>
-        this._executeRequest(internalParams),
-      )
+    private _request(internalParams: InternalRequestParams) {
+      try {
+        const resource = new AsyncResource('prisma-client-request')
+        if (this._middlewares.length > 0) {
+          // https://perf.link/#eyJpZCI6Img4bmd0anp5eGxrIiwidGl0bGUiOiJGaW5kaW5nIG51bWJlcnMgaW4gYW4gYXJyYXkgb2YgMTAwMCIsImJlZm9yZSI6ImNvbnN0IGRhdGEgPSB7XG4gIG9wZXJhdGlvbjogXCJxdWVyeVwiLFxuICByb290RmllbGQ6IFwiZmluZE1hbnlVc2VyXCIsXG4gIGFyZ3M6IHtcbiAgICB3aGVyZTogeyBpZDogeyBndDogNSB9IH1cbiAgfSxcbiAgZGF0YVBhdGg6IFtdLFxuICBjbGllbnRNZXRob2Q6ICd1c2VyLmZpbmRNYW55J1xufSIsInRlc3RzIjpbeyJuYW1lIjoiZm9yIGluIiwiY29kZSI6ImNvbnN0IG5ld0RhdGEgPSB7fVxuZm9yIChjb25zdCBrZXkgaW4gZGF0YSkge1xuICBpZiAoa2V5ICE9PSAnY2xpZW50TWV0aG9kJykge1xuICAgIG5ld0RhdGFba2V5XSA9IGRhdGFba2V5XVxuICB9XG59IiwicnVucyI6WzU1MzAwMCw0OTAwMDAsMzQ0MDAwLDYyNDAwMCwxMzkxMDAwLDEyMjQwMDAsMTA2NDAwMCwxMjE3MDAwLDc0MDAwLDM3MzAwMCw5MDUwMDAsNTM3MDAwLDE3MDYwMDAsOTAzMDAwLDE0MjUwMDAsMTMxMjAwMCw3NjkwMDAsMTM0NTAwMCwxOTQ4MDAwLDk5MDAwMCw5MDAwMDAsMTM0ODAwMCwxMDk2MDAwLDM4NjAwMCwxNTE3MDAwLDE5MzYwMDAsMTAwMCwyMTM0MDAwLDEzMjgwMDAsODI5MDAwLDE1ODYwMDAsMTc2MzAwMCw1MDgwMDAsOTg2MDAwLDE5NDkwMDAsMjEwODAwMCwxNjA4MDAwLDIyNDAwMCwxOTAyMDAwLDEyNjgwMDAsMjEzNDAwMCwxNzEwMDAwLDEzNzIwMDAsMjExMDAwMCwxNzgwMDAwLDc3NzAwMCw1NzgwMDAsNDAwMCw4OTAwMDAsMTEwMTAwMCwxNTk0MDAwLDE3ODAwMDAsMzU0MDAwLDU0NDAwMCw4MjQwMDAsNzEwMDAwLDg0OTAwMCwxNjQwMDAwLDE5ODQwMDAsNzAzMDAwLDg4MjAwMCw4NTAwMDAsMTA2MDAwLDMwMzAwMCwxMzMwMDAsNjA4MDAwLDIxMzQwMDAsNTUxMDAwLDc0MjAwMCwyMDcwMDAsMTU3NTAwMCwxMzQwMDAsNDAwMCwxMDAwLDQ5NDAwMCwyNTAwMDAsMTQwMjAwMCw2OTgwMDAsNTgxMDAwLDQ4MDAwMCwyMDMwMDAsMTY4MzAwMCwxNjcxMDAwLDEyNDAwMDAsMTk1NjAwMCwzMDUwMDAsODkwMDAsNjUzMDAwLDE3MDgwMDAsMTYwMTAwMCwxOTg0MDAwLDg4ODAwMCwyMTAwMDAwLDE5NzUwMDAsNTM2MDAwLDU3NTAwMCwyMTM0MDAwLDEwMTcwMDAsMTI5NzAwMCw3NTYwMDBdLCJvcHMiOjEwNDUxNTB9LHsibmFtZSI6IkRlY29uc3RydWN0b3IiLCJjb2RlIjoiY29uc3QgeyBjbGllbnRNZXRob2QsIC4uLnJlc3QgfSA9IGRhdGEiLCJydW5zIjpbMjE0MDAwLDUxMDAwLDg2NDAwMCw3MjcwMDAsNDMxMDAwLDIyMDAwMCwzOTAwMDAsODQxMDAwLDIyOTAwMCw3MjIwMDAsNDEzMDAwLDYwODAwMCwyOTgwMDAsMzY4MDAwLDg2NDAwMCw5MjQwMDAsMTI4MDAwLDU1MzAwMCw4ODAwMDAsNTQ1MDAwLDc3NTAwMCw0MzAwMDAsMjM3MDAwLDc4NjAwMCw1NTUwMDAsNTI2MDAwLDMyNzAwMCw2MzAwMCw5MTIwMDAsMTgxMDAwLDMzMTAwMCw0MzAwMCwyMjUwMDAsNTQ3MDAwLDgyMjAwMCw3OTMwMDAsMTA1NzAwMCw1NjAwMCwyNzUwMDAsMzkzMDAwLDgwNTAwMCw5MzAwMCw3NjYwMDAsODM0MDAwLDUwMzAwMCw4MDAwMCwyMzgwMDAsNDY0MDAwLDU2NDAwMCw3MzAwMDAsOTU1MDAwLDgwOTAwMCwyMDMwMDAsNDEzMDAwLDM0NDAwMCw1MDIwMDAsNjEzMDAwLDEwMDAwMCw0MzIwMDAsNjcwMDAwLDQ1MzAwMCw4OTEwMDAsNTUwMDAsMjMwMDAwLDM5MTAwMCw3NTQwMDAsMTEyMjAwMCw3NjIwMDAsMzU3MDAwLDQ3MDAwLDc5MjAwMCwzNTQwMDAsMTA4MDAwMCwxNjAwMCwxODgwMDAsMTQxMDAwLDIxMDAwMCw2MDcwMDAsOTAyMDAwLDgyNTAwMCwxOTAwMDAsMjMzMDAwLDI4MzAwMCwyMzgwMDAsNjk2MDAwLDc2ODAwMCw3NTgwMDAsMTk0MDAwLDI3OTAwMCwyMjMwMDAsMjM4MDAwLDkzNDAwMCw2MDUwMDAsMTcwMDAsMjEwMDAwLDMyMjAwMCwxMDM0MDAwLDgxMjAwMCw0NDYwMDAsNjMxMDAwXSwib3BzIjo0OTAxMDB9LHsibmFtZSI6ImRlbGV0ZSIsImNvZGUiOiJjb25zdCB7IGNsaWVudE1ldGhvZCB9ID0gZGF0YVxuZGVsZXRlIGRhdGEuY2xpZW50TWV0aG9kIiwicnVucyI6WzI3NjIwMDAsNjIyMDAwLDEwNTcwMDAsMzIzMTAwMCwzNDQ2MDAwLDIwNzMwMDAsMzM4MjAwMCwyNzA0MDAwLDM4ODEwMDAsMTIwMTAwMCwzNzk3MDAwLDI1OTAwMCwxMDI4MDAwLDI1MTgwMDAsMjEwMjAwMCwxOTczMDAwLDM0MTIwMDAsMzU4MDAwLDExNDcwMDAsMTA3NDAwMCwzMTk1MDAwLDM2NzUwMDAsNTQ3MDAwLDIwNzkwMDAsMjc0NTAwMCwyNDE1MDAwLDIxOTAwMCwzNzM3MDAwLDM2OTIwMDAsMTY0MDAwLDI0MzMwMDAsNjQzMDAwLDcxODAwMCw0Mzg2MDAwLDE3MDIwMDAsMTAyNDAwMCw1NjUwMDAsNDIxOTAwMCwxMTk3MDAwLDE4MzkwMDAsMzgyMTAwMCwxMTUyMDAwLDg1MzAwMCwxMzczMDAwLDI5NTAwMCwxNDg5MDAwLDE0MjEwMDAsMjcyNDAwMCw1MDYxMDAwLDI2NTcwMDAsMjYzNzAwMCwyOTkwMDAsMjE1NzAwMCwxNTAxMDAwLDM2OTAwMDAsMzU3OTAwMCw0MjE5MDAwLDI4NTgwMDAsNTI0MzAwMCwxNTA0MDAwLDEyMTMwMDAsMjM4NDAwMCw3NzgwMDAsMjgyNjAwMCwxNzQ5MDAwLDM2MjAwMCwyNzEzMDAwLDMzODYwMDAsMzE2NjAwMCwxNTMwMDAsNzk0MDAwLDMyMTcwMDAsMjA4MjAwMCw0MTUwMDAsMzMyMDAwMCwyMTA1MDAwLDE1NzYwMDAsMjUxMDAwLDIzMjkwMDAsOTI1MDAwLDM3MTUwMDAsNjkyMDAwLDE5MDIwMDAsMjA0NzAwMCwyNTM5MDAwLDIwMjkwMDAsMzE3OTAwMCwyMTA2MDAwLDg5NTAwMCwxNTUwMDAwLDYwNzAwMCw0MTA1MDAwLDM0ODMwMDAsMzcxNTAwMCw0OTQwMDAwLDIyODAwMCw0MDI2MDAwLDE2MTYwMDAsMzMxNDAwMCwyNDIyMDAwXSwib3BzIjoyMTY2MDgwfSx7Im5hbWUiOiJDcmVhdGUgbmV3IG9iamVjdCIsImNvZGUiOiJjb25zdCBuZXdEYXRhID0ge1xuICBvcGVyYXRpb246IGRhdGEub3BlcmF0aW9uLFxuICByb290RmllbGQ6IGRhdGEucm9vdEZpZWxkLFxuICBhcmdzOiBkYXRhLmFyZ3MsXG4gIGRhdGFQYXRoOiBkYXRhLmRhdGFQYXRoXG59IiwicnVucyI6WzcwNTAwMCwxMTAwMDAsMzI3NTAwMCwxOTgwMDAsMjE5OTAwMCw0MzYwMDAsODI4MDAwLDI5MjcwMDAsNzI0MDAwLDI1NDAwMCwyOTgzMDAwLDI2NzIwMDAsMjUzMDAwLDI4MjcwMDAsMzA0ODAwMCwyOTA3MDAwLDM0OTkwMDAsMjY1OTAwMCwzODIyMDAwLDI3NzcwMDAsMzc5NzAwMCw4MDAwMDAsNDM1MDAwLDExOTMwMDAsMTAwMDAsMTQ0MDAwMCw3NTcwMDAsMTMyMDAwMCwzMjIwMDAsMjA3MDAwLDM2ODAwMDAsMzkxMTAwMCwzMjQxMDAwLDExMDcwMDAsNDM4MDAwLDMwNDQwMDAsMTA3NjAwMCwyMTAwMDAsNDIxOTAwMCwzNzQ4MDAwLDQwNjcwMDAsNzc0MDAwLDYzMDAwLDMyMTAwMCwzMDQ4MDAwLDMxMjgwMDAsMTg3MTAwMCwzNTkxMDAwLDI0MzcwMDAsNjcxMDAwLDc5OTAwMCwxMTUzMDAwLDIxMTMwMDAsOTUwMDAsNTg3MDAwLDYyMzAwMCwxMzEzMDAwLDMxNTgwMDAsMzMyNzAwMCwxNTkwMDAsNDg4MDAwLDIxMTAwMCwxMjk0MDAwLDExNTcwMDAsNDA0MDAwLDM2MjMwMDAsMjY4NDAwMCw4NzkwMDAsMjE4NTAwMCwxNTkyMDAwLDM2ODcwMDAsMjI0ODAwMCwyMjE4MDAwLDE3NDMwMDAsNzg4MDAwLDQwODYwMDAsMjExNTAwMCwzOTE0MDAwLDM5MjgwMDAsNDM3MjAwMCwxOTkwMDAsMzc1MzAwMCwzNjQ3MDAwLDE2MjcwMDAsMTQ5OTAwMCwxODQyMDAwLDIxMjkwMDAsNDAwMCwxMjIzMDAwLDI4NjMwMDAsMzgzNDAwMCwzNjk0MDAwLDYzNjAwMCw0MjQ3MDAwLDQwMjIwMDAsMTAwMDAsMTcxNDAwMCwxNzUwMDAwLDI5MDEwMDAsMTM0NjAwMF0sIm9wcyI6MTkzOTEyMH1dLCJ1cGRhdGVkIjoiMjAyMC0wNy0xNVQxMTowMDo1Ny45MzhaIn0%3D
+          const params: MiddlewareParams = {
+            args: internalParams.args,
+            dataPath: internalParams.dataPath,
+            runInTransaction: internalParams.runInTransaction,
+            action: internalParams.action,
+            model: internalParams.model,
+          }
+          return resource.runInAsyncScope(() =>
+            this._requestWithMiddlewares(
+              params,
+              this._middlewares.slice(),
+              internalParams.clientMethod,
+              internalParams.callsite,
+              internalParams.headers,
+            ),
+          )
+        }
+
+        return resource.runInAsyncScope(() =>
+          this._executeRequest(internalParams),
+        )
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
 
     private _requestWithMiddlewares(
@@ -1013,7 +1088,7 @@ new PrismaClient({
               if (!acc.select) {
                 acc.select = {}
               }
-              // `count` doesn't have a subselection
+              // `count` doesn't have a sub-selection
               if (key === 'count') {
                 acc.select[key] = value
               } else {
@@ -1180,16 +1255,35 @@ export class PrismaClientFetcher {
       message = this.sanitizeMessage(message)
       // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
-        throw new PrismaClientKnownRequestError(message, e.code, e.meta)
+        throw new PrismaClientKnownRequestError(
+          message,
+          e.code,
+          this.prisma._clientVersion,
+          e.meta,
+        )
       } else if (e.isPanic) {
-        throw new PrismaClientRustPanicError(message)
+        throw new PrismaClientRustPanicError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientUnknownRequestError) {
-        throw new PrismaClientUnknownRequestError(message)
+        throw new PrismaClientUnknownRequestError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientInitializationError) {
-        throw new PrismaClientInitializationError(message)
+        throw new PrismaClientInitializationError(
+          message,
+          this.prisma._clientVersion,
+        )
       } else if (e instanceof PrismaClientRustPanicError) {
-        throw new PrismaClientRustPanicError(message)
+        throw new PrismaClientRustPanicError(
+          message,
+          this.prisma._clientVersion,
+        )
       }
+
+      e.clientVersion = this.prisma._clientVersion
 
       throw e
     }
