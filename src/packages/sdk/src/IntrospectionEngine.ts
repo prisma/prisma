@@ -502,7 +502,7 @@ Please put that file into a gist and post it in Slack.
       id: messageId++,
       jsonrpc: '2.0',
       method,
-      params: params ? [params] : undefined,
+      params: params ? [{...params}] : undefined,
     }
   }
 }
