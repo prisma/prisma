@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`create bigint data: datamodel 1`] = `
+exports[`introspection: create bigint data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -17,9 +17,9 @@ model migrate {
 
 `;
 
-exports[`create bigint data: warnings 1`] = `Array []`;
+exports[`introspection: create bigint data: warnings 1`] = `Array []`;
 
-exports[`create with data: datamodel 1`] = `
+exports[`introspection: create with data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -37,9 +37,9 @@ model teams {
 
 `;
 
-exports[`create with data: warnings 1`] = `Array []`;
+exports[`introspection: create with data: warnings 1`] = `Array []`;
 
-exports[`create with empty data and SQL default: datamodel 1`] = `
+exports[`introspection: create with empty data and SQL default: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -57,9 +57,9 @@ model teams {
 
 `;
 
-exports[`create with empty data and SQL default: warnings 1`] = `Array []`;
+exports[`introspection: create with empty data and SQL default: warnings 1`] = `Array []`;
 
-exports[`delete where composite PK: datamodel 1`] = `
+exports[`introspection: delete where composite PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -81,9 +81,9 @@ model variables {
 
 `;
 
-exports[`delete where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: delete where composite PK: warnings 1`] = `Array []`;
 
-exports[`delete where composite unique: datamodel 1`] = `
+exports[`introspection: delete where composite unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -104,9 +104,9 @@ model users {
 
 `;
 
-exports[`delete where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: delete where composite unique: warnings 1`] = `Array []`;
 
-exports[`deleteMany where enum - check count: datamodel 1`] = `
+exports[`introspection: deleteMany where enum - check count: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -130,9 +130,9 @@ enum posts_published {
 
 `;
 
-exports[`deleteMany where enum - check count: warnings 1`] = `Array []`;
+exports[`introspection: deleteMany where enum - check count: warnings 1`] = `Array []`;
 
-exports[`deleteMany where enum - check findMany: datamodel 1`] = `
+exports[`introspection: deleteMany where enum - check findMany: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -156,9 +156,9 @@ enum posts_published {
 
 `;
 
-exports[`deleteMany where enum - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: deleteMany where enum - check findMany: warnings 1`] = `Array []`;
 
-exports[`findMany - default enum: datamodel 1`] = `
+exports[`introspection: findMany - default enum: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -182,9 +182,9 @@ enum posts_published {
 
 `;
 
-exports[`findMany - default enum: warnings 1`] = `Array []`;
+exports[`introspection: findMany - default enum: warnings 1`] = `Array []`;
 
-exports[`findMany - email text: datamodel 1`] = `
+exports[`introspection: findMany - email text: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -202,9 +202,9 @@ model users {
 
 `;
 
-exports[`findMany - email text: warnings 1`] = `Array []`;
+exports[`introspection: findMany - email text: warnings 1`] = `Array []`;
 
-exports[`findMany - email varchar(50) not null unique: datamodel 1`] = `
+exports[`introspection: findMany - email varchar(50) not null unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -222,9 +222,9 @@ model users {
 
 `;
 
-exports[`findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
+exports[`introspection: findMany - email varchar(50) not null unique: warnings 1`] = `Array []`;
 
-exports[`findMany on column_name_that_becomes_empty_string: datamodel 1`] = `
+exports[`introspection: findMany on column_name_that_becomes_empty_string: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -267,7 +267,7 @@ enum invalid_enum_value_name_here_be_enum {
 
 `;
 
-exports[`findMany on column_name_that_becomes_empty_string: warnings 1`] = `
+exports[`introspection: findMany on column_name_that_becomes_empty_string: warnings 1`] = `
 Array [
   Object {
     affected: Array [
@@ -316,7 +316,7 @@ Array [
 ]
 `;
 
-exports[`findMany orderBy asc: datamodel 1`] = `
+exports[`introspection: findMany orderBy asc: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -335,9 +335,9 @@ model posts {
 
 `;
 
-exports[`findMany orderBy asc: warnings 1`] = `Array []`;
+exports[`introspection: findMany orderBy asc: warnings 1`] = `Array []`;
 
-exports[`findMany orderBy desc: datamodel 1`] = `
+exports[`introspection: findMany orderBy desc: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -356,9 +356,9 @@ model posts {
 
 `;
 
-exports[`findMany orderBy desc: warnings 1`] = `Array []`;
+exports[`introspection: findMany orderBy desc: warnings 1`] = `Array []`;
 
-exports[`findMany where - case insensitive field: datamodel 1`] = `
+exports[`introspection: findMany where - case insensitive field: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -376,9 +376,9 @@ model users {
 
 `;
 
-exports[`findMany where - case insensitive field: warnings 1`] = `Array []`;
+exports[`introspection: findMany where - case insensitive field: warnings 1`] = `Array []`;
 
-exports[`findMany where OR[contains, contains] : datamodel 1`] = `
+exports[`introspection: findMany where OR[contains, contains] : datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -397,9 +397,9 @@ model posts {
 
 `;
 
-exports[`findMany where OR[contains, contains] : warnings 1`] = `Array []`;
+exports[`introspection: findMany where OR[contains, contains] : warnings 1`] = `Array []`;
 
-exports[`findMany where contains and boolean: datamodel 1`] = `
+exports[`introspection: findMany where contains and boolean: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -418,9 +418,9 @@ model posts {
 
 `;
 
-exports[`findMany where contains and boolean: warnings 1`] = `Array []`;
+exports[`introspection: findMany where contains and boolean: warnings 1`] = `Array []`;
 
-exports[`findMany where contains: datamodel 1`] = `
+exports[`introspection: findMany where contains: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -439,9 +439,9 @@ model crons {
 
 `;
 
-exports[`findMany where contains: warnings 1`] = `Array []`;
+exports[`introspection: findMany where contains: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime exact: datamodel 1`] = `
+exports[`introspection: findMany where datetime exact: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -459,9 +459,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime exact: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime exact: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime gt: datamodel 1`] = `
+exports[`introspection: findMany where datetime gt: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -479,9 +479,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime gt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gt: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime gte: datamodel 1`] = `
+exports[`introspection: findMany where datetime gte: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -499,9 +499,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime gte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gte: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime lt: datamodel 1`] = `
+exports[`introspection: findMany where datetime lt: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -519,9 +519,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime lt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lt: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime lte - check instanceof Date: datamodel 1`] = `
+exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -540,9 +540,9 @@ model posts {
 
 `;
 
-exports[`findMany where datetime lte - check instanceof Date: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lte - check instanceof Date: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime lte: datamodel 1`] = `
+exports[`introspection: findMany where datetime lte: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -560,9 +560,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime lte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lte: warnings 1`] = `Array []`;
 
-exports[`findMany where datetime not: datamodel 1`] = `
+exports[`introspection: findMany where datetime not: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -580,9 +580,9 @@ model events {
 
 `;
 
-exports[`findMany where datetime not: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime not: warnings 1`] = `Array []`;
 
-exports[`findMany where decimal: datamodel 1`] = `
+exports[`introspection: findMany where decimal: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -600,9 +600,9 @@ model exercises {
 
 `;
 
-exports[`findMany where decimal: warnings 1`] = `Array []`;
+exports[`introspection: findMany where decimal: warnings 1`] = `Array []`;
 
-exports[`findMany where empty in[]: datamodel 1`] = `
+exports[`introspection: findMany where empty in[]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -621,9 +621,9 @@ model teams {
 
 `;
 
-exports[`findMany where empty in[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where empty in[]: warnings 1`] = `Array []`;
 
-exports[`findMany where empty notIn[]: datamodel 1`] = `
+exports[`introspection: findMany where empty notIn[]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -642,9 +642,9 @@ model teams {
 
 `;
 
-exports[`findMany where empty notIn[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where empty notIn[]: warnings 1`] = `Array []`;
 
-exports[`findMany where endsWith: datamodel 1`] = `
+exports[`introspection: findMany where endsWith: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -663,9 +663,9 @@ model crons {
 
 `;
 
-exports[`findMany where endsWith: warnings 1`] = `Array []`;
+exports[`introspection: findMany where endsWith: warnings 1`] = `Array []`;
 
-exports[`findMany where id empty in[] and token in[]: datamodel 1`] = `
+exports[`introspection: findMany where id empty in[] and token in[]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -684,9 +684,9 @@ model teams {
 
 `;
 
-exports[`findMany where id empty in[] and token in[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where id empty in[] and token in[]: warnings 1`] = `Array []`;
 
-exports[`findMany where in[integer]: datamodel 1`] = `
+exports[`introspection: findMany where in[integer]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -705,9 +705,9 @@ model teams {
 
 `;
 
-exports[`findMany where in[integer]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where in[integer]: warnings 1`] = `Array []`;
 
-exports[`findMany where in[string]: datamodel 1`] = `
+exports[`introspection: findMany where in[string]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -726,9 +726,9 @@ model crons {
 
 `;
 
-exports[`findMany where in[string]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where in[string]: warnings 1`] = `Array []`;
 
-exports[`findMany where notIn[]: datamodel 1`] = `
+exports[`introspection: findMany where notIn[]: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -747,9 +747,9 @@ model teams {
 
 `;
 
-exports[`findMany where notIn[]: warnings 1`] = `Array []`;
+exports[`introspection: findMany where notIn[]: warnings 1`] = `Array []`;
 
-exports[`findMany where null: datamodel 1`] = `
+exports[`introspection: findMany where null: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -767,9 +767,9 @@ model events {
 
 `;
 
-exports[`findMany where null: warnings 1`] = `Array []`;
+exports[`introspection: findMany where null: warnings 1`] = `Array []`;
 
-exports[`findMany where startsWith: datamodel 1`] = `
+exports[`introspection: findMany where startsWith: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -788,9 +788,9 @@ model crons {
 
 `;
 
-exports[`findMany where startsWith: warnings 1`] = `Array []`;
+exports[`introspection: findMany where startsWith: warnings 1`] = `Array []`;
 
-exports[`findMany where timestamp gt than now: datamodel 1`] = `
+exports[`introspection: findMany where timestamp gt than now: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -809,9 +809,9 @@ model posts {
 
 `;
 
-exports[`findMany where timestamp gt than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where timestamp gt than now: warnings 1`] = `Array []`;
 
-exports[`findMany where timestamp gte than now: datamodel 1`] = `
+exports[`introspection: findMany where timestamp gte than now: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -830,9 +830,9 @@ model posts {
 
 `;
 
-exports[`findMany where timestamp gte than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where timestamp gte than now: warnings 1`] = `Array []`;
 
-exports[`findMany where timestamp lt than now: datamodel 1`] = `
+exports[`introspection: findMany where timestamp lt than now: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -851,9 +851,9 @@ model posts {
 
 `;
 
-exports[`findMany where timestamp lt than now: warnings 1`] = `Array []`;
+exports[`introspection: findMany where timestamp lt than now: warnings 1`] = `Array []`;
 
-exports[`findMany where unique: datamodel 1`] = `
+exports[`introspection: findMany where unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -871,9 +871,9 @@ model users {
 
 `;
 
-exports[`findMany where unique: warnings 1`] = `Array []`;
+exports[`introspection: findMany where unique: warnings 1`] = `Array []`;
 
-exports[`findOne where PK with include: datamodel 1`] = `
+exports[`introspection: findOne where PK with include: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -901,9 +901,9 @@ model users {
 
 `;
 
-exports[`findOne where PK with include: warnings 1`] = `Array []`;
+exports[`introspection: findOne where PK with include: warnings 1`] = `Array []`;
 
-exports[`findOne where PK with select: datamodel 1`] = `
+exports[`introspection: findOne where PK with select: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -922,9 +922,9 @@ model teams {
 
 `;
 
-exports[`findOne where PK with select: warnings 1`] = `Array []`;
+exports[`introspection: findOne where PK with select: warnings 1`] = `Array []`;
 
-exports[`findOne where PK: datamodel 1`] = `
+exports[`introspection: findOne where PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -942,9 +942,9 @@ model teams {
 
 `;
 
-exports[`findOne where PK: warnings 1`] = `Array []`;
+exports[`introspection: findOne where PK: warnings 1`] = `Array []`;
 
-exports[`findOne where composite PK with foreign key: datamodel 1`] = `
+exports[`introspection: findOne where composite PK with foreign key: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -974,9 +974,9 @@ model b {
 
 `;
 
-exports[`findOne where composite PK with foreign key: warnings 1`] = `Array []`;
+exports[`introspection: findOne where composite PK with foreign key: warnings 1`] = `Array []`;
 
-exports[`findOne where composite PK: datamodel 1`] = `
+exports[`introspection: findOne where composite PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -998,9 +998,9 @@ model variables {
 
 `;
 
-exports[`findOne where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: findOne where composite PK: warnings 1`] = `Array []`;
 
-exports[`findOne where composite unique: datamodel 1`] = `
+exports[`introspection: findOne where composite unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1021,9 +1021,9 @@ model users {
 
 `;
 
-exports[`findOne where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: findOne where composite unique: warnings 1`] = `Array []`;
 
-exports[`findOne where decimal: datamodel 1`] = `
+exports[`introspection: findOne where decimal: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1041,9 +1041,9 @@ model exercises {
 
 `;
 
-exports[`findOne where decimal: warnings 1`] = `Array []`;
+exports[`introspection: findOne where decimal: warnings 1`] = `Array []`;
 
-exports[`findOne where unique composite (PK is a composite): datamodel 1`] = `
+exports[`introspection: findOne where unique composite (PK is a composite): datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1066,9 +1066,9 @@ model variables {
 
 `;
 
-exports[`findOne where unique composite (PK is a composite): warnings 1`] = `Array []`;
+exports[`introspection: findOne where unique composite (PK is a composite): warnings 1`] = `Array []`;
 
-exports[`findOne where unique composite: datamodel 1`] = `
+exports[`introspection: findOne where unique composite: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1091,9 +1091,9 @@ model variables {
 
 `;
 
-exports[`findOne where unique composite: warnings 1`] = `Array []`;
+exports[`introspection: findOne where unique composite: warnings 1`] = `Array []`;
 
-exports[`findOne where unique with foreign key and unpack: datamodel 1`] = `
+exports[`introspection: findOne where unique with foreign key and unpack: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1121,9 +1121,9 @@ model users {
 
 `;
 
-exports[`findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
+exports[`introspection: findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
 
-exports[`findOne where unique: datamodel 1`] = `
+exports[`introspection: findOne where unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1141,9 +1141,9 @@ model users {
 
 `;
 
-exports[`findOne where unique: warnings 1`] = `Array []`;
+exports[`introspection: findOne where unique: warnings 1`] = `Array []`;
 
-exports[`update where composite PK: datamodel 1`] = `
+exports[`introspection: update where composite PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1165,9 +1165,9 @@ model variables {
 
 `;
 
-exports[`update where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: update where composite PK: warnings 1`] = `Array []`;
 
-exports[`update where composite unique: datamodel 1`] = `
+exports[`introspection: update where composite unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1188,9 +1188,9 @@ model users {
 
 `;
 
-exports[`update where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: update where composite unique: warnings 1`] = `Array []`;
 
-exports[`update where integer data: datamodel 1`] = `
+exports[`introspection: update where integer data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1208,9 +1208,9 @@ model teams {
 
 `;
 
-exports[`update where integer data: warnings 1`] = `Array []`;
+exports[`introspection: update where integer data: warnings 1`] = `Array []`;
 
-exports[`update where with boolean data and select: datamodel 1`] = `
+exports[`introspection: update where with boolean data and select: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1229,9 +1229,9 @@ model teams {
 
 `;
 
-exports[`update where with boolean data and select: warnings 1`] = `Array []`;
+exports[`introspection: update where with boolean data and select: warnings 1`] = `Array []`;
 
-exports[`update where with boolean data: datamodel 1`] = `
+exports[`introspection: update where with boolean data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1250,9 +1250,9 @@ model teams {
 
 `;
 
-exports[`update where with boolean data: warnings 1`] = `Array []`;
+exports[`introspection: update where with boolean data: warnings 1`] = `Array []`;
 
-exports[`update where with numeric data: datamodel 1`] = `
+exports[`introspection: update where with numeric data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1270,9 +1270,9 @@ model teams {
 
 `;
 
-exports[`update where with numeric data: warnings 1`] = `Array []`;
+exports[`introspection: update where with numeric data: warnings 1`] = `Array []`;
 
-exports[`update where with string data: datamodel 1`] = `
+exports[`introspection: update where with string data: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1290,9 +1290,9 @@ model teams {
 
 `;
 
-exports[`update where with string data: warnings 1`] = `Array []`;
+exports[`introspection: update where with string data: warnings 1`] = `Array []`;
 
-exports[`update with data - not null enum - check findMany: datamodel 1`] = `
+exports[`introspection: update with data - not null enum - check findMany: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1316,9 +1316,9 @@ enum posts_published {
 
 `;
 
-exports[`update with data - not null enum - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: update with data - not null enum - check findMany: warnings 1`] = `Array []`;
 
-exports[`update with data - not null enum: datamodel 1`] = `
+exports[`introspection: update with data - not null enum: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1342,9 +1342,9 @@ enum posts_published {
 
 `;
 
-exports[`update with data - not null enum: warnings 1`] = `Array []`;
+exports[`introspection: update with data - not null enum: warnings 1`] = `Array []`;
 
-exports[`updateMany where null - check findMany: datamodel 1`] = `
+exports[`introspection: updateMany where null - check findMany: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1362,9 +1362,9 @@ model teams {
 
 `;
 
-exports[`updateMany where null - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: updateMany where null - check findMany: warnings 1`] = `Array []`;
 
-exports[`updateMany where with string data - check findMany: datamodel 1`] = `
+exports[`introspection: updateMany where with string data - check findMany: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1382,29 +1382,9 @@ model teams {
 
 `;
 
-exports[`updateMany where with string data - check findMany: warnings 1`] = `Array []`;
+exports[`introspection: updateMany where with string data - check findMany: warnings 1`] = `Array []`;
 
-exports[`updateMany where with string data - check returned count: datamodel 1`] = `
-generator client {
-  provider = "prisma-client-js"
-  output = "***"
-}
-
-datasource mysql {
-  provider = "mysql"
-  url = "***"
-}
-
-model teams {
-  id   Int    @id @default(autoincrement())
-  name String
-}
-
-`;
-
-exports[`updateMany where with string data - check returned count: warnings 1`] = `Array []`;
-
-exports[`updateMany with data - not null enum - check count: datamodel 1`] = `
+exports[`introspection: updateMany with data - not null enum - check count: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1428,9 +1408,9 @@ enum posts_published {
 
 `;
 
-exports[`updateMany with data - not null enum - check count: warnings 1`] = `Array []`;
+exports[`introspection: updateMany with data - not null enum - check count: warnings 1`] = `Array []`;
 
-exports[`upsert (create): datamodel 1`] = `
+exports[`introspection: upsert (create): datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1449,9 +1429,9 @@ model posts {
 
 `;
 
-exports[`upsert (create): warnings 1`] = `Array []`;
+exports[`introspection: upsert (create): warnings 1`] = `Array []`;
 
-exports[`upsert (update): datamodel 1`] = `
+exports[`introspection: upsert (update): datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1470,9 +1450,9 @@ model posts {
 
 `;
 
-exports[`upsert (update): warnings 1`] = `Array []`;
+exports[`introspection: upsert (update): warnings 1`] = `Array []`;
 
-exports[`upsert where composite PK - create: datamodel 1`] = `
+exports[`introspection: upsert where composite PK - create: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1494,9 +1474,9 @@ model variables {
 
 `;
 
-exports[`upsert where composite PK - create: warnings 1`] = `Array []`;
+exports[`introspection: upsert where composite PK - create: warnings 1`] = `Array []`;
 
-exports[`upsert where composite PK - update: datamodel 1`] = `
+exports[`introspection: upsert where composite PK - update: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1518,4 +1498,4 @@ model variables {
 
 `;
 
-exports[`upsert where composite PK - update: warnings 1`] = `Array []`;
+exports[`introspection: upsert where composite PK - update: warnings 1`] = `Array []`;
