@@ -209,6 +209,9 @@ export class IntrospectionEngine {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema, force }))
   }
+  public debugPanic(): Promise<any> {
+    return this.runCommand(this.getRPCPayload('debugPanic', undefined))
+  }
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
@@ -372,6 +375,10 @@ export class IntrospectionEngine {
   }
   private async runCommand(request: RPCPayload): Promise<any> {
     await this.init()
+    if (process.env.FORCE_PANIC_INTROSPECTION_ENGINE) {
+      request = this.getRPCPayload('debugPanic', undefined)
+    }
+  
     if (this.child?.killed) {
       throw new Error(
         `Can't execute ${JSON.stringify(
@@ -495,11 +502,7 @@ Please put that file into a gist and post it in Slack.
       id: messageId++,
       jsonrpc: '2.0',
       method,
-      params: [
-        {
-          ...params,
-        },
-      ],
+      params: params ? [{...params}] : undefined,
     }
   }
 }
