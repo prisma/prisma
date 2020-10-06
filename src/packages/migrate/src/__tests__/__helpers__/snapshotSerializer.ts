@@ -9,6 +9,12 @@ function normalizeDbUrl(str) {
   return str.replace(/(localhost|postgres):\d+/g, 'localhost:5432')
 }
 
+function normalizeRustError(str) {
+  return str
+    .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
+    .replace(/(\[.*)(:\d*:\d*)(\])/g, '$1:0:0$3')
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -20,7 +26,9 @@ const serializer = {
         : value instanceof Error
         ? value.message
         : ''
-    return normalizeDbUrl(normalizeMigrateTimestamps(stripAnsi(message)))
+    return normalizeDbUrl(
+      normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
+    )
   },
 }
 

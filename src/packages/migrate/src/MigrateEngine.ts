@@ -393,7 +393,6 @@ Please put that file into a gist and post it in Slack.
       jsonrpc: '2.0',
       method,
       params: {
-        projectInfo: '',
         ...params,
       },
     }
