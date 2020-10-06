@@ -665,7 +665,7 @@ async function publish() {
       await run('.', 'git checkout master')
       await run(
         '.',
-        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-transports@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion} @prisma/studio-types@${latestStudioVersion}`,
+        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion}`,
       )
     }
 
