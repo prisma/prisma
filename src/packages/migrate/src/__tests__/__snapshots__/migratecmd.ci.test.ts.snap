@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`common migrate in folder with schema only no migrations directory should fail 2`] = `Array []`;
+
+exports[`common migrate in folder with schema only no migrations directory should fail 3`] = `Array []`;
+
+exports[`postgresql create draft migration and apply 1`] = `
+
+Prisma Migrate created a draft migration 20201231000000_first
+
+You can now edit it and then apply it by running prisma migrate --experimental again.
+`;
+
+exports[`postgresql create draft migration and apply 2`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`postgresql create draft migration and apply 4`] = `Array []`;
+
+exports[`postgresql create draft migration and apply 5`] = `Array []`;
+
+exports[`postgresql existingdb: migrate first migration after init 1`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`postgresql existingdb: migrate first migration after init 3`] = `Array []`;
+
+exports[`postgresql existingdb: migrate first migration after init 4`] = `Array []`;
+
+exports[`postgresql migrate first migration after init - empty schema 1`] = `
+
+Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
+
+`;
+
+exports[`postgresql migrate first migration after init - empty schema 3`] = `Array []`;
+
+exports[`postgresql migrate first migration after init - empty schema 4`] = `Array []`;
+
+exports[`postgresql migrate first migration after init --force 1`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`postgresql migrate first migration after init --force 3`] = `Array []`;
+
+exports[`postgresql migrate first migration after init --force 4`] = `Array []`;
+
+exports[`postgresql migrate first migration after init 1`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`postgresql migrate first migration after init 3`] = `Array []`;
+
+exports[`postgresql migrate first migration after init 4`] = `Array []`;
+
+exports[`sqlite create draft migration and apply 1`] = `
+
+Prisma Migrate created a draft migration 20201231000000_first
+
+You can now edit it and then apply it by running prisma migrate --experimental again.
+`;
+
+exports[`sqlite create draft migration and apply 2`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`sqlite create draft migration and apply 5`] = ``;
+
+exports[`sqlite create draft migration and apply 6`] = ``;
+
+exports[`sqlite migrate first migration after init - empty schema 1`] = `
+
+Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
+
+`;
+
+exports[`sqlite migrate first migration after init - empty schema 3`] = `Array []`;
+
+exports[`sqlite migrate first migration after init - empty schema 4`] = `Array []`;
+
+exports[`sqlite migrate first migration after init --force 1`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`sqlite migrate first migration after init --force 3`] = ``;
+
+exports[`sqlite migrate first migration after init --force 4`] = ``;
+
+exports[`sqlite migrate first migration after init 1`] = `
+
+Prisma Migrate created and applied the migration 20201231000000_first in
+
+migrations/
+  └─ 20201231000000_first/
+    └─ migration.sql
+
+`;
+
+exports[`sqlite migrate first migration after init 3`] = `Array []`;
+
+exports[`sqlite migrate first migration after init 4`] = `Array []`;

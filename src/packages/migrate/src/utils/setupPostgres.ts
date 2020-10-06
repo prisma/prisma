@@ -10,8 +10,8 @@ export type SetupParams = {
 
 export async function setupPostgres(options: SetupParams): Promise<void> {
   const { connectionString } = options
-  const { dirname } = options
-  const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+  // const { dirname } = options
+  // const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
 
   await createDatabase(connectionString).catch((e) => console.error(e))
 
@@ -20,7 +20,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   })
 
   await db.connect()
-  await db.query(schema)
+  // await db.query(schema)
   await db.end()
 }
 
@@ -32,7 +32,6 @@ export async function tearDownPostgres(options: SetupParams) {
   credentialsClone.schema = ''
   const connectionStringCopy = credentialsToUri(credentialsClone)
 
-  console.debug({ connectionStringCopy })
   const db = new Client({
     connectionString: connectionStringCopy,
   })
