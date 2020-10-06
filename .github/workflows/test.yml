@@ -349,6 +349,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
+          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests-migrate
 
   #
   # INTROSPECTION
