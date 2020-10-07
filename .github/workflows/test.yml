@@ -6,18 +6,18 @@ on:
     branches:
       - master
     paths-ignore:
-      - "*.md"
-      - ".buildkite/**"
-      - "docs/**"
-      - "scripts/**"
-      - ".prettierrc.yml"
-      - ".dockerignore"
-      - "LICENSE"
+      - '*.md'
+      - '.buildkite/**'
+      - 'docs/**'
+      - 'scripts/**'
+      - '.prettierrc.yml'
+      - '.dockerignore'
+      - 'LICENSE'
   pull_request:
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
-  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 jobs:
   # From https://github.com/marketplace/actions/workflow-run-cleanup-action
@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
 
   #
@@ -114,15 +114,22 @@ jobs:
         if: ${{ matrix.test == 'sqlite' }}
         working-directory: src/packages/cli
 
-      - run: pnpm run jest integration.${{ matrix.test }}.test.ts -- --forceExit
+      # temp
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=1
         working-directory: src/packages/cli
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/postgres
+          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}
+          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}
+          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
-          TEST_MARIADB_URI: mysql://prisma:prisma@localhost:${{ job.services.mariadb.ports[3306] }}/tests
+          TEST_MARIADB_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}/tests
 
   #
   # CLI-COMMANDS
@@ -446,7 +453,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "debug"
+        name: 'debug'
         working-directory: src/packages/debug
         env:
           CI: true
@@ -454,7 +461,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "engine-core"
+        name: 'engine-core'
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -462,7 +469,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "fetch-engine"
+        name: 'fetch-engine'
         working-directory: src/packages/fetch-engine
         env:
           CI: true
@@ -470,7 +477,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "generator-helper"
+        name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
           CI: true
@@ -478,7 +485,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "get-platform"
+        name: 'get-platform'
         working-directory: src/packages/get-platform
         env:
           CI: true

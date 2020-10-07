@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`add comments 1`] = `
-"model Author {
+model Author {
   id Int @id
   name String?
   posts Post[]
@@ -21,22 +21,22 @@ model Comment {
   text String
   writtenBy Author
   post Post
-}"
+}
 `;
 
 exports[`add fullName 1`] = `
-"model User {
+model User {
   id Int @id
   firstName String
   lastName String
   fullName String?
-}"
+}
 `;
 
 exports[`add model 1`] = `
-"model Blog {
-  id [1;31;48;5;52mInt[m @id
-  id [1;32;48;5;22mString[m @id
+model Blog {
+  id Int @id
+  id String @id
   name String
   viewCount Int
   posts Post[]
@@ -48,74 +48,74 @@ model Blog2 {
   viewCount Int
   posts Post[]
   authors Author[]
-}"
+}
 `;
 
 exports[`add post4 1`] = `
-"model Post5 {
+model Post5 {
   id Int @id
   anotherString String?
-}"
+}
 `;
 
 exports[`basic diff 1`] = `
-"model Blog {
+model Blog {
   id Int @id
-  [1;31;48;5;52mname[m String
-  [1;32;48;5;22mthis[m String
+  name String
+  this String
   viewCount Int
   posts Post[]
   authors Author[]
-}"
+}
 `;
 
 exports[`copy model 1`] = `
-"model Blog2 {
+model Blog2 {
   id Int @id
   name String
   viewCount Int
   posts Post[]
   authors Author[]
-}"
+}
 `;
 
 exports[`ignore spacing 1`] = `
-"model User {
+model User {
   id Int @id
   firstName String
   lastName String
-  [1;31;48;5;52mfullName[m String
-  [1;32;48;5;22mfullNameWithAVeryLongName[m String
-}"
+  fullName String
+  fullNameWithAVeryLongName String
+}
 `;
 
 exports[`make fullName required add linebreak 1`] = `
-"model User {
+model User {
   id Int @id
   firstName String
   lastName String
-  fullName String[1;31;48;5;52m?[m
+  fullName String?
   fullName String
-}"
+}
 `;
 
 exports[`make fullName required rm linebreak 1`] = `
-"model User {
+model User {
   id Int @id
   firstName String
   lastName String
-  fullName String[1;31;48;5;52m?[m
+  fullName String?
   fullName String
-}"
+}
 `;
 
 exports[`rename field 1`] = `
-"model Blog {
-  id [1;31;48;5;52mInt[m @id
-  id [1;32;48;5;22mString[m @id
+model Blog {
+  id Int @id
+  id String @id
   name String
   viewCount Int
   posts Post[]
   authors Author[]
-}"
+}
 `;
