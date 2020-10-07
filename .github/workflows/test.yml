@@ -36,7 +36,7 @@ jobs:
   # CLI-INTEGRATION
   #
   cli-integration:
-    timeout-minutes: 16
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -135,7 +135,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
-    timeout-minutes: 20
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -186,7 +186,7 @@ jobs:
   # CLIENT
   #
   client:
-    timeout-minutes: 14
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -264,7 +264,7 @@ jobs:
   # SDK
   #
   sdk:
-    timeout-minutes: 10
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -310,7 +310,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 10
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -359,7 +359,7 @@ jobs:
   # INTROSPECTION
   #
   introspection:
-    timeout-minutes: 10
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
@@ -417,7 +417,7 @@ jobs:
   # All the other packages!
   #
   others:
-    timeout-minutes: 10
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     strategy:
