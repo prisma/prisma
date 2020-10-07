@@ -135,7 +135,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
-    timeout-minutes: 10
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     strategy:
