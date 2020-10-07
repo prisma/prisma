@@ -3,7 +3,7 @@ import { getGenerators } from '../../getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
 
-jest.setTimeout(20000)
+jest.setTimeout(10000)
 
 describe('getGenerators', () => {
   test('basic', async () => {
