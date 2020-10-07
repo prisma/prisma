@@ -12,7 +12,6 @@ import * as checkpoint from 'checkpoint-client'
 import { maskSchema, mapScalarValues } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
-import { IntrospectionEngine } from './IntrospectionEngine'
 
 const debug = Debug('sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
