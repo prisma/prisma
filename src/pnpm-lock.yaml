@@ -97,7 +97,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 4.2.0
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
@@ -117,6 +117,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
+      '@prisma/studio': 0.296.0
+      '@prisma/studio-server': 0.296.0
       '@sindresorhus/slugify': ^1.1.0
       '@timsuchanek/copy': ^1.4.5
       '@types/debug': 4.1.5
@@ -161,7 +163,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
+      sqlite3: 4.2.0
       string-hash: ^1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
@@ -1478,7 +1480,7 @@ packages:
       checkpoint-client: 1.1.12
       cli-truncate: 2.1.0
       dotenv: 8.2.0
-      execa: 4.0.2
+      execa: 4.0.3
       global-dirs: 2.0.1
       globby: 11.0.1
       has-yarn: 2.1.0
@@ -3826,6 +3828,7 @@ packages:
       onetime: 5.1.0
       signal-exit: 3.0.3
       strip-final-newline: 2.0.0
+    dev: false
     engines:
       node: '>=10'
     resolution:
@@ -4310,6 +4313,7 @@ packages:
   /get-stream/5.1.0:
     dependencies:
       pump: 3.0.0
+    dev: false
     engines:
       node: '>=8'
     resolution:
@@ -7764,15 +7768,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
-  /sqlite3/4.1.1:
-    dependencies:
-      nan: 2.14.1
-      node-pre-gyp: 0.11.0
-      request: 2.88.2
-    dev: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
