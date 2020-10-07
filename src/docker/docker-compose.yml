@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 services:
   # In Docker
   # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres/tests-migrate
@@ -21,7 +21,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "5432:5432"
 
   mysql:
     image: mysql:8.0
@@ -35,7 +35,7 @@ services:
     volumes:
       - mysql:/var/lib/mysql
     ports:
-      - '3306:3306'
+      - "3306:3306"
 
   mariadb:
     image: mariadb:10
@@ -48,7 +48,7 @@ services:
     volumes:
       - mariadb:/var/lib/mysql
     ports:
-      - '4306:3306'
+      - "4306:3306"
 
 volumes:
   postgres:

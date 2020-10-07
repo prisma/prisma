@@ -48,7 +48,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "prisma": {
-    "version": "b34dd57d8a66a51054625244215b303fd7655413"
+    "version": "f4f4c265b355e72ab29dbb1d4495d4bcaf0e829f"
   },
   "files": [
     "runtime",

@@ -41,10 +41,36 @@ const serializer = {
         : value instanceof Error
         ? value.message
         : ''
-    return normalizeGithubLinks(
-      normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message)))),
+    return prepareSchemaForSnapshot(
+      normalizeGithubLinks(
+        normalizeToUnixPaths(
+          removePlatforms(trimErrorPaths(stripAnsi(message))),
+        ),
+      ),
     )
   },
+}
+
+/**
+ * Replace dynamic variable bits of Prisma Schema with static strings.
+ */
+export function prepareSchemaForSnapshot(schema: string): string {
+  const urlRegex = /url\s*=\s*.+/
+  const outputRegex = /output\s*=\s*.+/
+  return schema
+    .split('\n')
+    .map((line) => {
+      const urlMatch = urlRegex.exec(line)
+      if (urlMatch) {
+        return `${line.slice(0, urlMatch.index)}url = "***"`
+      }
+      const outputMatch = outputRegex.exec(line)
+      if (outputMatch) {
+        return `${line.slice(0, outputMatch.index)}output = "***"`
+      }
+      return line
+    })
+    .join('\n')
 }
 
 module.exports = serializer
