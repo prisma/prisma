@@ -124,7 +124,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}
+          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5435] }}
           TEST_MYSQL_BASE_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}
           TEST_MARIADB_BASE_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
@@ -208,7 +208,7 @@ jobs:
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
         ports:
-          - 5435/tcp
+          - 5435
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
       # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
