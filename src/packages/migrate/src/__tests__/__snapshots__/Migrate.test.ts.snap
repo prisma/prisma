@@ -46,14 +46,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -108,14 +108,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -170,14 +170,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -232,14 +232,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
   Object {
     arity: Optional,
@@ -374,14 +374,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -436,14 +436,14 @@ Array [
   },
   Object {
     location: Object {
-      directive: id,
+      attribute: id,
       path: Object {
         field: id,
         model: User,
         tag: Field,
       },
     },
-    tag: CreateDirective,
+    tag: CreateAttribute,
   },
 ]
 `;
