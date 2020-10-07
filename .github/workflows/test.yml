@@ -207,7 +207,6 @@ jobs:
           POSTGRES_DB: tests
           POSTGRES_USER: prisma
           POSTGRES_PASSWORD: prisma
-          POSTGRES_HOST: localhost
         ports:
           - 5435
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
