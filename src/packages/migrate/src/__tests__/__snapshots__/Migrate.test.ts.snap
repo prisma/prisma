@@ -3,57 +3,57 @@
 exports[`migrate.create custom folder and schema filename name ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -65,57 +65,57 @@ exports[`migrate.create custom folder and schema filename name ok 3`] = `Array [
 exports[`migrate.create custom schema filename ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -127,57 +127,57 @@ exports[`migrate.create custom schema filename ok 3`] = `Array []`;
 exports[`migrate.create dashes ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -189,64 +189,64 @@ exports[`migrate.create dashes ok 3`] = `Array []`;
 exports[`migrate.create invalid ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
   Object {
-    "arity": "Optional",
-    "field": "canBeNull",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "String",
+    arity: Optional,
+    field: canBeNull,
+    model: User,
+    tag: CreateField,
+    type: String,
   },
 ]
 `;
@@ -256,7 +256,7 @@ exports[`migrate.create invalid ok 2`] = `Array []`;
 exports[`migrate.create invalid ok 3`] = `Array []`;
 
 exports[`migrate.create invalid ok 4`] = `
-"
+
 Prisma Migrate just created your migration XXXXXXXXXXXXXX-init in
 
 migrations/
@@ -266,23 +266,23 @@ migrations/
     └─ README.md
 
 Run prisma migrate up --experimental to apply the migration
-"
+
 `;
 
 exports[`migrate.create invalid ok 5`] = `
 Array [
   Object {
-    "arity": "Required",
-    "field": "requiredSomething",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "String",
+    arity: Required,
+    field: requiredSomething,
+    model: User,
+    tag: CreateField,
+    type: String,
   },
   Object {
-    "arity": "Required",
-    "field": "canBeNull",
-    "model": "User",
-    "tag": "UpdateField",
+    arity: Required,
+    field: canBeNull,
+    model: User,
+    tag: UpdateField,
   },
 ]
 `;
@@ -290,23 +290,23 @@ Array [
 exports[`migrate.create invalid ok 6`] = `
 Array [
   Object {
-    "description": "You are about to alter the column \`canBeNull\` on the \`User\` table, which still contains 1 non-null values. The data in that column could be lost.",
-    "step_index": 0,
+    description: You are about to alter the column \`canBeNull\` on the \`User\` table, which still contains 1 non-null values. The data in that column could be lost.,
+    step_index: 0,
   },
 ]
 `;
 
 exports[`migrate.create invalid ok 7`] = `
-"
+
 
 ⚠️ We found migration(s) that cannot be executed:
 
   • Added the required column \`requiredSomething\` to the \`User\` table without a default value. There are 1 rows in this table, it is not possible to execute this migration.
-"
+
 `;
 
 exports[`migrate.create invalid ok 8`] = `
-"Prisma Schema loaded from schema-not-null.prisma
+Prisma Schema loaded from schema-not-null.prisma
 📼  migrate save --name init-2
 
 Local datamodel Changes:
@@ -316,73 +316,73 @@ model User {
   canBeNull String?
   canBeNull String
   requiredSomething String
-}"
+}
 `;
 
 exports[`migrate.create simple debug panic 1`] = `
-"Error in migration engine.
-Reason: [/rustc/hash/macros.rs:13:23] This is the debugPanic artificial panic
+Error in migration engine.
+Reason: [/rustc/hash/macros.rs:0:0] This is the debugPanic artificial panic
 
 Please create an issue in the migrate repo with
 your \`schema.prisma\` and the prisma command you tried to use 🙏:
 https://github.com/prisma/migrate/issues/new
-"
+
 `;
 
 exports[`migrate.create simple ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
 ]
 `;
@@ -394,57 +394,57 @@ exports[`migrate.create simple ok 3`] = `Array []`;
 exports[`migrate.create spaces ok 1`] = `
 Array [
   Object {
-    "source": "my_db",
-    "tag": "CreateSource",
+    source: my_db,
+    tag: CreateSource,
   },
   Object {
-    "argument": "provider",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: provider,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"sqlite\\"",
+    tag: CreateArgument,
+    value: "sqlite",
   },
   Object {
-    "argument": "url",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: url,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "\\"***\\"",
+    tag: CreateArgument,
+    value: "***",
   },
   Object {
-    "argument": "default",
-    "location": Object {
-      "source": "my_db",
-      "tag": "Source",
+    argument: default,
+    location: Object {
+      source: my_db,
+      tag: Source,
     },
-    "tag": "CreateArgument",
-    "value": "true",
+    tag: CreateArgument,
+    value: true,
   },
   Object {
-    "model": "User",
-    "tag": "CreateModel",
+    model: User,
+    tag: CreateModel,
   },
   Object {
-    "arity": "Required",
-    "field": "id",
-    "model": "User",
-    "tag": "CreateField",
-    "type": "Int",
+    arity: Required,
+    field: id,
+    model: User,
+    tag: CreateField,
+    type: Int,
   },
   Object {
-    "location": Object {
-      "directive": "id",
-      "path": Object {
-        "field": "id",
-        "model": "User",
-        "tag": "Field",
+    location: Object {
+      attribute: id,
+      path: Object {
+        field: id,
+        model: User,
+        tag: Field,
       },
     },
-    "tag": "CreateDirective",
+    tag: CreateAttribute,
   },
 ]
 `;

@@ -5,7 +5,7 @@ To setup and build the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
-npm i -g pnpm@5.1.7 esbuild@0.7.1 --unsafe-perm
+npm i -g pnpm@5.1.7 esbuild@0.7.9 --unsafe-perm
 cd prisma/src
 pnpm i --ignore-scripts
 pnpm run setup
@@ -16,6 +16,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 ### General Prerequisites
 
 1. Install [`pnpm@5.1.7`](https://pnpm.js.org/) (for installing npm dependencies)
+1. Install [`esbuild@0.7.9`](https://github.com/evanw/esbuild) (for building cli and client)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node scripts written in TypeScript)
 
@@ -138,18 +139,19 @@ ts-node fixtures/generate.ts ./fixtures/blog/ --local-runtime
 
 Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts`
 
+## ENV Variables for debugging
+
+| ENV                                | Info                                     |
+| ---------------------------------- | ---------------------------------------- |
+| FORCE_PANIC_MIGRATION_ENGINE=1     | Forces the Migration Engine to Panic     |
+| FORCE_PANIC_INTROSPECTION_ENGINE=1 | Forces the Introspection Engine to Panic |
+
 ## Migrate
 
 ### Developing Prisma Migrate
 
 1. `cd src/packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts up`
-
-To force the Migration Engine Panic you can set the following env var
-
-```
-FORCE_PANIC_MIGRATION_ENGINE=1
-``` 
 
 ### Developing `prisma init` Command
 
@@ -223,10 +225,12 @@ List of packages:
 # Graphs
 
 To Generate/Update install [GraphViz](http://graphviz.org/download/)
+
 ```
 cd src
 ts-node scripts/graph-dependencies.ts
 ```
+
 ## Dependencies
 
 <img src="./src/graphs/dependencies.png">
