@@ -223,8 +223,8 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${actionName === 'findOne' ? ' | null' : ''
-    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${actionName === 'findOne' ? ' | null' : ''
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
+    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
     }>>`
 }
 

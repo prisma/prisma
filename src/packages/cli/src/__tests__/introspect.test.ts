@@ -85,12 +85,12 @@ it('should succeed and keep changes to valid schema and output warnings', async 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
     generator client {
       provider = "prisma-client-js"
-      output   = "../generated/client"
+      output = "***"
     }
 
     datasource db {
       provider = "sqlite"
-      url      = "file:dev.db"
+      url = "***"
     }
 
     model AwesomeUser {
@@ -145,14 +145,14 @@ it('should succeed and keep changes to valid schema and output warnings when usi
   expect(ctx.mocked['console.error'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
 
-                                                *** WARNING ***
+                                                    *** WARNING ***
 
-                                                These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                - Model "AwesomeNewPost"
-                                                - Model "AwesomeProfile"
-                                                - Model "AwesomeUser"
+                                                    These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                    - Model "AwesomeNewPost"
+                                                    - Model "AwesomeProfile"
+                                                    - Model "AwesomeUser"
 
-                        `)
+                          `)
 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
     originalSchema,
