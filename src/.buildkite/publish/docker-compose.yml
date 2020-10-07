@@ -8,7 +8,7 @@ services:
     command: /app/src/.buildkite/publish/run.sh
     environment:
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
-      - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/postgres
+      - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
       - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:3306/tests
       - NPM_TOKEN
@@ -48,10 +48,11 @@ services:
     image: postgres:10
     restart: always
     environment:
+      - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres_isolated:/var/lib/postgresql/data
 
   mysql:
     image: mysql:8.0
@@ -78,5 +79,6 @@ services:
 
 volumes:
   postgres:
+  postgres_isolated:
   mysql:
   mariadb:
