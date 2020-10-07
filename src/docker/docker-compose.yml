@@ -2,7 +2,7 @@ version: "3.7"
 services:
   # In Docker
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/tests
-  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres:5435/tests
+  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/tests
   # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
   # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
   # Outside Docker
