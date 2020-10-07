@@ -7,10 +7,13 @@ services:
     working_dir: /app
     command: /app/src/.buildkite/publish/run.sh
     environment:
+      - TEST_POSTGRES_BASE_URI=postgres://prisma:prisma@postgres:5432
+      - TEST_MYSQL_BASE_URI=mysql://root:root@mysql:3306
+      - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
       - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5432/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
-      - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:3306/tests
+      - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       - NPM_TOKEN
       - GITHUB_TOKEN
       - UPDATE_STUDIO
