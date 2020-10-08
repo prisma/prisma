@@ -8,16 +8,19 @@ import {
   unknownCommand,
   getSchemaPath,
   getCommandWithExecutor,
-  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
-import { printMigrationId, printMigrationIds } from '../utils/printMigrationId'
-import { printFiles, printFilesFromMigrationIds } from '../utils/printFiles'
+import { printMigrationId } from '../utils/printMigrationId'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import {
+  handleUnexecutableSteps,
+  handleWarnings,
+} from '../utils/handleEvaluateDataloss'
+import { getMigrationName } from '../utils/promptForMigrationName'
 
 /**
  * Migrate command
@@ -159,7 +162,7 @@ export class MigrateCommand implements Command {
     }
 
     if (args['--draft']) {
-      const migrationName = await this.getMigrationName(args['--name'])
+      const migrationName = await getMigrationName(args['--name'])
       const migrationId = await migrate.draft({
         name: migrationName,
       })
@@ -179,62 +182,21 @@ export class MigrateCommand implements Command {
     await migrate.checkHistoryAndReset({ force: args['--force'] })
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
-    if (
-      evaluateDataLossResult.unexecutableSteps &&
-      evaluateDataLossResult.unexecutableSteps.length > 0
-    ) {
-      const messages: string[] = []
-      messages.push(
-        `${chalk.bold.red('\n⚠️ We found changes that cannot be executed:\n')}`,
-      )
-      for (const item of evaluateDataLossResult.unexecutableSteps) {
-        messages.push(`${chalk(`  • ${item}`)}`)
-      }
-      console.info() // empty line
-      // Exit
-      throw new Error(`${messages.join('\n')}\n`)
-    }
 
-    if (
-      evaluateDataLossResult.warnings &&
-      evaluateDataLossResult.warnings.length > 0
-    ) {
-      console.log(
-        chalk.bold(
-          `\n\n⚠️  There will be data loss when applying the migration:\n`,
-        ),
-      )
-      for (const warning of evaluateDataLossResult.warnings) {
-        console.log(chalk(`  • ${warning.message}`))
-      }
-      console.info() // empty line
-
-      if (!args['--force']) {
-        if (isCi) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor('prisma migrate --force --experimental'),
-            )}`,
-          )
-        } else {
-          const confirmation = await prompt({
-            type: 'confirm',
-            name: 'value',
-            message: `Are you sure you want create and apply this migration? ${chalk.red(
-              'Some data will be lost',
-            )}.`,
-          })
-
-          if (!confirmation.value) {
-            return `Migration cancelled.`
-          }
-        }
-      }
+    // throw error
+    handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
+    // log warnings and prompt user to continue if needed
+    const userCancelled = await handleWarnings(
+      evaluateDataLossResult.warnings,
+      args['--force'],
+    )
+    if (userCancelled) {
+      return `Migration cancelled.`
     }
 
     const migrationName =
       evaluateDataLossResult.migrationSteps.length > 0
-        ? await this.getMigrationName(args['--name'])
+        ? await getMigrationName(args['--name'])
         : undefined
 
     const migrationIds = await migrate.createAndApply({
@@ -255,21 +217,6 @@ export class MigrateCommand implements Command {
         }),
       )}\n`
     }
-  }
-
-  private async getMigrationName(name?: string): Promise<string> {
-    if (name) {
-      return name
-    } else if (isCi) {
-      return ''
-    }
-
-    const response = await prompt({
-      type: 'text',
-      name: 'name',
-      message: `Name of migration`,
-    })
-    return response.name || ''
   }
 
   public help(error?: string): string | HelpError {

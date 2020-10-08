@@ -11,6 +11,12 @@ import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import {
+  handleUnexecutableSteps,
+  handleWarnings,
+} from '../utils/handleEvaluateDataloss'
+import { getMigrationName } from '../utils/promptForMigrationName'
 
 export class MigrateUp implements Command {
   public static new(): MigrateUp {
@@ -32,12 +38,11 @@ export class MigrateUp implements Command {
 
       ${chalk.dim('$')} prisma migrate up --experimental
 
-
     ${chalk.bold('Options')}
 
-      -h, --help            Displays this help message
-      --dev                 Checks thedatabase state and interactively ask to reset if needed before applying migrations.
-      --prod, --production  Applies unapplied migrations only.
+      -h, --help              Displays this help message
+      --dev,  --development   Checks thedatabase state and interactively ask to reset if needed before applying migrations.
+      --prod, --production    Applies unapplied migrations only.
 
   `)
 
@@ -51,8 +56,11 @@ export class MigrateUp implements Command {
         '-h': '--help',
         '--experimental': Boolean,
         '--dev': Boolean,
-        '--production': Boolean,
-        '-prod': '--production',
+        '--development': '--dev',
+        '--prod': Boolean,
+        '--production': '--prod',
+        '--force': Boolean,
+        '-f': '--force',
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -61,6 +69,13 @@ export class MigrateUp implements Command {
 
     if (isError(args)) {
       return this.help(args.message)
+    }
+
+    if (
+      (!args['--dev'] && !args['--prod']) ||
+      (args['--dev'] && args['--prod'])
+    ) {
+      return this.help(`You must pass either --dev or --prod`)
     }
 
     if (args['--help']) {
@@ -95,10 +110,50 @@ export class MigrateUp implements Command {
 
     await ensureDatabaseExists('apply', true, schemaPath)
 
-    const result = await migrate.up()
+    let migrationIds
+    if (args['--prod']) {
+      migrationIds = await migrate.applyOnly()
+    } else {
+      await migrate.checkHistoryAndReset({ force: args['--force'] })
+
+      const evaluateDataLossResult = await migrate.evaluateDataLoss()
+
+      // throw error
+      handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
+      // log warnings and prompt user to continue if needed
+      const userCancelled = await handleWarnings(
+        evaluateDataLossResult.warnings,
+        args['--force'],
+      )
+      if (userCancelled) {
+        return `Migration cancelled.`
+      }
+
+      const migrationName =
+        evaluateDataLossResult.migrationSteps.length > 0
+          ? await getMigrationName(args['--name'])
+          : undefined
+
+      migrationIds = await migrate.createAndApply({
+        name: migrationName,
+      })
+    }
+
     migrate.stop()
 
-    return ``
+    // if (!process.env.SKIP_GENERATE) {
+    //   // call prisma generate
+    // }
+
+    if (migrationIds.length === 0) {
+      return `\nEverything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.\n`
+    } else {
+      return `\nPrisma Migrate applied the following migration(s):\n\n${chalk.dim(
+        printFilesFromMigrationIds('migrations', migrationIds, {
+          'migration.sql': '',
+        }),
+      )}\n`
+    }
   }
 
   // help message

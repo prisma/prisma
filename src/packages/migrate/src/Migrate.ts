@@ -291,10 +291,6 @@ export class Migrate {
     await this.engine.reset()
   }
 
-  public async up(): Promise<void> {
-    throw new Error('Not implemented yet :)')
-  }
-
   public async draft({ name = '' }: MigrateOptions = {}): Promise<
     string | undefined
   > {
@@ -456,12 +452,7 @@ export class Migrate {
     debug({ createMigrationResult })
 
     // success?
-    const { appliedMigrationNames } = await this.engine.applyMigrations({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-    })
-    debug({ appliedMigrationNames })
-
-    return appliedMigrationNames
+    return this.applyOnly()
   }
 
   public async push({ force = false }: PushOptions = {}): Promise<
