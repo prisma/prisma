@@ -15,3 +15,7 @@ flags:
     carryforward: true
     paths:
       - src/packages/client/
+  debug:
+    carryforward: true
+    paths:
+      - src/packages/debug/
