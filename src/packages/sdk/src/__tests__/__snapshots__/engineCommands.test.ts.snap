@@ -14888,9 +14888,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `62580727`;
 
-exports[`getDMMF chinook introspected schema 1`] = `379408`;
+exports[`getDMMF chinook introspected schema 1`] = `378211`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397242`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `396045`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
