@@ -36,7 +36,7 @@ jobs:
   # CLI-INTEGRATION
   #
   cli-integration:
-    timeout-minutes: 60
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:
@@ -135,7 +135,7 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
-    timeout-minutes: 60
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
@@ -177,16 +177,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: upload coverage report
-        working-directory: src/packages/cli
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F cli -f ./src/__tests__/coverage/clover.xml
-
   #
   # CLIENT
   #
   client:
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ubuntu-latest
 
     strategy:
@@ -264,7 +259,7 @@ jobs:
   # SDK
   #
   sdk:
-    timeout-minutes: 60
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
@@ -310,7 +305,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 60
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
@@ -359,7 +354,7 @@ jobs:
   # INTROSPECTION
   #
   introspection:
-    timeout-minutes: 60
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
@@ -417,7 +412,7 @@ jobs:
   # All the other packages!
   #
   others:
-    timeout-minutes: 60
+    timeout-minutes: 5
     runs-on: ubuntu-latest
 
     strategy:
