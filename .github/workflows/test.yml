@@ -490,6 +490,10 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+      - name: Upload coverage report
+        working-directory: src/packages/generator-helper
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
         name: 'get-platform'

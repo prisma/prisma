@@ -23,3 +23,7 @@ flags:
     carryforward: true
     paths:
       - src/packages/engine-core/
+  generator-helper:
+    carryforward: true
+    paths:
+      - src/packages/generator-helper/
