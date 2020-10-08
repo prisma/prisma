@@ -35,7 +35,7 @@
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
       "schedule": ["at any time"],
-      "reviewers": ["@matthewmueller", "@steebchen", "@jolg42", "@timsuchanek"]
+      "reviewers": ["@matthewmueller", "@jolg42", "@timsuchanek"]
     },
     {
       "groupName": "React & ink (non-major)",
