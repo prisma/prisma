@@ -13,6 +13,7 @@ import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ExperimentalFlagError } from '../utils/experimental'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -107,10 +108,22 @@ export class MigrateReset implements Command {
     }
 
     const migrate = new Migrate(schemaPath)
-    await migrate.reset()
-    await migrate.stop()
 
-    return `Reset successful.`
+    await migrate.reset()
+
+    const migrationIds = await migrate.applyOnly()
+
+    migrate.stop()
+
+    if (migrationIds.length === 0) {
+      return `\nDatabase reset successful, Prisma Migrate didn't find unapplied migrations.\n`
+    } else {
+      return `\nDatabase reset successful, Prisma Migrate applied the following migration(s):\n\n${chalk.dim(
+        printFilesFromMigrationIds('migrations', migrationIds, {
+          'migration.sql': '',
+        }),
+      )}\n`
+    }
   }
 
   public help(error?: string): string | HelpError {
