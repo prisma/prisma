@@ -1,3 +1,7 @@
+# Disable PR comments until we are proud and willing to have
+# the results be more public
+comment: false
+
 flags:
   get-platform:
     carryforward: true
