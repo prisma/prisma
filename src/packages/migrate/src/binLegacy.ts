@@ -14,12 +14,12 @@ process.env.NODE_NO_WARNINGS = '1'
  */
 import chalk from 'chalk'
 import debugLib from 'debug'
-
 import { HelpError, isError } from '@prisma/sdk'
 import { MigrateCommand } from './commands/legacy/MigrateCommand'
-import { MigrateReset } from './commands/MigrateReset'
-import { MigrateInit } from './commands/MigrateInit'
-import { MigrateUp } from './commands/MigrateUp'
+import { MigrateDown } from './commands/legacy/MigrateDown'
+import { MigrateSave } from './commands/legacy/MigrateSave'
+import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
+import { MigrateUp } from './commands/legacy/MigrateUp'
 import { handlePanic } from './utils/handlePanic'
 
 const debug = debugLib('migrate')
@@ -32,9 +32,10 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = MigrateCommand.new({
-    init: MigrateInit.new(),
-    reset: MigrateReset.new(),
+    save: MigrateSave.new(),
     up: MigrateUp.new(),
+    down: MigrateDown.new(),
+    ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))

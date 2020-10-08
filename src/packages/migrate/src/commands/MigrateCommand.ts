@@ -57,26 +57,14 @@ export class MigrateCommand implements Command {
 
     ${chalk.bold('Commands')}
 
-        save   Create a new migration
-          up   Migrate your database up
-        down   Migrate your database down
+          init    Initalize project for migrations
+          up      Migrate your database up
+          reset   Reset your database. All data will be lost. 
 
     ${chalk.bold('Examples')}
 
       Create new migration and apply it
       ${chalk.dim('$')} prisma migrate --experimental
-
-      Migrate up to the latest datamodel
-      ${chalk.dim('$')} prisma migrate up --experimental
-
-      Preview the next migration without migrating
-      ${chalk.dim('$')} prisma migrate up --preview --experimental
-
-      Rollback a migration
-      ${chalk.dim('$')} prisma migrate down 1 --experimental
-
-      Get more help on a migrate up
-      ${chalk.dim('$')} prisma migrate up -h --experimental
   `)
 
   private argsSpec = {

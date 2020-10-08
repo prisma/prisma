@@ -8,9 +8,9 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
+import { Migrate, UpOptions } from '../../Migrate'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 export class MigrateUp implements Command {
   public static new(): MigrateUp {
@@ -30,15 +30,38 @@ export class MigrateUp implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate up --experimental
+      ${chalk.dim('$')} prisma migrate up [<inc|name|timestamp>] --experimental
 
+    ${chalk.bold('Arguments')}
+
+      [<inc>]   go up by an increment [default: latest]
 
     ${chalk.bold('Options')}
 
-      -h, --help            Displays this help message
-      --dev                 Checks thedatabase state and interactively ask to reset if needed before applying migrations.
-      --prod, --production  Applies unapplied migrations only.
+      --auto-approve    Skip interactive approval before migrating
+      -h, --help        Displays this help message
+      -p, --preview     Preview the migration changes
+      -c, --create-db   Create the database in case it doesn't exist
 
+    ${chalk.bold('Examples')}
+
+      Create a new migration, then migrate up
+      ${chalk.dim(
+        '$',
+      )} prisma migrate save --name "add unique to email" --experimental
+      ${chalk.dim('$')} prisma migrate up --experimental
+
+      Preview a migration without migrating
+      ${chalk.dim('$')} prisma migrate up --preview --experimental
+
+      Go up by one migration
+      ${chalk.dim('$')} prisma migrate up 1 --experimental
+
+      Go up to a migration by timestamp
+      ${chalk.dim('$')} prisma migrate up 20190605204907 --experimental
+
+      Go up to a migration by name
+      ${chalk.dim('$')} prisma migrate up "add first_name field" --experimental
   `)
 
   // parse arguments
@@ -49,10 +72,14 @@ export class MigrateUp implements Command {
       {
         '--help': Boolean,
         '-h': '--help',
+        '--preview': Boolean,
+        '-p': '--preview',
+        '--verbose': Boolean,
+        '-v': '--verbose',
+        '--create-db': Boolean,
+        '-c': '--create-db',
+        '--auto-approve': Boolean,
         '--experimental': Boolean,
-        '--dev': Boolean,
-        '--production': Boolean,
-        '-prod': '--production',
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -93,12 +120,29 @@ export class MigrateUp implements Command {
 
     const migrate = new Migrate(schemaPath)
 
-    await ensureDatabaseExists('apply', true, schemaPath)
+    const options: UpOptions = {
+      preview: args['--preview'],
+      verbose: args['--verbose'],
+      autoApprove: args['--auto-approve'],
+    }
 
-    const result = await migrate.upup()
+    if (args._.length > 0) {
+      const thisArg = args._[0]
+      const maybeNumber = parseInt(thisArg, 10)
+
+      // in this case it's a migration id
+      if (isNaN(maybeNumber) || typeof maybeNumber !== 'number') {
+        throw new Error(`"${thisArg}" is not a valid migration step number`)
+      } else {
+        options.n = maybeNumber
+      }
+    }
+
+    await ensureDatabaseExists('apply', args['--create-db'], schemaPath)
+
+    const result = await migrate.up(options)
     migrate.stop()
-
-    return ``
+    return result
   }
 
   // help message

@@ -8,7 +8,7 @@ import dedent from 'strip-indent'
 import Database from 'sqlite-async'
 import stripAnsi from 'strip-ansi'
 import { Migrate } from '../Migrate'
-import { SchemaPush } from '../commands/SchemaPush'
+import { SchemaPush } from '../commands/legacy/SchemaPush'
 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()

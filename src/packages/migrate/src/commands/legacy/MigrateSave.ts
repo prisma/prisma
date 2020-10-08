@@ -14,12 +14,12 @@ import fs from 'fs'
 import path from 'path'
 import prompt from 'prompts'
 import { promisify } from 'util'
-import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
-import { printFiles } from '../utils/printFiles'
-import { printMigrationId } from '../utils/printMigrationId'
-import { serializeFileMap } from '../utils/serializeFileMap'
+import { Migrate } from '../../Migrate'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
+import { printFiles } from '../../utils/printFiles'
+import { printMigrationId } from '../../utils/printMigrationId'
+import { serializeFileMap } from '../../utils/serializeFileMap'
 
 const writeFile = promisify(fs.writeFile)
 

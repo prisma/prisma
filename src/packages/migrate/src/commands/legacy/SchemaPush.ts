@@ -1,9 +1,9 @@
 import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Migrate, PushOptions } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
-import { formatms } from '../utils/formatms'
+import { Migrate, PushOptions } from '../../Migrate'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
+import { formatms } from '../../utils/formatms'
 
 export class SchemaPush implements Command {
   public static new(): SchemaPush {
