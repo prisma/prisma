@@ -31,7 +31,7 @@ services:
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres_isolated:/var/lib/postgresql/data
     ports:
       - "5435:5432"
 
@@ -64,5 +64,6 @@ services:
 
 volumes:
   postgres:
+  postgres_isolated:
   mysql:
   mariadb:
