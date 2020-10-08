@@ -1,4 +1,8 @@
 flags:
+  get-platform:
+    carryforward: true
+    paths:
+      - src/packages/get-platform/
   cli:
     carryforward: true
     paths:
