@@ -8,9 +8,9 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import { DownOptions, Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
+import { DownOptions, Migrate } from '../../Migrate'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { ExperimentalFlagError } from '../../utils/experimental'
 
 export class MigrateDown implements Command {
   public static new(): MigrateDown {

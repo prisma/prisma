@@ -81,12 +81,14 @@ import {
   MigrateCommand,
   MigrateInit,
   MigrateReset,
-  MigrateSave,
   MigrateUp,
-  MigrateUpUp,
+  handlePanic,
+  // Legacy
+  MigrateCommandLegacy,
+  MigrateSave,
+  MigrateUpLegacy,
   MigrateDown,
   MigrateTmpPrepare,
-  handlePanic,
 } from '@prisma/migrate'
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
@@ -127,13 +129,15 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
+      'migrate-legacy': MigrateCommandLegacy.new({
+        save: MigrateSave.new(),
+        up: MigrateUpLegacy.new(),
+        down: MigrateDown.new(),
+      }),
       migrate: MigrateCommand.new({
         init: MigrateInit.new(),
         reset: MigrateReset.new(),
-        save: MigrateSave.new(),
-        upup: MigrateUpUp.new(),
         up: MigrateUp.new(),
-        down: MigrateDown.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),

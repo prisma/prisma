@@ -239,13 +239,13 @@ describe.skip('mysql', () => {
 
   beforeEach(async () => {
     await tearDownMysql(SetupParams).catch((e) => {
-      console.debug({ e })
+      console.error({ e })
     })
   })
 
   afterAll(async () => {
     await tearDownMysql(SetupParams).catch((e) => {
-      console.log({ e })
+      console.error({ e })
     })
   })
 })

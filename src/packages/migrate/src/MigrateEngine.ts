@@ -72,6 +72,11 @@ export class MigrateEngine {
   ): Promise<EngineResults.PlanMigrationOutput> {
     return this.runCommand(this.getRPCPayload('planMigration', args))
   }
+  public evaluateDataLoss(
+    args: EngineArgs.EvaluateDataLossInput,
+  ): Promise<EngineResults.EvaluateDataLossOutput> {
+    return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
+  }
   public createMigration(
     args: EngineArgs.CreateMigrationInput,
   ): Promise<EngineResults.CreateMigrationOutput> {

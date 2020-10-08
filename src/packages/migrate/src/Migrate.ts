@@ -291,13 +291,8 @@ export class Migrate {
     await this.engine.reset()
   }
 
-  public async upup(): Promise<void> {
-    return
-
-    // not implemented yet
-    // await this.engine.initialize({
-    //   migrationsDirectoryPath: this.migrationsDirectoryPath,
-    // })
+  public async up(): Promise<void> {
+    throw new Error('Not implemented yet :)')
   }
 
   public async draft({ name = '' }: MigrateOptions = {}): Promise<
@@ -355,7 +350,7 @@ export class Migrate {
     }
 
     if (drift) {
-      console.debug({ drift })
+      debug({ drift })
       if (drift.diagnostic === 'MigrationFailedToApply') {
         // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
         throw new Error(
@@ -368,23 +363,23 @@ export class Migrate {
     }
 
     if (history) {
-      console.debug({ history })
+      debug({ history })
       if (history.diagnostic === 'DatabaseIsBehind') {
         return this.applyOnly()
       } else if (history.diagnostic === 'MigrationsDirectoryIsBehind') {
         isResetNeeded = true
-        console.debug({
+        debug({
           unpersistedMigrationNames: history.unpersistedMigrationNames,
         })
       } else if (history.diagnostic === 'HistoriesDiverge') {
         isResetNeeded = true
-        console.debug({
+        debug({
           lastCommonMigrationName: history.lastCommonMigrationName,
         })
-        console.debug({
+        debug({
           unappliedMigrationNames: history.unappliedMigrationNames,
         })
-        console.debug({
+        debug({
           unpersistedMigrationNames: history.unpersistedMigrationNames,
         })
       }
@@ -427,20 +422,23 @@ export class Migrate {
     const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
-    console.debug({ appliedMigrationNames })
+    debug({ appliedMigrationNames })
 
     return appliedMigrationNames
   }
 
-  public async plan(): Promise<EngineResults.PlanMigrationOutput> {
+  public async evaluateDataLoss(): Promise<
+    EngineResults.EvaluateDataLossOutput
+  > {
     const datamodel = this.getDatamodel()
 
-    const planMigrationResult = await this.engine.planMigration({
+    const evaluateDataLossResult = await this.engine.evaluateDataLoss({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       prismaSchema: datamodel,
     })
 
-    return planMigrationResult
+    debug({ evaluateDataLossResult })
+    return evaluateDataLossResult
   }
 
   public async createAndApply({ name = '' }: MigrateOptions = {}): Promise<
@@ -455,13 +453,13 @@ export class Migrate {
       draft: false,
       prismaSchema: datamodel,
     })
-    console.debug({ createMigrationResult })
+    debug({ createMigrationResult })
 
     // success?
     const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
-    console.debug({ appliedMigrationNames })
+    debug({ appliedMigrationNames })
 
     return appliedMigrationNames
   }
@@ -620,7 +618,7 @@ export class Migrate {
     if (migrationsToApply.length > 0) {
       // TODO: Ask for permission if we actually want to do it?
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.up({
+      await this.upLegacy({
         short: true,
         autoApprove: options.autoApprove,
       })
@@ -746,7 +744,7 @@ export class Migrate {
     } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({
+  public async upLegacy({
     n,
     preview,
     short,

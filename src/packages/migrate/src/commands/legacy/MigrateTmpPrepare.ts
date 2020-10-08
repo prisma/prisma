@@ -2,9 +2,9 @@ import Debug from '@prisma/debug'
 import { Command, format, getSchemaPath, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { occupyPath } from '../utils/occupyPath'
+import { Migrate } from '../../Migrate'
+import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
+import { occupyPath } from '../../utils/occupyPath'
 const debug = Debug('tmp-prepare')
 
 /**
@@ -49,7 +49,7 @@ export class MigrateTmpPrepare implements Command {
 
     await ensureDatabaseExists('dev', true, schemaPath)
 
-    await migrate.up({
+    await migrate.upLegacy({
       short: true,
       autoApprove: true,
     })

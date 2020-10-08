@@ -13,7 +13,7 @@ You can now edit it and then apply it by running prisma migrate --experimental a
 
 exports[`postgresql create draft migration and apply 2`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -27,7 +27,7 @@ exports[`postgresql create draft migration and apply 5`] = `Array []`;
 
 exports[`postgresql existingdb: migrate first migration after init 1`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -51,7 +51,7 @@ exports[`postgresql migrate first migration after init - empty schema 4`] = `Arr
 
 exports[`postgresql migrate first migration after init --force 1`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -65,7 +65,7 @@ exports[`postgresql migrate first migration after init --force 4`] = `Array []`;
 
 exports[`postgresql migrate first migration after init 1`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -86,7 +86,7 @@ You can now edit it and then apply it by running prisma migrate --experimental a
 
 exports[`sqlite create draft migration and apply 2`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -110,7 +110,7 @@ exports[`sqlite migrate first migration after init - empty schema 4`] = `Array [
 
 exports[`sqlite migrate first migration after init --force 1`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/
@@ -124,7 +124,7 @@ exports[`sqlite migrate first migration after init --force 4`] = ``;
 
 exports[`sqlite migrate first migration after init 1`] = `
 
-Prisma Migrate created and applied the migration 20201231000000_first in
+Prisma Migrate applied the following migration(s):
 
 migrations/
   └─ 20201231000000_first/

@@ -9,7 +9,7 @@ import dedent from 'strip-indent'
 import Database from 'sqlite-async'
 import stripAnsi from 'strip-ansi'
 import { Migrate } from '../Migrate'
-import { MigrateSave } from '../commands/MigrateSave'
+import { MigrateSave } from '../commands/legacy/MigrateSave'
 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
@@ -288,7 +288,7 @@ function createTests() {
           replaceTimestamp(stripAnsi(resultSave as string)),
         ).toMatchSnapshot()
 
-        await migrate.up()
+        await migrate.upLegacy()
         migrate.stop()
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */
