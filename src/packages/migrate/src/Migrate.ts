@@ -355,7 +355,7 @@ export class Migrate {
     }
 
     if (drift) {
-      console.debug({ drift })
+      debug({ drift })
       if (drift.diagnostic === 'MigrationFailedToApply') {
         // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
         throw new Error(
@@ -368,23 +368,23 @@ export class Migrate {
     }
 
     if (history) {
-      console.debug({ history })
+      debug({ history })
       if (history.diagnostic === 'DatabaseIsBehind') {
         return this.applyOnly()
       } else if (history.diagnostic === 'MigrationsDirectoryIsBehind') {
         isResetNeeded = true
-        console.debug({
+        debug({
           unpersistedMigrationNames: history.unpersistedMigrationNames,
         })
       } else if (history.diagnostic === 'HistoriesDiverge') {
         isResetNeeded = true
-        console.debug({
+        debug({
           lastCommonMigrationName: history.lastCommonMigrationName,
         })
-        console.debug({
+        debug({
           unappliedMigrationNames: history.unappliedMigrationNames,
         })
-        console.debug({
+        debug({
           unpersistedMigrationNames: history.unpersistedMigrationNames,
         })
       }
@@ -427,7 +427,7 @@ export class Migrate {
     const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
-    console.debug({ appliedMigrationNames })
+    debug({ appliedMigrationNames })
 
     return appliedMigrationNames
   }
@@ -457,13 +457,13 @@ export class Migrate {
       draft: false,
       prismaSchema: datamodel,
     })
-    console.debug({ createMigrationResult })
+    debug({ createMigrationResult })
 
     // success?
     const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
-    console.debug({ appliedMigrationNames })
+    debug({ appliedMigrationNames })
 
     return appliedMigrationNames
   }
