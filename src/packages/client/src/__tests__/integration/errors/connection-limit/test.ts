@@ -30,5 +30,5 @@ describe('connection-limit', () => {
         expect(e).toMatchSnapshot() // should fail on 100th iteration.
       }
     }
-  }, 50000)
+  }, 100000)
 })
