@@ -19,3 +19,7 @@ flags:
     carryforward: true
     paths:
       - src/packages/debug/
+  engine-core:
+    carryforward: true
+    paths:
+      - src/packages/engine-core/
