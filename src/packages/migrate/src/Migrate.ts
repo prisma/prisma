@@ -432,15 +432,17 @@ export class Migrate {
     return appliedMigrationNames
   }
 
-  public async plan(): Promise<EngineResults.PlanMigrationOutput> {
+  public async evaluateDataLoss(): Promise<
+    EngineResults.EvaluateDataLossOutput
+  > {
     const datamodel = this.getDatamodel()
 
-    const planMigrationResult = await this.engine.planMigration({
+    const evaluateDataLossResult = await this.engine.evaluateDataLoss({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       prismaSchema: datamodel,
     })
 
-    return planMigrationResult
+    return evaluateDataLossResult
   }
 
   public async createAndApply({ name = '' }: MigrateOptions = {}): Promise<

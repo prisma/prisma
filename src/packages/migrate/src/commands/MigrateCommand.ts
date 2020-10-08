@@ -190,7 +190,7 @@ export class MigrateCommand implements Command {
 
     await migrate.checkHistoryAndReset({ force: args['--force'] })
 
-    const planMigrationResult = await migrate.plan()
+    const planMigrationResult = await migrate.evaluateDataLoss()
     if (
       planMigrationResult.unexecutableSteps &&
       planMigrationResult.unexecutableSteps.length > 0

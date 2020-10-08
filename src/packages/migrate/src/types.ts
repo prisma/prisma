@@ -90,6 +90,10 @@ export namespace EngineArgs {
     migrationsDirectoryPath: string
     prismaSchema: string
   }
+  export interface EvaluateDataLossInput {
+    migrationsDirectoryPath: string
+    prismaSchema: string
+  }
   export interface CreateMigrationInput {
     migrationsDirectoryPath: string
     prismaSchema: string
@@ -154,6 +158,9 @@ export namespace EngineResults {
   }
 
   export interface PlanMigrationOutput {
+    // Todo
+  }
+  export interface EvaluateDataLossOutput {
     /// The migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
     migrationSteps: string[]
 
