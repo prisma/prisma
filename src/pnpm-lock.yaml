@@ -64,7 +64,7 @@ importers:
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      checkpoint-client: 1.1.12
+      checkpoint-client: 1.1.13
       dotenv: 8.2.0
       escape-string-regexp: 4.0.0
       eslint: 7.10.0
@@ -119,20 +119,20 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.296.0
       '@prisma/studio-server': 0.296.0
-      '@sindresorhus/slugify': ^1.1.0
-      '@timsuchanek/copy': ^1.4.5
+      '@sindresorhus/slugify': 1.1.0
+      '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
-      '@types/string-hash': ^1.1.1
-      '@types/verror': ^1.10.4
+      '@types/string-hash': 1.1.1
+      '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
-      checkpoint-client: 1.1.12
+      checkpoint-client: 1.1.13
       dotenv: 8.2.0
-      escape-string-regexp: ^4.0.0
+      escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -146,7 +146,7 @@ importers:
       husky: 4.3.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
-      line-replace: ^2.0.1
+      line-replace: 2.0.1
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
@@ -164,14 +164,14 @@ importers:
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
       sqlite3: 4.2.0
-      string-hash: ^1.1.3
+      string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 0.7.1
       terminal-link: 2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
-      verror: ^1.10.0
+      verror: 1.10.0
       ws: 7.3.1
   packages/client:
     dependencies:
@@ -360,7 +360,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 2.0.5
+      undici: 2.0.6
     devDependencies:
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.14
@@ -410,7 +410,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
-      undici: 2.0.5
+      undici: 2.0.6
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -740,7 +740,7 @@ importers:
       react: 16.11.0
       rimraf: ^3.0.2
       sqlite-async: 1.1.0
-      sqlite3: ^5.0.0
+      sqlite3: 5.0.0
       string-width: ^4.2.0
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
@@ -2829,6 +2829,19 @@ packages:
       uuid: 8.3.0
     resolution:
       integrity: sha512-YbQMJe28YfLWBst/YvQhrh12afZGy67J7Uo/q9U0OfrFXZq3D8OyDPgjZkc+zRRK3wppC28SiCQ0fbgalsmCqA==
+  /checkpoint-client/1.1.13:
+    dependencies:
+      '@prisma/ci-info': 2.1.2
+      cross-spawn: 7.0.3
+      env-paths: 2.2.0
+      fast-write-atomic: 0.2.1
+      make-dir: 3.1.0
+      ms: 2.1.2
+      node-fetch: 2.6.1
+      uuid: 8.3.0
+    dev: true
+    resolution:
+      integrity: sha512-/GONVFkUAbwIRpuIl6LR7/lohoCP0RFmzb+gbXU72OJ9GaSzhqJ/yiMmoRPcuH2aF4OAWfvrVaTzS7/K8ZJh3g==
   /chownr/1.1.4:
     dev: true
     resolution:
@@ -8454,8 +8467,13 @@ packages:
     resolution:
       integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=
   /undici/2.0.5:
+    dev: true
     resolution:
       integrity: sha512-KluDT7X78oGS+/3bxwGE06e/4x4wbuK7TNmTMLPJNmEOkzrLGBMwAnWMxm3PukR9BnB7k20IzOpGjl90AltwFQ==
+  /undici/2.0.6:
+    dev: false
+    resolution:
+      integrity: sha512-oTa6d55jg0NZT6AI0gxAruksEkibEKnhc3oJPeH8rezcjv7fogc8x14A//Dc1KNcZtDZO39MCSWqSyr63QB3EQ==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0
