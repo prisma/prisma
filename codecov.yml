@@ -7,10 +7,6 @@ flags:
     carryforward: true
     paths:
       - src/packages/get-platform/
-  cli:
-    carryforward: true
-    paths:
-      - src/packages/cli/
   client:
     carryforward: true
     paths:
