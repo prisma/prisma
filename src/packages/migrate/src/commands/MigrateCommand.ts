@@ -16,8 +16,8 @@ import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
-import { printMigrationId } from '../utils/printMigrationId'
-import { printFiles } from '../utils/printFiles'
+import { printMigrationId, printMigrationIds } from '../utils/printMigrationId'
+import { printFiles, printFilesFromMigrationIds } from '../utils/printFiles'
 
 /**
  * Migrate command
@@ -178,16 +178,16 @@ export class MigrateCommand implements Command {
 
     await migrate.checkHistoryAndReset({ force: args['--force'] })
 
-    const planMigrationResult = await migrate.evaluateDataLoss()
+    const evaluateDataLossResult = await migrate.evaluateDataLoss()
     if (
-      planMigrationResult.unexecutableSteps &&
-      planMigrationResult.unexecutableSteps.length > 0
+      evaluateDataLossResult.unexecutableSteps &&
+      evaluateDataLossResult.unexecutableSteps.length > 0
     ) {
       const messages: string[] = []
       messages.push(
         `${chalk.bold.red('\n⚠️ We found changes that cannot be executed:\n')}`,
       )
-      for (const item of planMigrationResult.unexecutableSteps) {
+      for (const item of evaluateDataLossResult.unexecutableSteps) {
         messages.push(`${chalk(`  • ${item}`)}`)
       }
       console.info() // empty line
@@ -196,15 +196,15 @@ export class MigrateCommand implements Command {
     }
 
     if (
-      planMigrationResult.warnings &&
-      planMigrationResult.warnings.length > 0
+      evaluateDataLossResult.warnings &&
+      evaluateDataLossResult.warnings.length > 0
     ) {
       console.log(
         chalk.bold(
           `\n\n⚠️  There will be data loss when applying the migration:\n`,
         ),
       )
-      for (const warning of planMigrationResult.warnings) {
+      for (const warning of evaluateDataLossResult.warnings) {
         console.log(chalk(`  • ${warning.message}`))
       }
       console.info() // empty line
@@ -232,7 +232,10 @@ export class MigrateCommand implements Command {
       }
     }
 
-    const migrationName = await this.getMigrationName(args['--name'])
+    const migrationName =
+      evaluateDataLossResult.migrationSteps.length > 0
+        ? await this.getMigrationName(args['--name'])
+        : undefined
 
     const migrationIds = await migrate.createAndApply({
       name: migrationName,
@@ -246,10 +249,8 @@ export class MigrateCommand implements Command {
     if (migrationIds.length === 0) {
       return `\nEverything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.\n`
     } else {
-      return `\nPrisma Migrate created and applied the migration ${printMigrationId(
-        migrationIds[0],
-      )} in\n\n${chalk.dim(
-        printFiles(`migrations/${migrationIds[0]}`, {
+      return `\nPrisma Migrate applied the following migration(s):\n\n${chalk.dim(
+        printFilesFromMigrationIds('migrations', migrationIds, {
           'migration.sql': '',
         }),
       )}\n`

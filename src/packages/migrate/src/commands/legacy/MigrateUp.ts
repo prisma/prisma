@@ -140,7 +140,7 @@ export class MigrateUp implements Command {
 
     await ensureDatabaseExists('apply', args['--create-db'], schemaPath)
 
-    const result = await migrate.up(options)
+    const result = await migrate.upLegacy(options)
     migrate.stop()
     return result
   }

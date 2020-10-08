@@ -16,7 +16,7 @@ import chalk from 'chalk'
 import debugLib from 'debug'
 
 import { HelpError, isError } from '@prisma/sdk'
-import { MigrateCommand } from './commands/legacy/MigrateCommand'
+import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateInit } from './commands/MigrateInit'
 import { MigrateUp } from './commands/MigrateUp'

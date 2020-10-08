@@ -49,7 +49,7 @@ export class MigrateTmpPrepare implements Command {
 
     await ensureDatabaseExists('dev', true, schemaPath)
 
-    await migrate.up({
+    await migrate.upLegacy({
       short: true,
       autoApprove: true,
     })

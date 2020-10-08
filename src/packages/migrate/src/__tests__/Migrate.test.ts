@@ -288,7 +288,7 @@ function createTests() {
           replaceTimestamp(stripAnsi(resultSave as string)),
         ).toMatchSnapshot()
 
-        await migrate.up()
+        await migrate.upLegacy()
         migrate.stop()
 
         /* eslint-disable @typescript-eslint/no-unsafe-assignment */

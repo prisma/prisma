@@ -95,7 +95,7 @@ export class MigrateUp implements Command {
 
     await ensureDatabaseExists('apply', true, schemaPath)
 
-    const result = await migrate.upup()
+    const result = await migrate.up()
     migrate.stop()
 
     return ``

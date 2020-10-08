@@ -291,13 +291,8 @@ export class Migrate {
     await this.engine.reset()
   }
 
-  public async upup(): Promise<void> {
-    return
-
-    // not implemented yet
-    // await this.engine.initialize({
-    //   migrationsDirectoryPath: this.migrationsDirectoryPath,
-    // })
+  public async up(): Promise<void> {
+    throw new Error('Not implemented yet :)')
   }
 
   public async draft({ name = '' }: MigrateOptions = {}): Promise<
@@ -442,6 +437,7 @@ export class Migrate {
       prismaSchema: datamodel,
     })
 
+    debug({ evaluateDataLossResult })
     return evaluateDataLossResult
   }
 
@@ -622,7 +618,7 @@ export class Migrate {
     if (migrationsToApply.length > 0) {
       // TODO: Ask for permission if we actually want to do it?
       // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.up({
+      await this.upLegacy({
         short: true,
         autoApprove: options.autoApprove,
       })
@@ -748,7 +744,7 @@ export class Migrate {
     } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({
+  public async upLegacy({
     n,
     preview,
     short,
