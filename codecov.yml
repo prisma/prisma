@@ -27,3 +27,7 @@ flags:
     carryforward: true
     paths:
       - src/packages/generator-helper/
+  sdk:
+    carryforward: true
+    paths:
+      - src/packages/sdk/

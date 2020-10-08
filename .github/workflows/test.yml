@@ -301,6 +301,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      - name: Upload coverage report
+        working-directory: src/packages/sdk
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F sdk -f ./src/__tests__/coverage/clover.xml
+
   #
   # MIGRATE
   #
