@@ -355,6 +355,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      - name: Upload coverage report
+        working-directory: src/packages/migrate
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F migrate -f ./src/__tests__/coverage/clover.xml
+
   #
   # INTROSPECTION
   #
@@ -413,6 +418,10 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
 
+      - name: Upload coverage report
+        working-directory: src/packages/introspection
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F introspection -f ./src/__tests__/coverage/clover.xml
   #
   # All the other packages!
   #
