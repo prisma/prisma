@@ -1,6 +1,8 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  collectCoverage: true,
+  coverageDirectory: 'src/__tests__/coverage',
   modulePathIgnorePatterns: [
     'build/',
     'dist/',
@@ -12,7 +14,7 @@ module.exports = {
     'stack.js',
     'runner.js',
     'node_modules/',
-    'exhaustive-schema/generated-dmmf.ts'
+    'exhaustive-schema/generated-dmmf.ts',
   ],
   globals: {
     'ts-jest': {
@@ -20,5 +22,5 @@ module.exports = {
     },
   },
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
-  testTimeout: 10000
+  testTimeout: 10000,
 }
