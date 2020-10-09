@@ -1,6 +1,9 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  collectCoverage: process.env.CI ? true : false,
+  coverageReporters: ['clover'],
+  coverageDirectory: 'src/__tests__/coverage',
   modulePathIgnorePatterns: [
     'build/',
     'dist/',
@@ -21,5 +24,5 @@ module.exports = {
     },
   },
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
-  testTimeout: 10000
+  testTimeout: 10000,
 }
