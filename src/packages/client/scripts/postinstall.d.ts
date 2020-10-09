@@ -1,2 +1,3 @@
 export function getPostInstallTrigger(): string
-export const ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+export const UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+export const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING

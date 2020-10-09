@@ -234,35 +234,44 @@ function getPostInstallTrigger() {
   const maybe_npm_config_argv_string = process.env.npm_config_argv
 
   if (maybe_npm_config_argv_string === undefined) {
-    return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
   }
 
   let npm_config_argv
   try {
     npm_config_argv = JSON.parse(maybe_npm_config_argv_string)
   } catch (e) {
-    return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
   }
 
   if (typeof npm_config_argv !== 'object' || npm_config_argv === null) {
-    return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
   }
 
   const npm_config_arv_original_arr = npm_config_argv.original
 
   if (!Array.isArray(npm_config_arv_original_arr)) {
-    return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
   }
 
-  const npm_config_arv_original = npm_config_arv_original_arr.join(' ')
+  const npm_config_arv_original = npm_config_arv_original_arr
+    .filter((arg) => arg !== '')
+    .join(' ')
+
+  if (npm_config_arv_original === '') {
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
+  }
 
   return npm_config_arv_original
 }
 
-const ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER =
-  'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER'
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING =
+  'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING'
+
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER'
 
 // expose for testing
 
-exports.ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER = ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER = UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
 exports.getPostInstallTrigger = getPostInstallTrigger

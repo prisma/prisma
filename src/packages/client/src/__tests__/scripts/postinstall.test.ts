@@ -2,8 +2,9 @@
 process.env.SKIP_GENERATE = 'true'
 
 import {
-  ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER,
   getPostInstallTrigger,
+  UNABLE_TO_FIND_POSTINSTALL_TRIGGER,
+  UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING,
 } from '../../../scripts/postinstall'
 
 test('it joins the argv array of strings input into one single string ', () => {
@@ -11,26 +12,19 @@ test('it joins the argv array of strings input into one single string ', () => {
   expect(getPostInstallTrigger()).toEqual('foo bar')
 })
 
-test('empty array results in empty string', () => {
-  process.env.npm_config_argv = '{"original":[]}'
-  expect(getPostInstallTrigger()).toEqual('')
-})
-
-test('empty array results in empty string', () => {
-  process.env.npm_config_argv = '{"original":[]}'
-  expect(getPostInstallTrigger()).toEqual('')
-})
-
 describe('fails gracefully with', () => {
+  // prettier-ignore
   test.each([
-    ['envar missing', undefined],
-    ['envar bad json', 'bah'],
-    ['envar bad json schema missing field', '{}'],
-    ['envar bad json schema bad field type', '{"original":1}'],
-  ])('%s', (_, envVarValue) => {
+    ['envar missing', undefined, UNABLE_TO_FIND_POSTINSTALL_TRIGGER],
+    ['envar bad json', 'bah', UNABLE_TO_FIND_POSTINSTALL_TRIGGER],
+    [ 'envar bad json schema missing field', '{}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER],
+    [ 'envar bad json schema bad field type', '{"original":1}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER],
+    ['empty original argv array', '{"original":[]}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING],
+    ['empty strings in original argv array', '{"original":["",""]}', UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING],
+  ])('%s', (_, envVarValue, expected) => {
     process.env.npm_config_argv = envVarValue
     expect(getPostInstallTrigger()).toEqual(
-      ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER,
+      expected,
     )
   })
 })
