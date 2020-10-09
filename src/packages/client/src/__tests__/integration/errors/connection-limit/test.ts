@@ -20,13 +20,13 @@ describe('connection-limit', () => {
           db: { url: connectionString },
         },
       })
-      try {
-        await client.$connect()
-        clients.push(client)
-        await client.$queryRaw(`SELECT 1`)
-      } catch (e) {
-        expect(e).toMatchSnapshot() 
-      }
+      clients.push(client)
+    }
+    await Promise.all(clients.map(c=>c.$connect()))
+    try {
+      await Promise.all(clients.map(c=>c.$queryRaw(`SELECT 1`)))
+    } catch (e) {
+      expect(e).toMatchSnapshot() 
     }
   }, 100000)
 })
