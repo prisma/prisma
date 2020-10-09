@@ -45,7 +45,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "2.0.6"
+    "undici": "2.0.7"
   },
   "files": [
     "!**/__tests__",
