@@ -234,24 +234,33 @@ function getPostInstallTrigger() {
   const maybe_npm_config_argv_string = process.env.npm_config_argv
 
   if (maybe_npm_config_argv_string === undefined) {
-    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
   }
 
   let npm_config_argv
   try {
     npm_config_argv = JSON.parse(maybe_npm_config_argv_string)
   } catch (e) {
-    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
   }
 
   if (typeof npm_config_argv !== 'object' || npm_config_argv === null) {
-    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
   }
 
   const npm_config_arv_original_arr = npm_config_argv.original
 
   if (!Array.isArray(npm_config_arv_original_arr)) {
-    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
   }
 
   const npm_config_arv_original = npm_config_arv_original_arr
@@ -259,19 +268,31 @@ function getPostInstallTrigger() {
     .join(' ')
 
   if (npm_config_arv_original === '') {
-    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING +
+      `: ${maybe_npm_config_argv_string}`
+    )
   }
 
   return npm_config_arv_original
 }
 
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING =
-  'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING'
-
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
+// prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
 
 // expose for testing
 
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER = UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR
 exports.getPostInstallTrigger = getPostInstallTrigger
