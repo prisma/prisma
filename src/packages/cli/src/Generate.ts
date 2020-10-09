@@ -1,26 +1,24 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import {
-  Command,
   arg,
+  Command,
   format,
-  HelpError,
-  getSchemaPath,
-  isError,
+  Generator,
   getCommandWithExecutor,
+  getGenerators,
+  getSchemaPath,
+  HelpError,
+  highlightTS,
+  isError,
+  link,
+  missingGeneratorMessage,
 } from '@prisma/sdk'
 import chalk from 'chalk'
+import fs from 'fs'
 import logUpdate from 'log-update'
-import {
-  missingGeneratorMessage,
-  getGenerators,
-  highlightTS,
-  link,
-  Generator,
-} from '@prisma/sdk'
+import path from 'path'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
-import fs from 'fs'
-import path from 'path'
 const pkg = eval(`require('../package.json')`)
 
 /**
@@ -98,7 +96,7 @@ export class Generate implements Command {
       '--watch': Boolean,
       '--schema': String,
       // Only used for checkpoint information
-      '--postinstall': Boolean,
+      '--postinstall': String,
       '--telemetry-information': String,
     })
 
@@ -138,10 +136,7 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
