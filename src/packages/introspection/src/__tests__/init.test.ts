@@ -34,7 +34,7 @@ describe('init', () => {
 
     const init = Init.new()
     const result = stripAnsi(
-      await init.parse(['--url', process.env.TEST_POSTGRES_URI!]),
+      await init.parse(['--url', process.env.TEST_POSTGRES_URI ||  'postgres://prisma:prisma@localhost:5432/tests']),
     )
     expect(result).toMatchSnapshot()
 
@@ -45,7 +45,7 @@ describe('init', () => {
     expect(schema).toMatch(defaultSchema())
 
     const env = fs.readFileSync(join(tmpDir, 'prisma', '.env'), 'utf-8')
-    expect(env).toMatch(defaultEnv(process.env.TEST_POSTGRES_URI!))
+    expect(env).toMatch(defaultEnv(process.env.TEST_POSTGRES_URI ||  'postgres://prisma:prisma@localhost:5432/tests'))
 
     process.chdir(cwd)
   })
