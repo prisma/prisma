@@ -209,6 +209,10 @@ type PackagesWithNewVersions = { [packageName: string]: PackageWithNewVersion }
 export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>(
     (acc, [name, pkg]) => {
+      let usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
+      if (name === '@prisma/client') {
+        usesDev = usesDev.filter(d => d !== '@prisma/migrate')
+      }
       acc[name] = {
         version: pkg.packageJson.version,
         name,
@@ -216,10 +220,9 @@ export function getPackageDependencies(packages: RawPackages): Packages {
         usedBy: [],
         usedByDev: [],
         uses: getPrismaDependencies(pkg.packageJson.dependencies),
-        usesDev: getPrismaDependencies(pkg.packageJson.devDependencies),
+        usesDev,
         packageJson: pkg.packageJson,
       }
-
       return acc
     },
     {},
