@@ -1,3 +1,4 @@
+// Prevent postinstall script from running
 process.env.SKIP_GENERATE = 'true'
 
 import {
