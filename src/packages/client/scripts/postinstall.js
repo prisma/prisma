@@ -231,9 +231,6 @@ function getPostInstallTrigger() {
   Other package managers like `pnpm` have not been tested.
   */
 
-  const ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER =
-    'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER'
-
   const maybe_npm_config_argv_string = process.env.npm_config_argv
 
   if (maybe_npm_config_argv_string === undefined) {
@@ -251,11 +248,21 @@ function getPostInstallTrigger() {
     return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
   }
 
-  const npm_config_arv_original = npm_config_argv.original
+  const npm_config_arv_original_arr = npm_config_argv.original
 
-  if (npm_config_arv_original === undefined) {
+  if (!Array.isArray(npm_config_arv_original_arr)) {
     return ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
   }
 
+  const npm_config_arv_original = npm_config_arv_original_arr.join(' ')
+
   return npm_config_arv_original
 }
+
+const ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER =
+  'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER'
+
+// expose for testing
+
+exports.ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER = ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER
+exports.getPostInstallTrigger = getPostInstallTrigger
