@@ -17,7 +17,7 @@ export async function getLatestTag(): Promise<any> {
   }
 
   let branch = await getBranch()
-  if (branch !== 'master' && (!isPatchBranch(branch) || !branch.startsWith('integration/'))) {
+  if (branch !== 'master' && (!isPatchBranch(branch) && !branch.startsWith('integration/'))) {
     branch = 'master'
   }
 
@@ -104,7 +104,7 @@ async function getFirstFinishedCommit(commits: string[]): Promise<string> {
       // if all are missing, we don't have to talk about it
       // it might just be a broken commit or just still building
       if (missing.length !== urls.length) {
-        console.log(`${chalk.blueBright('info')} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. The following urls are missing:\n\n${missing.join('\n')}`)
+        console.log(`${chalk.blueBright('info')} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. Missing urls: ${missing.length}`)
       }
     }
   }

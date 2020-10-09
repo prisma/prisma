@@ -50,6 +50,8 @@ async function main() {
     replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
   ])
 
+  chmodX('./build/index.js')
+
   const after = Date.now()
   console.log(
     chalk.blueBright(
@@ -80,3 +82,12 @@ main().catch((e) => {
   console.error(e)
   throw e
 })
+
+
+function chmodX(file) {
+  const s = fs.statSync(file)
+  const newMode = s.mode | 64 | 8 | 1
+  if (s.mode === newMode) return
+  const base8 = newMode.toString(8).slice(-3)
+  fs.chmodSync(file, base8)
+}

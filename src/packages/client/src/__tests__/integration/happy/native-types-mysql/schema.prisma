@@ -1,0 +1,56 @@
+datasource db {
+  provider        = "mysql"
+  url             = env("TEST_MYSQL_URI")
+  previewFeatures = ["nativeTypes"]
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model A {
+  id   Int @id @default(autoincrement())
+  int  Int @db.Int
+  sInt Int @db.SmallInt
+  tInt Int @db.TinyInt
+  mInt Int @db.MediumInt
+  bInt Int @db.BigInt
+}
+
+model B {
+  id       String   @id @default(cuid())
+  float    Float    @db.Float
+  dfloat   Float    @db.Double
+  decFloat Decimal? @db.Decimal(2, 1)
+  numFloat Decimal? @db.Numeric(10, 6)
+}
+
+model C {
+  id    String @id @default(cuid())
+  char  String @db.Char(10)
+  vChar String @db.VarChar(11)
+  tText String @db.TinyText
+  text  String @db.Text
+  mText String @db.MediumText
+  ltext String @db.LongText
+}
+
+model D {
+  id    String   @id @default(cuid())
+  date  DateTime @db.Date
+  time  DateTime @db.Time(5)
+  dtime DateTime @db.Datetime
+  ts    DateTime @db.Timestamp
+  year  Int      @db.Year
+}
+
+model E {
+  id    String @id @default(cuid())
+  bit   Bytes  @db.Bit(8)
+  bin   Bytes  @db.Binary(4)
+  vBin  Bytes  @db.VarBinary(5)
+  blob  Bytes  @db.Blob
+  tBlob Bytes  @db.TinyBlob
+  mBlob Bytes  @db.MediumBlob
+  lBlob Bytes  @db.LongBlob
+}

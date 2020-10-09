@@ -712,6 +712,10 @@ function stringify(
   isEnum?: boolean,
   isJson?: boolean,
 ) {
+  if (Buffer.isBuffer(obj)) {
+    return JSON.stringify(obj.toString('base64'))
+  }
+
   if (isJson) {
     if (obj === null) {
       return 'null'
@@ -1258,6 +1262,7 @@ function hasCorrectScalarType(
     return true
   }
 
+
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
@@ -1635,16 +1640,15 @@ export function unpack({ document, path, data }: UnpackOptions): any {
 
   const field = getField(document, path)
 
-  const mappedData = mapDates({ field, data: result })
-  return mapJson({ field, data: mappedData })
+  return mapScalars({ field, data: result })
 }
 
-export interface MapDatesOptions {
+export interface MapScalarsOptions {
   field: Field
   data: any
 }
 
-export function mapDates({ field, data }: MapDatesOptions): any {
+export function mapScalars({ field, data }: MapScalarsOptions): any {
   if (
     !data ||
     typeof data !== 'object' ||
@@ -1654,23 +1658,29 @@ export function mapDates({ field, data }: MapDatesOptions): any {
     return data
   }
 
+  const deserializers = {
+    'DateTime': value => new Date(value),
+    'Json': value => JSON.parse(value),
+    'Bytes': value => Buffer.from(value, 'base64')
+  }
+
   for (const child of field.children) {
-    if (child.schemaField && child.schemaField.outputType.type === 'DateTime') {
-      if (Array.isArray(data)) {
-        for (const entry of data) {
-          // in the very unlikely case, that a field is not there in the result, ignore it
-          if (typeof entry[child.name] !== 'undefined') {
-            entry[child.name] = entry[child.name]
-              ? new Date(entry[child.name])
-              : entry[child.name]
+    const outputType = child.schemaField?.outputType.type
+    if (outputType && typeof outputType === 'string') {
+      const deserializer = deserializers[outputType]
+      if (deserializer) {
+        if (Array.isArray(data)) {
+          for (const entry of data) {
+            // in the very unlikely case, that a field is not there in the result, ignore it
+            if (typeof entry[child.name] !== 'undefined' && entry[child.name] !== null) {
+              entry[child.name] = deserializer(entry[child.name])
+            }
           }
-        }
-      } else {
-        // same here, ignore it if it's undefined
-        if (typeof data[child.name] !== 'undefined') {
-          data[child.name] = data[child.name]
-            ? new Date(data[child.name])
-            : data[child.name]
+        } else {
+          // same here, ignore it if it's undefined
+          if (typeof data[child.name] !== 'undefined' && data[child.name] !== null) {
+            data[child.name] = deserializer(data[child.name])
+          }
         }
       }
     }
@@ -1678,55 +1688,10 @@ export function mapDates({ field, data }: MapDatesOptions): any {
     if (child.schemaField && child.schemaField.outputType.kind === 'object') {
       if (Array.isArray(data)) {
         for (const entry of data) {
-          mapDates({ field: child, data: entry[child.name] })
+          mapScalars({ field: child, data: entry[child.name] })
         }
       } else {
-        mapDates({ field: child, data: data[child.name] })
-      }
-    }
-  }
-
-  return data
-}
-
-export function mapJson({ field, data }: MapDatesOptions): any {
-  if (
-    !data ||
-    typeof data !== 'object' ||
-    !field.children ||
-    !field.schemaField
-  ) {
-    return data
-  }
-
-  for (const child of field.children) {
-    if (child.schemaField && child.schemaField.outputType.type === 'Json') {
-      if (Array.isArray(data)) {
-        for (const entry of data) {
-          // in the very unlikely case, that a field is not there in the result, ignore it
-          if (typeof entry[child.name] !== 'undefined') {
-            entry[child.name] = entry[child.name]
-              ? JSON.parse(entry[child.name])
-              : entry[child.name]
-          }
-        }
-      } else {
-        // same here, ignore it if it's undefined
-        if (typeof data[child.name] !== 'undefined') {
-          data[child.name] = data[child.name]
-            ? JSON.parse(data[child.name])
-            : data[child.name]
-        }
-      }
-    }
-
-    if (child.schemaField && child.schemaField.outputType.kind === 'object') {
-      if (Array.isArray(data)) {
-        for (const entry of data) {
-          mapJson({ field: child, data: entry[child.name] })
-        }
-      } else {
-        mapJson({ field: child, data: data[child.name] })
+        mapScalars({ field: child, data: data[child.name] })
       }
     }
   }

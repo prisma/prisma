@@ -219,46 +219,4 @@ describe('generator', () => {
       ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
     }
   })
-
-  test.skip('inMemory', async () => {
-    const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'schema.prisma'),
-      providerAliases: {
-        photonjs: {
-          generatorPath: path.join(__dirname, '../../../dist/generator.js'),
-          outputPath: __dirname,
-        },
-      },
-      baseDir: __dirname,
-      overrideGenerators: [
-        {
-          binaryTargets: [],
-          config: {
-            inMemory: 'true',
-          },
-          name: 'client',
-          provider: 'prisma-client-js',
-          output: null,
-          previewFeatures: [],
-        },
-      ],
-      skipDownload: true,
-    })
-
-    const result = await generator.generate()
-    expect(Object.keys(result.fileMap)).toMatchInlineSnapshot(`
-            Array [
-              "index.js",
-              "index.d.ts",
-            ]
-        `)
-    expect(Object.keys(result.photonDmmf)).toMatchInlineSnapshot(`
-                  Array [
-                    "datamodel",
-                    "mappings",
-                    "schema",
-                  ]
-            `)
-    generator.stop()
-  })
 })

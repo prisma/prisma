@@ -48,7 +48,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "prisma": {
-    "version": "f4f4c265b355e72ab29dbb1d4495d4bcaf0e829f"
+    "version": "bf0a845690f1c7bde83dc1500a85d873785d36cf"
   },
   "files": [
     "runtime",
@@ -64,6 +64,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/sdk": "workspace:*",
+    "@prisma/migrate": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
     "@types/fs-extra": "9.0.1",

@@ -49,6 +49,9 @@ export const ScalarTypeTable = {
   ID: true,
   UUID: true,
   Json: true,
+  Bytes: true,
+  Xml: true,
+  Decimal: true
 }
 
 export function isScalar(str: string): boolean {
@@ -68,6 +71,9 @@ export const GraphQLScalarToJSTypeTable = {
   ID: 'string',
   UUID: 'string',
   Json: 'JsonValue',
+  Bytes: 'Buffer',
+  Xml: 'string',
+  Decimal: 'number'
 }
 
 export const JSOutputTypeToInputType = {
@@ -104,6 +110,15 @@ export function getGraphQLType(
   if (value === null) {
     return 'null'
   }
+
+  if (Buffer.isBuffer(value)) {
+    return 'Bytes'
+  }
+
+  if (potentialType && potentialType.toString() === 'Xml' && typeof value === 'string') {
+    return 'Xml'
+  }
+
   if (Array.isArray(value)) {
     let scalarTypes = value.reduce((acc, val) => {
       const type = getGraphQLType(val, potentialType)

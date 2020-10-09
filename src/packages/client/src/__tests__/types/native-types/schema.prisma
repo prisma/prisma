@@ -1,0 +1,61 @@
+datasource db {
+  provider        = "postgresql"
+  url             = env("TEST_POSTGRES_URI")
+  previewFeatures = ["nativeTypes"]
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// / User model comment
+model A {
+  id    String  @id @default(uuid())
+  email String  @unique
+  // / name comment
+  name  String?
+
+  int      Int @db.Integer
+  sInt     Int @db.SmallInt
+  bInt     Int @db.BigInt
+  serial   Int @default(autoincrement()) @db.Serial
+  sSerial  Int @default(autoincrement()) @db.SmallSerial
+  bSerial  Int @default(autoincrement()) @db.BigSerial
+  inc_int  Int @default(autoincrement()) @db.Integer
+  inc_sInt Int @default(autoincrement()) @db.SmallInt
+  inc_bInt Int @default(autoincrement()) @db.BigInt
+}
+
+model B {
+  id       String  @id @default(cuid())
+  float    Float   @db.Real
+  dfloat   Float   @db.DoublePrecision
+  decFloat Decimal @db.Decimal(2, 1)
+  numFloat Decimal @db.Numeric(10, 6)
+}
+
+model C {
+  id    String @id @default(cuid())
+  char  String @db.Char(10)
+  vChar String @db.VarChar(11)
+  text  String @db.Text
+  bit   String @db.Bit(4)
+  vBit  String @db.VarBit(5)
+  uuid  String @db.Uuid
+}
+
+model D {
+  id    String  @id @default(cuid())
+  bool  Boolean @db.Boolean
+  byteA Bytes   @db.ByteA
+  xml   Xml     @db.Xml
+  json  Json    @db.Json
+  jsonb Json    @db.JsonB
+}
+
+model E {
+  id   String   @id @default(cuid())
+  date DateTime @db.Date
+  time DateTime @db.Time(3)
+  ts   DateTime @db.Timestamp(3)
+}

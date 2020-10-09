@@ -12,7 +12,8 @@ module.exports = {
     'stack.js',
     'runner.js',
     'node_modules/',
-    'exhaustive-schema/generated-dmmf.ts'
+    'exhaustive-schema/generated-dmmf.ts',
+    '__helpers__'
   ],
   globals: {
     'ts-jest': {
