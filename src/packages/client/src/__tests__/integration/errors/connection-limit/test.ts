@@ -1,22 +1,20 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('connection-limit', () => {
-  expect.assertions(1) // cannot have any clients currently connected to db.
+  expect.assertions(1) 
   let clients: Array<any> = []
 
   afterAll(async () => {
-    for (const client of clients) {
-      await client.$disconnect()
-    }
+    await Promise.all(clients.map(c => c.$disconnect()))
   })
 
-  test('connection', async () => {
+  test('the client cannot query the db with 100 connections already open', async () => {
+    const PrismaClient = await getTestClient()
+    const connectionString =
+      process.env.TEST_POSTGRES_ISOLATED_URI ||
+      'postgres://prisma:prisma@localhost:5435/tests'
     for (let i = 0; i <= 100; i++) {
-      const prismaClient = await getTestClient()
-      const connectionString =
-        process.env.TEST_POSTGRES_ISOLATED_URI ||
-        'postgres://prisma:prisma@localhost:5435/tests'
-      const client = new prismaClient({
+      const client = new PrismaClient({
         formatting: 'minimal',
         datasources: {
           db: { url: connectionString },
@@ -27,7 +25,7 @@ describe('connection-limit', () => {
         clients.push(client)
         await client.$queryRaw(`SELECT 1`)
       } catch (e) {
-        expect(e).toMatchSnapshot() // should fail on 100th iteration.
+        expect(e).toMatchSnapshot() 
       }
     }
   }, 100000)

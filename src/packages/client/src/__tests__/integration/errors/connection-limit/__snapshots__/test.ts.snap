@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`connection-limit connection 1`] = `
+exports[`connection-limit the client cannot query the db with 100 connections already open 1`] = `
 
 Invalid \`prisma.queryRaw()\` invocation:
 
