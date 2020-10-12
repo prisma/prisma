@@ -23,12 +23,21 @@ async function main() {
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
   try {
     if (localPath) {
-      await run('node', [localPath, 'generate', '--postinstall'])
+      await run('node', [
+        localPath,
+        'generate',
+        '--postinstall',
+        getPostInstallTrigger(),
+      ])
       return
     }
 
     if (installedGlobally) {
-      await run('prisma', ['generate', '--postinstall'])
+      await run('prisma', [
+        'generate',
+        '--postinstall',
+        getPostInstallTrigger(),
+      ])
       return
     }
   } catch (e) {
@@ -191,3 +200,99 @@ async function makeDir(input) {
 
   return make(path.resolve(input))
 }
+
+/**
+ * Get the command that triggered this postinstall script being run. If there is
+ * an error while attempting to get this value then the string constant
+ * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
+ */
+function getPostInstallTrigger() {
+  /*
+  npm_config_argv` is not officially documented so here are our research notes 
+
+  `npm_config_argv` is available to the postinstall script when the containing package has been installed by npm into some project.
+
+  An example of its value:
+
+  ```
+  npm_config_argv: '{"remain":["../test"],"cooked":["add","../test"],"original":["add","../test"]}',
+  ```
+
+  We are interesting in the data contained in the "original" field.
+
+  Trivia/Note: `npm_config_argv` is not available when running e.g. `npm install` on the containing package itself (e.g. when working on it)
+
+  Yarn mimics this data and environment variable. Here is an example following `yarn add` for the same package:
+
+  ```
+  npm_config_argv: '{"remain":[],"cooked":["add"],"original":["add","../test"]}'
+  ```
+
+  Other package managers like `pnpm` have not been tested.
+  */
+
+  const maybe_npm_config_argv_string = process.env.npm_config_argv
+
+  if (maybe_npm_config_argv_string === undefined) {
+    return UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
+  }
+
+  let npm_config_argv
+  try {
+    npm_config_argv = JSON.parse(maybe_npm_config_argv_string)
+  } catch (e) {
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
+  }
+
+  if (typeof npm_config_argv !== 'object' || npm_config_argv === null) {
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
+  }
+
+  const npm_config_arv_original_arr = npm_config_argv.original
+
+  if (!Array.isArray(npm_config_arv_original_arr)) {
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
+      `: ${maybe_npm_config_argv_string}`
+    )
+  }
+
+  const npm_config_arv_original = npm_config_arv_original_arr
+    .filter((arg) => arg !== '')
+    .join(' ')
+
+  if (npm_config_arv_original === '') {
+    return (
+      UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING +
+      `: ${maybe_npm_config_argv_string}`
+    )
+  }
+
+  return npm_config_arv_original
+}
+
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
+// prettier-ignore
+const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
+
+// expose for testing
+
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER = UNABLE_TO_FIND_POSTINSTALL_TRIGGER
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
+exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR
+exports.getPostInstallTrigger = getPostInstallTrigger

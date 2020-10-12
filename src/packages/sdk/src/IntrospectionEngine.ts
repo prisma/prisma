@@ -282,12 +282,15 @@ export class IntrospectionEngine {
 
           this.child.on('error', (err) => {
             console.error('[introspection-engine] error: %s', err)
-            reject(err)
+            this.child?.kill()
             this.rejectAll(err)
+            reject(err)
           })
 
           this.child.stdin?.on('error', (err) => {
             console.error(err)
+            this.child?.kill()
+
           })
 
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -368,6 +371,7 @@ export class IntrospectionEngine {
             resolve()
           })
         } catch (e) {
+          this.child?.kill()
           reject(e)
         }
       },
@@ -395,6 +399,7 @@ export class IntrospectionEngine {
           resolve(response.result)
         } else {
           if (response.error) {
+            this.child?.kill()
             debugRpc(response)
             if (response.error.data?.is_panic) {
               const message =

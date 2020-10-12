@@ -1,9 +1,9 @@
 import path from 'path'
 import { getGenerators } from '../../getGenerators'
-import { pick } from '../../pick'
 import { omit } from '../../omit'
+import { pick } from '../../pick'
 
-jest.setTimeout(10000)
+jest.setTimeout(20000)
 
 describe('getGenerators', () => {
   test('basic', async () => {
