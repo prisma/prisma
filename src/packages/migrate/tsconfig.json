@@ -10,7 +10,6 @@
     "rootDir": "src",
     "declaration": true,
     "resolveJsonModule": true,
-    "jsx": "react",
     "incremental": true
   }
 }
