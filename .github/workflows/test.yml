@@ -201,6 +201,16 @@ jobs:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
+      postgres_isolated:
+        image: postgres:10
+        env:
+          POSTGRES_DB: tests
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+
       # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
       # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
       mysql:
@@ -248,6 +258,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
 
       - name: Upload coverage report

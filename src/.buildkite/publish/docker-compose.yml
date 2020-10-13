@@ -11,6 +11,7 @@ services:
       - TEST_MYSQL_BASE_URI=mysql://root:root@mysql:3306
       - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
+      - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5432/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
       - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       - NPM_TOKEN
@@ -32,6 +33,7 @@ services:
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
     depends_on:
       - postgres
+      - postgres_isolated
       - mysql
       - mariadb
 
@@ -44,6 +46,16 @@ services:
       - POSTGRES_PASSWORD=prisma
     volumes:
       - postgres:/var/lib/postgresql/data
+
+  postgres_isolated:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres_isolated:/var/lib/postgresql/data
 
   mysql:
     image: mysql:8.0
@@ -70,5 +82,6 @@ services:
 
 volumes:
   postgres:
+  postgres_isolated:
   mysql:
   mariadb:
