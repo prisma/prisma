@@ -54,6 +54,7 @@
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
+    "@sindresorhus/slugify": "^1.1.0",
     "ansi-escapes": "^4.3.1",
     "cli-cursor": "3.1.0",
     "dashify": "2.0.0",

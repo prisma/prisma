@@ -5,7 +5,7 @@ export function printMigrationId(migrationId: string): string {
   if (words.length === 1) {
     return chalk.cyan.bold(migrationId)
   }
-  return `${words[0]}_${chalk.cyan.bold(words.slice(1).join('-'))}`
+  return `${words[0]}_${chalk.cyan.bold(words.slice(1).join('_'))}`
 }
 
 export function printMigrationIds(migrationIds: string[]): string {

@@ -1,5 +1,6 @@
 import { prompt } from 'prompts'
 import { isCi } from '@prisma/sdk'
+import slugify from '@sindresorhus/slugify'
 
 type getMigratioNameOutput = {
   name?: string
@@ -11,7 +12,7 @@ export async function getMigrationName(
 ): Promise<getMigratioNameOutput> {
   if (name) {
     return {
-      name,
+      name: slugify(name, { separator: '_' }),
     }
   } else if (isCi()) {
     return {
@@ -32,6 +33,6 @@ export async function getMigrationName(
   }
 
   return {
-    name: response.name || '',
+    name: slugify(response.name, { separator: '_' }) || '',
   }
 }
