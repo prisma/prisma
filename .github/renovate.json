@@ -3,7 +3,6 @@
   "extends": ["config:base"],
   "schedule": ["after 4pm on friday"],
   "semanticCommits": "enabled",
-  "ignoreDeps": ["@prisma/studio", "@prisma/studio-server"],
   "masterIssue": true,
   "reviewers": ["@jolg42", "@timsuchanek"],
   "rebaseWhen": "conflicted",
@@ -28,6 +27,14 @@
       "automerge": "true",
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "Studio",
+      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["at any time"],
+      "automerge": "true",
+      "reviewers": ["@madebysid"]
     },
     {
       "groupName": "checkpoint-client",
