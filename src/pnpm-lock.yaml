@@ -97,7 +97,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: 4.1.1
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
@@ -163,7 +163,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.2.0
+      sqlite3: '4.1'
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
@@ -666,7 +666,6 @@ importers:
       '@types/sqlite3': 3.1.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      '@vercel/ncc': 0.23.0
       chalk: 4.1.0
       del: 6.0.0
       eslint: 7.10.0
@@ -702,7 +701,6 @@ importers:
       '@types/sqlite3': 3.1.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
-      '@vercel/ncc': 0.23.0
       ansi-escapes: ^4.3.1
       chalk: 4.1.0
       cli-cursor: 3.1.0
@@ -1431,14 +1429,14 @@ packages:
       chalk: 4.1.0
       execa: 4.0.3
       find-cache-dir: 3.3.1
-      hasha: 5.2.1
+      hasha: 5.2.2
       http-proxy-agent: 4.0.1
       https-proxy-agent: 5.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.1
       p-filter: 2.1.0
       p-map: 4.0.0
-      p-queue: 6.6.1
+      p-queue: 6.6.2
       p-retry: 4.2.0
       progress: 2.0.3
       rimraf: 3.0.2
@@ -1537,7 +1535,7 @@ packages:
       '@sentry/minimal': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1548,7 +1546,7 @@ packages:
       '@sentry/core': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1560,7 +1558,7 @@ packages:
       '@sentry/minimal': 5.15.5
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1570,7 +1568,7 @@ packages:
     dependencies:
       '@sentry/types': 5.15.5
       '@sentry/utils': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1580,7 +1578,7 @@ packages:
     dependencies:
       '@sentry/hub': 5.15.5
       '@sentry/types': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1596,7 +1594,7 @@ packages:
       cookie: 0.3.1
       https-proxy-agent: 4.0.0
       lru_map: 0.3.3
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1611,7 +1609,7 @@ packages:
   /@sentry/utils/5.15.5:
     dependencies:
       '@sentry/types': 5.15.5
-      tslib: 1.13.0
+      tslib: 1.14.1
     dev: true
     engines:
       node: '>=6'
@@ -1704,7 +1702,7 @@ packages:
       integrity: sha512-rr+OQyAjxze7GgWrSaJwydHStIhHq2lvY3BOC2Mj7KnzI7XK0Uw1TOOdI9lDoajEbSWLiYgoo4f1R51erQfhPQ==
   /@types/cross-spawn/6.0.2:
     dependencies:
-      '@types/node': 14.0.27
+      '@types/node': 14.11.8
     resolution:
       integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==
   /@types/debug/4.1.5:
@@ -1819,8 +1817,12 @@ packages:
     resolution:
       integrity: sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
   /@types/node/14.0.27:
+    dev: true
     resolution:
       integrity: sha512-kVrqXhbclHNHGu9ztnAwSncIgJv/FaxmzXJvGXNdcCpV1b8u1/Mi6z6m0vwy0LzKeXFTPLH0NzwmoJ3fNCIq0g==
+  /@types/node/14.11.8:
+    resolution:
+      integrity: sha512-KPcKqKm5UKDkaYPTuXSx8wEP7vE9GnuaXIZKijwRYcePpZFDVuy2a57LarFKiORbHOuTOOwYzxVxcUzsh2P2Pw==
   /@types/normalize-package-data/2.4.0:
     resolution:
       integrity: sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
@@ -2133,11 +2135,6 @@ packages:
       node: ^8.10.0 || ^10.13.0 || >=11.10.1
     resolution:
       integrity: sha512-WIf4BNOlFOH2W+YqGWa6YKLcK/EB3gEj2apCrqLw6mme1RzBy0jtJ9ewJgnrZDB640zfnv8L+/gwGH5sYp/rGw==
-  /@vercel/ncc/0.23.0:
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha512-Fcr1qlG9t54X4X9qbo/+jr1+t5Qc6H3TgIRBXmKkF/WDs6YFulAN6ilq2Ehx38RbgIOFxaZnjlAQ50GyexnMpQ==
   /abab/2.0.3:
     dev: true
     resolution:
@@ -2196,13 +2193,13 @@ packages:
       node: '>= 6.0.0'
     resolution:
       integrity: sha512-TMeqbNl2fMW0nMjTEPOwe3J/PRFP4vqeoNuQMG0HlMrtm5QxKqdvAkZ1pRBQ/ulIyDD5Yq0nJ7YbdD8ey0TO3g==
-  /agent-base/6.0.0:
+  /agent-base/6.0.1:
     dependencies:
-      debug: 4.1.1
+      debug: 4.2.0
     engines:
       node: '>= 6.0.0'
     resolution:
-      integrity: sha512-j1Q7cSCqN+AwrmDd+pzgqc0/NpC655x2bUf5ZjRIO77DcNBFmh+OgRNzF6OKdCC9RSCb19fGd99+bhXFdkRNqw==
+      integrity: sha512-01q25QQDwLSsyfhrKbn8yuur+JNw0H+0Y4JiGIKd3z9aYk/w/2kxD/Upc+t2ZBBSUNff50VjPsSW2YxM8QYKVg==
   /aggregate-error/3.0.1:
     dependencies:
       clean-stack: 2.2.0
@@ -2220,6 +2217,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-lRF8RORchjpKG50/WFf8xmg7sgCLFiYNNnqdKflk63whMQcWR5ngGjiSXkL9bjxy6B2npOK2HSMN49jEBMSkag==
+  /ajv/6.12.6:
+    dependencies:
+      fast-deep-equal: 3.1.3
+      fast-json-stable-stringify: 2.1.0
+      json-schema-traverse: 0.4.1
+      uri-js: 4.4.0
+    dev: true
+    resolution:
+      integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==
   /ansi-colors/4.1.1:
     dev: true
     engines:
@@ -3141,7 +3147,6 @@ packages:
   /debug/4.2.0:
     dependencies:
       ms: 2.1.2
-    dev: true
     engines:
       node: '>=6.0'
     peerDependencies:
@@ -4444,7 +4449,7 @@ packages:
       integrity: sha1-qUwiJOvKwEeCoNkDVSHyRzW37JI=
   /har-validator/5.1.5:
     dependencies:
-      ajv: 6.12.5
+      ajv: 6.12.6
       har-schema: 2.0.0
     deprecated: this library is no longer supported
     dev: true
@@ -4535,7 +4540,7 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-2W+jKdQbAdSIrggA8Q35Br8qKadTrqCTC8+XZvBWepKDK6m9XkX6Iz1a2yh2KP01kzAR/dpuMeUnocoLYDcskw==
-  /hasha/5.2.1:
+  /hasha/5.2.2:
     dependencies:
       is-stream: 2.0.0
       type-fest: 0.8.1
@@ -4543,7 +4548,7 @@ packages:
     engines:
       node: '>=8'
     resolution:
-      integrity: sha512-x15jnRSHTi3VmH+oHtVb9kgU/HuKOK8mjK8iCL3dPQXh4YJlUb9YSI8ZLiiqLAIvY2wuDIlZYZppy8vB2XISkQ==
+      integrity: sha512-Hrp5vIK/xr5SkeN2onO32H0MgNZ0f17HRNH39WfL0SYUNOTZ5Lz1TJ8Pajo/87dYGEFlLMm7mIc/k/s6Bvz9HQ==
   /homedir-polyfill/1.0.3:
     dependencies:
       parse-passwd: 1.0.0
@@ -4594,8 +4599,8 @@ packages:
   /http-proxy-agent/4.0.1:
     dependencies:
       '@tootallnate/once': 1.1.2
-      agent-base: 6.0.0
-      debug: 4.1.1
+      agent-base: 6.0.1
+      debug: 4.2.0
     engines:
       node: '>= 6'
     resolution:
@@ -4622,8 +4627,8 @@ packages:
       integrity: sha512-zoDhWrkR3of1l9QAL8/scJZyLu8j/gBkcwcaQOZh7Gyh/+uJQzGVETdgT30akuwkpL8HTRfssqI3BZuV18teDg==
   /https-proxy-agent/5.0.0:
     dependencies:
-      agent-base: 6.0.0
-      debug: 4.1.1
+      agent-base: 6.0.1
+      debug: 4.2.0
     engines:
       node: '>= 6'
     resolution:
@@ -6534,7 +6539,7 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-X7ddxxiQ+bLR/CUt3/BVKrGcJDNxBr0pEEFKHHB6vTPWNUhgDv36GpIH18RmGM3YGPpBT+JWGjDDqsVGuF0ERw==
-  /p-queue/6.6.1:
+  /p-queue/6.6.2:
     dependencies:
       eventemitter3: 4.0.7
       p-timeout: 3.2.0
@@ -6542,7 +6547,7 @@ packages:
     engines:
       node: '>=8'
     resolution:
-      integrity: sha512-miQiSxLYPYBxGkrldecZC18OTLjdUqnlRebGzPRiVxB8mco7usCmm7hFuxiTvp93K18JnLtE4KMMycjAu/cQQg==
+      integrity: sha512-RwFpb72c/BhQLEXIZ5K2e+AhgNVmIejGlTgiB9MzZ0e93GRvqZ7uSi0dvRF7/XIXDeNkra2fNHBxTyPDGySpjQ==
   /p-reduce/2.1.0:
     dev: true
     engines:
@@ -7731,6 +7736,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
+  /sqlite3/4.1.1:
+    dependencies:
+      nan: 2.14.1
+      node-pre-gyp: 0.11.0
+      request: 2.88.2
+    dev: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -8321,6 +8335,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-i/6DQjL8Xf3be4K/E6Wgpekn5Qasl1usyw++dAA35Ue5orEn65VIxOA+YvNNl9HV3qv70T7CNwjODHZrLwvd1Q==
+  /tslib/1.14.1:
+    dev: true
+    resolution:
+      integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
   /tsutils/3.17.1_typescript@4.0.3:
     dependencies:
       tslib: 1.13.0
