@@ -262,14 +262,6 @@ function getPostInstallTrigger() {
     .filter((arg) => arg !== '')
     .join(' ')}`
 
-  // if (npm_config_arv_original === '') {
-  //   return (
-  //     UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING +
-  //     `: ${maybe_npm_config_argv_string}`
-  //   )
-  // }
-
-  // return npm_config_arv_original
   return command
 }
 
