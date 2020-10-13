@@ -20,7 +20,7 @@ test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async ()
   const data = {
     int: 123,
     sInt: 12,
-    tInt: 6,
+    tInt: true,
     mInt: 100,
     bInt: 123123123,
   }

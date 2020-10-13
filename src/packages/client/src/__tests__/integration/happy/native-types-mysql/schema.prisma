@@ -9,12 +9,12 @@ generator client {
 }
 
 model A {
-  id   Int @id @default(autoincrement())
-  int  Int @db.Int
-  sInt Int @db.SmallInt
-  tInt Int @db.TinyInt
-  mInt Int @db.MediumInt
-  bInt Int @db.BigInt
+  id   Int     @id @default(autoincrement())
+  int  Int     @db.Int
+  sInt Int     @db.SmallInt
+  tInt Boolean @db.TinyInt
+  mInt Int     @db.MediumInt
+  bInt Int     @db.BigInt
 }
 
 model B {

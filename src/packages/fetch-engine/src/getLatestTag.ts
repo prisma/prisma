@@ -42,13 +42,13 @@ export async function getLatestTag(): Promise<any> {
   }
 
   if (process.env.CI) {
-    return getCommitAndWaitIfNotDone(commits)
+    return getCommitAndWaitIfNotDone(branch, commits)
   }
 
-  return getFirstFinishedCommit(commits)
+  return getFirstFinishedCommit(branch, commits)
 }
 
-function getAllUrls(commit: string): string[] {
+function getAllUrls(branch: string, commit: string): string[] {
   const urls = []
   const excludedPlatforms = [
     'freebsd',
@@ -77,7 +77,7 @@ function getAllUrls(commit: string): string[] {
         '.sha256',
       ]) {
         const downloadUrl = getDownloadUrl(
-          'all_commits',
+          branch,
           commit,
           platform,
           engine,
@@ -91,9 +91,11 @@ function getAllUrls(commit: string): string[] {
   return urls
 }
 
-async function getFirstFinishedCommit(commits: string[]): Promise<string> {
+async function getFirstFinishedCommit(branch: string, commits: string[]): Promise<string> {
   for (const commit of commits) {
-    const urls = getAllUrls(commit)
+    const urls = getAllUrls(branch, commit)
+    // TODO: potential to speed things up
+    // We don't always need to wait for the last commit
     const exist = await pMap(urls, urlExists, { concurrency: 10 })
     const hasMissing = exist.some(e => !e)
 
@@ -110,9 +112,9 @@ async function getFirstFinishedCommit(commits: string[]): Promise<string> {
   }
 }
 
-async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
+async function getCommitAndWaitIfNotDone(branch: string, commits: string[]): Promise<string> {
   for (const commit of commits) {
-    const urls = getAllUrls(commit)
+    const urls = getAllUrls(branch, commit)
     let exist = await pMap(urls, urlExists, { concurrency: 10 })
     let hasMissing = exist.some(e => !e)
     let missing = urls.filter((_, i) => !exist[i])
@@ -237,6 +239,7 @@ async function getCommits(branch: string): Promise<string[] | object> {
   if (!Array.isArray(result)) {
     return result
   }
+
 
   const commits = result.map((r) => r.sha)
   return commits
