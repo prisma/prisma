@@ -3,17 +3,7 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-// That should fail though?
-it('reset in empty migrations folder', async () => {
-  ctx.fixture('initialized-sqlite')
-  const result = MigrateReset.new().parse(['--force', '--experimental'])
-  await expect(result).resolves.toMatchInlineSnapshot(`Reset successful.`)
-  expect(
-    ctx.mocked['console.error'].mock.calls.join('\n'),
-  ).toMatchInlineSnapshot(``)
-})
-
-it('reset should fail if no schema file', async () => {
+it('reset if no schema file should fail', async () => {
   ctx.fixture('empty')
   const result = MigrateReset.new().parse(['--force', '--experimental'])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -22,10 +12,48 @@ it('reset should fail if no schema file', async () => {
         `)
 })
 
-it('reset should recreate the db', async () => {
+it('reset without the migrations directory should fail', async () => {
+  ctx.fixture('reset')
+  ctx.fs.remove('prisma/migrations')
+
+  const result = MigrateReset.new().parse(['--force', '--experimental'])
+  await expect(result).rejects.toMatchInlineSnapshot(`
+          Generic error: An error occurred when reading the migrations directory.
+
+        `)
+  expect(
+    ctx.mocked['console.error'].mock.calls.join('\n'),
+  ).toMatchInlineSnapshot(``)
+})
+
+it('reset with missing db should fail', async () => {
+  ctx.fixture('reset')
+  ctx.fs.remove('prisma/dev.db')
+
+  const result = MigrateReset.new().parse(['--force', '--experimental'])
+  await expect(result).rejects.toMatchInlineSnapshot(`
+          P1014
+
+          The underlying table for model \`quaint._prisma_migrations\` does not exist.
+
+        `)
+  expect(
+    ctx.mocked['console.error'].mock.calls.join('\n'),
+  ).toMatchInlineSnapshot(``)
+})
+
+it('reset should work', async () => {
   ctx.fixture('reset')
   const result = MigrateReset.new().parse(['--force', '--experimental'])
-  await expect(result).resolves.toMatchInlineSnapshot(`Reset successful.`)
+  await expect(result).resolves.toMatchInlineSnapshot(`
+
+          Database reset successful, Prisma Migrate applied the following migration(s):
+
+          migrations/
+            └─ 20201231000000_init/
+              └─ migration.sql
+
+        `)
   expect(
     ctx.mocked['console.error'].mock.calls.join('\n'),
   ).toMatchInlineSnapshot(``)
