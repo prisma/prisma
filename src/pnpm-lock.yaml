@@ -222,7 +222,6 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.4.2
       node-fetch: 2.6.1
-      node-tcp-proxy: 0.0.17
       packwatch: 2.0.0
       pg: 8.3.3_pg@8.3.3
       pidtree: 0.5.0
@@ -288,7 +287,6 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.4.2
       node-fetch: 2.6.1
-      node-tcp-proxy: 0.0.17
       packwatch: 2.0.0
       pg: 8.3.3
       pidtree: 0.5.0
@@ -6238,13 +6236,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-TwWAOZb0j7e9eGaf9esRx3ZcLaE5tQ2lvYy1pb5IAaG1a2e2Kv5Lms1Y4hpj+ciXJRofIxxlt5haeQ/2ANeE0Q==
-  /node-tcp-proxy/0.0.17:
-    dependencies:
-      commander: 2.20.3
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha512-wtKbMb/tAeQj5uZbX22lCVtcyhiGtYpf24UH2Qh9hwEm/1sDMioHK/FhC0DCyNBFNWyVwSjDBbFDifOXBhh+Cg==
   /nopt/3.0.6:
     dependencies:
       abbrev: 1.1.1
