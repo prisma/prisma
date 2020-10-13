@@ -51,8 +51,8 @@ importers:
       '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
-      '@prisma/studio': 0.298.0
-      '@prisma/studio-server': 0.298.0
+      '@prisma/studio': 0.296.0
+      '@prisma/studio-server': 0.296.0
       '@sindresorhus/slugify': 1.1.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
@@ -117,8 +117,8 @@ importers:
       '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
-      '@prisma/studio': 0.298.0
-      '@prisma/studio-server': 0.298.0
+      '@prisma/studio': 0.296.0
+      '@prisma/studio-server': 0.296.0
       '@sindresorhus/slugify': 1.1.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
@@ -1498,36 +1498,36 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-20NNsDnPjCx5NJH5/iqfKjegCRXQpygFTpUSL3KF6WbfUiO3Uzvua+lme68TI8mTvQqZJaLFMm7mT5UBqUpeog==
-  /@prisma/studio-server/0.298.0:
+  /@prisma/studio-server/0.296.0:
     dependencies:
       '@prisma/get-platform': 2.8.0
       '@prisma/sdk': 2.8.0
-      '@prisma/studio': 0.298.0
-      '@prisma/studio-transports': 0.298.0
-      '@prisma/studio-types': 0.298.0
+      '@prisma/studio': 0.296.0
+      '@prisma/studio-transports': 0.296.0
+      '@prisma/studio-types': 0.296.0
       '@sentry/node': 5.15.5
       checkpoint-client: 1.1.11
       express: 4.17.1
       ws: 7.3.1
     dev: true
     resolution:
-      integrity: sha512-fhKtWH1Oh8nkdlksHyegrWgcZV1XLQQlCZCb/6gQCfigo8sHnIItQY1atYfgNEQUDcN/3+F1dmi7wyUrfzBgOg==
-  /@prisma/studio-transports/0.298.0:
+      integrity: sha512-mgtWiIdL+qevvhYjPkoSNQ2mZpXHcAag9ZCRWTydKF8XSQZzntvD0cLmhFrIQeIfJCPDUCqMNJSkxTHmicLpww==
+  /@prisma/studio-transports/0.296.0:
     dependencies:
       '@prisma/sdk': 2.8.0
-      '@prisma/studio-types': 0.298.0
+      '@prisma/studio-types': 0.296.0
       '@sentry/node': 5.15.5
     dev: true
     resolution:
-      integrity: sha512-h0IZmUAHOo6df3LJOpSdTRka+FVQvZKJWIaQAPYuMD035dhNKnD4umYbRUmbg/TWkkzuivhqHjmWsSylX2fajA==
-  /@prisma/studio-types/0.298.0:
+      integrity: sha512-U86cFYJXv0DVm8Na99MBOvuSChFsc0iui15VPzWuCLYDCHlN0cFrNzKj2zzrIC4O3EPn4zY8NxpkS8SuCCoMmw==
+  /@prisma/studio-types/0.296.0:
     dev: true
     resolution:
-      integrity: sha512-0lGonm4w30IbT8B5rDXip9wE5a54XeQj+OMg/zlzFUQkwGvz1z+bQOK0F8dAOzXB2Ye8GrlFI0cNh5fGj9APEw==
-  /@prisma/studio/0.298.0:
+      integrity: sha512-b7RQTivad3wgzWfPBBzHvnkwrDwKw8zTfrqfIT/DXYZD36I8u1RKC4PzIbaM9NNKi0GXQYbZC/komWJ6YQUcgA==
+  /@prisma/studio/0.296.0:
     dev: true
     resolution:
-      integrity: sha512-LUFXOhvTiOyTTQmF8U4fFC2HfBaqv/KwQWy+h73Qwa43jP7RJ9Yw2IRt6fppWISPyyxTvUZ/5mIeb1NoAJbogw==
+      integrity: sha512-EtQbPbC+QkOI+bje51jsLTBFUg9iFl6pXgEhAKss9uy+xWP15p5Ph+al/8zWyp7rGRoKJQ9sD1ivXtLusSQpgQ==
   /@sentry/apm/5.15.5:
     dependencies:
       '@sentry/browser': 5.15.5
