@@ -49,22 +49,22 @@ export interface UnexecutableMigration {
 
 export type DriftDiagnostic =
   /// The current database schema does not match the schema that would be expected from applying the migration history.
-  | { diagnostic: 'DriftDetected' }
+  | { diagnostic: 'driftDetected' }
   // A migration failed to cleanly apply to a temporary database.
   | {
-      diagnostic: 'MigrationFailedToApply'
+      diagnostic: 'migrationFailedToApply'
       migrationName: string
       error: string
     }
 
 export type HistoryDiagnostic =
-  | { diagnostic: 'DatabaseIsBehind'; unappliedMigrationsNames: string[] }
+  | { diagnostic: 'databaseIsBehind'; unappliedMigrationsNames: string[] }
   | {
-      diagnostic: 'MigrationsDirectoryIsBehind'
+      diagnostic: 'migrationsDirectoryIsBehind'
       unpersistedMigrationNames: string[]
     }
   | {
-      diagnostic: 'HistoriesDiverge'
+      diagnostic: 'historiesDiverge'
       lastCommonMigrationName: string
       unpersistedMigrationNames: string[]
       unappliedMigrationNames: string[]

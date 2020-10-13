@@ -351,12 +351,12 @@ export class Migrate {
 
     if (drift) {
       debug({ drift })
-      if (drift.diagnostic === 'MigrationFailedToApply') {
+      if (drift.diagnostic === 'migrationFailedToApply') {
         // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
         throw new Error(
-          `The migration "${drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\nError:\n${drift.error})`,
+          `The migration "${drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\n\n${drift.error})`,
         )
-      } else if (drift.diagnostic === 'DriftDetected') {
+      } else if (drift.diagnostic === 'driftDetected') {
         // we could try to fix the drift in the future
         isResetNeeded = true
       }
@@ -364,14 +364,14 @@ export class Migrate {
 
     if (history) {
       debug({ history })
-      if (history.diagnostic === 'DatabaseIsBehind') {
+      if (history.diagnostic === 'databaseIsBehind') {
         return this.applyOnly()
-      } else if (history.diagnostic === 'MigrationsDirectoryIsBehind') {
+      } else if (history.diagnostic === 'migrationsDirectoryIsBehind') {
         isResetNeeded = true
         debug({
           unpersistedMigrationNames: history.unpersistedMigrationNames,
         })
-      } else if (history.diagnostic === 'HistoriesDiverge') {
+      } else if (history.diagnostic === 'historiesDiverge') {
         isResetNeeded = true
         debug({
           lastCommonMigrationName: history.lastCommonMigrationName,
