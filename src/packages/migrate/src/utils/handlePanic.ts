@@ -9,7 +9,7 @@ export async function handlePanic(
   binaryVersion: string,
 ): Promise<boolean> {
   return new Promise(async function (resolve, reject) {
-    if (isCi) {
+    if (isCI()) {
       return reject(error)
     }
 

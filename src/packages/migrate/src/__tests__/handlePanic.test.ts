@@ -149,7 +149,7 @@ describe('handlePanic', () => {
         error = err
       }
     }
-    if (isCi) {
+    if (isCI()) {
       expect(error).toMatchInlineSnapshot(`
         Error in migration engine.
         Reason: [/rustc/hash/macros.rs:0:0] This is the debugPanic artificial panic

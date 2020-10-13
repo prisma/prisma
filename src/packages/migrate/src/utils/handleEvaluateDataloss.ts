@@ -37,7 +37,7 @@ export async function handleWarnings(
     console.info() // empty line
 
     if (!force) {
-      if (isCi) {
+      if (isCI()) {
         throw Error(
           `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor('prisma migrate --force --experimental'),
