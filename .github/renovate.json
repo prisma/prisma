@@ -2,8 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
   "schedule": ["after 4pm on friday"],
-  "semanticCommits": true,
-  "ignoreDeps": ["react", "ink", "ink-spinner", "ink-link", "@types/react"],
+  "semanticCommits": "enabled",
+  "ignoreDeps": ["@prisma/studio", "@prisma/studio-server"],
   "masterIssue": true,
   "reviewers": ["@jolg42", "@timsuchanek"],
   "rebaseWhen": "conflicted",
@@ -21,7 +21,6 @@
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
-      "excludePackageNames": ["@types/react"],
       "updateTypes": ["patch", "minor"]
     },
     {
@@ -35,18 +34,7 @@
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
       "schedule": ["at any time"],
-      "reviewers": ["@matthewmueller", "@jolg42", "@timsuchanek"]
-    },
-    {
-      "groupName": "React & ink (non-major)",
-      "packageNames": [
-        "react",
-        "ink",
-        "ink-spinner",
-        "ink-link",
-        "@types/react"
-      ],
-      "updateTypes": ["patch", "minor"]
+      "reviewers": ["@jolg42", "@timsuchanek"]
     }
   ]
 }
