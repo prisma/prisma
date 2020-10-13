@@ -4,7 +4,7 @@ import { isCi } from '@prisma/sdk'
 export async function getMigrationName(name?: string): Promise<string> {
   if (name) {
     return name
-  } else if (isCI()) {
+  } else if (isCi()) {
     return ''
   }
 
