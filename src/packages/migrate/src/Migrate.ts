@@ -279,6 +279,10 @@ export class Migrate {
   }
 
   public async initialize(): Promise<void> {
+    if (fs.existsSync(this.migrationsDirectoryPath)) {
+      console.info('The project was already initialized.')
+      return
+    }
     return fs.mkdirSync(this.migrationsDirectoryPath)
 
     // not implemented yet
@@ -350,7 +354,7 @@ export class Migrate {
       if (drift.diagnostic === 'MigrationFailedToApply') {
         // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
         throw new Error(
-          `The migration "${drift.migrationName}" failed to apply:\n${drift.error}`,
+          `The migration "${drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\nError:\n${drift.error})`,
         )
       } else if (drift.diagnostic === 'DriftDetected') {
         // we could try to fix the drift in the future

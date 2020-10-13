@@ -1,11 +1,22 @@
 import { prompt } from 'prompts'
 import { isCi } from '@prisma/sdk'
 
-export async function getMigrationName(name?: string): Promise<string> {
+type getMigratioNameOutput = {
+  name?: string
+  userCancelled?: string
+}
+
+export async function getMigrationName(
+  name?: string,
+): Promise<getMigratioNameOutput> {
   if (name) {
-    return name
+    return {
+      name,
+    }
   } else if (isCi()) {
-    return ''
+    return {
+      name: '',
+    }
   }
 
   const response = await prompt({
@@ -13,5 +24,14 @@ export async function getMigrationName(name?: string): Promise<string> {
     name: 'name',
     message: `Name of migration`,
   })
-  return response.name || ''
+
+  if (!('name' in response)) {
+    return {
+      userCancelled: 'Canceled by user.',
+    }
+  }
+
+  return {
+    name: response.name || '',
+  }
 }

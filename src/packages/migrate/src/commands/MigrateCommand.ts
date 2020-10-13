@@ -162,7 +162,15 @@ export class MigrateCommand implements Command {
     }
 
     if (args['--draft']) {
-      const migrationName = await getMigrationName(args['--name'])
+      let migrationName: undefined | string = undefined
+      const getMigrationNameResult = await getMigrationName(args['--name'])
+      if (getMigrationNameResult.userCancelled) {
+        migrate.stop()
+        return getMigrationNameResult.userCancelled
+      } else {
+        migrationName = getMigrationNameResult.name
+      }
+
       const migrationId = await migrate.draft({
         name: migrationName,
       })
@@ -191,13 +199,20 @@ export class MigrateCommand implements Command {
       args['--force'],
     )
     if (userCancelled) {
+      migrate.stop()
       return `Migration cancelled.`
     }
 
-    const migrationName =
-      evaluateDataLossResult.migrationSteps.length > 0
-        ? await getMigrationName(args['--name'])
-        : undefined
+    let migrationName: undefined | string = undefined
+    if (evaluateDataLossResult.migrationSteps.length > 0) {
+      const getMigrationNameResult = await getMigrationName(args['--name'])
+      if (getMigrationNameResult.userCancelled) {
+        migrate.stop()
+        return getMigrationNameResult.userCancelled
+      } else {
+        migrationName = getMigrationNameResult.name
+      }
+    }
 
     const migrationIds = await migrate.createAndApply({
       name: migrationName,
