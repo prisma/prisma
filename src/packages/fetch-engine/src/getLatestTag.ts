@@ -20,7 +20,6 @@ export async function getLatestTag(): Promise<any> {
   if (branch !== 'master' && (!isPatchBranch(branch) && !branch.startsWith('integration/'))) {
     branch = 'master'
   }
-  console.log({ branch }, 'before replace')
 
   // remove the "integration/" part
   branch = branch.replace(/^integration\//, '')
@@ -30,7 +29,6 @@ export async function getLatestTag(): Promise<any> {
   // if it doesn't have an equivalent in the engines repo
   // default back to master
   let commits = await getCommits(branch)
-  console.log('got commits', commits)
   if (!commits && branch !== 'master' && !isPatchBranch(branch)) {
     console.log(
       `Overwriting branch "${branch}" with "master" as it's not a branch we have binaries for`,
@@ -189,11 +187,8 @@ async function getBranch() {
     return process.env.BUILDKITE_BRANCH
   }
   if (process.env.GITHUB_CONTEXT) {
-    console.log('github context')
-    console.log(process.env.GITHUB_CONTEXT)
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
-    const split = context.ref.split('/')
-    return split[split.length - 1]
+    return context.head_ref
   }
 
   // Need to be handled
