@@ -122,6 +122,7 @@ export class NodeEngine {
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
   private stopPromise?: Promise<void>
+  private beforeExitListener?: () => Promise<void>
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -267,10 +268,24 @@ You may have to run ${chalk.greenBright(
   }
 
   on(
-    event: 'query' | 'info' | 'warn' | 'error',
-    listener: (log: RustLog) => any,
+    event: 'query' | 'info' | 'warn' | 'error' | 'beforeExit',
+    listener: (args?: any) => any,
   ): void {
-    this.logEmitter.on(event, listener)
+    if (event === 'beforeExit') {
+      this.beforeExitListener = listener
+    } else {
+      this.logEmitter.on(event, listener)
+    }
+  }
+
+  async emitExit() {
+    if (this.beforeExitListener) {
+      try {
+        await this.beforeExitListener()
+      } catch (e) {
+        console.error(e)
+      }
+    }
   }
 
   async getPlatform(): Promise<Platform> {
@@ -373,8 +388,8 @@ You may have to run ${chalk.greenBright(
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedBinaryTarget}`,
-          )}\n`
+          `${this.incorrectlyPinnedBinaryTarget}`,
+        )}\n`
         : ''
 
       const dir = path.dirname(prismaPath)
@@ -402,11 +417,10 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
           this.generator.binaryTargets.includes('native')
         ) {
           errorText += `
-You already added the platform${
-            this.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''
+            } ${this.generator.binaryTargets
+              .map((t) => `"${chalk.bold(t)}"`)
+              .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -414,16 +428,15 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${
-            this.platform
-          }" to the "${chalk.underline(
-            'generator',
-          )}" block in the "schema.prisma" file:
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform
+            }" to the "${chalk.underline(
+              'generator',
+            )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-            'prisma generate',
-          )}" for your changes to take effect.
+              'prisma generate',
+            )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -552,8 +565,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-          Array.isArray(this.enableExperimental) &&
-          this.enableExperimental.length > 0
+            Array.isArray(this.enableExperimental) &&
+            this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -700,7 +713,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                  this.stderrLogs,
+                this.stderrLogs,
                 this.clientVersion,
               )
             } else {
@@ -819,12 +832,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         this.url = `http://localhost:${this.port}`
 
-        // don't wait for this
-        ;(async () => {
-          const engineVersion = await this.version()
-          debug(`Client Version ${this.clientVersion}`)
-          debug(`Engine Version ${engineVersion}`)
-        })()
+          // don't wait for this
+          ; (async () => {
+            const engineVersion = await this.version()
+            debug(`Client Version ${this.clientVersion}`)
+            debug(`Engine Version ${engineVersion}`)
+          })()
 
         this.stopPromise = undefined
         resolve()
@@ -1273,14 +1286,13 @@ function stringifyQuery(q: string) {
 }
 
 function hookProcess(handler: string, exit = false) {
-  process.once(handler as any, () => {
+  process.once(handler as any, async () => {
     for (const engine of engines) {
+      await engine.emitExit()
       engine.kill(handler)
     }
     engines.splice(0, engines.length)
-    if (exit) {
-      process.exit()
-    }
+
     if (socketPaths.length > 0) {
       for (const socketPath of socketPaths) {
         try {
@@ -1289,6 +1301,12 @@ function hookProcess(handler: string, exit = false) {
           //
         }
       }
+    }
+
+    // only exit, if only we are listening
+    // if there is another listener, that other listener is responsible
+    if (exit && process.listenerCount(handler) === 0) {
+      process.exit()
     }
   })
 }
