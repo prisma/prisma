@@ -129,7 +129,7 @@ describe('sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describe.skip('postgresql', () => {
   const SetupParams: SetupParams = {
     connectionString:
       process.env.TEST_POSTGRES_URI_MIGRATE ||
@@ -149,7 +149,7 @@ describe('postgresql', () => {
     })
   })
 
-  it('migrate first migration after init - empty schema', async () => {
+  it.skip('migrate first migration after init - empty schema', async () => {
     ctx.fixture('initialized-postgresql')
 
     const result = MigrateCommand.new().parse([
