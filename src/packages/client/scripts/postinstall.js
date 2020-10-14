@@ -27,7 +27,7 @@ async function main() {
         localPath,
         'generate',
         '--postinstall',
-        getPostInstallTrigger(),
+        doubleQuote(getPostInstallTrigger()),
       ])
       return
     }
@@ -36,7 +36,7 @@ async function main() {
       await run('prisma', [
         'generate',
         '--postinstall',
-        getPostInstallTrigger(),
+        doubleQuote(getPostInstallTrigger()),
       ])
       return
     }
@@ -241,40 +241,70 @@ function getPostInstallTrigger() {
   try {
     npm_config_argv = JSON.parse(maybe_npm_config_argv_string)
   } catch (e) {
-    return (
-      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR +
-      `: ${maybe_npm_config_argv_string}`
-    )
+    return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
   if (typeof npm_config_argv !== 'object' || npm_config_argv === null) {
-    return (
-      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
-      `: ${maybe_npm_config_argv_string}`
-    )
+    return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
   const npm_config_arv_original_arr = npm_config_argv.original
 
   if (!Array.isArray(npm_config_arv_original_arr)) {
-    return (
-      UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR +
-      `: ${maybe_npm_config_argv_string}`
-    )
+    return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
   const npm_config_arv_original = npm_config_arv_original_arr
     .filter((arg) => arg !== '')
     .join(' ')
 
-  if (npm_config_arv_original === '') {
-    return (
-      UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING +
-      `: ${maybe_npm_config_argv_string}`
-    )
+  const command =
+    npm_config_arv_original === ''
+      ? getPackageManagerName()
+      : [getPackageManagerName(), npm_config_arv_original].join(' ')
+
+  return command
+}
+
+/**
+ * Wrap double quotes around the given string.
+ */
+function doubleQuote(x) {
+  return `"${x}"`
+}
+
+/**
+ * Get the package manager name currently being used. If parsing fails, then the following pattern is returned:
+ * UNKNOWN_NPM_CONFIG_USER_AGENT(<string received>).
+ */
+function getPackageManagerName() {
+  const userAgent = process.env.npm_config_user_agent
+  if (!userAgent) return 'MISSING_NPM_CONFIG_USER_AGENT'
+
+  const name = parsePackageManagerName(userAgent)
+  if (!name) return `UNKNOWN_NPM_CONFIG_USER_AGENT(${userAgent})`
+
+  return name
+}
+
+/**
+ * Parse package manager name from useragent. If parsing fails, `null` is returned.
+ */
+function parsePackageManagerName(userAgent) {
+  let packageManager = null
+
+  // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
+  // References:
+  // - https://pnpm.js.org/en/3.6/only-allow-pnpm
+  // - https://github.com/cameronhunter/npm-config-user-agent-parser
+  if (userAgent) {
+    const matchResult = userAgent.match(/^([^\/]+)\/.+/)
+    if (matchResult) {
+      packageManager = matchResult[1].trim()
+    }
   }
 
-  return npm_config_arv_original
+  return packageManager
 }
 
 // prettier-ignore
@@ -282,15 +312,12 @@ const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = 'UNABLE_TO_FIND_POSTINS
 // prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
 // prettier-ignore
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER'
-// prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
 // prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
 
 // expose for testing
 
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER = UNABLE_TO_FIND_POSTINSTALL_TRIGGER
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
