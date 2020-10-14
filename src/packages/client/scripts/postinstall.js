@@ -258,9 +258,10 @@ function getPostInstallTrigger() {
     .filter((arg) => arg !== '')
     .join(' ')
 
-  const command = `${[getPackageManagerName(), npm_config_arv_original]
-    .filter((arg) => arg !== '')
-    .join(' ')}`
+  const command =
+    npm_config_arv_original === ''
+      ? getPackageManagerName()
+      : [getPackageManagerName(), npm_config_arv_original].join(' ')
 
   return command
 }
@@ -299,7 +300,7 @@ function parsePackageManagerName(userAgent) {
   if (userAgent) {
     const matchResult = userAgent.match(/^([^\/]+)\/.+/)
     if (matchResult) {
-      packageManager = matchResult[1]
+      packageManager = matchResult[1].trim()
     }
   }
 
