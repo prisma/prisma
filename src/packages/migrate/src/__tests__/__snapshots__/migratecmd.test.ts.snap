@@ -105,7 +105,7 @@ exports[`sqlite migrate first migration after init 1`] = `
 Prisma Migrate applied the following migration(s):
 
 migrations/
-  └─ 20201231000000_my_migration_name/
+  └─ 20201231000000_/
     └─ migration.sql
 
 `;

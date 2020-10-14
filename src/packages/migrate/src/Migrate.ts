@@ -212,7 +212,7 @@ export class Migrate {
   // tsline:enable
   private datamodelBeforeWatch = ''
   private schemaPath: string
-  private migrationsDirectoryPath: string
+  public migrationsDirectoryPath: string
   constructor(schemaPath?: string) {
     this.schemaPath = this.getSchemaPath(schemaPath)
     this.migrationsDirectoryPath = path.join(
