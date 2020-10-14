@@ -59,7 +59,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init', async () => {
+  it.skip('migrate first migration after init', async () => {
     ctx.fixture('initialized-sqlite')
 
     setTimeout(() => stdin.send(`my migration name\r`), 500)
@@ -78,7 +78,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init', async () => {
+  it.skip('migrate first migration after init', async () => {
     ctx.fixture('initialized-sqlite')
 
     setTimeout(() => stdin.send(`my MigrationName\r`), 100)
@@ -97,7 +97,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
   })
 
-  it('create draft migration and apply', async () => {
+  it.skip('create draft migration and apply', async () => {
     ctx.fixture('initialized-sqlite')
 
     setTimeout(() => stdin.send(`my Migration$$*(Name\r`), 100)
@@ -165,7 +165,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init', async () => {
+  it.skip('migrate first migration after init', async () => {
     ctx.fixture('initialized-postgresql')
 
     setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
@@ -180,7 +180,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init --force', async () => {
+  it.skip('migrate first migration after init --force', async () => {
     ctx.fixture('initialized-postgresql')
 
     setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
@@ -195,7 +195,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('create draft migration and apply', async () => {
+  it.skip('create draft migration and apply', async () => {
     ctx.fixture('initialized-postgresql')
 
     setTimeout(() => stdin.send(`myDraftMigrationName\r`), 1500)
@@ -219,7 +219,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('existingdb: migrate first migration after init', async () => {
+  it.skip('existingdb: migrate first migration after init', async () => {
     ctx.fixture('initialized-postgresql')
 
     setTimeout(() => stdin.send(`myDraftMigrationName\r`), 1500)
