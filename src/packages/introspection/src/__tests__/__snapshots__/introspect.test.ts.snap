@@ -2,14 +2,14 @@
 
 exports[`introspect basic introspection 1`] = `
 Array [
-  "Prisma Schema loaded from schema.prisma",
-  "generator client {
-  provider = \\"prisma-client-js\\"
+  Prisma Schema loaded from schema.prisma,
+  generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
+  provider = "sqlite"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -36,23 +36,23 @@ model User {
   posts   Post[]
   profile Profile?
 }
-",
-  "
-// introspectionSchemaVersion: Prisma2",
-  "",
+,
+  
+// introspectionSchemaVersion: Prisma2,
+  ,
 ]
 `;
 
 exports[`introspect basic introspection with --url 1`] = `
 Array [
-  "Prisma Schema loaded from schema.prisma",
-  "generator client {
-  provider = \\"prisma-client-js\\"
+  Prisma Schema loaded from schema.prisma,
+  generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
+  provider = "sqlite"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -79,23 +79,23 @@ model User {
   posts   Post[]
   profile Profile?
 }
-",
-  "
-// introspectionSchemaVersion: Prisma2",
-  "",
+,
+  
+// introspectionSchemaVersion: Prisma2,
+  ,
 ]
 `;
 
 exports[`introspect introspection --force 1`] = `
 Array [
-  "Prisma Schema loaded from schema.prisma",
-  "generator client {
-  provider = \\"prisma-client-js\\"
+  Prisma Schema loaded from schema.prisma,
+  generator client {
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
+  provider = "sqlite"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -122,9 +122,9 @@ model User {
   Post    Post[]
   Profile Profile?
 }
-",
-  "
-// introspectionSchemaVersion: Prisma2",
-  "",
+,
+  
+// introspectionSchemaVersion: Prisma2,
+  ,
 ]
 `;
