@@ -515,19 +515,19 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(stringOrTemplateStringsArray, ...values) {
+    executeRaw(string: ReadonlyArray<string>, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
         )} prisma.executeRaw() is deprecated, please use prisma.$executeRaw() instead`,
       )
-      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
+      return this.$executeRaw(string, ...values)
     }
 
     /**
      * Executes a raw query. Always returns a number
      */
-    private async $executeRawInternal(stringOrTemplateStringsArray, ...values) {
+    private async $executeRawInternal(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       let query = ''
       let parameters: any = undefined
 
@@ -627,9 +627,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $executeRaw(stringOrTemplateStringsArray, ...values) {
+    $executeRaw(string: ReadonlyArray<string>, ...values: sqlTemplateTag.RawValue[]) {
       try {
-        const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
+        const promise = this.$executeRawInternal(string, ...values)
           ; (promise as any).isExecuteRaw = true
         return promise
       } catch (e) {
