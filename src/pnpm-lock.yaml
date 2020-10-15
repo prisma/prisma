@@ -451,6 +451,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.0
     devDependencies:
+      '@prisma/engines-version': 'link:../engines-version'
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
@@ -472,6 +473,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
+      '@prisma/engines-version': 'workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e'
       '@prisma/get-platform': 'workspace:*'
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
