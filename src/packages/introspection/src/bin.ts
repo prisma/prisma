@@ -1,9 +1,36 @@
 #!/usr/bin/env ts-node
 
+process.on('uncaughtException', (e) => {
+  console.log(e)
+})
+process.on('unhandledRejection', (e, promise) => {
+  console.log(String(e), String(promise))
+})
+
+import { isError, arg, tryLoadEnv } from '@prisma/sdk'
+
+// Parse CLI arguments
+const args = arg(
+  process.argv.slice(2),
+  {
+    '--schema': String,
+    '--telemetry-information': String,
+  },
+  false,
+  true,
+)
+
+//
+// Read .env file only if next to schema.prisma
+//
+// if the CLI is called without any command like `init`, `introspect` we can ignore .env loading
+if (process.argv.length > 2) {
+  tryLoadEnv(args)
+}
+
 /**
  * Dependencies
  */
-import { isError, arg } from '@prisma/sdk'
 import { Init } from './commands/Init'
 import { Introspect } from './commands/Introspect'
 
