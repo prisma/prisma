@@ -204,9 +204,7 @@ export class NodeEngine {
     )
     this.engineEndpoint = engineEndpoint
 
-    // TODO enable again if this doesn't work as intended
     if (useUds && process.platform !== 'win32') {
-      // if (process.platform !== 'win32') {
       this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
       socketPaths.push(this.socketPath)
       this.useUds = useUds
@@ -334,6 +332,7 @@ You may have to run ${chalk.greenBright(
 
     const fileName = eval(`require('path').basename(__filename)`)
     if (fileName === 'NodeEngine.js') {
+      // TODO: Use engines package here
       return this.getQueryEnginePath(
         this.platform,
         path.resolve(__dirname, `..`),

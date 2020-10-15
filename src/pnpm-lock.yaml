@@ -360,7 +360,6 @@ importers:
       terminal-link: 2.1.1
       undici: 2.0.7
     devDependencies:
-      '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
@@ -380,7 +379,6 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.14
@@ -409,6 +407,11 @@ importers:
       ts-jest: 26.4.0
       typescript: 4.0.3
       undici: 2.0.7
+  packages/engines-version:
+    devDependencies:
+      typescript: 4.0.3
+    specifiers:
+      typescript: ^4.0.3
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
