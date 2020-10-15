@@ -13,7 +13,8 @@
   },
   "scripts": {
     "build": "tsc -d",
-    "prepublishOnly": "tsc -d"
+    "prepublishOnly": "tsc -d",
+    "publish": "echo $GITHUB_CONTEXT"
   },
   "files": [
     "index.js",

@@ -934,6 +934,13 @@ async function publishPackages(
   for (const currentBatch of publishOrder) {
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
+
+      // @prisma/engines & @prisma/engines-version are published outside of this script
+      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      if (packagesNotToPublish.includes(pkgName)) {
+        continue
+      }
+
       const pkgDir = path.dirname(pkg.path)
 
       let newVersion = prisma2Version
