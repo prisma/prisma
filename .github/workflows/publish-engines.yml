@@ -1,5 +1,10 @@
 name: publish-engines
 
+on:
+  repository_dispatch:
+    types:
+      - webhook
+
 jobs:
   cli-commands:
     timeout-minutes: 10
