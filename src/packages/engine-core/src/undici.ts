@@ -1,4 +1,4 @@
-import getStream from 'get-stream'
+import getStream = require('get-stream')
 import { Pool } from 'undici'
 
 export class Undici {

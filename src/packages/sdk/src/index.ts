@@ -55,6 +55,7 @@ export {
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { arg, format, isError } from './cli/utils'
 export {
+  getRelativeSchemaPath,
   getSchemaPath,
   getSchemaDir,
   getSchema,
@@ -65,6 +66,7 @@ export {
   getSchemaPathFromPackageJsonSync,
 } from './cli/getSchema'
 
+export { tryLoadEnv } from './utils/loadEnv'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export {
@@ -72,7 +74,5 @@ export {
   Position,
   trimNewLine,
 } from './utils/trimBlocksFromSchema'
-
-export { getRelativeSchemaPath } from './cli/getSchema'
 
 export { canConnectToDatabase, createDatabase } from './migrateEngineCommands'

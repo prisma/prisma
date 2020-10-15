@@ -1,15 +1,20 @@
 #!/usr/bin/env ts-node
+
+// hides ExperimentalWarning: The fs.promises API is experimental
+process.env.NODE_NO_WARNINGS = '1'
+
 import {
   arg,
   getCLIPathHash,
   getProjectHash,
   getSchema,
   getConfig,
+  tryLoadEnv,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { tryLoadEnv } from './utils/loadEnv'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
 
@@ -24,11 +29,8 @@ process.on('unhandledRejection', (e) => {
   debug(e)
 })
 
-// warnings: no tanks
-// hides ExperimentalWarning: The fs.promises API is experimental
-process.env.NODE_NO_WARNINGS = '1'
-
 // If running via `ts-node`, treat NODE_ENV as development
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 if (process[Symbol.for('ts-node.register.instance')]) {
   process.env.NODE_ENV = 'development'
