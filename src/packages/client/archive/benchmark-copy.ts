@@ -3,7 +3,7 @@ import copy from 'fast-copy'
 import clone from 'fast-clone'
 import { dmmfDocument } from '../src/fixtures/example-dmmf'
 import v8 from 'v8'
-import klona from 'klona'
+import { klona } from 'klona'
 
 const suite = new Suite()
 
