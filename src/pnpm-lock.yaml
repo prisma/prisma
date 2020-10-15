@@ -41,6 +41,8 @@ importers:
       ts-node: 9.0.0
       typescript: 4.0.3
   packages/cli:
+    dependencies:
+      '@prisma/engines': 'link:../engines'
     devDependencies:
       '@apexearth/copy': 1.4.5
       '@prisma/client': 'link:../client'
@@ -111,6 +113,7 @@ importers:
       '@apexearth/copy': 1.4.5
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
+      '@prisma/engines': 'workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -346,6 +349,7 @@ importers:
   packages/engine-core:
     dependencies:
       '@prisma/debug': 'link:../debug'
+      '@prisma/engines': 'link:../engines'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
@@ -377,6 +381,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
+      '@prisma/engines': 'workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.14
@@ -759,6 +764,7 @@ importers:
     dependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 'link:../engines'
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -811,6 +817,7 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
+      '@prisma/engines': 'workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'

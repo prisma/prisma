@@ -34,7 +34,7 @@
   },
   "files": [
     "build",
-    "download-build",
+    "install",
     "runtime/*.js",
     "runtime/*.d.ts",
     "runtime/utils",
@@ -138,7 +138,7 @@
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --maxConcurrency=1",
     "jest": "jest",
-    "install": "node download-build/index.js",
+    "install": "node install/index.js",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
     "download": "rm -f download-done && node scripts/updateTag.js && node scripts/download.js || echo \"\"",
@@ -161,5 +161,8 @@
     "*.{js,ts}": [
       "eslint"
     ]
+  },
+  "dependencies": {
+    "@prisma/engines": "workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e"
   }
 }

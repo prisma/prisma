@@ -41,7 +41,6 @@
     "test": "jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
