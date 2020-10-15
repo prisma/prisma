@@ -49,9 +49,7 @@ async function main() {
       path.join(require.resolve('open/package.json'), '../xdg-open'),
       './build/xdg-open',
     ),
-  ]).catch((e) => {
-    throw e
-  })
+  ])
 
   await Promise.all([
     copy({
@@ -65,9 +63,7 @@ async function main() {
       overwrite: true,
     }),
     replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n'),
-  ]).catch((e) => {
-    throw e
-  })
+  ])
 
   plusX('./build/index.js')
 
@@ -98,7 +94,8 @@ function run(command, preferLocal = true) {
 }
 
 main().catch((e) => {
-  throw e
+  console.error(e)
+  process.exit(1)
 })
 
 function plusX(file) {

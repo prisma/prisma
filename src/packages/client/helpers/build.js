@@ -30,9 +30,7 @@ async function main() {
       'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
       false,
     ),
-  ]).catch((e) => {
-    throw e
-  })
+  ])
 
   await Promise.all([
     run(
@@ -40,16 +38,12 @@ async function main() {
       false,
     ),
     run('rollup -c'),
-  ]).catch((e) => {
-    throw e
-  })
+  ])
 
   await Promise.all([
     copyFile('./scripts/backup-index.js', 'index.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
-  ]).catch((e) => {
-    throw e
-  })
+  ])
 
   // this is needed to remove "export = " statements
   let file = await readFile('./runtime/index.d.ts', 'utf-8')
@@ -71,5 +65,6 @@ function run(command, preferLocal = true) {
 }
 
 main().catch((e) => {
-  throw e
+  console.error(e)
+  process.exit(1)
 })
