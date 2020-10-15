@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engines-version",
-  "version": "0.0.0",
+  "version": "0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
@@ -14,5 +14,9 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "tsc -d"
-  }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ]
 }
