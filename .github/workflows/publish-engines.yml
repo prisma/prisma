@@ -3,7 +3,7 @@ name: publish-engines
 on:
   repository_dispatch:
     types:
-      - webhook
+      - publish-engines
 
 jobs:
   cli-commands:
