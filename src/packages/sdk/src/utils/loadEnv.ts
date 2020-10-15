@@ -1,5 +1,5 @@
-import { getSchemaPathFromPackageJsonSync } from '@prisma/sdk'
-import { dotenvExpand } from '@prisma/sdk/dist/dotenvExpand'
+import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
+import { dotenvExpand } from '../dotenvExpand'
 import arg from 'arg'
 import chalk from 'chalk'
 import debugLib from 'debug'
@@ -7,7 +7,7 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 
-const debug = debugLib('prisma')
+const debug = debugLib('loadEnv')
 
 type CLIArgs =
   | Error
@@ -90,7 +90,9 @@ export function tryLoadEnv(
   }
 }
 
-function tryLoadEnvFromSchemaArgs(schemaPathFromArgs: string): LoadEnvResult | null {
+function tryLoadEnvFromSchemaArgs(
+  schemaPathFromArgs: string,
+): LoadEnvResult | null {
   const dotenvFilepath = path.join(path.dirname(schemaPathFromArgs), '.env')
 
   if (!fs.existsSync(schemaPathFromArgs) || !fs.existsSync(dotenvFilepath)) {
