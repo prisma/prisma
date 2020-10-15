@@ -9,13 +9,12 @@ const writeFile = promisify(fs.writeFile)
 
 async function main() {
   const before = Date.now()
-  const copyPromises = [
-    copyFile('./scripts/backup-index.js', 'index.js'),
-    copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
-  ]
 
   // do the job for typescript
-  if (!fs.existsSync('./runtime-dist') && fs.existsSync('./tsconfig.runtime.tsbuildinfo')) {
+  if (
+    !fs.existsSync('./runtime-dist') &&
+    fs.existsSync('./tsconfig.runtime.tsbuildinfo')
+  ) {
     try {
       console.log('unlinking')
       fs.unlinkSync('./tsconfig.tsbuildinfo')
@@ -30,8 +29,10 @@ async function main() {
     run(
       'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
       false,
-    )
-  ])
+    ),
+  ]).catch((e) => {
+    throw e
+  })
 
   await Promise.all([
     run(
@@ -39,9 +40,16 @@ async function main() {
       false,
     ),
     run('rollup -c'),
-  ])
+  ]).catch((e) => {
+    throw e
+  })
 
-  await Promise.all(copyPromises)
+  await Promise.all([
+    copyFile('./scripts/backup-index.js', 'index.js'),
+    copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
+  ]).catch((e) => {
+    throw e
+  })
 
   // this is needed to remove "export = " statements
   let file = await readFile('./runtime/index.d.ts', 'utf-8')
@@ -63,6 +71,5 @@ function run(command, preferLocal = true) {
 }
 
 main().catch((e) => {
-  console.error(e)
   throw e
 })
