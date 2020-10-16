@@ -9,16 +9,16 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
-export class SchemaCommand implements Command {
-  public static new(cmds: Commands): SchemaCommand {
-    return new SchemaCommand(cmds)
+export class DbCommand implements Command {
+  public static new(cmds: Commands): DbCommand {
+    return new DbCommand(cmds)
   }
 
   // static help template
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-    }Powerful Prisma schema commands from your terminal
+    }Powerful Prisma db commands from your terminal
 
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     'This functionality is currently in an experimental state.',
@@ -30,12 +30,12 @@ export class SchemaCommand implements Command {
     ${chalk.bold('Usage')}
 
       With an existing schema.prisma:
-      ${chalk.dim('$')} prisma schema [command] [options] --experimental
+      ${chalk.dim('$')} prisma db [command] [options] --experimental
 
       Or specify a schema:
       ${chalk.dim(
         '$',
-      )} prisma schema [command] [options] --experimental --schema=./schema.prisma
+      )} prisma db [command] [options] --experimental --schema=./schema.prisma
 
     ${chalk.bold('Options')}
 
@@ -47,8 +47,8 @@ export class SchemaCommand implements Command {
 
     ${chalk.bold('Examples')}
 
-      Using prisma schema push
-      ${chalk.dim('$')} prisma schema push --experimental
+      Using prisma db push
+      ${chalk.dim('$')} prisma db push --experimental
   `)
   private constructor(private readonly cmds: Commands) {}
 
@@ -79,15 +79,15 @@ export class SchemaCommand implements Command {
       return cmd.parse(argsForCmd)
     }
 
-    return unknownCommand(SchemaCommand.help, args._[0])
+    return unknownCommand(DbCommand.help, args._[0])
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${SchemaCommand.help}`,
+        `\n${chalk.bold.red(`!`)} ${error}\n${DbCommand.help}`,
       )
     }
-    return SchemaCommand.help
+    return DbCommand.help
   }
 }

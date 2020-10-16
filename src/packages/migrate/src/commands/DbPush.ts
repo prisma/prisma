@@ -5,9 +5,9 @@ import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
 import { formatms } from '../utils/formatms'
 
-export class SchemaPush implements Command {
-  public static new(): SchemaPush {
-    return new SchemaPush()
+export class DbPush implements Command {
+  public static new(): DbPush {
+    return new DbPush()
   }
 
   // static help template
@@ -15,7 +15,7 @@ export class SchemaPush implements Command {
     Push the state from your schema.prisma to your database
 
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's schema push functionality is currently in an experimental state.",
+    "Prisma's db push functionality is currently in an experimental state.",
   )}
     ${chalk.dim(
       'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
@@ -23,7 +23,7 @@ export class SchemaPush implements Command {
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma schema push --experimental
+      ${chalk.dim('$')} prisma db push --experimental
 
     ${chalk.bold('Options')}
 
@@ -34,10 +34,10 @@ export class SchemaPush implements Command {
     ${chalk.bold('Examples')}
 
       Push the local schema state to the database
-      ${chalk.dim('$')} prisma schema push --experimental
+      ${chalk.dim('$')} prisma db push --experimental
 
       Using --force to ignore data loss warnings
-      ${chalk.dim('$')} prisma schema push --force --experimental
+      ${chalk.dim('$')} prisma db push --force --experimental
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -124,10 +124,8 @@ export class SchemaPush implements Command {
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${SchemaPush.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPush.help}`)
     }
-    return SchemaPush.help
+    return DbPush.help
   }
 }
