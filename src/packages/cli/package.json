@@ -135,6 +135,7 @@
     "test:mysql": "jest integration.mysql --maxConcurrency=10",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=10",
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest tests__/introspect",
+    "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --maxConcurrency=1",
     "jest": "jest",
