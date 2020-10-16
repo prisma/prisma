@@ -236,7 +236,7 @@ export class MigrateCommand implements Command {
       )
 
       // Run if not skipped
-      if (!process.env.SKIP_GENERATE && !args['--skip-generate']) {
+      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
         await migrate.tryToRunGenerate()
       }
     }

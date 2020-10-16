@@ -156,7 +156,7 @@ export class MigrateUp implements Command {
       )
     } else {
       console.info(
-        `\nPrisma Migrate applied the following migration(s):\n\n${chalk.dim(
+        `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),
@@ -164,7 +164,7 @@ export class MigrateUp implements Command {
       )
 
       // Run if not skipped
-      if (!process.env.SKIP_GENERATE && !args['--skip-generate']) {
+      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
         await migrate.tryToRunGenerate()
       }
     }
