@@ -79,6 +79,7 @@ export class MigrateCommand implements Command {
     '-f': '--force',
     '--draft': Boolean,
     '--schema': String,
+    '--skip-generate': Boolean,
     '--experimental': Boolean,
     '--telemetry-information': String,
   }
@@ -219,19 +220,28 @@ export class MigrateCommand implements Command {
     })
     migrate.stop()
 
-    // if (!process.env.SKIP_GENERATE) {
-    //   // call prisma generate
-    // }
-
     if (migrationIds.length === 0) {
-      return `\nEverything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.\n`
+      console.info(
+        `\n${chalk.green(
+          'Everything is already in sync',
+        )} - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
+      )
     } else {
-      return `\nPrisma Migrate applied the following migration(s):\n\n${chalk.dim(
-        printFilesFromMigrationIds('migrations', migrationIds, {
-          'migration.sql': '',
-        }),
-      )}\n`
+      console.info(
+        `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
+          printFilesFromMigrationIds('migrations', migrationIds, {
+            'migration.sql': '',
+          }),
+        )}`,
+      )
+
+      // Run if not skipped
+      if (!process.env.SKIP_GENERATE && !args['--skip-generate']) {
+        await migrate.tryToRunGenerate()
+      }
     }
+
+    return ``
   }
 
   public help(error?: string): string | HelpError {

@@ -93,6 +93,7 @@ export class MigrateReset implements Command {
         )
       }
 
+      console.info() // empty line
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
@@ -112,18 +113,32 @@ export class MigrateReset implements Command {
     await migrate.reset()
 
     const migrationIds = await migrate.applyOnly()
-
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      return `\nDatabase reset successful, Prisma Migrate didn't find unapplied migrations.\n`
+      console.info(
+        `\n${chalk.green(
+          'Database reset successful',
+        )} - Prisma Migrate didn't find unapplied migrations.`,
+      )
     } else {
-      return `\nDatabase reset successful, Prisma Migrate applied the following migration(s):\n\n${chalk.dim(
-        printFilesFromMigrationIds('migrations', migrationIds, {
-          'migration.sql': '',
-        }),
-      )}\n`
+      console.info(
+        `\n${chalk.green(
+          'Database reset successful',
+        )} - Prisma Migrate applied the following migration(s):\n\n${chalk(
+          printFilesFromMigrationIds('migrations', migrationIds, {
+            'migration.sql': '',
+          }),
+        )}`,
+      )
+
+      // Run if not skipped
+      if (!process.env.SKIP_GENERATE && !args['--skip-generate']) {
+        await migrate.tryToRunGenerate()
+      }
     }
+
+    return ``
   }
 
   public help(error?: string): string | HelpError {

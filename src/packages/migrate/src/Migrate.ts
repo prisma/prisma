@@ -247,33 +247,6 @@ export class Migrate {
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
-  // TODO: optimize datapaths, where we have a datamodel already, use it
-  public getSourceConfig(): string {
-    return this.getDatamodel()
-  }
-
-  public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(
-      path.dirname(this.schemaPath),
-      'migrations',
-      'migrate.lock',
-    )
-    if (await exists(lockFilePath)) {
-      const file = await readFile(lockFilePath, 'utf-8')
-      const lockFile = deserializeLockFile(file)
-      if (lockFile.remoteBranch) {
-        throw new Error(
-          `There's a merge conflict in the ${chalk.bold(
-            'migrations/migrate.lock',
-          )} file.`,
-        )
-      }
-      return lockFile
-    }
-
-    return initLockFile()
-  }
-
   public async checkMigrationsDirectory(): Promise<boolean> {
     return await exists(this.migrationsDirectoryPath)
   }
@@ -478,6 +451,93 @@ export class Migrate {
       warnings,
       unexecutable,
     }
+  }
+
+  public async tryToRunGenerate(): Promise<void> {
+    const message: string[] = []
+
+    console.info() // empty line
+    logUpdate(
+      `Running generate... ${chalk.dim(
+        '(Use --skip-generate to skip the generators)',
+      )}`,
+    )
+
+    try {
+      const generators = await getGenerators({
+        schemaPath: this.schemaPath,
+        printDownloadProgress: false,
+        version: packageJson.prisma.version,
+        cliVersion: packageJson.version,
+      })
+
+      for (const generator of generators) {
+        const toStr = generator.options!.generator.output!
+          ? chalk.dim(
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
+          : ''
+        const name = generator.manifest
+          ? generator.manifest.prettyName
+          : generator.options!.generator.provider
+
+        logUpdate(`Running generate... - ${name}`)
+
+        const before = Date.now()
+        try {
+          await generator.generate()
+          const after = Date.now()
+          const version = generator.manifest?.version
+          message.push(
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (version: ${version})` : ''
+            }${toStr} in ${formatms(after - before)}`,
+          )
+          generator.stop()
+        } catch (err) {
+          message.push(`${err.message}`)
+          generator.stop()
+        }
+      }
+    } catch (errGetGenerators) {
+      throw errGetGenerators
+    }
+
+    logUpdate(message.join('\n'))
+  }
+
+  //
+  // "Old" Migrate
+  //
+
+  // TODO: optimize datapaths, where we have a datamodel already, use it
+  public getSourceConfig(): string {
+    return this.getDatamodel()
+  }
+
+  public async getLockFile(): Promise<LockFile> {
+    const lockFilePath = path.resolve(
+      path.dirname(this.schemaPath),
+      'migrations',
+      'migrate.lock',
+    )
+    if (await exists(lockFilePath)) {
+      const file = await readFile(lockFilePath, 'utf-8')
+      const lockFile = deserializeLockFile(file)
+      if (lockFile.remoteBranch) {
+        throw new Error(
+          `There's a merge conflict in the ${chalk.bold(
+            'migrations/migrate.lock',
+          )} file.`,
+        )
+      }
+      return lockFile
+    }
+
+    return initLockFile()
   }
 
   public async createMigration(
