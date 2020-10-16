@@ -1,3 +1,5 @@
+process.env.MIGRATE_SKIP_GENERATE = '1'
+
 import { MigrateInit } from '../commands/MigrateInit'
 import { consoleContext, Context } from './__helpers__/context'
 

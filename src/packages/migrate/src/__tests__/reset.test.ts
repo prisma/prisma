@@ -1,3 +1,5 @@
+process.env.MIGRATE_SKIP_GENERATE = '1'
+
 import { MigrateReset } from '../commands/MigrateReset'
 import { consoleContext, Context } from './__helpers__/context'
 
@@ -57,15 +59,17 @@ describe('reset', () => {
 
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = MigrateReset.new().parse(['--experimental', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
 
-                                                Database reset successful, Prisma Migrate applied the following migration(s):
+      Database reset successful - Prisma Migrate applied the following migration(s):
 
-                                                migrations/
-                                                  └─ 20201231000000_init/
-                                                    └─ migration.sql
-
-                                        `)
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -78,15 +82,10 @@ describe('reset', () => {
 
     // setTimeout(() => stdin.send(`n\r`), 100)
     const result = MigrateReset.new().parse(['--experimental'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                Database reset successful, Prisma Migrate applied the following migration(s):
-
-                                                migrations/
-                                                  └─ 20201231000000_init/
-                                                    └─ migration.sql
-
-                                        `)
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -107,15 +106,17 @@ describe('reset', () => {
   it('reset should work with --force', async () => {
     ctx.fixture('reset')
     const result = MigrateReset.new().parse(['--force', '--experimental'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
 
-                                                          Database reset successful, Prisma Migrate applied the following migration(s):
+      Database reset successful - Prisma Migrate applied the following migration(s):
 
-                                                          migrations/
-                                                            └─ 20201231000000_init/
-                                                              └─ migration.sql
-
-                                                `)
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
