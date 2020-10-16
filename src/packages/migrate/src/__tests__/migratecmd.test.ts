@@ -1,3 +1,5 @@
+process.env.MIGRATE_SKIP_GENERATE = '1'
+
 import fs from 'fs-jetpack'
 import { MigrateCommand } from '../commands/MigrateCommand'
 import { consoleContext, Context } from './__helpers__/context'
@@ -54,6 +56,8 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

@@ -1,4 +1,5 @@
 process.env.GITHUB_ACTIONS = '1'
+process.env.MIGRATE_SKIP_GENERATE = '1'
 
 import fs from 'fs-jetpack'
 import { MigrateCommand } from '../commands/MigrateCommand'
@@ -51,6 +52,8 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -70,6 +73,12 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -90,6 +99,12 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
@@ -119,6 +134,8 @@ describe('sqlite', () => {
       SQLite database dev.db created at file:dev.db
 
       Prisma Schema loaded from prisma/schema.prisma
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -153,9 +170,12 @@ describe('postgresql', () => {
     ])
 
     await expect(result).resolves.toMatchSnapshot()
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/empty.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/empty.prisma
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -168,9 +188,16 @@ describe('postgresql', () => {
     ])
 
     await expect(result).resolves.toMatchSnapshot()
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -184,9 +211,16 @@ describe('postgresql', () => {
     ])
 
     await expect(result).resolves.toMatchSnapshot()
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -208,6 +242,8 @@ describe('postgresql', () => {
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
       Prisma Schema loaded from prisma/schema.prisma
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -221,9 +257,16 @@ describe('postgresql', () => {
     ])
 
     await expect(result).resolves.toMatchSnapshot()
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })

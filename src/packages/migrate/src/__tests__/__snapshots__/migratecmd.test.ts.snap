@@ -90,11 +90,7 @@ exports[`sqlite create draft migration and apply 5`] = ``;
 
 exports[`sqlite create draft migration and apply 6`] = ``;
 
-exports[`sqlite migrate first migration after init - empty schema 1`] = `
-
-Everything is already in sync, Prisma Migrate didn't find any schema changes or unapplied migrations.
-
-`;
+exports[`sqlite migrate first migration after init - empty schema 1`] = ``;
 
 exports[`sqlite migrate first migration after init - empty schema 3`] = `Array []`;
 
