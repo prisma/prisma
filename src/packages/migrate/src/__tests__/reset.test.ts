@@ -42,7 +42,7 @@ describe('reset', () => {
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = MigrateReset.new().parse(['--experimental', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Connector error: Invariant violation: migration persistence is not initialized.
+            Invariant violation: migration persistence is not initialized.
                0: migration_core::api::ApplyMigrations
                          at migration-engine/core/src/api.rs:91
 
@@ -59,13 +59,13 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--experimental', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    Database reset successful, Prisma Migrate applied the following migration(s):
+                                                Database reset successful, Prisma Migrate applied the following migration(s):
 
-                                    migrations/
-                                      └─ 20201231000000_init/
-                                        └─ migration.sql
+                                                migrations/
+                                                  └─ 20201231000000_init/
+                                                    └─ migration.sql
 
-                              `)
+                                        `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -80,13 +80,13 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--experimental'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    Database reset successful, Prisma Migrate applied the following migration(s):
+                                                Database reset successful, Prisma Migrate applied the following migration(s):
 
-                                    migrations/
-                                      └─ 20201231000000_init/
-                                        └─ migration.sql
+                                                migrations/
+                                                  └─ 20201231000000_init/
+                                                    └─ migration.sql
 
-                              `)
+                                        `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -109,13 +109,13 @@ describe('reset', () => {
     const result = MigrateReset.new().parse(['--force', '--experimental'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                              Database reset successful, Prisma Migrate applied the following migration(s):
+                                                          Database reset successful, Prisma Migrate applied the following migration(s):
 
-                                              migrations/
-                                                └─ 20201231000000_init/
-                                                  └─ migration.sql
+                                                          migrations/
+                                                            └─ 20201231000000_init/
+                                                              └─ migration.sql
 
-                                      `)
+                                                `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
