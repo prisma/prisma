@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`init is schema and env written on disk replace 1`] = `
-"
+
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
@@ -13,11 +13,11 @@ Next steps:
 
 More information in our documentation:
 https://pris.ly/d/getting-started
-    "
+    
 `;
 
 exports[`init works with url param 1`] = `
-"
+
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
@@ -27,5 +27,5 @@ Next steps:
 
 More information in our documentation:
 https://pris.ly/d/getting-started
-    "
+    
 `;

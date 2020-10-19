@@ -1,6 +1,6 @@
 {
   "name": "@prisma/engine-core",
-  "version": "2.9.0-dev.46",
+  "version": "2.9.0-dev.79",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -40,12 +40,12 @@
     "chalk": "^4.0.0",
     "cross-fetch": "^3.0.4",
     "execa": "^4.0.2",
-    "get-stream": "^5.1.0",
+    "get-stream": "^6.0.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "2.0.5"
+    "undici": "2.0.7"
   },
   "files": [
     "!**/__tests__",

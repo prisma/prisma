@@ -439,25 +439,29 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return this.$on(eventType, callback)
     }
     $on(eventType: any, callback: (event: any) => void) {
-      this._engine.on(eventType, (event) => {
-        const fields = event.fields
-        if (eventType === 'query') {
-          callback({
-            timestamp: event.timestamp,
-            query: fields.query,
-            params: fields.params,
-            duration: fields.duration_ms,
-            target: event.target,
-          })
-        } else {
-          // warn,l info or error events
-          callback({
-            timestamp: event.timestamp,
-            message: fields.message,
-            target: event.target,
-          })
-        }
-      })
+      if (eventType === 'beforeExit') {
+        this._engine.on('beforeExit', callback)
+      } else {
+        this._engine.on(eventType, (event) => {
+          const fields = event.fields
+          if (eventType === 'query') {
+            return callback({
+              timestamp: event.timestamp,
+              query: fields.query,
+              params: fields.params,
+              duration: fields.duration_ms,
+              target: event.target,
+            })
+          } else {
+            // warn, info, or error events
+            return callback({
+              timestamp: event.timestamp,
+              message: fields.message,
+              target: event.target,
+            })
+          }
+        })
+      }
     }
     connect() {
       console.warn(

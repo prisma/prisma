@@ -4,7 +4,7 @@ const chalk = require('chalk')
 const copy = require('@timsuchanek/copy')
 const makeDir = require('make-dir')
 const path = require('path')
-const {promisify} = require('util')
+const { promisify } = require('util')
 const copyFile = promisify(fs.copyFile)
 const lineReplace = require('line-replace')
 
@@ -29,26 +29,43 @@ async function main() {
       false,
     ),
     copy({
-      from: path.join(require.resolve('@prisma/studio/package.json'), '../build'),
+      from: path.join(
+        require.resolve('@prisma/studio/package.json'),
+        '../build',
+      ),
       to: './build/public',
       recursive: true,
       parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true
+      overwrite: true,
     }),
-    copyFile(path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'), './build/child.js'),
-    copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open'),
+    copyFile(
+      path.join(
+        require.resolve('checkpoint-client/package.json'),
+        '../dist/child.js',
+      ),
+      './build/child.js',
+    ),
+    copyFile(
+      path.join(require.resolve('open/package.json'), '../xdg-open'),
+      './build/xdg-open',
+    ),
   ])
 
   await Promise.all([
     copy({
-      from: path.join(require.resolve('@prisma/studio/package.json'), '../build'),
+      from: path.join(
+        require.resolve('@prisma/studio/package.json'),
+        '../build',
+      ),
       to: './dist/public',
       recursive: true,
       parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true
+      overwrite: true,
     }),
-    replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
+    replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n'),
   ])
+
+  plusX('./build/index.js')
 
   const after = Date.now()
   console.log(
@@ -61,13 +78,13 @@ async function main() {
 }
 
 function replaceFirstLine(filePath, line) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     lineReplace({
       file: filePath,
       line: 1,
       text: line,
       addNewLine: false,
-      callback: resolve
+      callback: resolve,
     })
   })
 }
@@ -78,5 +95,15 @@ function run(command, preferLocal = true) {
 
 main().catch((e) => {
   console.error(e)
-  throw e
+  process.exit(1)
 })
+
+function plusX(file) {
+  if (fs.existsSync(file)) {
+    const s = fs.statSync(file)
+    const newMode = s.mode | 64 | 8 | 1
+    if (s.mode === newMode) return
+    const base8 = newMode.toString(8).slice(-3)
+    fs.chmodSync(file, base8)
+  }
+}

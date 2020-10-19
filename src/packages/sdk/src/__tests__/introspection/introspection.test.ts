@@ -20,17 +20,6 @@ test('introspection basic', async () => {
       url      = \\"file:./blog.db\\"
     }
 
-    model User {
-      age     Int     @default(0)
-      amount  Float   @default(0)
-      balance Float   @default(0)
-      email   String  @unique @default(\\"\\")
-      id      Int     @id @default(autoincrement())
-      name    String?
-      role    String  @default(\\"USER\\")
-      Post    Post[]
-    }
-
     model Post {
       author    Int
       content   String?
@@ -41,6 +30,17 @@ test('introspection basic', async () => {
       updatedAt DateTime @default(dbgenerated())
       uuid      String   @id
       User      User     @relation(fields: [author], references: [id])
+    }
+
+    model User {
+      age     Int     @default(0)
+      amount  Float   @default(0)
+      balance Float   @default(0)
+      email   String  @unique @default(\\"\\")
+      id      Int     @id @default(autoincrement())
+      name    String?
+      role    String  @default(\\"USER\\")
+      Post    Post[]
     }
     ",
       "version": "NonPrisma",
@@ -72,6 +72,283 @@ test('introspection basic', async () => {
       "enums": Array [],
       "sequences": Array [],
       "tables": Array [
+        Object {
+          "columns": Array [
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "author",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "INTEGER",
+                "family": "int",
+                "fullDataType": "INTEGER",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "content",
+              "tpe": Object {
+                "arity": "nullable",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "DBGENERATED": "'1970-01-01 00:00:00'",
+              },
+              "name": "createdAt",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "DATE",
+                "family": "dateTime",
+                "fullDataType": "DATE",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "kind",
+              "tpe": Object {
+                "arity": "nullable",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": false,
+              },
+              "name": "published",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "BOOLEAN",
+                "family": "boolean",
+                "fullDataType": "BOOLEAN",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": "",
+              },
+              "name": "title",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "DBGENERATED": "'1970-01-01 00:00:00'",
+              },
+              "name": "updatedAt",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "DATE",
+                "family": "dateTime",
+                "fullDataType": "DATE",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "uuid",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+          ],
+          "foreignKeys": Array [
+            Object {
+              "columns": Array [
+                "author",
+              ],
+              "constraintName": null,
+              "onDeleteAction": "restrict",
+              "onUpdateAction": "noAction",
+              "referencedColumns": Array [
+                "id",
+              ],
+              "referencedTable": "User",
+            },
+          ],
+          "indices": Array [
+            Object {
+              "columns": Array [
+                "uuid",
+              ],
+              "name": "Post.uuid",
+              "tpe": "unique",
+            },
+          ],
+          "name": "Post",
+          "primaryKey": Object {
+            "columns": Array [
+              "uuid",
+            ],
+            "constraintName": null,
+            "sequence": null,
+          },
+        },
+        Object {
+          "columns": Array [
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": 0,
+              },
+              "name": "age",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "INTEGER",
+                "family": "int",
+                "fullDataType": "INTEGER",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": 0,
+              },
+              "name": "amount",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "REAL",
+                "family": "decimal",
+                "fullDataType": "REAL",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": 0,
+              },
+              "name": "balance",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "REAL",
+                "family": "decimal",
+                "fullDataType": "REAL",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": "",
+              },
+              "name": "email",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": true,
+              "default": null,
+              "name": "id",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "INTEGER",
+                "family": "int",
+                "fullDataType": "INTEGER",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": null,
+              "name": "name",
+              "tpe": Object {
+                "arity": "nullable",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+            Object {
+              "autoIncrement": false,
+              "default": Object {
+                "VALUE": "USER",
+              },
+              "name": "role",
+              "tpe": Object {
+                "arity": "required",
+                "characterMaximumLength": null,
+                "dataType": "TEXT",
+                "family": "string",
+                "fullDataType": "TEXT",
+                "nativeType": null,
+              },
+            },
+          ],
+          "foreignKeys": Array [],
+          "indices": Array [
+            Object {
+              "columns": Array [
+                "email",
+              ],
+              "name": "User.email",
+              "tpe": "unique",
+            },
+            Object {
+              "columns": Array [
+                "id",
+              ],
+              "name": "User.id",
+              "tpe": "unique",
+            },
+          ],
+          "name": "User",
+          "primaryKey": Object {
+            "columns": Array [
+              "id",
+            ],
+            "constraintName": null,
+            "sequence": null,
+          },
+        },
         Object {
           "columns": Array [
             Object {
@@ -224,283 +501,6 @@ test('introspection basic', async () => {
           "primaryKey": Object {
             "columns": Array [
               "revision",
-            ],
-            "constraintName": null,
-            "sequence": null,
-          },
-        },
-        Object {
-          "columns": Array [
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": 0,
-              },
-              "name": "age",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "INTEGER",
-                "family": "int",
-                "fullDataType": "INTEGER",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": 0,
-              },
-              "name": "amount",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "REAL",
-                "family": "decimal",
-                "fullDataType": "REAL",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": 0,
-              },
-              "name": "balance",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "REAL",
-                "family": "decimal",
-                "fullDataType": "REAL",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": "",
-              },
-              "name": "email",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": true,
-              "default": null,
-              "name": "id",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "INTEGER",
-                "family": "int",
-                "fullDataType": "INTEGER",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "name",
-              "tpe": Object {
-                "arity": "nullable",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": "USER",
-              },
-              "name": "role",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-          ],
-          "foreignKeys": Array [],
-          "indices": Array [
-            Object {
-              "columns": Array [
-                "email",
-              ],
-              "name": "User.email",
-              "tpe": "unique",
-            },
-            Object {
-              "columns": Array [
-                "id",
-              ],
-              "name": "User.id",
-              "tpe": "unique",
-            },
-          ],
-          "name": "User",
-          "primaryKey": Object {
-            "columns": Array [
-              "id",
-            ],
-            "constraintName": null,
-            "sequence": null,
-          },
-        },
-        Object {
-          "columns": Array [
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "author",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "INTEGER",
-                "family": "int",
-                "fullDataType": "INTEGER",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "content",
-              "tpe": Object {
-                "arity": "nullable",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "DBGENERATED": "'1970-01-01 00:00:00'",
-              },
-              "name": "createdAt",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "DATE",
-                "family": "dateTime",
-                "fullDataType": "DATE",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "kind",
-              "tpe": Object {
-                "arity": "nullable",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": false,
-              },
-              "name": "published",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "BOOLEAN",
-                "family": "boolean",
-                "fullDataType": "BOOLEAN",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "VALUE": "",
-              },
-              "name": "title",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": Object {
-                "DBGENERATED": "'1970-01-01 00:00:00'",
-              },
-              "name": "updatedAt",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "DATE",
-                "family": "dateTime",
-                "fullDataType": "DATE",
-                "nativeType": null,
-              },
-            },
-            Object {
-              "autoIncrement": false,
-              "default": null,
-              "name": "uuid",
-              "tpe": Object {
-                "arity": "required",
-                "characterMaximumLength": null,
-                "dataType": "TEXT",
-                "family": "string",
-                "fullDataType": "TEXT",
-                "nativeType": null,
-              },
-            },
-          ],
-          "foreignKeys": Array [
-            Object {
-              "columns": Array [
-                "author",
-              ],
-              "constraintName": null,
-              "onDeleteAction": "restrict",
-              "onUpdateAction": "noAction",
-              "referencedColumns": Array [
-                "id",
-              ],
-              "referencedTable": "User",
-            },
-          ],
-          "indices": Array [
-            Object {
-              "columns": Array [
-                "uuid",
-              ],
-              "name": "Post.uuid",
-              "tpe": "unique",
-            },
-          ],
-          "name": "Post",
-          "primaryKey": Object {
-            "columns": Array [
-              "uuid",
             ],
             "constraintName": null,
             "sequence": null,

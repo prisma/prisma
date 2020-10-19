@@ -11,7 +11,7 @@ describe('introspection panic', () => {
       await introspect.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(
-        `[Error: [introspection-engine/core/src/rpc.rs:156:9] This is the debugPanic artificial panic]`,
+        `[introspection-engine/core/src/rpc.rs:0:0] This is the debugPanic artificial panic`,
       )
     }
   })

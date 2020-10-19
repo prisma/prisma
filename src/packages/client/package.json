@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.9.0-dev.46",
+  "version": "2.9.0-dev.79",
   "description": "Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.",
   "keywords": [
     "orm",
@@ -48,7 +48,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "prisma": {
-    "version": "f4f4c265b355e72ab29dbb1d4495d4bcaf0e829f"
+    "version": "369b3694b7edb869fad14827a33ad3f3f49bbc20"
   },
   "files": [
     "runtime",
@@ -98,12 +98,11 @@
     "jest": "26.4.2",
     "jest-diff": "26.4.2",
     "js-levenshtein": "1.1.6",
-    "klona": "1.1.2",
+    "klona": "2.0.4",
     "lint-staged": "10.4.0",
     "make-dir": "3.1.0",
     "mariadb": "2.4.2",
     "node-fetch": "2.6.1",
-    "node-tcp-proxy": "0.0.17",
     "packwatch": "2.0.0",
     "pg": "8.3.3",
     "pidtree": "0.5.0",

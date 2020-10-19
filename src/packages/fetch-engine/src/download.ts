@@ -107,9 +107,9 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   // merge options
   options = {
-    binaryTargets: [platform],
-    version: 'latest',
     ...options,
+    binaryTargets: options.binaryTargets ?? [platform],
+    version: options.version ?? 'latest',
     binaries: mapKeys(options.binaries, (key) =>
       engineTypeToBinaryType(key, platform),
     ), // just necessary to support both camelCase and hyphen-case
