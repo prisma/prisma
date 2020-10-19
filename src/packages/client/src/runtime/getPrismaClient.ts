@@ -44,6 +44,7 @@ import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
+import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -530,46 +531,72 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       let query = ''
       let parameters: any = undefined
 
-      const sqlOutput =
-        (await this._getActiveProvider()) === 'postgresql' ? 'text' : 'sql'
+      const activeProvider = await this._getActiveProvider()
 
-      debug(`Prisma Client call:`)
-      if (Array.isArray(stringOrTemplateStringsArray)) {
-        // Called with prisma.raw\`\`
-        const queryInstance = sqlTemplateTag.sqltag(
-          stringOrTemplateStringsArray as any,
-          ...values,
-        )
-        query = queryInstance[sqlOutput]
+      if (typeof stringOrTemplateStringsArray === 'string') {
+        // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
+        query = stringOrTemplateStringsArray
         parameters = {
-          values: serializeRawParameters(queryInstance.values),
+          values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-      } else if ('string' === typeof stringOrTemplateStringsArray) {
-        // Called with prisma.raw(string) or prisma.raw(string, values)
-        query = stringOrTemplateStringsArray
-        if (values.length) {
-          parameters = {
-            values: serializeRawParameters(values),
-            __prismaRawParamaters__: true,
-          }
+      } else if (Array.isArray(stringOrTemplateStringsArray)) {
+        // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
+        switch (activeProvider) {
+          case 'sqlite':
+          case 'mysql':
+            query = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            ).sql
+            break
+
+          case 'postgresql':
+            query = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            ).text
+            break
+
+          case 'sqlserver':
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            break
+        }
+        parameters = {
+          values: serializeRawParameters(values),
+          __prismaRawParamaters__: true,
         }
       } else {
-        // called with prisma.raw(sql\`\`)
-        query = stringOrTemplateStringsArray[sqlOutput]
+        // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
+        switch (activeProvider) {
+          case 'sqlite':
+          case 'mysql':
+            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).sql
+            break
+          case 'postgresql':
+            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).text
+            break
+          case 'sqlserver':
+            query = mssqlPreparedStatement(
+              (stringOrTemplateStringsArray as sqlTemplateTag.Sql).strings,
+            )
+            break
+        }
         parameters = {
-          values: serializeRawParameters(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(values),
           __prismaRawParamaters__: true,
         }
       }
+
       if (parameters?.values) {
-        debug(`prisma.executeRaw(${query}, ${parameters.values})`)
+        debug(`prisma.$executeRaw(${query}, ${parameters.values})`)
       } else {
-        debug(`prisma.executeRaw(${query})`)
+        debug(`prisma.$executeRaw(${query})`)
       }
 
       const args = { query, parameters }
 
+      debug(`Prisma Client call:`)
       return this._request({
         args,
         clientMethod: 'executeRaw',
@@ -613,42 +640,73 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    private async $queryRawInternal(stringOrTemplateStringsArray, ...values) {
+    private async $queryRawInternal(
+      stringOrTemplateStringsArray:
+        | string
+        | TemplateStringsArray
+        | sqlTemplateTag.Sql,
+      ...values: any[]
+    ) {
       let query = ''
       let parameters: any = undefined
 
-      const sqlOutput =
-        (await this._getActiveProvider()) === 'postgresql' ? 'text' : 'sql'
+      const activeProvider = await this._getActiveProvider()
 
-      debug(`Prisma Client call:`)
-      if (Array.isArray(stringOrTemplateStringsArray)) {
-        // Called with prisma.raw\`\`
-        const queryInstance = sqlTemplateTag.sqltag(
-          stringOrTemplateStringsArray as any,
-          ...values,
-        )
-        query = queryInstance[sqlOutput]
+      if (typeof stringOrTemplateStringsArray === 'string') {
+        // If this was called as prisma.$queryRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
+        query = stringOrTemplateStringsArray
         parameters = {
-          values: serializeRawParameters(queryInstance.values),
+          values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-      } else if ('string' === typeof stringOrTemplateStringsArray) {
-        // Called with prisma.raw(string) or prisma.raw(string, values)
-        query = stringOrTemplateStringsArray
-        if (values.length) {
-          parameters = {
-            values: serializeRawParameters(values),
-            __prismaRawParamaters__: true,
-          }
+      } else if (Array.isArray(stringOrTemplateStringsArray)) {
+        // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
+        switch (activeProvider) {
+          case 'sqlite':
+          case 'mysql':
+            query = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            ).sql
+            break
+
+          case 'postgresql':
+            query = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            ).text
+            break
+
+          case 'sqlserver':
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            break
+        }
+        parameters = {
+          values: serializeRawParameters(values),
+          __prismaRawParamaters__: true,
         }
       } else {
-        // called with prisma.raw(sql\`\`)
-        query = stringOrTemplateStringsArray[sqlOutput]
+        // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
+        switch (activeProvider) {
+          case 'sqlite':
+          case 'mysql':
+            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).sql
+            break
+          case 'postgresql':
+            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).text
+            break
+          case 'sqlserver':
+            query = mssqlPreparedStatement(
+              (stringOrTemplateStringsArray as sqlTemplateTag.Sql).strings,
+            )
+            break
+        }
         parameters = {
-          values: serializeRawParameters(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(values),
           __prismaRawParamaters__: true,
         }
       }
+
       if (parameters?.values) {
         debug(`prisma.queryRaw(${query}, ${parameters.values})`)
       } else {
@@ -657,6 +715,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       const args = { query, parameters }
 
+      debug(`Prisma Client call:`)
       return this._request({
         args,
         clientMethod: 'queryRaw',
