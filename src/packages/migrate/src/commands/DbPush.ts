@@ -109,11 +109,13 @@ export class DbPush implements Command {
     }
 
     if (migration.warnings.length === 0 && migration.executedSteps === 0) {
-      return `\nThe database is already in sync with the Prisma schema.`
+      return `\nThe database is already in sync with the Prisma schema.\n`
     } else {
       return `\n${
-        process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      } Done in ${formatms(Date.now() - before)}`
+        process.platform === 'win32' ? '' : '🚀  '
+      }Your database is now in sync with your schema. Done in ${formatms(
+        Date.now() - before,
+      )}\n`
     }
   }
 

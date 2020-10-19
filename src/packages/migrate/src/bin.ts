@@ -44,10 +44,11 @@ import chalk from 'chalk'
 import debugLib from 'debug'
 
 import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
-import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
+import { MigrateDown } from './commands/MigrateDown'
 import { MigrateUp } from './commands/MigrateUp'
+import { DbPush } from './commands/DbPush'
+import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 
 const debug = debugLib('migrate')
@@ -63,6 +64,7 @@ async function main(): Promise<number> {
     save: MigrateSave.new(),
     up: MigrateUp.new(),
     down: MigrateDown.new(),
+    push: DbPush.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
