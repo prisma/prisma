@@ -10,7 +10,6 @@ export class DbPush implements Command {
     return new DbPush()
   }
 
-  // static help template
   private static help = format(`
     Push the state from your schema.prisma to your database
 
@@ -28,7 +27,6 @@ export class DbPush implements Command {
     ${chalk.bold('Options')}
 
       --force           Ignore data loss warnings
-      -c, --create-db   Create the database in case it doesn't exist
       -h, --help        Displays this help message
 
     ${chalk.bold('Examples')}
@@ -46,8 +44,6 @@ export class DbPush implements Command {
       {
         '--help': Boolean,
         '-h': '--help',
-        '--create-db': Boolean,
-        '-c': '--create-db',
         '--force': Boolean,
         '--experimental': Boolean,
         '--schema': String,
@@ -74,7 +70,7 @@ export class DbPush implements Command {
       force: args['--force'],
     }
 
-    await ensureDatabaseExists('push', args['--create-db'], args['--schema'])
+    await ensureDatabaseExists('push', true, args['--schema'])
 
     const before = Date.now()
     const migration = await migrate.push(options)
