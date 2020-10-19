@@ -187,7 +187,8 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
-      'insensitiveFilters'
+      'insensitiveFilters',
+      'atomicNumberOperations'
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
