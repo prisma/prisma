@@ -515,7 +515,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(string: ReadonlyArray<string>, ...values: sqlTemplateTag.RawValue[]) {
+    executeRaw(string, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
@@ -627,9 +627,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $executeRaw(string: ReadonlyArray<string>, ...values: sqlTemplateTag.RawValue[]) {
+    $executeRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
       try {
-        const promise = this.$executeRawInternal(string, ...values)
+        const promise = this.$executeRawInternal(strings, ...values)
           ; (promise as any).isExecuteRaw = true
         return promise
       } catch (e) {
@@ -645,7 +645,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return undefined
     }
 
-    queryRaw(strings: readonly string[], ...values: sqlTemplateTag.RawValue[]) {
+    queryRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
@@ -763,7 +763,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $queryRaw(strings: readonly string[], ...values: sqlTemplateTag.RawValue[]) {
+    $queryRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
       try {
         const promise = this.$queryRawInternal(strings, ...values)
           ; (promise as any).isQueryRaw = true
