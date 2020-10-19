@@ -544,27 +544,42 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
         switch (activeProvider) {
           case 'sqlite':
-          case 'mysql':
-            query = sqlTemplateTag.sqltag(
+          case 'mysql': {
+            let queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
-            ).sql
-            break
+            )
 
-          case 'postgresql':
-            query = sqlTemplateTag.sqltag(
+            query = queryInstance.sql
+            parameters = {
+              values: serializeRawParameters(queryInstance.values),
+              __prismaRawParamaters__: true,
+            }
+            break
+          }
+
+          case 'postgresql': {
+            let queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
-            ).text
-            break
+            )
 
-          case 'sqlserver':
+            query = queryInstance.text
+            parameters = {
+              values: serializeRawParameters(queryInstance.values),
+              __prismaRawParamaters__: true,
+            }
+            break
+          }
+
+          case 'sqlserver': {
             query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            parameters = {
+              values: serializeRawParameters(values),
+              __prismaRawParamaters__: true,
+            }
             break
-        }
-        parameters = {
-          values: serializeRawParameters(values),
-          __prismaRawParamaters__: true,
+          }
         }
       } else {
         // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
@@ -663,27 +678,42 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
         switch (activeProvider) {
           case 'sqlite':
-          case 'mysql':
-            query = sqlTemplateTag.sqltag(
+          case 'mysql': {
+            let queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
-            ).sql
-            break
+            )
 
-          case 'postgresql':
-            query = sqlTemplateTag.sqltag(
+            query = queryInstance.sql
+            parameters = {
+              values: serializeRawParameters(queryInstance.values),
+              __prismaRawParamaters__: true,
+            }
+            break
+          }
+
+          case 'postgresql': {
+            let queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
-            ).text
-            break
+            )
 
-          case 'sqlserver':
+            query = queryInstance.text
+            parameters = {
+              values: serializeRawParameters(queryInstance.values),
+              __prismaRawParamaters__: true,
+            }
+            break
+          }
+
+          case 'sqlserver': {
             query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            parameters = {
+              values: serializeRawParameters(values),
+              __prismaRawParamaters__: true,
+            }
             break
-        }
-        parameters = {
-          values: serializeRawParameters(values),
-          __prismaRawParamaters__: true,
+          }
         }
       } else {
         // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
@@ -702,7 +732,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             break
         }
         parameters = {
-          values: serializeRawParameters(values),
+          values: serializeRawParameters(
+            (stringOrTemplateStringsArray as sqlTemplateTag.Sql).values,
+          ),
           __prismaRawParamaters__: true,
         }
       }
