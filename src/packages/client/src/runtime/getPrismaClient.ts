@@ -598,7 +598,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             break
         }
         parameters = {
-          values: serializeRawParameters(values),
+          values: serializeRawParameters(
+            (stringOrTemplateStringsArray as sqlTemplateTag.Sql).values,
+          ),
           __prismaRawParamaters__: true,
         }
       }
