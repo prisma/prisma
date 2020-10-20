@@ -85,8 +85,11 @@ import {
   MigrateUp,
   MigrateDown,
   MigrateTmpPrepare,
+  DbPush,
+  DbCommand,
   handlePanic,
 } from '@prisma/migrate'
+
 import { CLI } from './CLI'
 import { Introspect, Init } from '@prisma/introspection'
 import { Dev } from './Dev'
@@ -130,6 +133,9 @@ async function main(): Promise<number> {
         save: MigrateSave.new(),
         up: MigrateUp.new(),
         down: MigrateDown.new(),
+      }),
+      db: DbCommand.new({
+        push: DbPush.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),

@@ -42,28 +42,18 @@ if (process.argv.length > 3) {
  */
 import chalk from 'chalk'
 import debugLib from 'debug'
-import path from 'path'
 
 import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
-import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
+import { MigrateDown } from './commands/MigrateDown'
 import { MigrateUp } from './commands/MigrateUp'
+import { DbPush } from './commands/DbPush'
+import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 
 const debug = debugLib('migrate')
 
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
-
-const providerAliases: ProviderAliases = {
-  'prisma-client-js': {
-    generatorPath: require.resolve('@prisma/client/generator-build'),
-    outputPath: path.dirname(require.resolve('@prisma/client/package.json')),
-  },
-}
-
-// const access = fs.createWriteStream('out.log')
-// process.stdout.write = process.stderr.write = access.write.bind(access)
 
 /**
  * Main function
@@ -74,6 +64,7 @@ async function main(): Promise<number> {
     save: MigrateSave.new(),
     up: MigrateUp.new(),
     down: MigrateDown.new(),
+    push: DbPush.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
