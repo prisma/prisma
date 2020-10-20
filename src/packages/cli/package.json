@@ -63,7 +63,6 @@
     "prismaCommit": "94e41e7df532911b7b56e10ea4f1f7f036bdd54a"
   },
   "devDependencies": {
-    "@apexearth/copy": "1.4.5",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
