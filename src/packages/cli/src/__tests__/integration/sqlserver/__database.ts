@@ -22,7 +22,7 @@ export const database = {
 } as Input<sql.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_SQLSERVER_2019_URI || 'sqlserver://SA:Prisma1-prisma@localhost:1433/master'
+  const serviceConnectionString = process.env.TEST_SQLSERVER_URI || 'sqlserver://SA:Prisma1-prisma@localhost:1433/master'
   const connectionString = `${serviceConnectionString}-${ctx.id}`
   const credentials = {
     user: 'SA',
