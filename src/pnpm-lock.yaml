@@ -99,11 +99,11 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 4.2.0
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      tempy: 0.7.1
+      tempy: 1.0.0
       terminal-link: 2.1.1
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       typescript: 4.0.3
@@ -165,11 +165,11 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: '4.1'
-      string-hash: 1.1.3
+      sqlite3: 4.2.0
+      string-hash: ^1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      tempy: 0.7.1
+      tempy: 1.0.0
       terminal-link: 2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
@@ -432,7 +432,7 @@ importers:
       progress: 2.0.3
       rimraf: 3.0.2
       temp-dir: 2.0.0
-      tempy: 0.7.0
+      tempy: 1.0.0
     devDependencies:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
@@ -488,7 +488,7 @@ importers:
       progress: ^2.0.3
       rimraf: ^3.0.2
       temp-dir: ^2.0.0
-      tempy: ^0.7.0
+      tempy: ^1.0.0
       ts-jest: 26.4.0
       typescript: 4.0.3
   packages/generator-helper:
@@ -596,7 +596,7 @@ importers:
       lint-staged: 10.4.0
       prettier: 2.1.2
       rimraf: 3.0.2
-      tempy: 0.7.1
+      tempy: 1.0.0
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       ts-node: 9.0.0_typescript@4.0.3
       typescript: 4.0.3
@@ -623,7 +623,7 @@ importers:
       prettier: 2.1.2
       rimraf: 3.0.2
       strip-ansi: ^6.0.0
-      tempy: 0.7.1
+      tempy: 1.0.0
       ts-jest: 26.4.0
       ts-node: 9.0.0
       typescript: 4.0.3
@@ -683,7 +683,7 @@ importers:
       prettier: 2.1.2
       sqlite-async: 1.1.0
       sqlite3: 5.0.0
-      tempy: 0.7.1
+      tempy: 1.0.0
       ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
       typescript: 4.0.3
     specifiers:
@@ -740,7 +740,7 @@ importers:
       string-width: ^4.2.0
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
-      tempy: 0.7.1
+      tempy: 1.0.0
       ts-jest: 26.4.0
       typescript: 4.0.3
   packages/sdk:
@@ -774,7 +774,7 @@ importers:
       tar: 6.0.2
       temp-dir: 2.0.0
       temp-write: 4.0.0
-      tempy: 0.7.0
+      tempy: 1.0.0
       terminal-link: 2.1.1
       tmp: 0.2.1
       url-parse: 1.4.7
@@ -840,7 +840,7 @@ importers:
       tar: ^6.0.1
       temp-dir: ^2.0.0
       temp-write: ^4.0.0
-      tempy: ^0.7.0
+      tempy: ^1.0.0
       terminal-link: ^2.1.1
       tmp: 0.2.1
       ts-jest: 26.4.0
@@ -1729,6 +1729,7 @@ packages:
     dependencies:
       '@types/minimatch': 3.0.3
       '@types/node': 12.12.47
+    dev: true
     resolution:
       integrity: sha512-VgNIkxK+j7Nz5P7jvUZlRvhuPSmsEfS03b0alKcq5V/STUKAa3Plemsn5mrQUO7am6OErJ4rhGEGJbACclrtRA==
   /@types/graceful-fs/4.1.3:
@@ -1780,6 +1781,7 @@ packages:
     resolution:
       integrity: sha512-7+2BITlgjgDhH0vvwZU/HZJVyk+2XUlvxXe8dFMedNX/aMkaOq++rMAFXc0tM7ij15QaWlbdQASBR9dihi+bDQ==
   /@types/minimatch/3.0.3:
+    dev: true
     resolution:
       integrity: sha512-tHq6qdbT9U1IRSGf14CL0pUlULksvY9OZ+5eEgl1N7t+OA3tGvNpxJCzuKQlsNgCVwbAs670L1vcVQi8j9HjnA==
   /@types/minimist/1.2.0:
@@ -1800,6 +1802,7 @@ packages:
     resolution:
       integrity: sha512-o2WVNf5UhWRkxlf6eq+jMZDu7kjgpgJfl4xVNlvryc95O/6F2ld8ztKX+qu+Rjyet93WAWm5LjeX9H5FGkODvw==
   /@types/node/12.12.47:
+    dev: true
     resolution:
       integrity: sha512-yzBInQFhdY8kaZmqoL2+3U5dSTMrKaYcb561VU+lDzAYvqt+2lojvBEy+hmpSNuXnPTx7m9+04CzWYOUqWME2A==
   /@types/node/12.12.62:
@@ -3253,6 +3256,7 @@ packages:
       p-map: 3.0.0
       rimraf: 3.0.2
       slash: 3.0.0
+    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -3267,7 +3271,6 @@ packages:
       p-map: 4.0.0
       rimraf: 3.0.2
       slash: 3.0.0
-    dev: true
     engines:
       node: '>=10'
     resolution:
@@ -4412,6 +4415,7 @@ packages:
       ignore: 5.1.8
       merge2: 1.4.1
       slash: 3.0.0
+    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -6515,6 +6519,7 @@ packages:
   /p-map/3.0.0:
     dependencies:
       aggregate-error: 3.0.1
+    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -7732,15 +7737,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-yPCgZZPkccMcvU8J4Hrt96nSXOEv6UuBLd9KGFdUR9VVkE7voXkWrV2UWODfNbxdDyviS/a+eFWDn86mfBgyJw==
-  /sqlite3/4.1.1:
-    dependencies:
-      nan: 2.14.1
-      node-pre-gyp: 0.11.0
-      request: 2.88.2
-    dev: true
-    requiresBuild: true
-    resolution:
-      integrity: sha512-CvT5XY+MWnn0HkbwVKJAyWEMfzpAPwnTiB3TobA5Mri44SrTovmmh499NPQP+gatkeOipqPlBLel7rn4E/PCQg==
   /sqlite3/4.2.0:
     dependencies:
       nan: 2.14.1
@@ -8110,18 +8106,6 @@ packages:
       '0': node >=0.4.0
     resolution:
       integrity: sha1-ZxrWPVe+D+nXKUZks/xABjZnimA=
-  /tempy/0.7.0:
-    dependencies:
-      del: 5.1.0
-      is-stream: 2.0.0
-      temp-dir: 2.0.0
-      type-fest: 0.16.0
-      unique-string: 2.0.0
-    dev: false
-    engines:
-      node: '>=10'
-    resolution:
-      integrity: sha512-YcFJbGum4B10jqKroKsci0kE5eEzRCMCTCa0ATtRC6zApBboaOnug1igqAbRC9SCvyqTRI9Xt8NYVggQr4k9hw==
   /tempy/0.7.1:
     dependencies:
       del: 6.0.0
@@ -8134,6 +8118,17 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-vXPxwOyaNVi9nyczO16mxmHGpl6ASC5/TVhRRHpqeYHvKQm58EaWNvZXxAhR0lYYnBOQFjXjhzeLsaXdjxLjRg==
+  /tempy/1.0.0:
+    dependencies:
+      del: 6.0.0
+      is-stream: 2.0.0
+      temp-dir: 2.0.0
+      type-fest: 0.16.0
+      unique-string: 2.0.0
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-eLXG5B1G0mRPHmgH2WydPl5v4jH35qEn3y/rA/aahKhIa91Pn119SsU7n7v/433gtT9ONzC8ISvNHIh2JSTm0w==
   /terminal-link/2.1.1:
     dependencies:
       ansi-escapes: 4.3.1

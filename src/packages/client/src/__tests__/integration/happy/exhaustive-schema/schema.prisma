@@ -1,11 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
 }
 
 datasource db {
-  provider        = "postgresql"
-  url             = env("DATABASE_URL")
-  previewFeatures = ["nativeTypes"]
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Post {

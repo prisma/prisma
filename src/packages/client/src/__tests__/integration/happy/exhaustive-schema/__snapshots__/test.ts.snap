@@ -15,6 +15,7 @@ import {
   join,
   raw,
   Sql,
+  Decimal,
 } from '@prisma/client/runtime';
 
 export { PrismaClientKnownRequestError }
@@ -22,6 +23,7 @@ export { PrismaClientUnknownRequestError }
 export { PrismaClientRustPanicError }
 export { PrismaClientInitializationError }
 export { PrismaClientValidationError }
+export { Decimal }
 
 /**
  * Re-export of sql-template-tag
@@ -5872,8 +5874,8 @@ export type B = {
   id: string
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 
@@ -5888,29 +5890,29 @@ export type AggregateB = {
 export type BAvgAggregateOutputType = {
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 export type BSumAggregateOutputType = {
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 export type BMinAggregateOutputType = {
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 export type BMaxAggregateOutputType = {
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 
@@ -8052,8 +8054,8 @@ export type BWhereInput = {
   id?: StringFilter | string
   float?: FloatFilter | number
   dfloat?: FloatFilter | number
-  decFloat?: FloatFilter | number
-  numFloat?: FloatFilter | number
+  decFloat?: DecimalFilter | Decimal
+  numFloat?: DecimalFilter | Decimal
 }
 
 export type BOrderByInput = {
@@ -8545,24 +8547,24 @@ export type BCreateInput = {
   id?: string
   float: number
   dfloat: number
-  decFloat: number
-  numFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
 }
 
 export type BUpdateInput = {
   id?: string | StringFieldUpdateOperationsInput
   float?: number | FloatFieldUpdateOperationsInput
   dfloat?: number | FloatFieldUpdateOperationsInput
-  decFloat?: number | FloatFieldUpdateOperationsInput
-  numFloat?: number | FloatFieldUpdateOperationsInput
+  decFloat?: Decimal | DecimalFieldUpdateOperationsInput
+  numFloat?: Decimal | DecimalFieldUpdateOperationsInput
 }
 
 export type BUpdateManyMutationInput = {
   id?: string | StringFieldUpdateOperationsInput
   float?: number | FloatFieldUpdateOperationsInput
   dfloat?: number | FloatFieldUpdateOperationsInput
-  decFloat?: number | FloatFieldUpdateOperationsInput
-  numFloat?: number | FloatFieldUpdateOperationsInput
+  decFloat?: Decimal | DecimalFieldUpdateOperationsInput
+  numFloat?: Decimal | DecimalFieldUpdateOperationsInput
 }
 
 export type CCreateInput = {
@@ -8806,6 +8808,17 @@ export type OptionalSide1RelationFilter = {
   isNot?: OptionalSide1WhereInput | null
 }
 
+export type DecimalFilter = {
+  equals?: Decimal
+  in?: Enumerable<Decimal>
+  notIn?: Enumerable<Decimal>
+  lt?: Decimal
+  lte?: Decimal
+  gt?: Decimal
+  gte?: Decimal
+  not?: Decimal | NestedDecimalFilter
+}
+
 export type BytesFilter = {
   equals?: Buffer
   not?: Buffer | NestedBytesFilter
@@ -8851,18 +8864,34 @@ export type PostCreateManyWithoutAuthorInput = {
 
 export type IntFieldUpdateOperationsInput = {
   set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
   set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type FloatFieldUpdateOperationsInput = {
   set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type NullableFloatFieldUpdateOperationsInput = {
   set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type EnumABeautifulEnumFieldUpdateOperationsInput = {
@@ -8982,6 +9011,14 @@ export type OptionalSide1UpdateOneWithoutOptiInput = {
   upsert?: OptionalSide1UpsertWithoutOptiInput
 }
 
+export type DecimalFieldUpdateOperationsInput = {
+  set?: Decimal
+  increment?: Decimal
+  decrement?: Decimal
+  multiply?: Decimal
+  divide?: Decimal
+}
+
 export type BytesFieldUpdateOperationsInput = {
   set?: Buffer
 }
@@ -9095,6 +9132,17 @@ export type NestedEnumABeautifulEnumNullableFilter = {
 export type NestedBoolNullableFilter = {
   equals?: boolean | null
   not?: boolean | NestedBoolNullableFilter | null
+}
+
+export type NestedDecimalFilter = {
+  equals?: Decimal
+  in?: Enumerable<Decimal>
+  notIn?: Enumerable<Decimal>
+  lt?: Decimal
+  lte?: Decimal
+  gt?: Decimal
+  gte?: Decimal
+  not?: Decimal | NestedDecimalFilter
 }
 
 export type NestedBytesFilter = {

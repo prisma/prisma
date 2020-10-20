@@ -1,11 +1,11 @@
 datasource db {
-  provider        = "mysql"
-  url             = env("TEST_MYSQL_URI")
-  previewFeatures = ["nativeTypes"]
+  provider = "mysql"
+  url      = env("TEST_MYSQL_URI")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
 }
 
 model A {

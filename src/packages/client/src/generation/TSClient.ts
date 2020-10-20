@@ -76,7 +76,8 @@ const {
   sql,
   empty,
   join,
-  raw
+  raw,
+  Decimal
 } = require('${runtimePath}')
 
 const path = require('path')
@@ -96,6 +97,7 @@ exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
 exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
 exports.PrismaClientInitializationError = PrismaClientInitializationError;
 exports.PrismaClientValidationError = PrismaClientValidationError;
+exports.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
@@ -125,6 +127,7 @@ const commonCodeTS = ({
   join,
   raw,
   Sql,
+  Decimal,
 } from '${runtimePath}';
 
 export { PrismaClientKnownRequestError }
@@ -132,6 +135,7 @@ export { PrismaClientUnknownRequestError }
 export { PrismaClientRustPanicError }
 export { PrismaClientInitializationError }
 export { PrismaClientValidationError }
+export { Decimal }
 
 /**
  * Re-export of sql-template-tag

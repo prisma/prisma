@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 import { DMMF } from '../dmmf-types'
+import Decimal from 'decimal.js'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -73,7 +74,7 @@ export const GraphQLScalarToJSTypeTable = {
   Json: 'JsonValue',
   Bytes: 'Buffer',
   Xml: 'string',
-  Decimal: 'number'
+  Decimal: 'Decimal'
 }
 
 export const JSOutputTypeToInputType = {
@@ -109,6 +110,11 @@ export function getGraphQLType(
 ): string {
   if (value === null) {
     return 'null'
+  }
+
+  // https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L4499
+  if (Decimal.isDecimal(value)) {
+    return 'Decimal'
   }
 
   if (Buffer.isBuffer(value)) {

@@ -35,6 +35,7 @@ import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 import stripAnsi from 'strip-ansi'
 import { flatMap } from './utils/flatMap'
+import Decimal from 'decimal.js'
 
 const tab = 2
 
@@ -725,12 +726,17 @@ function stringify(
     }
     return JSON.stringify(JSON.stringify(obj))
   }
+
   if (obj === undefined) {
     return null
   }
 
   if (obj === null) {
     return 'null'
+  }
+
+  if (Decimal.isDecimal(obj)) {
+    return obj.toString()
   }
 
   if (isEnum && typeof obj === 'string') {
@@ -1254,6 +1260,10 @@ function hasCorrectScalarType(
   const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
   const graphQLType = getGraphQLType(value, type)
 
+  if (graphQLType === expectedType) {
+    return true
+  }
+
   if (isList && graphQLType === 'List<>') {
     return true
   }
@@ -1262,6 +1272,9 @@ function hasCorrectScalarType(
     return true
   }
 
+  if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
+    return true
+  }
 
   // DateTime is a subset of string
   if (graphQLType === 'DateTime' && expectedType === 'String') {
@@ -1308,7 +1321,7 @@ function hasCorrectScalarType(
     return true
   }
 
-  if (graphQLType === expectedType) {
+  if (graphQLType === 'String' && /^(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value) && expectedType === 'Decimal') {
     return true
   }
 
@@ -1661,7 +1674,10 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
   const deserializers = {
     'DateTime': value => new Date(value),
     'Json': value => JSON.parse(value),
-    'Bytes': value => Buffer.from(value, 'base64')
+    'Bytes': value => Buffer.from(value, 'base64'),
+    'Decimal': value => {
+      return new Decimal(value)
+    }
   }
 
   for (const child of field.children) {

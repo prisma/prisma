@@ -1,10 +1,14 @@
-import { PrismaClient, JsonValue } from '@prisma/client'
+import { PrismaClient, JsonValue, Decimal } from '@prisma/client'
 
 async function main() {
   const prisma = new PrismaClient()
 
   const a = await prisma.a.findFirst()
-  const b = await prisma.b.findFirst()
+  const b = await prisma.b.findFirst({
+    where: {
+      decFloat: new Decimal('1.23')
+    }
+  })
   const c = await prisma.c.findFirst()
   const d: null | {
     id: string

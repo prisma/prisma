@@ -1,11 +1,11 @@
 datasource db {
-  provider        = "postgresql"
-  url             = env("TEST_POSTGRES_URI")
-  previewFeatures = ["nativeTypes"]
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
 }
 
 // / User model comment

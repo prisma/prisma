@@ -1,6 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
+import Decimal from 'decimal.js'
 
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-native-types-tests'
@@ -48,24 +49,55 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
 
   await prisma.b.deleteMany()
 
-  const data = {
+  let data: any = {
     float: 12.2,
     dfloat: 10.2,
     decFloat: 1.1,
-    numFloat: 5.6
+    numFloat: '5.6',
   }
 
-  const b = await prisma.b.create({
+  let b = await prisma.b.create({
     data,
     select: {
       float: true,
       dfloat: true,
       decFloat: true,
-      numFloat: true
+      numFloat: true,
     },
   })
 
-  expect(b).toEqual(data)
+  expect(Decimal.isDecimal(b.float)).toBe(false)
+  expect(Decimal.isDecimal(b.dfloat)).toBe(false)
+  expect(Decimal.isDecimal(b.decFloat)).toBe(true)
+  expect(Decimal.isDecimal(b.numFloat)).toBe(true)
+
+  expect(b).toMatchInlineSnapshot(`
+    Object {
+      decFloat: 1.1,
+      dfloat: 10.2,
+      float: 12.2,
+      numFloat: 5.6,
+    }
+  `)
+
+  data = {
+    float: 12.2,
+    dfloat: 10.2,
+    decFloat: new Decimal(1.1),
+    numFloat: new Decimal('5.6'),
+  }
+
+  b = await prisma.b.create({
+    data,
+    select: {
+      float: true,
+      dfloat: true,
+      decFloat: true,
+      numFloat: true,
+    },
+  })
+
+  expect(data).toEqual(b)
 
   prisma.$disconnect()
 })
@@ -142,7 +174,6 @@ test('native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async () => 
   prisma.$disconnect()
 })
 
-
 test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, LongBlob', async () => {
   const PrismaClient = await getTestClient()
 
@@ -157,9 +188,8 @@ test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, 
     blob: Buffer.from('hi'),
     tBlob: Buffer.from('tbob'),
     mBlob: Buffer.from('mbob'),
-    lBlob: Buffer.from('longbob')
+    lBlob: Buffer.from('longbob'),
   }
-
 
   const e = await prisma.e.create({
     data,
@@ -170,7 +200,7 @@ test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, 
       blob: true,
       tBlob: true,
       mBlob: true,
-      lBlob: true
+      lBlob: true,
     },
   })
 

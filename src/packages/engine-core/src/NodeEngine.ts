@@ -186,8 +186,10 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
-      'insensitiveFilters'
+      'insensitiveFilters',
+      'atomicNumberOperations'
     ]
+    const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
@@ -199,7 +201,7 @@ export class NodeEngine {
       )
     }
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => !removedFlags.includes(e),
+      (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
 
@@ -373,8 +375,8 @@ You may have to run ${chalk.greenBright(
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedBinaryTarget}`,
-          )}\n`
+          `${this.incorrectlyPinnedBinaryTarget}`,
+        )}\n`
         : ''
 
       const dir = path.dirname(prismaPath)
@@ -402,11 +404,10 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
           this.generator.binaryTargets.includes('native')
         ) {
           errorText += `
-You already added the platform${
-            this.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''
+            } ${this.generator.binaryTargets
+              .map((t) => `"${chalk.bold(t)}"`)
+              .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -414,16 +415,15 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${
-            this.platform
-          }" to the "${chalk.underline(
-            'generator',
-          )}" block in the "schema.prisma" file:
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform
+            }" to the "${chalk.underline(
+              'generator',
+            )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-            'prisma generate',
-          )}" for your changes to take effect.
+              'prisma generate',
+            )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -552,8 +552,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-          Array.isArray(this.enableExperimental) &&
-          this.enableExperimental.length > 0
+            Array.isArray(this.enableExperimental) &&
+            this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -700,7 +700,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                  this.stderrLogs,
+                this.stderrLogs,
                 this.clientVersion,
               )
             } else {
@@ -819,12 +819,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         this.url = `http://localhost:${this.port}`
 
-        // don't wait for this
-        ;(async () => {
-          const engineVersion = await this.version()
-          debug(`Client Version ${this.clientVersion}`)
-          debug(`Engine Version ${engineVersion}`)
-        })()
+          // don't wait for this
+          ; (async () => {
+            const engineVersion = await this.version()
+            debug(`Client Version ${this.clientVersion}`)
+            debug(`Engine Version ${engineVersion}`)
+          })()
 
         this.stopPromise = undefined
         resolve()

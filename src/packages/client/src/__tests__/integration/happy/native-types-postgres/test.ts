@@ -3,6 +3,7 @@ import { pick } from '../../../../pick'
 import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
+import Decimal from 'decimal.js'
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-native-types-tests'
@@ -75,14 +76,14 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
 
   await prisma.b.deleteMany()
 
-  const data = {
+  let data: any = {
     float: 1.2,
     dfloat: 1.3,
     decFloat: 1.23,
-    numFloat: 23.12,
+    numFloat: '23.12',
   }
 
-  const b = await prisma.b.create({
+  let b = await prisma.b.create({
     data,
     select: {
       float: true,
@@ -92,6 +93,12 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     },
   })
 
+  expect(Decimal.isDecimal(b.float)).toBe(false)
+  expect(Decimal.isDecimal(b.dfloat)).toBe(false)
+  expect(Decimal.isDecimal(b.decFloat)).toBe(true)
+  expect(Decimal.isDecimal(b.numFloat)).toBe(true)
+
+
   expect(b).toMatchInlineSnapshot(`
     Object {
       decFloat: 1.2,
@@ -100,6 +107,25 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
       numFloat: 23.12,
     }
   `)
+
+  data = {
+    float: 1,
+    dfloat: 1.3,
+    decFloat: new Decimal('1.2'),
+    numFloat: new Decimal('1232.123456')
+  }
+
+  b = await prisma.b.create({
+    data,
+    select: {
+      float: true,
+      dfloat: true,
+      decFloat: true,
+      numFloat: true,
+    },
+  })
+
+  expect(b).toEqual(data)
 
   prisma.$disconnect()
 })
