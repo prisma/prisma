@@ -168,7 +168,7 @@ importers:
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
       sqlite-async: 1.1.0
-      sqlite3: 4.1.1
+      sqlite3: 5.0.0
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
@@ -180,10 +180,11 @@ importers:
       ws: 7.3.1
   packages/client:
     dependencies:
-      '@prisma/engines-version': 'link:../engines-version'
+      '@prisma/engines-version': 2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e
     devDependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -249,7 +250,8 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
-      '@prisma/engines-version': 'workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e'
+      '@prisma/engines': ^2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e
+      '@prisma/engines-version': 2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -1431,11 +1433,9 @@ packages:
     resolution:
       integrity: sha512-cgx39UIVwKU651qFDYK/WvIGegofpn5WmLD4JOAWeadQAvVTc+OXpkYbg23iCn9/if80cWk49pg5EM29S3jnZg==
   /@prisma/engines-version/2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e:
-    dev: true
     resolution:
       integrity: sha512-2mMHe+l7LhVlT9hFj1sj3iXTOkWmBstW6Waxqc445TQ6HtsNB9Sua7iJTFiiZXFCNolRwGYYePRNSLw5vUMDnA==
   /@prisma/engines/2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e:
-    dev: false
     requiresBuild: true
     resolution:
       integrity: sha512-N+Zg3GwZqAaloXz/oFs9fHrrjdO/SOVixshGxr7BYtu126mhQThsEDjpOCI2UVwZezoVOctM2Q8MKNTskrCcLg==

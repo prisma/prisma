@@ -102,7 +102,7 @@ export async function getDMMF({
         return true
       }).filter(
         (e) =>
-          !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(
+          !['middlewares', 'aggregateApi', 'distinct', 'aggregations', 'atomicNumberOperations'].includes(
             e,
           ),
       )
