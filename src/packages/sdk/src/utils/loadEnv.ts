@@ -17,16 +17,14 @@ type CLIArgs =
       '--telemetry-information': StringConstructor
     }>
 
-interface DotenvResult {
-  error?: Error
-  parsed?: {
-    [name: string]: string
-  }
-}
+type DotenvResult = dotenv.DotenvConfigOutput & {
+  ignoreProcessEnv?: boolean | undefined;
+};
 
 interface LoadEnvResult {
   message: string
-  dotenvResult: DotenvResult
+  path: string
+  dotenvResult:  DotenvResult
 }
 /**
  * Tries load env variables
@@ -40,26 +38,27 @@ export function tryLoadEnv(
   opts: { cwd: string } = { cwd: process.cwd() },
 ): void {
   const rootEnvInfo = loadEnvFromProjectRoot(opts)
-  const schemaPathFromArgs = schemaPathToEnvPath(args['--schema'])
-  const schemaPathFromPkgJson = schemaPathToEnvPath(readSchemaPathFromPkgJson())
+  const schemaEnvPathFromArgs = schemaPathToEnvPath(args['--schema'])
+  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(readSchemaPathFromPkgJson())
 
-  const schemaPaths = [
-    schemaPathFromArgs, // 1 -Check --schema directory
-    schemaPathFromPkgJson, // 2 - Check package.json for `prisma.schema` configuration
-    path.relative(opts.cwd, './prisma/.env'), // 3 - Check ./prisma directory for schema.prisma
+  const schemaEnvPaths = [
+    schemaEnvPathFromArgs,        // 1 - Check --schema directory for .env
+    schemaEnvPathFromPkgJson,     // 2 - Check package.json schema directory for .env
+    './prisma/.env',              // 3 - Check ./prisma directory for .env
+    './.env'                      // 4 - Check cwd for .env
   ]
   let schemaEnvInfo: LoadEnvResult | null = null
-  for (const envPath of schemaPaths) {
-    checkForConflicts(rootEnvInfo?.dotenvResult.parsed, envPath)
+  for (const envPath of schemaEnvPaths) {
+    checkForConflicts(rootEnvInfo, envPath)
     schemaEnvInfo = loadEnv(envPath)
     if (schemaEnvInfo) break
   }
 
-  // 6 - We didn't find a .env file next to the prisma.schema file.
+  // We didn't find a .env file next to the prisma.schema file.
   if (!rootEnvInfo && !schemaEnvInfo) {
     debug('No Environment variables loaded')
   }
-
+  
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
     return console.error(
@@ -83,17 +82,19 @@ function readSchemaPathFromPkgJson(): string | null {
 }
 
 /**
- * Will throw an error if the file at `envPath` has env conflicts with `parsedEnv`
+ * Will throw an error if the file at `envPath` has env conflicts with `rootEnv`
  */
 function checkForConflicts(
-  parsedEnv: dotenv.DotenvParseOutput | undefined,
+  rootEnvInfo: LoadEnvResult | null,
   envPath: string | null,
 ) {
-  if (parsedEnv && envPath && fs.existsSync(envPath)) {
+  const notTheSame = rootEnvInfo?.path !== envPath
+  const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
+  if (parsedRootEnv && envPath && notTheSame && fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
     const conflicts: string[] = []
     for (const k in envConfig) {
-      if (parsedEnv.env[k] === envConfig[k]) {
+      if (parsedRootEnv.env[k] === envConfig[k]) {
         conflicts.push(k)
       }
     }
@@ -114,7 +115,7 @@ function loadEnvFromProjectRoot(opts: { cwd: string }) {
   const envPath = rootDir && path.join(rootDir, '.env')
   return loadEnv(envPath)
 }
-function loadEnv(envPath: string | null | undefined) {
+function loadEnv(envPath: string | null | undefined): LoadEnvResult | null {
   if (envPath && fs.existsSync(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
     return {
@@ -122,6 +123,7 @@ function loadEnv(envPath: string | null | undefined) {
       message: chalk.dim(
         `Environment variables loaded from ${path.resolve(envPath)}`,
       ),
+      path: envPath
     }
   }
   return null
