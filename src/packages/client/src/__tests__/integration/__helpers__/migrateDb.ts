@@ -16,7 +16,7 @@ export async function migrateDb({ connectionString, schemaPath }: MigrateOptions
       autoApprove: true
     })
   } catch (e) {
-
+    console.error(e)
   }
 
   await migrate.watchUp({
