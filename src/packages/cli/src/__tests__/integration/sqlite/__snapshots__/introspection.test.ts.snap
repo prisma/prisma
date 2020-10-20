@@ -743,17 +743,17 @@ datasource sqlite {
   url = "***"
 }
 
-model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  posts posts[]
-}
-
 model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
+}
+
+model users {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  posts posts[]
 }
 
 `;
@@ -956,17 +956,17 @@ datasource sqlite {
   url = "***"
 }
 
-model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  posts posts[]
-}
-
 model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
   users   users  @relation(fields: [user_id], references: [id])
+}
+
+model users {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  posts posts[]
 }
 
 `;

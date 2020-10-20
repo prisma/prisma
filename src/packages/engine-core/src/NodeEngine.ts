@@ -122,6 +122,7 @@ export class NodeEngine {
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
   private stopPromise?: Promise<void>
+  private beforeExitListener?: () => Promise<void>
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -269,10 +270,24 @@ You may have to run ${chalk.greenBright(
   }
 
   on(
-    event: 'query' | 'info' | 'warn' | 'error',
-    listener: (log: RustLog) => any,
+    event: 'query' | 'info' | 'warn' | 'error' | 'beforeExit',
+    listener: (args?: any) => any,
   ): void {
-    this.logEmitter.on(event, listener)
+    if (event === 'beforeExit') {
+      this.beforeExitListener = listener
+    } else {
+      this.logEmitter.on(event, listener)
+    }
+  }
+
+  async emitExit() {
+    if (this.beforeExitListener) {
+      try {
+        await this.beforeExitListener()
+      } catch (e) {
+        console.error(e)
+      }
+    }
   }
 
   async getPlatform(): Promise<Platform> {
@@ -1273,14 +1288,13 @@ function stringifyQuery(q: string) {
 }
 
 function hookProcess(handler: string, exit = false) {
-  process.once(handler as any, () => {
+  process.once(handler as any, async () => {
     for (const engine of engines) {
+      await engine.emitExit()
       engine.kill(handler)
     }
     engines.splice(0, engines.length)
-    if (exit) {
-      process.exit()
-    }
+
     if (socketPaths.length > 0) {
       for (const socketPath of socketPaths) {
         try {
@@ -1289,6 +1303,12 @@ function hookProcess(handler: string, exit = false) {
           //
         }
       }
+    }
+
+    // only exit, if only we are listening
+    // if there is another listener, that other listener is responsible
+    if (exit && process.listenerCount(handler) === 0) {
+      process.exit()
     }
   })
 }

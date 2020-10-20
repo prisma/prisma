@@ -1,5 +1,7 @@
 #!/usr/bin/env ts-node
 
+process.env.NODE_NO_WARNINGS = '1'
+
 process.on('uncaughtException', (e) => {
   console.log(e)
 })
@@ -7,37 +9,51 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-process.env.NODE_NO_WARNINGS = '1'
+import {
+  HelpError,
+  isError,
+  ProviderAliases,
+  tryLoadEnv,
+  arg,
+} from '@prisma/sdk'
+
+// Parse CLI arguments
+const args = arg(
+  process.argv.slice(2),
+  {
+    '--schema': String,
+    '--telemetry-information': String,
+  },
+  false,
+  true,
+)
+
+//
+// Read .env file only if next to schema.prisma
+//
+// if the CLI is called without any command like `up --experimental` we can ignore .env loading
+// should be 2 but because of --experimental flag it will be 3 until removed
+if (process.argv.length > 3) {
+  tryLoadEnv(args)
+}
 
 /**
  * Dependencies
  */
 import chalk from 'chalk'
 import debugLib from 'debug'
-import path from 'path'
 
-import { HelpError, isError } from '@prisma/sdk'
 import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateDown } from './commands/MigrateDown'
 import { MigrateSave } from './commands/MigrateSave'
-import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
+import { MigrateDown } from './commands/MigrateDown'
 import { MigrateUp } from './commands/MigrateUp'
+import { DbPush } from './commands/DbPush'
+import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
-import { ProviderAliases } from '@prisma/sdk'
 
 const debug = debugLib('migrate')
 
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
-
-const providerAliases: ProviderAliases = {
-  'prisma-client-js': {
-    generatorPath: require.resolve('@prisma/client/generator-build'),
-    outputPath: path.dirname(require.resolve('@prisma/client/package.json')),
-  },
-}
-
-// const access = fs.createWriteStream('out.log')
-// process.stdout.write = process.stderr.write = access.write.bind(access)
 
 /**
  * Main function
@@ -48,6 +64,7 @@ async function main(): Promise<number> {
     save: MigrateSave.new(),
     up: MigrateUp.new(),
     down: MigrateDown.new(),
+    push: DbPush.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments

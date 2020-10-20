@@ -87,7 +87,8 @@ export async function getDMMF({
     }
 
     const removedFeatureFlagMap = {
-      'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`
+      'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
+      'atomicNumberOperations': `${chalk.blueBright('info')} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`
     }
 
     if (enableExperimental) {

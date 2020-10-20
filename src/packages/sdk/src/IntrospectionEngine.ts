@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import Debug from '@prisma/debug'
 import byline from './utils/byline'
+const debugCli = Debug('IntrospectionEngine:cli')
 const debugRpc = Debug('IntrospectionEngine:rpc')
 const debugStderr = Debug('IntrospectionEngine:stderr')
 const debugStdin = Debug('IntrospectionEngine:stdin')
@@ -198,6 +199,9 @@ export class IntrospectionEngine {
       this.getRPCPayload('getDatabaseDescription', { schema }),
     )
   }
+  public getDatabaseVersion(schema: string): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
+  }
   public introspect(
     schema: string,
     force?: Boolean,
@@ -290,7 +294,6 @@ export class IntrospectionEngine {
           this.child.stdin?.on('error', (err) => {
             console.error(err)
             this.child?.kill()
-
           })
 
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -298,20 +301,13 @@ export class IntrospectionEngine {
             // handle panics
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {
-              let sqlDump: string | undefined
-              if (this.lastUrl) {
-                try {
-                  sqlDump = await this.getDatabaseDescription(this.lastUrl)
-                } catch (e) {} // eslint-disable-line no-empty
-              }
               const err = new RustPanic(
                 this.lastError.message,
                 this.lastError.backtrace,
                 this.lastRequest,
                 ErrorArea.INTROSPECTION_CLI,
                 /* schemaPath */ undefined,
-                /* schema */ undefined,
-                sqlDump,
+                /* schema */ this.lastUrl,
               )
               this.rejectAll(err)
               reject(err)
@@ -359,7 +355,7 @@ export class IntrospectionEngine {
                 this.lastError = json
               }
             } catch (e) {
-              //
+              debugCli(e)
             }
           })
 
@@ -382,7 +378,7 @@ export class IntrospectionEngine {
     if (process.env.FORCE_PANIC_INTROSPECTION_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)
     }
-  
+
     if (this.child?.killed) {
       throw new Error(
         `Can't execute ${JSON.stringify(
@@ -404,22 +400,14 @@ export class IntrospectionEngine {
             if (response.error.data?.is_panic) {
               const message =
                 response.error.data?.error?.message ?? response.error.message
-              // Handle error and displays the interactive dialog to send panic error
-              let sqlDump: string | undefined
-              if (this.lastUrl) {
-                try {
-                  sqlDump = await this.getDatabaseDescription(this.lastUrl)
-                } catch (e) {} // eslint-disable-line no-empty
-              }
               reject(
                 new RustPanic(
                   message,
                   message,
                   request,
                   ErrorArea.INTROSPECTION_CLI,
-                  undefined,
-                  undefined,
-                  sqlDump,
+                  /* schemaPath */ undefined,
+                  /* schema */ this.lastUrl,
                 ),
               )
             } else if (response.error.data?.message) {
@@ -507,7 +495,7 @@ Please put that file into a gist and post it in Slack.
       id: messageId++,
       jsonrpc: '2.0',
       method,
-      params: params ? [{...params}] : undefined,
+      params: params ? [{ ...params }] : undefined,
     }
   }
 }

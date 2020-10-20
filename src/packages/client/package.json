@@ -100,7 +100,7 @@
     "jest": "26.4.2",
     "jest-diff": "26.4.2",
     "js-levenshtein": "1.1.6",
-    "klona": "1.1.2",
+    "klona": "2.0.4",
     "lint-staged": "10.4.0",
     "make-dir": "3.1.0",
     "mariadb": "2.4.2",

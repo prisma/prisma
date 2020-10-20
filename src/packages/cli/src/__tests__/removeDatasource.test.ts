@@ -1,4 +1,4 @@
-import { removeDatasource } from '../util/removeDatasource'
+import { removeDatasource } from '../utils/removeDatasource'
 
 test('simple schema', () => {
   const schema = `
@@ -18,14 +18,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    "generator gen {
-      provider = \\"prisma-client-js\\"
+    generator gen {
+      provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }"
+    }
   `)
 })
 
@@ -49,14 +49,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    "generator gen {
-      provider = \\"prisma-client-js\\"
+    generator gen {
+      provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }"
+    }
   `)
 })
 
@@ -73,14 +73,14 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    "generator gen {
-      provider = \\"prisma-client-js\\"
+    generator gen {
+      provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }"
+    }
   `)
 })
 
@@ -107,13 +107,13 @@ model User {
 }
 `
   expect(removeDatasource(schema)).toMatchInlineSnapshot(`
-    "generator gen {
-      provider = \\"prisma-client-js\\"
+    generator gen {
+      provider = "prisma-client-js"
     }
 
     model User {
       id   Int @id @default(autoincrement())
       name String
-    }"
+    }
   `)
 })

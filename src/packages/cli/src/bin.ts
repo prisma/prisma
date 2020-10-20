@@ -1,15 +1,20 @@
 #!/usr/bin/env ts-node
+
+// hides ExperimentalWarning: The fs.promises API is experimental
+process.env.NODE_NO_WARNINGS = '1'
+
 import {
   arg,
   getCLIPathHash,
   getProjectHash,
   getSchema,
   getConfig,
+  tryLoadEnv,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { tryLoadEnv } from './utils/loadEnv'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+const packageJson = require('../package.json')
 
 export { byline } from '@prisma/migrate'
 
@@ -24,11 +29,8 @@ process.on('unhandledRejection', (e) => {
   debug(e)
 })
 
-// warnings: no tanks
-// hides ExperimentalWarning: The fs.promises API is experimental
-process.env.NODE_NO_WARNINGS = '1'
-
 // If running via `ts-node`, treat NODE_ENV as development
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 if (process[Symbol.for('ts-node.register.instance')]) {
   process.env.NODE_ENV = 'development'
@@ -40,16 +42,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-    `  The ${chalk.redBright(
-      'prisma2',
-    )} command is deprecated and has been renamed to ${chalk.greenBright(
-      'prisma',
-    )}.\nPlease execute ${chalk.bold.greenBright(
-      'prisma' +
-      (process.argv.length > 2
-        ? ' ' + process.argv.slice(2).join(' ')
-        : ''),
-    )} instead.\n`,
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
+      )} instead.\n`,
   )
 }
 
@@ -83,10 +85,14 @@ import {
   MigrateUp,
   MigrateDown,
   MigrateTmpPrepare,
+  DbPush,
+  DbCommand,
   handlePanic,
 } from '@prisma/migrate'
+
 import { CLI } from './CLI'
-import { Introspect, Init } from '@prisma/introspection'
+import { Init } from './Init'
+import { Introspect } from './Introspect'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
@@ -128,6 +134,9 @@ async function main(): Promise<number> {
         save: MigrateSave.new(),
         up: MigrateUp.new(),
         down: MigrateDown.new(),
+      }),
+      db: DbCommand.new({
+        push: DbPush.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
@@ -196,7 +205,7 @@ async function main(): Promise<number> {
       //
       debug(e)
     }
-    
+
     // check prisma for updates
     const checkResult = await checkpoint.check({
       product: 'prisma',

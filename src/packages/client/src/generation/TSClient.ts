@@ -35,7 +35,7 @@ import {
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
-import klona from 'klona'
+import { klona } from 'klona'
 
 const tab = 2
 

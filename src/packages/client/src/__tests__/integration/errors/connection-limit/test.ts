@@ -1,8 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('connection-limit', () => {
-  expect.assertions(1) 
-  let clients: Array<any> = []
+  expect.assertions(1)
+  const clients: any[] = []
 
   afterAll(async () => {
     await Promise.all(clients.map(c => c.$disconnect()))
@@ -13,20 +13,21 @@ describe('connection-limit', () => {
     const connectionString =
       process.env.TEST_POSTGRES_ISOLATED_URI ||
       'postgres://prisma:prisma@localhost:5435/tests'
+
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({
-        formatting: 'minimal',
         datasources: {
           db: { url: connectionString },
         },
       })
       clients.push(client)
     }
-    await Promise.all(clients.map(c=>c.$connect()))
+
+
     try {
-      await Promise.all(clients.map(c=>c.$queryRaw(`SELECT 1`)))
+      await Promise.all(clients.map(c => c.$connect()))
     } catch (e) {
-      expect(e).toMatchSnapshot() 
+      expect(e).toMatchSnapshot()
     }
   }, 100000)
 })

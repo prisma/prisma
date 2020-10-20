@@ -146,7 +146,7 @@ export async function run(
   cwd: string,
   cmd: string,
   dry: boolean = false,
-): Promise<void> {
+): Promise<execa.ExecaReturnValue<string>> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
     args.push(chalk.dim('(dry)'))
@@ -156,7 +156,7 @@ export async function run(
     return
   }
   try {
-    await execa.command(cmd, {
+    return await execa.command(cmd, {
       cwd,
       stdio: 'inherit',
     })
