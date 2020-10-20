@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should throw error 1`] = `
+
+      You are trying to load duplicate env variables which are already present in your project root .env
+      	root env path: /tmp/dir/.env
+      	schema env path: ./prisma/.env
+      	Duplicates:
+      		SHOULD_THROW 
+      
+`;

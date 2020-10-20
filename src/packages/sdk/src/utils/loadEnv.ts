@@ -68,6 +68,7 @@ export function tryLoadEnv(
   }
 
   if (schemaEnvInfo?.message && !process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
+    console.error(rootEnvInfo?.message)
     console.error(schemaEnvInfo.message)
   }
 }
@@ -88,22 +89,23 @@ function checkForConflicts(
   rootEnvInfo: LoadEnvResult | null,
   envPath: string | null,
 ) {
-  const notTheSame = rootEnvInfo?.path !== envPath
+  const notTheSame = rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo?.path) !== path.resolve(envPath)
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
   if (parsedRootEnv && envPath && notTheSame && fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
     const conflicts: string[] = []
     for (const k in envConfig) {
-      if (parsedRootEnv.env[k] === envConfig[k]) {
+      if (parsedRootEnv[k] === envConfig[k]) {
         conflicts.push(k)
       }
     }
     if (conflicts.length > 0) {
       throw new Error(`
-      You are trying to load duplicate env variables which are already present
-      Path: ${path}
-      Duplicates:
-      ${conflicts.forEach((conflict) => `\t${conflict}`)} 
+      You are trying to load duplicate env variables which are already present in your project root .env
+      \troot env path: ${rootEnvInfo?.path}
+      \tschema env path: ${envPath}
+      \tDuplicates:
+      ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')} 
       `)
     }
   }
