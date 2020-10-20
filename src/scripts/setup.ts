@@ -65,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run(
       '.',
       `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts --reporter=silent`,
-    ).catch((e) => {})
+    ).catch((e) => { })
   }
 
   debug(`Building packages`)
@@ -106,14 +106,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       if (pkg.packageJson.scripts.postinstall) {
         const pkgDir = path.dirname(pkg.path)
         await run(pkgDir, 'pnpm run postinstall')
-      }
-      if (pkg.packageJson.scripts.download) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run download')
-      }
-      if (pkg.packageJson.scripts['ncc:download']) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run ncc:download')
       }
     }
   }

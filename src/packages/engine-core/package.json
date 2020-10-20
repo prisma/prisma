@@ -29,7 +29,6 @@
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "download": "node download.js",
     "test": "jest"
   },
   "dependencies": {
