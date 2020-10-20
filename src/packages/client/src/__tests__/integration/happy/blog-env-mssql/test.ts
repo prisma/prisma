@@ -179,18 +179,24 @@ describe('blog-env-mssql', () => {
     })
 
     // Deliberately skipped test to signify that this call style is not supported
-    test.skip('$queryRaw(sql`<SQL`) with params', async () => {})
+    test('$queryRaw(sql`<SQL>`) with params', async () => {
+      await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
+      const users = await prisma.$queryRaw(
+        sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
+      )
+      expect(users).not.toHaveLength(0)
+    })
 
     test('$queryRaw`<SQL>`', async () => {
-      await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
+      await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
       const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User]`
       expect(users).not.toHaveLength(0)
     })
 
     test('$queryRaw`<SQL>` with params', async () => {
-      await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
-      const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'E'}`
-      expect(users[0].name).toBe('E')
+      await prisma.user.create({ data: { email: 'f@a.de', name: 'F' } })
+      const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      expect(users[0].name).toBe('F')
     })
   })
 
@@ -211,23 +217,29 @@ describe('blog-env-mssql', () => {
     })
 
     test('$executeRaw(sql`<SQL>`)', async () => {
-      await prisma.user.create({ data: { email: 'c@c.de', name: 'C' } })
+      await prisma.user.create({ data: { email: 'c@b.de', name: 'C' } })
       const users = await prisma.$executeRaw(sql`SELECT * FROM [dbo].[User]`)
       expect(users).not.toBe(0)
     })
 
     // Deliberately skipped test to signify that this call style is not supported
-    test.skip('$executeRaw(sql`<SQL`) with params', async () => {})
+    test('$executeRaw(sql`<SQL>`) with params', async () => {
+      await prisma.user.create({ data: { email: 'd@b.de', name: 'D' } })
+      const users = await prisma.$queryRaw(
+        sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
+      )
+      expect(users).not.toHaveLength(0)
+    })
 
     test('$executeRaw`<SQL>`', async () => {
-      await prisma.user.create({ data: { email: 'd@d.de', name: 'D' } })
+      await prisma.user.create({ data: { email: 'e@b.de', name: 'E' } })
       const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User]`
       expect(users).not.toBe(0)
     })
 
     test('$executeRaw`<SQL>` with params', async () => {
-      await prisma.user.create({ data: { email: 'e@e.de', name: 'E' } })
-      const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'E'}`
+      await prisma.user.create({ data: { email: 'f@b.de', name: 'F' } })
+      const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users).not.toBe(0)
     })
   })
