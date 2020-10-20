@@ -5,7 +5,7 @@ services:
   # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/tests
   # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
   # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
-  # - TEST_SQLSERVER_URI=sqlserver://SA:Prisma1-prisma@mssql:1433/master
+  # - TEST_MSSQL_URI=sqlserver://SA:Prisma1-prisma@mssql:1433/master
   # - TEST_MSSQL_JDBC_URI=sqlserver://localhost:1433;database=master;user=SA;password=Prisma1-prisma;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
   # Outside Docker
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests

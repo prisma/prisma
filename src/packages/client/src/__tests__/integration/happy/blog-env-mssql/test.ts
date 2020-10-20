@@ -3,27 +3,22 @@ import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
 
-describe('blog-env-mssql', () => {
-  const {
-    PrismaClient,
-    PrismaClientValidationError,
-    prismaVersion,
-  } = require('./node_modules/@prisma/client')
-
-  const connectionString =
-    process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1smaLong@localhost:1433/master'
-  const setupParams: SetupParams = {
-    connectionString,
-    dirname: __dirname,
-  }
-
-  let prisma: typeof PrismaClient | null = null // Generated Client instance
+describe('blog-env-mssql', async () => {
+  let prisma: any = null // Generated Client instance
   let requests: any[] = []
 
   beforeAll(async () => {
-    await generateTestClient()
-
+    const connectionString =
+      process.env.TEST_MSSQL_URI ||
+      'mssql://SA:Prisma1-prisma@localhost:1433/master'
+    const setupParams: SetupParams = {
+      connectionString,
+      dirname: __dirname,
+    }
     await setupMSSQL(setupParams)
+
+    await generateTestClient()
+    const { PrismaClient } = require('./node_modules/@prisma/client')
 
     prisma = new PrismaClient({
       errorFormat: 'colorless',
@@ -52,6 +47,8 @@ describe('blog-env-mssql', () => {
   })
 
   test('includes version in generated client', () => {
+    const { prismaVersion } = require('./node_modules/@prisma/client')
+
     expect(prismaVersion).not.toBeUndefined()
     expect(prismaVersion.client).not.toBeUndefined()
   })
@@ -66,6 +63,10 @@ describe('blog-env-mssql', () => {
   })
 
   test('can throw validation errors', async () => {
+    const {
+      PrismaClientValidationError,
+    } = require('./node_modules/@prisma/client')
+
     try {
       await prisma.post.create({
         data: {},
