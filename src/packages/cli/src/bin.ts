@@ -88,7 +88,8 @@ import {
   handlePanic,
 } from '@prisma/migrate'
 import { CLI } from './CLI'
-import { Introspect, Init } from '@prisma/introspection'
+import { Init } from './Init'
+import { Introspect } from './Introspect'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'

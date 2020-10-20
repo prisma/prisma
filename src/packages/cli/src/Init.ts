@@ -10,7 +10,7 @@ import { isError } from 'util'
 import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import { printError } from '../prompt/utils/print'
+import { printError } from './prompt/utils/print'
 import { link, canConnectToDatabase } from '@prisma/sdk'
 
 export const defaultSchema = (

@@ -12,6 +12,7 @@ import * as checkpoint from 'checkpoint-client'
 import { maskSchema, mapScalarValues } from './utils/maskSchema'
 import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
+import { IntrospectionEngine } from './IntrospectionEngine'
 
 const debug = Debug('sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
@@ -34,6 +35,25 @@ export async function sendPanic(
 
     if (schema) {
       maskedSchema = maskSchema(schema)
+    }
+
+    let sqlDump: string | undefined
+    let dbVersion: string | undefined
+    // For a SQLite datasource like `url = "file:dev.db"` only error.schema will be defined
+    const schemaOrUrl = error.schema || error.introspectionUrl
+    if (error.area === ErrorArea.INTROSPECTION_CLI && schemaOrUrl) {
+      let engine: undefined | IntrospectionEngine
+      try {
+        engine = new IntrospectionEngine()
+        sqlDump = await engine.getDatabaseDescription(schemaOrUrl)
+        dbVersion = await engine.getDatabaseVersion(schemaOrUrl)
+        engine.stop()
+      } catch (e) {
+        debug(e)
+        if (engine && engine.isRunning) {
+          engine.stop()
+        }
+      }
     }
 
     const migrateRequest = error.request
@@ -60,8 +80,8 @@ export async function sendPanic(
       liftRequest: migrateRequest,
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
-      sqlDump: error.sqlDump,
-      dbVersion: error.dbVersion,
+      sqlDump: sqlDump,
+      dbVersion: dbVersion,
     }
 
     const signedUrl = await createErrorReport(params)
