@@ -8,7 +8,7 @@ import dedent from 'strip-indent'
 import Database from 'sqlite-async'
 import stripAnsi from 'strip-ansi'
 import { Migrate } from '../Migrate'
-import { SchemaPush } from '../commands/SchemaPush'
+import { DbPush } from '../commands/DbPush'
 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
@@ -192,7 +192,7 @@ function createTests() {
         )
 
         try {
-          await SchemaPush.new().parse([
+          await DbPush.new().parse([
             `--schema=${schemaPath2}`,
             '--experimental',
           ])
