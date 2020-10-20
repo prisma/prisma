@@ -3,7 +3,7 @@ import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
 
-describe('blog-env-mssql', async () => {
+describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
   let requests: any[] = []
 
@@ -15,6 +15,7 @@ describe('blog-env-mssql', async () => {
       connectionString,
       dirname: __dirname,
     }
+
     await setupMSSQL(setupParams)
 
     await generateTestClient()
