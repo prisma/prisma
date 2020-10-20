@@ -92,12 +92,7 @@ jobs:
           SA_PASSWORD: 'Prisma1-prisma'
         ports:
           - 1433/tcp
-        healthcheck:
-          test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q "SELECT 1" || exit 1
-          interval: 10s
-          timeout: 3s
-          retries: 10
-          start_period: 10s
+        options: --health-cmd="sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
