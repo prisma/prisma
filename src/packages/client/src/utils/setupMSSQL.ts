@@ -13,6 +13,6 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
 
   const connection = await mssql.connect(connectionString)
-  await connection.query(schema)
+  console.log(await connection.query(schema))
   connection.close()
 }
