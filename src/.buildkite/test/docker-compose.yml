@@ -14,6 +14,7 @@ services:
       - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5432/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
       - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
+      - TEST_MSSQL_URI=sqlserver://SA:Prisma1-prisma@mssql:1433/master
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
@@ -25,6 +26,7 @@ services:
       - postgres_isolated
       - mysql
       - mariadb
+      - mssql
 
   postgres:
     image: postgres:10
@@ -68,9 +70,19 @@ services:
       - MYSQL_PASSWORD=prisma
     volumes:
       - mariadb:/var/lib/mysql
+    
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Prisma1-prisma
+    volumes:
+      - mssql:/var/opt/mssql
 
 volumes:
   postgres:
   postgres_isolated:
   mysql:
   mariadb:
+  mssql:

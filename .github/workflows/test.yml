@@ -47,6 +47,7 @@ jobs:
           - postgresql
           - mysql
           - mariadb
+          - mssql
         node: [12]
 
     services:
@@ -83,6 +84,14 @@ jobs:
           MYSQL_PASSWORD: prisma
         ports:
           - 3306
+
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2019-latest
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: 'Prisma1-prisma'
+        ports:
+          - 1433/tcp
 
     steps:
       - uses: actions/checkout@v2
@@ -130,7 +139,8 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}/tests
-
+          TEST_MSSQL_URI: sqlserver://SA:Prisma1-prisma@localhost:${{ job.services.mssql.ports[1433] }}/master
+          
   #
   # CLI-COMMANDS
   #
