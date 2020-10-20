@@ -178,7 +178,6 @@ describe('blog-env-mssql', () => {
       expect(users).not.toHaveLength(0)
     })
 
-    // Deliberately skipped test to signify that this call style is not supported
     test('$queryRaw(sql`<SQL>`) with params', async () => {
       await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
       const users = await prisma.$queryRaw(
@@ -222,7 +221,6 @@ describe('blog-env-mssql', () => {
       expect(users).not.toBe(0)
     })
 
-    // Deliberately skipped test to signify that this call style is not supported
     test('$executeRaw(sql`<SQL>`) with params', async () => {
       await prisma.user.create({ data: { email: 'd@b.de', name: 'D' } })
       const users = await prisma.$queryRaw(
