@@ -38,21 +38,25 @@ export async function sendPanic(
     }
 
     let sqlDump: string | undefined
-    if (error.area === ErrorArea.INTROSPECTION_CLI && error.introspectionUrl) {
+    let dbVersion: string | undefined
+    // For a SQLite datasource like `url = "file:dev.db"` only error.schema will be defined
+    const schemaOrUrl = error.schema || error.introspectionUrl
+    if (error.area === ErrorArea.INTROSPECTION_CLI && schemaOrUrl) {
       let engine: undefined | IntrospectionEngine
       try {
         engine = new IntrospectionEngine()
-        sqlDump = await engine.getDatabaseDescription(error.introspectionUrl)
+        sqlDump = await engine.getDatabaseDescription(schemaOrUrl)
+        dbVersion = await engine.getDatabaseVersion(schemaOrUrl)
         engine.stop()
       } catch (e) {
+        debug(e)
         if (engine && engine.isRunning) {
           engine.stop()
         }
-        debug(e)
       }
     }
 
-    const liftRequest = error.request
+    const migrateRequest = error.request
       ? JSON.stringify(
           mapScalarValues(error.request, (value) => {
             if (typeof value === 'string') {
@@ -63,7 +67,7 @@ export async function sendPanic(
         )
       : undefined
 
-    const signedUrl = await createErrorReport({
+    const params = {
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
@@ -73,11 +77,14 @@ export async function sendPanic(
       rustStackTrace: error.rustStack,
       operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
       platform: await getPlatform(),
-      liftRequest,
+      liftRequest: migrateRequest,
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
-      sqlDump,
-    })
+      sqlDump: sqlDump,
+      dbVersion: dbVersion,
+    }
+
+    const signedUrl = await createErrorReport(params)
 
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
@@ -173,6 +180,7 @@ export interface CreateErrorReportInput {
   schemaFile?: string
   fingerprint?: string
   sqlDump?: string
+  dbVersion?: string
 }
 
 export enum ErrorKind {

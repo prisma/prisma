@@ -106,7 +106,7 @@ describe('handlePanic', () => {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","schemaPath":"Some Schema Path","area":"LIFT_CLI"}`,
+        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
       )
     }
   })
@@ -212,7 +212,7 @@ describe('handlePanic', () => {
     } catch (err) {
       expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","schemaPath":"Some Schema Path","area":"LIFT_CLI"}`,
+        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
       )
     }
   })

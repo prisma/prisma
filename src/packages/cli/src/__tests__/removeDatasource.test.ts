@@ -1,4 +1,4 @@
-import { removeDatasource } from '../util/removeDatasource'
+import { removeDatasource } from '../utils/removeDatasource'
 
 test('simple schema', () => {
   const schema = `

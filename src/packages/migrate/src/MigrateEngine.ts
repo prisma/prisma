@@ -58,6 +58,9 @@ export class MigrateEngine {
     this.child!.kill()
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
+  public getDatabaseVersion(): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
+  }
   public schemaPush(
     args: EngineArgs.SchemaPush,
   ): Promise<EngineResults.SchemaPush> {

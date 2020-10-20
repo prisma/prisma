@@ -16,11 +16,11 @@ import {
   IntrospectionSchemaVersion,
   uriToCredentials,
 } from '@prisma/sdk'
-import { formatms } from '../util/formatms'
+import { formatms } from './utils/formatms'
 import fs from 'fs'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
-import { printDatasources } from '../prompt/utils/printDatasources'
-import { removeDatasource } from '../util/removeDatasource'
+import { printDatasources } from './prompt/utils/printDatasources'
+import { removeDatasource } from './utils/removeDatasource'
 
 /**
  * $ prisma introspect
@@ -176,6 +176,7 @@ export class Introspect implements Command {
         schema,
         args['--force'],
       )
+
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
       introspectionSchemaVersion = introspectionResult.version
