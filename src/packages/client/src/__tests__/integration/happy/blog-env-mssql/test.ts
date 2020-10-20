@@ -73,18 +73,23 @@ describe('blog-env-mssql', () => {
         data: {},
       })
 
-      expect(false).toBe(true) // The line above needs to throw, so this should never be executed, but if it does, it will fail the test
+      expect(false).toBe(true) // The line above needs to throw, so this should never be executed, but if it does (aka the line above did not throw, as expected), it will fail the test
     } catch (e) {
       expect(e).not.toBeUndefined()
       expect(e).toBeInstanceOf(PrismaClientValidationError)
     }
   })
 
-  // The next few tests just run an async function without any assertions
-  // The idea is that if any function throws an error, the corresponding test would fail
-
   test('can run findMany queries', async () => {
-    await prisma.user.findMany()
+    await prisma.post.create({
+      data: {
+        published: false,
+        title: 'title',
+        content: 'content',
+      },
+    })
+    const posts = await prisma.post.findMany()
+    expect(posts).not.toHaveLength(0)
   })
 
   test('can run findMany queries with a `null` where', async () => {
@@ -104,12 +109,14 @@ describe('blog-env-mssql', () => {
   })
 
   test('can run create queries', async () => {
-    await prisma.post.create({
+    const post = await prisma.post.create({
       data: {
         published: false,
         title: 'Some title',
       },
     })
+
+    expect(post).not.toBeUndefined()
   })
 
   test('can run delete queries', async () => {
@@ -119,9 +126,24 @@ describe('blog-env-mssql', () => {
         title: 'Some title',
       },
     })
-    await prisma.post.delete({
+    const deletedPost = await prisma.post.delete({
       where: { id: post.id },
+      select: {
+        authorId: true,
+        content: true,
+        published: true,
+        title: true,
+      },
     })
+
+    expect(deletedPost).toMatchInlineSnapshot(`
+    Object {
+      authorId: null,
+      content: null,
+      published: false,
+      title: Some title,
+    }
+  `)
   })
 
   test('can run update queries', async () => {
