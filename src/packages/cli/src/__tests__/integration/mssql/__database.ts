@@ -1,4 +1,4 @@
-import sql from 'mssql'
+const sql = require('mssql')
 import { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
@@ -19,7 +19,7 @@ export const database = {
         USE ${ctx.id};
         `
   },
-} as Input<sql.Connection>['database']
+} as Input['database']
 
 function getConnectionInfo(ctx: Context) {
   const serviceConnectionString = process.env.TEST_MSSQL_URI || 'sqlserver://SA:Prisma1-prisma@localhost:1433/master'
