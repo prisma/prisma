@@ -87,6 +87,7 @@
     "@typescript-eslint/parser": "4.2.0",
     "checkpoint-client": "1.1.13",
     "dotenv": "8.2.0",
+    "esbuild": "^0.7.17",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
@@ -162,6 +163,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines": "workspace:^0.0.1-e078aa75c40550d826bc35aeee4f45582fb4165e"
+    "@prisma/engines": "2.10.0-0ae85d7f60031fc2db84f4b1ef19dd3b6c878f9e"
   }
 }
