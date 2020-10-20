@@ -92,6 +92,12 @@ jobs:
           SA_PASSWORD: 'Prisma1-prisma'
         ports:
           - 1433/tcp
+        healthcheck:
+          test: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q "SELECT 1" || exit 1
+          interval: 10s
+          timeout: 3s
+          retries: 10
+          start_period: 10s
 
     steps:
       - uses: actions/checkout@v2
@@ -140,7 +146,7 @@ jobs:
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}/tests
           TEST_MSSQL_URI: sqlserver://SA:Prisma1-prisma@localhost:${{ job.services.mssql.ports[1433] }}/master
-          
+
   #
   # CLI-COMMANDS
   #
