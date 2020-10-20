@@ -61,7 +61,12 @@ test('introspection basic', async () => {
       "blog.db",
     ]
   `)
+
+  const dbVersion = await engine.getDatabaseVersion(schema)
+  expect(dbVersion.length > 0)
+
   const description = await engine.getDatabaseDescription(schema)
+
   expect(JSON.parse(description)).toMatchInlineSnapshot(`
     Object {
       "enums": Array [],
