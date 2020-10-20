@@ -48,7 +48,7 @@ export async function getLatestTag(): Promise<any> {
   return getFirstFinishedCommit(commits)
 }
 
-function getAllUrls(commit: string): string[] {
+export function getAllUrls(commit: string): string[] {
   const urls = []
   const excludedPlatforms = [
     'freebsd',
@@ -145,7 +145,7 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
   }
 }
 
-async function urlExists(url) {
+export async function urlExists(url) {
   try {
     const res = await fetch(url, {
       method: 'HEAD',

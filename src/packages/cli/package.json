@@ -59,7 +59,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "369b3694b7edb869fad14827a33ad3f3f49bbc20",
+    "version": "42145bac61d11071762e796c9cff7298622cf1fc",
     "prismaCommit": "94e41e7df532911b7b56e10ea4f1f7f036bdd54a"
   },
   "devDependencies": {
@@ -85,7 +85,7 @@
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
-    "checkpoint-client": "1.1.13",
+    "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
     "esbuild": "^0.7.17",
     "escape-string-regexp": "4.0.0",
@@ -119,7 +119,7 @@
     "rimraf": "3.0.2",
     "snap-shot-it": "7.9.3",
     "sqlite-async": "1.1.0",
-    "sqlite3": "4.1.1",
+    "sqlite3": "5.0.0",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
@@ -136,6 +136,7 @@
     "test:mysql": "jest integration.mysql --maxConcurrency=10",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=10",
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest tests__/introspect",
+    "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
     "test": "pnpm run test:commands && pnpm run test:integration",
     "test:integration": "jest integration --maxConcurrency=1",
     "jest": "jest",

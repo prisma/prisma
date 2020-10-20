@@ -863,6 +863,54 @@ Object {
             "isRequired": false,
             "name": "set",
           },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "increment",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "decrement",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "multiply",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "divide",
+          },
         ],
         "name": "IntFieldUpdateOperationsInput",
       },
@@ -4384,6 +4432,54 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "set",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "increment",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "decrement",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "multiply",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "divide",
           },
         ],
         "name": "IntFieldUpdateOperationsInput",
@@ -10836,6 +10932,54 @@ Object {
             "isRequired": false,
             "name": "set",
           },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "increment",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "decrement",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "multiply",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "divide",
+          },
         ],
         "name": "IntFieldUpdateOperationsInput",
       },
@@ -14886,11 +15030,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `62580727`;
+exports[`getDMMF big schema 1`] = `62581203`;
 
-exports[`getDMMF chinook introspected schema 1`] = `378211`;
+exports[`getDMMF chinook introspected schema 1`] = `379647`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `396045`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397481`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -15587,6 +15731,54 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "set",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "increment",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "decrement",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "multiply",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "scalar",
+                "type": "Int",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "divide",
           },
         ],
         "name": "IntFieldUpdateOperationsInput",

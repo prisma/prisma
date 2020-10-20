@@ -39,7 +39,7 @@
     "chalk": "^4.0.0",
     "cross-fetch": "^3.0.4",
     "execa": "^4.0.2",
-    "get-stream": "^5.1.0",
+    "get-stream": "^6.0.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
