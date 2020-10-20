@@ -7,7 +7,7 @@ To setup and build the packages, follow these steps:
 git clone https://github.com/prisma/prisma.git
 npm i -g pnpm@5.1.7 esbuild@0.7.9 --unsafe-perm
 cd prisma/src
-pnpm i --ignore-scripts
+pnpm i
 pnpm run setup
 ```
 

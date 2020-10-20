@@ -64,7 +64,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
     await run(
       '.',
-      `pnpm i --no-prefer-frozen-lockfile -r --ignore-scripts --reporter=silent`,
+      `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent`,
     ).catch((e) => { })
   }
 
