@@ -17,13 +17,6 @@ export const database = {
       database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
     })
   },
-  clientConnect(ctx) {
-    const credentials = getConnectionInfo(ctx).credentials
-    const credentialsClone = { ...credentials }
-    credentialsClone.database = `master_${ctx.id}`
-    console.log({ credentialsClone })
-    return sql.connect(credentialsClone)
-  },
   send: (db, sql) => db.query(sql),
   close: db => db.close(),
   up: ctx => {

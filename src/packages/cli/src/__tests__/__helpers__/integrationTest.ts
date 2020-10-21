@@ -95,10 +95,6 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Create a query client connection to the database if its different from the main db.
-   */
-  clientConnect?: (ctx: Context) => MaybePromise<Client>
-  /**
    * Execute SQL against the database.
    */
   send: (db: Client, sql: string) => MaybePromise<any>
