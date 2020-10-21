@@ -201,6 +201,7 @@ importers:
       chalk: 4.1.0
       decimal.js: 10.2.1
       dotenv: 8.2.0
+      esbuild: 0.7.19
       escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0_eslint@7.10.0
@@ -268,6 +269,7 @@ importers:
       chalk: 4.1.0
       decimal.js: ^10.2.1
       dotenv: 8.2.0
+      esbuild: ^0.7.19
       escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
