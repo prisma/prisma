@@ -14,7 +14,7 @@ describe('push', () => {
   it('if no schema file should fail', async () => {
     ctx.fixture('empty')
 
-    const result = DbPush.new().parse(['--experimental'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           Could not find a schema.prisma file that is required for this command.
           You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -25,7 +25,7 @@ describe('push', () => {
     ctx.fixture('reset')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
-    const result = DbPush.new().parse(['--experimental', '--force'])
+    const result = DbPush.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
             ! Unknown or unexpected option: --experimental
@@ -62,7 +62,7 @@ describe('push', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = DbPush.new().parse(['--experimental', '--force'])
+    const result = DbPush.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
             ! Unknown or unexpected option: --experimental
@@ -98,7 +98,7 @@ describe('push', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     // setTimeout(() => stdin.send(`n\r`), 100)
-    const result = DbPush.new().parse(['--experimental'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -111,7 +111,7 @@ describe('push', () => {
 
   it('should ask for --force if not provided', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = DbPush.new().parse(['--experimental'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --force flag to ignore these warnings like prisma db push --force --experimental`,
     )
@@ -122,7 +122,7 @@ describe('push', () => {
 
   it('should work with --force', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--force', '--experimental'])
+    const result = DbPush.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
             ! Unknown or unexpected option: --experimental
@@ -157,7 +157,7 @@ describe('push', () => {
 
   it('should work with -f', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--force', '--experimental'])
+    const result = DbPush.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
             ! Unknown or unexpected option: --experimental
