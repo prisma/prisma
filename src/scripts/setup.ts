@@ -107,14 +107,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
         const pkgDir = path.dirname(pkg.path)
         await run(pkgDir, 'pnpm run postinstall')
       }
-      if (pkg.packageJson.scripts.download) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run download')
-      }
-      if (pkg.packageJson.scripts['ncc:download']) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run ncc:download')
-      }
     }
   }
 

@@ -41,14 +41,10 @@
     "test": "jest",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "download": "node scripts/download.js",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
     "prepublishOnly": "pnpm run build"
-  },
-  "prisma": {
-    "version": "fc1aff8aa47f12e47af0182ea3e9730fc2b71c25"
   },
   "files": [
     "runtime",
@@ -60,6 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
+    "@prisma/engines": "2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -88,8 +85,6 @@
     "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
     "execa": "4.0.3",
-    "fast-clone": "1.5.13",
-    "fast-copy": "2.1.0",
     "flat-map-polyfill": "0.3.8",
     "fs-monkey": "1.0.1",
     "get-own-enumerable-property-symbols": "3.0.2",
@@ -109,6 +104,7 @@
     "packwatch": "2.0.0",
     "pg": "8.3.3",
     "pidtree": "0.5.0",
+    "pkg-up": "^3.1.0",
     "pluralize": "8.0.0",
     "prettier": "2.1.2",
     "replace-string": "3.1.0",
@@ -149,6 +145,6 @@
     ]
   },
   "dependencies": {
-    "pkg-up": "^3.1.0"
+    "@prisma/engines-version": "2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365"
   }
 }

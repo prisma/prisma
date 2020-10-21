@@ -11,8 +11,6 @@
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "postinstall": "node scripts/download.js",
-    "download": "node scripts/updateTag.js && node scripts/download.js",
     "test": "jest"
   },
   "files": [
@@ -20,9 +18,6 @@
     "dist",
     "scripts"
   ],
-  "prisma": {
-    "version": "fc1aff8aa47f12e47af0182ea3e9730fc2b71c25"
-  },
   "devDependencies": {
     "@types/jest": "26.0.14",
     "@types/node": "12.12.62",
@@ -45,6 +40,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
+    "@prisma/engines": "2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",

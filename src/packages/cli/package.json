@@ -34,7 +34,7 @@
   },
   "files": [
     "build",
-    "download-build",
+    "install",
     "runtime/*.js",
     "runtime/*.d.ts",
     "runtime/utils",
@@ -61,7 +61,7 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "fc1aff8aa47f12e47af0182ea3e9730fc2b71c25",
+    "version": "77abecc4840127ebdcc02b83ee1e2c9cc27009f2",
     "prismaCommit": "13d9ced14303ab70ac5e41e3fc7a832067a788d5"
   },
   "devDependencies": {
@@ -144,7 +144,6 @@
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "download": "rm -f download-done && node scripts/updateTag.js && node scripts/install-entry.js || echo \"\"",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
     "build": "node helpers/build.js",
     "pkg": "pkg . -o pkg-build",
@@ -164,5 +163,8 @@
     "*.{js,ts}": [
       "eslint"
     ]
+  },
+  "dependencies": {
+    "@prisma/engines": "2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365"
   }
 }

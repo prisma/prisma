@@ -79,8 +79,6 @@
     "strip-indent": "^3.0.0"
   },
   "scripts": {
-    "install": "node scripts/download.js",
-    "download": "node scripts/download.js",
     "run": "node dist/bin.js",
     "precommit": "lint-staged && npm run test",
     "format": "prettier --write .",

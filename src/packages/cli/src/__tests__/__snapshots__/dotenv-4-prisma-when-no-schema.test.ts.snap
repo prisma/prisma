@@ -3,7 +3,10 @@
 exports[`should read .env file in prisma folder when there is no schema 1`] = `
 Array [
   Array [
-    Environment variables loaded from prisma/.env,
+    undefined,
+  ],
+  Array [
+    Environment variables loaded from /tmp/dir/prisma/.env,
   ],
 ]
 `;

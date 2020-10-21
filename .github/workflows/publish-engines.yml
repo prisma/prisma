@@ -1,0 +1,36 @@
+name: publish-engines
+
+on:
+  repository_dispatch:
+    types:
+      - publish-engines
+
+jobs:
+  cli-commands:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      node: [12]
+
+    steps:
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run publish
+        working-directory: src/packages/engines-version
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run publish
+        working-directory: src/packages/engines
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
