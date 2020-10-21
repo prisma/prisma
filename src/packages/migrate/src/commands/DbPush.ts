@@ -11,7 +11,6 @@ import path from 'path'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
 import { formatms } from '../utils/formatms'
 
 export class DbPush implements Command {
@@ -22,16 +21,9 @@ export class DbPush implements Command {
   private static help = format(`
     Push the state from your schema.prisma to your database
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's db push functionality is currently in an experimental state.",
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma db push --experimental
+      ${chalk.dim('$')} prisma db push
 
     ${chalk.bold('Options')}
 
@@ -41,22 +33,25 @@ export class DbPush implements Command {
     ${chalk.bold('Examples')}
 
       Push the local schema state to the database
-      ${chalk.dim('$')} prisma db push --experimental
+      ${chalk.dim('$')} prisma db push
 
       Using --force to ignore data loss warnings
-      ${chalk.dim('$')} prisma db push --force --experimental
+      ${chalk.dim('$')} prisma db push --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--force': Boolean,
-      '-f': '--force',
-      '--experimental': Boolean,
-      '--schema': String,
-      '--telemetry-information': String,
-    })
+    const args = arg(
+      argv,
+      {
+        '--help': Boolean,
+        '-h': '--help',
+        '--force': Boolean,
+        '-f': '--force',
+        '--schema': String,
+        '--telemetry-information': String,
+      },
+      false,
+    )
 
     if (isError(args)) {
       return this.help(args.message)
@@ -64,10 +59,6 @@ export class DbPush implements Command {
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -128,7 +119,7 @@ export class DbPush implements Command {
         throw Error(
           chalk.bold(
             `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor('prisma db push --force --experimental'),
+              getCommandWithExecutor('prisma db push --force'),
             )}`,
           ),
         )

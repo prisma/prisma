@@ -17,7 +17,6 @@ import fs from 'fs'
 import execa from 'execa'
 import chalk from 'chalk'
 import prompt from 'prompts'
-import { ExperimentalFlagError } from '../utils/experimental'
 import {
   getDbinfoFromCredentials,
   getDbLocation,
@@ -31,16 +30,9 @@ export class DbDrop implements Command {
   private static help = format(`
     Delete the database provided in your schema.prisma
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's db drop functionality is currently in an experimental state.",
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma db drop --experimental
+      ${chalk.dim('$')} prisma db drop
 
     ${chalk.bold('Options')}
 
@@ -50,10 +42,10 @@ export class DbDrop implements Command {
     ${chalk.bold('Examples')}
 
       Delete the database provided in your schema.prisma
-      ${chalk.dim('$')} prisma db drop --experimental
+      ${chalk.dim('$')} prisma db drop
 
       Using --force to ignore data loss warning confirmation
-      ${chalk.dim('$')} prisma db drop --force --experimental
+      ${chalk.dim('$')} prisma db drop --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -62,7 +54,6 @@ export class DbDrop implements Command {
       '-h': '--help',
       '--force': Boolean,
       '-f': '--force',
-      '--experimental': Boolean,
       '--schema': String,
       '--telemetry-information': String,
     })
@@ -73,10 +64,6 @@ export class DbDrop implements Command {
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -112,7 +99,7 @@ export class DbDrop implements Command {
       if (isCi) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma drop --force --experimental'),
+            getCommandWithExecutor('prisma db drop --force'),
           )}`,
         )
       }
