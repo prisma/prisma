@@ -66,6 +66,7 @@ importers:
       '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
       checkpoint-client: 1.1.14
       dotenv: 8.2.0
+      esbuild: 0.7.19
       escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0_eslint@7.10.0
@@ -131,6 +132,7 @@ importers:
       '@typescript-eslint/parser': 4.2.0
       checkpoint-client: 1.1.14
       dotenv: 8.2.0
+      esbuild: ^0.7.19
       escape-string-regexp: ^4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
@@ -3387,6 +3389,12 @@ packages:
       is-arrayish: 0.2.1
     resolution:
       integrity: sha512-7dFHNmqeFSEt2ZBsCriorKnn3Z2pj+fd9kmI6QoWw4//DL+icEBfc0U7qJCisqrTsKTjw4fNFy2pW9OqStD84g==
+  /esbuild/0.7.19:
+    dev: true
+    hasBin: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-0Ur8ZtuRPwJMj4+VjRLqn5z88WXf+2etZhe4dBA6eYFcdviQefb+Vrd59cTk0VXg08NU/BnAMkalCMHI8lig/A==
   /escape-html/1.0.3:
     dev: true
     resolution:
