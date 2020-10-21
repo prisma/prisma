@@ -59,17 +59,15 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "a2d87f09c4801b7d66fed2d7cee127d4e3438f0b",
+    "version": "dfeb0875e102bf83bf9f130b5e20d8e6963f5a51",
     "prismaCommit": "94e41e7df532911b7b56e10ea4f1f7f036bdd54a"
   },
   "devDependencies": {
-    "@apexearth/copy": "1.4.5",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.296.0",
@@ -99,6 +97,7 @@
     "get-port": "5.1.1",
     "global-dirs": "2.0.1",
     "husky": "4.3.0",
+    "indent-string": "4.0.0",
     "is-installed-globally": "0.3.2",
     "jest": "26.4.2",
     "line-replace": "2.0.1",
