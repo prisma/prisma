@@ -5,7 +5,7 @@
   "private": true,
   "license": "MIT",
   "devDependencies": {
-    "@sindresorhus/slugify": "^1.1.0",
+    "@sindresorhus/slugify": "1.1.0",
     "@types/debug": "4.1.5",
     "@types/graphviz": "0.0.32",
     "@types/node": "13.13.21",
