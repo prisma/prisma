@@ -6,7 +6,6 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/fetch-engine": "workspace:*",
     "@types/jest": "26.0.14",
     "@types/node": "12.12.62",
     "@typescript-eslint/eslint-plugin": "4.2.0",
@@ -30,11 +29,11 @@
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "download": "node download.js",
     "test": "jest"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
+    "@prisma/engines": "2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",

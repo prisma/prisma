@@ -17,6 +17,8 @@ pkg-build
 download-done
 prisma-client
 preinstall
+install
+
 prisma
 .envrc
 test

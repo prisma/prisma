@@ -29,7 +29,7 @@ export async function getLatestTag(): Promise<any> {
   // if it doesn't have an equivalent in the engines repo
   // default back to master
   let commits = await getCommits(branch)
-  if (!commits && branch !== 'master' && !isPatchBranch(branch)) {
+  if ((!commits || !Array.isArray(commits)) && branch !== 'master' && !isPatchBranch(branch)) {
     console.log(
       `Overwriting branch "${branch}" with "master" as it's not a branch we have binaries for`,
     )

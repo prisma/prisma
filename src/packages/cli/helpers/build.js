@@ -25,7 +25,7 @@ async function main() {
       false,
     ),
     run(
-      'esbuild scripts/download.js --outfile=download-build/index.js --bundle --platform=node --target=node10 --minify',
+      'esbuild scripts/install.js --outfile=install/index.js --bundle --platform=node --target=node10 --minify',
       false,
     ),
     copy({
