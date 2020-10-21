@@ -8,6 +8,6 @@ exports[`should throw error 1`] = `
       	Env Conflicts:
       		SHOULD_THROW
 
-      We would suggest that you move all your env vars to your projects root .env and remove the .env in ./prisma/.env
+      You can fix this by removing the .env file from "./prisma/.env" and move its contents to your .env file at the root "/tmp/dir/.env"
       
 `;
