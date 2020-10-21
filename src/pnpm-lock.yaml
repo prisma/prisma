@@ -42,13 +42,11 @@ importers:
       typescript: 4.0.3
   packages/cli:
     devDependencies:
-      '@apexearth/copy': 1.4.5
       '@prisma/client': 'link:../client'
       '@prisma/debug': 'link:../debug'
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
-      '@prisma/introspection': 'link:../introspection'
       '@prisma/migrate': 'link:../migrate'
       '@prisma/sdk': 'link:../sdk'
       '@prisma/studio': 0.296.0
@@ -78,6 +76,7 @@ importers:
       get-port: 5.1.1
       global-dirs: 2.0.1
       husky: 4.3.0
+      indent-string: 4.0.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
       line-replace: 2.0.1
@@ -108,13 +107,11 @@ importers:
       verror: 1.10.0
       ws: 7.3.1
     specifiers:
-      '@apexearth/copy': 1.4.5
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
-      '@prisma/introspection': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.296.0
@@ -144,6 +141,7 @@ importers:
       get-port: 5.1.1
       global-dirs: 2.0.1
       husky: 4.3.0
+      indent-string: ^4.0.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
       line-replace: 2.0.1
@@ -567,62 +565,6 @@ importers:
       prettier: 2.1.2
       ts-jest: 26.4.0
       typescript: 4.0.3
-  packages/introspection:
-    dependencies:
-      chalk: 4.1.0
-      execa: 4.0.2
-      make-dir: 3.1.0
-      strip-ansi: 6.0.0
-    devDependencies:
-      '@prisma/generator-helper': 'link:../generator-helper'
-      '@prisma/migrate': 'link:../migrate'
-      '@prisma/sdk': 'link:../sdk'
-      '@types/jest': 26.0.14
-      '@types/node': 12.12.62
-      '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
-      '@typescript-eslint/parser': 4.2.0_eslint@7.10.0+typescript@4.0.3
-      eslint: 7.10.0
-      eslint-config-prettier: 6.12.0_eslint@7.10.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
-      eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
-      eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
-      husky: 4.3.0
-      indent-string: 4.0.0
-      jest: 26.4.2
-      lint-staged: 10.4.0
-      prettier: 2.1.2
-      rimraf: 3.0.2
-      tempy: 1.0.0
-      ts-jest: 26.4.0_jest@26.4.2+typescript@4.0.3
-      ts-node: 9.0.0_typescript@4.0.3
-      typescript: 4.0.3
-    specifiers:
-      '@prisma/generator-helper': 'workspace:*'
-      '@prisma/migrate': 'workspace:*'
-      '@prisma/sdk': 'workspace:*'
-      '@types/jest': 26.0.14
-      '@types/node': 12.12.62
-      '@typescript-eslint/eslint-plugin': 4.2.0
-      '@typescript-eslint/parser': 4.2.0
-      chalk: ^4.0.0
-      eslint: 7.10.0
-      eslint-config-prettier: 6.12.0
-      eslint-plugin-eslint-comments: 3.2.0
-      eslint-plugin-jest: 24.0.2
-      eslint-plugin-prettier: 3.1.4
-      execa: ^4.0.0
-      husky: 4.3.0
-      indent-string: 4.0.0
-      jest: 26.4.2
-      lint-staged: 10.4.0
-      make-dir: ^3.0.2
-      prettier: 2.1.2
-      rimraf: 3.0.2
-      strip-ansi: ^6.0.0
-      tempy: 1.0.0
-      ts-jest: 26.4.0
-      ts-node: 9.0.0
-      typescript: 4.0.3
   packages/migrate:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -845,16 +787,6 @@ importers:
       url-parse: ^1.4.7
 lockfileVersion: 5.1
 packages:
-  /@apexearth/copy/1.4.5:
-    dependencies:
-      commander: 2.20.3
-      mkdirp: 1.0.4
-      prettysize: 2.0.0
-      sleep-promise: 8.0.1
-    dev: true
-    hasBin: true
-    resolution:
-      integrity: sha512-Zws+jNVT54YUjBuNfDKje2uyoTQRYpIPMHDf6v6EI019ZqXnwYxb4/gZMlDjv+O+LnZbBn2Sc8DC5KAbcBNiaQ==
   /@babel/code-frame/7.10.4:
     dependencies:
       '@babel/highlight': 7.10.4
@@ -7526,10 +7458,6 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
-  /sleep-promise/8.0.1:
-    dev: true
-    resolution:
-      integrity: sha1-jXlaJ+ojlT32tSuRCB5eImZZk8U=
   /slice-ansi/2.1.0:
     dependencies:
       ansi-styles: 3.2.1
