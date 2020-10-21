@@ -26,3 +26,6 @@ export {
   raw,
   sqltag,
 } from 'sql-template-tag'
+
+
+export { default as Decimal } from 'decimal.js'

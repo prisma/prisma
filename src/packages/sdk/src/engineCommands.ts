@@ -1,6 +1,5 @@
 import chalk from 'chalk'
 import execa from 'execa'
-import path from 'path'
 import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
@@ -23,25 +22,26 @@ export interface ConfigMetaFormat {
  * See https://github.com/zeit/node-file-trace/issues/104
  */
 
-path.join(__dirname, '../query-engine-darwin')
-path.join(__dirname, '../introspection-engine-darwin')
-path.join(__dirname, '../prisma-fmt-darwin')
+// commented out, as these paths are different now with @prisma/engines
+// path.join(__dirname, '../query-engine-darwin')
+// path.join(__dirname, '../introspection-engine-darwin')
+// path.join(__dirname, '../prisma-fmt-darwin')
 
-path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
+// path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
+// path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
+// path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
 
-path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
+// path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
+// path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
+// path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
 
-path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
+// path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
+// path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
+// path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
 
-path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../introspection-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.1.x')
+// path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
+// path.join(__dirname, '../introspection-engine-rhel-openssl-1.1.x')
+// path.join(__dirname, '../prisma-fmt-rhel-openssl-1.1.x')
 
 export type GetDMMFOptions = {
   datamodel?: string
@@ -87,7 +87,8 @@ export async function getDMMF({
     }
 
     const removedFeatureFlagMap = {
-      'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`
+      'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
+      'atomicNumberOperations': `${chalk.blueBright('info')} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`
     }
 
     if (enableExperimental) {
@@ -101,7 +102,7 @@ export async function getDMMF({
         return true
       }).filter(
         (e) =>
-          !['middlewares', 'aggregateApi', 'distinct', 'aggregations'].includes(
+          !['middlewares', 'aggregateApi', 'distinct', 'aggregations', 'nativeTypes', 'atomicNumberOperations'].includes(
             e,
           ),
       )

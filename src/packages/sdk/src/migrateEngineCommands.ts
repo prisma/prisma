@@ -93,20 +93,42 @@ export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<void> {
+): Promise<boolean> {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
     migrationEnginePath,
   )
   if (dbExists === true) {
-    return
+    return false
   }
   migrationEnginePath =
     migrationEnginePath || (await resolveBinary('migration-engine'))
   await execa(
     migrationEnginePath,
     ['cli', '--datasource', connectionString, 'create-database'],
+    {
+      cwd,
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: '1',
+        RUST_LOG: 'info',
+      },
+    },
+  )
+  return true
+}
+
+export async function dropDatabase(
+  connectionString: string,
+  cwd = process.cwd(),
+  migrationEnginePath?: string,
+): Promise<execa.ExecaReturnValue> {
+  migrationEnginePath =
+    migrationEnginePath || (await resolveBinary('migration-engine'))
+  return await execa(
+    migrationEnginePath,
+    ['cli', '--datasource', connectionString, 'drop-database'],
     {
       cwd,
       env: {

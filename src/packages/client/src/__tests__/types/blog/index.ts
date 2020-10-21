@@ -36,7 +36,37 @@ async function main() {
 
   prismaVersion.client
 
-  const x: Sql = sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([1, 2, 3])} ${empty} `
+  const x: Sql = sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([
+    1,
+    2,
+    3,
+  ])} ${empty} `
+
+  const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
+  const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
+  const queryRaw3 = await prisma.$queryRaw(
+    `SELECT * FROM User WHERE id = $1`,
+    2,
+  )
+  const queryRaw4 = await prisma.$queryRaw(
+    sql`SELECT * FROM User WHERE id = ${1}`,
+  )
+  const queryRaw5 = await prisma.$queryRaw(
+    sql`SELECT * FROM User ${sql`WHERE id = ${1}`}`,
+  )
+
+  const executeRaw1 = await prisma.$executeRaw`SELECT * FROM User WHERE id = 1`
+  const executeRaw2 = await prisma.$executeRaw`SELECT * FROM User WHERE id = ${1}`
+  const executeRaw3 = await prisma.$executeRaw(
+    `SELECT * FROM User WHERE id = $1`,
+    2,
+  )
+  const executeRaw4 = await prisma.$executeRaw(
+    sql`SELECT * FROM User WHERE id = ${1}`,
+  )
+  const executeRaw5 = await prisma.$executeRaw(
+    sql`SELECT * FROM User ${sql`WHERE id = ${1}`}`,
+  )
 
   const result1 = await prisma.user.findMany({
     where: {

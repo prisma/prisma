@@ -8,14 +8,14 @@ import {
 } from '../download'
 import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
+import { enginesVersion } from '@prisma/engines-version'
 import del from 'del'
 
-const CURRENT_BINARIES_HASH = require('../../../sdk/package.json').prisma
-  .version
+const CURRENT_BINARIES_HASH = enginesVersion
 // From npx @prisma/cli@2.6.2 -v
 const FIXED_BINARIES_HASH = '6a8054bb549e4cc23f157b0010cb2e95cb2637fb'
 
-jest.setTimeout(30000)
+jest.setTimeout(40000)
 
 describe('download', () => {
   beforeEach(async () => {

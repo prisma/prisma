@@ -102,7 +102,7 @@ test('blog-env-postgresql', async () => {
   expect(errorLogs.length).toBe(1)
   try {
     const users = await prisma.user.findMany()
-  } catch (e) {}
+  } catch (e) { }
   const users = await prisma.user.findMany()
   expect(users.length).toBe(1)
   const resultEmptyJson = await prisma.post.create({
@@ -251,7 +251,7 @@ test('blog-env-postgresql', async () => {
   })
 
   prisma.$disconnect()
-  await tearDownPostgres(SetupParams).catch((e) => {
+  await tearDownPostgres(SetupParams.connectionString).catch((e) => {
     console.log(e)
   })
 })

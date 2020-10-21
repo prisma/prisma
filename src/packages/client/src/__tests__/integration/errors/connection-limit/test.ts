@@ -23,12 +23,13 @@ describe('connection-limit', () => {
       clients.push(client)
     }
 
-    await Promise.all(clients.map(c => c.$connect()))
 
     try {
-      await Promise.all(clients.map(c => c.$queryRaw(`SELECT 1`)))
+      for (const client of clients) {
+        await client.$connect()
+      }
     } catch (e) {
-      expect(e).toMatchSnapshot()
+      expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
     }
   }, 100000)
 })

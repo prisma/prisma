@@ -75,4 +75,8 @@ export {
   trimNewLine,
 } from './utils/trimBlocksFromSchema'
 
-export { canConnectToDatabase, createDatabase } from './migrateEngineCommands'
+export {
+  canConnectToDatabase,
+  createDatabase,
+  dropDatabase,
+} from './migrateEngineCommands'

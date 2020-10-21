@@ -1,9 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should NOT read .env file in root folder, only prisma/.env 1`] = `
+exports[`should read .env file in root folder and custom-path 1`] = `
 Array [
   Array [
-    Environment variables loaded from provided --schema directory,
+    Environment variables loaded from /tmp/dir/.env,
+  ],
+  Array [
+    Environment variables loaded from /tmp/dir/custom-path/.env,
   ],
 ]
 `;

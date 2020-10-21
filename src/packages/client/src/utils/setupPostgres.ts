@@ -24,8 +24,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   await db.end()
 }
 
-export async function tearDownPostgres(options: SetupParams) {
-  const { connectionString } = options
+export async function tearDownPostgres(connectionString: string) {
   const credentials = uriToCredentials(connectionString)
   const credentialsClone = { ...credentials }
   credentialsClone.database = 'postgres'
