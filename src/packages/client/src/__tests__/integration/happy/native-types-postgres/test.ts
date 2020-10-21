@@ -22,7 +22,7 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
 
   await prisma.a.deleteMany()
 
-  const data = {
+  let data = {
     email: 'a@a.de',
     name: 'Bob',
     int: 1,
@@ -30,7 +30,7 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
     bInt: 12312312,
   }
 
-  const a = await prisma.a.create({
+  let a = await prisma.a.create({
     data,
     select: {
       email: true,
@@ -38,35 +38,31 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
       int: true,
       sInt: true,
       bInt: true,
-      serial: true,
-      sSerial: true,
-      bSerial: true,
-      inc_int: true,
-      inc_sInt: true,
-      inc_bInt: true,
     },
   })
 
-  const fixKeys = ['email', 'name', 'int', 'sInt', 'bInt']
-  const fixData = pick(a, fixKeys)
-  const dynamicData = omit(a, fixKeys)
-  expect(fixData).toMatchInlineSnapshot(`
-    Object {
-      bInt: 12312312,
-      email: a@a.de,
-      int: 1,
-      name: Bob,
-      sInt: 3,
-    }
-  `)
+  expect(data).toEqual(a)
 
-  // as serials are increasing all the time and can't easily be reset
-  // by "deleteMany", we're just checking, if the serials are there and if they're
-  // bigger than 0
-
-  for (let key in dynamicData) {
-    expect(dynamicData[key]).toBeGreaterThan(0)
+  data = {
+    email: 'a2@a.de',
+    name: 'Bob',
+    int: -1,
+    sInt: -3,
+    bInt: -12312312,
   }
+
+  a = await prisma.a.create({
+    data,
+    select: {
+      email: true,
+      name: true,
+      int: true,
+      sInt: true,
+      bInt: true,
+    },
+  })
+
+  expect(data).toEqual(a)
 
   prisma.$disconnect()
 })
