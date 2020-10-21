@@ -54,7 +54,7 @@ export function tryLoadEnv(
     if (schemaEnvInfo) break
   }
 
-  // We didn't find a .env file next to the prisma.schema file.
+  // We didn't find a .env file.
   if (!rootEnvInfo && !schemaEnvInfo) {
     debug('No Environment variables loaded')
   }
