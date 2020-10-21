@@ -26,10 +26,10 @@ describe('connection-limit', () => {
 
     try {
       await Promise.all(clients.map(c => c.$connect()))
-      // TODO: This next line should be removed once on master!!
+      // TODO: Check, if this can be removed
       await Promise.all(clients.map(c => c.$queryRaw`SELECT 1`))
     } catch (e) {
-      expect(e).toMatchSnapshot()
+      expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
     }
   }, 100000)
 })

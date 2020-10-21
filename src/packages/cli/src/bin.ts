@@ -86,6 +86,7 @@ import {
   MigrateDown,
   MigrateTmpPrepare,
   DbPush,
+  DbDrop,
   DbCommand,
   handlePanic,
 } from '@prisma/migrate'
@@ -137,6 +138,7 @@ async function main(): Promise<number> {
       }),
       db: DbCommand.new({
         push: DbPush.new(),
+        drop: DbDrop.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),

@@ -42,10 +42,6 @@ export async function getLatestTag(): Promise<any> {
     throw new Error(`Could not fetch commits from github: ${JSON.stringify(commits, null, 2)}`)
   }
 
-  if (process.env.CI) {
-    return getCommitAndWaitIfNotDone(branch, commits)
-  }
-
   return getFirstFinishedCommit(branch, commits)
 }
 
