@@ -48,6 +48,7 @@ async function main() {
   // this is needed to remove "export = " statements
   let file = await readFile('./runtime/index.d.ts', 'utf-8')
   file = file.replace(/^export\s+=\s+.*/gm, '')
+  file = file.replace('namespace Decimal {', 'declare namespace Decimal {')
   await writeFile('./runtime/index.d.ts', file)
 
   const after = Date.now()

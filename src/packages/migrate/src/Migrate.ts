@@ -80,6 +80,7 @@ export interface WatchOptions {
   clear?: boolean
   autoApprove?: boolean
   onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
+  skipGenerate?: boolean
 }
 interface MigrationFileMapOptions {
   migration: LocalMigrationWithDatabaseSteps
@@ -102,6 +103,7 @@ export class Migrate {
         clear,
         onWarnings,
         autoApprove,
+        skipGenerate
       }: WatchOptions = { clear: true, providerAliases: {} },
     ) => {
       const datamodel = this.getDatamodel()
@@ -148,51 +150,43 @@ export class Migrate {
           debug(`No migration to apply`)
         }
 
-        const generators = await getGenerators({
-          schemaPath: this.schemaPath,
-          printDownloadProgress: false,
-          version: packageJson.prisma.version,
-          cliVersion: packageJson.version,
-        })
+        if (!skipGenerate) {
+          const generators = await getGenerators({
+            schemaPath: this.schemaPath,
+            printDownloadProgress: false,
+            version: packageJson.prisma.version,
+            cliVersion: packageJson.version,
+          })
 
-        const newGenerators = generators.map((gen) => ({
-          name:
-            (gen.manifest
-              ? gen.manifest.prettyName
-              : gen.options!.generator.provider) || 'Generator',
-          generatedIn: undefined,
-          generating: false,
-        }))
+          const version =
+            packageJson.name === '@prisma/cli' ? packageJson.version : null
 
-        const version =
-          packageJson.name === '@prisma/cli' ? packageJson.version : null
+          for (let i = 0; i < generators.length; i++) {
+            const generator = generators[i]
+            if (
+              version &&
+              generator.manifest?.version &&
+              generator.manifest?.version !== version &&
+              generator.options?.generator.provider === 'prisma-client-js'
+            ) {
+              console.error(
+                `${chalk.bold(
+                  `@prisma/client@${generator.manifest?.version}`,
+                )} is not compatible with ${chalk.bold(
+                  `@prisma/cli@${version}`,
+                )}. Their versions need to be equal.`,
+              )
+            }
 
-        for (let i = 0; i < generators.length; i++) {
-          const generator = generators[i]
-          if (
-            version &&
-            generator.manifest?.version &&
-            generator.manifest?.version !== version &&
-            generator.options?.generator.provider === 'prisma-client-js'
-          ) {
-            console.error(
-              `${chalk.bold(
-                `@prisma/client@${generator.manifest?.version}`,
-              )} is not compatible with ${chalk.bold(
-                `@prisma/cli@${version}`,
-              )}. Their versions need to be equal.`,
-            )
+            try {
+              debug(`Generating ${generator.manifest!.prettyName}`)
+              await generator.generate()
+              generator.stop()
+            } catch (error) {
+            }
           }
-
-          const before = Date.now()
-          try {
-            debug(`Generating ${generator.manifest!.prettyName}`)
-            await generator.generate()
-            generator.stop()
-            const after = Date.now()
-          } catch (error) {}
         }
-      } catch (error) {}
+      } catch (error) { }
     },
   )
   // tsline:enable
@@ -506,8 +500,7 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${
-          appliedMigrations.length
+        )}, but there are only ${appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -533,9 +526,8 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({
@@ -565,8 +557,7 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${
-          process.platform === 'win32' ? '' : '🏋️‍  '
+        `${process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -594,9 +585,9 @@ export class Migrate {
           console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
         }
       }
+      console.log(`\nChecking the datasource for potential data loss...`)
     }
 
-    console.log(`\nChecking the datasource for potential data loss...`)
     const firstMigrationToApplyIndex = localMigrations.indexOf(
       migrationsToApply[0],
     )
@@ -732,11 +723,9 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    }  Done with ${migrationsToApply.length} migration${
-      migrationsToApply.length > 1 ? 's' : ''
-    } in ${formatms(Date.now() - before)}.\n`
+    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
+      } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -924,10 +913,9 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
-          localMigrationIds.length > 0
-            ? localMigrationIds.join(', ')
-            : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
+          ? localMigrationIds.join(', ')
+          : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1064,8 +1052,7 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${
-              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )
