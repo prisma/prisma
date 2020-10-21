@@ -28,10 +28,11 @@ interface LoadEnvResult {
 }
 /**
  * Tries load env variables
- * 1. Checks schema dir
- *    1. From --schema arg
- *    2. PackageJSON schema config
- *    3. Default Prisma Dir `./prisma`
+ *  1. Load .env from project root
+ *  1. Load first .env from possible schema locations and throw if there are env clashes with root .env
+ *    1. Read location from schema arg --schema
+ *    1. Read location from pkgJSON "prisma": {"schema": "/path/to/schema.prisma"}
+ *    1. Read from default location ./prisma/.env
  */
 export function tryLoadEnv(
   args: CLIArgs,
@@ -102,10 +103,11 @@ function checkForConflicts(
     if (conflicts.length > 0) {
       throw new Error(`
       You are trying to load duplicate env variables which are already present in your project root .env
-      \troot env path: ${rootEnvInfo?.path}
-      \tschema env path: ${envPath}
-      \tDuplicates:
+      \troot .env path: ${rootEnvInfo?.path}
+      \tschema .env path: ${envPath}
+      \tConflicts:
       ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')} 
+      We would suggest that you move all your env vars to your projects root .env and remove the .env in ${envPath}
       `)
     }
   }

@@ -5,7 +5,8 @@ exports[`should throw error 1`] = `
       You are trying to load duplicate env variables which are already present in your project root .env
       	root env path: /tmp/dir/.env
       	schema env path: ./prisma/.env
-      	Duplicates:
+      	Conflicts:
       		SHOULD_THROW 
+      We would suggest that you move all your env vars to your projects root .env and remove the .env in ./prisma/.env
       
 `;
