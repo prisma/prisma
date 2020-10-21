@@ -10,19 +10,18 @@ export const database = {
   },
   connect (ctx) {
     const credentials = getConnectionInfo(ctx).credentials
-    return sql.connect(credentials)
-  },
-  clientConnect(ctx) {
-    sql.close()
-    const credentials = getConnectionInfo(ctx).credentials
-    const credentialsClone = {...credentials}
-    credentialsClone.database = `master_${ctx.id}`
-    return sql.connect(credentialsClone)
+    return sql.connect({
+      user: credentials.user,
+      password: credentials.password,
+      server: credentials.server,
+      database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
+    })
   },
   send: (db, sql) => db.query(sql),
-  close: (db) => db.end(),
+  close: (db) => db.close(),
   up: (ctx) => {
     return `
+    USE MASTER;
     DROP DATABASE IF EXISTS master_${ctx.id};
     CREATE DATABASE master_${ctx.id};`
   },

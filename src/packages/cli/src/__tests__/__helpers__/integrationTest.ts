@@ -74,6 +74,10 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
+  /**
+   * Which step of setup we are on
+   */
+  step?: 'database' | 'scenario'
 }
 
 /**
@@ -90,10 +94,6 @@ type Database<Client> = {
    * Create a client connection to the database.
    */
   connect: (ctx: Context) => MaybePromise<Client>
-  /**
-   * Create a query client connection to the database if its different from the main db.
-   */
-  clientConnect?: (ctx: Context) => MaybePromise<Client>
   /**
    * Execute SQL against the database.
    */
@@ -170,7 +170,6 @@ type ScenarioState<Client = any> = {
   ctx: Context
   database: Input<Client>['database']
   db: Client
-  queryClient?: Client
   prisma: any
   input: Input<Client>
 }
@@ -310,19 +309,18 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   state.scenario = scenario
 
   await ctx.fs.dirAsync('.')
-  const dbClient = await input.database.connect(ctx)
-  state.db = dbClient
-  const databaseUpSQL = input.database.up?.(ctx) ?? ''
 
-  const upSQL = databaseUpSQL + scenario.up
-  if (!input.database.clientConnect) {
-    await input.database.send(dbClient, upSQL)
-  } else {
-    await input.database.send(dbClient, databaseUpSQL)
-    const queryClient = await input.database.clientConnect(ctx)
-    state.queryClient = queryClient
-    await input.database.send(queryClient, scenario.up)
-  }
+  // Prepare database
+  const databaseUpSQL = input.database.up?.(ctx) ?? ''
+  const dbClient = await input.database.connect({...ctx, step: 'database'})
+  await input.database.send(dbClient, databaseUpSQL)
+  await input.database.close?.(dbClient)
+
+  //Prepare scenario
+  const scenarioUpSQL = scenario.up
+  state.db = await input.database.connect({...ctx, step: 'scenario'})
+  await input.database.send(state.db, scenarioUpSQL)
+
   const datasourceBlock =
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
@@ -333,7 +331,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
             : input.database.datasource.url,
         )
   let schemaBase
-  if (!input.database.clientConnect) {
+  if (input.database.name !== 'sqlserver') {
    schemaBase = `
         generator client {
           provider = "prisma-client-js"
