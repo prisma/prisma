@@ -108,7 +108,7 @@ function checkForConflicts(
       \tEnv Conflicts:
       ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')}
 
-      We would suggest that you move all your env vars to your projects root .env and remove the .env in ${envPath}
+      You can fix this by removing the .env file from "${envPath}" and move its contents to your .env file at the root "${rootEnvInfo?.path}"
       `)
     }
   }
