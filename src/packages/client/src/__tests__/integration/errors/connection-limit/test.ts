@@ -23,10 +23,11 @@ describe('connection-limit', () => {
       clients.push(client)
     }
 
-    await Promise.all(clients.map(c => c.$connect()))
 
     try {
-      await Promise.all(clients.map(c => c.$queryRaw(`SELECT 1`)))
+      await Promise.all(clients.map(c => c.$connect()))
+      // TODO: This next line should be removed once on master!!
+      await Promise.all(clients.map(c => c.$queryRaw`SELECT 1`))
     } catch (e) {
       expect(e).toMatchSnapshot()
     }

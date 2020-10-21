@@ -1,5 +1,125 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`basic introspection 1`] = `
+Prisma Schema loaded from schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "***"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
+exports[`basic introspection with --url 1`] = `
+Prisma Schema loaded from schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "***"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
+exports[`introspection --force 1`] = `
+Prisma Schema loaded from schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "***"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  User      User     @relation(fields: [authorId], references: [id])
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  User   User    @relation(fields: [userId], references: [id])
+}
+
+model User {
+  email   String   @unique
+  id      Int      @id @default(autoincrement())
+  name    String?
+  Post    Post[]
+  Profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
 exports[`should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
 Prisma Schema loaded from prisma/reintrospection.prisma
 generator client {

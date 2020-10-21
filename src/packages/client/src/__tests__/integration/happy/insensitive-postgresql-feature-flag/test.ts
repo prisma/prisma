@@ -227,7 +227,7 @@ test('insensitive-postgresql', async () => {
   ])
 
   prisma.$disconnect()
-  await tearDownPostgres(SetupParams).catch((e) => {
-    // console.log(e)
+  await tearDownPostgres(SetupParams.connectionString).catch((e) => {
+    console.log(e)
   })
 })

@@ -40,7 +40,9 @@
     "runtime/utils",
     "runtime/dist",
     "prisma-client",
-    "preinstall"
+    "preinstall",
+    "scripts/preinstall-entry.js",
+    "scripts/install-entry.js"
   ],
   "pkg": {
     "assets": [
@@ -59,36 +61,34 @@
     "prisma2": "build/index.js"
   },
   "prisma": {
-    "version": "42145bac61d11071762e796c9cff7298622cf1fc",
-    "prismaCommit": "94e41e7df532911b7b56e10ea4f1f7f036bdd54a"
+    "version": "77abecc4840127ebdcc02b83ee1e2c9cc27009f2",
+    "prismaCommit": "13d9ced14303ab70ac5e41e3fc7a832067a788d5"
   },
   "devDependencies": {
-    "@apexearth/copy": "1.4.5",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/introspection": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.296.0",
     "@prisma/studio-server": "0.296.0",
-    "@sindresorhus/slugify": "1.1.0",
-    "@timsuchanek/copy": "1.4.5",
+    "@sindresorhus/slugify": "^1.1.0",
+    "@timsuchanek/copy": "^1.4.5",
     "@types/debug": "4.1.5",
     "@types/jest": "26.0.14",
     "@types/pg": "7.14.5",
     "@types/sqlite3": "3.1.6",
-    "@types/string-hash": "1.1.1",
-    "@types/verror": "1.10.4",
+    "@types/string-hash": "^1.1.1",
+    "@types/verror": "^1.10.4",
     "@types/ws": "7.2.6",
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
-    "esbuild": "^0.7.17",
-    "escape-string-regexp": "4.0.0",
+    "esbuild": "^0.7.19",
+    "escape-string-regexp": "^4.0.0",
     "eslint": "7.10.0",
     "eslint-config-prettier": "6.12.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -100,9 +100,10 @@
     "get-port": "5.1.1",
     "global-dirs": "2.0.1",
     "husky": "4.3.0",
+    "indent-string": "4.0.0",
     "is-installed-globally": "0.3.2",
     "jest": "26.4.2",
-    "line-replace": "2.0.1",
+    "line-replace": "^2.0.1",
     "lint-staged": "10.4.0",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
@@ -127,7 +128,7 @@
     "terminal-link": "2.1.1",
     "ts-jest": "26.4.0",
     "typescript": "4.0.3",
-    "verror": "1.10.0",
+    "verror": "^1.10.0",
     "ws": "7.3.1"
   },
   "scripts": {
@@ -138,7 +139,7 @@
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate studio && jest tests__/introspect",
     "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
     "test": "pnpm run test:commands && pnpm run test:integration",
-    "test:integration": "jest integration --maxConcurrency=1",
+    "test:integration": "jest integration --forceExit --maxConcurrency=1",
     "jest": "jest",
     "install": "node install/index.js",
     "format": "prettier --write .",
@@ -147,7 +148,7 @@
     "build": "node helpers/build.js",
     "pkg": "pkg . -o pkg-build",
     "prepublishOnly": "pnpm run build",
-    "preinstall": "node preinstall/index.js"
+    "preinstall": "node scripts/preinstall-entry.js"
   },
   "husky": {
     "hooks": {

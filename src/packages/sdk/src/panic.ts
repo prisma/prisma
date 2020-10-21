@@ -1,10 +1,10 @@
 export class RustPanic extends Error {
   public request: any
   public rustStack: string
-  public schemaPath?: string
   public area: ErrorArea
-  public introspectionUrl?: string
+  public schemaPath?: string
   public schema?: string
+  public introspectionUrl?: string
   constructor(
     message: string,
     rustStack: string,
@@ -17,8 +17,8 @@ export class RustPanic extends Error {
     super(message)
     this.rustStack = rustStack
     this.request = request
-    this.schemaPath = schemaPath
     this.area = area
+    this.schemaPath = schemaPath
     this.schema = schema
     this.introspectionUrl = introspectionUrl
   }
