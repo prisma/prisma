@@ -2,13 +2,13 @@ import { generatorHandler } from '@prisma/generator-helper'
 import Debug from '@prisma/debug'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
+import { enginesVersion } from '@prisma/engines-version'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
 
 const pkg = require('../package.json')
 const clientVersion = pkg.version
-const engineVersion = pkg.prisma.version
 
 generatorHandler({
   onManifest() {
@@ -17,7 +17,7 @@ generatorHandler({
       prettyName: 'Prisma Client',
       requiresEngines: ['queryEngine'],
       version: clientVersion,
-      requiresEngineVersion: engineVersion
+      requiresEngineVersion: enginesVersion
     }
   },
   async onGenerate(options) {

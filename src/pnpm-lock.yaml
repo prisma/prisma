@@ -43,6 +43,8 @@ importers:
       ts-node: 9.0.0
       typescript: 4.0.3
   packages/cli:
+    dependencies:
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
     devDependencies:
       '@prisma/client': 'link:../client'
       '@prisma/debug': 'link:../debug'
@@ -112,6 +114,7 @@ importers:
     specifiers:
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -177,10 +180,11 @@ importers:
       ws: 7.3.1
   packages/client:
     dependencies:
-      pkg-up: 3.1.0
+      '@prisma/engines-version': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
     devDependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -209,8 +213,6 @@ importers:
       eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
       eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
       execa: 4.0.3
-      fast-clone: 1.5.13
-      fast-copy: 2.1.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.1
       get-own-enumerable-property-symbols: 3.0.2
@@ -230,6 +232,7 @@ importers:
       packwatch: 2.0.0
       pg: 8.3.3_pg@8.3.3
       pidtree: 0.5.0
+      pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.1.2
       replace-string: 3.1.0
@@ -249,6 +252,8 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
+      '@prisma/engines-version': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -277,8 +282,6 @@ importers:
       eslint-plugin-jest: 24.0.2
       eslint-plugin-prettier: 3.1.4
       execa: 4.0.3
-      fast-clone: 1.5.13
-      fast-copy: 2.1.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.1
       get-own-enumerable-property-symbols: 3.0.2
@@ -356,6 +359,7 @@ importers:
   packages/engine-core:
     dependencies:
       '@prisma/debug': 'link:../debug'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
@@ -368,7 +372,6 @@ importers:
       terminal-link: 2.1.1
       undici: 2.0.7
     devDependencies:
-      '@prisma/fetch-engine': 'link:../fetch-engine'
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
@@ -388,7 +391,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/fetch-engine': 'workspace:*'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.14
@@ -438,6 +441,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.0
     devDependencies:
+      '@prisma/engines-version': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
@@ -459,6 +463,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
+      '@prisma/engines-version': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/get-platform': 'workspace:*'
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
@@ -697,6 +702,7 @@ importers:
     dependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -749,6 +755,7 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
+      '@prisma/engines': 2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -1365,6 +1372,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-cgx39UIVwKU651qFDYK/WvIGegofpn5WmLD4JOAWeadQAvVTc+OXpkYbg23iCn9/if80cWk49pg5EM29S3jnZg==
+  /@prisma/engines-version/2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365:
+    resolution:
+      integrity: sha512-Wo+kXGNMOAZOKgkO0FGyBXd8fyMzKSuiVUS1dyJK6zPmEtNyMeyu7lzq8LeNUvKF98kN3XeW3QAOyeg6EM0idw==
+  /@prisma/engines/2.10.0-cfabfaf0c4524c099dc3da4abcc4cffc17ae0365:
+    requiresBuild: true
+    resolution:
+      integrity: sha512-4ly45V3PueUcqqPosWI1QYnjO3/mRXvSzriaZIh/7Y+u0xJqjFIaZf18f7GkXfPGotUyi5lB1wz/nrZTjOI7Mw==
   /@prisma/fetch-engine/2.8.0:
     dependencies:
       '@prisma/debug': 2.8.0
@@ -2150,10 +2164,19 @@ packages:
     dependencies:
       clean-stack: 2.2.0
       indent-string: 4.0.0
+    dev: true
     engines:
       node: '>=8'
     resolution:
       integrity: sha512-quoaXsZ9/BLNae5yiNoUz+Nhkwz83GhWwtYFglcjEQB2NDHCIpApbqXxIFnm4Pq/Nvhrsq5sYJFyohrrxnTGAA==
+  /aggregate-error/3.1.0:
+    dependencies:
+      clean-stack: 2.2.0
+      indent-string: 4.0.0
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-4I7Td01quW/RpocfNayFdFVk1qSuoh0E7JrbRJ16nH01HhKFQ88INq9Sd+nd72zqRySlr9BmDA8xlEJ6vJMrYA==
   /ajv/6.12.5:
     dependencies:
       fast-deep-equal: 3.1.3
@@ -2223,6 +2246,13 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-9VGjrMsG1vePxcSweQsN20KY/c4zN0h9fLjqAbwbPfahM3t+NL+M9HC8xeXG2I8pX5NoamTGNuomEUFI7fcUjA==
+  /ansi-styles/4.3.0:
+    dependencies:
+      color-convert: 2.0.1
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg==
   /any-promise/1.3.0:
     dev: true
     resolution:
@@ -2723,8 +2753,8 @@ packages:
       integrity: sha512-4D3B6Wf41KOYRFdszmDqMCGq5VV/uMAB273JILmO+3jAlh8X4qDtdtgCR3fxtbLEMzSx22QdhnDcJvu2u1fVwg==
   /chalk/4.1.0:
     dependencies:
-      ansi-styles: 4.2.1
-      supports-color: 7.1.0
+      ansi-styles: 4.3.0
+      supports-color: 7.2.0
     engines:
       node: '>=10'
     resolution:
@@ -3921,14 +3951,6 @@ packages:
       '0': node >=0.6.0
     resolution:
       integrity: sha1-lpGEQOMEGnpBT4xS48V06zw+HgU=
-  /fast-clone/1.5.13:
-    dev: true
-    resolution:
-      integrity: sha512-0ez7coyFBQFjZtId+RJqJ+EQs61w9xARfqjqK0AD9vIUkSxWD4HvPt80+5evebZ1tTnv1GYKrPTipx7kOW5ipA==
-  /fast-copy/2.1.0:
-    dev: true
-    resolution:
-      integrity: sha512-j4VxAVJsu9NHveYrIj0+nJxXe2lOlibKTlyy0jH8DBwcuV6QyXTy0zTqZhmMKo7EYvuaUk/BFj/o6NU6grE5ag==
   /fast-deep-equal/3.1.3:
     dev: true
     resolution:
@@ -4030,6 +4052,7 @@ packages:
   /find-up/3.0.0:
     dependencies:
       locate-path: 3.0.0
+    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -5710,6 +5733,7 @@ packages:
     dependencies:
       p-locate: 3.0.0
       path-exists: 3.0.0
+    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -6463,6 +6487,7 @@ packages:
   /p-locate/3.0.0:
     dependencies:
       p-limit: 2.3.0
+    dev: true
     engines:
       node: '>=6'
     resolution:
@@ -6489,7 +6514,7 @@ packages:
       integrity: sha512-d3qXVTF/s+W+CdJ5A29wywV2n8CQQYahlgz2bFiA+4eVNJbHJodPZ+/gXwPGh0bOqA+j8S+6+ckmvLGPk1QpxQ==
   /p-map/4.0.0:
     dependencies:
-      aggregate-error: 3.0.1
+      aggregate-error: 3.1.0
     engines:
       node: '>=10'
     resolution:
@@ -6599,6 +6624,7 @@ packages:
     resolution:
       integrity: sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=
   /path-exists/3.0.0:
+    dev: true
     engines:
       node: '>=4'
     resolution:
@@ -6750,6 +6776,7 @@ packages:
   /pkg-up/3.1.0:
     dependencies:
       find-up: 3.0.0
+    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -7936,6 +7963,13 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-oRSIpR8pxT1Wr2FquTNnGet79b3BWljqOuoW/h4oBhxJ/HUbX5nX6JSruTkvXDCFMwDPvsaTTbvMLKZWSy0R5g==
+  /supports-color/7.2.0:
+    dependencies:
+      has-flag: 4.0.0
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   /supports-hyperlinks/2.1.0:
     dependencies:
       has-flag: 4.0.0

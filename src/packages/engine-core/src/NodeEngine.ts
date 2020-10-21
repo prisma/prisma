@@ -7,6 +7,7 @@ import {
   getMessage,
   getErrorMessageWithLink,
 } from './Engine'
+import { getEnginesPath } from '@prisma/engines'
 import debugLib from 'debug'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import path from 'path'
@@ -206,9 +207,7 @@ export class NodeEngine {
     )
     this.engineEndpoint = engineEndpoint
 
-    // TODO enable again if this doesn't work as intended
     if (useUds && process.platform !== 'win32') {
-      // if (process.platform !== 'win32') {
       this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
       socketPaths.push(this.socketPath)
       this.useUds = useUds
@@ -334,11 +333,11 @@ You may have to run ${chalk.greenBright(
 
     this.platform = this.platform || platform
 
-    const fileName = eval(`require('path').basename(__filename)`)
-    if (fileName === 'NodeEngine.js') {
+    if (__filename.includes('NodeEngine')) {
+      // TODO: Use engines package here
       return this.getQueryEnginePath(
         this.platform,
-        path.resolve(__dirname, `..`),
+        getEnginesPath(),
       )
     } else {
       const dotPrismaPath = await this.getQueryEnginePath(
@@ -385,6 +384,7 @@ You may have to run ${chalk.greenBright(
   // get prisma path
   private async getPrismaPath(): Promise<string> {
     const prismaPath = await this.resolvePrismaPath()
+    // console.log({ prismaPath })
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {

@@ -15,7 +15,7 @@ import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
 
-import { getConfig, getDMMF, ConfigMetaFormat } from './engineCommands'
+import { getConfig, getDMMF } from './engineCommands'
 import makeDir from 'make-dir'
 import { pick } from './pick'
 import { Generator } from './Generator'
@@ -24,13 +24,12 @@ import {
   predefinedGeneratorResolvers,
   GeneratorPaths,
 } from './predefinedGeneratorResolvers'
-import { flatMap } from './utils/flatMap'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { engineVersions } from './getAllVersions'
+import { enginesVersion } from '@prisma/engines'
 
-const defaultEngineVersion = eval(`require('../package.json').prisma.version`)
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
@@ -182,7 +181,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           dmmf,
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
-          version: version || defaultEngineVersion, // this version makes no sense anymore and should be ignored
+          version: version || enginesVersion, // this version makes no sense anymore and should be ignored
         }
 
         // we set the options here a bit later after instantiating the Generator,
@@ -270,7 +269,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           typeof printDownloadProgress === 'boolean'
             ? printDownloadProgress
             : true,
-        version: currentVersion || defaultEngineVersion,
+        version: currentVersion || enginesVersion,
         skipDownload,
       }
 
