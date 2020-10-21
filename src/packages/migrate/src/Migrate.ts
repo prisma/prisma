@@ -73,9 +73,6 @@ export interface MigrateOptions {
   name?: string
   isDraft?: boolean
 }
-export interface PushOptions {
-  force?: boolean
-}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -94,6 +91,7 @@ export interface WatchOptions {
   clear?: boolean
   autoApprove?: boolean
   onWarnings?: (warnings: EngineResults.Warning[]) => Promise<boolean>
+  skipGenerate?: boolean
 }
 interface MigrationFileMapOptions {
   migration: LocalMigrationWithDatabaseSteps
@@ -116,6 +114,7 @@ export class Migrate {
         clear,
         onWarnings,
         autoApprove,
+        skipGenerate,
       }: WatchOptions = { clear: true, providerAliases: {} },
     ) => {
       const datamodel = this.getDatamodel()
@@ -162,49 +161,40 @@ export class Migrate {
           debug(`No migration to apply`)
         }
 
-        const generators = await getGenerators({
-          schemaPath: this.schemaPath,
-          printDownloadProgress: false,
-          version: packageJson.prisma.version,
-          cliVersion: packageJson.version,
-        })
+        if (!skipGenerate) {
+          const generators = await getGenerators({
+            schemaPath: this.schemaPath,
+            printDownloadProgress: false,
+            version: packageJson.prisma.version,
+            cliVersion: packageJson.version,
+          })
 
-        const newGenerators = generators.map((gen) => ({
-          name:
-            (gen.manifest
-              ? gen.manifest.prettyName
-              : gen.options!.generator.provider) || 'Generator',
-          generatedIn: undefined,
-          generating: false,
-        }))
+          const version =
+            packageJson.name === '@prisma/cli' ? packageJson.version : null
 
-        const version =
-          packageJson.name === '@prisma/cli' ? packageJson.version : null
+          for (let i = 0; i < generators.length; i++) {
+            const generator = generators[i]
+            if (
+              version &&
+              generator.manifest?.version &&
+              generator.manifest?.version !== version &&
+              generator.options?.generator.provider === 'prisma-client-js'
+            ) {
+              console.error(
+                `${chalk.bold(
+                  `@prisma/client@${generator.manifest?.version}`,
+                )} is not compatible with ${chalk.bold(
+                  `@prisma/cli@${version}`,
+                )}. Their versions need to be equal.`,
+              )
+            }
 
-        for (let i = 0; i < generators.length; i++) {
-          const generator = generators[i]
-          if (
-            version &&
-            generator.manifest?.version &&
-            generator.manifest?.version !== version &&
-            generator.options?.generator.provider === 'prisma-client-js'
-          ) {
-            console.error(
-              `${chalk.bold(
-                `@prisma/client@${generator.manifest?.version}`,
-              )} is not compatible with ${chalk.bold(
-                `@prisma/cli@${version}`,
-              )}. Their versions need to be equal.`,
-            )
+            try {
+              debug(`Generating ${generator.manifest!.prettyName}`)
+              await generator.generate()
+              generator.stop()
+            } catch (error) {}
           }
-
-          const before = Date.now()
-          try {
-            debug(`Generating ${generator.manifest!.prettyName}`)
-            await generator.generate()
-            generator.stop()
-            const after = Date.now()
-          } catch (error) {}
         }
       } catch (error) {}
     },
@@ -428,9 +418,11 @@ export class Migrate {
     return this.applyOnly()
   }
 
-  public async push({ force = false }: PushOptions = {}): Promise<
-    EngineResults.SchemaPush
-  > {
+  public async push({
+    force = false,
+  }: {
+    force?: boolean
+  }): Promise<EngineResults.SchemaPush> {
     const datamodel = this.getDatamodel()
 
     const {
@@ -851,9 +843,9 @@ export class Migrate {
           console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
         }
       }
+      console.log(`\nChecking the datasource for potential data loss...`)
     }
 
-    console.log(`\nChecking the datasource for potential data loss...`)
     const firstMigrationToApplyIndex = localMigrations.indexOf(
       migrationsToApply[0],
     )

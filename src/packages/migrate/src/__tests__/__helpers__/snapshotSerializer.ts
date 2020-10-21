@@ -15,6 +15,10 @@ function normalizeRustError(str) {
     .replace(/(\[.*)(:\d*:\d*)(\])/g, '$1:0:0$3')
 }
 
+function normalizeMs(str) {
+  return str.replace(/\d{2,3}ms/g, 'XXms')
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -27,7 +31,9 @@ const serializer = {
         ? value.message
         : ''
     return normalizeDbUrl(
-      normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
+      normalizeMs(
+        normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
+      ),
     )
   },
 }

@@ -70,7 +70,7 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     if (reportId) {
       console.log(
         `\n${chalk.bold(
-          `We successfully received the error report id ${reportId}`,
+          `We successfully received the error report id: ${reportId}`,
         )}`,
       )
       console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)

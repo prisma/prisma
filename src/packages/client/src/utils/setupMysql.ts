@@ -30,9 +30,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
   await db.end()
 }
 
-export async function tearDownMysql(options: SetupParams) {
-  const { connectionString } = options
-
+export async function tearDownMysql(connectionString: string) {
   const credentials = uriToCredentials(connectionString)
 
   const credentialsClone = { ...credentials }

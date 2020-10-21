@@ -109,6 +109,9 @@ export namespace EngineArgs {
     schema: string
     force: boolean
   }
+  export interface DropDatabase {
+    schema: string
+  }
   export interface ApplyMigration {
     migrationId: string
     steps: DatamodelStep[]

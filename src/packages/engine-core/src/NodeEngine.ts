@@ -187,8 +187,10 @@ export class NodeEngine {
       'aggregateApi',
       'distinct',
       'aggregations',
-      'insensitiveFilters'
+      'insensitiveFilters',
+      'atomicNumberOperations'
     ]
+    const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
@@ -200,7 +202,7 @@ export class NodeEngine {
       )
     }
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => !removedFlags.includes(e),
+      (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
 

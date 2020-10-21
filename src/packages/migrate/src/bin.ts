@@ -46,6 +46,9 @@ import debugLib from 'debug'
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateUp } from './commands/MigrateUp'
+import { DbPush } from './commands/DbPush'
+import { DbDrop } from './commands/DbDrop'
+import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 
 const debug = debugLib('migrate')
@@ -60,6 +63,10 @@ async function main(): Promise<number> {
   const cli = MigrateCommand.new({
     reset: MigrateReset.new(),
     up: MigrateUp.new(),
+    // for convenient debugging
+    push: DbPush.new(),
+    drop: DbDrop.new(),
+    ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))

@@ -17,12 +17,13 @@ export async function getLatestTag(): Promise<any> {
   }
 
   let branch = await getBranch()
-  if (branch !== 'master' && (!isPatchBranch(branch) || !branch.startsWith('integration/'))) {
+  if (branch !== 'master' && (!isPatchBranch(branch) && !branch.startsWith('integration/'))) {
     branch = 'master'
   }
 
   // remove the "integration/" part
   branch = branch.replace(/^integration\//, '')
+  console.log({ branch }, 'after replace')
 
   // first try to get the branch as it is
   // if it doesn't have an equivalent in the engines repo
@@ -41,14 +42,10 @@ export async function getLatestTag(): Promise<any> {
     throw new Error(`Could not fetch commits from github: ${JSON.stringify(commits, null, 2)}`)
   }
 
-  if (process.env.CI) {
-    return getCommitAndWaitIfNotDone(commits)
-  }
-
-  return getFirstFinishedCommit(commits)
+  return getFirstFinishedCommit(branch, commits)
 }
 
-function getAllUrls(commit: string): string[] {
+export function getAllUrls(branch: string, commit: string): string[] {
   const urls = []
   const excludedPlatforms = [
     'freebsd',
@@ -77,7 +74,7 @@ function getAllUrls(commit: string): string[] {
         '.sha256',
       ]) {
         const downloadUrl = getDownloadUrl(
-          'all_commits',
+          branch,
           commit,
           platform,
           engine,
@@ -91,9 +88,11 @@ function getAllUrls(commit: string): string[] {
   return urls
 }
 
-async function getFirstFinishedCommit(commits: string[]): Promise<string> {
+async function getFirstFinishedCommit(branch: string, commits: string[]): Promise<string> {
   for (const commit of commits) {
-    const urls = getAllUrls(commit)
+    const urls = getAllUrls(branch, commit)
+    // TODO: potential to speed things up
+    // We don't always need to wait for the last commit
     const exist = await pMap(urls, urlExists, { concurrency: 10 })
     const hasMissing = exist.some(e => !e)
 
@@ -104,15 +103,15 @@ async function getFirstFinishedCommit(commits: string[]): Promise<string> {
       // if all are missing, we don't have to talk about it
       // it might just be a broken commit or just still building
       if (missing.length !== urls.length) {
-        console.log(`${chalk.blueBright('info')} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. The following urls are missing:\n\n${missing.join('\n')}`)
+        console.log(`${chalk.blueBright('info')} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. Missing urls: ${missing.length}`)
       }
     }
   }
 }
 
-async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
+async function getCommitAndWaitIfNotDone(branch: string, commits: string[]): Promise<string> {
   for (const commit of commits) {
-    const urls = getAllUrls(commit)
+    const urls = getAllUrls(branch, commit)
     let exist = await pMap(urls, urlExists, { concurrency: 10 })
     let hasMissing = exist.some(e => !e)
     let missing = urls.filter((_, i) => !exist[i])
@@ -145,7 +144,7 @@ async function getCommitAndWaitIfNotDone(commits: string[]): Promise<string> {
   }
 }
 
-async function urlExists(url) {
+export async function urlExists(url) {
   try {
     const res = await fetch(url, {
       method: 'HEAD',
@@ -185,8 +184,7 @@ async function getBranch() {
   }
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
-    const split = context.ref.split('/')
-    return split[split.length - 1]
+    return context.head_ref
   }
 
   // Need to be handled
@@ -237,6 +235,7 @@ async function getCommits(branch: string): Promise<string[] | object> {
   if (!Array.isArray(result)) {
     return result
   }
+
 
   const commits = result.map((r) => r.sha)
   return commits
