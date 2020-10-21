@@ -62,9 +62,6 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
-export interface PushOptions {
-  force?: boolean
-}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -189,8 +186,7 @@ export class Migrate {
             }
           }
         }
-      } catch (error) {
-      }
+      } catch (error) { }
     },
   )
   // tsline:enable
@@ -253,9 +249,11 @@ export class Migrate {
     return initLockFile()
   }
 
-  public async push({ force = false }: PushOptions = {}): Promise<
-    EngineResults.SchemaPush
-  > {
+  public async push({
+    force = false,
+  }: {
+    force?: boolean
+  }): Promise<EngineResults.SchemaPush> {
     const datamodel = this.getDatamodel()
 
     const {
@@ -414,7 +412,6 @@ export class Migrate {
       // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
       options.clear = false
     }
-
 
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()

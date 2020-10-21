@@ -115,10 +115,44 @@ export async function askToCreateDb(
   }
 }
 
-function getDbLocation(credentials: DatabaseCredentials): string {
+export function getDbLocation(credentials: DatabaseCredentials): string {
   if (credentials.type === 'sqlite') {
     return credentials.uri!
   }
 
   return `${credentials.host}:${credentials.port}`
+}
+
+export function getDbinfoFromCredentials(
+  credentials,
+): {
+  dbName: string
+  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite' | 'MSSQL'
+  schemaWord: 'database'
+} {
+  const dbName = credentials.database
+
+  let dbType
+  switch (credentials.type) {
+    case 'mysql':
+      dbType = `MySQL`
+      break
+    case 'postgresql':
+      dbType = `PostgreSQL`
+      break
+    case 'sqlite':
+      dbType = `SQLite`
+      break
+    case 'mssql':
+      dbType = `MSSQL`
+      break
+  }
+
+  const schemaWord = 'database'
+
+  return {
+    dbName,
+    dbType,
+    schemaWord,
+  }
 }

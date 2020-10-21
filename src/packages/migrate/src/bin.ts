@@ -48,6 +48,7 @@ import { MigrateSave } from './commands/MigrateSave'
 import { MigrateDown } from './commands/MigrateDown'
 import { MigrateUp } from './commands/MigrateUp'
 import { DbPush } from './commands/DbPush'
+import { DbDrop } from './commands/DbDrop'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 
@@ -65,6 +66,7 @@ async function main(): Promise<number> {
     up: MigrateUp.new(),
     down: MigrateDown.new(),
     push: DbPush.new(),
+    drop: DbDrop.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
