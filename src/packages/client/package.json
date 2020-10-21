@@ -104,7 +104,7 @@
     "packwatch": "2.0.0",
     "pg": "8.3.3",
     "pidtree": "0.5.0",
-    "pkg-up": "^3.1.0",
+    "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "prettier": "2.1.2",
     "replace-string": "3.1.0",
