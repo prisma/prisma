@@ -91,6 +91,10 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
+   * Create a query client connection to the database if its different from the main db.
+   */
+  clientConnect?: (ctx: Context) => MaybePromise<Client>
+  /**
    * Execute SQL against the database.
    */
   send: (db: Client, sql: string) => MaybePromise<any>
@@ -166,6 +170,7 @@ type ScenarioState<Client = any> = {
   ctx: Context
   database: Input<Client>['database']
   db: Client
+  queryClient?: Client
   prisma: any
   input: Input<Client>
 }
@@ -305,15 +310,19 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   state.scenario = scenario
 
   await ctx.fs.dirAsync('.')
-
   const dbClient = await input.database.connect(ctx)
-
   state.db = dbClient
-
   const databaseUpSQL = input.database.up?.(ctx) ?? ''
-  const upSQL = databaseUpSQL + scenario.up
-  await input.database.send(dbClient, upSQL)
 
+  const upSQL = databaseUpSQL + scenario.up
+  if (!input.database.clientConnect) {
+    await input.database.send(dbClient, upSQL)
+  } else {
+    await input.database.send(dbClient, databaseUpSQL)
+    const queryClient = await input.database.clientConnect(ctx)
+    state.queryClient = queryClient
+    await input.database.send(queryClient, scenario.up)
+  }
   const datasourceBlock =
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
