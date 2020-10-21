@@ -20,7 +20,7 @@ model A {
 model B {
   id       String   @id @default(cuid())
   float    Float    @db.Float
-  dfloat   Float    @db.Double
+  dFloat   Float    @db.Double
   decFloat Decimal? @db.Decimal(2, 1)
   numFloat Decimal? @db.Numeric(10, 6)
 }
@@ -32,7 +32,7 @@ model C {
   tText String @db.TinyText
   text  String @db.Text
   mText String @db.MediumText
-  ltext String @db.LongText
+  lText String @db.LongText
 }
 
 model D {

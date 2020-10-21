@@ -6,11 +6,12 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-native-types-tests'
+  process.env.TEST_POSTGRES_URI += '-native-types-tests-postgres'
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma')
   })
+  console.log(`Successfully migrated db at ${process.env.TEST_POSTGRES_URI}`)
 })
 
 test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, BigSerial', async () => {
@@ -78,7 +79,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
 
   let data: any = {
     float: 1.2,
-    dfloat: 1.3,
+    dFloat: 1.3,
     decFloat: 1.23,
     numFloat: '23.12',
   }
@@ -87,14 +88,14 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     data,
     select: {
       float: true,
-      dfloat: true,
+      dFloat: true,
       decFloat: true,
       numFloat: true,
     },
   })
 
   expect(Decimal.isDecimal(b.float)).toBe(false)
-  expect(Decimal.isDecimal(b.dfloat)).toBe(false)
+  expect(Decimal.isDecimal(b.dFloat)).toBe(false)
   expect(Decimal.isDecimal(b.decFloat)).toBe(true)
   expect(Decimal.isDecimal(b.numFloat)).toBe(true)
 
@@ -102,7 +103,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
   expect(b).toMatchInlineSnapshot(`
     Object {
       decFloat: 1.2,
-      dfloat: 1.3,
+      dFloat: 1.3,
       float: 1.2000001,
       numFloat: 23.12,
     }
@@ -110,7 +111,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
 
   data = {
     float: 1,
-    dfloat: 1.3,
+    dFloat: 1.3,
     decFloat: new Decimal('1.2'),
     numFloat: new Decimal('1232.123456')
   }
@@ -119,7 +120,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     data,
     select: {
       float: true,
-      dfloat: true,
+      dFloat: true,
       decFloat: true,
       numFloat: true,
     },

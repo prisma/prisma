@@ -4,11 +4,12 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
 
 beforeAll(async () => {
-  process.env.TEST_MYSQL_URI += '-native-types-tests'
+  process.env.TEST_MYSQL_URI += '-native-types4'
   await migrateDb({
     connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
+  console.log(`Successfully migrated db at ${process.env.TEST_MYSQL_URI}`)
 })
 
 test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async () => {
@@ -51,7 +52,7 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
 
   let data: any = {
     float: 12.2,
-    dfloat: 10.2,
+    dFloat: 10.2,
     decFloat: 1.1,
     numFloat: '5.6',
   }
@@ -60,21 +61,21 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
     data,
     select: {
       float: true,
-      dfloat: true,
+      dFloat: true,
       decFloat: true,
       numFloat: true,
     },
   })
 
   expect(Decimal.isDecimal(b.float)).toBe(false)
-  expect(Decimal.isDecimal(b.dfloat)).toBe(false)
+  expect(Decimal.isDecimal(b.dFloat)).toBe(false)
   expect(Decimal.isDecimal(b.decFloat)).toBe(true)
   expect(Decimal.isDecimal(b.numFloat)).toBe(true)
 
   expect(b).toMatchInlineSnapshot(`
     Object {
+      dFloat: 10.2,
       decFloat: 1.1,
-      dfloat: 10.2,
       float: 12.2,
       numFloat: 5.6,
     }
@@ -82,7 +83,7 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
 
   data = {
     float: 12.2,
-    dfloat: 10.2,
+    dFloat: 10.2,
     decFloat: new Decimal(1.1),
     numFloat: new Decimal('5.6'),
   }
@@ -91,7 +92,7 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
     data,
     select: {
       float: true,
-      dfloat: true,
+      dFloat: true,
       decFloat: true,
       numFloat: true,
     },
@@ -115,7 +116,7 @@ test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText'
     tText: 'foo',
     text: 'txt ➡️',
     mText: '🥳',
-    ltext: '🔥',
+    lText: '🔥',
   }
 
   const c = await prisma.c.create({
@@ -126,7 +127,7 @@ test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText'
       tText: true,
       mText: true,
       text: true,
-      ltext: true,
+      lText: true,
     },
   })
 
@@ -146,7 +147,7 @@ test('native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async () => 
     date: new Date('2020-05-05T16:28:33.983Z'),
     time: new Date('2020-05-02T16:28:33.983Z'),
     dtime: new Date('2020-05-02T16:28:33.983Z'),
-    ts: new Date('2020-05-02T16:28:33.983Z'),
+    ts: '2020-05-05T16:28:33.983+03:00',
     year: 2020,
   }
 
@@ -166,7 +167,7 @@ test('native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async () => 
       date: 2020-05-05T16:28:33.983Z,
       dtime: 2020-05-02T16:28:33.983Z,
       time: 2020-05-02T16:28:33.983Z,
-      ts: 2020-05-02T16:28:33.983Z,
+      ts: 2020-05-05T16:28:33.983+03:00,
       year: 2020,
     }
   `)

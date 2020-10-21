@@ -29,7 +29,7 @@ model A {
 model B {
   id       String  @id @default(cuid())
   float    Float   @db.Real
-  dfloat   Float   @db.DoublePrecision
+  dFloat   Float   @db.DoublePrecision
   decFloat Decimal @db.Decimal(2, 1)
   numFloat Decimal @db.Numeric(10, 6)
 }

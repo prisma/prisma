@@ -687,7 +687,7 @@ export declare type ADistinctFieldEnum = (typeof ADistinctFieldEnum)[keyof typeo
 export declare const BDistinctFieldEnum: {
   id: 'id',
   float: 'float',
-  dfloat: 'dfloat',
+  dFloat: 'dFloat',
   decFloat: 'decFloat',
   numFloat: 'numFloat'
 };
@@ -5873,7 +5873,7 @@ export type AArgs = {
 export type B = {
   id: string
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
@@ -5889,28 +5889,28 @@ export type AggregateB = {
 
 export type BAvgAggregateOutputType = {
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
 
 export type BSumAggregateOutputType = {
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
 
 export type BMinAggregateOutputType = {
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
 
 export type BMaxAggregateOutputType = {
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
@@ -5918,28 +5918,28 @@ export type BMaxAggregateOutputType = {
 
 export type BAvgAggregateInputType = {
   float?: true
-  dfloat?: true
+  dFloat?: true
   decFloat?: true
   numFloat?: true
 }
 
 export type BSumAggregateInputType = {
   float?: true
-  dfloat?: true
+  dFloat?: true
   decFloat?: true
   numFloat?: true
 }
 
 export type BMinAggregateInputType = {
   float?: true
-  dfloat?: true
+  dFloat?: true
   decFloat?: true
   numFloat?: true
 }
 
 export type BMaxAggregateInputType = {
   float?: true
-  dfloat?: true
+  dFloat?: true
   decFloat?: true
   numFloat?: true
 }
@@ -5971,7 +5971,7 @@ export type GetBAggregateScalarType<T extends any> = {
 export type BSelect = {
   id?: boolean
   float?: boolean
-  dfloat?: boolean
+  dFloat?: boolean
   decFloat?: boolean
   numFloat?: boolean
 }
@@ -8053,7 +8053,7 @@ export type BWhereInput = {
   NOT?: BWhereInput | Enumerable<BWhereInput>
   id?: StringFilter | string
   float?: FloatFilter | number
-  dfloat?: FloatFilter | number
+  dFloat?: FloatFilter | number
   decFloat?: DecimalFilter | Decimal
   numFloat?: DecimalFilter | Decimal
 }
@@ -8061,7 +8061,7 @@ export type BWhereInput = {
 export type BOrderByInput = {
   id?: SortOrder
   float?: SortOrder
-  dfloat?: SortOrder
+  dFloat?: SortOrder
   decFloat?: SortOrder
   numFloat?: SortOrder
 }
@@ -8546,7 +8546,7 @@ export type AUpdateManyMutationInput = {
 export type BCreateInput = {
   id?: string
   float: number
-  dfloat: number
+  dFloat: number
   decFloat: Decimal
   numFloat: Decimal
 }
@@ -8554,7 +8554,7 @@ export type BCreateInput = {
 export type BUpdateInput = {
   id?: string | StringFieldUpdateOperationsInput
   float?: number | FloatFieldUpdateOperationsInput
-  dfloat?: number | FloatFieldUpdateOperationsInput
+  dFloat?: number | FloatFieldUpdateOperationsInput
   decFloat?: Decimal | DecimalFieldUpdateOperationsInput
   numFloat?: Decimal | DecimalFieldUpdateOperationsInput
 }
@@ -8562,7 +8562,7 @@ export type BUpdateInput = {
 export type BUpdateManyMutationInput = {
   id?: string | StringFieldUpdateOperationsInput
   float?: number | FloatFieldUpdateOperationsInput
-  dfloat?: number | FloatFieldUpdateOperationsInput
+  dFloat?: number | FloatFieldUpdateOperationsInput
   decFloat?: Decimal | DecimalFieldUpdateOperationsInput
   numFloat?: Decimal | DecimalFieldUpdateOperationsInput
 }

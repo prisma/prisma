@@ -7,8 +7,16 @@ export type MigrateOptions = {
 }
 
 export async function migrateDb({ connectionString, schemaPath }: MigrateOptions) {
-  await createDatabase(connectionString)
+  const created = await createDatabase(connectionString)
+  console.log(created)
   const migrate = new Migrate(schemaPath)
+
+  // const migration = await migrate.createMigration('DUMMY')
+  // const { files, newLockFile, migrationId } = await migrate.save(
+  //   migration!,
+  //   'DUMMY',
+  //   false,
+  // )
 
   try {
     await migrate.up({
