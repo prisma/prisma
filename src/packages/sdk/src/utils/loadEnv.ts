@@ -102,11 +102,12 @@ function checkForConflicts(
     }
     if (conflicts.length > 0) {
       throw new Error(`
-      You are trying to load duplicate env variables which are already present in your project root .env
-      \troot .env path: ${rootEnvInfo?.path}
-      \tschema .env path: ${envPath}
-      \tConflicts:
-      ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')} 
+      You are trying to load env variables which are already present in your project root .env
+      \tRoot: ${rootEnvInfo?.path}
+      \tPrisma: ${envPath}
+      \tEnv Conflicts:
+      ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')}
+
       We would suggest that you move all your env vars to your projects root .env and remove the .env in ${envPath}
       `)
     }
