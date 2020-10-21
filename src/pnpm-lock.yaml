@@ -22,7 +22,7 @@ importers:
       ts-node: 9.0.0_typescript@4.0.3
       typescript: 4.0.3
     specifiers:
-      '@sindresorhus/slugify': ^1.1.0
+      '@sindresorhus/slugify': 1.1.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
       '@types/node': 13.13.21
@@ -119,21 +119,21 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.296.0
       '@prisma/studio-server': 0.296.0
-      '@sindresorhus/slugify': ^1.1.0
-      '@timsuchanek/copy': ^1.4.5
+      '@sindresorhus/slugify': 1.1.0
+      '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
-      '@types/string-hash': ^1.1.1
-      '@types/verror': ^1.10.4
+      '@types/string-hash': 1.1.1
+      '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
       '@typescript-eslint/parser': 4.2.0
       checkpoint-client: 1.1.14
       dotenv: 8.2.0
-      esbuild: ^0.7.19
-      escape-string-regexp: ^4.0.0
+      esbuild: 0.7.19
+      escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -148,7 +148,7 @@ importers:
       indent-string: 4.0.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
-      line-replace: ^2.0.1
+      line-replace: 2.0.1
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
@@ -173,7 +173,7 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 26.4.0
       typescript: 4.0.3
-      verror: ^1.10.0
+      verror: 1.10.0
       ws: 7.3.1
   packages/client:
     dependencies:
@@ -267,9 +267,9 @@ importers:
       arg: 4.1.3
       benchmark: 2.1.4
       chalk: 4.1.0
-      decimal.js: ^10.2.1
+      decimal.js: 10.2.1
       dotenv: 8.2.0
-      esbuild: ^0.7.19
+      esbuild: 0.7.19
       escape-string-regexp: 4.0.0
       eslint: 7.10.0
       eslint-config-prettier: 6.12.0
@@ -665,7 +665,7 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: ^4.0.0
       figures: ^3.2.0
-      fs-jetpack: ^3.2.0
+      fs-jetpack: 3.2.0
       git-user-email: ^0.2.2
       git-user-name: ^2.0.0
       globby: ^11.0.0
