@@ -74,6 +74,10 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
+  /**
+   * Which step of setup we are on
+   */
+  step?: 'database' | 'scenario'
 }
 
 /**
@@ -310,19 +314,17 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   state.scenario = scenario
 
   await ctx.fs.dirAsync('.')
-  const dbClient = await input.database.connect(ctx)
-  state.db = dbClient
+  // Prepare the database
   const databaseUpSQL = input.database.up?.(ctx) ?? ''
+  const dbClient = await input.database.connect({ ...ctx, step: 'database' })
+  await input.database.send(dbClient, databaseUpSQL)
+  await input.database.close?.(dbClient)
 
-  const upSQL = databaseUpSQL + scenario.up
-  if (!input.database.clientConnect) {
-    await input.database.send(dbClient, upSQL)
-  } else {
-    await input.database.send(dbClient, databaseUpSQL)
-    const queryClient = await input.database.clientConnect(ctx)
-    state.queryClient = queryClient
-    await input.database.send(queryClient, scenario.up)
-  }
+  // Prepare scenario
+  const scenarioUpSQL = scenario.up
+  state.db = await input.database.connect({ ...ctx, step: 'scenario' })
+  await input.database.send(state.db, scenarioUpSQL)
+
   const datasourceBlock =
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
@@ -337,6 +339,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
         generator client {
           provider = "prisma-client-js"
           output   = "${ctx.fs.path()}"
+          previewFeatures = ["microsoftSqlServer"]
         }
 
         ${datasourceBlock}
@@ -364,11 +367,11 @@ async function teardownScenario(state: ScenarioState) {
         ? state.input.database.send(state.db, state.scenario.down)
         : undefined,
     )
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
       .then(() => state.input.database.afterEach?.(state.db))
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
       .then(() => state.prisma?.$disconnect())
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
   }
 
   if (errors.length) {
@@ -383,15 +386,15 @@ async function teardownScenario(state: ScenarioState) {
  * Convert test scenarios into something jest.each can consume
  */
 function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
-  const onlys = scenarios.filter((scenario) => scenario.only)
+  const onlys = scenarios.filter(scenario => scenario.only)
 
   if (onlys.length) {
-    return onlys.map((scenario) => [scenario.name, scenario])
+    return onlys.map(scenario => [scenario.name, scenario])
   }
 
   return scenarios
-    .filter((scenario) => scenario.todo !== true)
-    .map((scenario) => [scenario.name, scenario])
+    .filter(scenario => scenario.todo !== true)
+    .map(scenario => [scenario.name, scenario])
 }
 
 /**
