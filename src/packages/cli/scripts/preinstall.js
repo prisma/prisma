@@ -52,7 +52,7 @@ function prismaIsInstalledGlobally() {
 const b = (str) => BOLD + str + RESET
 const white = (str) => WHITE_BRIGHT + str + RESET
 
-function main() {
+export function main() {
   // When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
   if (__dirname.includes('_npx')) {
     process.exit(0)
@@ -140,10 +140,4 @@ Learn more here: https://pris.ly/prisma1
     drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }),
   )
   process.exit(1)
-}
-
-try {
-  main()
-} catch (e) {
-  debug(e)
 }
