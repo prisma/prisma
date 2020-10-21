@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`introspection: findOne where PK: datamodel 1`] = `
+generator client {
+  provider        = "prisma-client-js"
+  output = "***"
+  previewFeatures = ["microsoftSqlServer"]
+}
+
+datasource sqlserver {
+  provider = "sqlserver"
+  url = "***"
+}
+
+model teams {
+  id   Int    @id
+  name String @unique
+}
+
+`;
+
+exports[`introspection: findOne where PK: warnings 1`] = `Array []`;
