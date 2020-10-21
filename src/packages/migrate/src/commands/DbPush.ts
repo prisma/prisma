@@ -2,7 +2,6 @@ import { arg, Command, format, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
 import { formatms } from '../utils/formatms'
 
 export class DbPush implements Command {
@@ -13,16 +12,9 @@ export class DbPush implements Command {
   private static help = format(`
     Push the state from your schema.prisma to your database
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's db push functionality is currently in an experimental state.",
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma db push --experimental
+      ${chalk.dim('$')} prisma db push
 
     ${chalk.bold('Options')}
 
@@ -32,10 +24,10 @@ export class DbPush implements Command {
     ${chalk.bold('Examples')}
 
       Push the local schema state to the database
-      ${chalk.dim('$')} prisma db push --experimental
+      ${chalk.dim('$')} prisma db push
 
       Using --force to ignore data loss warnings
-      ${chalk.dim('$')} prisma db push --force --experimental
+      ${chalk.dim('$')} prisma db push --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -46,7 +38,6 @@ export class DbPush implements Command {
         '-h': '--help',
         '--force': Boolean,
         '-f': '--force',
-        '--experimental': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -59,10 +50,6 @@ export class DbPush implements Command {
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
     }
 
     const migrate = new Migrate(args['--schema'])
