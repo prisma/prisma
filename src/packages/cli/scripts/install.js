@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const pkgUp = require('pkg-up')
 const Debug = require('debug')
-const debug = Debug('prisma:download')
+const debug = Debug('prisma:install')
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
