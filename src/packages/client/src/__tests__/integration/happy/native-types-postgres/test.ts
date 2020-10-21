@@ -7,7 +7,7 @@ import Decimal from 'decimal.js'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-native-types-tests4'
+  process.env.TEST_POSTGRES_URI += '-native-types-tests'
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
