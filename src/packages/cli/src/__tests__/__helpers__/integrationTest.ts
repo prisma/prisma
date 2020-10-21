@@ -170,7 +170,6 @@ type ScenarioState<Client = any> = {
   ctx: Context
   database: Input<Client>['database']
   db: Client
-  queryClient?: Client
   prisma: any
   input: Input<Client>
 }
