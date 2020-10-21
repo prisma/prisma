@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
-  "schedule": ["after 4pm on friday"],
+  "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "masterIssue": true,
   "reviewers": ["@jolg42", "@timsuchanek"],
@@ -9,12 +9,8 @@
   "packageRules": [
     {
       "groupName": "renovate-meta",
+      "automerge": "true",
       "updateTypes": ["lockFileMaintenance", "pin"]
-    },
-    {
-      "groupName": "dependencies (non-major)",
-      "depTypeList": ["dependencies"],
-      "updateTypes": ["patch", "minor"]
     },
     {
       "groupName": "definitelyTyped",
@@ -23,16 +19,26 @@
       "updateTypes": ["patch", "minor"]
     },
     {
+      "groupName": "engines",
+      "automerge": "true",
+      "packageNames": ["@prisma/engines", "@prisma/engines-version"],
+      "updateTypes": ["patch", "minor", "major"]
+    },
+    {
       "groupName": "devDependencies (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"]
     },
     {
+      "groupName": "dependencies (non-major)",
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["patch", "minor"]
+    },
+    {
       "groupName": "Studio",
       "packageNames": ["@prisma/studio", "@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
-      "schedule": ["at any time"],
       "automerge": "true",
       "reviewers": ["@madebysid"]
     },
@@ -40,7 +46,6 @@
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
-      "schedule": ["at any time"],
       "reviewers": ["@jolg42", "@timsuchanek"]
     }
   ]
