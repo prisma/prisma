@@ -28,9 +28,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--experimental', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    The database is already in sync with the Prisma schema.
+                                                The database is already in sync with the Prisma schema.
 
-                              `)
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
@@ -44,10 +44,9 @@ describe('push', () => {
     ctx.fs.remove('prisma/dev.db')
 
     const result = DbPush.new().parse(['--experimental', '--force'])
-    await expect(result.replace(/\d{2,3}ms/, 'XXms')).resolves
-      .toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(`
 
-            🚀  Your database is now in sync with your schema. Done in 22ms
+            🚀  Your database is now in sync with your schema. Done in XXms
 
           `)
     expect(
@@ -88,9 +87,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--force', '--experimental'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    The database is already in sync with the Prisma schema.
+                                                The database is already in sync with the Prisma schema.
 
-                              `)
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
@@ -104,9 +103,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--force', '--experimental'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    The database is already in sync with the Prisma schema.
+                                                The database is already in sync with the Prisma schema.
 
-                              `)
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
