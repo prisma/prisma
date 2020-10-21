@@ -118,6 +118,27 @@ export async function createDatabase(
   )
 }
 
+export async function dropDatabase(
+  connectionString: string,
+  cwd = process.cwd(),
+  migrationEnginePath?: string,
+): Promise<execa.ExecaReturnValue> {
+  migrationEnginePath =
+    migrationEnginePath || (await resolveBinary('migration-engine'))
+  return await execa(
+    migrationEnginePath,
+    ['cli', '--datasource', connectionString, 'drop-database'],
+    {
+      cwd,
+      env: {
+        ...process.env,
+        RUST_BACKTRACE: '1',
+        RUST_LOG: 'info',
+      },
+    },
+  )
+}
+
 async function doesSqliteDbExist(
   connectionString: string,
   schemaDir?: string,
