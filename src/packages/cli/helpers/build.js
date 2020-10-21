@@ -65,7 +65,7 @@ async function main() {
     replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n'),
   ])
 
-  plusX('./build/index.js')
+  chmodX('./build/index.js')
 
   const after = Date.now()
   console.log(
@@ -98,12 +98,11 @@ main().catch((e) => {
   process.exit(1)
 })
 
-function plusX(file) {
-  if (fs.existsSync(file)) {
-    const s = fs.statSync(file)
-    const newMode = s.mode | 64 | 8 | 1
-    if (s.mode === newMode) return
-    const base8 = newMode.toString(8).slice(-3)
-    fs.chmodSync(file, base8)
-  }
+
+function chmodX(file) {
+  const s = fs.statSync(file)
+  const newMode = s.mode | 64 | 8 | 1
+  if (s.mode === newMode) return
+  const base8 = newMode.toString(8).slice(-3)
+  fs.chmodSync(file, base8)
 }

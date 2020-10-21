@@ -93,14 +93,14 @@ export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<void> {
+): Promise<boolean> {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
     migrationEnginePath,
   )
   if (dbExists === true) {
-    return
+    return false
   }
   migrationEnginePath =
     migrationEnginePath || (await resolveBinary('migration-engine'))
@@ -116,6 +116,7 @@ export async function createDatabase(
       },
     },
   )
+  return true
 }
 
 export async function dropDatabase(

@@ -60,6 +60,10 @@ const stringifyObject = (input, options?: any, pad?: any) => {
       return '"[Circular]"'
     }
 
+    if (Buffer.isBuffer(input)) {
+      return `Buffer(${Buffer.length})`
+    }
+
     if (
       input === null ||
       input === undefined ||

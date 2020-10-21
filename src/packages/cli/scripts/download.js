@@ -13,7 +13,7 @@ const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
 const lockFile = path.join(binaryDir, 'download-lock')
 
 let createdLockFile = false
-async function main() {
+module.exports = async function main() {
   if (
     fs.existsSync(lockFile) &&
     JSON.parse(
@@ -62,8 +62,6 @@ function cleanupLockFile() {
     }
   }
 }
-
-main().catch((e) => debug(e))
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
