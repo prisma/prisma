@@ -63,7 +63,7 @@ export class DbCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      return cmd.parse(args._)
+      return cmd.parse(args._.slice(1))
     }
 
     return unknownCommand(DbCommand.help, args._[0])
