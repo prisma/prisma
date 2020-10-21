@@ -70,7 +70,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.push()
+        const migration = await migrate.push({})
         migrate.stop()
         expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
@@ -96,7 +96,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.push()
+        const migration = await migrate.push({})
         migrate.stop()
         expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
@@ -122,7 +122,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.push()
+        const migration = await migrate.push({})
         migrate.stop()
         expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])
@@ -162,7 +162,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.push()
+        const migration = await migrate.push({})
         migrate.stop()
         expect(migration.executedSteps).toEqual(1)
         expect(migration.warnings).toEqual([])

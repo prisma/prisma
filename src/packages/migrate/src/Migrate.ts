@@ -62,9 +62,6 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
-export interface PushOptions {
-  force?: boolean
-}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -193,11 +190,9 @@ export class Migrate {
             await generator.generate()
             generator.stop()
             const after = Date.now()
-          } catch (error) {
-          }
+          } catch (error) {}
         }
-      } catch (error) {
-      }
+      } catch (error) {}
     },
   )
   // tsline:enable
@@ -260,9 +255,11 @@ export class Migrate {
     return initLockFile()
   }
 
-  public async push({ force = false }: PushOptions = {}): Promise<
-    EngineResults.SchemaPush
-  > {
+  public async push({
+    force = false,
+  }: {
+    force?: boolean
+  }): Promise<EngineResults.SchemaPush> {
     const datamodel = this.getDatamodel()
 
     const {
@@ -422,7 +419,6 @@ export class Migrate {
       options.clear = false
     }
 
-
     const localMigrations = await this.getLocalMigrations()
     const watchMigrations = await this.getLocalWatchMigrations()
 
@@ -510,7 +506,8 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${appliedMigrations.length
+        )}, but there are only ${
+          appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -536,8 +533,9 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({
@@ -567,7 +565,8 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${process.platform === 'win32' ? '' : '🏋️‍  '
+        `${
+          process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -733,9 +732,11 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
-      } in ${formatms(Date.now() - before)}.\n`
+    return `\n${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    }  Done with ${migrationsToApply.length} migration${
+      migrationsToApply.length > 1 ? 's' : ''
+    } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -923,9 +924,10 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
-          ? localMigrationIds.join(', ')
-          : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
+          localMigrationIds.length > 0
+            ? localMigrationIds.join(', ')
+            : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1062,7 +1064,8 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${
+              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )

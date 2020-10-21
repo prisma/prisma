@@ -35,11 +35,15 @@ export class DbCommand implements Command {
     ${chalk.bold('Commands')}
 
         push   Push the state from your schema.prisma to your database
+        drop   Delete the database provided in your schema.prisma
 
     ${chalk.bold('Examples')}
 
       Using prisma db push
       ${chalk.dim('$')} prisma db push
+
+      Using prisma db drop
+      ${chalk.dim('$')} prisma db drop
   `)
   private constructor(private readonly cmds: Commands) {}
 

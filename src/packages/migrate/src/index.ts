@@ -8,6 +8,7 @@ export { MigrateDown } from './commands/MigrateDown'
 export { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 export { DbCommand } from './commands/DbCommand'
 export { DbPush } from './commands/DbPush'
+export { DbDrop } from './commands/DbDrop'
 export { default as byline } from './utils/byline'
 export { handlePanic } from './utils/handlePanic'
 
