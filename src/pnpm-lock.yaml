@@ -145,7 +145,7 @@ importers:
       get-port: 5.1.1
       global-dirs: 2.0.1
       husky: 4.3.0
-      indent-string: ^4.0.0
+      indent-string: 4.0.0
       is-installed-globally: 0.3.2
       jest: 26.4.2
       line-replace: ^2.0.1
@@ -623,6 +623,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.10.0
       eslint-plugin-jest: 24.0.2_eslint@7.10.0+typescript@4.0.3
       eslint-plugin-prettier: 3.1.4_eslint@7.10.0+prettier@2.1.2
+      fs-jetpack: 3.2.0
       husky: 4.3.0
       jest: 26.4.2
       lint-staged: 10.4.0
@@ -664,6 +665,7 @@ importers:
       eslint-plugin-prettier: 3.1.4
       execa: ^4.0.0
       figures: ^3.2.0
+      fs-jetpack: ^3.2.0
       git-user-email: ^0.2.2
       git-user-name: ^2.0.0
       globby: ^11.0.0
@@ -4157,6 +4159,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-PZFMZKhW1AfTUHwWrSfn5rAW4a82d9a9UnfOT0pbJilm+6PWww/YAZkgBiELFaNLxxLe+NG72oqGge1RHCgIKA==
+  /fs-jetpack/3.2.0:
+    dependencies:
+      minimatch: 3.0.4
+      rimraf: 2.7.1
+    dev: true
+    resolution:
+      integrity: sha512-LMUQxf85b3y/IuQZM9gz7bPMH60Y+NpulmHdhv8nHvgu6daYd7DiSZJSgiHKk1h6vfv1VCOqpdJcR+ThO7sFVA==
   /fs-minipass/1.2.7:
     dependencies:
       minipass: 2.9.0
