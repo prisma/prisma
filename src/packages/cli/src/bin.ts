@@ -81,7 +81,6 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
-  MigrateInit,
   MigrateReset,
   MigrateUp,
   handlePanic,
@@ -137,7 +136,6 @@ async function main(): Promise<number> {
         down: MigrateDown.new(),
       }),
       migrate: MigrateCommand.new({
-        init: MigrateInit.new(),
         reset: MigrateReset.new(),
         up: MigrateUp.new(),
       }),

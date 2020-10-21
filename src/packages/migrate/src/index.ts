@@ -1,7 +1,6 @@
 export { Migrate } from './Migrate'
 export { MigrateEngine } from './MigrateEngine'
 export { MigrateCommand } from './commands/MigrateCommand'
-export { MigrateInit } from './commands/MigrateInit'
 export { MigrateReset } from './commands/MigrateReset'
 export { MigrateUp } from './commands/MigrateUp'
 export { default as byline } from './utils/byline'

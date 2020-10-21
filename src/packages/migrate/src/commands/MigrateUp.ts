@@ -12,11 +12,6 @@ import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagError } from '../utils/experimental'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import {
-  handleUnexecutableSteps,
-  handleWarnings,
-} from '../utils/handleEvaluateDataloss'
-import { getMigrationName } from '../utils/promptForMigrationName'
 
 export class MigrateUp implements Command {
   public static new(): MigrateUp {
@@ -41,26 +36,16 @@ export class MigrateUp implements Command {
     ${chalk.bold('Options')}
 
       -h, --help              Displays this help message
-      --dev,  --development   Checks thedatabase state and interactively ask to reset if needed before applying migrations.
-      --prod, --production    Applies unapplied migrations only.
 
   `)
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(
       argv,
       {
         '--help': Boolean,
         '-h': '--help',
         '--experimental': Boolean,
-        '--dev': Boolean,
-        '--development': '--dev',
-        '--prod': Boolean,
-        '--production': '--prod',
-        '--force': Boolean,
-        '-f': '--force',
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -69,13 +54,6 @@ export class MigrateUp implements Command {
 
     if (isError(args)) {
       return this.help(args.message)
-    }
-
-    if (
-      (!args['--dev'] && !args['--prod']) ||
-      (args['--dev'] && args['--prod'])
-    ) {
-      return this.help(`You must pass either --dev or --prod`)
     }
 
     if (args['--help']) {
@@ -110,41 +88,7 @@ export class MigrateUp implements Command {
 
     await ensureDatabaseExists('apply', true, schemaPath)
 
-    let migrationIds
-    if (args['--prod']) {
-      migrationIds = await migrate.applyOnly()
-    } else {
-      await migrate.checkHistoryAndReset({ force: args['--force'] })
-
-      const evaluateDataLossResult = await migrate.evaluateDataLoss()
-
-      // throw error
-      handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
-      // log warnings and prompt user to continue if needed
-      const userCancelled = await handleWarnings(
-        evaluateDataLossResult.warnings,
-        args['--force'],
-      )
-      if (userCancelled) {
-        migrate.stop()
-        return `Migration cancelled.`
-      }
-
-      let migrationName: undefined | string = undefined
-      if (evaluateDataLossResult.migrationSteps.length > 0) {
-        const getMigrationNameResult = await getMigrationName(args['--name'])
-        if (getMigrationNameResult.userCancelled) {
-          migrate.stop()
-          return getMigrationNameResult.userCancelled
-        } else {
-          migrationName = getMigrationNameResult.name
-        }
-      }
-
-      migrationIds = await migrate.createAndApply({
-        name: migrationName,
-      })
-    }
+    const migrationIds = await migrate.applyOnly()
 
     migrate.stop()
 
@@ -172,7 +116,6 @@ export class MigrateUp implements Command {
     return ``
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(

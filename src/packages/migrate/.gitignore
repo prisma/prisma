@@ -6,7 +6,6 @@ build
 .DS_Store
 tmp/
 failed-*.md
-*.db
 .env*
 pnpm-debug.log
 write-test

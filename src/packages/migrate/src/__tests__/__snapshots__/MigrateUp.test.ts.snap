@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`sqlite 1 unapplied migration 1`] = ``;
+
+exports[`sqlite 1 unapplied migration 2`] = ``;
+
+exports[`sqlite 1 unapplied migration 4`] = `Array []`;
+
+exports[`sqlite 1 unapplied migration 5`] = `Array []`;
+
+exports[`sqlite no unapplied migrations 1`] = ``;
+
+exports[`sqlite no unapplied migrations 3`] = `Array []`;
+
+exports[`sqlite no unapplied migrations 4`] = `Array []`;
+
+exports[`sqlite should throw if database is not empty 1`] = `
+P3005
+
+The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
+
+`;
+
+exports[`sqlite should throw if database is not empty 3`] = `Array []`;
+
+exports[`sqlite should throw if database is not empty 4`] = `Array []`;

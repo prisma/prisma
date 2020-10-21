@@ -45,7 +45,6 @@ import debugLib from 'debug'
 
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateReset } from './commands/MigrateReset'
-import { MigrateInit } from './commands/MigrateInit'
 import { MigrateUp } from './commands/MigrateUp'
 import { handlePanic } from './utils/handlePanic'
 
@@ -59,7 +58,6 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = MigrateCommand.new({
-    init: MigrateInit.new(),
     reset: MigrateReset.new(),
     up: MigrateUp.new(),
   })

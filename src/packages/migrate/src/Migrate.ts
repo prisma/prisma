@@ -247,10 +247,6 @@ export class Migrate {
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
-  public async checkMigrationsDirectory(): Promise<boolean> {
-    return await exists(this.migrationsDirectoryPath)
-  }
-
   public async initialize(): Promise<void> {
     if (fs.existsSync(this.migrationsDirectoryPath)) {
       console.info('The project was already initialized.')

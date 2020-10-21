@@ -1,381 +1,261 @@
-import assert from 'assert'
-import del from 'del'
-import mkdir from 'make-dir'
-import fs from 'fs'
-import { promisify } from 'util'
-import { dirname, join } from 'path'
-import tempy from 'tempy'
-import dedent from 'strip-indent'
-import Database from 'sqlite-async'
-import stripAnsi from 'strip-ansi'
-import { Migrate } from '../Migrate'
-import { MigrateSave } from '../commands/legacy/MigrateSave'
+process.env.MIGRATE_SKIP_GENERATE = '1'
 
-const writeFile = promisify(fs.writeFile)
-const testRootDir = tempy.directory()
+import fs from 'fs-jetpack'
+import { MigrateCommand } from '../commands/MigrateCommand'
+import { consoleContext, Context } from './__helpers__/context'
+import { tearDownMysql } from '../utils/setupMysql'
+import {
+  SetupParams,
+  setupPostgres,
+  tearDownPostgres,
+} from '../utils/setupPostgres'
 
-const oldProcessCwd = process.cwd
+const ctx = Context.new().add(consoleContext()).assemble()
 
-describe('migrate.create', () => {
-  beforeEach(async () => {
-    process.cwd = () => testRootDir
-    await mkdir(testRootDir)
-  })
+let stdin
+beforeEach(() => {
+  stdin = require('mock-stdin').stdin()
+})
 
-  afterEach(async () => {
-    process.cwd = oldProcessCwd
-    await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
-  })
-
-  createTests().map((t) => {
-    // eslint-disable-next-line jest/expect-expect
-    test(t.name, async () => {
-      const schemaPath = join(testRootDir, Object.keys(t.fs)[0])
-      await writeFiles(testRootDir, t.fs)
-      await t.fn(schemaPath)
-    })
+describe('common', () => {
+  it('migrate should fail if no schema file', async () => {
+    ctx.fixture('empty')
+    const result = MigrateCommand.new().parse(['--experimental'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+                      Could not find a schema.prisma file that is required for this command.
+                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+                  `)
   })
 })
 
-// create a temporary set of files
-async function writeFiles(
-  root: string,
-  files: {
-    [name: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  },
-): Promise<string> {
-  for (const name in files) {
-    const filepath = join(root, name)
-    await mkdir(dirname(filepath))
-    await writeFile(filepath, dedent(files[name]))
+describe('sqlite', () => {
+  it('migrate first migration after init - empty schema', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateCommand.new().parse([
+      '--schema=./prisma/empty.prisma',
+      '--experimental',
+    ])
+    await expect(result).resolves.toMatchSnapshot()
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/empty.prisma
+
+      SQLite database dev.db created at file:dev.db
+
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it.skip('migrate first migration after init', async () => {
+    ctx.fixture('schema-only-sqlite')
+
+    setTimeout(() => stdin.send(`my migration name\r`), 500)
+
+    const result = MigrateCommand.new().parse(['--experimental'])
+
+    await expect(result).resolves.toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      SQLite database dev.db created at file:dev.db
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it.skip('migrate first migration after init', async () => {
+    ctx.fixture('schema-only-sqlite')
+
+    setTimeout(() => stdin.send(`my MigrationName\r`), 100)
+
+    const result = MigrateCommand.new().parse(['--experimental'])
+
+    await expect(result).resolves.toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      SQLite database dev.db created at file:dev.db
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+  })
+
+  it.skip('create draft migration and apply', async () => {
+    ctx.fixture('schema-only-sqlite')
+
+    setTimeout(() => stdin.send(`my Migration$$*(Name\r`), 100)
+
+    const draftResult = MigrateCommand.new().parse([
+      '--draft',
+      '--experimental',
+    ])
+
+    await expect(draftResult).resolves.toMatchSnapshot()
+
+    const applyResult = MigrateCommand.new().parse(['--experimental'])
+
+    await expect(applyResult).resolves.toMatchSnapshot()
+    expect(
+      (fs.list('prisma/migrations')?.length || 0) > 0,
+    ).toMatchInlineSnapshot(`true`)
+    expect(fs.exists('prisma/dev.db')).toEqual('file')
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      SQLite database dev.db created at file:dev.db
+
+      Prisma Schema loaded from prisma/schema.prisma
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  })
+})
+
+describe.skip('postgresql', () => {
+  const SetupParams: SetupParams = {
+    connectionString:
+      process.env.TEST_POSTGRES_URI_MIGRATE ||
+      'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    dirname: './fixtures',
   }
-  // return the test path
-  return root
-}
 
-function replaceTimestamp(string: string): string {
-  const regex = /[0-9]{14}/gm
-  return string.replace(regex, 'X'.repeat(14))
-}
+  beforeEach(async () => {
+    await setupPostgres(SetupParams).catch((e) => {
+      console.error(e)
+    })
+  })
 
-// create file tests
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-function createTests() {
-  return [
-    {
-      name: 'simple ok',
-      fs: {
-        'schema.prisma': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+  afterEach(async () => {
+    await tearDownPostgres(SetupParams).catch((e) => {
+      console.error(e)
+    })
+  })
 
-          model User {
-            id Int @id
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
-        const result = await migrate.save(migration!, 'setup')
-        migrate.stop()
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes('-setup'))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'spaces ok',
-      fs: {
-        'schema.prisma': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+  it('schema only', async () => {
+    ctx.fixture('schema-only-postgresql')
+    const result = MigrateCommand.new().parse(['--experimental'])
+    await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
+      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --experimental`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+  })
 
-          model User {
-            id Int @id
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('initial setup')
-        const result = await migrate.save(migration!, 'initial setup')
-        migrate.stop()
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes(`-initial-setup`))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'dashes ok',
-      fs: {
-        'schema.prisma': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+  it.skip('migrate first migration after init - empty schema', async () => {
+    ctx.fixture('schema-only-postgresql')
 
-          model User {
-            id Int @id
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('initial setup')
-        const result = await migrate.save(migration!, 'initial setup')
-        migrate.stop()
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes(`-initial-setup`))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'custom schema filename ok',
-      fs: {
-        'myawesomeschema.file': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+    const result = MigrateCommand.new().parse([
+      '--schema=./prisma/empty.prisma',
+      '--experimental',
+    ])
 
-          model User {
-            id Int @id
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
-        const result = await migrate.save(migration!, 'setup')
-        migrate.stop()
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes('-setup'))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'custom folder and schema filename name ok',
-      fs: {
-        'awesome/myawesomeschema.file': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:../db/db_file.db"
-            default = true
-          }
+    await expect(result).resolves.toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/empty.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
 
-          model User {
-            id Int @id
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
-        const result = await migrate.save(migration!, 'setup')
-        migrate.stop()
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes('-setup'))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'invalid ok',
-      fs: {
-        'schema.prisma': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+  it.skip('migrate first migration after init', async () => {
+    ctx.fixture('schema-only-postgresql')
 
-          model User {
-            id Int @id
-            canBeNull String?
-          }
-        `,
-        'schema-not-null.prisma': `
-          datasource my_db {
-            provider = "sqlite"
-            url = "file:./db/db_file.db"
-            default = true
-          }
+    setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
 
-          model User {
-            id Int @id
-            canBeNull String
-            requiredSomething String
-          }
-        `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup1')
-        const result = await migrate.save(migration!, 'setup1')
-        if (typeof result === 'undefined') {
-          return assert.fail(`result shouldn't be undefined`)
-        }
-        assert.ok(result.migrationId.includes('-setup1'))
-        assert.ok(result.newLockFile)
-        assert.ok(result.files['steps.json'])
-        assert.ok(result.files['schema.prisma'])
-        assert.ok(result.files['README.md'])
-        expect(migration?.datamodelSteps).toMatchSnapshot()
-        expect(migration?.warnings).toMatchSnapshot()
-        expect(migration?.unexecutableMigrations).toMatchSnapshot()
+    const result = MigrateCommand.new().parse(['--experimental'])
 
-        // Save from CLI - write files to filesystem
-        const resultSave = await MigrateSave.new().parse([
-          `--schema=${schemaPath}`,
-          `--name=init`,
-          '--experimental',
-        ])
-        expect(
-          replaceTimestamp(stripAnsi(resultSave as string)),
-        ).toMatchSnapshot()
+    await expect(result).resolves.toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
 
-        await migrate.upLegacy()
-        migrate.stop()
+  it.skip('migrate first migration after init --force', async () => {
+    ctx.fixture('schema-only-postgresql')
 
-        /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-        /* eslint-disable @typescript-eslint/no-unsafe-call */
-        /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-        const db = await Database.open(
-          schemaPath.replace('schema.prisma', 'db/db_file.db'),
-        )
-        await db.exec('INSERT INTO User (canBeNull) VALUES ("Something!")')
-        await db.close()
-        /* eslint-enable @typescript-eslint/no-unsafe-assignment */
-        /* eslint-enable @typescript-eslint/no-unsafe-call */
-        /* eslint-enable @typescript-eslint/no-unsafe-member-access */
+    setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
 
-        const schemaPath2 = schemaPath.replace(
-          'schema.prisma',
-          'schema-not-null.prisma',
-        )
-        const migrate2 = new Migrate(schemaPath2)
-        const migration2 = await migrate2.createMigration('setup2')
-        const result2 = await migrate2.save(migration2!, 'setup2')
-        migrate2.stop()
-        if (typeof result2 === 'undefined') {
-          return assert.fail(`result2 shouldn't be undefined`)
-        }
-        assert.ok(result2.migrationId.includes('-setup2'))
-        assert.ok(result2.newLockFile)
-        assert.ok(result2.files['steps.json'])
-        assert.ok(result2.files['schema.prisma'])
-        assert.ok(result2.files['README.md'])
-        expect(migration2?.datamodelSteps).toMatchSnapshot()
-        expect(migration2?.warnings).toMatchSnapshot()
+    const result = MigrateCommand.new().parse(['--experimental'])
 
-        const oldConsoleLog = console.log
-        const logs: string[] = []
-        console.log = (...args) => {
-          logs.push(...args)
-        }
+    await expect(result).resolves.toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
 
-        try {
-          // Save from CLI - write files to filesystem
-          await MigrateSave.new().parse([
-            `--schema=${schemaPath2}`,
-            `--name=init-2`,
-            '--experimental',
-          ])
-        } catch (e) {
-          // Should error with unexecutableMigrations:
-          /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-          expect(stripAnsi(e.message)).toMatchSnapshot()
-        }
-        console.log = oldConsoleLog
-        expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
-      },
-    },
-    {
-      name: 'simple debug panic',
-      fs: {
-        'schema.prisma': `
-      datasource my_db {
-        provider = "sqlite"
-        url = "file:./db/db_file.db"
-        default = true
-      }
+  it.skip('create draft migration and apply', async () => {
+    ctx.fixture('schema-only-postgresql')
 
-      model User {
-        id Int @id
-      }
-    `,
-        'db/.keep': ``,
-      },
-      fn: async (schemaPath: string): Promise<undefined> => {
-        const migrate = new Migrate(schemaPath)
+    setTimeout(() => stdin.send(`myDraftMigrationName\r`), 1500)
 
-        try {
-          await migrate.engine.debugPanic()
-        } catch (e) {
-          expect(
-            // remove hash
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            stripAnsi(e.message).replace(/\/rustc\/(.+)\//, '/rustc/hash/'),
-          ).toMatchSnapshot()
-        } finally {
-          migrate.stop()
-        }
-        return
-      },
-    },
-  ]
-}
+    const draftResult = MigrateCommand.new().parse([
+      '--draft',
+      '--experimental',
+    ])
+
+    await expect(draftResult).resolves.toMatchSnapshot()
+
+    const applyResult = MigrateCommand.new().parse(['--experimental'])
+    await expect(applyResult).resolves.toMatchSnapshot()
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+      Prisma Schema loaded from prisma/schema.prisma
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it.skip('existingdb: migrate first migration after init', async () => {
+    ctx.fixture('schema-only-postgresql')
+
+    setTimeout(() => stdin.send(`myDraftMigrationName\r`), 1500)
+
+    const result = MigrateCommand.new().parse(['--experimental'])
+
+    await expect(result).resolves.toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+})
+
+describe.skip('mysql', () => {
+  const SetupParams: SetupParams = {
+    connectionString: `${
+      process.env.TEST_MYSQL_URI || 'mysql://prisma:prisma@localhost:3306/tests'
+    }`,
+    dirname: __dirname,
+  }
+
+  beforeEach(async () => {
+    await tearDownMysql(SetupParams).catch((e) => {
+      console.error({ e })
+    })
+  })
+
+  afterAll(async () => {
+    await tearDownMysql(SetupParams).catch((e) => {
+      console.error({ e })
+    })
+  })
+})

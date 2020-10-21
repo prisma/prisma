@@ -13,7 +13,7 @@ beforeEach(() => {
 process.env.GITHUB_ACTIONS = '1'
 
 describe('reset', () => {
-  it('reset if no schema file should fail', async () => {
+  it('if no schema file should fail', async () => {
     ctx.fixture('empty')
 
     const result = MigrateReset.new().parse(['--experimental'])
@@ -23,21 +23,7 @@ describe('reset', () => {
         `)
   })
 
-  it('reset without the migrations directory should fail', async () => {
-    ctx.fixture('reset')
-    ctx.fs.remove('prisma/migrations')
-
-    const result = MigrateReset.new().parse(['--force', '--experimental'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-                      Generic error: An error occurred when reading the migrations directory.
-
-                  `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
-
-  it('reset with missing db should fail', async () => {
+  it('with missing db should fail', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
@@ -54,7 +40,7 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('reset should work', async () => {
+  it('should work', async () => {
     ctx.fixture('reset')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
@@ -75,8 +61,25 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
+  it('without the migrations directory should fail', async () => {
+    ctx.fixture('reset')
+    ctx.fs.remove('prisma/migrations')
+
+    const result = MigrateReset.new().parse(['--force', '--experimental'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Database reset successful - Prisma Migrate didn't find unapplied migrations.
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
   // commented because can't run on CI
-  it.skip('reset should be cancelled if user send n', async () => {
+  it.skip('should be cancelled if user send n', async () => {
     ctx.fixture('reset')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
@@ -103,7 +106,7 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('reset should work with --force', async () => {
+  it('should work with --force', async () => {
     ctx.fixture('reset')
     const result = MigrateReset.new().parse(['--force', '--experimental'])
     await expect(result).resolves.toMatchInlineSnapshot(``)

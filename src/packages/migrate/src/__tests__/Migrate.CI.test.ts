@@ -14,19 +14,6 @@ import {
 const ctx = Context.new().add(consoleContext()).assemble()
 
 describe('common', () => {
-  it('migrate in folder with schema only no migrations directory should fail', async () => {
-    ctx.fixture('schema-only')
-    const result = MigrateCommand.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `You need to initialize the migrations by running prisma migrate init --experimental.`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
-  })
-
   it('migrate should fail if no schema file', async () => {
     ctx.fixture('empty')
     const result = MigrateCommand.new().parse(['--experimental'])
@@ -38,8 +25,8 @@ describe('common', () => {
 })
 
 describe('sqlite', () => {
-  it('migrate first migration after init - empty schema', async () => {
-    ctx.fixture('initialized-sqlite')
+  it('first migration after init - empty.prisma', async () => {
+    ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
       '--experimental',
@@ -59,8 +46,8 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init', async () => {
-    ctx.fixture('initialized-sqlite')
+  it('first migration after init', async () => {
+    ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--experimental',
@@ -84,8 +71,8 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init --force', async () => {
-    ctx.fixture('initialized-sqlite')
+  it('first migration after init --force', async () => {
+    ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--force',
@@ -110,8 +97,8 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
   })
 
-  it('create draft migration and apply', async () => {
-    ctx.fixture('initialized-sqlite')
+  it('draft migration and apply', async () => {
+    ctx.fixture('schema-only-sqlite')
     const draftResult = MigrateCommand.new().parse([
       '--draft',
       '--name=first',
@@ -162,8 +149,28 @@ describe('postgresql', () => {
     })
   })
 
-  it('migrate first migration after init - empty schema', async () => {
-    ctx.fixture('initialized-postgresql')
+  it('schema only', async () => {
+    ctx.fixture('schema-only-postgresql')
+    const result = MigrateCommand.new().parse(['--experimental'])
+    await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
+      `undefined`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_/
+          └─ migration.sql
+    `)
+  })
+
+  it('first migration after init - empty.prisma', async () => {
+    ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
       '--experimental',
@@ -180,8 +187,8 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init', async () => {
-    ctx.fixture('initialized-postgresql')
+  it('first migration after init', async () => {
+    ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--experimental',
@@ -202,8 +209,8 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('migrate first migration after init --force', async () => {
-    ctx.fixture('initialized-postgresql')
+  it('first migration after init --force', async () => {
+    ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--force',
@@ -225,8 +232,8 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('create draft migration and apply', async () => {
-    ctx.fixture('initialized-postgresql')
+  it('draft migration and apply', async () => {
+    ctx.fixture('schema-only-postgresql')
     const draftResult = MigrateCommand.new().parse([
       '--draft',
       '--name=first',
@@ -249,8 +256,8 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('existingdb: migrate first migration after init', async () => {
-    ctx.fixture('initialized-postgresql')
+  it('existingdb: first migration after init', async () => {
+    ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--experimental',

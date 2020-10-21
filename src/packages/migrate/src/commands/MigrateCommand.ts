@@ -60,7 +60,6 @@ export class MigrateCommand implements Command {
 
     ${chalk.bold('Commands')}
 
-          init    Initalize project for migrations
           up      Migrate your database up
           reset   Reset your database. All data will be lost. 
 
@@ -153,14 +152,6 @@ export class MigrateCommand implements Command {
     }
 
     const migrate = new Migrate(schemaPath)
-
-    if (!(await migrate.checkMigrationsDirectory())) {
-      throw new Error(
-        `You need to initialize the migrations by running ${chalk.greenBright(
-          getCommandWithExecutor('prisma migrate init --experimental'),
-        )}.`,
-      )
-    }
 
     if (args['--draft']) {
       let migrationName: undefined | string = undefined

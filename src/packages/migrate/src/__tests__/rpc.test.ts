@@ -15,8 +15,8 @@ it('getDatabaseVersion', async () => {
 })
 
 // migration is not yet applied
-it('evaluateDataLoss - initialized-sqlite', async () => {
-  ctx.fixture('initialized-sqlite')
+it('evaluateDataLoss - schema-only-sqlite', async () => {
+  ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
   const datamodel = await migrate.getDatamodel()
@@ -62,7 +62,7 @@ it('evaluateDataLoss - existing-db-1-migration', async () => {
 })
 
 it('createMigration - existing-db-1-migration', async () => {
-  ctx.fixture('initialized-sqlite')
+  ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
   const datamodel = await migrate.getDatamodel()
@@ -155,7 +155,7 @@ it('applyMigrations - should fail on existing brownfield db', async () => {
 })
 
 it('push', async () => {
-  ctx.fixture('initialized-sqlite')
+  ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
   const datamodel = await migrate.getDatamodel()
