@@ -44,32 +44,14 @@ describe('drop', () => {
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = DbDrop.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
-
-            ! Unknown or unexpected option: --experimental
-
-            Delete the database provided in your schema.prisma
-
-            Usage
-
-              $ prisma db drop
-
-            Options
-
-              -h, --help       Displays this help message
-              -f, --force      Skip the confirmation prompt
-
-            Examples
-
-              Delete the database provided in your schema.prisma
-              $ prisma db drop
-
-              Using --force to ignore data loss warning confirmation
-              $ prisma db drop --force
+            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -96,7 +78,7 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the drop command in an unnattended environment like prisma drop --force --experimental`,
+      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -107,32 +89,14 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
-
-            ! Unknown or unexpected option: --experimental
-
-            Delete the database provided in your schema.prisma
-
-            Usage
-
-              $ prisma db drop
-
-            Options
-
-              -h, --help       Displays this help message
-              -f, --force      Skip the confirmation prompt
-
-            Examples
-
-              Delete the database provided in your schema.prisma
-              $ prisma db drop
-
-              Using --force to ignore data loss warning confirmation
-              $ prisma db drop --force
+            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -142,32 +106,14 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
-
-            ! Unknown or unexpected option: --experimental
-
-            Delete the database provided in your schema.prisma
-
-            Usage
-
-              $ prisma db drop
-
-            Options
-
-              -h, --help       Displays this help message
-              -f, --force      Skip the confirmation prompt
-
-            Examples
-
-              Delete the database provided in your schema.prisma
-              $ prisma db drop
-
-              Using --force to ignore data loss warning confirmation
-              $ prisma db drop --force
+            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
