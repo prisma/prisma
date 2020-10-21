@@ -1,9 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`connection-limit the client cannot query the db with 100 connections already open 1`] = `
-
-Invalid \`prisma.queryRaw()\` invocation:
-
-
-  Error in connector: Error querying the database: db error: FATAL: sorry, too many clients already
-`;
