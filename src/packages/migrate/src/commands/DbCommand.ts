@@ -20,22 +20,13 @@ export class DbCommand implements Command {
       process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
     }Powerful Prisma db commands from your terminal
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    'This functionality is currently in an experimental state.',
-  )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
-
     ${chalk.bold('Usage')}
 
       With an existing schema.prisma:
-      ${chalk.dim('$')} prisma db [command] [options] --experimental
+      ${chalk.dim('$')} prisma db [command] [options]
 
       Or specify a schema:
-      ${chalk.dim(
-        '$',
-      )} prisma db [command] [options] --experimental --schema=./schema.prisma
+      ${chalk.dim('$')} prisma db [command] [options] --schema=./schema.prisma
 
     ${chalk.bold('Options')}
 
@@ -48,7 +39,7 @@ export class DbCommand implements Command {
     ${chalk.bold('Examples')}
 
       Using prisma db push
-      ${chalk.dim('$')} prisma db push --experimental
+      ${chalk.dim('$')} prisma db push
   `)
   private constructor(private readonly cmds: Commands) {}
 
@@ -57,7 +48,6 @@ export class DbCommand implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--experimental': Boolean,
       '--telemetry-information': String,
     })
 
@@ -73,10 +63,7 @@ export class DbCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
-        : args._.slice(1)
-      return cmd.parse(argsForCmd)
+      return cmd.parse(args._)
     }
 
     return unknownCommand(DbCommand.help, args._[0])
