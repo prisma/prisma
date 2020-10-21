@@ -4,14 +4,15 @@ import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
+import { tearDownPostgres } from '../../../../utils/setupPostgres'
 
 beforeAll(async () => {
-  process.env.TEST_POSTGRES_URI += '-native-types-tests-postgres'
+  process.env.TEST_POSTGRES_URI += '-native-types-tests4'
+  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma')
   })
-  console.log(`Successfully migrated db at ${process.env.TEST_POSTGRES_URI}`)
 })
 
 test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, BigSerial', async () => {
@@ -78,7 +79,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
   await prisma.b.deleteMany()
 
   let data: any = {
-    float: 1.2,
+    float: 1.1,
     dFloat: 1.3,
     decFloat: 1.23,
     numFloat: '23.12',
@@ -99,15 +100,14 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
   expect(Decimal.isDecimal(b.decFloat)).toBe(true)
   expect(Decimal.isDecimal(b.numFloat)).toBe(true)
 
+  const mappedData = {
+    float: 1.1,
+    dFloat: 1.3,
+    decFloat: new Decimal(1.2),
+    numFloat: new Decimal('23.12')
+  }
 
-  expect(b).toMatchInlineSnapshot(`
-    Object {
-      decFloat: 1.2,
-      dFloat: 1.3,
-      float: 1.2000001,
-      numFloat: 23.12,
-    }
-  `)
+  expect(b).toEqual(mappedData)
 
   data = {
     float: 1,

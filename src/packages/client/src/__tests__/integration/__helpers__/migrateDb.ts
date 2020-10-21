@@ -8,29 +8,10 @@ export type MigrateOptions = {
 
 export async function migrateDb({ connectionString, schemaPath }: MigrateOptions) {
   const created = await createDatabase(connectionString)
-  console.log(created)
   const migrate = new Migrate(schemaPath)
 
-  // const migration = await migrate.createMigration('DUMMY')
-  // const { files, newLockFile, migrationId } = await migrate.save(
-  //   migration!,
-  //   'DUMMY',
-  //   false,
-  // )
-
-  try {
-    await migrate.up({
-      short: true,
-      autoApprove: true
-    })
-  } catch (e) {
-    console.error(e)
-  }
-
-  await migrate.watchUp({
-    providerAliases: {},
-    autoApprove: true,
-    skipGenerate: true
+  await migrate.push({
+    force: true
   })
 
   migrate.stop()

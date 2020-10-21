@@ -2,14 +2,15 @@ import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
+import { tearDownMysql } from '../../../../utils/setupMysql'
 
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-native-types4'
+  await tearDownMysql(process.env.TEST_MYSQL_URI!)
   await migrateDb({
     connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
-  console.log(`Successfully migrated db at ${process.env.TEST_MYSQL_URI}`)
 })
 
 test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async () => {
@@ -113,10 +114,10 @@ test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText'
   const data = {
     char: 'f0f0f0f0f0',
     vChar: '12345678901',
-    tText: 'foo',
-    text: 'txt ➡️',
-    mText: '🥳',
-    lText: '🔥',
+    tText: 'f'.repeat(255),
+    text: 'l'.repeat(65_000),
+    mText: '🥳'.repeat(70_000),
+    lText: '🔥'.repeat(80_000),
   }
 
   const c = await prisma.c.create({
