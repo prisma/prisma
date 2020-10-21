@@ -13,7 +13,7 @@ const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
 const lockFile = path.join(binaryDir, 'download-lock')
 
 let createdLockFile = false
-export async function main() {
+module.exports = async function main() {
   if (
     fs.existsSync(lockFile) &&
     JSON.parse(
