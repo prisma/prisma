@@ -67,7 +67,6 @@
     "@types/fs-extra": "9.0.1",
     "@types/jest": "26.0.14",
     "@types/js-levenshtein": "1.1.0",
-    "@types/mssql": "6.0.5",
     "@types/node": "12.12.62",
     "@types/node-fetch": "2.5.7",
     "@types/pg": "7.14.5",
