@@ -321,9 +321,14 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  private async resolvePrismaPath(): Promise<string> {
+  private async resolvePrismaPath(): Promise<{
+    prismaPath: string
+    searchedLocations: string[]
+  }> {
+    const searchedLocations: string[] = []
+    let enginePath
     if (this.prismaPath) {
-      return this.prismaPath
+      return { prismaPath: this.prismaPath, searchedLocations }
     }
 
     const platform = await this.getPlatform()
@@ -335,56 +340,39 @@ You may have to run ${chalk.greenBright(
 
     if (__filename.includes('NodeEngine')) {
       // TODO: Use engines package here
-      return this.getQueryEnginePath(
+      enginePath = this.getQueryEnginePath(
         this.platform,
         getEnginesPath(),
       )
-    } else {
-      const dotPrismaPath = await this.getQueryEnginePath(
-        this.platform,
-        eval(`require('path').join(__dirname, '../../../.prisma/client')`),
-      )
-      debug({ dotPrismaPath })
-      if (fs.existsSync(dotPrismaPath)) {
-        return dotPrismaPath
-      }
-      const dirnamePath = await this.getQueryEnginePath(
-        this.platform,
-        eval('__dirname'),
-      )
-      debug({ dirnamePath })
-      if (fs.existsSync(dirnamePath)) {
-        return dirnamePath
-      }
-      const parentDirName = await this.getQueryEnginePath(
-        this.platform,
-        path.join(eval('__dirname'), '..'),
-      )
-      debug({ parentDirName })
-      if (fs.existsSync(parentDirName)) {
-        return parentDirName
-      }
-      const datamodelDirName = await this.getQueryEnginePath(
-        this.platform,
-        path.dirname(this.datamodelPath),
-      )
-      if (fs.existsSync(datamodelDirName)) {
-        return datamodelDirName
-      }
-      const cwdPath = await this.getQueryEnginePath(this.platform, this.cwd)
-      if (fs.existsSync(cwdPath)) {
-        return cwdPath
-      }
-      const prismaPath = await this.getQueryEnginePath(this.platform)
-      debug({ prismaPath })
-      return prismaPath
+      return { prismaPath: enginePath, searchedLocations: [path.resolve(__dirname, `..`)] }
     }
+    const searchPaths: string[] = [
+      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
+      eval('__dirname'), 
+      path.join(eval('__dirname'), '..'), // parentDirName
+      path.dirname(this.datamodelPath), // Datamodel Dir
+      this.cwd, //cwdPath
+    ]
+
+    for (let i = 0; i < searchPaths.length; i++) {
+      const location = searchPaths[i]
+      if(!searchedLocations.includes(location)){
+        searchedLocations.push(location)
+        debug(`Searching for Query Engine in ${location}`)
+        enginePath = await this.getQueryEnginePath(this.platform, location)
+        if (fs.existsSync(enginePath)) {
+          return { prismaPath: enginePath, searchedLocations }
+        }
+      }
+    }
+    enginePath = await this.getQueryEnginePath(this.platform)
+
+    return { prismaPath: enginePath ?? '', searchedLocations }
   }
 
   // get prisma path
   private async getPrismaPath(): Promise<string> {
-    const prismaPath = await this.resolvePrismaPath()
-    // console.log({ prismaPath })
+    const { prismaPath, searchedLocations } = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
@@ -394,22 +382,15 @@ You may have to run ${chalk.greenBright(
         )}\n`
         : ''
 
-      const dir = path.dirname(prismaPath)
-      const dirExists = fs.existsSync(dir)
-      let files = []
-      if (dirExists) {
-        files = await readdir(dir)
-      }
       let errorText = `Query engine binary for current platform "${chalk.bold(
         platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in "${chalk.underline(prismaPath)}")
 
-Files in ${dir}:
+Searched Directories:
 
-${files.map((f) => `  ${f}`).join('\n')}\n`
-
+${searchedLocations.map((f) => `  ${f}`).join('\n')}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️

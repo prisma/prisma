@@ -333,9 +333,22 @@ exports.dmmf = JSON.parse(dmmfString)
  * Create the Client
  */
 
+function fixNextPath(output){
+  // Test if it is a custom output on next
+  const re =  /\\/vercel\\/workpath0\\/(?!node_modules)/g
+  if(output && re.test(output)){
+    console.log("Fixing Path for NextJS")
+    return output.replace('/vercel/workpath0/', './')
+  } 
+  if(output){
+    return output
+  }
+  return __dirname
+}
+
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
-config.dirname = __dirname
+config.dirname = fixNextPath(config.generator?.output)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`

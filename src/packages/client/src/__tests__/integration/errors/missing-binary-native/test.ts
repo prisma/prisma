@@ -37,11 +37,12 @@ test('missing-binary-native', async () => {
           This probably happens, because you built Prisma Client on a different platform.
           (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
-          Files in /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime:
+          Searched Directories:
 
-            index.d.ts
-            index.js
-            index.js.map
+            /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime
+            /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client
+            /client/src/__tests__/integration/errors/missing-binary-native
 
           You already added the platform "native" to the "generator" block
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
