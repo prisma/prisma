@@ -25,6 +25,10 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
+  if (activeDatasource.provider[0] === 'sqlserver') {
+    throw new Error(`sqlserver can't be migrated yet`)
+  }
+
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
