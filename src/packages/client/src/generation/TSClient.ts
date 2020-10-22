@@ -338,7 +338,7 @@ function fixNextPath(output){
   const re =  /\\/vercel\\/workpath0\\/(?!node_modules)/g
   if(output && re.test(output)){
     console.log("Fixing Path for NextJS")
-    return output.replace('/vercel/workpath0/', './')
+    return path.resolve(output.replace('/vercel/workpath0/', './'))
   } 
   if(output){
     return output
