@@ -8,21 +8,27 @@ export const database = {
   datasource: {
     url: ctx => getConnectionInfo(ctx).connectionString,
   },
-  connect(ctx) {
+  connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
-    return sql.connect({
+    const pool = new sql.ConnectionPool({
       user: credentials.user,
       password: credentials.password,
       server: credentials.server,
       database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
+      pool: {
+        max: 1,
+      },
+      options: {
+        enableArithAbort: false,
+      },
     })
+    return pool.connect()
   },
-  send: (db, sql) => db.query(sql),
-  close: db => db.close(),
+  send: (pool, sql) => pool.request().query(sql),
+  close: pool => pool.close(),
   up: ctx => {
     return `
-    IF EXISTS (SELECT * FROM SysDatabases WHERE NAME='master_${ctx.id}')
-      DROP DATABASE master_${ctx.id};
+    DROP DATABASE IF EXISTS master_${ctx.id};
     CREATE DATABASE master_${ctx.id};`
   },
 } as Input['database']
