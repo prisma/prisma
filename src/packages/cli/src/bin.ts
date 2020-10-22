@@ -155,6 +155,7 @@ async function main(): Promise<number> {
       'version',
       'init',
       'migrate',
+      'db',
       'tmp-prepare',
       'introspect',
       'dev',
