@@ -423,7 +423,7 @@ class PrismaClientClass implements Generatable {
   private get jsDoc(): string {
     const { dmmf } = this
 
-    const example = dmmf.mappings[0]
+    const example = dmmf.mappings.modelOperations[0]
     return `/**
  * ##  Prisma Client ʲˢ
  * 
@@ -652,9 +652,8 @@ ${indent(this.jsDoc, tab)}
    * @deprecated renamed to \`$queryRaw\`
    */
   queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
-${
-  this.generator?.previewFeatures?.includes('transactionApi')
-    ? `
+${this.generator?.previewFeatures?.includes('transactionApi')
+        ? `
   /**
    * Execute queries in a transaction
    * @example
@@ -675,7 +674,7 @@ ${
         : ''
       }
 ${indent(
-        dmmf.mappings
+        dmmf.mappings.modelOperations
           .filter((m) => m.findMany)
           .map((m) => {
             const methodName = lowerCase(m.model)
@@ -777,7 +776,7 @@ ${indent(
 
 export class Model implements Generatable {
   protected outputType?: OutputType
-  protected mapping?: DMMF.Mapping
+  protected mapping?: DMMF.ModelMapping
   constructor(
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
@@ -785,7 +784,7 @@ export class Model implements Generatable {
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(outputType)
-    this.mapping = dmmf.mappings.find((m) => m.model === model.name)!
+    this.mapping = dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
     const { mapping, model } = this
@@ -996,7 +995,7 @@ ${this.argsTypes.map(TS).join('\n')}
 
 function getMethodJSDocBody(
   action: DMMF.ModelAction,
-  mapping: DMMF.Mapping,
+  mapping: DMMF.ModelMapping,
   model: DMMF.Model,
 ): string {
   const singular = capitalize(mapping.model)
@@ -1156,7 +1155,7 @@ const ${lowerCase(mapping.model)} = await ${method}({
 
 function getMethodJSDoc(
   action: DMMF.ModelAction,
-  mapping: DMMF.Mapping,
+  mapping: DMMF.ModelMapping,
   model: DMMF.Model,
 ): string {
   return wrapComment(getMethodJSDocBody(action, mapping, model))

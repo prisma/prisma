@@ -98,9 +98,6 @@ export class Migrate {
   public watchUp = simpleDebounce(
     async (
       {
-        preview,
-        providerAliases,
-        clear,
         onWarnings,
         autoApprove,
         skipGenerate
@@ -128,7 +125,6 @@ export class Migrate {
 
         if (migration) {
           debug('There is a migration we are going to apply now')
-          const before = Date.now()
           await this.engine.applyMigration({
             force: true,
             migrationId: migration.id,
@@ -145,7 +141,6 @@ export class Migrate {
             migration,
             lastMigration: lastWatchMigration,
           })
-          const after = Date.now()
         } else {
           debug(`No migration to apply`)
         }
@@ -192,11 +187,12 @@ export class Migrate {
   // tsline:enable
   private datamodelBeforeWatch = ''
   private schemaPath: string
-  constructor(schemaPath?: string) {
+  constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     this.schemaPath = this.getSchemaPath(schemaPath)
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
+      enabledPreviewFeatures
     })
   }
 

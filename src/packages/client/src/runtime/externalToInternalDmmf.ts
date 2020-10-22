@@ -17,10 +17,10 @@ export function externalToInternalDmmf(
 }
 
 function getMappings(
-  mappings: ExternalDMMF.Mapping[],
+  mappings: ExternalDMMF.Mappings,
   datamodel: DMMF.Datamodel,
-): DMMF.Mapping[] {
-  return mappings
+): DMMF.Mappings {
+  const modelOperations = mappings.modelOperations
     .filter((mapping) => {
       const model = datamodel.models.find((m) => m.name === mapping.model)
       if (!model) {
@@ -42,4 +42,9 @@ function getMappings(
       upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
       aggregate: mapping.aggregate,
     }))
+
+  return {
+    modelOperations,
+    otherOperations: mappings.otherOperations
+  }
 }
