@@ -44,6 +44,7 @@ importers:
       typescript: 4.0.3
   packages/cli:
     dependencies:
+      '@prisma/bar': 0.0.0
       '@prisma/engines': 2.10.0-cf4c62ca39c6a3eaf9fd0ff5541ae445154c4d7c
     devDependencies:
       '@prisma/client': 'link:../client'
@@ -112,6 +113,7 @@ importers:
       verror: 1.10.0
       ws: 7.3.1
     specifiers:
+      '@prisma/bar': ^0.0.0
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
       '@prisma/engines': 2.10.0-cf4c62ca39c6a3eaf9fd0ff5541ae445154c4d7c
@@ -1345,6 +1347,10 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-1V9XOY4rDW0rehzbrcqAmHnz8e7SKvX27gh8Gt2WgB0+pdzdiLV83p72kZPU+jvMbS1qU5mauP2iOvO8rhmurQ==
+  /@prisma/bar/0.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-3nez9n/vMyAr4+nmqj6Xh3cGZbreYHr3RWX0vgtrFRpiN6otuCzL+9HW8MW/DfZNuFz5YyIdfwnRSPueUZPoWQ==
   /@prisma/ci-info/2.1.2:
     dev: true
     resolution:
