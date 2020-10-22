@@ -96,7 +96,7 @@ export class DbDrop implements Command {
     console.info() // empty line
 
     if (!args['--force']) {
-      if (isCi) {
+      if (isCi()) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor('prisma db drop --force'),
