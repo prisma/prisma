@@ -348,7 +348,7 @@ function fixNextPath(output){
 
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
-config.dirname = fixNextPath(config.generator?.output)
+config.dirname = fixNextPath(config.generator.output)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
