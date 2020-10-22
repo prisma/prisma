@@ -311,7 +311,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   await ctx.fs.dirAsync('.')
 
   if (input.database.name === 'sqlserver') {
-    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
+    state.db = await input.database.connect({ ...ctx, step: 'database' })
     const databaseUpSQL = input.database.up?.(ctx) ?? ''
     await input.database.send(state.db, databaseUpSQL)
     await input.database.close?.(state.db)
