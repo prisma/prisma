@@ -5,9 +5,9 @@ To setup and build the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
-npm i -g pnpm@5.1.7 esbuild@0.7.9 --unsafe-perm
+npm i -g pnpm@5.1.7 --unsafe-perm
 cd prisma/src
-pnpm i --ignore-scripts
+pnpm i
 pnpm run setup
 ```
 
@@ -16,7 +16,6 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 ### General Prerequisites
 
 1. Install [`pnpm@5.1.7`](https://pnpm.js.org/) (for installing npm dependencies)
-1. Install [`esbuild@0.7.9`](https://github.com/evanw/esbuild) (for building cli and client)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node scripts written in TypeScript)
 

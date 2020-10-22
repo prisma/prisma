@@ -56,11 +56,11 @@ export class Generate implements Command {
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
           ? chalk.dim(
-              ` to .${path.sep}${path.relative(
-                process.cwd(),
-                generator.options!.generator.output!,
-              )}`,
-            )
+            ` to .${path.sep}${path.relative(
+              process.cwd(),
+              generator.options!.generator.output!,
+            )}`,
+          )
           : ''
         const name = generator.manifest
           ? generator.manifest.prettyName
@@ -71,8 +71,7 @@ export class Generate implements Command {
           const after = Date.now()
           const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${
-              version ? ` (version: ${version})` : ''
+            `✔ Generated ${chalk.bold(name!)}${version ? ` (version: ${version})` : ''
             }${toStr} in ${formatms(after - before)}\n`,
           )
           generator.stop()
@@ -194,11 +193,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         const importPath = prismaClientJSGenerator.options?.generator
           ?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              path.relative(
-                process.cwd(),
-                prismaClientJSGenerator.options?.generator.output!,
-              ),
-            )
+            path.relative(
+              process.cwd(),
+              prismaClientJSGenerator.options?.generator.output!,
+            ),
+          )
           : '@prisma/client'
         hint = `
 You can now start using Prisma Client in your code:

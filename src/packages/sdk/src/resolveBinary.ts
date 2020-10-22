@@ -5,6 +5,7 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import { getPlatform } from '@prisma/get-platform'
 import { plusX } from '@prisma/engine-core/dist/util'
+import { getEnginesPath } from '@prisma/engines'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
@@ -51,16 +52,11 @@ export async function resolveBinary(
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
   const binaryName = `${name}-${platform}${extension}`
-  let prismaPath = path.join(dir, '..', binaryName)
+  let prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
   // for pkg
-  prismaPath = path.join(dir, '../..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
-  }
-
   prismaPath = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)

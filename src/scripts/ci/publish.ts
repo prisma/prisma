@@ -13,6 +13,7 @@ import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
 import { unique } from './unique'
 import pMap from 'p-map'
+import slugify from '@sindresorhus/slugify'
 
 export type Commit = {
   date: Date
@@ -209,6 +210,10 @@ type PackagesWithNewVersions = { [packageName: string]: PackageWithNewVersion }
 export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>(
     (acc, [name, pkg]) => {
+      let usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
+      if (name === '@prisma/client') {
+        usesDev = usesDev.filter(d => d !== '@prisma/migrate')
+      }
       acc[name] = {
         version: pkg.packageJson.version,
         name,
@@ -216,10 +221,9 @@ export function getPackageDependencies(packages: RawPackages): Packages {
         usedBy: [],
         usedByDev: [],
         uses: getPrismaDependencies(pkg.packageJson.dependencies),
-        usesDev: getPrismaDependencies(pkg.packageJson.devDependencies),
+        usesDev,
         packageJson: pkg.packageJson,
       }
-
       return acc
     },
     {},
@@ -347,7 +351,7 @@ async function getNewIntegrationVersion(packages: Packages, branch: string): Pro
   const versions = await getAllVersions(packages, 'integration', `${nextStable}-integration-${branchWithoutPrefix}`)
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
 
-  const version = `${nextStable}-integration-${branchWithoutPrefix}.${maxIntegration + 1}`
+  const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${maxIntegration + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
   return version
 }
@@ -934,6 +938,13 @@ async function publishPackages(
   for (const currentBatch of publishOrder) {
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
+
+      // @prisma/engines & @prisma/engines-version are published outside of this script
+      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      if (packagesNotToPublish.includes(pkgName)) {
+        continue
+      }
+
       const pkgDir = path.dirname(pkg.path)
 
       let newVersion = prisma2Version

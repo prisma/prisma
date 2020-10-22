@@ -37,7 +37,7 @@ describe('int-errors', () => {
   afterAll(async () => {
     prisma.$disconnect()
 
-    await tearDownMysql(SetupParams).catch((e) => {
+    await tearDownMysql(SetupParams.connectionString).catch((e) => {
       console.log(e)
     })
   })

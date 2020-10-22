@@ -10,6 +10,7 @@ import path from 'path'
 import { performance } from 'perf_hooks'
 import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
+import { getEnginesPath } from '@prisma/engines'
 import Debug from '@prisma/debug'
 const debug = Debug('generateInFolder')
 import copy from '@timsuchanek/copy'
@@ -90,12 +91,14 @@ export async function generateInFolder({
     )
   }
 
+  const enginesPath = getEnginesPath()
+
   await generateClient({
     binaryPaths: {
       queryEngine: {
         [platform]: path.join(
-          __dirname,
-          `../../query-engine-${platform}${platform === 'windows' ? '.exe' : ''
+          enginesPath,
+          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''
           }`,
         ),
       },

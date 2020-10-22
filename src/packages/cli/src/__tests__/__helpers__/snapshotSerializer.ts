@@ -36,6 +36,9 @@ function normalizeRustError(str) {
     .replace(/(\[.*)(:\d*:\d*)(\])/g, '$1:0:0$3')
 }
 
+function normalizeTmpDir(str) {
+  return str.replace(/\/tmp\/([a-z0-9]+)\//g, '/tmp/dir/')
+}
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -50,8 +53,12 @@ const serializer = {
     return prepareSchemaForSnapshot(
       normalizeGithubLinks(
         normalizeRustError(
-          normalizeToUnixPaths(
-            removePlatforms(trimErrorPaths(stripAnsi(message))),
+          normalizeTmpDir(
+            normalizeGithubLinks(
+              normalizeToUnixPaths(
+                removePlatforms(trimErrorPaths(stripAnsi(message))),
+              ),
+            ),
           ),
         ),
       ),
