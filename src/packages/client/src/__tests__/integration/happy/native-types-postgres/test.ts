@@ -1,14 +1,10 @@
-import { omit } from '../../../../omit'
-import { pick } from '../../../../pick'
 import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
-import { tearDownPostgres } from '../../../../utils/setupPostgres'
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-native-types-tests'
-  await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma')

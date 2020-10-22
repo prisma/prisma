@@ -15,6 +15,7 @@ export interface MigrateEngineOptions {
   schemaPath: string
   binaryPath?: string
   debug?: boolean
+  enabledPreviewFeatures?: string[]
 }
 
 export interface RPCPayload {
@@ -46,13 +47,15 @@ export class MigrateEngine {
   private lastRequest?: any
   private lastError?: any
   private initPromise?: Promise<void>
-  constructor({ projectDir, debug = false, schemaPath }: MigrateEngineOptions) {
+  private enabledPreviewFeatures?: string[]
+  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
       Debug.enable('MigrateEngine*')
     }
     this.debug = debug
+    this.enabledPreviewFeatures = enabledPreviewFeatures
   }
   public stop(): void {
     this.child!.kill()
@@ -164,7 +167,11 @@ export class MigrateEngine {
         const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
-        this.child = spawn(binaryPath, ['-d', this.schemaPath], {
+        const args = ['-d', this.schemaPath]
+        if (this.enabledPreviewFeatures && Array.isArray(this.enabledPreviewFeatures) && this.enabledPreviewFeatures.length > 0) {
+          args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
+        }
+        this.child = spawn(binaryPath, args, {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
@@ -302,8 +309,7 @@ export class MigrateEngine {
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
-                    response.error.message
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message
                   }\n\n${text}\n`,
                 ),
               )

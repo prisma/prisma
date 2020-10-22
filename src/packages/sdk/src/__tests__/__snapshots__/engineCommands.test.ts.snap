@@ -270,21 +270,30 @@ Object {
       },
     ],
   },
-  "mappings": Array [
-    Object {
-      "aggregate": "aggregateUser",
-      "createOne": "createOneUser",
-      "deleteMany": "deleteManyUser",
-      "deleteOne": "deleteOneUser",
-      "findFirst": "findFirstUser",
-      "findMany": "findManyUser",
-      "findOne": "findOneUser",
-      "model": "User",
-      "updateMany": "updateManyUser",
-      "updateOne": "updateOneUser",
-      "upsertOne": "upsertOneUser",
+  "mappings": Object {
+    "modelOperations": Array [
+      Object {
+        "aggregate": "aggregateUser",
+        "createOne": "createOneUser",
+        "deleteMany": "deleteManyUser",
+        "deleteOne": "deleteOneUser",
+        "findFirst": "findFirstUser",
+        "findMany": "findManyUser",
+        "findOne": "findOneUser",
+        "model": "User",
+        "updateMany": "updateManyUser",
+        "updateOne": "updateOneUser",
+        "upsertOne": "upsertOneUser",
+      },
+    ],
+    "otherOperations": Object {
+      "read": Array [],
+      "write": Array [
+        "executeRaw",
+        "queryRaw",
+      ],
     },
-  ],
+  },
   "schema": Object {
     "enums": Array [
       Object {
@@ -2266,60 +2275,69 @@ Object {
       },
     ],
   },
-  "mappings": Array [
-    Object {
-      "aggregate": "aggregatePost",
-      "createOne": "createOnePost",
-      "deleteMany": "deleteManyPost",
-      "deleteOne": "deleteOnePost",
-      "findFirst": "findFirstPost",
-      "findMany": "findManyPost",
-      "findOne": "findOnePost",
-      "model": "Post",
-      "updateMany": "updateManyPost",
-      "updateOne": "updateOnePost",
-      "upsertOne": "upsertOnePost",
+  "mappings": Object {
+    "modelOperations": Array [
+      Object {
+        "aggregate": "aggregatePost",
+        "createOne": "createOnePost",
+        "deleteMany": "deleteManyPost",
+        "deleteOne": "deleteOnePost",
+        "findFirst": "findFirstPost",
+        "findMany": "findManyPost",
+        "findOne": "findOnePost",
+        "model": "Post",
+        "updateMany": "updateManyPost",
+        "updateOne": "updateOnePost",
+        "upsertOne": "upsertOnePost",
+      },
+      Object {
+        "aggregate": "aggregateUser",
+        "createOne": "createOneUser",
+        "deleteMany": "deleteManyUser",
+        "deleteOne": "deleteOneUser",
+        "findFirst": "findFirstUser",
+        "findMany": "findManyUser",
+        "findOne": "findOneUser",
+        "model": "User",
+        "updateMany": "updateManyUser",
+        "updateOne": "updateOneUser",
+        "upsertOne": "upsertOneUser",
+      },
+      Object {
+        "aggregate": "aggregateUser1",
+        "createOne": "createOneUser1",
+        "deleteMany": "deleteManyUser1",
+        "deleteOne": "deleteOneUser1",
+        "findFirst": "findFirstUser1",
+        "findMany": "findManyUser1",
+        "findOne": "findOneUser1",
+        "model": "User1",
+        "updateMany": "updateManyUser1",
+        "updateOne": "updateOneUser1",
+        "upsertOne": "upsertOneUser1",
+      },
+      Object {
+        "aggregate": "aggregateUser2",
+        "createOne": "createOneUser2",
+        "deleteMany": "deleteManyUser2",
+        "deleteOne": "deleteOneUser2",
+        "findFirst": "findFirstUser2",
+        "findMany": "findManyUser2",
+        "findOne": "findOneUser2",
+        "model": "User2",
+        "updateMany": "updateManyUser2",
+        "updateOne": "updateOneUser2",
+        "upsertOne": "upsertOneUser2",
+      },
+    ],
+    "otherOperations": Object {
+      "read": Array [],
+      "write": Array [
+        "executeRaw",
+        "queryRaw",
+      ],
     },
-    Object {
-      "aggregate": "aggregateUser",
-      "createOne": "createOneUser",
-      "deleteMany": "deleteManyUser",
-      "deleteOne": "deleteOneUser",
-      "findFirst": "findFirstUser",
-      "findMany": "findManyUser",
-      "findOne": "findOneUser",
-      "model": "User",
-      "updateMany": "updateManyUser",
-      "updateOne": "updateOneUser",
-      "upsertOne": "upsertOneUser",
-    },
-    Object {
-      "aggregate": "aggregateUser1",
-      "createOne": "createOneUser1",
-      "deleteMany": "deleteManyUser1",
-      "deleteOne": "deleteOneUser1",
-      "findFirst": "findFirstUser1",
-      "findMany": "findManyUser1",
-      "findOne": "findOneUser1",
-      "model": "User1",
-      "updateMany": "updateManyUser1",
-      "updateOne": "updateOneUser1",
-      "upsertOne": "upsertOneUser1",
-    },
-    Object {
-      "aggregate": "aggregateUser2",
-      "createOne": "createOneUser2",
-      "deleteMany": "deleteManyUser2",
-      "deleteOne": "deleteOneUser2",
-      "findFirst": "findFirstUser2",
-      "findMany": "findManyUser2",
-      "findOne": "findOneUser2",
-      "model": "User2",
-      "updateMany": "updateManyUser2",
-      "updateOne": "updateOneUser2",
-      "upsertOne": "upsertOneUser2",
-    },
-  ],
+  },
   "schema": Object {
     "enums": Array [
       Object {
@@ -8753,60 +8771,69 @@ Object {
       },
     ],
   },
-  "mappings": Array [
-    Object {
-      "aggregate": "aggregatePost",
-      "createOne": "createOnePost",
-      "deleteMany": "deleteManyPost",
-      "deleteOne": "deleteOnePost",
-      "findFirst": "findFirstPost",
-      "findMany": "findManyPost",
-      "findOne": "findOnePost",
-      "model": "Post",
-      "updateMany": "updateManyPost",
-      "updateOne": "updateOnePost",
-      "upsertOne": "upsertOnePost",
+  "mappings": Object {
+    "modelOperations": Array [
+      Object {
+        "aggregate": "aggregatePost",
+        "createOne": "createOnePost",
+        "deleteMany": "deleteManyPost",
+        "deleteOne": "deleteOnePost",
+        "findFirst": "findFirstPost",
+        "findMany": "findManyPost",
+        "findOne": "findOnePost",
+        "model": "Post",
+        "updateMany": "updateManyPost",
+        "updateOne": "updateOnePost",
+        "upsertOne": "upsertOnePost",
+      },
+      Object {
+        "aggregate": "aggregateUser",
+        "createOne": "createOneUser",
+        "deleteMany": "deleteManyUser",
+        "deleteOne": "deleteOneUser",
+        "findFirst": "findFirstUser",
+        "findMany": "findManyUser",
+        "findOne": "findOneUser",
+        "model": "User",
+        "updateMany": "updateManyUser",
+        "updateOne": "updateOneUser",
+        "upsertOne": "upsertOneUser",
+      },
+      Object {
+        "aggregate": "aggregateUser1",
+        "createOne": "createOneUser1",
+        "deleteMany": "deleteManyUser1",
+        "deleteOne": "deleteOneUser1",
+        "findFirst": "findFirstUser1",
+        "findMany": "findManyUser1",
+        "findOne": "findOneUser1",
+        "model": "User1",
+        "updateMany": "updateManyUser1",
+        "updateOne": "updateOneUser1",
+        "upsertOne": "upsertOneUser1",
+      },
+      Object {
+        "aggregate": "aggregateUser2",
+        "createOne": "createOneUser2",
+        "deleteMany": "deleteManyUser2",
+        "deleteOne": "deleteOneUser2",
+        "findFirst": "findFirstUser2",
+        "findMany": "findManyUser2",
+        "findOne": "findOneUser2",
+        "model": "User2",
+        "updateMany": "updateManyUser2",
+        "updateOne": "updateOneUser2",
+        "upsertOne": "upsertOneUser2",
+      },
+    ],
+    "otherOperations": Object {
+      "read": Array [],
+      "write": Array [
+        "executeRaw",
+        "queryRaw",
+      ],
     },
-    Object {
-      "aggregate": "aggregateUser",
-      "createOne": "createOneUser",
-      "deleteMany": "deleteManyUser",
-      "deleteOne": "deleteOneUser",
-      "findFirst": "findFirstUser",
-      "findMany": "findManyUser",
-      "findOne": "findOneUser",
-      "model": "User",
-      "updateMany": "updateManyUser",
-      "updateOne": "updateOneUser",
-      "upsertOne": "upsertOneUser",
-    },
-    Object {
-      "aggregate": "aggregateUser1",
-      "createOne": "createOneUser1",
-      "deleteMany": "deleteManyUser1",
-      "deleteOne": "deleteOneUser1",
-      "findFirst": "findFirstUser1",
-      "findMany": "findManyUser1",
-      "findOne": "findOneUser1",
-      "model": "User1",
-      "updateMany": "updateManyUser1",
-      "updateOne": "updateOneUser1",
-      "upsertOne": "upsertOneUser1",
-    },
-    Object {
-      "aggregate": "aggregateUser2",
-      "createOne": "createOneUser2",
-      "deleteMany": "deleteManyUser2",
-      "deleteOne": "deleteOneUser2",
-      "findFirst": "findFirstUser2",
-      "findMany": "findManyUser2",
-      "findOne": "findOneUser2",
-      "model": "User2",
-      "updateMany": "updateManyUser2",
-      "updateOne": "updateOneUser2",
-      "upsertOne": "upsertOneUser2",
-    },
-  ],
+  },
   "schema": Object {
     "enums": Array [
       Object {
@@ -15030,11 +15057,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `62581203`;
+exports[`getDMMF big schema 1`] = `62581287`;
 
-exports[`getDMMF chinook introspected schema 1`] = `379647`;
+exports[`getDMMF chinook introspected schema 1`] = `379731`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397481`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397565`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -15158,21 +15185,30 @@ Object {
       },
     ],
   },
-  "mappings": Array [
-    Object {
-      "aggregate": "aggregateA",
-      "createOne": "createOneA",
-      "deleteMany": "deleteManyA",
-      "deleteOne": "deleteOneA",
-      "findFirst": "findFirstA",
-      "findMany": "findManyA",
-      "findOne": "findOneA",
-      "model": "A",
-      "updateMany": "updateManyA",
-      "updateOne": "updateOneA",
-      "upsertOne": "upsertOneA",
+  "mappings": Object {
+    "modelOperations": Array [
+      Object {
+        "aggregate": "aggregateA",
+        "createOne": "createOneA",
+        "deleteMany": "deleteManyA",
+        "deleteOne": "deleteOneA",
+        "findFirst": "findFirstA",
+        "findMany": "findManyA",
+        "findOne": "findOneA",
+        "model": "A",
+        "updateMany": "updateManyA",
+        "updateOne": "updateOneA",
+        "upsertOne": "upsertOneA",
+      },
+    ],
+    "otherOperations": Object {
+      "read": Array [],
+      "write": Array [
+        "executeRaw",
+        "queryRaw",
+      ],
     },
-  ],
+  },
   "schema": Object {
     "enums": Array [
       Object {
