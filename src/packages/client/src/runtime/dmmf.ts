@@ -4,7 +4,7 @@ import { Dictionary, keyBy, ScalarTypeTable, keyBy2 } from './utils/common'
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
   public schema: DMMF.Schema
-  public mappings: DMMF.Mapping[]
+  public mappings: DMMF.Mappings
   public queryType: DMMF.OutputType
   public mutationType: DMMF.OutputType
   public outputTypes: DMMF.OutputType[]
@@ -13,7 +13,7 @@ export class DMMFClass implements DMMF.Document {
   public inputTypeMap: Dictionary<DMMF.InputType>
   public enumMap: Dictionary<DMMF.SchemaEnum>
   public modelMap: Dictionary<DMMF.Model>
-  public mappingsMap: Dictionary<DMMF.Mapping>
+  public mappingsMap: Dictionary<DMMF.ModelMapping>
   public rootFieldMap: Dictionary<DMMF.SchemaField>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
@@ -147,8 +147,8 @@ export class DMMFClass implements DMMF.Document {
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
     return keyBy(this.schema.inputTypes, 'name')
   }
-  protected getMappingsMap(): Dictionary<DMMF.Mapping> {
-    return keyBy(this.mappings, 'model')
+  protected getMappingsMap(): Dictionary<DMMF.ModelMapping> {
+    return keyBy(this.mappings.modelOperations, 'model')
   }
   protected getRootFieldMap(): Dictionary<DMMF.SchemaField> {
     return keyBy2(this.queryType.fields, this.mutationType.fields, 'name')

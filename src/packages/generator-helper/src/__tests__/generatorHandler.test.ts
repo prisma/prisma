@@ -10,7 +10,13 @@ const stubOptions: GeneratorOptions = {
       enums: [],
       models: [],
     },
-    mappings: [],
+    mappings: {
+      modelOperations: [],
+      otherOperations: {
+        read: [],
+        write: []
+      }
+    },
     schema: {
       enums: [],
       inputTypes: [],
