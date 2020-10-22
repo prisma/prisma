@@ -12,22 +12,24 @@ afterAll(() => {
 })
 
 test('raw-transaction: queryRaw', async () => {
-  await expect(() => prisma.$transaction([prisma.$queryRaw`SELECT 1`])).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
-          $queryRaw is not yet supported within $transaction.
-          Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.
-        `)
+  let result = await prisma.$transaction([prisma.$queryRaw`SELECT 1`])
 
+  expect(result).toMatchInlineSnapshot(`
+    Array [
+      Array [
+        Object {
+          1: 1,
+        },
+      ],
+    ]
+  `)
 
   const executePromise = prisma.$executeRaw`UPDATE User SET name = 'Bob' WHERE id = ''`
-  await expect(async () =>
-    prisma.$transaction([
-      executePromise
-    ]),
-  ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          $executeRaw is not yet supported within $transaction.
-          Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature
-        `)
+  result = await prisma.$transaction([executePromise])
 
-  await executePromise
+  expect(result).toMatchInlineSnapshot(`
+    Array [
+      0,
+    ]
+  `)
 })
