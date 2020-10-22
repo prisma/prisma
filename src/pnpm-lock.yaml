@@ -13,7 +13,6 @@ importers:
       execa: 4.0.3
       globby: 11.0.1
       graphviz: 0.0.9
-      mssql: 6.2.3
       node-fetch: 2.6.1
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -35,7 +34,6 @@ importers:
       execa: 4.0.3
       globby: 11.0.1
       graphviz: 0.0.9
-      mssql: ^6.2.3
       node-fetch: 2.6.1
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -61,6 +59,7 @@ importers:
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
+      '@types/mssql': 6.0.5
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
       '@types/string-hash': 1.1.1
@@ -91,6 +90,7 @@ importers:
       log-update: 4.0.0
       make-dir: 3.1.0
       mariadb: 2.4.2
+      mssql: 6.2.3
       mz: 2.7.0
       open: 7.2.1
       packwatch: 2.0.0
@@ -128,6 +128,7 @@ importers:
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
+      '@types/mssql': ^6.0.5
       '@types/pg': 7.14.5
       '@types/sqlite3': 3.1.6
       '@types/string-hash': 1.1.1
@@ -158,6 +159,7 @@ importers:
       log-update: 4.0.0
       make-dir: 3.1.0
       mariadb: 2.4.2
+      mssql: ^6.2.3
       mz: 2.7.0
       open: 7.2.1
       packwatch: 2.0.0
@@ -303,7 +305,7 @@ importers:
       packwatch: 2.0.0
       pg: 8.3.3
       pidtree: 0.5.0
-      pkg-up: ^3.1.0
+      pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.1.2
       replace-string: 3.1.0
@@ -1776,6 +1778,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-wuzZksN4w4kyfoOv/dlpov4NOunwutLA/q7uc00xU02ZyUY+aoM5PWIXEKBMnm0NHd4a+N71BMjq+x7+2Af1fg==
+  /@types/mssql/6.0.5:
+    dependencies:
+      '@types/node': 14.11.8
+      '@types/tedious': 4.0.1
+    dev: true
+    resolution:
+      integrity: sha512-n5lE5+5WYA2Bzeo8BskR48gCYtRUvga1CaCsyGF+NPmiwQ8iEZZHt5AQ8Yrxp1dUL9CuvVbMpKXhPeEDdTH53w==
   /@types/node-fetch/2.5.7:
     dependencies:
       '@types/node': 12.12.47
@@ -1885,6 +1894,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
+  /@types/tedious/4.0.1:
+    dependencies:
+      '@types/node': 14.11.8
+    dev: true
+    resolution:
+      integrity: sha512-5ZG0l2MdtM/kGY2dAvTUEyb2ZLsQn1tOa6DdEcHi/FOekcO0YMtvs7nGWMP72rxbQqx6+BlmCk0rplmF7m86XQ==
   /@types/tunnel/0.0.0:
     dependencies:
       '@types/node': 14.11.8
