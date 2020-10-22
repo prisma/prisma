@@ -199,6 +199,7 @@ importers:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
       '@types/js-levenshtein': 1.1.0
+      '@types/mssql': 6.0.5
       '@types/node': 12.12.62
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.5
@@ -268,6 +269,7 @@ importers:
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
       '@types/js-levenshtein': 1.1.0
+      '@types/mssql': ^6.0.5
       '@types/node': 12.12.62
       '@types/node-fetch': 2.5.7
       '@types/pg': 7.14.5
@@ -818,7 +820,7 @@ packages:
     dependencies:
       '@types/tunnel': 0.0.0
       axios: 0.19.2
-      form-data: 2.3.3
+      form-data: 2.5.1
       tough-cookie: 2.5.0
       tslib: 1.14.1
       tunnel: 0.0.6
@@ -1780,7 +1782,7 @@ packages:
       integrity: sha512-wuzZksN4w4kyfoOv/dlpov4NOunwutLA/q7uc00xU02ZyUY+aoM5PWIXEKBMnm0NHd4a+N71BMjq+x7+2Af1fg==
   /@types/mssql/6.0.5:
     dependencies:
-      '@types/node': 14.11.8
+      '@types/node': 12.12.62
       '@types/tedious': 4.0.1
     dev: true
     resolution:
@@ -1859,7 +1861,7 @@ packages:
       integrity: sha512-TORZP+FSjTYMWwKadftmqEn6bziN5RnfygehByGsjxoK5ydnClddtv6GikGWPvCm24oI+YBwck5WDxIIyNxUrA==
   /@types/readable-stream/2.3.9:
     dependencies:
-      '@types/node': 14.11.8
+      '@types/node': 12.12.62
       safe-buffer: 5.2.1
     dev: true
     resolution:
@@ -1896,13 +1898,13 @@ packages:
       integrity: sha512-Z7AVMMlkI8NTWF0qGhC4QIX0zkV/+y0J8x7b/RsHrN0310+YNjoJd8UrApCiGBCWtKjxS9QhNqLi2UJNToh5hA==
   /@types/tedious/4.0.1:
     dependencies:
-      '@types/node': 14.11.8
+      '@types/node': 12.12.62
     dev: true
     resolution:
       integrity: sha512-5ZG0l2MdtM/kGY2dAvTUEyb2ZLsQn1tOa6DdEcHi/FOekcO0YMtvs7nGWMP72rxbQqx6+BlmCk0rplmF7m86XQ==
   /@types/tunnel/0.0.0:
     dependencies:
-      '@types/node': 14.11.8
+      '@types/node': 12.12.62
     dev: true
     resolution:
       integrity: sha512-FGDp0iBRiBdPjOgjJmn1NH0KDLN+Z8fRmo+9J7XGBhubq1DPrGrbmG4UTlGzrpbCpesMqD0sWkzi27EYkOMHyg==
@@ -4238,6 +4240,16 @@ packages:
       node: '>= 0.12'
     resolution:
       integrity: sha512-1lLKB2Mu3aGP1Q/2eCOx0fNbRMe7XdwktwOruhfqqd0rIJWwN4Dh+E3hrPSlDCXnSR7UtZ1N38rVXm+6+MEhJQ==
+  /form-data/2.5.1:
+    dependencies:
+      asynckit: 0.4.0
+      combined-stream: 1.0.8
+      mime-types: 2.1.27
+    dev: true
+    engines:
+      node: '>= 0.12'
+    resolution:
+      integrity: sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==
   /form-data/3.0.0:
     dependencies:
       asynckit: 0.4.0
