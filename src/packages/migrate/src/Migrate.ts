@@ -108,14 +108,10 @@ export class Migrate {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      {
-        preview,
-        providerAliases,
-        clear,
-        onWarnings,
-        autoApprove,
-        skipGenerate,
-      }: WatchOptions = { clear: true, providerAliases: {} },
+      { onWarnings, autoApprove, skipGenerate }: WatchOptions = {
+        clear: true,
+        providerAliases: {},
+      },
     ) => {
       const datamodel = this.getDatamodel()
       try {
@@ -139,7 +135,6 @@ export class Migrate {
 
         if (migration) {
           debug('There is a migration we are going to apply now')
-          const before = Date.now()
           await this.engine.applyMigration({
             force: true,
             migrationId: migration.id,
@@ -156,7 +151,6 @@ export class Migrate {
             migration,
             lastMigration: lastWatchMigration,
           })
-          const after = Date.now()
         } else {
           debug(`No migration to apply`)
         }
@@ -203,7 +197,7 @@ export class Migrate {
   private datamodelBeforeWatch = ''
   private schemaPath: string
   public migrationsDirectoryPath: string
-  constructor(schemaPath?: string) {
+  constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     this.schemaPath = this.getSchemaPath(schemaPath)
     this.migrationsDirectoryPath = path.join(
       path.dirname(this.schemaPath),
@@ -212,6 +206,7 @@ export class Migrate {
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
+      enabledPreviewFeatures,
     })
   }
 

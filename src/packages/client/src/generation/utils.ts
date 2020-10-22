@@ -119,7 +119,7 @@ export function getDefaultArgName(
   modelName: string,
   action: DMMF.ModelAction,
 ): string {
-  const mapping = dmmf.mappings.find((m) => m.model === modelName)!
+  const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)
@@ -147,7 +147,7 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
 export function renderInitialClientArgs(
   actionName: DMMF.ModelAction,
   fieldName: string,
-  mapping: DMMF.Mapping,
+  mapping: DMMF.ModelMapping,
 ): string {
   return `
   dmmf,

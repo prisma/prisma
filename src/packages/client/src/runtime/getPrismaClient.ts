@@ -1015,7 +1015,7 @@ Please report in https://github.com/prisma/prisma/issues/3828 if you need this f
     }
 
     private _bootstrapClient() {
-      const clients = this._dmmf.mappings.reduce((acc, mapping) => {
+      const clients = this._dmmf.mappings.modelOperations.reduce((acc, mapping) => {
         const lowerCaseModel = lowerCase(mapping.model)
         const model = this._dmmf.modelMap[mapping.model]
 
@@ -1135,7 +1135,7 @@ Please report in https://github.com/prisma/prisma/issues/3828 if you need this f
         return acc
       }, {})
 
-      for (const mapping of this._dmmf.mappings) {
+      for (const mapping of this._dmmf.mappings.modelOperations) {
         const lowerCaseModel = lowerCase(mapping.model)
 
         const denyList = {

@@ -4,7 +4,20 @@ export namespace DMMF {
   export interface Document {
     datamodel: Datamodel
     schema: Schema
-    mappings: Mapping[]
+    mappings: Mappings
+  }
+
+  export interface Mappings {
+    modelOperations: ModelMapping[]
+    otherOperations: {
+      read: string[]
+      write: string[]
+    }
+  }
+
+  export interface OtherOperationMappings {
+    read: string[]
+    write: string[]
   }
 
   export interface DatamodelEnum {
@@ -138,7 +151,7 @@ export namespace DMMF {
     fieldMap?: Record<string, SchemaArg>
   }
 
-  export interface Mapping {
+  export interface ModelMapping {
     model: string
     plural: string
     findOne?: string | null
