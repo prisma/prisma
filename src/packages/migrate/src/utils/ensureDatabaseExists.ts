@@ -47,7 +47,7 @@ export async function ensureDatabaseExists(
   }
   if (forceCreate) {
     const result = await createDatabase(activeDatasource.url.value, schemaDir)
-    if (result?.exitCode === 0) {
+    if (result && result.exitCode === 0) {
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
         credentials,

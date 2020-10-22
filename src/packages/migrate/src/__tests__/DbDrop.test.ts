@@ -27,9 +27,12 @@ describe('drop', () => {
 
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = DbDrop.new().parse(['--force'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Cannot read property 'slice' of undefined`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Failed to delete SQLite database at \`dev.db\`.
+            No such file or directory (os error 2)
+
+
+          `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

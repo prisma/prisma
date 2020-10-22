@@ -1,6 +1,3 @@
-process.env.GITHUB_ACTIONS = '1'
-process.env.MIGRATE_SKIP_GENERATE = '1'
-
 import fs from 'fs-jetpack'
 import { MigrateCommand } from '../commands/MigrateCommand'
 import { consoleContext, Context } from './__helpers__/context'
@@ -12,6 +9,9 @@ import {
 } from '../utils/setupPostgres'
 
 const ctx = Context.new().add(consoleContext()).assemble()
+
+process.env.GITHUB_ACTIONS = '1'
+process.env.MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {
   it('migrate should fail if no schema file', async () => {

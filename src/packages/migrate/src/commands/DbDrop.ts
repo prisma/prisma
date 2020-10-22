@@ -147,7 +147,8 @@ export class DbDrop implements Command {
     }
 
     if (
-      result?.exitCode === 0 &&
+      result &&
+      result.exitCode === 0 &&
       result.stderr.includes('The database was successfully dropped')
     ) {
       return `${

@@ -93,7 +93,7 @@ export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | boolean> {
+): Promise<execa.ExecaReturnValue | false> {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
