@@ -310,16 +310,21 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   await ctx.fs.dirAsync('.')
 
-  // Prepare database
-  const databaseUpSQL = input.database.up?.(ctx) ?? ''
-  const dbClient = await input.database.connect({ ...ctx, step: 'database' })
-  await input.database.send(dbClient, databaseUpSQL)
-  await input.database.close?.(dbClient)
+  if (input.database.name === 'sqlserver') {
+    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
+    const databaseUpSQL = input.database.up?.(ctx) ?? ''
+    await input.database.send(state.db, databaseUpSQL)
+    await input.database.close?.(state.db)
 
-  //Prepare scenario
-  const scenarioUpSQL = scenario.up
-  state.db = await input.database.connect({ ...ctx, step: 'scenario' })
-  await input.database.send(state.db, scenarioUpSQL)
+    const scenarioUpSQL = scenario.up
+    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
+    await input.database.send(state.db, scenarioUpSQL)
+  } else {
+    state.db = await input.database.connect(ctx)
+    const databaseUpSQL = input.database.up?.(ctx) ?? ''
+    const upSQL = databaseUpSQL + scenario.up
+    await input.database.send(state.db, upSQL)
+  }
 
   const datasourceBlock =
     'raw' in input.database.datasource
@@ -330,27 +335,19 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
             ? input.database.datasource.url(ctx)
             : input.database.datasource.url,
         )
-  let schemaBase
-  if (input.database.name !== 'sqlserver') {
-    schemaBase = `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${ctx.fs.path()}"
-        }
-
-        ${datasourceBlock}
-      `
-  } else {
-    schemaBase = `
+  const schemaBase = `
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      previewFeatures = ["microsoftSqlServer"]
+      ${
+        input.database.name === 'sqlserver'
+          ? `previewFeatures = ["microsoftSqlServer"]`
+          : ''
+      }
     }
 
     ${datasourceBlock}
   `
-  }
 
   const introspectionResult = await engine.introspect(schemaBase)
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
