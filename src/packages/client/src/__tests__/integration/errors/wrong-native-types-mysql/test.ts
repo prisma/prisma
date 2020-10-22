@@ -1,9 +1,11 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
+import { tearDownMysql } from '../../../../utils/setupMysql'
 
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-wrong-native-types'
+  await tearDownMysql(process.env.TEST_MYSQL_URI!)
   await migrateDb({
     connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
