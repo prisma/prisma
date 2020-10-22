@@ -823,24 +823,21 @@ new PrismaClient({
               `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
             )
           }
-          if (p?.isQueryRaw) {
-            throw new Error(`$queryRaw is not yet supported within $transaction.
-Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature.`)
-          }
-          if (p?.isExecuteRaw) {
-            throw new Error(`$executeRaw is not yet supported within $transaction.
-Please report in https://github.com/prisma/prisma/issues/3828 if you need this feature`)
-          }
           if (
-            !p.requestTransaction ||
-            typeof p.requestTransaction !== 'function'
+            (!p.requestTransaction ||
+              typeof p.requestTransaction !== 'function') && (!p?.isQueryRaw && !p?.isExecuteRaw)
           ) {
             throw new Error(
               `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
             )
           }
         }
-        return Promise.all(promises.map((p) => p.requestTransaction()))
+        return Promise.all(promises.map((p) => {
+          if (p.requestTransaction) {
+            return p.requestTransaction()
+          }
+          return p
+        }))
       } else {
         throw new Error(
           `In order to use the .transaction() api, please enable 'previewFeatures = "transactionApi" in your schema.`,
@@ -1015,7 +1012,7 @@ Please report in https://github.com/prisma/prisma/issues/3828 if you need this f
     }
 
     private _bootstrapClient() {
-      const clients = this._dmmf.mappings.reduce((acc, mapping) => {
+      const clients = this._dmmf.mappings.modelOperations.reduce((acc, mapping) => {
         const lowerCaseModel = lowerCase(mapping.model)
         const model = this._dmmf.modelMap[mapping.model]
 
@@ -1135,7 +1132,7 @@ Please report in https://github.com/prisma/prisma/issues/3828 if you need this f
         return acc
       }, {})
 
-      for (const mapping of this._dmmf.mappings) {
+      for (const mapping of this._dmmf.mappings.modelOperations) {
         const lowerCaseModel = lowerCase(mapping.model)
 
         const denyList = {

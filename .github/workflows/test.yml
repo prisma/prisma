@@ -388,7 +388,7 @@ jobs:
   # All the other packages!
   #
   others:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     strategy:

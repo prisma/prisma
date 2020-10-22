@@ -1,5 +1,5 @@
 import { Migrate } from "@prisma/migrate"
-import { createDatabase } from "@prisma/sdk"
+import { createDatabase, dropDatabase } from "@prisma/sdk"
 
 export type MigrateOptions = {
   connectionString: string
@@ -7,8 +7,8 @@ export type MigrateOptions = {
 }
 
 export async function migrateDb({ connectionString, schemaPath }: MigrateOptions) {
-  const created = await createDatabase(connectionString)
-  const migrate = new Migrate(schemaPath)
+  await createDatabase(connectionString)
+  const migrate = new Migrate(schemaPath, ['nativeTypes'])
 
   await migrate.push({
     force: true

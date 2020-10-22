@@ -1,7 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
-import Decimal from 'decimal.js'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 
 beforeAll(async () => {
