@@ -164,6 +164,7 @@ async function main(): Promise<number> {
       'init',
       'migrate',
       'migrate-legacy',
+      'db',
       'tmp-prepare',
       'introspect',
       'dev',
