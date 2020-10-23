@@ -6,7 +6,6 @@
   "masterIssue": true,
   "reviewers": ["@jolg42", "@timsuchanek"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": ["@prisma/engines", "@prisma/engines-version"],
   "packageRules": [
     {
       "groupName": "renovate-meta",
@@ -29,6 +28,7 @@
       "groupName": "devDependencies (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
+      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
       "updateTypes": ["patch", "minor"]
     },
     {
