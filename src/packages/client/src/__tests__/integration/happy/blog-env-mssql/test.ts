@@ -10,7 +10,7 @@ describe('Blog fixture: MSSQL', () => {
   beforeAll(async () => {
     const connectionString =
       process.env.TEST_MSSQL_URI ||
-      'mssql://SA:Prisma1-prisma@localhost:1433/master'
+      'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
     const setupParams: SetupParams = {
       connectionString,
       dirname: __dirname,
