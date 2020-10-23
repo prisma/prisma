@@ -50,6 +50,10 @@ export function tryLoadEnv(
   ]
   let schemaEnvInfo: LoadEnvResult | null = null
   for (const envPath of schemaEnvPaths) {
+    // If the paths are the same then skip
+    if(rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo.path) === path.resolve(envPath)){
+      continue
+    }
     checkForConflicts(rootEnvInfo, envPath)
     schemaEnvInfo = loadEnv(envPath)
     if (schemaEnvInfo) break
@@ -68,9 +72,9 @@ export function tryLoadEnv(
     )
   }
 
-  if (schemaEnvInfo?.message && !process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
-    console.error(rootEnvInfo?.message)
-    console.error(schemaEnvInfo.message)
+  if (!process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
+    rootEnvInfo?.message && console.error(rootEnvInfo?.message)
+    schemaEnvInfo?.message && console.error(schemaEnvInfo.message)
   }
 }
 
@@ -126,7 +130,7 @@ function loadEnv(envPath: string | null | undefined): LoadEnvResult | null {
     return {
       dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),
       message: chalk.dim(
-        `Environment variables loaded from ${path.resolve(envPath)}`,
+        `Environment variables loaded from ${envPath}`,
       ),
       path: envPath
     }

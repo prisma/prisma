@@ -5,8 +5,5 @@ Array [
   Array [
     Environment variables loaded from /tmp/dir/.env,
   ],
-  Array [
-    Environment variables loaded from /tmp/dir/.env,
-  ],
 ]
 `;
