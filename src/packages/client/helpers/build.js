@@ -34,7 +34,7 @@ async function main() {
 
   await Promise.all([
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --sourcemap --minify --target=node10',
+      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
       false,
     ),
     run('rollup -c'),

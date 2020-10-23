@@ -164,13 +164,6 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 1. `mkdir test && cd test`
 1. `ts-node ../src/bin.ts generate`
 
-### How to update all binaries
-
-```bash
-# In the root directory
-pnpm run download-all
-```
-
 ## Running the CI system locally
 
 ```bash
@@ -216,10 +209,8 @@ List of packages:
 - fetch-engine
 - generator-helper
 - get-platform
-- ink-components
 - migrate
 - sdk
-- introspection
 
 # Graphs
 
