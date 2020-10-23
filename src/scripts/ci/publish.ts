@@ -211,9 +211,6 @@ export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>(
     (acc, [name, pkg]) => {
       let usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
-      if (name === '@prisma/client') {
-        usesDev = usesDev.filter(d => d !== '@prisma/migrate')
-      }
       acc[name] = {
         version: pkg.packageJson.version,
         name,
