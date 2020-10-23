@@ -294,7 +294,9 @@ async function getNewPackageVersions(
 export function getPublishOrder(packages: Packages): string[][] {
   const dag: { [pkg: string]: string[] } = Object.values(packages).reduce(
     (acc, curr) => {
-      acc[curr.name] = [...curr.usedBy, ...curr.usedByDev]
+      if (curr.name !== '@prisma/tests') {
+        acc[curr.name] = [...curr.usedBy, ...curr.usedByDev]
+      }
       return acc
     },
     {},
@@ -938,6 +940,10 @@ async function publishPackages(
   for (const currentBatch of publishOrder) {
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
+
+      if (pkg.name === '@prisma/tests') {
+        continue
+      }
 
       // @prisma/engines & @prisma/engines-version are published outside of this script
       const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']

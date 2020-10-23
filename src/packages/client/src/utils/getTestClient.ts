@@ -20,9 +20,11 @@ const readFile = promisify(fs.readFile)
 /**
  * Returns an in-memory client for testing
  */
-export async function getTestClient(): Promise<any> {
-  const callsite = parse(new Error('').stack!)
-  const schemaDir = path.dirname(callsite[1].file!)
+export async function getTestClient(schemaDir?: string): Promise<any> {
+  if (!schemaDir) {
+    const callsite = parse(new Error('').stack!)
+    schemaDir = path.dirname(callsite[1].file!)
+  }
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
@@ -56,9 +58,11 @@ export async function getTestClient(): Promise<any> {
 /**
  * Actually generates a test client with its own query-engine into ./@prisma/client
  */
-export async function generateTestClient(): Promise<any> {
-  const callsite = parse(new Error('').stack!)
-  const projectDir = path.dirname(callsite[1].file!)
+export async function generateTestClient(projectDir?: string): Promise<any> {
+  if (!projectDir) {
+    const callsite = parse(new Error('').stack!)
+    projectDir = path.dirname(callsite[1].file!)
+  }
 
   await generateInFolder({
     projectDir,
