@@ -271,6 +271,8 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
+          TEST_MSSQL_URI: mssql://SA:Prisma1-prisma@localhost:${{ job.services.mssql.ports[1433] }}/master
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:${{job.services.mssql.ports[1433]}};database=master;user=SA;password=Prisma1-prisma;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
       - name: Upload coverage report
         working-directory: src/packages/client
