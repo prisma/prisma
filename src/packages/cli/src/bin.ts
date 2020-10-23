@@ -138,7 +138,7 @@ async function main(): Promise<number> {
       }),
       db: DbCommand.new({
         push: DbPush.new(),
-        drop: DbDrop.new(),
+        // drop: DbDrop.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),

@@ -51,15 +51,11 @@ ${chalk.bold('Commands')}
         push   Push the state from Prisma schema to the database during prototyping ${chalk.dim(
           '(preview)',
         )}
-        drop   Drop the database ${chalk.dim('(preview)')}
 
 ${chalk.bold('Examples')}
 
   Using prisma db push
   ${chalk.dim('$')} prisma db push --preview
-
-  Using prisma db drop
-  ${chalk.dim('$')} prisma db drop --preview
   `)
   private constructor(private readonly cmds: Commands) {}
 
