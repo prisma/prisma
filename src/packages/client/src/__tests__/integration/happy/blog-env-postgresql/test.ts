@@ -5,7 +5,7 @@ import {
   tearDownPostgres,
 } from '../../../../utils/setupPostgres'
 
-test('blog-env-postgresql', async () => {
+test('Blog fixture: Postgres', async () => {
   await generateTestClient()
 
   const {
@@ -24,7 +24,7 @@ test('blog-env-postgresql', async () => {
     dirname: __dirname,
   }
 
-  await setupPostgres(SetupParams).catch((e) => console.error(e))
+  await setupPostgres(SetupParams).catch(e => console.error(e))
 
   const requests: any[] = []
   const errorLogs: any[] = []
@@ -33,7 +33,7 @@ test('blog-env-postgresql', async () => {
     __internal: {
       measurePerformance: true,
       hooks: {
-        beforeRequest: (request) => requests.push(request),
+        beforeRequest: request => requests.push(request),
       },
     },
     datasources: {
