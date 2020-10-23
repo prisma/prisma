@@ -74,6 +74,7 @@
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.296.0",
     "@prisma/studio-server": "0.296.0",
+    "@prisma/tests": "workspace:^0.0.0",
     "@sindresorhus/slugify": "1.1.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
