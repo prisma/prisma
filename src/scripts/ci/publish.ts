@@ -465,6 +465,9 @@ async function getAllVersions(
       await pMap(
         Object.values(packages),
         async (pkg) => {
+          if (pkg.name === '@prisma/tests') {
+            return []
+          }
           const pkgVersions = []
           if (pkg.version.startsWith(prefix)) {
             pkgVersions.push(pkg.version)
