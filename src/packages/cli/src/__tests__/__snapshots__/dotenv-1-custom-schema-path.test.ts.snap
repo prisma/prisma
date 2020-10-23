@@ -6,7 +6,7 @@ Array [
     Environment variables loaded from /tmp/dir/.env,
   ],
   Array [
-    Environment variables loaded from /tmp/dir/custom-path/.env,
+    Environment variables loaded from custom-path/.env,
   ],
 ]
 `;
