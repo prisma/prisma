@@ -49,7 +49,8 @@ export class Version implements Command {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '-v': Boolean,
+      '--version': Boolean,
+      '-v': '--version',
       '--json': Boolean,
       '--telemetry-information': String,
     })
