@@ -41,7 +41,6 @@ test('missing-binary-native', async () => {
 
             index.d.ts
             index.js
-            index.js.map
 
           You already added the platform "native" to the "generator" block
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
