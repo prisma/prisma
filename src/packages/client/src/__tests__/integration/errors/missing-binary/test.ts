@@ -41,7 +41,6 @@ test('missing-binary', async () => {
 
             index.d.ts
             index.js
-            index.js.map
 
 
           To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
