@@ -56,7 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.10.0-cf4c62ca39c6a3eaf9fd0ff5541ae445154c4d7c",
+    "@prisma/engines": "2.10.0-3-2e0f7f937353f4da81f3fef16cc436f870992b65",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -100,7 +100,7 @@
     "lint-staged": "10.4.0",
     "make-dir": "3.1.0",
     "mariadb": "2.4.2",
-    "mssql": "^6.2.3",
+    "mssql": "6.2.3",
     "node-fetch": "2.6.1",
     "packwatch": "2.0.0",
     "pg": "8.3.3",
@@ -146,6 +146,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines-version": "2.10.0-cf4c62ca39c6a3eaf9fd0ff5541ae445154c4d7c"
+    "@prisma/engines-version": "2.10.0-3-2e0f7f937353f4da81f3fef16cc436f870992b65"
   }
 }
