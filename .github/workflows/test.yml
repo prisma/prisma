@@ -91,7 +91,7 @@ jobs:
           ACCEPT_EULA: Y
           SA_PASSWORD: 'Prisma1-prisma'
         ports:
-          - 1433/tcp
+          - 1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
