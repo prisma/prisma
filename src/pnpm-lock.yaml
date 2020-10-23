@@ -56,14 +56,11 @@ importers:
       '@prisma/sdk': 'link:../sdk'
       '@prisma/studio': 0.296.0
       '@prisma/studio-server': 0.296.0
+      '@prisma/tests': 'link:../tests'
       '@sindresorhus/slugify': 1.1.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
-      '@types/mssql': 6.0.5
-      '@types/pg': 7.14.5
-      '@types/sqlite3': 3.1.6
-      '@types/string-hash': 1.1.1
       '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0_01bb2a57a800356006ca47d0aed8d623
@@ -90,8 +87,6 @@ importers:
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
-      mariadb: 2.4.2
-      mssql: 6.2.3
       mz: 2.7.0
       open: 7.2.1
       packwatch: 2.0.0
@@ -103,9 +98,6 @@ importers:
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
-      sqlite-async: 1.1.0
-      sqlite3: 5.0.0
-      string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 1.0.0
@@ -126,14 +118,11 @@ importers:
       '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.296.0
       '@prisma/studio-server': 0.296.0
+      '@prisma/tests': 'workspace:^0.0.0'
       '@sindresorhus/slugify': 1.1.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.14
-      '@types/mssql': 6.0.5
-      '@types/pg': 7.14.5
-      '@types/sqlite3': 3.1.6
-      '@types/string-hash': 1.1.1
       '@types/verror': 1.10.4
       '@types/ws': 7.2.6
       '@typescript-eslint/eslint-plugin': 4.2.0
@@ -160,8 +149,6 @@ importers:
       lint-staged: 10.4.0
       log-update: 4.0.0
       make-dir: 3.1.0
-      mariadb: 2.4.2
-      mssql: 6.2.3
       mz: 2.7.0
       open: 7.2.1
       packwatch: 2.0.0
@@ -173,9 +160,6 @@ importers:
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       snap-shot-it: 7.9.3
-      sqlite-async: 1.1.0
-      sqlite3: 5.0.0
-      string-hash: 1.1.3
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       tempy: 1.0.0
@@ -1995,10 +1979,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-RJJrrySY7A8havqpGObOB4W92QXKJo63/jFLLgpvOtsGUqbQZ9Sbgl35KMm1DjC6j7AvmmU2bIno+3IyEaemaw==
-  /@types/string-hash/1.1.1:
-    dev: true
-    resolution:
-      integrity: sha512-ijt3zdHi2DmZxQpQTmozXszzDo78V4R3EdvX0jFMfnMH2ZzQSmCbaWOMPGXFUYSzSIdStv78HDjg32m5dxc+tA==
   /@types/tar/4.0.3:
     dependencies:
       '@types/minipass': 2.2.0
