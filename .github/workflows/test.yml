@@ -128,8 +128,6 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U SA -P ${SA_PASSWORD} -Q 'SELECT 1'
-
       - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=1
         working-directory: src/packages/cli
         env:
@@ -142,7 +140,7 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:${{ job.services.mariadb.ports[3306] }}/tests
-          TEST_MSSQL_URI: sqlserver://SA:Prisma1-prisma@localhost:1433/master
+          TEST_MSSQL_URI: mssql://SA:Prisma1-prisma@localhost:1433/master
 
   #
   # CLI-COMMANDS

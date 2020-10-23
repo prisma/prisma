@@ -37,7 +37,7 @@ function getConnectionInfo(ctx: Context) {
   const { URL } = url
   const serviceConnectionString =
     process.env.TEST_MSSQL_URI ||
-    'sqlserver://SA:Prisma1-prisma@localhost:1433/master'
+    'mssql://SA:Prisma1-prisma@localhost:1433/master'
   const connectionUrl = new URL(serviceConnectionString)
   const connectionString = `sqlserver://${connectionUrl.host};database=master_${ctx.id};user=SA;password=Prisma1-prisma;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT`
   const credentials = {
