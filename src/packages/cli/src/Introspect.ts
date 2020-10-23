@@ -30,24 +30,23 @@ export class Introspect implements Command {
     return new Introspect()
   }
 
-  // static help template
   private static help = format(`
-    Introspect a database and save the result to schema.prisma.
+    Introspect a database and save the result to a Prisma Schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma
+    With an existing Prisma Schema
       ${chalk.dim('$')} prisma introspect
 
-    Or specify a schema:
+    Or specify a Prisma Schema path
       ${chalk.dim('$')} prisma introspect --schema=./schema.prisma'
 
     Instead of saving the result to the filesystem, you can also print it
       ${chalk.dim('$')} prisma introspect --print'
 
-    ${chalk.bold('Flags')}
+    ${chalk.bold('Flag')}
 
-      --force     Ignore current schema.prisma file
+      --force     Ignore current Prisma Schema file
   `)
 
   private printUrlAsDatasource(url: string): string {
@@ -63,7 +62,6 @@ export class Introspect implements Command {
     ])
   }
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,

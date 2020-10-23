@@ -6,6 +6,7 @@ import {
   HelpError,
   isError,
   unknownCommand,
+  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -14,44 +15,59 @@ export class DbCommand implements Command {
     return new DbCommand(cmds)
   }
 
-  // static help template
   private static help = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-    }Powerful Prisma db commands from your terminal
+${
+  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+}Manage your database schema and lifecycle during development.
 
-    ${chalk.bold('Usage')}
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    `Prisma db is currently in Preview (${link('https://pris.ly/d/preview')}).
+There may be bugs and it's not recommended to use it in production environments.`,
+  )}
+${chalk.dim(
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+)}
 
-      With an existing schema.prisma:
-      ${chalk.dim('$')} prisma db [command] [options]
+${chalk.bold('Flag')}
 
-      Or specify a schema:
-      ${chalk.dim('$')} prisma db [command] [options] --schema=./schema.prisma
+    --preview   Run preview Prisma commands
 
-    ${chalk.bold('Options')}
+${chalk.bold('Usage')}
 
-      -h, --help   Display this help message
+  With an existing schema.prisma:
+  ${chalk.dim('$')} prisma db [command] [options] --preview
 
-    ${chalk.bold('Commands')}
+  Or specify a schema path:
+  ${chalk.dim(
+    '$',
+  )} prisma db [command] [options] --preview --schema=./schema.prisma
 
-        push   Push the state from your schema.prisma to your database
-        drop   Delete the database provided in your schema.prisma
+${chalk.bold('Options')}
 
-    ${chalk.bold('Examples')}
+  -h, --help   Display this help message
 
-      Using prisma db push
-      ${chalk.dim('$')} prisma db push
+${chalk.bold('Commands')}
 
-      Using prisma db drop
-      ${chalk.dim('$')} prisma db drop
+        push   Push the state from Prisma schema to the database during prototyping ${chalk.dim(
+          '(preview)',
+        )}
+        drop   Drop the database ${chalk.dim('(preview)')}
+
+${chalk.bold('Examples')}
+
+  Using prisma db push
+  ${chalk.dim('$')} prisma db push --preview
+
+  Using prisma db drop
+  ${chalk.dim('$')} prisma db drop --preview
   `)
   private constructor(private readonly cmds: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--preview': Boolean,
       '--telemetry-information': String,
     })
 
@@ -67,7 +83,10 @@ export class DbCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      return cmd.parse(args._.slice(1))
+      const argsForCmd = args['--preview']
+        ? [...args._.slice(1), `--preview`]
+        : args._.slice(1)
+      return cmd.parse(argsForCmd)
     }
 
     return unknownCommand(DbCommand.help, args._[0])

@@ -26,12 +26,12 @@ export class CLI implements Command {
   ) {}
 
   async parse(argv: string[]): Promise<string | Error> {
-    // parse the args according to the following spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--version': Boolean,
       '-v': '--version',
+      '--json': Boolean, // for -v
       '--experimental': Boolean,
       '--telemetry-information': String,
     })
@@ -94,7 +94,6 @@ export class CLI implements Command {
     })
   }
 
-  // help function
   private help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
@@ -102,7 +101,6 @@ export class CLI implements Command {
     return CLI.help
   }
 
-  // static help template
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
@@ -119,9 +117,13 @@ export class CLI implements Command {
                 init   Setup Prisma for your app
           introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
-              format   Formats your schema
+              studio   Open Prisma Studio
+              format   Format your schema
+                  db   Manage your database schema and lifecycle ${chalk.dim(
+                    '(preview)',
+                  )}
 
-    ${chalk.bold('Flags')}
+    ${chalk.bold('Flag')}
 
       --experimental   Show and run experimental Prisma commands
 
@@ -135,9 +137,14 @@ export class CLI implements Command {
 
       Generate artifacts (e.g. Prisma Client)
       ${chalk.dim('$')} prisma generate
+
+      Browse your data
+      ${chalk.dim('$')} prisma studio
+
+      Push the Prisma Schema state to the database
+      ${chalk.dim('$')} prisma db push --preview
   `)
 
-  // static help template
   private static experimentalHelp = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
@@ -154,9 +161,12 @@ export class CLI implements Command {
                 init   Setup Prisma for your app
           introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
+              studio   Open Prisma Studio
+              format   Format your schema
+                  db   Manage your database schema and lifecycle ${chalk.dim(
+                    '(preview)',
+                  )}
              migrate   Migrate your schema ${chalk.dim('(experimental)')}
-              studio   Run Prisma Studio
-              format   Formats your schema
 
     ${chalk.bold('Flags')}
 
@@ -164,7 +174,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Initialize files for a new Prisma project
+      Setup a new Prisma project
       ${chalk.dim('$')} prisma init
 
       Introspect an existing database
@@ -172,11 +182,14 @@ export class CLI implements Command {
 
       Generate artifacts (e.g. Prisma Client)
       ${chalk.dim('$')} prisma generate
-
-      Save your changes into a migration
-      ${chalk.dim('$')} prisma migrate save --experimental
-
+      
       Browse your data
       ${chalk.dim('$')} prisma studio
+
+      Push the Prisma Schema state to the database
+      ${chalk.dim('$')} prisma db push --preview
+
+      Create a migration for your database
+      ${chalk.dim('$')} prisma migrate save --experimental
   `)
 }

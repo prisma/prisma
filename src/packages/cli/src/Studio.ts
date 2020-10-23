@@ -24,7 +24,7 @@ export class Studio implements Command {
   }
 
   private static help = format(`
-    Browse your data with Studio
+    Browse your data with Prisma Studio
 
     ${chalk.bold('Usage')}
 
@@ -87,7 +87,7 @@ export class Studio implements Command {
       console.warn(
         `${chalk.yellow(
           'warn',
-        )} --experimental is no longer required for this command`,
+        )} --experimental is no longer required for this command as Studio now Generally Available.`,
       )
     }
 
@@ -107,10 +107,7 @@ export class Studio implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
@@ -122,11 +119,11 @@ export class Studio implements Command {
     const queryEnginePath =
       process.env.NODE_ENV === 'production'
         ? eval(
-          `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
-        )
+            `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
+          )
         : eval(
-          `require('path').join(__dirname, '../node_modules/@prisma/sdk/query-engine-${platform}${extension}')`,
-        )
+            `require('path').join(__dirname, '../node_modules/@prisma/sdk/query-engine-${platform}${extension}')`,
+          )
     const staticAssetDir =
       process.env.NODE_ENV === 'production'
         ? path.resolve(__dirname, './public')
@@ -159,7 +156,7 @@ export class Studio implements Command {
         app: browser,
         url: true,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-      }).catch(() => { }) // Ignore any errors
+      }).catch(() => {}) // Ignore any errors
     }
 
     this.instance = studio

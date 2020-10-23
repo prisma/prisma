@@ -11,6 +11,7 @@ import {
   uriToCredentials,
   getConfig,
   dropDatabase,
+  link,
 } from '@prisma/sdk'
 import path from 'path'
 import fs from 'fs'
@@ -21,6 +22,7 @@ import {
   getDbinfoFromCredentials,
   getDbLocation,
 } from '../utils/ensureDatabaseExists'
+import { PreviewFlagError } from '../utils/experimental'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -28,30 +30,44 @@ export class DbDrop implements Command {
   }
 
   private static help = format(`
-    Delete the database provided in your schema.prisma
+${process.platform === 'win32' ? '' : chalk.bold('💣  ')}Drop the database
 
-    ${chalk.bold('Usage')}
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    `Prisma db drop is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).
+There may be bugs and it's not recommended to use it in production environments.`,
+  )}
+${chalk.dim(
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+)}
 
-      ${chalk.dim('$')} prisma db drop
+${chalk.bold('Usage')}
 
-    ${chalk.bold('Options')}
+  ${chalk.dim('$')} prisma db drop [options] --preview
 
-      -h, --help       Displays this help message
-      -f, --force      Skip the confirmation prompt
+${chalk.bold('Options')}
 
-    ${chalk.bold('Examples')}
+   -h, --help      Displays this help message
+  -f, --force      Skip the confirmation prompt
 
-      Delete the database provided in your schema.prisma
-      ${chalk.dim('$')} prisma db drop
+${chalk.bold('Examples')}
 
-      Using --force to ignore data loss warning confirmation
-      ${chalk.dim('$')} prisma db drop --force
+  Drop the database
+  ${chalk.dim('$')} prisma db drop --preview
+
+  Specify a schema
+  ${chalk.dim('$')} prisma db drop --preview --schema=./schema.prisma'
+
+  Use --force to skip the confirmation prompt
+  ${chalk.dim('$')} prisma db drop --preview --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--preview': Boolean,
       '--force': Boolean,
       '-f': '--force',
       '--schema': String,
@@ -64,6 +80,10 @@ export class DbDrop implements Command {
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (!args['--preview']) {
+      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
