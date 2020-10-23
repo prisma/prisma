@@ -7,7 +7,6 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/cli": "workspace:*",
     "@prisma/client": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/sdk": "workspace:*",
