@@ -133,6 +133,10 @@ export class Studio implements Command {
       schemaPath,
       port,
       prismaClient: {
+        dir:
+          process.env.NODE_ENV === 'production'
+            ? undefined
+            : path.join(__dirname, '../prisma-client'),
         generator: {
           version: packageJson.prisma.version,
           providerAliases: this.providerAliases,
