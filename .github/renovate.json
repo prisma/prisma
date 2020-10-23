@@ -28,6 +28,7 @@
       "groupName": "devDependencies (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
+      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
       "updateTypes": ["patch", "minor"]
     },
     {

@@ -1,5 +1,5 @@
 try {
-  const preinstall = require('../download-build/index.js')
+  const preinstall = require('../install/index.js')
   preinstall.catch(() => {
     //
   })

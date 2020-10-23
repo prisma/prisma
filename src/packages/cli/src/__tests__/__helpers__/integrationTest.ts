@@ -74,6 +74,10 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
+  /**
+   * Which step of setup we are on
+   */
+  step?: 'database' | 'scenario'
 }
 
 /**
@@ -306,13 +310,21 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   await ctx.fs.dirAsync('.')
 
-  const dbClient = await input.database.connect(ctx)
+  if (input.database.name === 'sqlserver') {
+    state.db = await input.database.connect({ ...ctx, step: 'database' })
+    const databaseUpSQL = input.database.up?.(ctx) ?? ''
+    await input.database.send(state.db, databaseUpSQL)
+    await input.database.close?.(state.db)
 
-  state.db = dbClient
-
-  const databaseUpSQL = input.database.up?.(ctx) ?? ''
-  const upSQL = databaseUpSQL + scenario.up
-  await input.database.send(dbClient, upSQL)
+    const scenarioUpSQL = scenario.up
+    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
+    await input.database.send(state.db, scenarioUpSQL)
+  } else {
+    state.db = await input.database.connect(ctx)
+    const databaseUpSQL = input.database.up?.(ctx) ?? ''
+    const upSQL = databaseUpSQL + scenario.up
+    await input.database.send(state.db, upSQL)
+  }
 
   const datasourceBlock =
     'raw' in input.database.datasource
@@ -323,15 +335,19 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
             ? input.database.datasource.url(ctx)
             : input.database.datasource.url,
         )
-
   const schemaBase = `
-        generator client {
-          provider = "prisma-client-js"
-          output   = "${ctx.fs.path()}"
-        }
+    generator client {
+      provider = "prisma-client-js"
+      output   = "${ctx.fs.path()}"
+      ${
+        input.database.name === 'sqlserver'
+          ? `previewFeatures = ["microsoftSqlServer"]`
+          : ''
+      }
+    }
 
-        ${datasourceBlock}
-      `
+    ${datasourceBlock}
+  `
 
   const introspectionResult = await engine.introspect(schemaBase)
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
@@ -355,11 +371,11 @@ async function teardownScenario(state: ScenarioState) {
         ? state.input.database.send(state.db, state.scenario.down)
         : undefined,
     )
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
       .then(() => state.input.database.afterEach?.(state.db))
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
       .then(() => state.prisma?.$disconnect())
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
   }
 
   if (errors.length) {
@@ -374,15 +390,15 @@ async function teardownScenario(state: ScenarioState) {
  * Convert test scenarios into something jest.each can consume
  */
 function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
-  const onlys = scenarios.filter((scenario) => scenario.only)
+  const onlys = scenarios.filter(scenario => scenario.only)
 
   if (onlys.length) {
-    return onlys.map((scenario) => [scenario.name, scenario])
+    return onlys.map(scenario => [scenario.name, scenario])
   }
 
   return scenarios
-    .filter((scenario) => scenario.todo !== true)
-    .map((scenario) => [scenario.name, scenario])
+    .filter(scenario => scenario.todo !== true)
+    .map(scenario => [scenario.name, scenario])
 }
 
 /**
