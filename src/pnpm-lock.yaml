@@ -304,7 +304,7 @@ importers:
       lint-staged: 10.4.0
       make-dir: 3.1.0
       mariadb: 2.4.2
-      mssql: ^6.2.3
+      mssql: 6.2.3
       node-fetch: 2.6.1
       packwatch: 2.0.0
       pg: 8.3.3
