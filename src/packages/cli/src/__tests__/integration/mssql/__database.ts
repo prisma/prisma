@@ -44,6 +44,7 @@ function getConnectionInfo(ctx: Context) {
     user: 'SA',
     password: 'Prisma1-prisma',
     server: connectionUrl.hostname,
+    port: connectionUrl.port,
     database: `master`,
   }
   return { credentials, connectionString }
