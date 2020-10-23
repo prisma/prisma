@@ -294,9 +294,7 @@ async function getNewPackageVersions(
 export function getPublishOrder(packages: Packages): string[][] {
   const dag: { [pkg: string]: string[] } = Object.values(packages).reduce(
     (acc, curr) => {
-      if (curr.name !== '@prisma/tests') {
-        acc[curr.name] = [...curr.usedBy, ...curr.usedByDev]
-      }
+      acc[curr.name] = [...curr.usedBy, ...curr.usedByDev]
       return acc
     },
     {},
