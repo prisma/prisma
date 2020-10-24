@@ -74,10 +74,6 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
-  /**
-   * Which step of setup we are on
-   */
-  step?: 'database' | 'scenario'
 }
 
 /**
@@ -95,9 +91,13 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Execute SQL against the database.
+   * Execute scenario SQL against the database.
    */
-  send: (db: Client, sql: string) => MaybePromise<any>
+  send: (ctx: Context, db: Client, sql: string) => MaybePromise<any>
+    /**
+   * Execute db SQL against the database.
+   */
+  create?: (db: Client, sql: string) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -309,22 +309,10 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   state.scenario = scenario
 
   await ctx.fs.dirAsync('.')
-
-  if (input.database.name === 'sqlserver') {
-    state.db = await input.database.connect({ ...ctx, step: 'database' })
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    await input.database.send(state.db, databaseUpSQL)
-    await input.database.close?.(state.db)
-
-    const scenarioUpSQL = scenario.up
-    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
-    await input.database.send(state.db, scenarioUpSQL)
-  } else {
-    state.db = await input.database.connect(ctx)
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    const upSQL = databaseUpSQL + scenario.up
-    await input.database.send(state.db, upSQL)
-  }
+  state.db = await input.database.connect(ctx)
+  const databaseUpSQL = input.database.up?.(ctx) ?? ''
+  await input.database.create?.(state.db, databaseUpSQL)
+  await input.database.send(ctx, state.db, scenario.up)
 
   const datasourceBlock =
     'raw' in input.database.datasource
@@ -367,9 +355,7 @@ async function teardownScenario(state: ScenarioState) {
   // props might be missing if test errors out before they are set.
   if (state.db) {
     await Promise.resolve(
-      state.scenario.down
-        ? state.input.database.send(state.db, state.scenario.down)
-        : undefined,
+      undefined
     )
       .catch((e) => errors.push(e))
       .then(() => state.input.database.afterEach?.(state.db))

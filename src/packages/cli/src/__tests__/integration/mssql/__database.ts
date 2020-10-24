@@ -14,7 +14,7 @@ export const database = {
       user: credentials.user,
       password: credentials.password,
       server: credentials.server,
-      database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
+      database:  `master`,
       pool: {
         max: 1,
       },
@@ -24,7 +24,27 @@ export const database = {
     })
     return pool.connect()
   },
-  send: (pool, sql) => pool.request().query(sql),
+  create: async (pool, sqlUp) => {
+    await pool.request().query(sqlUp)
+    pool.close()
+  },
+  send: async (ctx, pool, sqlScenario) => {
+    const credentials = getConnectionInfo(ctx).credentials
+    const newPool = new sql.ConnectionPool({
+      user: credentials.user,
+      password: credentials.password,
+      server: credentials.server,
+      database: `master_${ctx.id}`,
+      pool: {
+        max: 1,
+      },
+      options: {
+        enableArithAbort: false,
+      },
+    })
+    await newPool.connect()
+    await newPool.request().query(sqlScenario)
+  },
   close: pool => pool.close(),
   up: ctx => {
     return `
