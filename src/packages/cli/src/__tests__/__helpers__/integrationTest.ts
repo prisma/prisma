@@ -86,6 +86,11 @@ type Database<Client> = {
    * @remarks This is used as the default provider name for the Prisma schema datasource block.
    */
   name: string
+  /** 
+   * Supply the enabled preview features for the prisma client. 
+   * 
+   */
+  previewFeatures?: string[] 
   /**
    * Create a client connection to the database.
    */
@@ -327,11 +332,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      ${
-        input.database.name === 'sqlserver'
-          ? `previewFeatures = ["microsoftSqlServer"]`
-          : ''
-      }
+      ${makeFeatures(input.database.previewFeatures)}
     }
 
     ${datasourceBlock}
@@ -437,4 +438,14 @@ function makeDatasourceBlock(providerName: string, url: string) {
       url      = "${url}"
     }
   `
+}
+
+/**
+ * Create Prisma schema enabled features array of strings.
+ */
+function makeFeatures(featureMatrix: string[] | undefined) {
+  if (featureMatrix) {
+    return (`previewFeatures = [${featureMatrix.map(feature => `"`+feature+`"`)}]`)
+  } 
+  return ''
 }

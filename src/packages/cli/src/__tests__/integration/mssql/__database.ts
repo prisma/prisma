@@ -8,20 +8,10 @@ export const database = {
   datasource: {
     url: ctx => getConnectionInfo(ctx).connectionString,
   },
+  previewFeatures: ["microsoftSqlServer"],
   connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
-    const pool = new sql.ConnectionPool({
-      user: credentials.user,
-      password: credentials.password,
-      server: credentials.server,
-      database:  `master`,
-      pool: {
-        max: 1,
-      },
-      options: {
-        enableArithAbort: false,
-      },
-    })
+    const pool = new sql.ConnectionPool(credentials)
     return pool.connect()
   },
   create: async (pool, sqlUp) => {
@@ -30,18 +20,8 @@ export const database = {
   },
   send: async (ctx, pool, sqlScenario) => {
     const credentials = getConnectionInfo(ctx).credentials
-    const newPool = new sql.ConnectionPool({
-      user: credentials.user,
-      password: credentials.password,
-      server: credentials.server,
-      database: `master_${ctx.id}`,
-      pool: {
-        max: 1,
-      },
-      options: {
-        enableArithAbort: false,
-      },
-    })
+    const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
+    const newPool = new sql.ConnectionPool(credentialsClone)
     await newPool.connect()
     await newPool.request().query(sqlScenario)
   },
@@ -64,8 +44,13 @@ function getConnectionInfo(ctx: Context) {
     user: 'SA',
     password: 'Pr1sm4_Pr1sm4',
     server: connectionUrl.hostname,
-    port: connectionUrl.port,
     database: `master`,
+    pool: {
+      max: 1,
+    },
+    options: {
+      enableArithAbort: false,
+    },
   }
   return { credentials, connectionString }
 }
