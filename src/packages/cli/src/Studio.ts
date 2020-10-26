@@ -122,7 +122,7 @@ export class Studio implements Command {
             `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
           )
         : eval(
-            `require('path').join(__dirname, '../node_modules/@prisma/sdk/query-engine-${platform}${extension}')`,
+            `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
           )
     const staticAssetDir =
       process.env.NODE_ENV === 'production'
