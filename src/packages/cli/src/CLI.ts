@@ -69,9 +69,21 @@ export class CLI implements Command {
         await this.downloadBinaries()
       }
 
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
-        : args._.slice(1)
+      let argsForCmd: string[]
+      if (args['--experimental']) {
+        argsForCmd = [
+          ...args._.slice(1),
+          `--experimental=${args['--experimental']}`,
+        ]
+      } else if (args['--preview']) {
+        argsForCmd = argsForCmd = [
+          ...args._.slice(1),
+          `--preview=${args['--preview']}`,
+        ]
+      } else {
+        argsForCmd = args._.slice(1)
+      }
+
       return cmd.parse(argsForCmd)
     }
     // unknown command
@@ -123,9 +135,10 @@ export class CLI implements Command {
                     '(preview)',
                   )}
 
-    ${chalk.bold('Flag')}
+    ${chalk.bold('Flags')}
 
       --experimental   Show and run experimental Prisma commands
+           --preview   Run preview Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -171,6 +184,7 @@ export class CLI implements Command {
     ${chalk.bold('Flags')}
 
       --experimental   Show and run experimental Prisma commands
+           --preview   Run preview Prisma commands
 
     ${chalk.bold('Examples')}
 
