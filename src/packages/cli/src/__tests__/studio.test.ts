@@ -59,7 +59,6 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
 
 let studio: Studio
 let ws: WebSocket
-let consoleMocks: any = {}
 
 beforeEach(async () => {
   // Before  every test, we'd like to reset the DB.
@@ -83,9 +82,6 @@ beforeEach(async () => {
     },
   })
 
-  consoleMocks.error = jest.spyOn(console, 'error').mockImplementation(() => {})
-  consoleMocks.log = jest.spyOn(console, 'log').mockImplementation(() => {})
-
   await studio.parse([
     '--schema',
     path.join(__dirname, './fixtures/studio-test-project/schema.prisma'),
@@ -101,13 +97,6 @@ beforeEach(async () => {
 afterEach(async () => {
   await studio.instance?.stop()
   ws?.close()
-
-  consoleMocks.error.mockRestore()
-  consoleMocks.log.mockRestore()
-
-  process.stdout.write(JSON.stringify(consoleMocks.error.mock.calls))
-  process.stdout.write(JSON.stringify(consoleMocks.log.mock.calls))
-  process.stdout.write('Should see this')
 })
 
 it('launches client correctly', async () => {
