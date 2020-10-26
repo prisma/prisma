@@ -690,12 +690,14 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         }
       }
 
+      const publishOrder = filterPublishOrder(getPublishOrder(packages), ['@prisma/tests'])
+
       if (!dryRun) {
         console.log(`Let's first do a dry run!`)
         await publishPackages(
           packages,
           packagesWithVersions,
-          getPublishOrder(packages),
+          publishOrder,
           true,
           prisma2Version,
           tag,
@@ -709,7 +711,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
       await publishPackages(
         packages,
         packagesWithVersions,
-        getPublishOrder(packages),
+        publishOrder,
         dryRun,
         prisma2Version,
         tag,
@@ -859,6 +861,21 @@ async function patch(pkg: Package): Promise<string> {
   })
 
   return patchVersion(maxVersion)
+}
+
+function filterPublishOrder(publishOrder: string[][], packages: string[]): string[][] {
+  return publishOrder.reduce<string[][]>((acc, curr) => {
+    if (Array.isArray(curr)) {
+      curr = curr.filter(pkg => !packages.includes(pkg))
+      if (curr.length > 0) {
+        acc.push(curr)
+      }
+    } else if (!packages.includes(curr)) {
+      acc.push(curr)
+    }
+
+    return acc
+  }, [])
 }
 
 async function publishPackages(
