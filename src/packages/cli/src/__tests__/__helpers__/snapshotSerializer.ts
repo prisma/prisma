@@ -67,7 +67,7 @@ const serializer = {
 }
 
 /**
- * Replace dynamic variable bits of Prisma Schema with static strings.
+ * Replace dynamic variable bits of Prisma schema with static strings.
  */
 export function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/
