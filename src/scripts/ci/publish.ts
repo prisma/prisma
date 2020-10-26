@@ -855,6 +855,9 @@ async function patch(pkg: Package): Promise<string> {
   }
 
   const localVersion = pkg.version
+  if (pkg.name === '@prisma/tests') {
+    return localVersion
+  }
   const npmVersion = await runResult('.', `npm info ${pkg.name} version`)
 
   const maxVersion = semver.maxSatisfying([localVersion, npmVersion], '*', {
