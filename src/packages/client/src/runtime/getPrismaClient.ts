@@ -515,13 +515,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(string, ...values: sqlTemplateTag.RawValue[]) {
+    executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
         )} prisma.executeRaw() is deprecated, please use prisma.$executeRaw() instead`,
       )
-      return this.$executeRaw(string, ...values)
+      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
     }
 
     /**
@@ -627,9 +627,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $executeRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
+    $executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       try {
-        const promise = this.$executeRawInternal(strings, ...values)
+        const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
           ; (promise as any).isExecuteRaw = true
         return promise
       } catch (e) {
@@ -645,13 +645,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return undefined
     }
 
-    queryRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
+    queryRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
         )} prisma.queryRaw() is deprecated, please use prisma.$queryRaw() instead`,
       )
-      return this.$queryRaw(strings, ...values)
+      return this.$queryRaw(stringOrTemplateStringsArray, ...values)
     }
 
     /**
@@ -763,9 +763,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $queryRaw(strings, ...values: sqlTemplateTag.RawValue[]) {
+    $queryRaw(stringOrTemplateStringsArray, ...values: sqlTemplateTag.RawValue[]) {
       try {
-        const promise = this.$queryRawInternal(strings, ...values)
+        const promise = this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
           ; (promise as any).isQueryRaw = true
         return promise
       } catch (e) {
