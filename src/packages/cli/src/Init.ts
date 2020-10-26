@@ -43,7 +43,6 @@ export class Init implements Command {
     return new Init()
   }
 
-  // static help template
   private static help = format(`
     Setup a new Prisma project
     
@@ -54,7 +53,6 @@ export class Init implements Command {
 
   // eslint-disable-next-line @typescript-eslint/require-await
   async parse(argv: string[]): Promise<any> {
-    // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',

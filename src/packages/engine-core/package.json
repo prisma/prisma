@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.10.0-3-2e0f7f937353f4da81f3fef16cc436f870992b65",
+    "@prisma/engines": "2.10.0-6-a6292c2d17d90a0d09ee4876dff5d67129747801",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
@@ -44,7 +44,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "2.0.7"
+    "undici": "2.1.0"
   },
   "files": [
     "!**/__tests__",

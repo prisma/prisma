@@ -34,6 +34,7 @@
     {
       "groupName": "dependencies (non-major)",
       "depTypeList": ["dependencies"],
+      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
       "updateTypes": ["patch", "minor"]
     },
     {

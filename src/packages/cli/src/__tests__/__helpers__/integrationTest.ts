@@ -371,11 +371,11 @@ async function teardownScenario(state: ScenarioState) {
         ? state.input.database.send(state.db, state.scenario.down)
         : undefined,
     )
-      .catch(e => errors.push(e))
+      .catch((e) => errors.push(e))
       .then(() => state.input.database.afterEach?.(state.db))
-      .catch(e => errors.push(e))
+      .catch((e) => errors.push(e))
       .then(() => state.prisma?.$disconnect())
-      .catch(e => errors.push(e))
+      .catch((e) => errors.push(e))
   }
 
   if (errors.length) {
@@ -390,15 +390,15 @@ async function teardownScenario(state: ScenarioState) {
  * Convert test scenarios into something jest.each can consume
  */
 function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
-  const onlys = scenarios.filter(scenario => scenario.only)
+  const onlys = scenarios.filter((scenario) => scenario.only)
 
   if (onlys.length) {
-    return onlys.map(scenario => [scenario.name, scenario])
+    return onlys.map((scenario) => [scenario.name, scenario])
   }
 
   return scenarios
-    .filter(scenario => scenario.todo !== true)
-    .map(scenario => [scenario.name, scenario])
+    .filter((scenario) => scenario.todo !== true)
+    .map((scenario) => [scenario.name, scenario])
 }
 
 /**

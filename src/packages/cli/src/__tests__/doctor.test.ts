@@ -21,7 +21,7 @@ it('should fail when db is missing', async () => {
   )
 })
 
-it('should fail when prisma schema is missing', async () => {
+it('should fail when Prisma schema is missing', async () => {
   const result = Doctor.new().parse([])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           Could not find a schema.prisma file that is required for this command.

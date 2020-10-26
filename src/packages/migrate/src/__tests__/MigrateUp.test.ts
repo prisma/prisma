@@ -35,7 +35,7 @@ describe('sqlite', () => {
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/empty.prisma
+      Prisma schema loaded from prisma/empty.prisma
 
       Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
     `)
@@ -56,14 +56,14 @@ describe('sqlite', () => {
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following migration(s):
 
       migrations/
         └─ 20201231000000_init/
           └─ migration.sql
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
     `)
@@ -79,7 +79,7 @@ describe('sqlite', () => {
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
