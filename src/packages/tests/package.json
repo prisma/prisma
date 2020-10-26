@@ -46,7 +46,7 @@
     "verror": "^1.10.0"
   },
   "scripts": {
-    "text": "jest",
+    "jest": "jest",
     "test:integration": "jest integration --forceExit --maxConcurrency=10",
     "test:sqlite": "jest integration.sqlite",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=10",
