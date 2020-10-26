@@ -7,9 +7,13 @@ import {
   getSchemaPath,
   getVersion,
   resolveBinary,
+  format,
+  isError,
+  HelpError,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
+import chalk from 'chalk'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -27,11 +31,38 @@ export class Version implements Command {
     return new Version()
   }
 
-  async parse(argv: string[]): Promise<string> {
+  private static help = format(`
+  Print current version of Prisma components
+
+  ${chalk.bold('Usage')}
+
+    ${chalk.dim('$')} prisma -v [options]
+    ${chalk.dim('$')} prisma version [options]
+
+  ${chalk.bold('Options')}
+
+    -h, --help     Displays this help message
+        --json     Output JSON
+`)
+
+  async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
+      '--help': Boolean,
+      '-h': '--help',
+      '--version': Boolean,
+      '-v': '--version',
       '--json': Boolean,
       '--telemetry-information': String,
     })
+
+    if (isError(args)) {
+      return this.help(args.message)
+    }
+
+    if (args['--help']) {
+      return this.help()
+    }
+
     const platform = await getPlatform()
 
     const introspectionEngine = await this.resolveEngine(
@@ -140,6 +171,14 @@ export class Version implements Command {
     return rows
       .map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`)
       .join('\n')
+  }
+
+  public help(error?: string): string | HelpError {
+    if (error) {
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Version.help}`)
+    }
+
+    return Version.help
   }
 }
 

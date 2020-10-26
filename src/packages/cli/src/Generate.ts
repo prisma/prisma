@@ -29,21 +29,20 @@ export class Generate implements Command {
     return new Generate()
   }
 
-  // static help template
   private static help = format(`
     Generate artifacts (e.g. Prisma Client)
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma:
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma generate
 
     Or specify a schema:
       ${chalk.dim('$')} prisma generate --schema=./schema.prisma'
 
-    ${chalk.bold('Flags')}
+    ${chalk.bold('Flag')}
 
-      --watch    Watches the Prisma project file
+      --watch    Watch the Prisma schema and rerun after a change
   `)
 
   private logText = ''
@@ -56,11 +55,11 @@ export class Generate implements Command {
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
           ? chalk.dim(
-            ` to .${path.sep}${path.relative(
-              process.cwd(),
-              generator.options!.generator.output!,
-            )}`,
-          )
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
           : ''
         const name = generator.manifest
           ? generator.manifest.prettyName
@@ -71,7 +70,8 @@ export class Generate implements Command {
           const after = Date.now()
           const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${version ? ` (version: ${version})` : ''
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (version: ${version})` : ''
             }${toStr} in ${formatms(after - before)}\n`,
           )
           generator.stop()
@@ -86,9 +86,7 @@ export class Generate implements Command {
     },
   )
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -117,9 +115,9 @@ export class Generate implements Command {
         console.error(`${chalk.yellow(
           'warning',
         )} The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
-If you have a Prisma Schema file in a custom path, you will need to run
+If you have a Prisma schema file in a custom path, you will need to run
 \`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma Schema file yet, you can ignore this message.`)
+If you do not have a Prisma schema file yet, you can ignore this message.`)
         return ''
       }
       throw new Error(
@@ -135,7 +133,7 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
@@ -193,11 +191,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         const importPath = prismaClientJSGenerator.options?.generator
           ?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-            path.relative(
-              process.cwd(),
-              prismaClientJSGenerator.options?.generator.output!,
-            ),
-          )
+              path.relative(
+                process.cwd(),
+                prismaClientJSGenerator.options?.generator.output!,
+              ),
+            )
           : '@prisma/client'
         hint = `
 You can now start using Prisma Client in your code:
