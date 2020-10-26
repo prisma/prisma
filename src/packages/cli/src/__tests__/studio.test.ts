@@ -3,8 +3,11 @@ import http from 'http'
 import path from 'path'
 import WebSocket from 'ws'
 import rimraf from 'rimraf'
-import { Studio } from '../Studio'
 
+import { Studio } from '../Studio'
+import { consoleContext, Context } from './__helpers__/context'
+
+const ctx = Context.new().add(consoleContext()).assemble()
 const STUDIO_TEST_PORT = 5678
 
 const setupWS = (): Promise<WebSocket> => {
@@ -91,6 +94,12 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  const message = ctx.mocked['console.log'].mock.calls[0][0]
+  expect(message).toBe('')
+
+  const message2 = ctx.mocked['console.error'].mock.calls[0][0]
+  expect(message2).toBe('')
+
   await studio.instance?.stop()
   ws.close()
 })
