@@ -19,21 +19,18 @@ export class Validate implements Command {
     return new Validate()
   }
 
-  // static help template
   private static help = format(`
     Validate a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma:
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma validate
 
-    Or specify a schema:
+    Or specify a Prisma schema path
       ${chalk.dim('$')} prisma validate --schema=./schema.prisma
-
   `)
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
@@ -66,10 +63,7 @@ export class Validate implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

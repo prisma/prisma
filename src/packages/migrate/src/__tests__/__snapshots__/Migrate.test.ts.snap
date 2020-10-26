@@ -299,7 +299,7 @@ exports[`migrate.create invalid ok 7`] = `
 `;
 
 exports[`migrate.create invalid ok 8`] = `
-Prisma Schema loaded from schema-not-null.prisma
+Prisma schema loaded from schema-not-null.prisma
 📼  migrate save --name init-2
 
 Local datamodel Changes:
