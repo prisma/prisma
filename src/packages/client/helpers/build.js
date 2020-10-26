@@ -26,6 +26,7 @@ async function main() {
 
   await Promise.all([
     run('tsc --build tsconfig.runtime.json', true),
+    run('tsc --build tsconfig.json', true),
     run(
       'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
       false,

@@ -1,0 +1,82 @@
+{
+  "name": "@prisma/tests",
+  "version": "0.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "devDependencies": {
+    "@prisma/client": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
+    "@prisma/migrate": "workspace:*",
+    "@prisma/sdk": "workspace:*",
+    "@sindresorhus/slugify": "^1.1.0",
+    "@types/jest": "26.0.14",
+    "@types/mssql": "^6.0.5",
+    "@types/node": "12.12.62",
+    "@types/pg": "^7.14.5",
+    "@types/sqlite3": "^3.1.6",
+    "@typescript-eslint/eslint-plugin": "4.2.0",
+    "@typescript-eslint/parser": "4.2.0",
+    "escape-string-regexp": "^4.0.0",
+    "eslint": "7.10.0",
+    "eslint-config-prettier": "6.12.0",
+    "eslint-plugin-eslint-comments": "3.2.0",
+    "eslint-plugin-jest": "24.0.2",
+    "eslint-plugin-prettier": "3.1.4",
+    "fs-jetpack": "^4.0.0",
+    "husky": "4.3.0",
+    "jest": "26.4.2",
+    "lint-staged": "10.4.0",
+    "make-dir": "^3.1.0",
+    "mariadb": "^2.5.0",
+    "mssql": "^6.2.3",
+    "pg": "^8.4.1",
+    "pkg-up": "^3.1.0",
+    "prettier": "2.1.2",
+    "replace-string": "^3.1.0",
+    "sqlite-async": "^1.1.0",
+    "sqlite3": "^5.0.0",
+    "string-hash": "^1.1.3",
+    "strip-ansi": "6.0.0",
+    "tempy": "^1.0.0",
+    "ts-jest": "26.4.0",
+    "typescript": "4.0.3",
+    "verror": "^1.10.0"
+  },
+  "scripts": {
+    "jest": "jest",
+    "test:integration": "jest integration --forceExit --maxConcurrency=10",
+    "test:sqlite": "jest integration.sqlite",
+    "test:postgresql": "jest integration.postgresql --maxConcurrency=10",
+    "test:mysql": "jest integration.mysql --maxConcurrency=10",
+    "test:mariadb": "jest integration.mariadb --maxConcurrency=10",
+    "build": "tsc -d",
+    "prepublishOnly": "pnpm run build",
+    "format": "prettier --write .",
+    "lint": "eslint --fix --ext .js,.ts .",
+    "test": "jest"
+  },
+  "files": [
+    "!**/__tests__",
+    "dist"
+  ],
+  "dependencies": {
+    "debug": "^4.1.1"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,ts,css,json,md}": [
+      "prettier --write",
+      "git add"
+    ],
+    "*.{js,ts}": [
+      "eslint"
+    ]
+  }
+}
