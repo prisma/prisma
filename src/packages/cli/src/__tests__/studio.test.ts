@@ -5,9 +5,7 @@ import WebSocket from 'ws'
 import rimraf from 'rimraf'
 
 import { Studio } from '../Studio'
-import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
 const STUDIO_TEST_PORT = 5678
 
 const setupWS = (): Promise<WebSocket> => {
@@ -61,15 +59,19 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
 
 let studio: Studio
 let ws: WebSocket
+let consoleMocks: any = {}
 
 beforeEach(async () => {
   // Before  every test, we'd like to reset the DB.
   // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
+  rimraf.sync(path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'))
   fs.copyFileSync(
-    './src/__tests__/fixtures/studio-test-project/dev.db',
-    './src/__tests__/fixtures/studio-test-project/dev_tmp.db',
+    path.join(__dirname, './fixtures/studio-test-project/dev.db'),
+    path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
   )
-  rimraf.sync(path.join(__dirname, '../prisma-client')) // Clean up generating directory
+
+  // Clean up Client generation directory
+  rimraf.sync(path.join(__dirname, '../prisma-client'))
   studio = Studio.new({
     // providerAliases
     'prisma-client-js': {
@@ -81,9 +83,12 @@ beforeEach(async () => {
     },
   })
 
+  consoleMocks.error = jest.spyOn(console, 'error').mockImplementation(() => {})
+  consoleMocks.log = jest.spyOn(console, 'log').mockImplementation(() => {})
+
   await studio.parse([
     '--schema',
-    path.resolve('./src/__tests__/fixtures/studio-test-project/schema.prisma'),
+    path.join(__dirname, './fixtures/studio-test-project/schema.prisma'),
     '--port',
     `${STUDIO_TEST_PORT}`,
     '--browser',
@@ -94,14 +99,14 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  const message = ctx.mocked['console.log'].mock.calls[0][0]
-  expect(message).toBe('')
-
-  const message2 = ctx.mocked['console.error'].mock.calls[0][0]
-  expect(message2).toBe('')
-
   await studio.instance?.stop()
-  ws.close()
+  ws?.close()
+
+  consoleMocks.error.mockRestore()
+  consoleMocks.log.mockRestore()
+
+  console.log(consoleMocks.error.mock.calls)
+  console.log(consoleMocks.log.mock.calls)
 })
 
 it('launches client correctly', async () => {
