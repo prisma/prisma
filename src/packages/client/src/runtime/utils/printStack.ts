@@ -80,8 +80,8 @@ export const printStack = ({
         : trace.file
       callsiteStr = callsite
         ? ` in\n${chalk.underline(
-            `${printedFileName}:${trace.lineNumber}:${trace.column}`,
-          )}`
+          `${printedFileName}:${trace.lineNumber}:${trace.column}`,
+        )}`
         : ''
       const height = process.stdout.rows || 20
       const start = Math.max(0, lineNumber - 5)
@@ -167,14 +167,14 @@ export const printStack = ({
 
   const introText = onUs
     ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold(
-        'on us',
-      )}, you did nothing wrong.
+      'on us',
+    )}, you did nothing wrong.
 It occured in the ${chalk.bold(
-        `\`${functionName}\``,
-      )} invocation${callsiteStr}`)
+      `\`${functionName}\``,
+    )} invocation${callsiteStr}`)
     : chalk.red(
-        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
-      )
+      `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
+    )
 
   const stackStr = `\n${introText}
 ${prevLines}${chalk.reset()}`
