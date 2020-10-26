@@ -24,6 +24,7 @@ export const database = {
     const newPool = new sql.ConnectionPool(credentialsClone)
     await newPool.connect()
     await newPool.request().query(sqlScenario)
+    newPool.close()
   },
   close: pool => pool.close(),
   up: ctx => {
@@ -44,6 +45,7 @@ function getConnectionInfo(ctx: Context) {
     user: 'SA',
     password: 'Pr1sm4_Pr1sm4',
     server: connectionUrl.hostname,
+    port: Number(connectionUrl.port),
     database: `master`,
     pool: {
       max: 1,

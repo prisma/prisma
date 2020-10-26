@@ -99,7 +99,7 @@ type Database<Client> = {
    * Execute scenario SQL against the database.
    */
   send: (ctx: Context, db: Client, sql: string) => MaybePromise<any>
-    /**
+  /**
    * Execute db SQL against the database.
    */
   create?: (db: Client, sql: string) => MaybePromise<any>
@@ -356,11 +356,9 @@ async function teardownScenario(state: ScenarioState) {
   // props might be missing if test errors out before they are set.
   if (state.db) {
     await Promise.resolve(
-      undefined
+      state.input.database.afterEach?.(state.db)
     )
-      .catch((e) => errors.push(e))
-      .then(() => state.input.database.afterEach?.(state.db))
-      .catch((e) => errors.push(e))
+      .catch(e => errors.push(e))
       .then(() => state.prisma?.$disconnect())
       .catch((e) => errors.push(e))
   }
