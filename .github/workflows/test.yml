@@ -6,18 +6,18 @@ on:
     branches:
       - master
     paths-ignore:
-      - "*.md"
-      - ".buildkite/**"
-      - "docs/**"
-      - "scripts/**"
-      - ".prettierrc.yml"
-      - ".dockerignore"
-      - "LICENSE"
+      - '*.md'
+      - '.buildkite/**'
+      - 'docs/**'
+      - 'scripts/**'
+      - '.prettierrc.yml'
+      - '.dockerignore'
+      - 'LICENSE'
   pull_request:
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
-  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 jobs:
   # From https://github.com/marketplace/actions/workflow-run-cleanup-action
@@ -29,7 +29,7 @@ jobs:
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
 
   #
@@ -112,14 +112,14 @@ jobs:
 
       - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
         if: ${{ matrix.test == 'sqlite' }}
-        working-directory: src/packages/cli
+        working-directory: src/packages/tests
 
       # temp
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=1
-        working-directory: src/packages/cli
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
+        working-directory: src/packages/tests
         env:
           CI: true
           SKIP_GIT: true
@@ -150,7 +150,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: "Pr1sm4_Pr1sm4"
+          SA_PASSWORD: 'Pr1sm4_Pr1sm4'
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
@@ -185,8 +185,8 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=1
-        working-directory: src/packages/cli
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
+        working-directory: src/packages/tests
         env:
           CI: true
           SKIP_GIT: true
@@ -291,7 +291,7 @@ jobs:
         image: mcr.microsoft.com/mssql/server:2019-latest
         env:
           ACCEPT_EULA: Y
-          SA_PASSWORD: "Pr1sm4_Pr1sm4"
+          SA_PASSWORD: 'Pr1sm4_Pr1sm4'
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
@@ -486,7 +486,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "debug"
+        name: 'debug'
         working-directory: src/packages/debug
         env:
           CI: true
@@ -499,7 +499,7 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -F debug -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
-        name: "engine-core"
+        name: 'engine-core'
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -512,7 +512,7 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -F engine-core -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
-        name: "fetch-engine"
+        name: 'fetch-engine'
         working-directory: src/packages/fetch-engine
         env:
           CI: true
@@ -525,7 +525,7 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -F fetch-engine -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
-        name: "generator-helper"
+        name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
           CI: true
@@ -538,7 +538,7 @@ jobs:
           bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
-        name: "get-platform"
+        name: 'get-platform'
         working-directory: src/packages/get-platform
         env:
           CI: true

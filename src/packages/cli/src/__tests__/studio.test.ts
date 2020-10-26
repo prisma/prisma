@@ -8,6 +8,9 @@ import { Studio } from '../Studio'
 
 const STUDIO_TEST_PORT = 5678
 
+// silencium
+console.log = () => null
+
 const setupWS = (): Promise<WebSocket> => {
   return new Promise(res => {
     const ws = new WebSocket(`ws://127.0.0.1:${STUDIO_TEST_PORT}/`)

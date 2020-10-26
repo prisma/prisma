@@ -211,9 +211,6 @@ export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>(
     (acc, [name, pkg]) => {
       let usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
-      if (name === '@prisma/client') {
-        usesDev = usesDev.filter(d => d !== '@prisma/migrate')
-      }
       acc[name] = {
         version: pkg.packageJson.version,
         name,
@@ -466,8 +463,13 @@ async function getAllVersions(
   return unique(
     flatten(
       await pMap(
-        Object.values(packages),
+        Object.values(packages).filter(p => p.name !== '@prisma/tests'),
         async (pkg) => {
+          console.log('getAllVersions')
+          console.log(pkg.name)
+          if (pkg.name === '@prisma/tests') {
+            return []
+          }
           const pkgVersions = []
           if (pkg.version.startsWith(prefix)) {
             pkgVersions.push(pkg.version)
@@ -690,12 +692,14 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         }
       }
 
+      const publishOrder = filterPublishOrder(getPublishOrder(packages), ['@prisma/tests'])
+
       if (!dryRun) {
         console.log(`Let's first do a dry run!`)
         await publishPackages(
           packages,
           packagesWithVersions,
-          getPublishOrder(packages),
+          publishOrder,
           true,
           prisma2Version,
           tag,
@@ -709,7 +713,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
       await publishPackages(
         packages,
         packagesWithVersions,
-        getPublishOrder(packages),
+        publishOrder,
         dryRun,
         prisma2Version,
         tag,
@@ -851,6 +855,9 @@ async function patch(pkg: Package): Promise<string> {
   }
 
   const localVersion = pkg.version
+  if (pkg.name === '@prisma/tests') {
+    return localVersion
+  }
   const npmVersion = await runResult('.', `npm info ${pkg.name} version`)
 
   const maxVersion = semver.maxSatisfying([localVersion, npmVersion], '*', {
@@ -859,6 +866,21 @@ async function patch(pkg: Package): Promise<string> {
   })
 
   return patchVersion(maxVersion)
+}
+
+function filterPublishOrder(publishOrder: string[][], packages: string[]): string[][] {
+  return publishOrder.reduce<string[][]>((acc, curr) => {
+    if (Array.isArray(curr)) {
+      curr = curr.filter(pkg => !packages.includes(pkg))
+      if (curr.length > 0) {
+        acc.push(curr)
+      }
+    } else if (!packages.includes(curr)) {
+      acc.push(curr)
+    }
+
+    return acc
+  }, [])
 }
 
 async function publishPackages(
@@ -938,6 +960,10 @@ async function publishPackages(
   for (const currentBatch of publishOrder) {
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
+
+      if (pkg.name === '@prisma/tests') {
+        continue
+      }
 
       // @prisma/engines & @prisma/engines-version are published outside of this script
       const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
