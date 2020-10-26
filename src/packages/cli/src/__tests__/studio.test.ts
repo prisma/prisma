@@ -104,7 +104,6 @@ afterEach(async () => {
 
   consoleMocks.error.mockRestore()
   consoleMocks.log.mockRestore()
-  consoleMocks.exit.mockRestore()
 
   process.stdout.write(JSON.stringify(consoleMocks.error.mock.calls))
   process.stdout.write(JSON.stringify(consoleMocks.log.mock.calls))
