@@ -85,6 +85,7 @@ beforeEach(async () => {
 
   consoleMocks.error = jest.spyOn(console, 'error').mockImplementation(() => {})
   consoleMocks.log = jest.spyOn(console, 'log').mockImplementation(() => {})
+  consoleMocks.exit = jest.spyOn(process, 'exit').mockImplementation(() => 0)
 
   await studio.parse([
     '--schema',
@@ -104,9 +105,12 @@ afterEach(async () => {
 
   consoleMocks.error.mockRestore()
   consoleMocks.log.mockRestore()
+  consoleMocks.exit.mockRestore()
 
   console.log(consoleMocks.error.mock.calls)
   console.log(consoleMocks.log.mock.calls)
+  console.log(consoleMocks.exit.mock.calls)
+  console.log('Should see this')
 })
 
 it('launches client correctly', async () => {
