@@ -85,7 +85,7 @@ beforeEach(async () => {
 
   consoleMocks.error = jest.spyOn(console, 'error').mockImplementation(() => {})
   consoleMocks.log = jest.spyOn(console, 'log').mockImplementation(() => {})
-  consoleMocks.exit = jest.spyOn(process, 'exit').mockImplementation(() => 0)
+  consoleMocks.exit = jest.spyOn(process, 'exit')
 
   await studio.parse([
     '--schema',
