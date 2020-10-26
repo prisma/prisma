@@ -48,8 +48,8 @@ const serializer = {
       typeof value === 'string'
         ? value
         : value instanceof Error
-          ? value.message
-          : ''
+        ? value.message
+        : ''
     return prepareSchemaForSnapshot(
       normalizeGithubLinks(
         normalizeRustError(
@@ -67,7 +67,7 @@ const serializer = {
 }
 
 /**
- * Replace dynamic variable bits of Prisma schema with static strings.
+ * Replace dynamic variable bits of Prisma Schema with static strings.
  */
 export function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/

@@ -1,18 +1,16 @@
-import { getLatestTag } from '@prisma/fetch-engine'
-import { getGenerator, IntrospectionEngine } from '@prisma/sdk'
+import { IntrospectionEngine } from '@prisma/sdk'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import { FSJetpack } from 'fs-jetpack/types'
-import * as Path from 'path'
-import pkgup from 'pkg-up'
+import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
+import { getTestClient } from '@prisma/client/dist/utils/getTestClient'
 
 process.setMaxListeners(200)
 
 process.env.SKIP_GENERATE = 'true'
 
-const pkgDir = pkgup.sync() || __dirname
 const engine = new IntrospectionEngine()
 
 /**
@@ -110,24 +108,24 @@ type Database<Client> = {
    * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
    */
   datasource:
-    | {
-        /**
-         * Construct the whole datasource block for the Prisma schema
-         */
-        raw: (ctx: Context) => string
-      }
-    | {
-        /**
-         * Supply the connection URL used in the datasource block.
-         */
-        url: string | ((ctx: Context) => string)
-        /**
-         * Supply the provider name used in the datasource block.
-         *
-         * @dynamicDefault The value passed to database.name
-         */
-        provider?: string
-      }
+  | {
+    /**
+     * Construct the whole datasource block for the Prisma schema
+     */
+    raw: (ctx: Context) => string
+  }
+  | {
+    /**
+     * Supply the connection URL used in the datasource block.
+     */
+    url: string | ((ctx: Context) => string)
+    /**
+     * Supply the provider name used in the datasource block.
+     *
+     * @dynamicDefault The value passed to database.name
+     */
+    provider?: string
+  }
   /**
    * SQL to setup and select a database before running a test scenario.
    */
@@ -199,7 +197,7 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
    * If we ever make use of test.concurrent we will need to rethink our ctx system:
    * https://github.com/facebook/jest/issues/10513
    */
-  it.each(prepareTestScenarios(input.scenarios))(
+  it.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
       const { state, introspectionResult } = await setupScenario(
@@ -234,14 +232,9 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
     await afterAllScenarios(kind, states)
   })
 
-  const engineVersionPromise = input.settings?.engineVersion
-    ? input.settings.engineVersion
-    : getLatestTag()
-
-  it.concurrent.each(prepareTestScenarios(input.scenarios))(
+  it.concurrent.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
-      const engineVersion = await engineVersionPromise
       const { ctx, state, prismaSchemaPath } = await setupScenario(
         kind,
         input,
@@ -249,18 +242,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
       )
       states[scenario.name] = state
 
-      await generate(prismaSchemaPath, engineVersion)
-
-      const prismaClientPath = ctx.fs.path('index.js')
-      const prismaClientDeclarationPath = ctx.fs.path('index.d.ts')
-
-      expect(await fs.existsAsync(prismaClientPath)).toBeTruthy()
-      expect(await fs.existsAsync(prismaClientDeclarationPath)).toBeTruthy()
-
-      const { PrismaClient, prismaVersion } = await import(prismaClientPath)
-
-      expect(prismaVersion.client).toMatch(/^2.+/)
-      expect(prismaVersion.engine).toEqual(engineVersion)
+      const PrismaClient = await getTestClient(ctx.fs.cwd())
 
       state.prisma = new PrismaClient()
       await state.prisma.$connect()
@@ -300,7 +282,8 @@ function beforeAllScenarios(testKind: string, input: Input) {
 async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   const state: ScenarioState = {} as any
   const ctx: Context = {} as any
-  ctx.fs = fs.cwd(getScenarioDir(input.database.name, kind, scenario.name))
+  const dir = getScenarioDir(input.database.name, kind, scenario.name)
+  ctx.fs = fs.cwd(dir)
   ctx.scenarioName = `${kind}: ${scenario.name}`
   ctx.scenarioSlug = slugify(ctx.scenarioName, { separator: '_' })
   ctx.id = `${ctx.scenarioSlug.slice(0, 7)}_${hash(ctx.scenarioSlug)}`
@@ -330,20 +313,19 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
       : makeDatasourceBlock(
-          input.database.datasource.provider ?? input.database.name,
-          typeof input.database.datasource.url === 'function'
-            ? input.database.datasource.url(ctx)
-            : input.database.datasource.url,
-        )
+        input.database.datasource.provider ?? input.database.name,
+        typeof input.database.datasource.url === 'function'
+          ? input.database.datasource.url(ctx)
+          : input.database.datasource.url,
+      )
   const schemaBase = `
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      ${
-        input.database.name === 'sqlserver'
-          ? `previewFeatures = ["microsoftSqlServer"]`
-          : ''
-      }
+      ${input.database.name === 'sqlserver'
+      ? `previewFeatures = ["microsoftSqlServer"]`
+      : ''
+    }
     }
 
     ${datasourceBlock}
@@ -389,8 +371,8 @@ async function teardownScenario(state: ScenarioState) {
 /**
  * Convert test scenarios into something jest.each can consume
  */
-function prepareTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
-  const onlys = scenarios.filter((scenario) => scenario.only)
+function filterTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
+  const onlys = scenarios.filter(scenario => scenario.only)
 
   if (onlys.length) {
     return onlys.map((scenario) => [scenario.name, scenario])
@@ -409,36 +391,18 @@ function getScenarioDir(
   testKind: string,
   scenarioName: string,
 ) {
-  return Path.join(getScenariosDir(databaseName, testKind), scenarioName)
+  return path.join(getScenariosDir(databaseName, testKind), slugify(scenarioName))
 }
 
 /**
  * Get the temporary directory for the scenarios
  */
 function getScenariosDir(databaseName: string, testKind: string) {
-  return Path.join(
-    Path.dirname(pkgDir),
-    'src',
-    '__tests__',
-    'tmp',
+  // use tmp dir instead, as that often times is ramdisk
+  return path.join(
+    '/tmp/prisma-tests',
     `integration-test-${databaseName}-${testKind}`,
   )
-}
-
-/**
- * Run all generators the given Prisma schema
- */
-async function generate(schemaPath: string, engineVersion: string) {
-  const generator = await getGenerator({
-    schemaPath,
-    printDownloadProgress: false,
-    baseDir: Path.dirname(schemaPath),
-    version: engineVersion,
-  })
-
-  await generator.generate()
-
-  generator.stop()
 }
 
 /**
