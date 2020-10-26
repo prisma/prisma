@@ -62,10 +62,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   if (!buildOnly) {
     debug(`Installing dependencies`)
 
-    await run(
-      '.',
-      `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent`,
-    ).catch((e) => { })
+    await run('.', `pnpm i --no-prefer-frozen-lockfile -r`).catch(e => {})
   }
 
   debug(`Building packages`)
@@ -111,7 +108,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   // final install on top level
-  await run('.', 'pnpm i --no-prefer-frozen-lockfile -r --reporter=silent')
+  await run('.', 'pnpm i --no-prefer-frozen-lockfile -r')
 }
 
 if (!module.parent) {
