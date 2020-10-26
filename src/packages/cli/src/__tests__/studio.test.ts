@@ -2,6 +2,7 @@ import fs from 'fs'
 import http from 'http'
 import path from 'path'
 import WebSocket from 'ws'
+import rimraf from 'rimraf'
 import { Studio } from '../Studio'
 
 const STUDIO_TEST_PORT = 5678
@@ -65,6 +66,7 @@ beforeEach(async () => {
     './src/__tests__/fixtures/studio-test-project/dev.db',
     './src/__tests__/fixtures/studio-test-project/dev_tmp.db',
   )
+  rimraf.sync(path.join(__dirname, '../prisma-client')) // Clean up generating directory
   studio = Studio.new({
     // providerAliases
     'prisma-client-js': {
