@@ -463,8 +463,10 @@ async function getAllVersions(
   return unique(
     flatten(
       await pMap(
-        Object.values(packages),
+        Object.values(packages).filter(p => p.name !== '@prisma/tests'),
         async (pkg) => {
+          console.log('getAllVersions')
+          console.log(pkg.name)
           if (pkg.name === '@prisma/tests') {
             return []
           }

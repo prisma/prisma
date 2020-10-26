@@ -62,7 +62,7 @@
   },
   "prisma": {
     "version": "77abecc4840127ebdcc02b83ee1e2c9cc27009f2",
-    "prismaCommit": "bdaa876ba67edf41a791a76a2d0c15a2be9ecd1d"
+    "prismaCommit": "4e276e154290fd3f7989fcd9d6daa27e2e5111b5"
   },
   "devDependencies": {
     "@prisma/client": "workspace:*",
