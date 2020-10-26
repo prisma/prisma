@@ -515,7 +515,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(stringOrTemplateStringsArray, ...values) {
+    executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
@@ -527,7 +527,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    private async $executeRawInternal(stringOrTemplateStringsArray, ...values) {
+    private async $executeRawInternal(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       let query = ''
       let parameters: any = undefined
 
@@ -627,7 +627,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $executeRaw(stringOrTemplateStringsArray, ...values) {
+    $executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       try {
         const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
           ; (promise as any).isExecuteRaw = true
@@ -645,13 +645,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return undefined
     }
 
-    queryRaw(stringOrTemplateStringsArray, ...args) {
+    queryRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
       console.warn(
         `${chalk.yellow(
           'warn',
         )} prisma.queryRaw() is deprecated, please use prisma.$queryRaw() instead`,
       )
-      return this.$queryRaw(stringOrTemplateStringsArray, ...args)
+      return this.$queryRaw(stringOrTemplateStringsArray, ...values)
     }
 
     /**
@@ -763,7 +763,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $queryRaw(stringOrTemplateStringsArray, ...values) {
+    $queryRaw(stringOrTemplateStringsArray, ...values: sqlTemplateTag.RawValue[]) {
       try {
         const promise = this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
           ; (promise as any).isQueryRaw = true

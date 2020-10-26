@@ -7,9 +7,12 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   link,
+  isCi,
 } from '@prisma/sdk'
+import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
+import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
@@ -41,8 +44,9 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-   -h, --help   Displays this help message
-  -f, --force   Ignore data loss warnings
+           -h, --help   Displays this help message
+          -f, --force   Ignore data loss warnings
+  --ignore-migrations   Ignore migrations files warning
 
 ${chalk.bold('Examples')}
 
@@ -65,6 +69,7 @@ ${chalk.bold('Examples')}
         '--preview': Boolean,
         '--force': Boolean,
         '-f': '--force',
+        '--ignore-migrations': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -102,6 +107,36 @@ ${chalk.bold('Examples')}
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
+
+    const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
+    const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
+    if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
+      if (isCi()) {
+        throw Error(
+          `Using db push alongside migrate will interfere with migrations.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
+            getCommandWithExecutor('prisma db push --ignore-migrations '),
+          )}`,
+        )
+      }
+
+      const confirmation = await prompt({
+        type: 'confirm',
+        name: 'value',
+        message: `${chalk.yellow(
+          'Warning',
+        )}: Using db push alongside migrate will interfere with migrations.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+Do you want to continue?`,
+      })
+
+      if (!confirmation.value) {
+        console.info() // empty line
+        console.info('Push cancelled.')
+        process.exit(0)
+      }
+    }
 
     const migrate = new Migrate(args['--schema'])
 

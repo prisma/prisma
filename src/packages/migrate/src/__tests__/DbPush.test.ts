@@ -38,9 +38,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            The database is already in sync with the Prisma schema.
+                                                                                                            The database is already in sync with the Prisma schema.
 
-          `)
+                                                                                          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
@@ -56,9 +56,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            🚀  Your database is now in sync with your schema. Done in XXms
+                                                                                                            🚀  Your database is now in sync with your schema. Done in XXms
 
-          `)
+                                                                                          `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -97,9 +97,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            The database is already in sync with the Prisma schema.
+                                                                                                            The database is already in sync with the Prisma schema.
 
-          `)
+                                                                                          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
@@ -113,14 +113,64 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            The database is already in sync with the Prisma schema.
+                                                                                                            The database is already in sync with the Prisma schema.
 
-          `)
+                                                                                          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+  })
+
+  it('should block if old migrate is detected', async () => {
+    ctx.fixture('old-migrate')
+    const result = DbPush.new().parse(['--preview', '--force'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Using db push alongside migrate will interfere with migrations.
+            The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+            Use the --ignore-migrations flag to ignore this message in an unnattended environment like prisma db push --ignore-migrations 
+          `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('should continue if old migrate with --ignore-migrations', async () => {
+    ctx.fixture('old-migrate')
+    const result = DbPush.new().parse([
+      '--preview',
+      '--force',
+      '--ignore-migrations',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(`
+
+                                                                        🚀  Your database is now in sync with your schema. Done in XXms
+
+                                                            `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('should fail if nativeTypes feature is enabled', async () => {
+    ctx.fixture('nativeTypes-sqlite')
+    const result = DbPush.new().parse(['--preview'])
+    await expect(result).rejects.toThrowError()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Response "Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)"
+      Got result for unknown id undefined
+    `)
   })
 })
