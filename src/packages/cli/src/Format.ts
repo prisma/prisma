@@ -14,28 +14,26 @@ import path from 'path'
 import { formatms } from './utils/formatms'
 
 /**
- * $ prisma validate
+ * $ prisma format
  */
 export class Format implements Command {
   public static new(): Format {
     return new Format()
   }
 
-  // static help template
   private static help = format(`
     Format a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing schema.prisma:
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma format
 
-    Or specify a schema:
+    Or specify a Prisma schema path
       ${chalk.dim('$')} prisma format --schema=./schema.prisma
 
   `)
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     const before = Date.now()
     const args = arg(argv, {
@@ -69,10 +67,7 @@ export class Format implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(
-          process.cwd(),
-          schemaPath,
-        )}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
@@ -96,7 +91,6 @@ export class Format implements Command {
     )} 🚀`
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Format.help}`)

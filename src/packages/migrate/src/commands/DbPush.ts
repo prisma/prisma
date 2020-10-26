@@ -6,12 +6,14 @@ import {
   isError,
   getSchemaPath,
   getCommandWithExecutor,
+  link,
 } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
+import { PreviewFlagError } from '../utils/experimental'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -19,24 +21,39 @@ export class DbPush implements Command {
   }
 
   private static help = format(`
-    Push the state from your schema.prisma to your database
+${
+  process.platform === 'win32' ? '' : chalk.bold('🙌  ')
+}Push the state from your Prisma schema to your database
 
-    ${chalk.bold('Usage')}
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    `Prisma db push is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).
+There may be bugs and it's not recommended to use it in production environments.`,
+  )}
+${chalk.dim(
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+)}
 
-      ${chalk.dim('$')} prisma db push
+${chalk.bold('Usage')}
 
-    ${chalk.bold('Options')}
+  ${chalk.dim('$')} prisma db push [options] --preview
 
-      -h, --help       Displays this help message
-      -f, --force      Ignore data loss warnings
+${chalk.bold('Options')}
 
-    ${chalk.bold('Examples')}
+   -h, --help   Displays this help message
+  -f, --force   Ignore data loss warnings
 
-      Push the local schema state to the database
-      ${chalk.dim('$')} prisma db push
+${chalk.bold('Examples')}
 
-      Using --force to ignore data loss warnings
-      ${chalk.dim('$')} prisma db push --force
+  Push the Prisma schema state to the database
+  ${chalk.dim('$')} prisma db push --preview
+
+  Specify a schema
+  ${chalk.dim('$')} prisma db push --preview --schema=./schema.prisma'
+
+  Use --force to ignore data loss warnings
+  ${chalk.dim('$')} prisma db push --preview --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -45,6 +62,7 @@ export class DbPush implements Command {
       {
         '--help': Boolean,
         '-h': '--help',
+        '--preview': Boolean,
         '--force': Boolean,
         '-f': '--force',
         '--schema': String,
@@ -59,6 +77,10 @@ export class DbPush implements Command {
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (!args['--preview']) {
+      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -77,7 +99,7 @@ export class DbPush implements Command {
 
     console.info(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
