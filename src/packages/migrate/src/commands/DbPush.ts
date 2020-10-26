@@ -23,7 +23,7 @@ export class DbPush implements Command {
   private static help = format(`
 ${
   process.platform === 'win32' ? '' : chalk.bold('🙌  ')
-}Push the state from your Prisma Schema to your database
+}Push the state from your Prisma schema to your database
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `Prisma db push is currently in Preview (${link(
@@ -46,7 +46,7 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Examples')}
 
-  Push the Prisma Schema state to the database
+  Push the Prisma schema state to the database
   ${chalk.dim('$')} prisma db push --preview
 
   Specify a schema
@@ -99,7 +99,7 @@ ${chalk.bold('Examples')}
 
     console.info(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

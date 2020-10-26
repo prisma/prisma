@@ -59,7 +59,7 @@ describe('drop', () => {
           `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
     `)
     expect(
@@ -104,7 +104,7 @@ describe('drop', () => {
           `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
     `)
     expect(
@@ -121,7 +121,7 @@ describe('drop', () => {
           `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
     `)
     expect(

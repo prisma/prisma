@@ -20,14 +20,14 @@ export class Validate implements Command {
   }
 
   private static help = format(`
-    Validate a Prisma Schema.
+    Validate a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing Prisma Schema
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma validate
 
-    Or specify a Prisma Schema path
+    Or specify a Prisma schema path
       ${chalk.dim('$')} prisma validate --schema=./schema.prisma
   `)
 
@@ -63,7 +63,7 @@ export class Validate implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

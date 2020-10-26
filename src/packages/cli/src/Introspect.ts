@@ -31,14 +31,14 @@ export class Introspect implements Command {
   }
 
   private static help = format(`
-    Introspect a database and save the result to a Prisma Schema.
+    Introspect a database and save the result to a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing Prisma Schema
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma introspect
 
-    Or specify a Prisma Schema path
+    Or specify a Prisma schema path
       ${chalk.dim('$')} prisma introspect --schema=./schema.prisma'
 
     Instead of saving the result to the filesystem, you can also print it
@@ -46,7 +46,7 @@ export class Introspect implements Command {
 
     ${chalk.bold('Flag')}
 
-      --force     Ignore current Prisma Schema file
+      --force     Ignore current Prisma schema file
   `)
 
   private printUrlAsDatasource(url: string): string {
@@ -119,7 +119,7 @@ export class Introspect implements Command {
     if (schemaPath) {
       console.log(
         chalk.dim(
-          `Prisma Schema loaded from ${path.relative(
+          `Prisma schema loaded from ${path.relative(
             process.cwd(),
             schemaPath,
           )}`,

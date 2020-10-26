@@ -43,7 +43,7 @@ describe('push', () => {
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -102,7 +102,7 @@ describe('push', () => {
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -118,7 +118,7 @@ describe('push', () => {
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

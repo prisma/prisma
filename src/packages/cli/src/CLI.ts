@@ -141,7 +141,7 @@ export class CLI implements Command {
       Browse your data
       ${chalk.dim('$')} prisma studio
 
-      Push the Prisma Schema state to the database
+      Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview
   `)
 
@@ -186,7 +186,7 @@ export class CLI implements Command {
       Browse your data
       ${chalk.dim('$')} prisma studio
 
-      Push the Prisma Schema state to the database
+      Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview
 
       Create a migration for your database

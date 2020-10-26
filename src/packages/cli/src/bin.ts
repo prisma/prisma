@@ -180,7 +180,7 @@ async function main(): Promise<number> {
   console.log(result)
 
   try {
-    // SHA256 identifier for the project based on the prisma schema path
+    // SHA256 identifier for the project based on the Prisma schema path
     const projectPathHash = await getProjectHash()
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()

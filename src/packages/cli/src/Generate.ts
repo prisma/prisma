@@ -34,7 +34,7 @@ export class Generate implements Command {
 
     ${chalk.bold('Usage')}
 
-    With an existing Prisma Schema
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma generate
 
     Or specify a schema:
@@ -42,7 +42,7 @@ export class Generate implements Command {
 
     ${chalk.bold('Flag')}
 
-      --watch    Watch the Prisma Schema and rerun after a change
+      --watch    Watch the Prisma schema and rerun after a change
   `)
 
   private logText = ''
@@ -115,9 +115,9 @@ export class Generate implements Command {
         console.error(`${chalk.yellow(
           'warning',
         )} The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
-If you have a Prisma Schema file in a custom path, you will need to run
+If you have a Prisma schema file in a custom path, you will need to run
 \`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma Schema file yet, you can ignore this message.`)
+If you do not have a Prisma schema file yet, you can ignore this message.`)
         return ''
       }
       throw new Error(
@@ -133,7 +133,7 @@ If you do not have a Prisma Schema file yet, you can ignore this message.`)
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

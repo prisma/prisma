@@ -22,14 +22,14 @@ export class Format implements Command {
   }
 
   private static help = format(`
-    Format a Prisma Schema.
+    Format a Prisma schema.
 
     ${chalk.bold('Usage')}
 
-    With an existing Prisma Schema
+    With an existing Prisma schema
       ${chalk.dim('$')} prisma format
 
-    Or specify a Prisma Schema path
+    Or specify a Prisma schema path
       ${chalk.dim('$')} prisma format --schema=./schema.prisma
 
   `)
@@ -67,7 +67,7 @@ export class Format implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 

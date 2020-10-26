@@ -87,7 +87,7 @@ export class Studio implements Command {
       console.warn(
         `${chalk.yellow(
           'warn',
-        )} --experimental is no longer required for this command as Studio now Generally Available.`,
+        )} --experimental is no longer required for this command as Studio is now Generally Available.`,
       )
     }
 
@@ -107,7 +107,7 @@ export class Studio implements Command {
 
     console.log(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
