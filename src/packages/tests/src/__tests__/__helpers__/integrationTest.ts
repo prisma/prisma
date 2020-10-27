@@ -332,8 +332,6 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  console.log('Going to introspect', schemaBase)
-
   const introspectionResult = await engine.introspect(schemaBase)
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
