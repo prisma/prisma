@@ -49,7 +49,7 @@
     "jest": "jest",
     "test:integration": "jest integration --forceExit --maxConcurrency=8",
     "test:sqlite": "jest integration.sqlite",
-    "test:postgresql": "jest integration.postgresql --maxConcurrency=8",
+    "test:postgresql": "jest integration.postgresql --maxConcurrency=2",
     "test:mysql": "jest integration.mysql --maxConcurrency=8",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8",
     "build": "tsc -d",
