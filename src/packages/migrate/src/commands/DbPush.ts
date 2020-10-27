@@ -46,6 +46,7 @@ ${chalk.bold('Options')}
 
            -h, --help   Displays this help message
           -f, --force   Ignore data loss warnings
+      --skip-generate   Skip generate
   --ignore-migrations   Ignore migrations files warning
 
 ${chalk.bold('Examples')}
@@ -69,6 +70,7 @@ ${chalk.bold('Examples')}
         '--preview': Boolean,
         '--force': Boolean,
         '-f': '--force',
+        '--skip-generate': Boolean,
         '--ignore-migrations': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -116,7 +118,9 @@ ${chalk.bold('Examples')}
           `Using db push alongside migrate will interfere with migrations.
 The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
 Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma db push --ignore-migrations '),
+            getCommandWithExecutor(
+              'prisma db push --preview --ignore-migrations',
+            ),
           )}`,
         )
       }
@@ -176,7 +180,7 @@ Do you want to continue?`,
         throw Error(
           chalk.bold(
             `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor('prisma db push --force'),
+              getCommandWithExecutor('prisma db push --preview --force'),
             )}`,
           ),
         )
@@ -184,17 +188,25 @@ Do you want to continue?`,
     }
 
     if (migration.warnings.length === 0 && migration.executedSteps === 0) {
-      return `\nThe database is already in sync with the Prisma schema.\n`
+      console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
-      return `\n${
-        process.platform === 'win32' ? '' : '🚀  '
-      }Your database is now in sync with your schema. Done in ${formatms(
-        Date.now() - before,
-      )}\n`
+      console.info(
+        `\n${
+          process.platform === 'win32' ? '' : '🚀  '
+        }Your database is now in sync with your schema. Done in ${formatms(
+          Date.now() - before,
+        )}`,
+      )
+
+      // Run if not skipped
+      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+        await migrate.tryToRunGenerate()
+      }
     }
+
+    return ``
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPush.help}`)
