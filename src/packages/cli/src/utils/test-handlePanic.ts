@@ -1,47 +1,34 @@
-import { RustPanic, ErrorArea } from '@prisma/sdk'
 import { handlePanic } from '@prisma/migrate'
 import path from 'path'
-import { Introspect } from '../Introspect'
+import fs from 'fs'
+import { IntrospectionEngine } from '@prisma/sdk'
 
 async function main() {
-  // process.env.GITHUB_ACTIONS = 'maybe'
-
-  // const error = new RustPanic(
-  //   'Some error message!\n'.repeat(23),
-  //   '',
-  //   undefined,
-  //   ErrorArea.INTROSPECTION_CLI,
-  //   path.resolve(path.join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  // )
-
   const packageJsonVersion = '0.0.0'
   const prismaVersion = 'prismaVersionHash'
 
-  // await handlePanic(error, packageJsonVersion, prismaVersion)
-  //   .catch((e) => {
-  //     console.log(e)
-  //   })
-  //   .finally(() => {
-  //     process.exit(1)
-  //   })
-
   try {
-    // process.chdir(path.join(__dirname, '..', '__tests__', 'fixtures', 'sqlite'))
-    process.chdir(
-      path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-      ),
+    const dirPath = path.join(
+      __dirname,
+      '..',
+      '__tests__',
+      'fixtures',
+      'introspection',
+      'postgresql',
     )
-    const introspect = new Introspect()
 
-    await introspect.parse(['--print'])
+    process.chdir(dirPath)
+
+    const schemaPath = path.join(dirPath, 'schema.prisma')
+    const schema = fs.readFileSync(schemaPath, 'utf-8')
+
+    const engine = new IntrospectionEngine({
+      cwd: dirPath,
+    })
+
+    await engine.introspect(schema, false)
+    await engine.debugPanic()
   } catch (err) {
-    console.debug('YEs')
     console.debug({ err })
 
     handlePanic(err, packageJsonVersion, prismaVersion)
