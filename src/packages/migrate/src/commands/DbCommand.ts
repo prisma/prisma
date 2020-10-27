@@ -25,22 +25,22 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 ${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
 
 ${chalk.bold('Flag')}
 
-    --preview   Run preview Prisma commands
+  --preview-feature   Run preview Prisma commands
 
 ${chalk.bold('Usage')}
 
   With an existing schema.prisma:
-  ${chalk.dim('$')} prisma db [command] [options] --preview
+  ${chalk.dim('$')} prisma db [command] [options] --preview-feature
 
   Or specify a schema path:
   ${chalk.dim(
     '$',
-  )} prisma db [command] [options] --preview --schema=./schema.prisma
+  )} prisma db [command] [options] --preview-feature --schema=./schema.prisma
 
 ${chalk.bold('Options')}
 
@@ -55,7 +55,7 @@ ${chalk.bold('Commands')}
 ${chalk.bold('Examples')}
 
   Using prisma db push
-  ${chalk.dim('$')} prisma db push --preview
+  ${chalk.dim('$')} prisma db push --preview-feature
   `)
   private constructor(private readonly cmds: Commands) {}
 
@@ -63,7 +63,7 @@ ${chalk.bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--preview': Boolean,
+      '--preview-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -79,8 +79,8 @@ ${chalk.bold('Examples')}
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const argsForCmd = args['--preview']
-        ? [...args._.slice(1), `--preview`]
+      const argsForCmd = args['--preview-feature']
+        ? [...args._.slice(1), `--preview-feature`]
         : args._.slice(1)
       return cmd.parse(argsForCmd)
     }

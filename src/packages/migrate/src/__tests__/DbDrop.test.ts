@@ -11,20 +11,20 @@ beforeEach(() => {
 })
 
 describe('drop', () => {
-  it('requires --preview flag', async () => {
+  it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
     const result = DbDrop.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-                  Please provide the --preview flag to use this command.
+                  Please provide the --preview-feature flag to use this command.
           `)
   })
 
   it('if no schema file should fail', async () => {
     ctx.fixture('empty')
 
-    const result = DbDrop.new().parse(['--preview'])
+    const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                       Could not find a schema.prisma file that is required for this command.
                       You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -36,7 +36,7 @@ describe('drop', () => {
     ctx.fs.remove('prisma/dev.db')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
-    const result = DbDrop.new().parse(['--preview', '--force'])
+    const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Failed to delete SQLite database at \`dev.db\`.
             No such file or directory (os error 2)
@@ -52,7 +52,7 @@ describe('drop', () => {
     ctx.fixture('reset')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
-    const result = DbDrop.new().parse(['--preview', '--force'])
+    const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
@@ -73,7 +73,7 @@ describe('drop', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     // setTimeout(() => stdin.send(`n\r`), 100)
-    const result = DbDrop.new().parse(['--preview'])
+    const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -86,9 +86,9 @@ describe('drop', () => {
 
   it('should ask for --force if not provided', async () => {
     ctx.fixture('reset')
-    const result = DbDrop.new().parse(['--preview'])
+    const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --preview --force`,
+      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --preview-feature --force`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -97,7 +97,7 @@ describe('drop', () => {
 
   it('should work with --force', async () => {
     ctx.fixture('reset')
-    const result = DbDrop.new().parse(['--preview', '--force'])
+    const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
@@ -114,7 +114,7 @@ describe('drop', () => {
 
   it('should work with -f', async () => {
     ctx.fixture('reset')
-    const result = DbDrop.new().parse(['--preview', '--force'])
+    const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
