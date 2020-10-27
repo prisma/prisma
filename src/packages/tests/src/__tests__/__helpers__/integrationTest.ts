@@ -72,10 +72,6 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
-  /**
-   * Which step of setup we are on
-   */
-  step?: 'database' | 'scenario'
 }
 
 /**
@@ -88,6 +84,11 @@ type Database<Client> = {
    * @remarks This is used as the default provider name for the Prisma schema datasource block.
    */
   name: string
+  /** 
+   * Supply the enabled preview features for the prisma client. 
+   * 
+   */
+  previewFeatures?: string[] 
   /**
    * Create a client connection to the database.
    */
@@ -95,7 +96,11 @@ type Database<Client> = {
   /**
    * Execute SQL against the database.
    */
-  send: (db: Client, sql: string) => MaybePromise<any>
+  send: (db: Client, sql: string, ctx?: Context) => MaybePromise<any>
+  /**
+   * Execute db up SQL against the database separately from send method if needed.
+   */
+  create?: (db: Client, sql: string) => MaybePromise<any> 
   /**
    * At the end of _each_ test run logic
    */
@@ -293,20 +298,13 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   await ctx.fs.dirAsync('.')
 
-  if (input.database.name === 'sqlserver') {
-    state.db = await input.database.connect({ ...ctx, step: 'database' })
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    await input.database.send(state.db, databaseUpSQL)
-    await input.database.close?.(state.db)
-
-    const scenarioUpSQL = scenario.up
-    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
-    await input.database.send(state.db, scenarioUpSQL)
+  state.db = await input.database.connect(ctx)
+  const databaseUpSQL = input.database.up?.(ctx) ?? ''
+  if (input.database.create) {
+    await input.database.create(state.db, databaseUpSQL) // intermediate step required
+    await input.database.send(state.db, scenario.up, ctx)
   } else {
-    state.db = await input.database.connect(ctx)
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    const upSQL = databaseUpSQL + scenario.up
-    await input.database.send(state.db, upSQL)
+    await input.database.send(state.db, databaseUpSQL + scenario.up)
   }
 
   const datasourceBlock =
@@ -322,10 +320,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      ${input.database.name === 'sqlserver'
-      ? `previewFeatures = ["microsoftSqlServer"]`
-      : ''
-    }
+      ${makeFeatures(input.database.previewFeatures)}
     }
 
     ${datasourceBlock}
@@ -349,12 +344,8 @@ async function teardownScenario(state: ScenarioState) {
   // props might be missing if test errors out before they are set.
   if (state.db) {
     await Promise.resolve(
-      state.scenario.down
-        ? state.input.database.send(state.db, state.scenario.down)
-        : undefined,
+      state.input.database.afterEach?.(state.db)
     )
-      .catch((e) => errors.push(e))
-      .then(() => state.input.database.afterEach?.(state.db))
       .catch((e) => errors.push(e))
       .then(() => state.prisma?.$disconnect())
       .catch((e) => errors.push(e))
@@ -415,4 +406,14 @@ function makeDatasourceBlock(providerName: string, url: string) {
       url      = "${url}"
     }
   `
+}
+
+/**
+ * Create Prisma schema enabled features array of strings.
+ */
+function makeFeatures(featureMatrix: string[] | undefined) {
+  if (featureMatrix) {
+    return (`previewFeatures = [${featureMatrix.map(feature => `"`+feature+`"`)}]`)
+  } 
+  return ''
 }

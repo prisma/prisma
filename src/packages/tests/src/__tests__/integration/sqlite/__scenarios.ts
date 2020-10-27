@@ -1484,7 +1484,6 @@ export const scenarios = [
     // TODO this fails b/c: SQLITE_CONSTRAINT: FOREIGN KEY constraint failed
     // drop table if exists a;
     // drop table if exists b;
-    down: ``,
     do: async (client) => {
       return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
     },

@@ -8,23 +8,24 @@ export const database = {
   datasource: {
     url: ctx => getConnectionInfo(ctx).connectionString,
   },
+  previewFeatures: ["microsoftSqlServer"],
   connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
-    const pool = new sql.ConnectionPool({
-      user: credentials.user,
-      password: credentials.password,
-      server: credentials.server,
-      database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
-      pool: {
-        max: 1,
-      },
-      options: {
-        enableArithAbort: false,
-      },
-    })
+    const pool = new sql.ConnectionPool(credentials) // always connect to master to create the db
     return pool.connect()
   },
-  send: (pool, sql) => pool.request().query(sql),
+  create: async (pool, sqlUp) => {
+    await pool.request().query(sqlUp) // create database from master
+    pool.close()
+  },
+  send: async (pool, sqlScenario, ctx) => {
+    const credentials = getConnectionInfo(ctx).credentials
+    const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
+    const newPool = new sql.ConnectionPool(credentialsClone)
+    await newPool.connect() // connect to newly created db to execute scenario SQL then close
+    await newPool.request().query(sqlScenario)
+    newPool.close()
+  },
   close: pool => pool.close(),
   up: ctx => {
     return `
@@ -44,8 +45,14 @@ function getConnectionInfo(ctx: Context) {
     user: 'SA',
     password: 'Pr1sm4_Pr1sm4',
     server: connectionUrl.hostname,
-    port: connectionUrl.port,
+    port: Number(connectionUrl.port),
     database: `master`,
+    pool: {
+      max: 1,
+    },
+    options: {
+      enableArithAbort: false,
+    },
   }
   return { credentials, connectionString }
 }
