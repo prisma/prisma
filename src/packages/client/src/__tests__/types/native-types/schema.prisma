@@ -48,7 +48,7 @@ model D {
   id    String  @id @default(cuid())
   bool  Boolean @db.Boolean
   byteA Bytes   @db.ByteA
-  xml   Xml     @db.Xml
+  xml   String  @db.Xml
   json  Json    @db.Json
   jsonb Json    @db.JsonB
 }

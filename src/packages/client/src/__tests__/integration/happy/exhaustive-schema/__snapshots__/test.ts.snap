@@ -8104,7 +8104,7 @@ export type DWhereInput = {
   id?: StringFilter | string
   bool?: BoolFilter | boolean
   byteA?: BytesFilter | Buffer
-  xml?: XmlFilter | string
+  xml?: StringFilter | string
   json?: JsonFilter
   jsonb?: JsonFilter
 }
@@ -8610,7 +8610,7 @@ export type DUpdateInput = {
   id?: string | StringFieldUpdateOperationsInput
   bool?: boolean | BoolFieldUpdateOperationsInput
   byteA?: Buffer | BytesFieldUpdateOperationsInput
-  xml?: string | XmlFieldUpdateOperationsInput
+  xml?: string | StringFieldUpdateOperationsInput
   json?: InputJsonValue
   jsonb?: InputJsonValue
 }
@@ -8619,7 +8619,7 @@ export type DUpdateManyMutationInput = {
   id?: string | StringFieldUpdateOperationsInput
   bool?: boolean | BoolFieldUpdateOperationsInput
   byteA?: Buffer | BytesFieldUpdateOperationsInput
-  xml?: string | XmlFieldUpdateOperationsInput
+  xml?: string | StringFieldUpdateOperationsInput
   json?: InputJsonValue
   jsonb?: InputJsonValue
 }
@@ -8824,11 +8824,6 @@ export type BytesFilter = {
   not?: Buffer | NestedBytesFilter
 }
 
-export type XmlFilter = {
-  equals?: string
-  not?: string | NestedXmlFilter
-}
-
 export type UserCreateOneWithoutPostsInput = {
   create?: UserCreateWithoutPostsInput
   connect?: UserWhereUniqueInput
@@ -9023,10 +9018,6 @@ export type BytesFieldUpdateOperationsInput = {
   set?: Buffer
 }
 
-export type XmlFieldUpdateOperationsInput = {
-  set?: string
-}
-
 export type NestedIntFilter = {
   equals?: number
   in?: Enumerable<number>
@@ -9148,11 +9139,6 @@ export type NestedDecimalFilter = {
 export type NestedBytesFilter = {
   equals?: Buffer
   not?: Buffer | NestedBytesFilter
-}
-
-export type NestedXmlFilter = {
-  equals?: string
-  not?: string | NestedXmlFilter
 }
 
 export type UserCreateWithoutPostsInput = {
