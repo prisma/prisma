@@ -76,10 +76,10 @@ export class CLI implements Command {
           ...args._.slice(1),
           `--experimental=${args['--experimental']}`,
         ]
-      } else if (args['--preview']) {
+      } else if (args['--preview-feature']) {
         argsForCmd = argsForCmd = [
           ...args._.slice(1),
-          `--preview=${args['--preview']}`,
+          `--preview-feature=${args['--preview-feature']}`,
         ]
       } else {
         argsForCmd = args._.slice(1)
@@ -138,7 +138,7 @@ export class CLI implements Command {
     ${chalk.bold('Flags')}
 
       --experimental   Show and run experimental Prisma commands
-           --preview   Run preview Prisma commands
+   --preview-feature   Run preview Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -155,7 +155,7 @@ export class CLI implements Command {
       ${chalk.dim('$')} prisma studio
 
       Push the Prisma schema state to the database
-      ${chalk.dim('$')} prisma db push --preview
+      ${chalk.dim('$')} prisma db push --preview-feature
   `)
 
   private static experimentalHelp = format(`
@@ -183,7 +183,7 @@ export class CLI implements Command {
     ${chalk.bold('Flags')}
 
       --experimental   Show and run experimental Prisma commands
-           --preview   Run preview Prisma commands
+   --preview-feature   Run preview Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -200,7 +200,7 @@ export class CLI implements Command {
       ${chalk.dim('$')} prisma studio
 
       Push the Prisma schema state to the database
-      ${chalk.dim('$')} prisma db push --preview
+      ${chalk.dim('$')} prisma db push --preview-feature
 
       Create a migration for your database
       ${chalk.dim('$')} prisma migrate save --experimental

@@ -192,7 +192,10 @@ function createTests() {
         )
 
         try {
-          await DbPush.new().parse([`--schema=${schemaPath2}`, '--preview'])
+          await DbPush.new().parse([
+            `--schema=${schemaPath2}`,
+            '--preview-feature',
+          ])
         } catch (e) {
           // Should error with unexecutableMigrations:
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access

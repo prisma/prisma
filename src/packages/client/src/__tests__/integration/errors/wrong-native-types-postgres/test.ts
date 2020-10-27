@@ -148,7 +148,7 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
           Argument bool: Got invalid value 'true' on prisma.createOneD. Provided String, expected Boolean.
           Argument byteA: Got invalid value 'hello prisma ⚡️🚀' on prisma.createOneD. Provided String, expected Bytes.
-          Argument xml: Got invalid value 123 on prisma.createOneD. Provided Int, expected Xml.
+          Argument xml: Got invalid value 123 on prisma.createOneD. Provided Int, expected String.
 
         `)
 
