@@ -119,7 +119,7 @@ ${chalk.bold('Examples')}
       if (isCi()) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma db drop --force'),
+            getCommandWithExecutor('prisma db drop --preview --force'),
           )}`,
         )
       }

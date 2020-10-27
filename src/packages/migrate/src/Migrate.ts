@@ -97,11 +97,10 @@ export class Migrate {
   // tslint:disable
   public watchUp = simpleDebounce(
     async (
-      {
-        onWarnings,
-        autoApprove,
-        skipGenerate
-      }: WatchOptions = { clear: true, providerAliases: {} },
+      { onWarnings, autoApprove, skipGenerate }: WatchOptions = {
+        clear: true,
+        providerAliases: {},
+      },
     ) => {
       const datamodel = this.getDatamodel()
       try {
@@ -177,11 +176,10 @@ export class Migrate {
               debug(`Generating ${generator.manifest!.prettyName}`)
               await generator.generate()
               generator.stop()
-            } catch (error) {
-            }
+            } catch (error) {}
           }
         }
-      } catch (error) { }
+      } catch (error) {}
     },
   )
   // tsline:enable
@@ -192,7 +190,7 @@ export class Migrate {
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
-      enabledPreviewFeatures
+      enabledPreviewFeatures,
     })
   }
 
@@ -266,6 +264,62 @@ export class Migrate {
       warnings,
       unexecutable,
     }
+  }
+
+  public async tryToRunGenerate(): Promise<void> {
+    const message: string[] = []
+
+    console.info() // empty line
+    logUpdate(
+      `Running generate... ${chalk.dim(
+        '(Use --skip-generate to skip the generators)',
+      )}`,
+    )
+
+    try {
+      const generators = await getGenerators({
+        schemaPath: this.schemaPath,
+        printDownloadProgress: false,
+        version: packageJson.prisma.version,
+        cliVersion: packageJson.version,
+      })
+
+      for (const generator of generators) {
+        const toStr = generator.options!.generator.output!
+          ? chalk.dim(
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
+          : ''
+        const name = generator.manifest
+          ? generator.manifest.prettyName
+          : generator.options!.generator.provider
+
+        logUpdate(`Running generate... - ${name}`)
+
+        const before = Date.now()
+        try {
+          await generator.generate()
+          const after = Date.now()
+          const version = generator.manifest?.version
+          message.push(
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (version: ${version})` : ''
+            }${toStr} in ${formatms(after - before)}`,
+          )
+          generator.stop()
+        } catch (err) {
+          message.push(`${err.message}`)
+          generator.stop()
+        }
+      }
+    } catch (errGetGenerators) {
+      throw errGetGenerators
+    }
+
+    logUpdate(message.join('\n'))
   }
 
   public async createMigration(
@@ -496,7 +550,8 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${appliedMigrations.length
+        )}, but there are only ${
+          appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -522,8 +577,9 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({
@@ -553,7 +609,8 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${process.platform === 'win32' ? '' : '🏋️‍  '
+        `${
+          process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -719,9 +776,11 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
-      } in ${formatms(Date.now() - before)}.\n`
+    return `\n${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    }  Done with ${migrationsToApply.length} migration${
+      migrationsToApply.length > 1 ? 's' : ''
+    } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -909,9 +968,10 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
-          ? localMigrationIds.join(', ')
-          : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
+          localMigrationIds.length > 0
+            ? localMigrationIds.join(', ')
+            : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1048,7 +1108,8 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${
+              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )

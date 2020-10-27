@@ -36,14 +36,13 @@ describe('push', () => {
 
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = DbPush.new().parse(['--preview', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
 
-                                                                                                            The database is already in sync with the Prisma schema.
-
-                                                                                          `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      The database is already in sync with the Prisma schema.
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -56,9 +55,9 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                            🚀  Your database is now in sync with your schema. Done in XXms
+                                                                                                                                    🚀  Your database is now in sync with your schema. Done in XXms
 
-                                                                                          `)
+                                                                                                              `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -85,7 +84,7 @@ describe('push', () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--preview'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to ignore these warnings like prisma db push --force`,
+      `Use the --force flag to ignore these warnings like prisma db push --preview --force`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -95,14 +94,13 @@ describe('push', () => {
   it('should work with --force', async () => {
     ctx.fixture('reset')
     const result = DbPush.new().parse(['--preview', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
 
-                                                                                                            The database is already in sync with the Prisma schema.
-
-                                                                                          `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      The database is already in sync with the Prisma schema.
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -111,14 +109,13 @@ describe('push', () => {
   it('should work with -f', async () => {
     ctx.fixture('reset')
     const result = DbPush.new().parse(['--preview', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
 
-                                                                                                            The database is already in sync with the Prisma schema.
-
-                                                                                          `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      The database is already in sync with the Prisma schema.
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -130,7 +127,7 @@ describe('push', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
             Using db push alongside migrate will interfere with migrations.
             The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
-            Use the --ignore-migrations flag to ignore this message in an unnattended environment like prisma db push --ignore-migrations 
+            Use the --ignore-migrations flag to ignore this message in an unnattended environment like prisma db push --preview --ignore-migrations
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -149,9 +146,9 @@ describe('push', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        🚀  Your database is now in sync with your schema. Done in XXms
+                                                                                                🚀  Your database is now in sync with your schema. Done in XXms
 
-                                                            `)
+                                                                                `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
