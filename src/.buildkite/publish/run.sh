@@ -12,7 +12,7 @@ fi
 npm i --silent -g pnpm@5.1.7 --unsafe-perm
 npm i --silent -g yarn || echo "Ok"
 yarn --version || echo "Ok"
-pnpm i --no-prefer-frozen-lockfile --reporter=silent
+pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
