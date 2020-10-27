@@ -145,7 +145,7 @@ function createTests() {
             canBeNull String?
           }
         `,
-        'schema-not-null.prisma': `
+        'schema2.prisma': `
           datasource my_db {
             provider = "sqlite"
             url = "file:./db/db_file.db"
@@ -154,8 +154,8 @@ function createTests() {
 
           model User {
             id Int @id
-            canBeNull String
-            requiredSomething String
+            canBeNull Int
+            requiredSomething Int
           }
         `,
         'db/.keep': ``,
@@ -188,14 +188,11 @@ function createTests() {
 
         const schemaPath2 = schemaPath.replace(
           'schema.prisma',
-          'schema-not-null.prisma',
+          'schema2.prisma',
         )
 
         try {
-          await DbPush.new().parse([
-            `--schema=${schemaPath2}`,
-            '--experimental',
-          ])
+          await DbPush.new().parse([`--schema=${schemaPath2}`, '--preview'])
         } catch (e) {
           // Should error with unexecutableMigrations:
           // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
