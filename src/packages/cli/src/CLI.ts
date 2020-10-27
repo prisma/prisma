@@ -11,6 +11,7 @@ import {
 import { Version } from './Version'
 import { download } from '@prisma/fetch-engine'
 import { link } from '@prisma/sdk'
+import { enginesVersion } from '@prisma/engines'
 const pkg = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 /**
@@ -23,7 +24,7 @@ export class CLI implements Command {
   private constructor(
     private readonly cmds: Commands,
     private readonly ensureBinaries: string[],
-  ) {}
+  ) { }
 
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -92,7 +93,7 @@ export class CLI implements Command {
 
   private async downloadBinaries(): Promise<void> {
     const binaryPath = eval(`require('path').join(__dirname, '../')`)
-    const version = (pkg && pkg.prisma && pkg.prisma.version) || 'latest'
+    const version = enginesVersion
     await download({
       binaries: {
         'query-engine': binaryPath,
@@ -114,11 +115,10 @@ export class CLI implements Command {
   }
 
   private static help = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    ${process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
     }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-    'https://prisma.io',
-  )})
+      'https://prisma.io',
+    )})
 
     ${chalk.bold('Usage')}
 
@@ -132,8 +132,8 @@ export class CLI implements Command {
               studio   Open Prisma Studio
               format   Format your schema
                   db   Manage your database schema and lifecycle ${chalk.dim(
-                    '(preview)',
-                  )}
+      '(preview)',
+    )}
 
     ${chalk.bold('Flags')}
 
@@ -159,11 +159,10 @@ export class CLI implements Command {
   `)
 
   private static experimentalHelp = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    ${process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
     }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-    'https://prisma.io',
-  )})
+      'https://prisma.io',
+    )})
 
     ${chalk.bold('Usage')}
 
@@ -177,8 +176,8 @@ export class CLI implements Command {
               studio   Open Prisma Studio
               format   Format your schema
                   db   Manage your database schema and lifecycle ${chalk.dim(
-                    '(preview)',
-                  )}
+      '(preview)',
+    )}
              migrate   Migrate your schema ${chalk.dim('(experimental)')}
 
     ${chalk.bold('Flags')}
