@@ -232,7 +232,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
     await afterAllScenarios(kind, states)
   })
 
-  it.concurrent.each(filterTestScenarios(input.scenarios))(
+  it.concurrent.each(filterTestScenarios(input.scenarios).slice(0, 1))(
     `${kind}: %s`,
     async (_, scenario) => {
       const { ctx, state, prismaSchemaPath } = await setupScenario(
@@ -318,6 +318,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
           ? input.database.datasource.url(ctx)
           : input.database.datasource.url,
       )
+
   const schemaBase = `
     generator client {
       provider = "prisma-client-js"
@@ -330,6 +331,8 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
     ${datasourceBlock}
   `
+
+  console.log('Going to introspect', schemaBase)
 
   const introspectionResult = await engine.introspect(schemaBase)
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
