@@ -118,7 +118,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=8
         working-directory: src/packages/tests
         env:
           CI: true
@@ -185,7 +185,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=10
+      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=8
         working-directory: src/packages/tests
         env:
           CI: true

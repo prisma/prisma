@@ -1251,6 +1251,7 @@ function getInvalidTypeArg(
   return arrg
 }
 
+// TODO: Refactor
 function hasCorrectScalarType(
   value: any,
   arg: DMMF.SchemaArg,
@@ -1273,6 +1274,10 @@ function hasCorrectScalarType(
   }
 
   if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
+    return true
+  }
+
+  if ((graphQLType === 'List<Int>' || graphQLType === 'List<Float>') && expectedType === 'List<Decimal>') {
     return true
   }
 
@@ -1691,13 +1696,23 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
           for (const entry of data) {
             // in the very unlikely case, that a field is not there in the result, ignore it
             if (typeof entry[child.name] !== 'undefined' && entry[child.name] !== null) {
-              entry[child.name] = deserializer(entry[child.name])
+              // for scalar lists
+              if (Array.isArray(entry[child.name])) {
+                entry[child.name] = entry[child.name].map(deserializer)
+              } else {
+                entry[child.name] = deserializer(entry[child.name])
+              }
             }
           }
         } else {
           // same here, ignore it if it's undefined
           if (typeof data[child.name] !== 'undefined' && data[child.name] !== null) {
-            data[child.name] = deserializer(data[child.name])
+            // for scalar lists
+            if (Array.isArray(data[child.name])) {
+              data[child.name] = data[child.name].map(deserializer)
+            } else {
+              data[child.name] = deserializer(data[child.name])
+            }
           }
         }
       }
