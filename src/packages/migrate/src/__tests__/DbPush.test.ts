@@ -1,4 +1,5 @@
 process.env.GITHUB_ACTIONS = '1'
+process.env.MIGRATE_SKIP_GENERATE = '1'
 
 import { DbPush } from '../commands/DbPush'
 import { consoleContext, Context } from './__helpers__/context'
@@ -53,11 +54,13 @@ describe('push', () => {
     ctx.fs.remove('prisma/dev.db')
 
     const result = DbPush.new().parse(['--preview', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
 
-                                                                                                                                    🚀  Your database is now in sync with your schema. Done in XXms
-
-                                                                                                              `)
+      🚀  Your database is now in sync with your schema. Done in XXms
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -144,14 +147,13 @@ describe('push', () => {
       '--force',
       '--ignore-migrations',
     ])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from schema.prisma
 
-                                                                                                🚀  Your database is now in sync with your schema. Done in XXms
-
-                                                                                `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
+      🚀  Your database is now in sync with your schema. Done in XXms
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
