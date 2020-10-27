@@ -35,12 +35,12 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 ${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db push [options] --preview
+  ${chalk.dim('$')} prisma db push [options] --preview-feature
 
 ${chalk.bold('Options')}
 
@@ -52,13 +52,13 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Push the Prisma schema state to the database
-  ${chalk.dim('$')} prisma db push --preview
+  ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
 
   Use --force to ignore data loss warnings
-  ${chalk.dim('$')} prisma db push --preview --force
+  ${chalk.dim('$')} prisma db push --preview-feature --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -67,7 +67,7 @@ ${chalk.bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview': Boolean,
+        '--preview-feature': Boolean,
         '--force': Boolean,
         '-f': '--force',
         '--skip-generate': Boolean,
@@ -86,7 +86,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview']) {
+    if (!args['--preview-feature']) {
       throw new PreviewFlagError()
     }
 
@@ -119,7 +119,7 @@ ${chalk.bold('Examples')}
 The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
 Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
-              'prisma db push --preview --ignore-migrations',
+              'prisma db push --preview-feature --ignore-migrations',
             ),
           )}`,
         )
@@ -180,7 +180,9 @@ Do you want to continue?`,
         throw Error(
           chalk.bold(
             `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor('prisma db push --preview --force'),
+              getCommandWithExecutor(
+                'prisma db push --preview-feature --force',
+              ),
             )}`,
           ),
         )
