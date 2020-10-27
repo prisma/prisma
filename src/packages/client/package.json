@@ -43,7 +43,7 @@
     "lint": "eslint --fix --ext .js,.ts .",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && node scripts/download.js || echo \"\"",
+    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
