@@ -321,7 +321,6 @@ You may have to run ${chalk.greenBright(
       this.currentRequestPromise.cancel()
     }
   }
-  // TODO Clean Up Logic
   private async resolvePrismaPath(): Promise<{
     prismaPath: string
     searchedLocations: string[]
@@ -340,7 +339,6 @@ You may have to run ${chalk.greenBright(
     this.platform = this.platform || platform
 
     if (__filename.includes('NodeEngine')) {
-      // TODO: Use engines package here
       enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
       return { prismaPath: enginePath, searchedLocations }
     }
@@ -351,9 +349,7 @@ You may have to run ${chalk.greenBright(
       path.dirname(this.datamodelPath), // Datamodel Dir
       this.cwd, //cwdPath
     ]
-
-    for (let i = 0; i < searchLocations.length; i++) {
-      const location = searchLocations[i]
+    for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Search for Query Engine in ${location}`)
       enginePath = await this.getQueryEnginePath(this.platform, location)
