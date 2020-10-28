@@ -317,7 +317,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         if (!fs.existsSync(cwd)) {
           cwd = config.dirname
         }
-        const envFile = tryLoadEnv(path.join(config.dirname, 'schema.prisma'), {cwd: cwd }) as {[x: string]: string}
+        const schemaPath = path.resolve(
+          config.dirname,
+          config.relativePath,
+          '.schema',
+        )
+        const envFile = tryLoadEnv(schemaPath, {cwd: cwd }) as {[x: string]: string}
 
         const previewFeatures = config.generator?.previewFeatures ?? []
 

@@ -74,8 +74,8 @@ export function tryLoadEnv(
   }
 
   if (!process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
-    rootEnvInfo?.message && console.error(rootEnvInfo?.message)
-    schemaEnvInfo?.message && console.error(schemaEnvInfo.message)
+    rootEnvInfo?.message && console.log(rootEnvInfo.message)
+    schemaEnvInfo?.message && console.log(schemaEnvInfo.message)
   }
   return {...rootEnvInfo?.dotenvResult?.parsed, ...schemaEnvInfo?.dotenvResult?.parsed}
 }
