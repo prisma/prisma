@@ -27,12 +27,12 @@ async function fetchSha256(
   const [zippedSha256, sha256] = [
     (
       await fetch(`${url}.sha256`, {
-        agent: getProxyAgent(url),
+        agent: getProxyAgent(url) as any,
       }).then((res) => res.text())
     ).split(/\s+/)[0],
     (
       await fetch(`${url.slice(0, url.length - 3)}.sha256`, {
-        agent: getProxyAgent(url.slice(0, url.length - 3)),
+        agent: getProxyAgent(url.slice(0, url.length - 3)) as any,
       }).then((res) => res.text())
     ).split(/\s+/)[0],
   ]
@@ -53,7 +53,7 @@ export async function downloadZip(
       try {
         const resp = await fetch(url, {
           compress: false,
-          agent: getProxyAgent(url),
+          agent: getProxyAgent(url) as any,
         })
 
         if (resp.status !== 200) {

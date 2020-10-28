@@ -148,7 +148,7 @@ export async function urlExists(url) {
   try {
     const res = await fetch(url, {
       method: 'HEAD',
-      agent: getProxyAgent(url),
+      agent: getProxyAgent(url) as any,
     })
 
     const headers = fromEntries(res.headers.entries())
@@ -226,7 +226,7 @@ async function getVersionHashes(
 async function getCommits(branch: string): Promise<string[] | object> {
   const url = `https://github-cache.prisma.workers.dev/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {
-    agent: getProxyAgent(url),
+    agent: getProxyAgent(url) as any,
     headers: {
       Authorization: process.env.GITHUB_TOKEN ? `token ${process.env.GITHUB_TOKEN}` : undefined,
     }
