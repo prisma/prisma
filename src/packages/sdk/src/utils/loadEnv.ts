@@ -54,6 +54,7 @@ export function tryLoadEnv(
     if(rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo.path) === path.resolve(envPath)){
       continue
     }
+    debug(`Searching in ${envPath}`)
     checkForConflicts(rootEnvInfo, envPath)
     schemaEnvInfo = loadEnv(envPath)
     if (schemaEnvInfo) break
