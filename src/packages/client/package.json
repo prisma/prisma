@@ -77,7 +77,7 @@
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
     "dotenv": "8.2.0",
-    "esbuild": "0.7.21",
+    "esbuild": "0.7.22",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.12.1",
     "eslint-config-prettier": "6.15.0",
