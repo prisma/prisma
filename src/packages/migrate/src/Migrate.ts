@@ -17,7 +17,6 @@ import fs from 'fs'
 import globby from 'globby'
 import indent from 'indent-string'
 import logUpdate from 'log-update'
-import makeDir = require('make-dir')
 import pMap from 'p-map'
 import path from 'path'
 import { prompt } from 'prompts'
@@ -44,7 +43,7 @@ import {
   initLockFile,
   serializeLockFile,
 } from './utils/LockFile'
-import { now, timestampToDate } from './utils/now'
+import { now } from './utils/now'
 import plusX from './utils/plusX'
 import {
   highlightMigrationsSQL,
@@ -55,6 +54,7 @@ import { printMigrationReadme } from './utils/printMigrationReadme'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
+import { enginesVersion } from '@prisma/engines-version'
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -148,7 +148,7 @@ export class Migrate {
           const generators = await getGenerators({
             schemaPath: this.schemaPath,
             printDownloadProgress: false,
-            version: packageJson.prisma.version,
+            version: enginesVersion,
             cliVersion: packageJson.version,
           })
 
@@ -176,10 +176,10 @@ export class Migrate {
               debug(`Generating ${generator.manifest!.prettyName}`)
               await generator.generate()
               generator.stop()
-            } catch (error) {}
+            } catch (error) { }
           }
         }
-      } catch (error) {}
+      } catch (error) { }
     },
   )
   // tsline:enable
@@ -280,18 +280,18 @@ export class Migrate {
       const generators = await getGenerators({
         schemaPath: this.schemaPath,
         printDownloadProgress: false,
-        version: packageJson.prisma.version,
+        version: enginesVersion,
         cliVersion: packageJson.version,
       })
 
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
           ? chalk.dim(
-              ` to .${path.sep}${path.relative(
-                process.cwd(),
-                generator.options!.generator.output!,
-              )}`,
-            )
+            ` to .${path.sep}${path.relative(
+              process.cwd(),
+              generator.options!.generator.output!,
+            )}`,
+          )
           : ''
         const name = generator.manifest
           ? generator.manifest.prettyName
@@ -305,8 +305,7 @@ export class Migrate {
           const after = Date.now()
           const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${
-              version ? ` (version: ${version})` : ''
+            `✔ Generated ${chalk.bold(name!)}${version ? ` (version: ${version})` : ''
             }${toStr} in ${formatms(after - before)}`,
           )
           generator.stop()
@@ -418,83 +417,6 @@ export class Migrate {
     return this.getLocalMigrations(this.devMigrationsDir)
   }
 
-  public async watch(
-    options: WatchOptions = {
-      preview: false,
-      clear: true,
-      providerAliases: {},
-    },
-  ): Promise<string> {
-    if (!options.clear) {
-      options.clear = true
-    }
-
-    const datamodel = this.getDatamodel()
-
-    const generators = await getGenerators({
-      schemaPath: this.schemaPath,
-      printDownloadProgress: false,
-      version: packageJson.prisma.version,
-      cliVersion: packageJson.version,
-    })
-
-    const relativeDatamodelPath = path.relative(process.cwd(), this.schemaPath)
-
-    // From here on, we render the dev ui
-    // silent everyone else. this is not a democracy 👹
-    console.log = (...args): void => {
-      debug(...args)
-    }
-
-    // console.error = (...args) => {
-    //   debug(...args)
-    // }
-
-    const { migrationsToApply } = await this.getMigrationsToApply()
-
-    if (migrationsToApply.length > 0) {
-      // TODO: Ask for permission if we actually want to do it?
-      // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.up({
-        short: true,
-        autoApprove: options.autoApprove,
-      })
-      // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
-      options.clear = false
-    }
-
-    const localMigrations = await this.getLocalMigrations()
-    const watchMigrations = await this.getLocalWatchMigrations()
-
-    let lastChanged: undefined | Date
-    if (watchMigrations.length > 0) {
-      const timestamp = watchMigrations[watchMigrations.length - 1].id.split(
-        '-',
-      )[1]
-      lastChanged = timestampToDate(timestamp)
-    } else if (localMigrations.length > 0) {
-      lastChanged = timestampToDate(
-        localMigrations[localMigrations.length - 1].id.split('-')[0],
-      )
-    }
-
-    if (localMigrations.length > 0) {
-      this.datamodelBeforeWatch =
-        localMigrations[localMigrations.length - 1].datamodel
-    }
-
-    await makeDir(this.devMigrationsDir)
-
-    fs.watch(this.schemaPath, (eventType, filename) => {
-      if (eventType === 'change') {
-        this.watchUp(options)
-      }
-    })
-
-    this.watchUp(options)
-    return ''
-  }
-
   public async down({ n }: DownOptions): Promise<string> {
     await this.getLockFile()
     const before = Date.now()
@@ -550,8 +472,7 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${
-          appliedMigrations.length
+        )}, but there are only ${appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -577,9 +498,8 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
   public async up({
@@ -609,8 +529,7 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${
-          process.platform === 'win32' ? '' : '🏋️‍  '
+        `${process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -776,11 +695,9 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${
-      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-    }  Done with ${migrationsToApply.length} migration${
-      migrationsToApply.length > 1 ? 's' : ''
-    } in ${formatms(Date.now() - before)}.\n`
+    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
+      } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -968,10 +885,9 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
-          localMigrationIds.length > 0
-            ? localMigrationIds.join(', ')
-            : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
+          ? localMigrationIds.join(', ')
+          : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1108,8 +1024,7 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${
-              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )

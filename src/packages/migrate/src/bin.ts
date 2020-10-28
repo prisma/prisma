@@ -12,7 +12,6 @@ process.on('unhandledRejection', (e, promise) => {
 import {
   HelpError,
   isError,
-  ProviderAliases,
   tryLoadEnv,
   arg,
 } from '@prisma/sdk'
@@ -51,6 +50,7 @@ import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
+import { enginesVersion } from '@prisma/engines-version'
 
 const debug = debugLib('migrate')
 
@@ -97,7 +97,7 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, packageJson.prisma.version)
+      handlePanic(error, packageJson.version, enginesVersion)
         .catch((e) => {
           if (debugLib.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)
