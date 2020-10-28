@@ -5,11 +5,11 @@ set -ex
 cd src
 
 npm i --silent -g pnpm@5.1.7 --unsafe-perm
-pnpm i --no-prefer-frozen-lockfile --reporter=silent
+pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
-cd packages/cli
+cd packages/tests
 pnpm i sqlite3@4.1 --unsafe-perm --reporter=silent
 cd ../..
 

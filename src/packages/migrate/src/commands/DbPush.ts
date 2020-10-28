@@ -7,9 +7,12 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   link,
+  isCi,
 } from '@prisma/sdk'
+import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
+import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
@@ -32,28 +35,30 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 ${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db push [options] --preview
+  ${chalk.dim('$')} prisma db push [options] --preview-feature
 
 ${chalk.bold('Options')}
 
-   -h, --help   Displays this help message
-  -f, --force   Ignore data loss warnings
+           -h, --help   Displays this help message
+          -f, --force   Ignore data loss warnings
+      --skip-generate   Skip generate
+  --ignore-migrations   Ignore migrations files warning
 
 ${chalk.bold('Examples')}
 
   Push the Prisma schema state to the database
-  ${chalk.dim('$')} prisma db push --preview
+  ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
 
   Use --force to ignore data loss warnings
-  ${chalk.dim('$')} prisma db push --preview --force
+  ${chalk.dim('$')} prisma db push --preview-feature --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -62,9 +67,11 @@ ${chalk.bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview': Boolean,
+        '--preview-feature': Boolean,
         '--force': Boolean,
         '-f': '--force',
+        '--skip-generate': Boolean,
+        '--ignore-migrations': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -79,7 +86,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview']) {
+    if (!args['--preview-feature']) {
       throw new PreviewFlagError()
     }
 
@@ -102,6 +109,38 @@ ${chalk.bold('Examples')}
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
+
+    const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
+    const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
+    if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
+      if (isCi()) {
+        throw Error(
+          `Using db push alongside migrate will interfere with migrations.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
+            getCommandWithExecutor(
+              'prisma db push --preview-feature --ignore-migrations',
+            ),
+          )}`,
+        )
+      }
+
+      const confirmation = await prompt({
+        type: 'confirm',
+        name: 'value',
+        message: `${chalk.yellow(
+          'Warning',
+        )}: Using db push alongside migrate will interfere with migrations.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+Do you want to continue?`,
+      })
+
+      if (!confirmation.value) {
+        console.info() // empty line
+        console.info('Push cancelled.')
+        process.exit(0)
+      }
+    }
 
     const migrate = new Migrate(args['--schema'])
 
@@ -141,7 +180,9 @@ ${chalk.bold('Examples')}
         throw Error(
           chalk.bold(
             `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor('prisma db push --force'),
+              getCommandWithExecutor(
+                'prisma db push --preview-feature --force',
+              ),
             )}`,
           ),
         )
@@ -149,17 +190,25 @@ ${chalk.bold('Examples')}
     }
 
     if (migration.warnings.length === 0 && migration.executedSteps === 0) {
-      return `\nThe database is already in sync with the Prisma schema.\n`
+      console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
-      return `\n${
-        process.platform === 'win32' ? '' : '🚀  '
-      }Your database is now in sync with your schema. Done in ${formatms(
-        Date.now() - before,
-      )}\n`
+      console.info(
+        `\n${
+          process.platform === 'win32' ? '' : '🚀  '
+        }Your database is now in sync with your schema. Done in ${formatms(
+          Date.now() - before,
+        )}`,
+      )
+
+      // Run if not skipped
+      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+        await migrate.tryToRunGenerate()
+      }
     }
+
+    return ``
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPush.help}`)

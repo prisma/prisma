@@ -10,7 +10,6 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/client": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.2",

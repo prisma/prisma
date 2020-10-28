@@ -247,7 +247,7 @@ function createTests() {
             canBeNull String?
           }
         `,
-        'schema-not-null.prisma': `
+        'schema2.prisma': `
           datasource my_db {
             provider = "sqlite"
             url = "file:./db/db_file.db"
@@ -256,8 +256,8 @@ function createTests() {
 
           model User {
             id Int @id
-            canBeNull String
-            requiredSomething String
+            canBeNull Int
+            requiredSomething Int 
           }
         `,
         'db/.keep': ``,
@@ -305,7 +305,7 @@ function createTests() {
 
         const schemaPath2 = schemaPath.replace(
           'schema.prisma',
-          'schema-not-null.prisma',
+          'schema2.prisma',
         )
         const migrate2 = new Migrate(schemaPath2)
         const migration2 = await migrate2.createMigration('setup2')

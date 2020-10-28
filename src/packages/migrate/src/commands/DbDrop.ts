@@ -39,12 +39,12 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 ${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview flag.',
+  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db drop [options] --preview
+  ${chalk.dim('$')} prisma db drop [options] --preview-feature
 
 ${chalk.bold('Options')}
 
@@ -54,20 +54,20 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Drop the database
-  ${chalk.dim('$')} prisma db drop --preview
+  ${chalk.dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma'
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma db drop --preview --force
+  ${chalk.dim('$')} prisma db drop --preview-feature --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--preview': Boolean,
+      '--preview-feature': Boolean,
       '--force': Boolean,
       '-f': '--force',
       '--schema': String,
@@ -82,7 +82,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview']) {
+    if (!args['--preview-feature']) {
       throw new PreviewFlagError()
     }
 
@@ -119,7 +119,7 @@ ${chalk.bold('Examples')}
       if (isCi()) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma db drop --force'),
+            getCommandWithExecutor('prisma db drop --preview-feature --force'),
           )}`,
         )
       }

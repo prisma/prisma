@@ -16,8 +16,6 @@ import chalk from 'chalk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
-export { byline } from '@prisma/migrate'
-
 // do this before facebook's yoga
 import debugLib from 'debug'
 
@@ -84,7 +82,7 @@ import {
   MigrateReset,
   MigrateUp,
   DbPush,
-  DbDrop,
+  // DbDrop,
   DbCommand,
   handlePanic,
   // Legacy

@@ -51,7 +51,6 @@ export const ScalarTypeTable = {
   UUID: true,
   Json: true,
   Bytes: true,
-  Xml: true,
   Decimal: true
 }
 
@@ -73,7 +72,6 @@ export const GraphQLScalarToJSTypeTable = {
   UUID: 'string',
   Json: 'JsonValue',
   Bytes: 'Buffer',
-  Xml: 'string',
   Decimal: 'Decimal'
 }
 
@@ -119,10 +117,6 @@ export function getGraphQLType(
 
   if (Buffer.isBuffer(value)) {
     return 'Bytes'
-  }
-
-  if (potentialType && potentialType.toString() === 'Xml' && typeof value === 'string') {
-    return 'Xml'
   }
 
   if (Array.isArray(value)) {

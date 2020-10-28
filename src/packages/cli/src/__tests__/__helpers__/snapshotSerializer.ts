@@ -48,8 +48,8 @@ const serializer = {
       typeof value === 'string'
         ? value
         : value instanceof Error
-        ? value.message
-        : ''
+          ? value.message
+          : ''
     return prepareSchemaForSnapshot(
       normalizeGithubLinks(
         normalizeRustError(

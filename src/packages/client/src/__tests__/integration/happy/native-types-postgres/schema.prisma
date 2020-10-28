@@ -27,11 +27,12 @@ model A {
 }
 
 model B {
-  id       String  @id @default(cuid())
-  float    Float   @db.Real
-  dFloat   Float   @db.DoublePrecision
-  decFloat Decimal @db.Decimal(2, 1)
-  numFloat Decimal @db.Numeric(10, 6)
+  id       String    @id @default(cuid())
+  float    Float     @db.Real
+  dFloat   Float     @db.DoublePrecision
+  decFloat Decimal   @db.Decimal(2, 1)
+  numFloat Decimal   @db.Numeric(10, 6)
+  decArray Decimal[] @db.Decimal(20, 10)
 }
 
 model C {
@@ -45,12 +46,13 @@ model C {
 }
 
 model D {
-  id    String  @id @default(cuid())
-  bool  Boolean @db.Boolean
-  byteA Bytes   @db.ByteA
-  xml   Xml     @db.Xml
-  json  Json    @db.Json
-  jsonb Json    @db.JsonB
+  id         String  @id @default(cuid())
+  bool       Boolean @db.Boolean
+  byteA      Bytes   @db.ByteA
+  bytesArray Bytes[] @db.ByteA
+  xml        String  @db.Xml
+  json       Json    @db.Json
+  jsonb      Json    @db.JsonB
 }
 
 model E {
