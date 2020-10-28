@@ -998,13 +998,6 @@ async function publishPackages(
 
       await writeVersion(pkgDir, newVersion, dryRun)
 
-      if (pkgName === '@prisma/cli') {
-        const latestCommit = await getLatestCommit('.')
-        await writeToPkgJson(pkgDir, (pkg) => {
-          pkg.prisma.prismaCommit = latestCommit.hash
-        })
-      }
-
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
