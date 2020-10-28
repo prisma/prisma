@@ -17,7 +17,7 @@ async function main() {
     run('node ./scripts/copy-prisma-client.js'),
     run('tsc --build tsconfig.build.json', true),
     run(
-      'esbuild src/bin.ts --outfile=build/index.js --bundle --platform=node --target=node10 --minify --sourcemap',
+      'esbuild src/bin.ts --outfile=build/index.js --bundle --platform=node --target=node10 --minify --sourcemap --external:@prisma/engines',
       false,
     ),
     run(

@@ -9,10 +9,8 @@ import {
   unknownCommand,
 } from '@prisma/sdk'
 import { Version } from './Version'
-import { download } from '@prisma/fetch-engine'
 import { link } from '@prisma/sdk'
-import { enginesVersion } from '@prisma/engines'
-const pkg = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+import { ensureBinariesExist } from '@prisma/engines'
 
 /**
  * CLI command
@@ -42,7 +40,7 @@ export class CLI implements Command {
     }
 
     if (args['--version']) {
-      await this.downloadBinaries()
+      await ensureBinariesExist()
       return Version.new().parse(argv)
     }
 
@@ -67,7 +65,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        await this.downloadBinaries()
+        await ensureBinariesExist()
       }
 
       let argsForCmd: string[]
@@ -89,22 +87,6 @@ export class CLI implements Command {
     }
     // unknown command
     return unknownCommand(CLI.help, args._[0])
-  }
-
-  private async downloadBinaries(): Promise<void> {
-    const binaryPath = eval(`require('path').join(__dirname, '../')`)
-    const version = enginesVersion
-    await download({
-      binaries: {
-        'query-engine': binaryPath,
-        'migration-engine': binaryPath,
-        'introspection-engine': binaryPath,
-        'prisma-fmt': binaryPath,
-      },
-      showProgress: true,
-      version,
-      failSilent: false,
-    })
   }
 
   private help(error?: string): string | HelpError {

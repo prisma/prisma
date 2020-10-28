@@ -60,14 +60,9 @@
     "prisma": "build/index.js",
     "prisma2": "build/index.js"
   },
-  "prisma": {
-    "version": "af1ae11a423edfb5d24092a85be11fa77c5e499c",
-    "prismaCommit": "4e276e154290fd3f7989fcd9d6daa27e2e5111b5"
-  },
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
@@ -155,6 +150,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.0",
-    "@prisma/engines": "2.10.0-16-af1ae11a423edfb5d24092a85be11fa77c5e499c"
+    "@prisma/engines": "2.11.0-2-6b72297958d424b0e0a0829a95b76ccc966132fd"
   }
 }
