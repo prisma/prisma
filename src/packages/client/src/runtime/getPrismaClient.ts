@@ -45,6 +45,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
+import { tryLoadEnv } from '@prisma/sdk'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -310,7 +311,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        const envFile = this.readEnv()
+        const envFile = tryLoadEnv() as {[x: string]: string}
 
         this._dmmf = new DMMFClass(config.document)
 
