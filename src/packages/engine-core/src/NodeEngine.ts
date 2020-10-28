@@ -1,32 +1,31 @@
+import { getEnginesPath } from '@prisma/engines'
+import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { getPlatform, Platform } from '@prisma/get-platform'
+import chalk from 'chalk'
+import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
+import debugLib from 'debug'
+import EventEmitter from 'events'
+import execa from 'execa'
+import fs from 'fs'
+import net from 'net'
+import pRetry from 'p-retry'
+import path from 'path'
+import { promisify } from 'util'
+import byline from './byline'
 import {
+  getErrorMessageWithLink,
+  getMessage,
+  PrismaClientInitializationError,
   PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
   RequestError,
-  PrismaClientInitializationError,
-  PrismaClientRustPanicError,
-  getMessage,
-  getErrorMessageWithLink,
 } from './Engine'
-import { getEnginesPath } from '@prisma/engines'
-import debugLib from 'debug'
-import { getPlatform, Platform } from '@prisma/get-platform'
-import path from 'path'
-import net from 'net'
-import fs from 'fs'
-import os from 'os'
-import chalk from 'chalk'
-import { GeneratorConfig, DataSource } from '@prisma/generator-helper'
-import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixBinaryTargets, plusX, getRandomString } from './util'
-import { promisify } from 'util'
-import EventEmitter from 'events'
-import { convertLog, RustLog, RustError } from './log'
-import { spawn, ChildProcessWithoutNullStreams } from 'child_process'
-import byline from './byline'
-import pRetry from 'p-retry'
-import execa from 'execa'
+import { convertLog, RustError, RustLog } from './log'
 import { omit } from './omit'
+import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
+import { fixBinaryTargets, getRandomString, plusX } from './util'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
@@ -189,7 +188,7 @@ export class NodeEngine {
       'distinct',
       'aggregations',
       'insensitiveFilters',
-      'atomicNumberOperations'
+      'atomicNumberOperations',
     ]
     const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
@@ -197,7 +196,9 @@ export class NodeEngine {
     )
     if (removedFlagsUsed.length > 0) {
       console.log(
-        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
+        `${chalk.blueBright(
+          'info',
+        )} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
@@ -320,10 +321,14 @@ You may have to run ${chalk.greenBright(
       this.currentRequestPromise.cancel()
     }
   }
-
-  private async resolvePrismaPath(): Promise<string> {
+  private async resolvePrismaPath(): Promise<{
+    prismaPath: string
+    searchedLocations: string[]
+  }> {
+    const searchedLocations: string[] = []
+    let enginePath
     if (this.prismaPath) {
-      return this.prismaPath
+      return { prismaPath: this.prismaPath, searchedLocations }
     }
 
     const platform = await this.getPlatform()
@@ -334,82 +339,50 @@ You may have to run ${chalk.greenBright(
     this.platform = this.platform || platform
 
     if (__filename.includes('NodeEngine')) {
-      // TODO: Use engines package here
-      return this.getQueryEnginePath(
-        this.platform,
-        getEnginesPath(),
-      )
-    } else {
-      const dotPrismaPath = await this.getQueryEnginePath(
-        this.platform,
-        eval(`require('path').join(__dirname, '../../../.prisma/client')`),
-      )
-      debug({ dotPrismaPath })
-      if (fs.existsSync(dotPrismaPath)) {
-        return dotPrismaPath
-      }
-      const dirnamePath = await this.getQueryEnginePath(
-        this.platform,
-        eval('__dirname'),
-      )
-      debug({ dirnamePath })
-      if (fs.existsSync(dirnamePath)) {
-        return dirnamePath
-      }
-      const parentDirName = await this.getQueryEnginePath(
-        this.platform,
-        path.join(eval('__dirname'), '..'),
-      )
-      debug({ parentDirName })
-      if (fs.existsSync(parentDirName)) {
-        return parentDirName
-      }
-      const datamodelDirName = await this.getQueryEnginePath(
-        this.platform,
-        path.dirname(this.datamodelPath),
-      )
-      if (fs.existsSync(datamodelDirName)) {
-        return datamodelDirName
-      }
-      const cwdPath = await this.getQueryEnginePath(this.platform, this.cwd)
-      if (fs.existsSync(cwdPath)) {
-        return cwdPath
-      }
-      const prismaPath = await this.getQueryEnginePath(this.platform)
-      debug({ prismaPath })
-      return prismaPath
+      enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
+      return { prismaPath: enginePath, searchedLocations }
     }
+    const searchLocations: string[] = [
+      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
+      this.generator?.output ?? eval('__dirname'), // Custom Generator Path
+      path.join(eval('__dirname'), '..'), // parentDirName
+      path.dirname(this.datamodelPath), // Datamodel Dir
+      this.cwd, //cwdPath
+    ]
+    for (const location of searchLocations) {
+      searchedLocations.push(location)
+      debug(`Search for Query Engine in ${location}`)
+      enginePath = await this.getQueryEnginePath(this.platform, location)
+      if (fs.existsSync(enginePath)) {
+        return { prismaPath: enginePath, searchedLocations }
+      }
+    }
+    enginePath = await this.getQueryEnginePath(this.platform)
+
+    return { prismaPath: enginePath ?? '', searchedLocations }
   }
 
   // get prisma path
   private async getPrismaPath(): Promise<string> {
-    const prismaPath = await this.resolvePrismaPath()
-    // console.log({ prismaPath })
+    const { prismaPath, searchedLocations } = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-          `${this.incorrectlyPinnedBinaryTarget}`,
-        )}\n`
+            `${this.incorrectlyPinnedBinaryTarget}`,
+          )}\n`
         : ''
 
-      const dir = path.dirname(prismaPath)
-      const dirExists = fs.existsSync(dir)
-      let files = []
-      if (dirExists) {
-        files = await readdir(dir)
-      }
       let errorText = `Query engine binary for current platform "${chalk.bold(
         platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in "${chalk.underline(prismaPath)}")
 
-Files in ${dir}:
+Searched Locations:
 
-${files.map((f) => `  ${f}`).join('\n')}\n`
-
+${searchedLocations.map((f) => `  ${f}`).join('\n')}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
@@ -419,26 +392,29 @@ ${files.map((f) => `  ${f}`).join('\n')}\n`
           this.generator.binaryTargets.includes('native')
         ) {
           errorText += `
-You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''
-            } ${this.generator.binaryTargets
-              .map((t) => `"${chalk.bold(t)}"`)
-              .join(', ')} to the "${chalk.underline('generator')}" block
+You already added the platform${
+            this.generator.binaryTargets.length > 1 ? 's' : ''
+          } ${this.generator.binaryTargets
+            .map((t) => `"${chalk.bold(t)}"`)
+            .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
 Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
+          errorText += ``
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform
-            }" to the "${chalk.underline(
-              'generator',
-            )}" block in the "schema.prisma" file:
+          errorText += `\n\nTo solve this problem, add the platform "${
+            this.platform
+          }" to the "${chalk.underline(
+            'generator',
+          )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-              'prisma generate',
-            )}" for your changes to take effect.
+            'prisma generate',
+          )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -567,8 +543,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-            Array.isArray(this.enableExperimental) &&
-            this.enableExperimental.length > 0
+          Array.isArray(this.enableExperimental) &&
+          this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -715,7 +691,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                this.stderrLogs,
+                  this.stderrLogs,
                 this.clientVersion,
               )
             } else {
@@ -834,12 +810,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         this.url = `http://localhost:${this.port}`
 
-          // don't wait for this
-          ; (async () => {
-            const engineVersion = await this.version()
-            debug(`Client Version ${this.clientVersion}`)
-            debug(`Engine Version ${engineVersion}`)
-          })()
+        // don't wait for this
+        ;(async () => {
+          const engineVersion = await this.version()
+          debug(`Client Version ${this.clientVersion}`)
+          debug(`Engine Version ${engineVersion}`)
+        })()
 
         this.stopPromise = undefined
         resolve()
@@ -990,7 +966,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         this.clientVersion,
       )
     }
-
 
     this.currentRequestPromise = this.undici.request(
       stringifyQuery(query),
@@ -1143,9 +1118,8 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       (error.code === 'UND_ERR_SOCKET' &&
         error.message.toLowerCase().includes('closed')) ||
       error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed') || (
-        error.code === 'UND_ERR_CLOSED'
-      )
+      error.message.toLowerCase().includes('other side closed') ||
+      error.code === 'UND_ERR_CLOSED'
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(
