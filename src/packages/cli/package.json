@@ -150,6 +150,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.0",
-    "@prisma/engines": "2.10.1-3-6b72297958d424b0e0a0829a95b76ccc966132fd"
+    "@prisma/engines": "2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b"
   }
 }
