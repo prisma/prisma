@@ -69,7 +69,7 @@ const args = arg(
 //
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
-  tryLoadEnv(args)
+  tryLoadEnv(args["--schema"])
 }
 
 /**

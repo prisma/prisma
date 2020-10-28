@@ -35,11 +35,11 @@ interface LoadEnvResult {
  *    1. Read from default location ./prisma/.env
  */
 export function tryLoadEnv(
-  args: CLIArgs,
+  schemaPath?: string,
   opts: { cwd: string } = { cwd: process.cwd() },
-): void {
+) {
   const rootEnvInfo = loadEnvFromProjectRoot(opts)
-  const schemaEnvPathFromArgs = schemaPathToEnvPath(args['--schema'])
+  const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
   const schemaEnvPathFromPkgJson = schemaPathToEnvPath(readSchemaPathFromPkgJson())
 
   const schemaEnvPaths = [
@@ -54,6 +54,7 @@ export function tryLoadEnv(
     if(rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo.path) === path.resolve(envPath)){
       continue
     }
+    debug(`Searching in ${envPath}`)
     checkForConflicts(rootEnvInfo, envPath)
     schemaEnvInfo = loadEnv(envPath)
     if (schemaEnvInfo) break
@@ -73,9 +74,10 @@ export function tryLoadEnv(
   }
 
   if (!process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
-    rootEnvInfo?.message && console.error(rootEnvInfo?.message)
-    schemaEnvInfo?.message && console.error(schemaEnvInfo.message)
+    rootEnvInfo?.message && console.log(rootEnvInfo.message)
+    schemaEnvInfo?.message && console.log(schemaEnvInfo.message)
   }
+  return {...rootEnvInfo?.dotenvResult?.parsed, ...schemaEnvInfo?.dotenvResult?.parsed}
 }
 
 
@@ -137,7 +139,7 @@ function loadEnv(envPath: string | null | undefined): LoadEnvResult | null {
   }
   return null
 }
-function schemaPathToEnvPath(schemaPath: string | null) {
+function schemaPathToEnvPath(schemaPath: string | null | undefined) {
   if (!schemaPath) return null
   return path.join(path.dirname(schemaPath), '.env')
 }
