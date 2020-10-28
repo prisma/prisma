@@ -21,8 +21,8 @@
     {
       "groupName": "engines",
       "automerge": "true",
-      "packageNames": ["@prisma/engines", "@prisma/engines-version"],
-      "updateTypes": ["patch", "minor", "major"]
+      "separateMajorMinor": "false",
+      "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
       "groupName": "devDependencies (non-major)",
