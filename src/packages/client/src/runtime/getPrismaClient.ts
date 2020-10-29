@@ -322,7 +322,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           config.relativePath,
           '.schema',
         )
-        const envFile = tryLoadEnv(schemaPath, {cwd: cwd }) as {[x: string]: string}
+        const envFile = tryLoadEnv(schemaPath, {cwd: cwd })
 
         const previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -346,7 +346,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   typeof o === 'string' ? o === 'query' : o.level === 'query',
                 ),
             ),
-          env: envFile,
+          env: envFile ? envFile.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(previewFeatures),

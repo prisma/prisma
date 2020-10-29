@@ -44,6 +44,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
+    "find-up": "5.0.0",
     "@timsuchanek/copy": "^1.4.5",
     "archiver": "^4.0.0",
     "arg": "^4.1.3",

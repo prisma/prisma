@@ -2,9 +2,9 @@ import arg from 'arg'
 import chalk from 'chalk'
 import debugLib from 'debug'
 import dotenv from 'dotenv'
+import findUp from 'find-up'
 import fs from 'fs'
 import path from 'path'
-import readPkgUp from 'read-pkg-up'
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { dotenvExpand } from '../dotenvExpand'
 
@@ -18,13 +18,13 @@ type CLIArgs =
     }>
 
 type DotenvResult = dotenv.DotenvConfigOutput & {
-  ignoreProcessEnv?: boolean | undefined;
-};
+  ignoreProcessEnv?: boolean | undefined
+}
 
 interface LoadEnvResult {
   message: string
   path: string
-  dotenvResult:  DotenvResult
+  dotenvResult: DotenvResult
 }
 /**
  * Tries load env variables
@@ -40,18 +40,23 @@ export function tryLoadEnv(
 ) {
   const rootEnvInfo = loadEnvFromProjectRoot(opts)
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
-  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(readSchemaPathFromPkgJson())
-
+  const schemaEnvPathFromPkgJson = schemaPathToEnvPath(
+    readSchemaPathFromPkgJson(),
+  )
   const schemaEnvPaths = [
-    schemaEnvPathFromArgs,        // 1 - Check --schema directory for .env
-    schemaEnvPathFromPkgJson,     // 2 - Check package.json schema directory for .env
-    './prisma/.env',              // 3 - Check ./prisma directory for .env
-    './.env'                      // 4 - Check cwd for .env
+    schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
+    schemaEnvPathFromPkgJson, // 2 - Check package.json schema directory for .env
+    './prisma/.env', // 3 - Check ./prisma directory for .env
+    './.env', // 4 - Check cwd for .env
   ]
   let schemaEnvInfo: LoadEnvResult | null = null
   for (const envPath of schemaEnvPaths) {
     // If the paths are the same then skip
-    if(rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo.path) === path.resolve(envPath)){
+    if (
+      rootEnvInfo?.path &&
+      envPath &&
+      path.resolve(rootEnvInfo.path) === path.resolve(envPath)
+    ) {
       continue
     }
     debug(`Searching in ${envPath}`)
@@ -64,7 +69,7 @@ export function tryLoadEnv(
   if (!rootEnvInfo && !schemaEnvInfo) {
     debug('No Environment variables loaded')
   }
-  
+
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
     return console.error(
@@ -72,14 +77,18 @@ export function tryLoadEnv(
         schemaEnvInfo.dotenvResult.error,
     )
   }
+  const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(
+    Boolean,
+  )
 
-  if (!process.env.PRISMA_GENERATE_IN_POSTINSTALL) {
-    rootEnvInfo?.message && console.log(rootEnvInfo.message)
-    schemaEnvInfo?.message && console.log(schemaEnvInfo.message)
+  return {
+    message: messages.join('\n'),
+    parsed: {
+      ...rootEnvInfo?.dotenvResult?.parsed,
+      ...schemaEnvInfo?.dotenvResult?.parsed,
+    },
   }
-  return {...rootEnvInfo?.dotenvResult?.parsed, ...schemaEnvInfo?.dotenvResult?.parsed}
 }
-
 
 function readSchemaPathFromPkgJson(): string | null {
   try {
@@ -96,7 +105,10 @@ function checkForConflicts(
   rootEnvInfo: LoadEnvResult | null,
   envPath: string | null,
 ) {
-  const notTheSame = rootEnvInfo?.path && envPath && path.resolve(rootEnvInfo?.path) !== path.resolve(envPath)
+  const notTheSame =
+    rootEnvInfo?.path &&
+    envPath &&
+    path.resolve(rootEnvInfo?.path) !== path.resolve(envPath)
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
   if (parsedRootEnv && envPath && notTheSame && fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
@@ -114,15 +126,32 @@ function checkForConflicts(
       \tEnv Conflicts:
       ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')}
 
-      You can fix this by removing the .env file from "${envPath}" and move its contents to your .env file at the root "${rootEnvInfo?.path}"
+      You can fix this by removing the .env file from "${envPath}" and move its contents to your .env file at the root "${
+        rootEnvInfo?.path
+      }"
       `)
     }
   }
 }
-
+function findRootPkg(opts: findUp.Options | undefined) {
+  const pkgJson = findUp.sync((dir) => {
+    const pkgPath = path.join(dir, 'package.json')
+    if (findUp.exists(pkgPath)) {
+      try {
+        let pkg = require(pkgPath)
+        if (pkg['name'] !== '.prisma/client') {
+          return pkgPath
+        }
+      } catch (e) {
+        debug(e)
+      }
+    }
+  }, opts)
+  return pkgJson
+}
 function loadEnvFromProjectRoot(opts: { cwd: string }) {
-  const pkgJson = readPkgUp.sync({ cwd: opts.cwd })
-  const rootDir = pkgJson?.path && path.dirname(pkgJson?.path)
+  const pkgJsonPath = findRootPkg(opts)
+  const rootDir = pkgJsonPath && path.dirname(pkgJsonPath)
   const envPath = rootDir && path.join(rootDir, '.env')
   return loadEnv(envPath)
 }
@@ -131,10 +160,8 @@ function loadEnv(envPath: string | null | undefined): LoadEnvResult | null {
     debug(`Environment variables loaded from ${envPath}`)
     return {
       dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),
-      message: chalk.dim(
-        `Environment variables loaded from ${envPath}`,
-      ),
-      path: envPath
+      message: chalk.dim(`Environment variables loaded from ${envPath}`),
+      path: envPath,
     }
   }
   return null
