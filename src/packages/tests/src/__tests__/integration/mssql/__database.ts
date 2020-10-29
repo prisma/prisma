@@ -11,16 +11,16 @@ export const database = {
   previewFeatures: ["microsoftSqlServer"],
   connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
-    const pool = new sql.ConnectionPool(credentials) // always connect to master to create the db
+    const pool = new sql.ConnectionPool(credentials) 
     return pool.connect()
   },
   send: async (pool, sqlDatabase, sqlScenario, ctx) => {
-    await pool.request().query(sqlDatabase) // create database from master
+    await pool.request().query(sqlDatabase) 
     pool.close()
     const credentials = getConnectionInfo(ctx).credentials
     const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
     const newPool = new sql.ConnectionPool(credentialsClone)
-    await newPool.connect() // connect to newly created db to execute scenario SQL then close
+    await newPool.connect() 
     await newPool.request().query(sqlScenario)
     newPool.close()
   },
