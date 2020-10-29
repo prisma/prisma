@@ -37,10 +37,13 @@ test('missing-binary', async () => {
           This probably happens, because you built Prisma Client on a different platform.
           (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
-          Files in /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime:
+          Searched Locations:
 
-            index.d.ts
-            index.js
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-binary
 
 
           To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
