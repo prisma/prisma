@@ -150,15 +150,7 @@ describe('handlePanic', () => {
       }
     }
     if (isCi()) {
-      expect(error).toMatchInlineSnapshot(`
-        Error in migration engine.
-        Reason: [/root/build/migration-engine/core/src/commands/debug_panic.rs:0:0] This is the debugPanic artificial panic
-
-        Please create an issue in the migrate repo with
-        your \`schema.prisma\` and the prisma command you tried to use 🙏:
-        https://github.com/prisma/migrate/issues/new
-
-      `)
+      expect(stripAnsi(error.message)).toMatch('Please create an issue in the migrate repo with')
     } else {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
