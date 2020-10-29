@@ -322,7 +322,7 @@ model User {
 
 exports[`migrate.create simple debug panic 1`] = `
 Error in migration engine.
-Reason: [/rustc/hash/macros.rs:0:0] This is the debugPanic artificial panic
+Reason: [/root/build/migration-engine/core/src/commands/debug_panic.rs:0:0] This is the debugPanic artificial panic
 
 Please create an issue in the migrate repo with
 your \`schema.prisma\` and the prisma command you tried to use 🙏:
