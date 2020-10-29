@@ -96,7 +96,7 @@ type Database<Client> = {
   /**
    * Execute SQL against the database.
    */
-  send: (db: Client, dbSql: string, scenarioSql: string, ctx?: Context) => MaybePromise<any>
+  send: (db: Client, dbSql: string, scenarioSql: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
