@@ -51,8 +51,7 @@
       "prisma-client/**/*",
       "download-build/**/*",
       "node_modules/@prisma/engines/**/*",
-      "node_modules/@prisma/engines/*",
-      "prisma-fmt*"
+      "node_modules/@prisma/engines/*"
     ]
   },
   "bin": {
@@ -149,6 +148,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.0",
-    "@prisma/engines": "2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b"
+    "@prisma/engines": "2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111"
   }
 }
