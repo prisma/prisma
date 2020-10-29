@@ -104,6 +104,7 @@ import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
+import path from 'path'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -289,3 +290,29 @@ if (require.main === module) {
       }
     })
 }
+
+/**
+ * Annotations for `pkg` so it bundles things correctly with yarn's hoisting
+ * `node_modules/@prisma/cli/build/index.js` needs to get to:
+ * `node_modules/@prisma/engines`
+ */
+
+path.join(__dirname, '../../engines/query-engine-darwin')
+path.join(__dirname, '../../engines/introspection-engine-darwin')
+path.join(__dirname, '../../engines/prisma-fmt-darwin')
+
+path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
+
+path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
+
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
+
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')
