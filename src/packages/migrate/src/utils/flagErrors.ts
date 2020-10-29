@@ -1,4 +1,3 @@
-import { orange } from './../../../client/src/runtime/highlight/theme'
 import chalk from 'chalk'
 
 export class ExperimentalFlagError extends Error {
