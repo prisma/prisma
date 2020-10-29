@@ -45,7 +45,7 @@ importers:
   packages/cli:
     dependencies:
       '@prisma/bar': 0.0.0
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
     devDependencies:
       '@prisma/client': 'link:../client'
       '@prisma/debug': 'link:../debug'
@@ -89,7 +89,7 @@ importers:
       mz: 2.7.0
       open: 7.2.1
       packwatch: 2.0.0
-      pg: 8.3.3
+      pg: 8.3.3_pg@8.3.3
       pkg: 4.4.9
       pkg-up: 3.1.0
       prettier: 2.1.2
@@ -109,7 +109,7 @@ importers:
       '@prisma/bar': ^0.0.0
       '@prisma/client': 'workspace:*'
       '@prisma/debug': 'workspace:*'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@prisma/migrate': 'workspace:*'
@@ -168,11 +168,11 @@ importers:
       ws: 7.3.1
   packages/client:
     dependencies:
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
     devDependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -219,7 +219,7 @@ importers:
       mssql: 6.2.3
       node-fetch: 2.6.1
       packwatch: 2.0.0
-      pg: 8.3.3
+      pg: 8.3.3_pg@8.3.3
       pidtree: 0.5.0
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -241,8 +241,8 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -349,7 +349,7 @@ importers:
   packages/engine-core:
     dependencies:
       '@prisma/debug': 'link:../debug'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
@@ -381,7 +381,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.14
@@ -431,7 +431,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.0
     devDependencies:
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
       '@types/node': 12.12.62
@@ -453,7 +453,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/get-platform': 'workspace:*'
       '@types/fs-extra': 9.0.1
       '@types/jest': 26.0.14
@@ -598,7 +598,7 @@ importers:
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
     devDependencies:
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/sdk': 'link:../sdk'
       '@types/charm': 1.0.2
@@ -632,7 +632,7 @@ importers:
       typescript: 4.0.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/engines-version': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines-version': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -692,7 +692,7 @@ importers:
     dependencies:
       '@prisma/debug': 'link:../debug'
       '@prisma/engine-core': 'link:../engine-core'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/fetch-engine': 'link:../fetch-engine'
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
@@ -746,7 +746,7 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@prisma/engine-core': 'workspace:*'
-      '@prisma/engines': 2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b
+      '@prisma/engines': 2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111
       '@prisma/fetch-engine': 'workspace:*'
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
@@ -825,7 +825,7 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.0
       mssql: 6.2.3
-      pg: 8.4.1
+      pg: 8.4.1_pg@8.4.1
       pkg-up: 3.1.0
       prettier: 2.1.2
       replace-string: 3.1.0
@@ -876,7 +876,7 @@ importers:
       ts-jest: 26.4.0
       typescript: 4.0.3
       verror: ^1.10.0
-lockfileVersion: 5.2
+lockfileVersion: 5.1
 packages:
   /@azure/ms-rest-azure-env/1.1.2:
     dev: true
@@ -1258,7 +1258,7 @@ packages:
       jest-haste-map: 26.3.0
       jest-message-util: 26.3.0
       jest-regex-util: 26.0.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       jest-resolve-dependencies: 26.4.2
       jest-runner: 26.4.2
       jest-runtime: 26.4.2
@@ -1328,7 +1328,7 @@ packages:
       istanbul-lib-source-maps: 4.0.0
       istanbul-reports: 3.0.2
       jest-haste-map: 26.3.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       jest-util: 26.3.0
       jest-worker: 26.3.0
       slash: 3.0.0
@@ -1474,13 +1474,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-XvIgmzjTLnT7etze7+7RFPeX6DrVcNpfycV7eREbQaG+pVZz25iY/2K7SiJEwWNj0E4PfARau48+EktMOTzOrA==
-  /@prisma/engines-version/2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b:
+  /@prisma/engines-version/2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111:
     resolution:
-      integrity: sha512-gWQj0Lz/bn8IZS2DONZdgk14Fru98dz8Iwa6G04ZiZbn8QRuuYquuox1MtHiqy6/FRoArP4eTVh+5dap6hrX+A==
-  /@prisma/engines/2.10.1-4-9f0f427d33d54628b9df976d79afbff038c26b1b:
+      integrity: sha512-OuOSTvEzXJwCJzNqZ9N/+J3lO64HgX9uGiVOuvlTrRSXoLZk0Q2IiLAx8qhY1U7jPpHJ7LTlZuGNScimqonpJg==
+  /@prisma/engines/2.10.1-6-7d0087eadc7265e12d4b8d8c3516b02c4c965111:
     requiresBuild: true
     resolution:
-      integrity: sha512-pXE8O1L5+QFNx6TtKnRJ2ai4QVITnEKug8I8Wrm3DPaF3lgTUs5Kbse+r55Kvgm6df2Qf3ZBbt21y2yO2OKmwQ==
+      integrity: sha512-F/I8mmYMQnEFX47jl7Su8Pmvpua1wti9Uq3IUlSCqLQsrOmuMj+GKQ5nYEewmcynqBlyVcpUyxF5iAWbmUVdjw==
   /@prisma/engines/2.11.0-3-6fafbb461b7e0c140280a7794ed19a4f7035f577:
     dev: true
     requiresBuild: true
@@ -5143,7 +5143,7 @@ packages:
       jest-get-type: 26.3.0
       jest-jasmine2: 26.4.2
       jest-regex-util: 26.0.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       jest-util: 26.3.0
       jest-validate: 26.4.2
       micromatch: 4.0.2
@@ -5327,7 +5327,7 @@ packages:
       integrity: sha512-PeaRrg8Dc6mnS35gOo/CbZovoDPKAeB1FICZiuagAgGvbWdNNyjQjkOaGUa/3N3JtpQ/Mh9P4A2D4Fv51NnP8Q==
   /jest-pnp-resolver/1.2.2_jest-resolve@26.4.0:
     dependencies:
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
     dev: true
     engines:
       node: '>=6'
@@ -5354,7 +5354,7 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-ADHaOwqEcVc71uTfySzSowA/RdxUpCxhxa2FNLiin9vWLB1uLPad3we+JSSROq5+SrL9iYPdZZF8bdKM7XABTQ==
-  /jest-resolve/26.4.0:
+  /jest-resolve/26.4.0_jest-resolve@26.4.0:
     dependencies:
       '@jest/types': 26.3.0
       chalk: 4.1.0
@@ -5367,6 +5367,8 @@ packages:
     dev: true
     engines:
       node: '>= 10.14.2'
+    peerDependencies:
+      jest-resolve: '*'
     resolution:
       integrity: sha512-bn/JoZTEXRSlEx3+SfgZcJAVuTMOksYq9xe9O6s4Ekg84aKBObEaVXKOEilULRqviSLAYJldnoWV9c07kwtiCg==
   /jest-runner/26.4.2:
@@ -5385,7 +5387,7 @@ packages:
       jest-haste-map: 26.3.0
       jest-leak-detector: 26.4.2
       jest-message-util: 26.3.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       jest-runtime: 26.4.2
       jest-util: 26.3.0
       jest-worker: 26.3.0
@@ -5417,7 +5419,7 @@ packages:
       jest-message-util: 26.3.0
       jest-mock: 26.3.0
       jest-regex-util: 26.0.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       jest-snapshot: 26.4.2
       jest-util: 26.3.0
       jest-validate: 26.4.2
@@ -5452,7 +5454,7 @@ packages:
       jest-haste-map: 26.3.0
       jest-matcher-utils: 26.4.2
       jest-message-util: 26.3.0
-      jest-resolve: 26.4.0
+      jest-resolve: 26.4.0_jest-resolve@26.4.0
       natural-compare: 1.4.0
       pretty-format: 26.4.2
       semver: 7.3.2
@@ -6804,7 +6806,7 @@ packages:
       integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==
   /pg-pool/3.2.1_pg@8.3.3:
     dependencies:
-      pg: 8.3.3
+      pg: 8.3.3_pg@8.3.3
     dev: true
     peerDependencies:
       pg: '>=8.0'
@@ -6812,7 +6814,7 @@ packages:
       integrity: sha512-BQDPWUeKenVrMMDN9opfns/kZo4lxmSWhIqo+cSAF7+lfi9ZclQbr9vfnlNaPr8wYF3UYjm5X0yPAhbcgqNOdA==
   /pg-pool/3.2.1_pg@8.4.1:
     dependencies:
-      pg: 8.4.1
+      pg: 8.4.1_pg@8.4.1
     dev: true
     peerDependencies:
       pg: '>=8.0'
@@ -6838,7 +6840,7 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==
-  /pg/8.3.3:
+  /pg/8.3.3_pg@8.3.3:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
@@ -6851,9 +6853,11 @@ packages:
     dev: true
     engines:
       node: '>= 8.0.0'
+    peerDependencies:
+      pg: '*'
     resolution:
       integrity: sha512-wmUyoQM/Xzmo62wgOdQAn5tl7u+IA1ZYK7qbuppi+3E+Gj4hlUxVHjInulieWrd0SfHi/ADriTb5ILJ/lsJrSg==
-  /pg/8.4.1:
+  /pg/8.4.1_pg@8.4.1:
     dependencies:
       buffer-writer: 2.0.0
       packet-reader: 1.0.0
@@ -6866,6 +6870,7 @@ packages:
     engines:
       node: '>= 8.0.0'
     peerDependencies:
+      pg: '*'
       pg-native: '>=2.0.0'
     peerDependenciesMeta:
       pg-native:
