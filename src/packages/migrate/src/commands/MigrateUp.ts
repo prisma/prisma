@@ -10,7 +10,10 @@ import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
+import {
+  EarlyAcessFlagError,
+  ExperimentalFlagWithNewMigrateError,
+} from '../utils/flagErrors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 export class MigrateUp implements Command {
@@ -46,6 +49,7 @@ export class MigrateUp implements Command {
         '-h': '--help',
         '--skip-generate': Boolean,
         '--experimental': Boolean,
+        '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -60,8 +64,12 @@ export class MigrateUp implements Command {
       return this.help()
     }
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
+    }
+
+    if (!args['--early-access-feature']) {
+      throw new EarlyAcessFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

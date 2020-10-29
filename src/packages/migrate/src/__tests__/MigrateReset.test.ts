@@ -16,11 +16,11 @@ describe('reset', () => {
   it('if no schema file should fail', async () => {
     ctx.fixture('empty')
 
-    const result = MigrateReset.new().parse(['--experimental'])
+    const result = MigrateReset.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Could not find a schema.prisma file that is required for this command.
-          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-        `)
+            Could not find a schema.prisma file that is required for this command.
+            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+          `)
   })
 
   it('with missing db should fail', async () => {
@@ -28,7 +28,10 @@ describe('reset', () => {
     ctx.fs.remove('prisma/dev.db')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
-    const result = MigrateReset.new().parse(['--experimental', '--force'])
+    const result = MigrateReset.new().parse([
+      '--early-access-feature',
+      '--force',
+    ])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Invariant violation: migration persistence is not initialized.
                0: migration_core::api::ApplyMigrations
@@ -44,7 +47,10 @@ describe('reset', () => {
     ctx.fixture('reset')
 
     // setTimeout(() => stdin.send(`y\r`), 100)
-    const result = MigrateReset.new().parse(['--experimental', '--force'])
+    const result = MigrateReset.new().parse([
+      '--early-access-feature',
+      '--force',
+    ])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -65,7 +71,10 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/migrations')
 
-    const result = MigrateReset.new().parse(['--force', '--experimental'])
+    const result = MigrateReset.new().parse([
+      '--force',
+      '--early-access-feature',
+    ])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -84,7 +93,7 @@ describe('reset', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     // setTimeout(() => stdin.send(`n\r`), 100)
-    const result = MigrateReset.new().parse(['--experimental'])
+    const result = MigrateReset.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -97,9 +106,9 @@ describe('reset', () => {
 
   it('reset should ask for --force if not provided', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse(['--experimental'])
+    const result = MigrateReset.new().parse(['--early-access-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --experimental`,
+      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --early-access-feature`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -108,7 +117,10 @@ describe('reset', () => {
 
   it('should work with --force', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse(['--force', '--experimental'])
+    const result = MigrateReset.new().parse([
+      '--force',
+      '--early-access-feature',
+    ])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`

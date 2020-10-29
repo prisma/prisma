@@ -18,22 +18,22 @@ beforeEach(() => {
 })
 
 describe('common', () => {
-  it('migrate should fail if no schema file', async () => {
+  it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      Could not find a schema.prisma file that is required for this command.
-                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-                  `)
+            Could not find a schema.prisma file that is required for this command.
+            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+          `)
   })
 })
 
 describe('sqlite', () => {
-  it('migrate first migration after init - empty schema', async () => {
+  it('first migration after init - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--experimental',
+      '--early-access-feature',
     ])
     await expect(result).resolves.toMatchSnapshot()
 
@@ -50,12 +50,12 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it.skip('migrate first migration after init', async () => {
+  it.skip('first migration after init', async () => {
     ctx.fixture('schema-only-sqlite')
 
     setTimeout(() => stdin.send(`my migration name\r`), 500)
 
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -69,12 +69,12 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it.skip('migrate first migration after init', async () => {
+  it.skip('first migration after init', async () => {
     ctx.fixture('schema-only-sqlite')
 
     setTimeout(() => stdin.send(`my MigrationName\r`), 100)
 
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -95,12 +95,12 @@ describe('sqlite', () => {
 
     const draftResult = MigrateCommand.new().parse([
       '--draft',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--experimental'])
+    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(applyResult).resolves.toMatchSnapshot()
     expect(
@@ -142,9 +142,9 @@ describe.skip('postgresql', () => {
 
   it('schema only', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
-      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --experimental`,
+      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --early-access-feature`,
     )
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -153,12 +153,12 @@ describe.skip('postgresql', () => {
     ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
   })
 
-  it.skip('migrate first migration after init - empty schema', async () => {
+  it.skip('first migration after init - empty schema', async () => {
     ctx.fixture('schema-only-postgresql')
 
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -169,12 +169,12 @@ describe.skip('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it.skip('migrate first migration after init', async () => {
+  it.skip('first migration after init', async () => {
     ctx.fixture('schema-only-postgresql')
 
     setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
 
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(
@@ -184,12 +184,12 @@ describe.skip('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it.skip('migrate first migration after init --force', async () => {
+  it.skip('first migration after init --force', async () => {
     ctx.fixture('schema-only-postgresql')
 
     setTimeout(() => stdin.send(`myMigrationName\r`), 1500)
 
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(
@@ -206,12 +206,12 @@ describe.skip('postgresql', () => {
 
     const draftResult = MigrateCommand.new().parse([
       '--draft',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--experimental'])
+    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -223,12 +223,12 @@ describe.skip('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it.skip('existingdb: migrate first migration after init', async () => {
+  it.skip('existingdb: first migration after init', async () => {
     ctx.fixture('schema-only-postgresql')
 
     setTimeout(() => stdin.send(`myDraftMigrationName\r`), 1500)
 
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(

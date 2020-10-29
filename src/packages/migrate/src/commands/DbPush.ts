@@ -16,7 +16,7 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
-import { PreviewFlagError } from '../utils/experimental'
+import { PreviewFlagError } from '../utils/flagErrors'
 
 export class DbPush implements Command {
   public static new(): DbPush {

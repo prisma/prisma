@@ -10,14 +10,13 @@ import chalk from 'chalk'
 import path from 'path'
 import { Migrate, UpOptions } from '../../Migrate'
 import { ensureDatabaseExists } from '../../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../../utils/experimental'
+import { ExperimentalFlagError } from '../../utils/flagErrors'
 
 export class MigrateUp implements Command {
   public static new(): MigrateUp {
     return new MigrateUp()
   }
 
-  // static help template
   private static help = format(`
     Migrate your database up to a specific state.
 
@@ -64,7 +63,6 @@ export class MigrateUp implements Command {
       ${chalk.dim('$')} prisma migrate up "add first_name field" --experimental
   `)
 
-  // parse arguments
   public async parse(argv: string[]): Promise<string | Error> {
     // parse the arguments according to the spec
     const args = arg(
@@ -145,7 +143,6 @@ export class MigrateUp implements Command {
     return result
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(

@@ -22,7 +22,7 @@ import {
   getDbinfoFromCredentials,
   getDbLocation,
 } from '../utils/ensureDatabaseExists'
-import { PreviewFlagError } from '../utils/experimental'
+import { PreviewFlagError } from '../utils/flagErrors'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {

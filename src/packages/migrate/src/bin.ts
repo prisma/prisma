@@ -31,8 +31,8 @@ const args = arg(
 //
 // Read .env file only if next to schema.prisma
 //
-// if the CLI is called without any command like `up --experimental` we can ignore .env loading
-// should be 1 but because of --experimental flag it will be 2 until removed
+// if the CLI is called without any command like `up --early-access-feature` we can ignore .env loading
+// should be 1 but because of --early-access-feature flag it will be 2 until removed
 if (process.argv.length > 2) {
   tryLoadEnv(args)
 }

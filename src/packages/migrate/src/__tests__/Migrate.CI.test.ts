@@ -14,13 +14,29 @@ process.env.GITHUB_ACTIONS = '1'
 process.env.MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {
-  it('migrate should fail if no schema file', async () => {
+  it('should fail if no schema file', async () => {
+    ctx.fixture('empty')
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Could not find a schema.prisma file that is required for this command.
+            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+          `)
+  })
+  it('should fail if no flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateCommand.new().parse([])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
+                  Please provide the --early-access-feature flag to use this command.
+          `)
+  })
+  it('should fail if experimental flag', async () => {
     ctx.fixture('empty')
     const result = MigrateCommand.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      Could not find a schema.prisma file that is required for this command.
-                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-                  `)
+            Prisma Migrate was Experimental and is now in Early Access.
+                  WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --early-access-feature.
+          `)
   })
 })
 
@@ -29,7 +45,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--experimental',
+      '--early-access-feature',
     ])
     await expect(result).resolves.toMatchSnapshot()
 
@@ -50,7 +66,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--name=first',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -76,7 +92,7 @@ describe('sqlite', () => {
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--force',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -102,12 +118,12 @@ describe('sqlite', () => {
     const draftResult = MigrateCommand.new().parse([
       '--draft',
       '--name=first',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--experimental'])
+    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
 
     await expect(applyResult).resolves.toMatchSnapshot()
     expect(
@@ -151,7 +167,7 @@ describe('postgresql', () => {
 
   it('schema only', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
       `undefined`,
     )
@@ -173,7 +189,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -191,7 +207,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--name=first',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -214,7 +230,7 @@ describe('postgresql', () => {
     const result = MigrateCommand.new().parse([
       '--name=first',
       '--force',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()
@@ -237,12 +253,12 @@ describe('postgresql', () => {
     const draftResult = MigrateCommand.new().parse([
       '--draft',
       '--name=first',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--experimental'])
+    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -260,7 +276,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateCommand.new().parse([
       '--name=first',
-      '--experimental',
+      '--early-access-feature',
     ])
 
     await expect(result).resolves.toMatchSnapshot()

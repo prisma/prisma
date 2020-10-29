@@ -343,7 +343,9 @@ export class Migrate {
       if (!force && isCi()) {
         throw Error(
           `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma reset --force --experimental'),
+            getCommandWithExecutor(
+              'prisma reset --force --early-access-feature',
+            ),
           )}`,
         )
       }

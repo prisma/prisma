@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sqlite migrate first migration after init - empty schema 1`] = ``;
+exports[`sqlite first migration after init - empty schema 1`] = ``;
 
-exports[`sqlite migrate first migration after init - empty schema 3`] = `Array []`;
+exports[`sqlite first migration after init - empty schema 3`] = `Array []`;
 
-exports[`sqlite migrate first migration after init - empty schema 4`] = `Array []`;
+exports[`sqlite first migration after init - empty schema 4`] = `Array []`;

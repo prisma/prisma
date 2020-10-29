@@ -12,7 +12,7 @@ import chalk from 'chalk'
 import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagError } from '../utils/experimental'
+import { EarlyAcessFlagError } from '../utils/flagErrors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 export class MigrateReset implements Command {
@@ -24,15 +24,15 @@ export class MigrateReset implements Command {
     Reset your database and reapply migrations
 
     ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in an experimental state.",
+    "Prisma's migration functionality is currently in Early Access.",
   )}
     ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
     )}
 
     ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate reset --experimental
+      ${chalk.dim('$')} prisma migrate reset --early-access-feature
 
     ${chalk.bold('Options')}
 
@@ -49,7 +49,7 @@ export class MigrateReset implements Command {
       '--force': Boolean,
       '-f': '--force',
       '--skip-generate': Boolean,
-      '--experimental': Boolean,
+      '--early-access-feature': Boolean,
       '--schema': String,
       '--telemetry-information': String,
     })
@@ -62,8 +62,8 @@ export class MigrateReset implements Command {
       return this.help()
     }
 
-    if (!args['--experimental']) {
-      throw new ExperimentalFlagError()
+    if (!args['--early-access-feature']) {
+      throw new EarlyAcessFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -90,7 +90,9 @@ export class MigrateReset implements Command {
       if (isCi()) {
         throw Error(
           `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma reset --force --experimental'),
+            getCommandWithExecutor(
+              'prisma reset --force --early-access-feature',
+            ),
           )}`,
         )
       }

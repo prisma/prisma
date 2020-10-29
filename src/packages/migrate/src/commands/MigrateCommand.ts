@@ -13,7 +13,10 @@ import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagError } from '../utils/experimental'
+import {
+  EarlyAcessFlagError,
+  ExperimentalFlagWithNewMigrateError,
+} from '../utils/flagErrors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -39,18 +42,20 @@ export class MigrateCommand implements Command {
     "Prisma's migration functionality is currently in an experimental state.",
   )}
     ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
     )}
 
     ${chalk.bold('Usage')}
 
       With an existing schema.prisma:
-      ${chalk.dim('$')} prisma migrate [command] [options] --experimental
+      ${chalk.dim(
+        '$',
+      )} prisma migrate [command] [options] --early-access-feature
 
       Or specify a schema:
       ${chalk.dim(
         '$',
-      )} prisma migrate [command] [options] --experimental --schema=./schema.prisma
+      )} prisma migrate [command] [options] --early-access-feature --schema=./schema.prisma
 
     ${chalk.bold('Options')}
 
@@ -64,10 +69,10 @@ export class MigrateCommand implements Command {
     ${chalk.bold('Examples')}
 
       Create a new migration and apply it
-      ${chalk.dim('$')} prisma migrate --experimental
+      ${chalk.dim('$')} prisma migrate --early-access-feature
 
       Reset your database
-      ${chalk.dim('$')} prisma migrate reset --experimental
+      ${chalk.dim('$')} prisma migrate reset --early-access-feature
   `)
 
   private argsSpec = {
@@ -81,6 +86,7 @@ export class MigrateCommand implements Command {
     '--schema': String,
     '--skip-generate': Boolean,
     '--experimental': Boolean,
+    '--early-access-feature': Boolean,
     '--telemetry-information': String,
   }
 
@@ -97,13 +103,20 @@ export class MigrateCommand implements Command {
       return this.help()
     }
 
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
+    }
+
     // running a subcommand
     if (args._[0] && this.cmds) {
       // check if we have that subcommand
       const cmd = this.cmds[args._[0]]
       if (cmd) {
-        const argsForCmd = args['--experimental']
-          ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+        const argsForCmd = args['--early-access-feature']
+          ? [
+              ...args._.slice(1),
+              `--early-access-feature=${args['--early-access-feature']}`,
+            ]
           : args._.slice(1)
         return cmd.parse(argsForCmd)
       }
@@ -111,8 +124,8 @@ export class MigrateCommand implements Command {
       return unknownCommand(MigrateCommand.help, args._[0])
     } else {
       // prisma migrate
-      if (!args['--experimental']) {
-        throw new ExperimentalFlagError()
+      if (!args['--early-access-feature']) {
+        throw new EarlyAcessFlagError()
       }
 
       return await this.migrate(argv)
@@ -171,7 +184,7 @@ export class MigrateCommand implements Command {
         return `\nPrisma Migrate created a draft migration ${printMigrationId(
           migrationId,
         )}\n\nYou can now edit it and then apply it by running ${chalk.greenBright(
-          getCommandWithExecutor('prisma migrate --experimental'),
+          getCommandWithExecutor('prisma migrate --early-access-feature'),
         )} again.`
       } else {
         return `\nNo migration was created. Your Prisma schema and database are already in sync.\n`

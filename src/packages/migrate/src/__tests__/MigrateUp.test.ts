@@ -16,11 +16,27 @@ const ctx = Context.new().add(consoleContext()).assemble()
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
+    const result = MigrateUp.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Could not find a schema.prisma file that is required for this command.
+            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+          `)
+  })
+  it('should fail if no flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateUp.new().parse([])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
+                  Please provide the --early-access-feature flag to use this command.
+          `)
+  })
+  it('should fail if experimental flag', async () => {
+    ctx.fixture('empty')
     const result = MigrateUp.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      Could not find a schema.prisma file that is required for this command.
-                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-                  `)
+            Prisma Migrate was Experimental and is now in Early Access.
+                  WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --early-access-feature.
+          `)
   })
 })
 
@@ -29,7 +45,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateUp.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--experimental',
+      '--early-access-feature',
     ])
     await expect(result).resolves.toMatchSnapshot()
 
@@ -47,11 +63,11 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateUp.new().parse(['--experimental'])
+    const result = MigrateUp.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchSnapshot()
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateUp.new().parse(['--experimental'])
+    const resultBis = MigrateUp.new().parse(['--early-access-feature'])
     await expect(resultBis).resolves.toMatchSnapshot()
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -74,7 +90,7 @@ describe('sqlite', () => {
   it('should throw if database is not empty', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateUp.new().parse(['--experimental'])
+    const result = MigrateUp.new().parse(['--early-access-feature'])
     await expect(result).rejects.toMatchSnapshot()
 
     expect(
