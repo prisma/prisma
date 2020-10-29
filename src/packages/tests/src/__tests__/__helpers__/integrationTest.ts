@@ -39,10 +39,6 @@ type Scenario = {
    */
   up: string
   /**
-   * SQL to teardown pre-test condition.
-   */
-  down?: string
-  /**
    * Arbitrary Prisma client logic to test.
    */
   do: (client: any) => Promise<any>
@@ -236,7 +232,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
   it.concurrent.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
-      const { ctx, state, prismaSchemaPath } = await setupScenario(
+      const { ctx, state } = await setupScenario(
         kind,
         input,
         scenario,
