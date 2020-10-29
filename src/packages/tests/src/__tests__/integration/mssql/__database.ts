@@ -14,11 +14,9 @@ export const database = {
     const pool = new sql.ConnectionPool(credentials) // always connect to master to create the db
     return pool.connect()
   },
-  create: async (pool, sqlUp) => {
-    await pool.request().query(sqlUp) // create database from master
+  send: async (pool, sqlDatabase, sqlScenario, ctx) => {
+    await pool.request().query(sqlDatabase) // create database from master
     pool.close()
-  },
-  send: async (pool, sqlScenario, ctx) => {
     const credentials = getConnectionInfo(ctx).credentials
     const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
     const newPool = new sql.ConnectionPool(credentialsClone)

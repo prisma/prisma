@@ -17,7 +17,7 @@ export const database = {
       multipleStatements: true,
     })
   },
-  send: (db, sql) => db.query(sql),
+  send: (db, sqlDatabase, sqlScenario, ctx) => db.query(sqlDatabase + sqlScenario),
   close: (db) => db.end(),
   up: (ctx) => {
     return `

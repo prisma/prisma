@@ -96,11 +96,7 @@ type Database<Client> = {
   /**
    * Execute SQL against the database.
    */
-  send: (db: Client, sql: string, ctx?: Context) => MaybePromise<any>
-  /**
-   * Execute db up SQL against the database separately from send method if needed.
-   */
-  create?: (db: Client, sql: string) => MaybePromise<any> 
+  send: (db: Client, dbSql: string, scenarioSql: string, ctx?: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -300,12 +296,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   state.db = await input.database.connect(ctx)
   const databaseUpSQL = input.database.up?.(ctx) ?? ''
-  if (input.database.create) {
-    await input.database.create(state.db, databaseUpSQL) // intermediate step required
-    await input.database.send(state.db, scenario.up, ctx)
-  } else {
-    await input.database.send(state.db, databaseUpSQL + scenario.up)
-  }
+  await input.database.send(state.db, databaseUpSQL, scenario.up, ctx)
 
   const datasourceBlock =
     'raw' in input.database.datasource
