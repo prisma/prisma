@@ -36,8 +36,9 @@ export class MigrateReset implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help       Displays this help message
-      -f, --force      Skip the confirmation prompt
+           -h, --help   Display this help message
+          -f, --force   Skip the confirmation prompt
+      --skip-generate   Skip generate
 
   `)
 
@@ -47,6 +48,7 @@ export class MigrateReset implements Command {
       '-h': '--help',
       '--force': Boolean,
       '-f': '--force',
+      '--skip-generate': Boolean,
       '--experimental': Boolean,
       '--schema': String,
       '--telemetry-information': String,

@@ -48,7 +48,7 @@ export class MigrateSave implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help       Displays this help message
+      -h, --help       Display this help message
       -n, --name       Name the migration
       -c, --create-db  Create the database in case it doesn't exist
       -p, --preview    Get a preview of which migration would be created next

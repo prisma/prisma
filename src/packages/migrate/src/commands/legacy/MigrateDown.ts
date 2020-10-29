@@ -40,7 +40,7 @@ export class MigrateDown implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help       Displays this help message
+      -h, --help       Display this help message
 
     ${chalk.bold('Examples')}
 

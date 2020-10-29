@@ -39,7 +39,7 @@ export class MigrateUp implements Command {
     ${chalk.bold('Options')}
 
       --auto-approve    Skip interactive approval before migrating
-      -h, --help        Displays this help message
+      -h, --help        Display this help message
       -p, --preview     Preview the migration changes
       -c, --create-db   Create the database in case it doesn't exist
 

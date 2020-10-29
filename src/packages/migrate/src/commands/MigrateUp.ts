@@ -18,7 +18,6 @@ export class MigrateUp implements Command {
     return new MigrateUp()
   }
 
-  // static help template
   private static help = format(`
     Migrate your database up to a specific state.
 
@@ -35,8 +34,8 @@ export class MigrateUp implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help              Displays this help message
-
+           -h, --help   Display this help message
+      --skip-generate   Skip generate
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -45,6 +44,7 @@ export class MigrateUp implements Command {
       {
         '--help': Boolean,
         '-h': '--help',
+        '--skip-generate': Boolean,
         '--experimental': Boolean,
         '--schema': String,
         '--telemetry-information': String,

@@ -32,7 +32,7 @@ export class Studio implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help        Displays this help message
+      -h, --help        Display this help message
       -p, --port        Port to start Studio on
       -b, --browser     Browser to open Studio in
 

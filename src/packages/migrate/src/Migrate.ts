@@ -296,7 +296,7 @@ export class Migrate {
     if (editedMigrationNames.length > 0) {
       // migration(s) that were edited since they were applied to the db.
       console.info(
-        `The following migrations where edited after they were applied:\n- ${editedMigrationNames.join(
+        `The following migrations were edited after they were applied:\n- ${editedMigrationNames.join(
           '\n- ',
         )}\n`,
       )

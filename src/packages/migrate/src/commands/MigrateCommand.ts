@@ -30,7 +30,6 @@ export class MigrateCommand implements Command {
     return new MigrateCommand(cmds)
   }
 
-  // static help template
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
@@ -56,17 +55,19 @@ export class MigrateCommand implements Command {
     ${chalk.bold('Options')}
 
       -h, --help   Display this help message
-      -n, --name   Name the migration
 
     ${chalk.bold('Commands')}
 
           up      Migrate your database up
-          reset   Reset your database. All data will be lost. 
+          reset   Reset your database, all data will be lost
 
     ${chalk.bold('Examples')}
 
-      Create new migration and apply it
+      Create a new migration and apply it
       ${chalk.dim('$')} prisma migrate --experimental
+
+      Reset your database
+      ${chalk.dim('$')} prisma migrate reset --experimental
   `)
 
   private argsSpec = {
@@ -86,7 +87,6 @@ export class MigrateCommand implements Command {
   private constructor(private readonly cmds?: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(argv, this.argsSpec)
 
     if (isError(args)) {
@@ -121,7 +121,6 @@ export class MigrateCommand implements Command {
 
   // All-in-One command
   public async migrate(argv: string[]): Promise<string> {
-    // parse the arguments according to the spec
     const args = arg(argv, this.argsSpec)
 
     const schemaPath = await getSchemaPath(args['--schema'])

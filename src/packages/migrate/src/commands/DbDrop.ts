@@ -48,7 +48,7 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-   -h, --help      Displays this help message
+   -h, --help      Display this help message
   -f, --force      Skip the confirmation prompt
 
 ${chalk.bold('Examples')}

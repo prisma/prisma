@@ -44,7 +44,7 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-           -h, --help   Displays this help message
+           -h, --help   Display this help message
           -f, --force   Ignore data loss warnings
       --skip-generate   Skip generate
   --ignore-migrations   Ignore migrations files warning
