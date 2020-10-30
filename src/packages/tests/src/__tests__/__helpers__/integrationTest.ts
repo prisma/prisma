@@ -90,7 +90,7 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Execute SQL for a scenario against the database. 
+   * Run logic before each scenario. Typically used to run scenario SQL setup against the database.
    */
   up: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
   /**
