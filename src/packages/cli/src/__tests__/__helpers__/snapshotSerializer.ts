@@ -33,7 +33,7 @@ function normalizeGithubLinks(str) {
 function normalizeRustError(str) {
   return str
     .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
-    .replace(/(\[.*)(:\d*:\d*)(\])/g, '$1:0:0$3')
+    .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
 function normalizeTmpDir(str) {
@@ -48,8 +48,8 @@ const serializer = {
       typeof value === 'string'
         ? value
         : value instanceof Error
-          ? value.message
-          : ''
+        ? value.message
+        : ''
     return prepareSchemaForSnapshot(
       normalizeGithubLinks(
         normalizeRustError(
