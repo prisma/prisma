@@ -18,7 +18,7 @@
     "@types/diff": "4.0.2",
     "@types/fs-extra": "9.0.2",
     "@types/jest": "26.0.15",
-    "@types/node": "12.19.2",
+    "@types/node": "12.19.3",
     "@types/prompts": "2.0.9",
     "@types/sqlite3": "3.1.6",
     "@typescript-eslint/eslint-plugin": "4.6.0",
