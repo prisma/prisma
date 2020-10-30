@@ -24,8 +24,6 @@ const debug = Debug('prisma-client')
 import fs from 'fs'
 import chalk from 'chalk'
 import * as sqlTemplateTag from 'sql-template-tag'
-import dotenv from 'dotenv'
-import { dotenvExpand } from '@prisma/sdk/dist/dotenvExpand'
 import {
   GeneratorConfig,
   DataSource,
@@ -45,6 +43,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
+import { tryLoadEnv } from '@prisma/sdk'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -310,7 +309,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        const envFile = this.readEnv()
 
         this._dmmf = new DMMFClass(config.document)
 
@@ -319,6 +317,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         if (!fs.existsSync(cwd)) {
           cwd = config.dirname
         }
+        const schemaPath = path.resolve(
+          config.dirname,
+          config.relativePath,
+          '.schema',
+        )
+        const envFile = tryLoadEnv(schemaPath, {cwd: cwd })
 
         const previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -342,7 +346,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   typeof o === 'string' ? o === 'query' : o.level === 'query',
                 ),
             ),
-          env: envFile,
+          env: envFile ? envFile.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(previewFeatures),
@@ -390,18 +394,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    private readEnv() {
-      const dotEnvPath = path.resolve(
-        config.dirname,
-        config.relativePath,
-        '.env',
-      )
-      if (fs.existsSync(dotEnvPath)) {
-        return dotenvExpand(dotenv.config({ path: dotEnvPath })).parsed
-      }
-
-      return {}
-    }
     use(...args) {
       console.warn(
         `${chalk.yellow(

@@ -630,6 +630,8 @@ async function publish() {
       tag = 'patch-dev'
       if (args['--release']) {
         tagForE2ECheck = 'patch-dev' //?
+        prisma2Version = args['--release']
+        tag = 'latest'
       }
     } else if (args['--release']) {
       prisma2Version = args['--release']

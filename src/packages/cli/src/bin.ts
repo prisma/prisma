@@ -40,16 +40,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-      `  The ${chalk.redBright(
-        'prisma2',
-      )} command is deprecated and has been renamed to ${chalk.greenBright(
-        'prisma',
-      )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' +
-          (process.argv.length > 2
-            ? ' ' + process.argv.slice(2).join(' ')
-            : ''),
-      )} instead.\n`,
+    `  The ${chalk.redBright(
+      'prisma2',
+    )} command is deprecated and has been renamed to ${chalk.greenBright(
+      'prisma',
+    )}.\nPlease execute ${chalk.bold.greenBright(
+      'prisma' +
+      (process.argv.length > 2
+        ? ' ' + process.argv.slice(2).join(' ')
+        : ''),
+    )} instead.\n`,
   )
 }
 
@@ -69,7 +69,8 @@ const args = arg(
 //
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
-  tryLoadEnv(args)
+  const envData = tryLoadEnv(args["--schema"])
+  envData && console.log(envData.message);
 }
 
 /**
@@ -102,6 +103,8 @@ import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { printUpdateMessage } from './utils/printUpdateMessage'
+import { enginesVersion } from '@prisma/engines'
+import path from 'path'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -256,7 +259,7 @@ if (require.main === module) {
     .catch((err) => {
       function handleIndividualError(error): void {
         if (error.rustStack) {
-          handlePanic(error, packageJson.version, packageJson.prisma.version)
+          handlePanic(error, packageJson.version, enginesVersion)
             .catch((e) => {
               if (debugLib.enabled('prisma')) {
                 console.error(chalk.redBright.bold('Error: ') + e.stack)
@@ -287,3 +290,29 @@ if (require.main === module) {
       }
     })
 }
+
+/**
+ * Annotations for `pkg` so it bundles things correctly with yarn's hoisting
+ * `node_modules/@prisma/cli/build/index.js` needs to get to:
+ * `node_modules/@prisma/engines`
+ */
+
+path.join(__dirname, '../../engines/query-engine-darwin')
+path.join(__dirname, '../../engines/introspection-engine-darwin')
+path.join(__dirname, '../../engines/prisma-fmt-darwin')
+
+path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
+
+path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
+
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
+
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')

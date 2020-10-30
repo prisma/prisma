@@ -10,38 +10,12 @@ const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
 
-const MAX_BUFFER = 1000 * 1000 * 1000
+const MAX_BUFFER = 1000_000_000
 
 export interface ConfigMetaFormat {
   datasources: DataSource[]
   generators: GeneratorConfig[]
 }
-
-/**
- * This annotation is used for `node-file-trace`
- * See https://github.com/zeit/node-file-trace/issues/104
- */
-
-// commented out, as these paths are different now with @prisma/engines
-// path.join(__dirname, '../query-engine-darwin')
-// path.join(__dirname, '../introspection-engine-darwin')
-// path.join(__dirname, '../prisma-fmt-darwin')
-
-// path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
-// path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
-// path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
-
-// path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
-// path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
-// path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
-
-// path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
-// path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
-// path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
-
-// path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
-// path.join(__dirname, '../introspection-engine-rhel-openssl-1.1.x')
-// path.join(__dirname, '../prisma-fmt-rhel-openssl-1.1.x')
 
 export type GetDMMFOptions = {
   datamodel?: string

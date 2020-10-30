@@ -12,7 +12,6 @@ process.on('unhandledRejection', (e, promise) => {
 import {
   HelpError,
   isError,
-  ProviderAliases,
   tryLoadEnv,
   arg,
 } from '@prisma/sdk'
@@ -34,7 +33,7 @@ const args = arg(
 // if the CLI is called without any command like `up --experimental` we can ignore .env loading
 // should be 2 but because of --experimental flag it will be 3 until removed
 if (process.argv.length > 3) {
-  tryLoadEnv(args)
+  tryLoadEnv(args['--schema'])
 }
 
 /**
@@ -51,6 +50,7 @@ import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
 import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
+import { enginesVersion } from '@prisma/engines-version'
 
 const debug = debugLib('migrate')
 
@@ -97,7 +97,7 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, packageJson.prisma.version)
+      handlePanic(error, packageJson.version, enginesVersion)
         .catch((e) => {
           if (debugLib.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)

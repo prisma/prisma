@@ -52,6 +52,7 @@ export async function resolveBinary(
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
   const binaryName = `${name}-${platform}${extension}`
+
   let prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
