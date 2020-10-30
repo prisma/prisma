@@ -23,7 +23,7 @@ export const database = {
     DROP DATABASE IF EXISTS ${ctx.id};
     CREATE DATABASE ${ctx.id};
     USE ${ctx.id};`
-  db.query(sqlUp + sqlScenario)
+    db.query(sqlUp + sqlScenario)
   },
   close: (db) => db.end(),
 } as Input<mariadb.Connection>['database']
