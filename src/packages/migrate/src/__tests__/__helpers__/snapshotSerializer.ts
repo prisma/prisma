@@ -12,7 +12,7 @@ function normalizeDbUrl(str) {
 function normalizeRustError(str) {
   return str
     .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
-    .replace(/(\[.*)(:\d*:\d*)(\])/g, '$1:0:0$3')
+    .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
 function normalizeMs(str) {
