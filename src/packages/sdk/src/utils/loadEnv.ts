@@ -47,7 +47,6 @@ export function tryLoadEnv(
     schemaEnvPathFromArgs, // 1 - Check --schema directory for .env
     schemaEnvPathFromPkgJson, // 2 - Check package.json schema directory for .env
     './prisma/.env', // 3 - Check ./prisma directory for .env
-    './.env', // 4 - Check cwd for .env
   ]
   let schemaEnvInfo: LoadEnvResult | null = null
   for (const envPath of schemaEnvPaths) {
@@ -122,7 +121,7 @@ function checkForConflicts(
       throw new Error(`
       You are trying to load env variables which are already present in your project root .env
       \tRoot: ${rootEnvInfo?.path}
-      \tPrisma: ${envPath}
+      \tPrisma: ${path.resolve(envPath)}
       \tEnv Conflicts:
       ${conflicts.map((conflict) => `\t\t${conflict}`).join('\n')}
 
