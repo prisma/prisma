@@ -65,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run(
       '.',
       `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent`,
-    ).catch(e => {})
+    ).catch(e => { })
   }
 
   debug(`Building packages`)
@@ -220,15 +220,16 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
 
 async function getVersionHashes(
   npmVersion: string,
-): Promise<{ engines: string; prisma: string }> {
+): Promise<{ prisma: string }> {
   return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
     headers: {
       accept: 'application/json',
     },
   })
     .then((res) => res.json())
-    .then((pkg) => ({
-      engines: pkg.prisma.version,
-      prisma: pkg.prisma.prismaCommit,
-    }))
+    .then((pkg) => {
+      return ({
+        prisma: pkg.prisma.prismaCommit,
+      })
+    })
 }
