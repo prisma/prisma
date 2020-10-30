@@ -18,12 +18,12 @@ export const database = {
       multipleStatements: true,
     })
   },
-  up: (db, sqlScenario, ctx) => {
+  up: async (db, sqlScenario, ctx) => {
     const sqlUp = `
     DROP DATABASE IF EXISTS ${ctx.id};
     CREATE DATABASE ${ctx.id};
     USE ${ctx.id};`
-    db.query(sqlUp + sqlScenario)
+    await db.query(sqlUp + sqlScenario)
   },
   close: (db) => db.end(),
 } as Input<mariadb.Connection>['database']

@@ -14,12 +14,12 @@ export const database = {
     )
     return db
   },
-  up: (db, sqlScenario, ctx) => {
+  up: async (db, sqlScenario, ctx) => {
     const sqlUp = `
     drop schema if exists ${ctx.id} cascade;
     create schema ${ctx.id};
     set search_path to ${ctx.id};`
-    db.query(sqlUp + sqlScenario)
+    await db.query(sqlUp + sqlScenario)
   },
   close: (db) => db.end(),
 } as Input<PG.Client>['database']
