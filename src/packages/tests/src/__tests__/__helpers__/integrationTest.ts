@@ -90,9 +90,9 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Execute SQL against the database.
+   * Execute scenario SQL against the database. 
    */
-  send: (db: Client, dbSql: string, scenarioSql: string, ctx: Context) => MaybePromise<any>
+  up: (db: Client, sql: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -123,10 +123,6 @@ type Database<Client> = {
      */
     provider?: string
   }
-  /**
-   * SQL to setup and select a database before running a test scenario.
-   */
-  up?: (ctx: Context) => string
 }
 
 /**
@@ -291,8 +287,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   await ctx.fs.dirAsync('.')
 
   state.db = await input.database.connect(ctx)
-  const databaseUpSQL = input.database.up?.(ctx) ?? ''
-  await input.database.send(state.db, databaseUpSQL, scenario.up, ctx)
+  await input.database.up(state.db, scenario.up, ctx)
 
   const datasourceBlock =
     'raw' in input.database.datasource

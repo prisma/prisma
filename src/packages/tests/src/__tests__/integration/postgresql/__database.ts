@@ -14,15 +14,14 @@ export const database = {
     )
     return db
   },
-  send: (db, sqlDatabase, sqlScenario, ctx) => db.query(sqlDatabase + sqlScenario),
-  close: (db) => db.end(),
-  up: (ctx) => {
-    return `
-      drop schema if exists ${ctx.id} cascade;
-      create schema ${ctx.id};
-      set search_path to ${ctx.id};
-    `
+  up: (db, sqlScenario, ctx) => {
+    const sqlUp = `
+    drop schema if exists ${ctx.id} cascade;
+    create schema ${ctx.id};
+    set search_path to ${ctx.id};`
+    db.query(sqlUp + sqlScenario)
   },
+  close: (db) => db.end(),
 } as Input<PG.Client>['database']
 
 function getConnectionString(ctx: Context) {

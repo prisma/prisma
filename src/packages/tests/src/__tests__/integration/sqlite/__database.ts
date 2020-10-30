@@ -7,6 +7,6 @@ export const database = {
     url: (ctx) => `file:${ctx.fs.path()}/sqlite.db`,
   },
   connect: (ctx) => Database.open(`${ctx.fs.path()}/sqlite.db`),
-  send: (db, sqlDatabase, sqlScenario, ctx) => db.exec(sqlDatabase + sqlScenario),
+  up: (db, sqlScenario, ctx) => db.exec(sqlScenario),
   afterEach: (client) => client.close(),
 } as Input<any>['database']

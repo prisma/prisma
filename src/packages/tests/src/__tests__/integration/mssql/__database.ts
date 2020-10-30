@@ -14,8 +14,11 @@ export const database = {
     const pool = new sql.ConnectionPool(credentials) 
     return pool.connect()
   },
-  send: async (pool, sqlDatabase, sqlScenario, ctx) => {
-    await pool.request().query(sqlDatabase) 
+  up: async (pool, sqlScenario, ctx) => {
+    const sqlUp = `
+    DROP DATABASE IF EXISTS master_${ctx.id};
+    CREATE DATABASE master_${ctx.id};`
+    await pool.request().query(sqlUp) 
     pool.close()
     const credentials = getConnectionInfo(ctx).credentials
     const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
@@ -25,11 +28,6 @@ export const database = {
     newPool.close()
   },
   close: pool => pool.close(),
-  up: ctx => {
-    return `
-    DROP DATABASE IF EXISTS master_${ctx.id};
-    CREATE DATABASE master_${ctx.id};`
-  },
 } as Input['database']
 
 function getConnectionInfo(ctx: Context) {
