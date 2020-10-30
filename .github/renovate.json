@@ -4,7 +4,7 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "masterIssue": true,
-  "reviewers": ["@jolg42", "@timsuchanek"],
+  "reviewers": ["@jolg42", "@timsuchanek", "@williamluke4"],
   "rebaseWhen": "conflicted",
   "packageRules": [
     {
@@ -26,30 +26,31 @@
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
-      "groupName": "devDependencies (non-major)",
-      "automerge": "true",
-      "depTypeList": ["devDependencies"],
-      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
-      "updateTypes": ["patch", "minor"]
-    },
-    {
-      "groupName": "dependencies (non-major)",
-      "depTypeList": ["dependencies"],
-      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
-      "updateTypes": ["patch", "minor"]
-    },
-    {
       "groupName": "Studio",
+      "automerge": "true",
       "packageNames": ["@prisma/studio", "@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
-      "automerge": "true",
       "reviewers": ["@madebysid"]
     },
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
+      "updateTypes": ["patch", "minor"]
+    },
+    {
+      "groupName": "devDependencies (non-major)",
+      "automerge": "true",
+      "depTypeList": ["devDependencies"],
+      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@jolg42", "@timsuchanek"]
+      "schedule": ["on monday and wednesday"]
+    },
+    {
+      "groupName": "dependencies (non-major)",
+      "depTypeList": ["dependencies"],
+      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["on monday and wednesday"]
     }
   ]
 }
