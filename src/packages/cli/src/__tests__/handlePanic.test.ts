@@ -11,7 +11,7 @@ describe('introspection panic', () => {
       await introspect.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(
-        `[introspection-engine/core/src/rpc.rs:0:0] This is the debugPanic artificial panic`,
+        `[/some/rust/path:0:0] This is the debugPanic artificial panic`,
       )
     }
   })
