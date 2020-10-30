@@ -152,7 +152,7 @@ describe('handlePanic', () => {
     if (isCi()) {
       expect(error).toMatchInlineSnapshot(`
         Error in migration engine.
-        Reason: [/rustc/hash/macros.rs:0:0] This is the debugPanic artificial panic
+        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
         Please create an issue in the migrate repo with
         your \`schema.prisma\` and the prisma command you tried to use 🙏:
