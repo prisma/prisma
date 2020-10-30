@@ -17,7 +17,7 @@ export const database = {
       multipleStatements: true,
     })
   },
-  up: async (db, sqlScenario, ctx) => {
+  beforeEach: async (db, sqlScenario, ctx) => {
     const sqlUp = `
     DROP DATABASE IF EXISTS ${ctx.id};
     CREATE DATABASE ${ctx.id};

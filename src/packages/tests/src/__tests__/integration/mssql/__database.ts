@@ -8,13 +8,12 @@ export const database = {
   datasource: {
     url: ctx => getConnectionInfo(ctx).connectionString,
   },
-  previewFeatures: ["microsoftSqlServer"],
   connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
     const pool = new sql.ConnectionPool(credentials) 
     return pool.connect()
   },
-  up: async (pool, sqlScenario, ctx) => {
+  beforeEach: async (pool, sqlScenario, ctx) => {
     const sqlUp = `
     DROP DATABASE IF EXISTS master_${ctx.id};
     CREATE DATABASE master_${ctx.id};`
@@ -28,7 +27,7 @@ export const database = {
     newPool.close()
   },
   close: pool => pool.close(),
-} as Input['database']
+} as Input['database'] 
 
 function getConnectionInfo(ctx: Context) {
   const { URL } = url

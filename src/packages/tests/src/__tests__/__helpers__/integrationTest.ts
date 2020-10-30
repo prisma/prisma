@@ -80,11 +80,6 @@ type Database<Client> = {
    * @remarks This is used as the default provider name for the Prisma schema datasource block.
    */
   name: string
-  /** 
-   * Supply the enabled preview features for the prisma client. 
-   * 
-   */
-  previewFeatures?: string[] 
   /**
    * Create a client connection to the database.
    */
@@ -92,7 +87,7 @@ type Database<Client> = {
   /**
    * Run logic before each scenario. Typically used to run scenario SQL setup against the database.
    */
-  up: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
+  beforeEach: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -148,12 +143,28 @@ type Settings = {
 }
 
 /**
+ * A list of available preview features on the Prisma client.
+ */
+type PreviewFeature = "connectOrCreate" | "microsoftSqlServer" | "transactionApi"
+
+/**
+ * Settings to add properties on the Prisma client.
+ */
+type PrismaClientSettings = {
+  /**
+   *  Supply the enabled preview features for the Prisma client. 
+   */
+  previewFeatures?: PreviewFeature[]
+}
+
+/**
  * Integration test keyword arguments
  */
 export type Input<Client = any> = {
   database: Database<Client>
   scenarios: Scenario[]
   settings?: Settings
+  prismaClientSettings?: PrismaClientSettings
 }
 
 type ScenarioState<Client = any> = {
@@ -287,7 +298,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
   await ctx.fs.dirAsync('.')
 
   state.db = await input.database.connect(ctx)
-  await input.database.up(state.db, scenario.up, ctx)
+  await input.database.beforeEach(state.db, scenario.up, ctx)
 
   const datasourceBlock =
     'raw' in input.database.datasource
@@ -302,7 +313,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      ${makeFeatures(input.database.previewFeatures)}
+      ${renderPreviewFeatures(input.prismaClientSettings?.previewFeatures)}
     }
 
     ${datasourceBlock}
@@ -393,7 +404,7 @@ function makeDatasourceBlock(providerName: string, url: string) {
 /**
  * Create Prisma schema enabled features array of strings.
  */
-function makeFeatures(featureMatrix: string[] | undefined) {
+function renderPreviewFeatures(featureMatrix: Input['prismaClientSettings']['previewFeatures'] | undefined) {
   if (featureMatrix) {
     return (`previewFeatures = [${featureMatrix.map(feature => `"`+feature+`"`)}]`)
   } 

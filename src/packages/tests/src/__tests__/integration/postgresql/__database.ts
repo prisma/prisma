@@ -14,7 +14,7 @@ export const database = {
     )
     return db
   },
-  up: async (db, sqlScenario, ctx) => {
+  beforeEach: async (db, sqlScenario, ctx) => {
     const sqlUp = `
     drop schema if exists ${ctx.id} cascade;
     create schema ${ctx.id};
