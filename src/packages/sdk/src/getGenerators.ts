@@ -238,10 +238,10 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         if (neededVersion.binaryTargets.length === 0) {
           neededVersion.binaryTargets = [platform]
         }
+      }
 
-        if (process.env.NETLIFY && !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')) {
-          neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
-        }
+      if (process.env.NETLIFY && !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')) {
+        neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
       }
 
       // download
