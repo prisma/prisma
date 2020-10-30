@@ -90,9 +90,9 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Execute scenario SQL against the database. 
+   * Execute SQL for a scenario against the database. 
    */
-  up: (db: Client, sql: string, ctx: Context) => MaybePromise<any>
+  up: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
