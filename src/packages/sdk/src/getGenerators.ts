@@ -269,7 +269,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           typeof printDownloadProgress === 'boolean'
             ? printDownloadProgress
             : true,
-        version: currentVersion || enginesVersion,
+        version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,
         skipDownload,
       }
 

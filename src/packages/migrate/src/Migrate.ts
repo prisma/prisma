@@ -20,7 +20,6 @@ import fs from 'fs'
 import globby from 'globby'
 import indent from 'indent-string'
 import logUpdate from 'log-update'
-import makeDir = require('make-dir')
 import pMap from 'p-map'
 import path from 'path'
 import { prompt } from 'prompts'
@@ -47,7 +46,7 @@ import {
   initLockFile,
   serializeLockFile,
 } from './utils/LockFile'
-import { now, timestampToDate } from './utils/now'
+import { now } from './utils/now'
 import plusX from './utils/plusX'
 import {
   highlightMigrationsSQL,
@@ -62,6 +61,7 @@ import {
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
+import { enginesVersion } from '@prisma/engines-version'
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -159,7 +159,7 @@ export class Migrate {
           const generators = await getGenerators({
             schemaPath: this.schemaPath,
             printDownloadProgress: false,
-            version: packageJson.prisma.version,
+            version: enginesVersion,
             cliVersion: packageJson.version,
           })
 
@@ -452,7 +452,7 @@ export class Migrate {
       const generators = await getGenerators({
         schemaPath: this.schemaPath,
         printDownloadProgress: false,
-        version: packageJson.prisma.version,
+        version: enginesVersion,
         cliVersion: packageJson.version,
       })
 
@@ -619,83 +619,6 @@ export class Migrate {
 
   public async getLocalWatchMigrations(): Promise<Migration[]> {
     return this.getLocalMigrations(this.devMigrationsDir)
-  }
-
-  public async watch(
-    options: WatchOptions = {
-      preview: false,
-      clear: true,
-      providerAliases: {},
-    },
-  ): Promise<string> {
-    if (!options.clear) {
-      options.clear = true
-    }
-
-    const datamodel = this.getDatamodel()
-
-    const generators = await getGenerators({
-      schemaPath: this.schemaPath,
-      printDownloadProgress: false,
-      version: packageJson.prisma.version,
-      cliVersion: packageJson.version,
-    })
-
-    const relativeDatamodelPath = path.relative(process.cwd(), this.schemaPath)
-
-    // From here on, we render the dev ui
-    // silent everyone else. this is not a democracy 👹
-    console.log = (...args): void => {
-      debug(...args)
-    }
-
-    // console.error = (...args) => {
-    //   debug(...args)
-    // }
-
-    const { migrationsToApply } = await this.getMigrationsToApply()
-
-    if (migrationsToApply.length > 0) {
-      // TODO: Ask for permission if we actually want to do it?
-      // console.log(`Applying unapplied migrations ${chalk.blue(migrationsToApply.map(m => m.id).join(', '))}\n`)
-      await this.upLegacy({
-        short: true,
-        autoApprove: options.autoApprove,
-      })
-      // console.log(`Done applying migrations in ${formatms(Date.now() - before)}`)
-      options.clear = false
-    }
-
-    const localMigrations = await this.getLocalMigrations()
-    const watchMigrations = await this.getLocalWatchMigrations()
-
-    let lastChanged: undefined | Date
-    if (watchMigrations.length > 0) {
-      const timestamp = watchMigrations[watchMigrations.length - 1].id.split(
-        '-',
-      )[1]
-      lastChanged = timestampToDate(timestamp)
-    } else if (localMigrations.length > 0) {
-      lastChanged = timestampToDate(
-        localMigrations[localMigrations.length - 1].id.split('-')[0],
-      )
-    }
-
-    if (localMigrations.length > 0) {
-      this.datamodelBeforeWatch =
-        localMigrations[localMigrations.length - 1].datamodel
-    }
-
-    await makeDir(this.devMigrationsDir)
-
-    fs.watch(this.schemaPath, (eventType, filename) => {
-      if (eventType === 'change') {
-        this.watchUp(options)
-      }
-    })
-
-    this.watchUp(options)
-    return ''
   }
 
   public async down({ n }: DownOptions): Promise<string> {

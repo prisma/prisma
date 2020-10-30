@@ -32,6 +32,9 @@
   "engines": {
     "node": ">=10"
   },
+  "prisma": {
+    "prismaCommit": ""
+  },
   "files": [
     "build",
     "install",
@@ -50,24 +53,17 @@
       "runtime/**/*",
       "prisma-client/**/*",
       "download-build/**/*",
-      "query-engine*",
-      "migration-engine*",
-      "introspection-engine*",
-      "prisma-fmt*"
+      "node_modules/@prisma/engines/**/*",
+      "node_modules/@prisma/engines/*"
     ]
   },
   "bin": {
     "prisma": "build/index.js",
     "prisma2": "build/index.js"
   },
-  "prisma": {
-    "version": "af1ae11a423edfb5d24092a85be11fa77c5e499c",
-    "prismaCommit": "4e276e154290fd3f7989fcd9d6daa27e2e5111b5"
-  },
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",

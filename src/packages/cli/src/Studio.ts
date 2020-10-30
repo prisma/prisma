@@ -1,3 +1,4 @@
+import { enginesVersion } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
@@ -119,11 +120,11 @@ export class Studio implements Command {
     const queryEnginePath =
       process.env.NODE_ENV === 'production'
         ? eval(
-            `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
-          )
+          `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
+        )
         : eval(
-            `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
-          )
+          `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
+        )
     const staticAssetDir =
       process.env.NODE_ENV === 'production'
         ? path.resolve(__dirname, './public')
@@ -134,7 +135,7 @@ export class Studio implements Command {
       port,
       prismaClient: {
         generator: {
-          version: packageJson.prisma.version,
+          version: enginesVersion,
           providerAliases: this.providerAliases,
         },
       },
@@ -144,7 +145,7 @@ export class Studio implements Command {
       staticAssetDir,
       versions: {
         prisma2: packageJson.version,
-        queryEngine: packageJson.prisma.version,
+        queryEngine: enginesVersion,
       },
     })
 
@@ -156,7 +157,7 @@ export class Studio implements Command {
         app: browser,
         url: true,
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-      }).catch(() => {}) // Ignore any errors
+      }).catch(() => { }) // Ignore any errors
     }
 
     this.instance = studio

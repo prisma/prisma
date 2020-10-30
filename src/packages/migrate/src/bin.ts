@@ -9,13 +9,7 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-import {
-  HelpError,
-  isError,
-  ProviderAliases,
-  tryLoadEnv,
-  arg,
-} from '@prisma/sdk'
+import { HelpError, isError, tryLoadEnv, arg } from '@prisma/sdk'
 
 // Parse CLI arguments
 const args = arg(
@@ -34,7 +28,7 @@ const args = arg(
 // if the CLI is called without any command like `up --early-access-feature` we can ignore .env loading
 // should be 1 but because of --early-access-feature flag it will be 2 until removed
 if (process.argv.length > 2) {
-  tryLoadEnv(args)
+  tryLoadEnv(args['--schema'])
 }
 
 /**
@@ -50,6 +44,7 @@ import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
 import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
+import { enginesVersion } from '@prisma/engines-version'
 
 const debug = debugLib('migrate')
 
@@ -96,7 +91,7 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, packageJson.prisma.version)
+      handlePanic(error, packageJson.version, enginesVersion)
         .catch((e) => {
           if (debugLib.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)
