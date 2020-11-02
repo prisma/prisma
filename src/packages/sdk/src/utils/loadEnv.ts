@@ -1,4 +1,3 @@
-import arg from 'arg'
 import chalk from 'chalk'
 import debugLib from 'debug'
 import dotenv from 'dotenv'
@@ -10,35 +9,29 @@ import { dotenvExpand } from '../dotenvExpand'
 
 const debug = debugLib('loadEnv')
 
-type CLIArgs =
-  | Error
-  | arg.Result<{
-      '--schema': StringConstructor
-      '--telemetry-information': StringConstructor
-    }>
-
 type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
 }
-
 interface LoadEnvResult {
   message: string
   path: string
   dotenvResult: DotenvResult
 }
 /**
- * Tries load env variables
- *  1. Load .env from project root
- *  1. Load first .env from possible schema locations and throw if there are env clashes with root .env
- *    1. Read location from schema arg --schema
- *    1. Read location from pkgJSON "prisma": {"schema": "/path/to/schema.prisma"}
- *    1. Read from default location ./prisma/.env
+ *  1. Search in project root
+ *  1. Schema
+ *    1. Search location from schema arg --schema
+ *    1. Search location from pkgJSON `"prisma": {"schema": "/path/to/schema.prisma"}`
+ *    1. Search default location `./prisma/.env`
+ *    1. Search cwd `./.env`
+ *
+ * @returns `{ rootEnvPath, schemaEnvPath }`
  */
-export function tryLoadEnv(
-  schemaPath?: string,
+export function getEnvPaths(
+  schemaPath?: string | null,
   opts: { cwd: string } = { cwd: process.cwd() },
 ) {
-  const rootEnvInfo = loadEnvFromProjectRoot(opts)
+  const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
   const schemaEnvPathFromPkgJson = schemaPathToEnvPath(
     readSchemaPathFromPkgJson(),
@@ -49,20 +42,35 @@ export function tryLoadEnv(
     './prisma/.env', // 3 - Check ./prisma directory for .env
     './.env', // 4 - Check cwd for .env
   ]
-  let schemaEnvInfo: LoadEnvResult | null = null
+  let schemaEnvPath: string | null = null
   for (const envPath of schemaEnvPaths) {
-    // If the paths are the same then skip
-    if (
-      rootEnvInfo?.path &&
-      envPath &&
-      path.resolve(rootEnvInfo.path) === path.resolve(envPath)
-    ) {
-      continue
+    if (exists(envPath)) {
+      schemaEnvPath = envPath
+      break
     }
-    debug(`Searching in ${envPath}`)
-    checkForConflicts(rootEnvInfo, envPath)
-    schemaEnvInfo = loadEnv(envPath)
-    if (schemaEnvInfo) break
+  }
+  return { rootEnvPath, schemaEnvPath }
+}
+
+export function tryLoadEnvs(
+  {
+    rootEnvPath,
+    schemaEnvPath,
+  }: { rootEnvPath: string | null; schemaEnvPath: string | null },
+  opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
+    conflictCheck: 'none',
+  },
+) {
+  const rootEnvInfo = loadEnv(rootEnvPath)
+  if (opts.conflictCheck !== 'none') {
+    // This will throw an error if there are conflicts
+    checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
+  }
+  // Only load the schema .env if it is not the same as root
+  const areNotTheSame = !isSame(rootEnvInfo?.path, schemaEnvPath)
+  let schemaEnvInfo: LoadEnvResult | null = null;
+  if(areNotTheSame){
+    schemaEnvInfo = loadEnv(schemaEnvPath)
   }
 
   // We didn't find a .env file.
@@ -104,13 +112,11 @@ function readSchemaPathFromPkgJson(): string | null {
 function checkForConflicts(
   rootEnvInfo: LoadEnvResult | null,
   envPath: string | null,
+  type: 'warn' | 'error'
 ) {
-  const notTheSame =
-    rootEnvInfo?.path &&
-    envPath &&
-    path.resolve(rootEnvInfo?.path) !== path.resolve(envPath)
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
-  if (parsedRootEnv && envPath && notTheSame && fs.existsSync(envPath)) {
+  const areNotTheSame = !isSame(rootEnvInfo?.path, envPath)
+  if (parsedRootEnv && envPath && areNotTheSame && fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
     const conflicts: string[] = []
     for (const k in envConfig) {
@@ -119,7 +125,7 @@ function checkForConflicts(
       }
     }
     if (conflicts.length > 0) {
-      throw new Error(`
+      const message = `
       You are trying to load env variables which are already present in your project root .env
       \tRoot: ${rootEnvInfo?.path}
       \tPrisma: ${envPath}
@@ -129,12 +135,17 @@ function checkForConflicts(
       You can fix this by removing the .env file from "${envPath}" and move its contents to your .env file at the root "${
         rootEnvInfo?.path
       }"
-      `)
+      `
+      if(type ==='error'){
+        throw new Error(message)
+      } else if(type === 'warn') {
+        console.warn(message);
+      }
     }
   }
 }
-function findRootPkg(opts: findUp.Options | undefined) {
-  const pkgJson = findUp.sync((dir) => {
+function getProjectRootEnvPath(opts: findUp.Options | undefined) {
+  const pkgJsonPath = findUp.sync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {
       try {
@@ -147,22 +158,34 @@ function findRootPkg(opts: findUp.Options | undefined) {
       }
     }
   }, opts)
-  return pkgJson
+
+  const projectRootDir = pkgJsonPath && path.dirname(pkgJsonPath)
+  return projectRootDir && path.join(projectRootDir, '.env')
 }
-function loadEnvFromProjectRoot(opts: { cwd: string }) {
-  const pkgJsonPath = findRootPkg(opts)
-  const rootDir = pkgJsonPath && path.dirname(pkgJsonPath)
-  const envPath = rootDir && path.join(rootDir, '.env')
-  return loadEnv(envPath)
+function isSame(
+  path1: string | null | undefined,
+  path2: string | null | undefined,
+) {
+  return path1 && path2 && path.resolve(path1) === path.resolve(path2)
 }
-function loadEnv(envPath: string | null | undefined): LoadEnvResult | null {
+function exists(p: string | null) {
+  return Boolean(p && fs.existsSync(p))
+}
+
+export function loadEnv(
+  envPath: string | null | undefined,
+): LoadEnvResult | null {
   if (envPath && fs.existsSync(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
     return {
       dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),
-      message: chalk.dim(`Environment variables loaded from ${envPath}`),
+      message: chalk.dim(
+        `Environment variables loaded from ${path.resolve(envPath)}`,
+      ),
       path: envPath,
     }
+  } else {
+    debug(`Environment variables not found at ${envPath}`)
   }
   return null
 }

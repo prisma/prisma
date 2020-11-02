@@ -9,7 +9,8 @@ import {
   getProjectHash,
   getSchema,
   getConfig,
-  tryLoadEnv,
+  tryLoadEnvs,
+  getEnvPaths,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -69,7 +70,8 @@ const args = arg(
 //
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
-  const envData = tryLoadEnv(args["--schema"])
+  const envPaths = getEnvPaths(args["--schema"])
+  const envData = tryLoadEnvs(envPaths, {conflictCheck: 'error'})
   envData && console.log(envData.message);
 }
 
