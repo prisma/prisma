@@ -18,11 +18,6 @@ module.exports = {
     'exhaustive-schema/generated-dmmf.ts',
     '__helpers__'
   ],
-  globals: {
-    'ts-jest': {
-      packageJson: 'package.json',
-    },
-  },
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
   testTimeout: 10000,
 }
