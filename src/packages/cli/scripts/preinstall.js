@@ -58,7 +58,7 @@ export function main() {
   debug(`Node Version: ${nodeMajorVersion}`)
   if (nodeMajorVersion < 10) {
     console.error(
-      drawBox({ str: `Prisma only supports node >= 10`, verticalPadding: 1, horizontalPadding: 3 }),
+      drawBox({ str: `Prisma only supports Node.js >= 10`, verticalPadding: 1, horizontalPadding: 3 }),
     )
     process.exit(1)
   }
