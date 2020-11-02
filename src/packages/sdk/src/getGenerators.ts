@@ -29,6 +29,7 @@ import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { engineVersions } from './getAllVersions'
 import { enginesVersion } from '@prisma/engines'
+import { printConfigWarnings } from './utils/printConfigWarnings'
 
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -102,6 +103,8 @@ export async function getGenerators({
     prismaPath,
     ignoreEnvVarErrors: true,
   })
+
+  printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
   const experimentalFeatures = mapPreviewFeatures(

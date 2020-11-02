@@ -1,3 +1,4 @@
+
 export { pick } from './pick'
 
 export { keyBy } from './keyBy'
@@ -80,3 +81,5 @@ export {
   createDatabase,
   dropDatabase,
 } from './migrateEngineCommands'
+
+export { printConfigWarnings } from './utils/printConfigWarnings'
