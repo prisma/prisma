@@ -6,9 +6,4 @@ module.exports = {
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  globals: {
-    'ts-jest': {
-      packageJson: 'package.json',
-    },
-  },
 }
