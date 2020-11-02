@@ -153,11 +153,14 @@ export class Studio implements Command {
 
     const serverUrl = `http://localhost:${port}`
     if (!browser || browser.toLowerCase() !== 'none') {
-      await open(serverUrl, {
-        app: browser,
-        url: true,
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-      }).catch(() => { }) // Ignore any errors
+      try {
+        await open(serverUrl, {
+          app: browser,
+          url: true,
+        })
+      } catch (e) {
+        // Ignore any errors that occur when trying to open the browser, since they should not halt the process
+      }
     }
 
     this.instance = studio
