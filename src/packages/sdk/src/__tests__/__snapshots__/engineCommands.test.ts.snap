@@ -4434,6 +4434,18 @@ Object {
             "isRequired": false,
             "name": "connect",
           },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserCreateOrConnectWithoutPostInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "connectOrCreate",
+          },
         ],
         "name": "UserCreateOneWithoutPostsInput",
       },
@@ -4602,6 +4614,18 @@ Object {
             "isRequired": false,
             "name": "upsert",
           },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserCreateOrConnectWithoutPostInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "connectOrCreate",
+          },
         ],
         "name": "UserUpdateOneRequiredWithoutPostsInput",
       },
@@ -4644,6 +4668,23 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "connect",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
+              Object {
+                "isList": true,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "connectOrCreate",
           },
         ],
         "name": "PostCreateManyWithoutAuthorInput",
@@ -4806,6 +4847,23 @@ Object {
             "isNullable": false,
             "isRequired": false,
             "name": "upsert",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
+              Object {
+                "isList": true,
+                "kind": "object",
+                "type": "PostCreateOrConnectWithoutUserInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": false,
+            "name": "connectOrCreate",
           },
         ],
         "name": "PostUpdateManyWithoutAuthorInput",
@@ -5135,6 +5193,39 @@ Object {
             "inputTypes": Array [
               Object {
                 "isList": false,
+                "kind": "object",
+                "type": "UserWhereUniqueInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": true,
+            "name": "where",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "UserCreateWithoutPostsInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": true,
+            "name": "create",
+          },
+        ],
+        "name": "UserCreateOrConnectWithoutPostInput",
+      },
+      Object {
+        "constraints": Object {
+          "maxNumFields": null,
+          "minNumFields": null,
+        },
+        "fields": Array [
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
                 "kind": "scalar",
                 "type": "String",
               },
@@ -5228,6 +5319,39 @@ Object {
           },
         ],
         "name": "PostCreateWithoutAuthorInput",
+      },
+      Object {
+        "constraints": Object {
+          "maxNumFields": null,
+          "minNumFields": null,
+        },
+        "fields": Array [
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostWhereUniqueInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": true,
+            "name": "where",
+          },
+          Object {
+            "inputTypes": Array [
+              Object {
+                "isList": false,
+                "kind": "object",
+                "type": "PostCreateWithoutAuthorInput",
+              },
+            ],
+            "isNullable": false,
+            "isRequired": true,
+            "name": "create",
+          },
+        ],
+        "name": "PostCreateOrConnectWithoutUserInput",
       },
       Object {
         "constraints": Object {
@@ -15063,7 +15187,7 @@ Object {
 
 exports[`getDMMF big schema 1`] = `62581287`;
 
-exports[`getDMMF chinook introspected schema 1`] = `379731`;
+exports[`getDMMF chinook introspected schema 1`] = `397565`;
 
 exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `397565`;
 

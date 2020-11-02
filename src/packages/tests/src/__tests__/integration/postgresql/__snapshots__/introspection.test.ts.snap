@@ -453,13 +453,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime exact: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime exact: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where datetime gt: datamodel 1`] = `
 generator client {
@@ -473,13 +488,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime gt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gt: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where datetime gte: datamodel 1`] = `
 generator client {
@@ -493,13 +523,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime gte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime gte: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where datetime lt: datamodel 1`] = `
 generator client {
@@ -513,13 +558,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime lt: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lt: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
@@ -554,13 +614,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime lte: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime lte: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where datetime not: datamodel 1`] = `
 generator client {
@@ -574,13 +649,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where datetime not: warnings 1`] = `Array []`;
+exports[`introspection: findMany where datetime not: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where decimal: datamodel 1`] = `
 generator client {
@@ -761,13 +851,28 @@ datasource postgresql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id      Int          @id @default(autoincrement())
+  // This type is currently not supported.
+  // time timestamptz?
 }
 
 `;
 
-exports[`introspection: findMany where null: warnings 1`] = `Array []`;
+exports[`introspection: findMany where null: warnings 1`] = `
+Array [
+  Object {
+    affected: Array [
+      Object {
+        field: time,
+        model: events,
+        tpe: timestamptz,
+      },
+    ],
+    code: 3,
+    message: These fields were commented out because Prisma currently does not support their types.,
+  },
+]
+`;
 
 exports[`introspection: findMany where startsWith: datamodel 1`] = `
 generator client {
