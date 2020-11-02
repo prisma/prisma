@@ -10,28 +10,24 @@ export const database = {
   },
   connect: ctx => {
     const credentials = getConnectionInfo(ctx).credentials
-    const pool = new sql.ConnectionPool({
-      user: credentials.user,
-      password: credentials.password,
-      server: credentials.server,
-      database: ctx.step === 'scenario' ? `master_${ctx.id}` : `master`,
-      pool: {
-        max: 1,
-      },
-      options: {
-        enableArithAbort: false,
-      },
-    })
+    const pool = new sql.ConnectionPool(credentials) 
     return pool.connect()
   },
-  send: (pool, sql) => pool.request().query(sql),
-  close: pool => pool.close(),
-  up: ctx => {
-    return `
+  beforeEach: async (pool, sqlScenario, ctx) => {
+    const sqlUp = `
     DROP DATABASE IF EXISTS master_${ctx.id};
     CREATE DATABASE master_${ctx.id};`
+    await pool.request().query(sqlUp) 
+    pool.close()
+    const credentials = getConnectionInfo(ctx).credentials
+    const credentialsClone = {...credentials, database: `master_${ctx.id}`, }
+    const newPool = new sql.ConnectionPool(credentialsClone)
+    await newPool.connect() 
+    await newPool.request().query(sqlScenario)
+    newPool.close()
   },
-} as Input['database']
+  close: pool => pool.close(),
+} as Input['database'] 
 
 function getConnectionInfo(ctx: Context) {
   const { URL } = url
@@ -44,8 +40,14 @@ function getConnectionInfo(ctx: Context) {
     user: 'SA',
     password: 'Pr1sm4_Pr1sm4',
     server: connectionUrl.hostname,
-    port: connectionUrl.port,
+    port: Number(connectionUrl.port),
     database: `master`,
+    pool: {
+      max: 1,
+    },
+    options: {
+      enableArithAbort: false,
+    },
   }
   return { credentials, connectionString }
 }

@@ -39,10 +39,6 @@ type Scenario = {
    */
   up: string
   /**
-   * SQL to teardown pre-test condition.
-   */
-  down?: string
-  /**
    * Arbitrary Prisma client logic to test.
    */
   do: (client: any) => Promise<any>
@@ -72,10 +68,6 @@ export type Context = {
    * The ID for the current scenario test being run.
    */
   id: string
-  /**
-   * Which step of setup we are on
-   */
-  step?: 'database' | 'scenario'
 }
 
 /**
@@ -93,9 +85,9 @@ type Database<Client> = {
    */
   connect: (ctx: Context) => MaybePromise<Client>
   /**
-   * Execute SQL against the database.
+   * Run logic before each scenario. Typically used to run scenario SQL setup against the database.
    */
-  send: (db: Client, sql: string) => MaybePromise<any>
+  beforeEach: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -126,10 +118,6 @@ type Database<Client> = {
      */
     provider?: string
   }
-  /**
-   * SQL to setup and select a database before running a test scenario.
-   */
-  up?: (ctx: Context) => string
 }
 
 /**
@@ -155,12 +143,28 @@ type Settings = {
 }
 
 /**
+ * A list of available preview features on the Prisma client.
+ */
+type PreviewFeature = "connectOrCreate" | "microsoftSqlServer" | "transactionApi"
+
+/**
+ * Settings to add properties on the Prisma client.
+ */
+type PrismaClientSettings = {
+  /**
+   *  Supply the enabled preview features for the Prisma client. 
+   */
+  previewFeatures?: PreviewFeature[]
+}
+
+/**
  * Integration test keyword arguments
  */
 export type Input<Client = any> = {
   database: Database<Client>
   scenarios: Scenario[]
   settings?: Settings
+  prismaClientSettings?: PrismaClientSettings
 }
 
 type ScenarioState<Client = any> = {
@@ -235,7 +239,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
   it.concurrent.each(filterTestScenarios(input.scenarios).slice(0, 1))(
     `${kind}: %s`,
     async (_, scenario) => {
-      const { ctx, state, prismaSchemaPath } = await setupScenario(
+      const { ctx, state } = await setupScenario(
         kind,
         input,
         scenario,
@@ -293,21 +297,8 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
 
   await ctx.fs.dirAsync('.')
 
-  if (input.database.name === 'sqlserver') {
-    state.db = await input.database.connect({ ...ctx, step: 'database' })
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    await input.database.send(state.db, databaseUpSQL)
-    await input.database.close?.(state.db)
-
-    const scenarioUpSQL = scenario.up
-    state.db = await input.database.connect({ ...ctx, step: 'scenario' })
-    await input.database.send(state.db, scenarioUpSQL)
-  } else {
-    state.db = await input.database.connect(ctx)
-    const databaseUpSQL = input.database.up?.(ctx) ?? ''
-    const upSQL = databaseUpSQL + scenario.up
-    await input.database.send(state.db, upSQL)
-  }
+  state.db = await input.database.connect(ctx)
+  await input.database.beforeEach(state.db, scenario.up, ctx)
 
   const datasourceBlock =
     'raw' in input.database.datasource
@@ -323,10 +314,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     generator client {
       provider = "prisma-client-js"
       output   = "${ctx.fs.path()}"
-      ${input.database.name === 'sqlserver'
-      ? `previewFeatures = ["microsoftSqlServer"]`
-      : ''
-    }
+      ${renderPreviewFeatures(input.prismaClientSettings?.previewFeatures)}
     }
 
     ${datasourceBlock}
@@ -350,12 +338,8 @@ async function teardownScenario(state: ScenarioState) {
   // props might be missing if test errors out before they are set.
   if (state.db) {
     await Promise.resolve(
-      state.scenario.down
-        ? state.input.database.send(state.db, state.scenario.down)
-        : undefined,
+      state.input.database.afterEach?.(state.db)
     )
-      .catch((e) => errors.push(e))
-      .then(() => state.input.database.afterEach?.(state.db))
       .catch((e) => errors.push(e))
       .then(() => state.prisma?.$disconnect())
       .catch((e) => errors.push(e))
@@ -416,4 +400,14 @@ function makeDatasourceBlock(providerName: string, url: string) {
       url      = "${url}"
     }
   `
+}
+
+/**
+ * Create Prisma schema enabled features array of strings.
+ */
+function renderPreviewFeatures(featureMatrix: Input['prismaClientSettings']['previewFeatures'] | undefined) {
+  if (featureMatrix) {
+    return (`previewFeatures = [${featureMatrix.map(feature => `"`+feature+`"`)}]`)
+  } 
+  return ''
 }
