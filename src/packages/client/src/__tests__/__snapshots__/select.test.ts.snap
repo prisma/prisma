@@ -350,11 +350,13 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   optionnal?: Float | null,
 ?   author?: {
 ?     create?: UserCreateWithoutPostsInput,
-?     connect?: UserWhereUniqueInput
+?     connect?: UserWhereUniqueInput,
+?     connectOrCreate?: UserCreateOrConnectWithoutPostInput
 ?   },
 ?   categories?: {
 ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
-?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput
+?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
 ?   }
   }
 }
@@ -407,7 +409,8 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   optionnal?: Float | null,
 ?   categories?: {
 ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
-?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput
+?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
+?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
 ?   }
   }
 }
