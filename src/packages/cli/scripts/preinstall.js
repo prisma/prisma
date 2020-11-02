@@ -55,13 +55,10 @@ const white = (str) => WHITE_BRIGHT + str + RESET
 export function main() {
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
-
+  debug(`Node Version: ${nodeMajorVersion}`)
   if (nodeMajorVersion < 10) {
-    message = `
-      Prisma only supports node >= 10
-    `
     console.error(
-      drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }),
+      drawBox({ str: `Prisma only supports node >= 10`, verticalPadding: 1, horizontalPadding: 3 }),
     )
     process.exit(1)
   }
