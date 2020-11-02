@@ -53,6 +53,15 @@ const b = (str) => BOLD + str + RESET
 const white = (str) => WHITE_BRIGHT + str + RESET
 
 export function main() {
+  const nodeVersions = process.version.split('.')
+  const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
+  debug(`Node Version: ${nodeMajorVersion}`)
+  if (nodeMajorVersion < 10) {
+    console.error(
+      drawBox({ str: `Prisma only supports Node.js >= 10`, verticalPadding: 1, horizontalPadding: 3 }),
+    )
+    process.exit(1)
+  }
   // When running in npx, npm puts this package into a /_npx/ folder. Tested on Win, Mac, Linux
   if (__dirname.includes('_npx')) {
     process.exit(0)
