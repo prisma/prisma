@@ -41,7 +41,12 @@
       "groupName": "devDependencies (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
-      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
+      "excludePackageNames": [
+        "@prisma/engines",
+        "@prisma/engines-version",
+        "@prisma/studio",
+        "@prisma/studio-server"
+      ],
       "updateTypes": ["patch", "minor"],
       "schedule": ["on monday and wednesday"]
     },
