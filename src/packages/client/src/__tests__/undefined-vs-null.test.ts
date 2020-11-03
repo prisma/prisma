@@ -46,22 +46,22 @@ describe('select validation', () => {
         ?   content?: String | NullableStringFieldUpdateOperationsInput | null,
         ?   optionnal?: Float | NullableFloatFieldUpdateOperationsInput | null,
         ?   author?: {
-        ?     create?: UserCreateWithoutPostsInput,
+        ?     create?: UserCreateWithoutAuthorInput,
         ?     connect?: UserWhereUniqueInput,
         ?     disconnect?: Boolean,
         ?     delete?: Boolean,
-        ?     update?: UserUpdateWithoutPostsDataInput,
+        ?     update?: UserUpdateWithoutAuthorInput,
         ?     upsert?: UserUpsertWithoutPostsInput,
         ?     connectOrCreate?: UserCreateOrConnectWithoutPostInput
         ?   },
         ?   categories?: {
-        ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
+        ?     create?: CategoryCreateWithoutCategoriesInput | CategoryCreateWithoutCategoriesInput,
         ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     set?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     disconnect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     delete?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     update?: CategoryUpdateWithWhereUniqueWithoutPostsInput | CategoryUpdateWithWhereUniqueWithoutPostsInput,
-        ?     updateMany?: CategoryUpdateManyWithWhereNestedInput | CategoryUpdateManyWithWhereNestedInput,
+        ?     updateMany?: CategoryUpdateManyWithWhereWithoutPostsInput | CategoryUpdateManyWithWhereWithoutPostsInput,
         ?     deleteMany?: CategoryScalarWhereInput | CategoryScalarWhereInput,
         ?     upsert?: CategoryUpsertWithWhereUniqueWithoutPostsInput | CategoryUpsertWithWhereUniqueWithoutPostsInput,
         ?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
@@ -100,20 +100,20 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-                        Invalid \`prisma.createOnePost()\` invocation:
+                                Invalid \`prisma.createOnePost()\` invocation:
 
-                        {
-                          data: {
-                            published: true,
-                            title: null
-                                   ~~~~
-                          }
-                        }
+                                {
+                                  data: {
+                                    published: true,
+                                    title: null
+                                           ~~~~
+                                  }
+                                }
 
-                        Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
+                                Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
 
 
-                  `)
+                        `)
     }
   })
 })
