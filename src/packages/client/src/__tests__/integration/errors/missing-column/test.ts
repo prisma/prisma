@@ -6,10 +6,13 @@ test('missing-column', async () => {
   await expect(client.user.findMany()).rejects
     .toThrowErrorMatchingInlineSnapshot(`
 
-          Invalid \`prisma.user.findMany()\` invocation in
+          Invalid \`expect(client.user.findMany()\` invocation in
           /client/src/__tests__/integration/errors/missing-column/test.ts:6:28
 
-
+            3 test('missing-column', async () => {
+            4   const PrismaClient = await getTestClient()
+            5   const client = new PrismaClient()
+          → 6   await expect(client.user.findMany()).reject
             The column \`dev.User.name\` does not exist in the current database.
         `)
   client.$disconnect()
