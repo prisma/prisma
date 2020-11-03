@@ -27,5 +27,6 @@ export {
   sqltag,
 } from 'sql-template-tag'
 
+export { warnEnvConflicts } from './warnEnvConflicts' 
 
 export { default as Decimal } from 'decimal.js'
