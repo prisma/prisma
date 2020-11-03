@@ -42,13 +42,7 @@ export function getEnvPaths(
     './prisma/.env', // 3 - Check ./prisma directory for .env
     './.env', // 4 - Check cwd for .env
   ]
-  let schemaEnvPath: string | null = null
-  for (const envPath of schemaEnvPaths) {
-    if (exists(envPath)) {
-      schemaEnvPath = envPath
-      break
-    }
-  }
+  const schemaEnvPath = schemaEnvPaths.find(exists)
   return { rootEnvPath, schemaEnvPath }
 }
 
@@ -56,7 +50,7 @@ export function tryLoadEnvs(
   {
     rootEnvPath,
     schemaEnvPath,
-  }: { rootEnvPath: string | null; schemaEnvPath: string | null },
+  }: { rootEnvPath: string | null | undefined; schemaEnvPath: string | null | undefined},
   opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
     conflictCheck: 'none',
   },
@@ -111,7 +105,7 @@ function readSchemaPathFromPkgJson(): string | null {
  */
 function checkForConflicts(
   rootEnvInfo: LoadEnvResult | null,
-  envPath: string | null,
+  envPath: string | null | undefined,
   type: 'warn' | 'error'
 ) {
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
@@ -168,14 +162,14 @@ function isSame(
 ) {
   return path1 && path2 && path.resolve(path1) === path.resolve(path2)
 }
-function exists(p: string | null) {
+function exists(p: string | null | undefined): p is string {
   return Boolean(p && fs.existsSync(p))
 }
 
 export function loadEnv(
   envPath: string | null | undefined,
 ): LoadEnvResult | null {
-  if (envPath && fs.existsSync(envPath)) {
+  if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
     return {
       dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),

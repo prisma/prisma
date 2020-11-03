@@ -201,8 +201,8 @@ export interface GetPrismaClientOptions {
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
-    rootEnvPath: string | null,
-    schemaEnvPath: string | null
+    rootEnvPath?: string | null,
+    schemaEnvPath?: string | null
   }
   relativePath: string
   dirname: string
