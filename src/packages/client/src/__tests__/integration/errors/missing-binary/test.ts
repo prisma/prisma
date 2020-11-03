@@ -29,8 +29,7 @@ test('missing-binary', async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-binary/test.ts:29:23
+          Invalid \`prisma.user.findMany()\` invocation:
 
 
             Query engine binary for current platform "TEST_PLATFORM" could not be found.
