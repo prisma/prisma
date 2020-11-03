@@ -1726,7 +1726,7 @@ packages:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 2.1.0
+      undici: 2.1.1
     dev: true
     resolution:
       integrity: sha512-clC0N6flAyvDmVsM3wZNkMJePta3BoOhyC6MtgJT1MDwGnQf5+PYipL9cExeyaOXsOvD8QUzCrEwOSVm4TOqAA==
@@ -9865,8 +9865,13 @@ packages:
     resolution:
       integrity: sha512-xY96SsN3NA461qIRKZ/+qox37YXPtSBswMGfiNptr+wrt6ds4HaMw23TP612fEyGekRE6LNRiLYr/aqbHXNedw==
   /undici/2.1.0:
+    dev: false
     resolution:
       integrity: sha512-4QOaapBV8JNs/mh3AA+72520OnFKNIJfA1c6Xq56NK51uI4zU3KpSQzrcBuJbMWu8ivaCj8hTcyDQefhEO4JdQ==
+  /undici/2.1.1:
+    dev: true
+    resolution:
+      integrity: sha512-4HVo2WQ0Mg98UwFKauN7UCqWtQcYZiApv9LeqUPzKQEZhZDnnz/PkM0B+1KU2ytFUSrUqlQZ7X0BqyQJskvNnA==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0
