@@ -113,7 +113,7 @@
     "rollup": "2.32.1",
     "rollup-plugin-dts": "1.4.13",
     "set-value": "3.0.2",
-    "source-map-support": "^0.5.19",
+    "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
     "stat-mode": "1.0.0",
