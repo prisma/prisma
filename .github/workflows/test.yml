@@ -265,7 +265,7 @@ jobs:
           MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
         ports:
           - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
 
       postgres:
         image: postgres:9
@@ -275,7 +275,7 @@ jobs:
           POSTGRES_PASSWORD: prisma
         ports:
           - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
 
       postgres_isolated:
         image: postgres:10
@@ -285,7 +285,7 @@ jobs:
           POSTGRES_PASSWORD: prisma
         ports:
           - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
 
       mssql:
         image: mcr.microsoft.com/mssql/server:2019-latest
@@ -294,7 +294,7 @@ jobs:
           SA_PASSWORD: "Pr1sm4_Pr1sm4"
         ports:
           - 1433:1433
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
+        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v2
