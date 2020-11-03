@@ -1,6 +1,7 @@
 import debugLib from 'debug'
 import findUp from 'find-up'
 import path from 'path'
+import fs from 'fs'
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
@@ -43,7 +44,7 @@ function readSchemaPathFromPkgJson(): string | null {
   }
 }
 
-function getProjectRootEnvPath(opts: findUp.Options | undefined) {
+function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null {
   const pkgJsonPath = findUp.sync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {
@@ -58,8 +59,16 @@ function getProjectRootEnvPath(opts: findUp.Options | undefined) {
     }
   }, opts)
 
-  const projectRootDir = pkgJsonPath && path.dirname(pkgJsonPath)
-  return projectRootDir && path.join(projectRootDir, '.env')
+  if (!pkgJsonPath) {
+    return null
+  }
+
+  const candidate = path.join(path.dirname(pkgJsonPath), '.env')
+  if (!fs.existsSync(candidate)) {
+    return null
+  }
+
+  return candidate
 }
 function schemaPathToEnvPath(schemaPath: string | null | undefined) {
   if (!schemaPath) return null
