@@ -12,7 +12,7 @@ process.on('unhandledRejection', (e, promise) => {
 import {
   HelpError,
   isError,
-  tryLoadEnv,
+  tryLoadEnvs,
   arg,
 } from '@prisma/sdk'
 
@@ -33,7 +33,7 @@ const args = arg(
 // if the CLI is called without any command like `up --experimental` we can ignore .env loading
 // should be 2 but because of --experimental flag it will be 3 until removed
 if (process.argv.length > 3) {
-  tryLoadEnv(args['--schema'])
+  tryLoadEnvs(args['--schema'])
 }
 
 /**

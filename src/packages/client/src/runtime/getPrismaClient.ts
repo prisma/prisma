@@ -43,7 +43,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { tryLoadEnv } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -200,6 +200,10 @@ export interface GetPrismaClientOptions {
   document: DMMF.Document
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
+  relativeEnvPaths: {
+    rootEnvPath?: string | null,
+    schemaEnvPath?: string | null
+  }
   relativePath: string
   dirname: string
   clientVersion?: string
@@ -266,6 +270,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _clientVersion: string
     constructor(optionsArg?: PrismaClientOptions) {
       this._clientVersion = config.clientVersion ?? clientVersion
+      const envPaths = {
+        rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
+        schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
+
+      }
+      const loadedEnv = tryLoadEnvs(envPaths, {conflictCheck: 'none'})
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
         const internal = options.__internal ?? {}
@@ -322,7 +332,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           config.relativePath,
           '.schema',
         )
-        const envFile = tryLoadEnv(schemaPath, {cwd: cwd })
 
         const previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -346,7 +355,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                   typeof o === 'string' ? o === 'query' : o.level === 'query',
                 ),
             ),
-          env: envFile ? envFile.parsed : {},
+          env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(previewFeatures),
