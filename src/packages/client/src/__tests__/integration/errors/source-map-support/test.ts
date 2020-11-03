@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import { getTestClient } from '../../../../utils/getTestClient'
 
-// X is here to have a different stack trace in js and ts
+// X is here to have a different line count in the transpiled js and ts
 type X = {}
 
 test('source-map-support', async () => {
