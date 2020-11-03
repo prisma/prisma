@@ -25,7 +25,7 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
 
   postgres_isolated:
     image: postgres:10
@@ -37,7 +37,7 @@ services:
     volumes:
       - postgres_isolated:/var/lib/postgresql/data
     ports:
-      - "5435:5432"
+      - '5435:5432'
 
   mysql:
     image: mysql:8.0
@@ -48,10 +48,13 @@ services:
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
+    # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
     volumes:
       - mysql:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - '3306:3306'
 
   mariadb:
     image: mariadb:10
@@ -64,7 +67,7 @@ services:
     volumes:
       - mariadb:/var/lib/mysql
     ports:
-      - "4306:3306"
+      - '4306:3306'
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -75,7 +78,7 @@ services:
     volumes:
       - mssql:/var/opt/mssql
     ports:
-      - "1433:1433"
+      - '1433:1433'
 
 volumes:
   postgres:
