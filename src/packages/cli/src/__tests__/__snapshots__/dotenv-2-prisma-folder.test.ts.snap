@@ -1,9 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`should read .env file in prisma folder 1`] = `
-Array [
-  Array [
-    Environment variables loaded from ./prisma/.env,
-  ],
-]
-`;
+exports[`should read .env file in prisma folder 1`] = `Environment variables loaded from /tmp/dir/prisma/.env`;

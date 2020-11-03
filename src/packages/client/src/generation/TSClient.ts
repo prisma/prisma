@@ -36,6 +36,7 @@ import {
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
 import { klona } from 'klona'
+import { getEnvPaths } from '@prisma/sdk'
 
 const tab = 2
 
@@ -70,6 +71,7 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
+  warnEnvConflicts,
   getPrismaClient,
   debugLib,
   sqltag,
@@ -281,9 +283,16 @@ export class TSClient implements Generatable {
       outputDir,
       schemaDir,
     } = this.options
+    const schemaPath = path.join(schemaDir, 'prisma.schema')
+    const envPaths = getEnvPaths(schemaPath, {cwd: outputDir})
+    const relativeEnvPaths = {
+      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
+      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath)
+    }
 
-    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
+    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname' > = {
       generator,
+      relativeEnvPaths, 
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
@@ -336,6 +345,16 @@ exports.dmmf = JSON.parse(dmmfString)
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = __dirname
+
+/**
+ * Only for env conflict warning
+ * loading of env variable occurs in getPrismaClient
+ */
+const envPaths = {
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(__dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(__dirname, config.relativeEnvPaths.schemaEnvPath)
+}
+warnEnvConflicts(envPaths)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
