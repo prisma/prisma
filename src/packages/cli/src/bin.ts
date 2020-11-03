@@ -9,7 +9,8 @@ import {
   getProjectHash,
   getSchema,
   getConfig,
-  tryLoadEnv,
+  tryLoadEnvs,
+  getEnvPaths,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -69,8 +70,13 @@ const args = arg(
 //
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
-  const envData = tryLoadEnv(args["--schema"])
-  envData && console.log(envData.message);
+  try {
+    const envPaths = getEnvPaths(args["--schema"])
+    const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
+    envData && console.log(envData.message);
+  } catch (e) {
+    handleIndividualError(e)
+  }
 }
 
 /**
@@ -257,28 +263,6 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-      function handleIndividualError(error): void {
-        if (error.rustStack) {
-          handlePanic(error, packageJson.version, enginesVersion)
-            .catch((e) => {
-              if (debugLib.enabled('prisma')) {
-                console.error(chalk.redBright.bold('Error: ') + e.stack)
-              } else {
-                console.error(chalk.redBright.bold('Error: ') + e.message)
-              }
-            })
-            .finally(() => {
-              process.exit(1)
-            })
-        } else {
-          if (debugLib.enabled('prisma')) {
-            console.error(chalk.redBright.bold('Error: ') + error.stack)
-          } else {
-            console.error(chalk.redBright.bold('Error: ') + error.message)
-          }
-          process.exit(1)
-        }
-      }
 
       // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
       if (typeof err[Symbol.iterator] === 'function') {
@@ -289,6 +273,29 @@ if (require.main === module) {
         handleIndividualError(err)
       }
     })
+}
+
+function handleIndividualError(error): void {
+  if (error.rustStack) {
+    handlePanic(error, packageJson.version, enginesVersion)
+      .catch((e) => {
+        if (debugLib.enabled('prisma')) {
+          console.error(chalk.redBright.bold('Error: ') + e.stack)
+        } else {
+          console.error(chalk.redBright.bold('Error: ') + e.message)
+        }
+      })
+      .finally(() => {
+        process.exit(1)
+      })
+  } else {
+    if (debugLib.enabled('prisma')) {
+      console.error(chalk.redBright.bold('Error: ') + error.stack)
+    } else {
+      console.error(chalk.redBright.bold('Error: ') + error.message)
+    }
+    process.exit(1)
+  }
 }
 
 /**
