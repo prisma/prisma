@@ -284,15 +284,15 @@ export class TSClient implements Generatable {
       schemaDir,
     } = this.options
     const schemaPath = path.join(schemaDir, 'prisma.schema')
-    const envPaths = getEnvPaths(schemaPath, {cwd: outputDir})
+    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
     const relativeEnvPaths = {
       rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
       schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath)
     }
 
-    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname' > = {
+    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
-      relativeEnvPaths, 
+      relativeEnvPaths,
       sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,

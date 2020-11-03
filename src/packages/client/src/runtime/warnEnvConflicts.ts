@@ -1,6 +1,5 @@
-import { tryLoadEnvs } from "@prisma/sdk";
+import { tryLoadEnvs } from "@prisma/sdk/dist/utils/tryLoadEnvs";
 
-
-export function warnEnvConflicts(envPaths){
-  tryLoadEnvs(envPaths)
+export function warnEnvConflicts(envPaths) {
+  tryLoadEnvs(envPaths, { conflictCheck: "warn" })
 }
