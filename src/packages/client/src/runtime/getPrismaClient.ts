@@ -275,7 +275,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
 
       }
-      const loadedEnv = tryLoadEnvs(envPaths, {conflictCheck: 'warn'})
+      const loadedEnv = tryLoadEnvs(envPaths, {conflictCheck: 'none'})
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
         const internal = options.__internal ?? {}

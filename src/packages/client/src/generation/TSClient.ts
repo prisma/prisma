@@ -71,6 +71,7 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
+  warnEnvConflicts,
   getPrismaClient,
   debugLib,
   sqltag,
@@ -344,6 +345,16 @@ exports.dmmf = JSON.parse(dmmfString)
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = __dirname
+
+/**
+ * Only for env conflict warning
+ * loading of env variable occurs in getPrismaClient
+ */
+const envPaths = {
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(__dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(__dirname, config.relativeEnvPaths.schemaEnvPath)
+}
+warnEnvConflicts(envPaths)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
