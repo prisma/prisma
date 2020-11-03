@@ -70,6 +70,7 @@ function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null 
 
   return candidate
 }
+
 function schemaPathToEnvPath(schemaPath: string | null | undefined) {
   if (!schemaPath) return null
   return path.join(path.dirname(schemaPath), '.env')
