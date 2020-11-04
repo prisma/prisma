@@ -65,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run(
       '.',
       `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent`,
-    ).catch(e => { })
+    ).catch((e) => {})
   }
 
   debug(`Building packages`)
@@ -83,7 +83,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
           runPromise.catch(console.error)
 
           // for sqlite3 native bindings, they need a rebuild after an update
-          if (['@prisma/migrate', '@prisma/cli'].includes(pkgName)) {
+          if (['@prisma/migrate', '@prisma/tests'].includes(pkgName)) {
             run(pkgDir, 'pnpm rebuild')
           }
         }
@@ -115,7 +115,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 }
 
 if (!module.parent) {
-  main().catch(e => {
+  main().catch((e) => {
     console.error(e)
     process.exit(1)
   })
@@ -228,8 +228,8 @@ async function getVersionHashes(
   })
     .then((res) => res.json())
     .then((pkg) => {
-      return ({
+      return {
         prisma: pkg.prisma.prismaCommit,
-      })
+      }
     })
 }
