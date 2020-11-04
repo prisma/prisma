@@ -270,17 +270,19 @@ export async function generateClient({
     await copyFile(datamodelPath, datamodelTargetPath)
   }
 
-  const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
-  const pkgJson = JSON.stringify(
-    {
-      name: '.prisma/client',
-      main: 'index.js',
-      types: 'index.d.ts',
-    },
-    null,
-    2,
-  )
-  await writeFile(packageJsonTargetPath, pkgJson)
+  if (!generator?.isCustomOutput) {
+    const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
+    const pkgJson = JSON.stringify(
+      {
+        name: '.prisma/client',
+        main: 'index.js',
+        types: 'index.d.ts',
+      },
+      null,
+      2,
+    )
+    await writeFile(packageJsonTargetPath, pkgJson)
+  }
 
   if (process.env.INIT_CWD) {
     const backupPath = path.join(

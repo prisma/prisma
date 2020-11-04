@@ -50,6 +50,9 @@ services:
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
+    # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
     volumes:
       - mysql:/var/lib/mysql
     ports:
@@ -77,7 +80,7 @@ services:
     volumes:
       - mssql:/var/opt/mssql
     ports:
-      - "1433:1433"
+      - '1433:1433'
 
 volumes:
   postgres:

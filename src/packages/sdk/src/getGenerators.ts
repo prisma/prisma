@@ -29,6 +29,7 @@ import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { engineVersions } from './getAllVersions'
 import { enginesVersion } from '@prisma/engines'
+import { printConfigWarnings } from './utils/printConfigWarnings'
 
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -102,6 +103,8 @@ export async function getGenerators({
     prismaPath,
     ignoreEnvVarErrors: true,
   })
+
+  printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
   const experimentalFeatures = mapPreviewFeatures(
@@ -238,10 +241,10 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         if (neededVersion.binaryTargets.length === 0) {
           neededVersion.binaryTargets = [platform]
         }
+      }
 
-        if (process.env.NETLIFY && !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')) {
-          neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
-        }
+      if (process.env.NETLIFY && !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')) {
+        neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
       }
 
       // download

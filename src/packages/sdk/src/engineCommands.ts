@@ -15,6 +15,7 @@ const MAX_BUFFER = 1000_000_000
 export interface ConfigMetaFormat {
   datasources: DataSource[]
   generators: GeneratorConfig[]
+  warnings: string[]
 }
 
 export type GetDMMFOptions = {
@@ -62,7 +63,10 @@ export async function getDMMF({
 
     const removedFeatureFlagMap = {
       'insensitiveFilters': `${chalk.blueBright('info')} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
-      'atomicNumberOperations': `${chalk.blueBright('info')} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`
+      'atomicNumberOperations': `${chalk.blueBright('info')} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`,
+      'connectOrCreate': `${chalk.blueBright('info')} The preview flag "connectOrCreate" is not needed anymore, please remove it from your schema.prisma`,
+      'transaction': `${chalk.blueBright('info')} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
+      'transactionApi': `${chalk.blueBright('info')} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`
     }
 
     if (enableExperimental) {

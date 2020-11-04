@@ -5,6 +5,7 @@ import {
   getConfig,
   extractPreviewFeatures,
   mapPreviewFeatures,
+  getEnvPaths,
 } from '@prisma/sdk'
 import { getDMMF } from '../generation/getDMMF'
 import { promisify } from 'util'
@@ -28,6 +29,7 @@ export async function getTestClient(schemaDir?: string): Promise<any> {
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+
   const generator = config.generators.find(
     (g) => g.provider === 'prisma-client-js',
   )
@@ -38,6 +40,8 @@ export async function getTestClient(schemaDir?: string): Promise<any> {
   })
   const outputDir = schemaDir
 
+  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
+
   const options: GetPrismaClientOptions = {
     document,
     generator,
@@ -45,6 +49,7 @@ export async function getTestClient(schemaDir?: string): Promise<any> {
     relativePath: path.relative(outputDir, schemaDir),
     clientVersion: 'client-test-version',
     engineVersion: 'engine-test-version',
+    relativeEnvPaths,
     sqliteDatasourceOverrides: extractSqliteSources(
       datamodel,
       schemaDir,

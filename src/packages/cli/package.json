@@ -1,5 +1,5 @@
 {
-  "version": "2.9.0-dev.79",
+  "version": "2.11.0-dev.20",
   "name": "@prisma/cli",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
@@ -33,7 +33,7 @@
     "node": ">=10"
   },
   "prisma": {
-    "prismaCommit": ""
+    "prismaCommit": "87d13fded344f1f387a8510f0fa23139444516c6"
   },
   "files": [
     "build",
@@ -68,8 +68,8 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.304.0",
-    "@prisma/studio-server": "0.304.0",
+    "@prisma/studio": "0.307.0",
+    "@prisma/studio-server": "0.307.0",
     "@prisma/tests": "workspace:^0.0.0",
     "@sindresorhus/slugify": "1.1.0",
     "@timsuchanek/copy": "1.4.5",
@@ -77,11 +77,11 @@
     "@types/jest": "26.0.15",
     "@types/verror": "1.10.4",
     "@types/ws": "7.2.9",
-    "@typescript-eslint/eslint-plugin": "4.6.0",
-    "@typescript-eslint/parser": "4.6.0",
+    "@typescript-eslint/eslint-plugin": "4.6.1",
+    "@typescript-eslint/parser": "4.6.1",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.0",
+    "esbuild": "0.8.2",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.12.1",
     "eslint-config-prettier": "6.15.0",
@@ -96,9 +96,9 @@
     "husky": "4.3.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.3.2",
-    "jest": "26.6.1",
+    "jest": "26.6.2",
     "line-replace": "2.0.1",
-    "lint-staged": "10.5.0",
+    "lint-staged": "10.5.1",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "mz": "2.7.0",
@@ -151,6 +151,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.0",
-    "@prisma/engines": "2.11.0-8-eefa9e6e5a4d42803ffc12e2d8131858b5181f65"
+    "@prisma/engines": "2.11.1-4-1d5919363a85847350c3f517da9babd9bcaca792"
   }
 }

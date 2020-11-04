@@ -9,7 +9,7 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-import { HelpError, isError, tryLoadEnv, arg } from '@prisma/sdk'
+import { HelpError, isError, tryLoadEnvs, arg } from '@prisma/sdk'
 
 // Parse CLI arguments
 const args = arg(
@@ -28,7 +28,7 @@ const args = arg(
 // if the CLI is called without any command like `up --early-access-feature` we can ignore .env loading
 // should be 1 but because of --early-access-feature flag it will be 2 until removed
 if (process.argv.length > 2) {
-  tryLoadEnv(args['--schema'])
+  tryLoadEnvs(args['--schema'])
 }
 
 /**

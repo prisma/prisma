@@ -4,13 +4,12 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  binaryTargets   = ["native"]
-  previewFeatures = ["connectOrCreate"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
 }
 
 model User {
-  id         String   @default(cuid()) @id
+  id         String   @id @default(cuid())
   email      String   @unique
   name       String?
   age        Int?
@@ -21,21 +20,21 @@ model User {
 }
 
 model Property {
-  id      String @default(cuid()) @id
+  id      String @id @default(cuid())
   house   House  @relation(fields: [houseId], references: [id])
   users   User[]
   houseId String
 }
 
 model House {
-  id         String     @default(cuid()) @id
+  id         String     @id @default(cuid())
   like       Like       @relation(fields: [likeId], references: [id])
   properties Property[]
   likeId     String
 }
 
 model Post {
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
@@ -47,14 +46,14 @@ model Post {
 }
 
 model Like {
-  id     String @default(cuid()) @id
+  id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id])
   postId String
   post   Post   @relation(fields: [postId], references: [id])
 
-  @@unique([userId, postId])
   House House[]
+  @@unique([userId, postId])
 }
 
 enum Sound {
