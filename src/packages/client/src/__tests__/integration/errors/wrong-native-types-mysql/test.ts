@@ -40,7 +40,7 @@ test('wrong-native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', as
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
           Argument tInt: Got invalid value 1 on prisma.createOneA. Provided Int, expected Boolean.
-          Argument bInt: Got invalid value 123123123.1 on prisma.createOneA. Provided Float, expected Int.
+          Argument bInt: Got invalid value 123123123.1 on prisma.createOneA. Provided Float, expected BigInt.
 
         `)
 

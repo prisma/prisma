@@ -41,7 +41,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
           Argument int: Got invalid value '' on prisma.createOneA. Provided String, expected Int.
           Argument sInt: Got invalid value '' on prisma.createOneA. Provided String, expected Int.
-          Argument bInt: Got invalid value 12312312.123 on prisma.createOneA. Provided Float, expected Int.
+          Argument bInt: Got invalid value 12312312.123 on prisma.createOneA. Provided Float, expected BigInt.
 
         `)
 

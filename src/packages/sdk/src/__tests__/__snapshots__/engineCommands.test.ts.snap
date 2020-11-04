@@ -4415,7 +4415,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -4439,7 +4439,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateOrConnectWithoutPostInput",
+                "type": "UserCreateOrConnectWithoutpostsInput",
               },
             ],
             "isNullable": false,
@@ -4571,7 +4571,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -4595,7 +4595,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserUpdateWithoutAuthorInput",
+                "type": "UserUpdateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -4619,7 +4619,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateOrConnectWithoutPostInput",
+                "type": "UserCreateOrConnectWithoutpostsInput",
               },
             ],
             "isNullable": false,
@@ -4640,12 +4640,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -4674,12 +4674,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
             ],
             "isNullable": false,
@@ -4700,12 +4700,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -4853,12 +4853,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
             ],
             "isNullable": false,
@@ -5181,7 +5181,7 @@ Object {
             "name": "email",
           },
         ],
-        "name": "UserCreateWithoutAuthorInput",
+        "name": "UserCreateWithoutPostsInput",
       },
       Object {
         "constraints": Object {
@@ -5206,7 +5206,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -5214,7 +5214,7 @@ Object {
             "name": "create",
           },
         ],
-        "name": "UserCreateOrConnectWithoutPostInput",
+        "name": "UserCreateOrConnectWithoutpostsInput",
       },
       Object {
         "constraints": Object {
@@ -5240,7 +5240,7 @@ Object {
             "name": "email",
           },
         ],
-        "name": "UserUpdateWithoutAuthorInput",
+        "name": "UserUpdateWithoutPostsInput",
       },
       Object {
         "constraints": Object {
@@ -5253,7 +5253,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserUpdateWithoutAuthorInput",
+                "type": "UserUpdateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -5265,7 +5265,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -5318,7 +5318,7 @@ Object {
             "name": "published",
           },
         ],
-        "name": "PostCreateWithoutPostsInput",
+        "name": "PostCreateWithoutAuthorInput",
       },
       Object {
         "constraints": Object {
@@ -5343,7 +5343,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -5351,7 +5351,7 @@ Object {
             "name": "create",
           },
         ],
-        "name": "PostCreateOrConnectWithoutUserInput",
+        "name": "PostCreateOrConnectWithoutauthorInput",
       },
       Object {
         "constraints": Object {
@@ -5376,7 +5376,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostUpdateWithoutPostsInput",
+                "type": "PostUpdateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -5570,7 +5570,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostUpdateWithoutPostsInput",
+                "type": "PostUpdateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -5582,7 +5582,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -5650,7 +5650,7 @@ Object {
             "name": "published",
           },
         ],
-        "name": "PostUpdateWithoutPostsInput",
+        "name": "PostUpdateWithoutAuthorInput",
       },
     ],
     "outputTypes": Array [
@@ -10975,7 +10975,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -10999,7 +10999,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateOrConnectWithoutPostInput",
+                "type": "UserCreateOrConnectWithoutpostsInput",
               },
             ],
             "isNullable": false,
@@ -11131,7 +11131,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -11155,7 +11155,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserUpdateWithoutAuthorInput",
+                "type": "UserUpdateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -11179,7 +11179,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateOrConnectWithoutPostInput",
+                "type": "UserCreateOrConnectWithoutpostsInput",
               },
             ],
             "isNullable": false,
@@ -11200,12 +11200,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -11234,12 +11234,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
             ],
             "isNullable": false,
@@ -11260,12 +11260,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -11413,12 +11413,12 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
               Object {
                 "isList": true,
                 "kind": "object",
-                "type": "PostCreateOrConnectWithoutUserInput",
+                "type": "PostCreateOrConnectWithoutauthorInput",
               },
             ],
             "isNullable": false,
@@ -11741,7 +11741,7 @@ Object {
             "name": "email",
           },
         ],
-        "name": "UserCreateWithoutAuthorInput",
+        "name": "UserCreateWithoutPostsInput",
       },
       Object {
         "constraints": Object {
@@ -11766,7 +11766,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -11774,7 +11774,7 @@ Object {
             "name": "create",
           },
         ],
-        "name": "UserCreateOrConnectWithoutPostInput",
+        "name": "UserCreateOrConnectWithoutpostsInput",
       },
       Object {
         "constraints": Object {
@@ -11800,7 +11800,7 @@ Object {
             "name": "email",
           },
         ],
-        "name": "UserUpdateWithoutAuthorInput",
+        "name": "UserUpdateWithoutPostsInput",
       },
       Object {
         "constraints": Object {
@@ -11813,7 +11813,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserUpdateWithoutAuthorInput",
+                "type": "UserUpdateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -11825,7 +11825,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "UserCreateWithoutAuthorInput",
+                "type": "UserCreateWithoutPostsInput",
               },
             ],
             "isNullable": false,
@@ -11878,7 +11878,7 @@ Object {
             "name": "published",
           },
         ],
-        "name": "PostCreateWithoutPostsInput",
+        "name": "PostCreateWithoutAuthorInput",
       },
       Object {
         "constraints": Object {
@@ -11903,7 +11903,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -11911,7 +11911,7 @@ Object {
             "name": "create",
           },
         ],
-        "name": "PostCreateOrConnectWithoutUserInput",
+        "name": "PostCreateOrConnectWithoutauthorInput",
       },
       Object {
         "constraints": Object {
@@ -11936,7 +11936,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostUpdateWithoutPostsInput",
+                "type": "PostUpdateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -12130,7 +12130,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostUpdateWithoutPostsInput",
+                "type": "PostUpdateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -12142,7 +12142,7 @@ Object {
               Object {
                 "isList": false,
                 "kind": "object",
-                "type": "PostCreateWithoutPostsInput",
+                "type": "PostCreateWithoutAuthorInput",
               },
             ],
             "isNullable": false,
@@ -12210,7 +12210,7 @@ Object {
             "name": "published",
           },
         ],
-        "name": "PostUpdateWithoutPostsInput",
+        "name": "PostUpdateWithoutAuthorInput",
       },
     ],
     "outputTypes": Array [
@@ -15067,9 +15067,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `62581287`;
 
-exports[`getDMMF chinook introspected schema 1`] = `359691`;
+exports[`getDMMF chinook introspected schema 1`] = `389835`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `359691`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `389835`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing

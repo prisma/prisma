@@ -5318,13 +5318,13 @@ export type A = {
   name: string | null
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 
@@ -5351,37 +5351,37 @@ export type AAvgAggregateOutputType = {
 export type ASumAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 export type AMinAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 export type AMaxAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 
@@ -8018,13 +8018,13 @@ export type AWhereInput = {
   name?: StringNullableFilter | string | null
   int?: IntFilter | number
   sInt?: IntFilter | number
-  bInt?: IntFilter | number
+  bInt?: BigIntFilter | BigInt
   serial?: IntFilter | number
   sSerial?: IntFilter | number
   bSerial?: IntFilter | number
   inc_int?: IntFilter | number
   inc_sInt?: IntFilter | number
-  inc_bInt?: IntFilter | number
+  inc_bInt?: BigIntFilter | BigInt
 }
 
 export type AOrderByInput = {
@@ -8882,13 +8882,13 @@ export type ACreateInput = {
   name?: string | null
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial?: number
   sSerial?: number
   bSerial?: number
   inc_int?: number
   inc_sInt?: number
-  inc_bInt?: number
+  inc_bInt?: BigInt
 }
 
 export type AUncheckedCreateInput = {
@@ -8897,13 +8897,13 @@ export type AUncheckedCreateInput = {
   name?: string | null
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial?: number
   sSerial?: number
   bSerial?: number
   inc_int?: number
   inc_sInt?: number
-  inc_bInt?: number
+  inc_bInt?: BigInt
 }
 
 export type AUpdateInput = {
@@ -8912,13 +8912,13 @@ export type AUpdateInput = {
   name?: string | NullableStringFieldUpdateOperationsInput | null
   int?: number | IntFieldUpdateOperationsInput
   sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
+  bInt?: BigInt | BigIntFieldUpdateOperationsInput
   serial?: number | IntFieldUpdateOperationsInput
   sSerial?: number | IntFieldUpdateOperationsInput
   bSerial?: number | IntFieldUpdateOperationsInput
   inc_int?: number | IntFieldUpdateOperationsInput
   inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  inc_bInt?: BigInt | BigIntFieldUpdateOperationsInput
 }
 
 export type AUncheckedUpdateInput = {
@@ -8927,13 +8927,13 @@ export type AUncheckedUpdateInput = {
   name?: string | NullableStringFieldUpdateOperationsInput | null
   int?: number | IntFieldUpdateOperationsInput
   sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
+  bInt?: BigInt | BigIntFieldUpdateOperationsInput
   serial?: number | IntFieldUpdateOperationsInput
   sSerial?: number | IntFieldUpdateOperationsInput
   bSerial?: number | IntFieldUpdateOperationsInput
   inc_int?: number | IntFieldUpdateOperationsInput
   inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  inc_bInt?: BigInt | BigIntFieldUpdateOperationsInput
 }
 
 export type AUpdateManyMutationInput = {
@@ -8942,13 +8942,13 @@ export type AUpdateManyMutationInput = {
   name?: string | NullableStringFieldUpdateOperationsInput | null
   int?: number | IntFieldUpdateOperationsInput
   sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
+  bInt?: BigInt | BigIntFieldUpdateOperationsInput
   serial?: number | IntFieldUpdateOperationsInput
   sSerial?: number | IntFieldUpdateOperationsInput
   bSerial?: number | IntFieldUpdateOperationsInput
   inc_int?: number | IntFieldUpdateOperationsInput
   inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  inc_bInt?: BigInt | BigIntFieldUpdateOperationsInput
 }
 
 export type AUncheckedUpdateManyInput = {
@@ -8957,13 +8957,13 @@ export type AUncheckedUpdateManyInput = {
   name?: string | NullableStringFieldUpdateOperationsInput | null
   int?: number | IntFieldUpdateOperationsInput
   sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
+  bInt?: BigInt | BigIntFieldUpdateOperationsInput
   serial?: number | IntFieldUpdateOperationsInput
   sSerial?: number | IntFieldUpdateOperationsInput
   bSerial?: number | IntFieldUpdateOperationsInput
   inc_int?: number | IntFieldUpdateOperationsInput
   inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  inc_bInt?: BigInt | BigIntFieldUpdateOperationsInput
 }
 
 export type BCreateInput = {
@@ -9333,6 +9333,17 @@ export type OptionalSide1RelationFilter = {
   isNot?: OptionalSide1WhereInput | null
 }
 
+export type BigIntFilter = {
+  equals?: BigInt
+  in?: Enumerable<BigInt>
+  notIn?: Enumerable<BigInt>
+  lt?: BigInt
+  lte?: BigInt
+  gt?: BigInt
+  gte?: BigInt
+  not?: BigInt | NestedBigIntFilter
+}
+
 export type DecimalFilter = {
   equals?: Decimal
   in?: Enumerable<Decimal>
@@ -9350,9 +9361,9 @@ export type BytesFilter = {
 }
 
 export type UserCreateOneWithoutPostsInput = {
-  create?: UserCreateWithoutAuthorInput | UserUncheckedCreateWithoutPostsInput
+  create?: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput
   connect?: UserWhereUniqueInput
-  connectOrCreate?: UserCreateOrConnectWithoutPostInput
+  connectOrCreate?: UserCreateOrConnectWithoutpostsInput
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -9372,11 +9383,11 @@ export type BoolFieldUpdateOperationsInput = {
 }
 
 export type UserUpdateOneRequiredWithoutPostsInput = {
-  create?: UserCreateWithoutAuthorInput | UserUncheckedCreateWithoutPostsInput
+  create?: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput
   connect?: UserWhereUniqueInput
-  update?: UserUpdateWithoutAuthorInput | UserUncheckedUpdateWithoutAuthorInput
+  update?: UserUpdateWithoutPostsInput | UserUncheckedUpdateWithoutPostsInput
   upsert?: UserUpsertWithoutPostsInput
-  connectOrCreate?: UserCreateOrConnectWithoutPostInput
+  connectOrCreate?: UserCreateOrConnectWithoutpostsInput
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -9388,15 +9399,15 @@ export type IntFieldUpdateOperationsInput = {
 }
 
 export type PostCreateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutPostsInput | Enumerable<PostCreateWithoutPostsInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
   connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  connectOrCreate?: PostCreateOrConnectWithoutauthorInput | Enumerable<PostCreateOrConnectWithoutauthorInput>
 }
 
 export type PostUncheckedCreateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutPostsInput | Enumerable<PostCreateWithoutPostsInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
   connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  connectOrCreate?: PostCreateOrConnectWithoutauthorInput | Enumerable<PostCreateOrConnectWithoutauthorInput>
 }
 
 export type NullableIntFieldUpdateOperationsInput = {
@@ -9436,7 +9447,7 @@ export type NullableBoolFieldUpdateOperationsInput = {
 }
 
 export type PostUpdateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutPostsInput | Enumerable<PostCreateWithoutPostsInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
   connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
   set?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
   disconnect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
@@ -9445,11 +9456,11 @@ export type PostUpdateManyWithoutAuthorInput = {
   updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
   deleteMany?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
   upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  connectOrCreate?: PostCreateOrConnectWithoutauthorInput | Enumerable<PostCreateOrConnectWithoutauthorInput>
 }
 
 export type PostUncheckedUpdateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutPostsInput | Enumerable<PostCreateWithoutPostsInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
   connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
   set?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
   disconnect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
@@ -9458,17 +9469,17 @@ export type PostUncheckedUpdateManyWithoutAuthorInput = {
   updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
   deleteMany?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
   upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  connectOrCreate?: PostCreateOrConnectWithoutauthorInput | Enumerable<PostCreateOrConnectWithoutauthorInput>
 }
 
 export type NCreateManyWithoutMInput = {
-  create?: NCreateWithoutNInput | Enumerable<NCreateWithoutNInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
+  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
   connect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  connectOrCreate?: NCreateOrConnectWithoutMInput | Enumerable<NCreateOrConnectWithoutMInput>
+  connectOrCreate?: NCreateOrConnectWithoutmInput | Enumerable<NCreateOrConnectWithoutmInput>
 }
 
 export type NUpdateManyWithoutMInput = {
-  create?: NCreateWithoutNInput | Enumerable<NCreateWithoutNInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
+  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
   connect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
   set?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
   disconnect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
@@ -9477,17 +9488,17 @@ export type NUpdateManyWithoutMInput = {
   updateMany?: NUpdateManyWithWhereWithoutMInput | Enumerable<NUpdateManyWithWhereWithoutMInput>
   deleteMany?: NScalarWhereInput | Enumerable<NScalarWhereInput>
   upsert?: NUpsertWithWhereUniqueWithoutMInput | Enumerable<NUpsertWithWhereUniqueWithoutMInput>
-  connectOrCreate?: NCreateOrConnectWithoutMInput | Enumerable<NCreateOrConnectWithoutMInput>
+  connectOrCreate?: NCreateOrConnectWithoutmInput | Enumerable<NCreateOrConnectWithoutmInput>
 }
 
 export type MCreateManyWithoutNInput = {
-  create?: MCreateWithoutMInput | Enumerable<MCreateWithoutMInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
+  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
   connect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  connectOrCreate?: MCreateOrConnectWithoutNInput | Enumerable<MCreateOrConnectWithoutNInput>
+  connectOrCreate?: MCreateOrConnectWithoutnInput | Enumerable<MCreateOrConnectWithoutnInput>
 }
 
 export type MUpdateManyWithoutNInput = {
-  create?: MCreateWithoutMInput | Enumerable<MCreateWithoutMInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
+  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
   connect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
   set?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
   disconnect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
@@ -9496,23 +9507,23 @@ export type MUpdateManyWithoutNInput = {
   updateMany?: MUpdateManyWithWhereWithoutNInput | Enumerable<MUpdateManyWithWhereWithoutNInput>
   deleteMany?: MScalarWhereInput | Enumerable<MScalarWhereInput>
   upsert?: MUpsertWithWhereUniqueWithoutNInput | Enumerable<MUpsertWithWhereUniqueWithoutNInput>
-  connectOrCreate?: MCreateOrConnectWithoutNInput | Enumerable<MCreateOrConnectWithoutNInput>
+  connectOrCreate?: MCreateOrConnectWithoutnInput | Enumerable<MCreateOrConnectWithoutnInput>
 }
 
 export type ManyRequiredCreateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutManyInput | Enumerable<ManyRequiredCreateWithoutManyInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
   connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  connectOrCreate?: ManyRequiredCreateOrConnectWithoutoneInput | Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
 }
 
 export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutManyInput | Enumerable<ManyRequiredCreateWithoutManyInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
   connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  connectOrCreate?: ManyRequiredCreateOrConnectWithoutoneInput | Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
 }
 
 export type ManyRequiredUpdateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutManyInput | Enumerable<ManyRequiredCreateWithoutManyInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
   connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
   set?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
   disconnect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
@@ -9521,11 +9532,11 @@ export type ManyRequiredUpdateManyWithoutOneInput = {
   updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
   deleteMany?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
   upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  connectOrCreate?: ManyRequiredCreateOrConnectWithoutoneInput | Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
 }
 
 export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutManyInput | Enumerable<ManyRequiredCreateWithoutManyInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
   connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
   set?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
   disconnect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
@@ -9534,29 +9545,29 @@ export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
   updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
   deleteMany?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
   upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  connectOrCreate?: ManyRequiredCreateOrConnectWithoutoneInput | Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
 }
 
 export type OneOptionalCreateOneWithoutManyInput = {
-  create?: OneOptionalCreateWithoutOneInput | OneOptionalUncheckedCreateWithoutManyInput
+  create?: OneOptionalCreateWithoutManyInput | OneOptionalUncheckedCreateWithoutManyInput
   connect?: OneOptionalWhereUniqueInput
-  connectOrCreate?: OneOptionalCreateOrConnectWithoutManyRequiredInput
+  connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
 }
 
 export type OneOptionalUpdateOneWithoutManyInput = {
-  create?: OneOptionalCreateWithoutOneInput | OneOptionalUncheckedCreateWithoutManyInput
+  create?: OneOptionalCreateWithoutManyInput | OneOptionalUncheckedCreateWithoutManyInput
   connect?: OneOptionalWhereUniqueInput
   disconnect?: boolean
   delete?: boolean
-  update?: OneOptionalUpdateWithoutOneInput | OneOptionalUncheckedUpdateWithoutOneInput
+  update?: OneOptionalUpdateWithoutManyInput | OneOptionalUncheckedUpdateWithoutManyInput
   upsert?: OneOptionalUpsertWithoutManyInput
-  connectOrCreate?: OneOptionalCreateOrConnectWithoutManyRequiredInput
+  connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
 }
 
 export type OptionalSide2CreateOneWithoutOptiInput = {
   create?: OptionalSide2CreateWithoutOptiInput | OptionalSide2UncheckedCreateWithoutOptiInput
   connect?: OptionalSide2WhereUniqueInput
-  connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptionalSide1Input
+  connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide2UpdateOneWithoutOptiInput = {
@@ -9566,19 +9577,19 @@ export type OptionalSide2UpdateOneWithoutOptiInput = {
   delete?: boolean
   update?: OptionalSide2UpdateWithoutOptiInput | OptionalSide2UncheckedUpdateWithoutOptiInput
   upsert?: OptionalSide2UpsertWithoutOptiInput
-  connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptionalSide1Input
+  connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1CreateOneWithoutOptiInput = {
   create?: OptionalSide1CreateWithoutOptiInput | OptionalSide1UncheckedCreateWithoutOptiInput
   connect?: OptionalSide1WhereUniqueInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1UncheckedCreateOneWithoutOptiInput = {
   create?: OptionalSide1CreateWithoutOptiInput | OptionalSide1UncheckedCreateWithoutOptiInput
   connect?: OptionalSide1WhereUniqueInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1UpdateOneWithoutOptiInput = {
@@ -9588,7 +9599,7 @@ export type OptionalSide1UpdateOneWithoutOptiInput = {
   delete?: boolean
   update?: OptionalSide1UpdateWithoutOptiInput | OptionalSide1UncheckedUpdateWithoutOptiInput
   upsert?: OptionalSide1UpsertWithoutOptiInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
@@ -9598,7 +9609,15 @@ export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
   delete?: boolean
   update?: OptionalSide1UpdateWithoutOptiInput | OptionalSide1UncheckedUpdateWithoutOptiInput
   upsert?: OptionalSide1UpsertWithoutOptiInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+}
+
+export type BigIntFieldUpdateOperationsInput = {
+  set?: BigInt
+  increment?: BigInt
+  decrement?: BigInt
+  multiply?: BigInt
+  divide?: BigInt
 }
 
 export type DecimalFieldUpdateOperationsInput = {
@@ -9720,6 +9739,17 @@ export type NestedBoolNullableFilter = {
   not?: boolean | NestedBoolNullableFilter | null
 }
 
+export type NestedBigIntFilter = {
+  equals?: BigInt
+  in?: Enumerable<BigInt>
+  notIn?: Enumerable<BigInt>
+  lt?: BigInt
+  lte?: BigInt
+  gt?: BigInt
+  gte?: BigInt
+  not?: BigInt | NestedBigIntFilter
+}
+
 export type NestedDecimalFilter = {
   equals?: Decimal
   in?: Enumerable<Decimal>
@@ -9736,7 +9766,7 @@ export type NestedBytesFilter = {
   not?: Buffer | NestedBytesFilter
 }
 
-export type UserCreateWithoutAuthorInput = {
+export type UserCreateWithoutPostsInput = {
   email: string
   int: number
   optionalInt?: number | null
@@ -9769,12 +9799,12 @@ export type UserUncheckedCreateWithoutPostsInput = {
   optionalBoolean?: boolean | null
 }
 
-export type UserCreateOrConnectWithoutPostInput = {
+export type UserCreateOrConnectWithoutpostsInput = {
   where: UserWhereUniqueInput
-  create: UserCreateWithoutAuthorInput | UserUncheckedCreateWithoutPostsInput
+  create: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput
 }
 
-export type UserUpdateWithoutAuthorInput = {
+export type UserUpdateWithoutPostsInput = {
   email?: string | StringFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -9790,7 +9820,7 @@ export type UserUpdateWithoutAuthorInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type UserUncheckedUpdateWithoutAuthorInput = {
+export type UserUncheckedUpdateWithoutPostsInput = {
   id?: number | IntFieldUpdateOperationsInput
   email?: string | StringFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
@@ -9808,11 +9838,11 @@ export type UserUncheckedUpdateWithoutAuthorInput = {
 }
 
 export type UserUpsertWithoutPostsInput = {
-  update: UserUpdateWithoutAuthorInput | UserUncheckedUpdateWithoutAuthorInput
-  create: UserCreateWithoutAuthorInput | UserUncheckedCreateWithoutPostsInput
+  update: UserUpdateWithoutPostsInput | UserUncheckedUpdateWithoutPostsInput
+  create: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput
 }
 
-export type PostCreateWithoutPostsInput = {
+export type PostCreateWithoutAuthorInput = {
   createdAt?: Date | string
   title: string
   content?: string | null
@@ -9827,14 +9857,14 @@ export type PostUncheckedCreateWithoutAuthorInput = {
   published?: boolean
 }
 
-export type PostCreateOrConnectWithoutUserInput = {
+export type PostCreateOrConnectWithoutauthorInput = {
   where: PostWhereUniqueInput
-  create: PostCreateWithoutPostsInput | PostUncheckedCreateWithoutAuthorInput
+  create: PostCreateWithoutAuthorInput | PostUncheckedCreateWithoutAuthorInput
 }
 
 export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
-  data: PostUpdateWithoutPostsInput | PostUncheckedUpdateWithoutPostsInput
+  data: PostUpdateWithoutAuthorInput | PostUncheckedUpdateWithoutAuthorInput
 }
 
 export type PostUpdateManyWithWhereWithoutAuthorInput = {
@@ -9856,11 +9886,11 @@ export type PostScalarWhereInput = {
 
 export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
-  update: PostUpdateWithoutPostsInput | PostUncheckedUpdateWithoutPostsInput
-  create: PostCreateWithoutPostsInput | PostUncheckedCreateWithoutAuthorInput
+  update: PostUpdateWithoutAuthorInput | PostUncheckedUpdateWithoutAuthorInput
+  create: PostCreateWithoutAuthorInput | PostUncheckedCreateWithoutAuthorInput
 }
 
-export type NCreateWithoutNInput = {
+export type NCreateWithoutMInput = {
   int: number
   optionalInt?: number | null
   float: number
@@ -9891,14 +9921,14 @@ export type NUncheckedCreateWithoutMInput = {
   optionalBoolean?: boolean | null
 }
 
-export type NCreateOrConnectWithoutMInput = {
+export type NCreateOrConnectWithoutmInput = {
   where: NWhereUniqueInput
-  create: NCreateWithoutNInput | NUncheckedCreateWithoutMInput
+  create: NCreateWithoutMInput | NUncheckedCreateWithoutMInput
 }
 
 export type NUpdateWithWhereUniqueWithoutMInput = {
   where: NWhereUniqueInput
-  data: NUpdateWithoutNInput | NUncheckedUpdateWithoutNInput
+  data: NUpdateWithoutMInput | NUncheckedUpdateWithoutMInput
 }
 
 export type NUpdateManyWithWhereWithoutMInput = {
@@ -9927,11 +9957,11 @@ export type NScalarWhereInput = {
 
 export type NUpsertWithWhereUniqueWithoutMInput = {
   where: NWhereUniqueInput
-  update: NUpdateWithoutNInput | NUncheckedUpdateWithoutNInput
-  create: NCreateWithoutNInput | NUncheckedCreateWithoutMInput
+  update: NUpdateWithoutMInput | NUncheckedUpdateWithoutMInput
+  create: NCreateWithoutMInput | NUncheckedCreateWithoutMInput
 }
 
-export type MCreateWithoutMInput = {
+export type MCreateWithoutNInput = {
   int: number
   optionalInt?: number | null
   float: number
@@ -9962,14 +9992,14 @@ export type MUncheckedCreateWithoutNInput = {
   optionalBoolean?: boolean | null
 }
 
-export type MCreateOrConnectWithoutNInput = {
+export type MCreateOrConnectWithoutnInput = {
   where: MWhereUniqueInput
-  create: MCreateWithoutMInput | MUncheckedCreateWithoutNInput
+  create: MCreateWithoutNInput | MUncheckedCreateWithoutNInput
 }
 
 export type MUpdateWithWhereUniqueWithoutNInput = {
   where: MWhereUniqueInput
-  data: MUpdateWithoutMInput | MUncheckedUpdateWithoutMInput
+  data: MUpdateWithoutNInput | MUncheckedUpdateWithoutNInput
 }
 
 export type MUpdateManyWithWhereWithoutNInput = {
@@ -9998,11 +10028,11 @@ export type MScalarWhereInput = {
 
 export type MUpsertWithWhereUniqueWithoutNInput = {
   where: MWhereUniqueInput
-  update: MUpdateWithoutMInput | MUncheckedUpdateWithoutMInput
-  create: MCreateWithoutMInput | MUncheckedCreateWithoutNInput
+  update: MUpdateWithoutNInput | MUncheckedUpdateWithoutNInput
+  create: MCreateWithoutNInput | MUncheckedCreateWithoutNInput
 }
 
-export type ManyRequiredCreateWithoutManyInput = {
+export type ManyRequiredCreateWithoutOneInput = {
   int: number
   optionalInt?: number | null
   float: number
@@ -10033,14 +10063,14 @@ export type ManyRequiredUncheckedCreateWithoutOneInput = {
   optionalBoolean?: boolean | null
 }
 
-export type ManyRequiredCreateOrConnectWithoutOneOptionalInput = {
+export type ManyRequiredCreateOrConnectWithoutoneInput = {
   where: ManyRequiredWhereUniqueInput
-  create: ManyRequiredCreateWithoutManyInput | ManyRequiredUncheckedCreateWithoutOneInput
+  create: ManyRequiredCreateWithoutOneInput | ManyRequiredUncheckedCreateWithoutOneInput
 }
 
 export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
   where: ManyRequiredWhereUniqueInput
-  data: ManyRequiredUpdateWithoutManyInput | ManyRequiredUncheckedUpdateWithoutManyInput
+  data: ManyRequiredUpdateWithoutOneInput | ManyRequiredUncheckedUpdateWithoutOneInput
 }
 
 export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
@@ -10070,11 +10100,11 @@ export type ManyRequiredScalarWhereInput = {
 
 export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
   where: ManyRequiredWhereUniqueInput
-  update: ManyRequiredUpdateWithoutManyInput | ManyRequiredUncheckedUpdateWithoutManyInput
-  create: ManyRequiredCreateWithoutManyInput | ManyRequiredUncheckedCreateWithoutOneInput
+  update: ManyRequiredUpdateWithoutOneInput | ManyRequiredUncheckedUpdateWithoutOneInput
+  create: ManyRequiredCreateWithoutOneInput | ManyRequiredUncheckedCreateWithoutOneInput
 }
 
-export type OneOptionalCreateWithoutOneInput = {
+export type OneOptionalCreateWithoutManyInput = {
   int: number
   optionalInt?: number | null
   float: number
@@ -10105,12 +10135,12 @@ export type OneOptionalUncheckedCreateWithoutManyInput = {
   optionalBoolean?: boolean | null
 }
 
-export type OneOptionalCreateOrConnectWithoutManyRequiredInput = {
+export type OneOptionalCreateOrConnectWithoutmanyInput = {
   where: OneOptionalWhereUniqueInput
-  create: OneOptionalCreateWithoutOneInput | OneOptionalUncheckedCreateWithoutManyInput
+  create: OneOptionalCreateWithoutManyInput | OneOptionalUncheckedCreateWithoutManyInput
 }
 
-export type OneOptionalUpdateWithoutOneInput = {
+export type OneOptionalUpdateWithoutManyInput = {
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
   float?: number | FloatFieldUpdateOperationsInput
@@ -10125,7 +10155,7 @@ export type OneOptionalUpdateWithoutOneInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type OneOptionalUncheckedUpdateWithoutOneInput = {
+export type OneOptionalUncheckedUpdateWithoutManyInput = {
   id?: number | IntFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10142,8 +10172,8 @@ export type OneOptionalUncheckedUpdateWithoutOneInput = {
 }
 
 export type OneOptionalUpsertWithoutManyInput = {
-  update: OneOptionalUpdateWithoutOneInput | OneOptionalUncheckedUpdateWithoutOneInput
-  create: OneOptionalCreateWithoutOneInput | OneOptionalUncheckedCreateWithoutManyInput
+  update: OneOptionalUpdateWithoutManyInput | OneOptionalUncheckedUpdateWithoutManyInput
+  create: OneOptionalCreateWithoutManyInput | OneOptionalUncheckedCreateWithoutManyInput
 }
 
 export type OptionalSide2CreateWithoutOptiInput = {
@@ -10177,7 +10207,7 @@ export type OptionalSide2UncheckedCreateWithoutOptiInput = {
   optionalBoolean?: boolean | null
 }
 
-export type OptionalSide2CreateOrConnectWithoutOptionalSide1Input = {
+export type OptionalSide2CreateOrConnectWithoutoptiInput = {
   where: OptionalSide2WhereUniqueInput
   create: OptionalSide2CreateWithoutOptiInput | OptionalSide2UncheckedCreateWithoutOptiInput
 }
@@ -10249,7 +10279,7 @@ export type OptionalSide1UncheckedCreateWithoutOptiInput = {
   optionalBoolean?: boolean | null
 }
 
-export type OptionalSide1CreateOrConnectWithoutOptionalSide2Input = {
+export type OptionalSide1CreateOrConnectWithoutoptiInput = {
   where: OptionalSide1WhereUniqueInput
   create: OptionalSide1CreateWithoutOptiInput | OptionalSide1UncheckedCreateWithoutOptiInput
 }
@@ -10290,14 +10320,14 @@ export type OptionalSide1UpsertWithoutOptiInput = {
   create: OptionalSide1CreateWithoutOptiInput | OptionalSide1UncheckedCreateWithoutOptiInput
 }
 
-export type PostUpdateWithoutPostsInput = {
+export type PostUpdateWithoutAuthorInput = {
   createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
   title?: string | StringFieldUpdateOperationsInput
   content?: string | NullableStringFieldUpdateOperationsInput | null
   published?: boolean | BoolFieldUpdateOperationsInput
 }
 
-export type PostUncheckedUpdateWithoutPostsInput = {
+export type PostUncheckedUpdateWithoutAuthorInput = {
   id?: number | IntFieldUpdateOperationsInput
   createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
   title?: string | StringFieldUpdateOperationsInput
@@ -10313,7 +10343,7 @@ export type PostUncheckedUpdateManyWithoutPostsInput = {
   published?: boolean | BoolFieldUpdateOperationsInput
 }
 
-export type NUpdateWithoutNInput = {
+export type NUpdateWithoutMInput = {
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
   float?: number | FloatFieldUpdateOperationsInput
@@ -10328,7 +10358,7 @@ export type NUpdateWithoutNInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type NUncheckedUpdateWithoutNInput = {
+export type NUncheckedUpdateWithoutMInput = {
   id?: number | IntFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10360,7 +10390,7 @@ export type NUncheckedUpdateManyWithoutNInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type MUpdateWithoutMInput = {
+export type MUpdateWithoutNInput = {
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
   float?: number | FloatFieldUpdateOperationsInput
@@ -10375,7 +10405,7 @@ export type MUpdateWithoutMInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type MUncheckedUpdateWithoutMInput = {
+export type MUncheckedUpdateWithoutNInput = {
   id?: number | IntFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10407,7 +10437,7 @@ export type MUncheckedUpdateManyWithoutMInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type ManyRequiredUpdateWithoutManyInput = {
+export type ManyRequiredUpdateWithoutOneInput = {
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
   float?: number | FloatFieldUpdateOperationsInput
@@ -10422,7 +10452,7 @@ export type ManyRequiredUpdateWithoutManyInput = {
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type ManyRequiredUncheckedUpdateWithoutManyInput = {
+export type ManyRequiredUncheckedUpdateWithoutOneInput = {
   id?: number | IntFieldUpdateOperationsInput
   int?: number | IntFieldUpdateOperationsInput
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null

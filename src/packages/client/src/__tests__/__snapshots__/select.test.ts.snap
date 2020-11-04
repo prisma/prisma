@@ -349,14 +349,14 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   content?: String | null,
 ?   optionnal?: Float | null,
 ?   author?: {
-?     create?: UserCreateWithoutAuthorInput,
+?     create?: UserCreateWithoutPostsInput,
 ?     connect?: UserWhereUniqueInput,
-?     connectOrCreate?: UserCreateOrConnectWithoutPostInput
+?     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
 ?   },
 ?   categories?: {
-?     create?: CategoryCreateWithoutCategoriesInput | CategoryCreateWithoutCategoriesInput,
+?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
 ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
+?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
 ?   }
   }
 }
@@ -408,9 +408,9 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   content?: String | null,
 ?   optionnal?: Float | null,
 ?   categories?: {
-?     create?: CategoryCreateWithoutCategoriesInput | CategoryCreateWithoutCategoriesInput,
+?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
 ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
+?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
 ?   }
   }
 }

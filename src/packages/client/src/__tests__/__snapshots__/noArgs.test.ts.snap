@@ -77,9 +77,9 @@ Invalid \`prisma.user()\` invocation:
 {
   data: {
     likedArticles: {
-?     create?: ArticleCreateWithoutLikedArticlesInput | ArticleCreateWithoutLikedArticlesInput[],
+?     create?: ArticleCreateWithoutLikedByInput | ArticleCreateWithoutLikedByInput[],
 ?     connect?: ArticleWhereUniqueInput | ArticleWhereUniqueInput[],
-?     connectOrCreate?: ArticleCreateOrConnectWithoutUserInput | ArticleCreateOrConnectWithoutUserInput[]
+?     connectOrCreate?: ArticleCreateOrConnectWithoutlikedByInput | ArticleCreateOrConnectWithoutlikedByInput[]
     }
   }
 }

@@ -46,16 +46,16 @@ describe('select validation', () => {
         ?   content?: String | NullableStringFieldUpdateOperationsInput | null,
         ?   optionnal?: Float | NullableFloatFieldUpdateOperationsInput | null,
         ?   author?: {
-        ?     create?: UserCreateWithoutAuthorInput,
+        ?     create?: UserCreateWithoutPostsInput,
         ?     connect?: UserWhereUniqueInput,
         ?     disconnect?: Boolean,
         ?     delete?: Boolean,
-        ?     update?: UserUpdateWithoutAuthorInput,
+        ?     update?: UserUpdateWithoutPostsInput,
         ?     upsert?: UserUpsertWithoutPostsInput,
-        ?     connectOrCreate?: UserCreateOrConnectWithoutPostInput
+        ?     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
         ?   },
         ?   categories?: {
-        ?     create?: CategoryCreateWithoutCategoriesInput | CategoryCreateWithoutCategoriesInput,
+        ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
         ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     set?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
         ?     disconnect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
@@ -64,7 +64,7 @@ describe('select validation', () => {
         ?     updateMany?: CategoryUpdateManyWithWhereWithoutPostsInput | CategoryUpdateManyWithWhereWithoutPostsInput,
         ?     deleteMany?: CategoryScalarWhereInput | CategoryScalarWhereInput,
         ?     upsert?: CategoryUpsertWithWhereUniqueWithoutPostsInput | CategoryUpsertWithWhereUniqueWithoutPostsInput,
-        ?     connectOrCreate?: CategoryCreateOrConnectWithoutPostInput | CategoryCreateOrConnectWithoutPostInput
+        ?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
         ?   }
           },
           where: {
@@ -100,20 +100,20 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-                                Invalid \`prisma.createOnePost()\` invocation:
+                                        Invalid \`prisma.createOnePost()\` invocation:
 
-                                {
-                                  data: {
-                                    published: true,
-                                    title: null
-                                           ~~~~
-                                  }
-                                }
+                                        {
+                                          data: {
+                                            published: true,
+                                            title: null
+                                                   ~~~~
+                                          }
+                                        }
 
-                                Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
+                                        Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
 
 
-                        `)
+                              `)
     }
   })
 })
