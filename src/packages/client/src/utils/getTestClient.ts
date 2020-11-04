@@ -6,6 +6,7 @@ import {
   extractPreviewFeatures,
   mapPreviewFeatures,
   getEnvPaths,
+  printConfigWarnings,
 } from '@prisma/sdk'
 import { getDMMF } from '../generation/getDMMF'
 import { promisify } from 'util'
@@ -21,7 +22,7 @@ const readFile = promisify(fs.readFile)
 /**
  * Returns an in-memory client for testing
  */
-export async function getTestClient(schemaDir?: string): Promise<any> {
+export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
   if (!schemaDir) {
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
@@ -29,6 +30,9 @@ export async function getTestClient(schemaDir?: string): Promise<any> {
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  if (printWarnings) {
+    printConfigWarnings(config.warnings)
+  }
 
   const generator = config.generators.find(
     (g) => g.provider === 'prisma-client-js',

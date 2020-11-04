@@ -1,0 +1,26 @@
+dependencies:
+  '@prisma/engines': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+devDependencies:
+  '@prisma/client': 'link:../client'
+  '@prisma/debug': 'link:../debug'
+  '@prisma/generator-helper': 'link:../generator-helper'
+  '@prisma/get-platform': 'link:../get-platform'
+  '@prisma/migrate': 'link:../migrate'
+  '@prisma/sdk': 'link:../sdk'
+  '@prisma/tests': 'link:../tests'
+lockfileVersion: 5.2
+packages:
+  /@prisma/engines/2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90:
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-PFTEd14kHR9QEwqQZeJqDhVjDaFLXaLgmxA7fZrGXOGR61laTyBtPci8PgbT6rQfm/Ah2pmXVo/2vrfU6QrBJQ==
+specifiers:
+  '@prisma/client': 'workspace:*'
+  '@prisma/debug': 'workspace:*'
+  '@prisma/engines': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+  '@prisma/generator-helper': 'workspace:*'
+  '@prisma/get-platform': 'workspace:*'
+  '@prisma/migrate': 'workspace:*'
+  '@prisma/sdk': 'workspace:*'
+  '@prisma/tests': 'workspace:^0.0.0'

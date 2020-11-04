@@ -123,6 +123,14 @@ export declare type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
 export declare type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
+
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+/**
+ * XOR is needed to have a real mutually exclusive union type
+ * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
+ */
+type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+
 declare class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
@@ -821,7 +829,7 @@ export type PostMaxAggregateInputType = {
 
 export type AggregatePostArgs = {
   where?: PostWhereInput
-  orderBy?: Enumerable<PostOrderByInput> | PostOrderByInput
+  orderBy?: XOR<Enumerable<PostOrderByInput>, PostOrderByInput>
   cursor?: PostWhereUniqueInput
   take?: number
   skip?: number
@@ -1096,11 +1104,11 @@ export type FindOnePostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * Filter, which Post to fetch.
   **/
@@ -1115,16 +1123,16 @@ export type FindFirstPostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * Filter, which Post to fetch.
   **/
   where?: PostWhereInput
-  orderBy?: Enumerable<PostOrderByInput> | PostOrderByInput
+  orderBy?: XOR<Enumerable<PostOrderByInput>, PostOrderByInput>
   cursor?: PostWhereUniqueInput
   take?: number
   skip?: number
@@ -1139,11 +1147,11 @@ export type FindManyPostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * Filter, which Posts to fetch.
   **/
@@ -1151,7 +1159,7 @@ export type FindManyPostArgs = {
   /**
    * Determine the order of the Posts to fetch.
   **/
-  orderBy?: Enumerable<PostOrderByInput> | PostOrderByInput
+  orderBy?: XOR<Enumerable<PostOrderByInput>, PostOrderByInput>
   /**
    * Sets the position for listing Posts.
   **/
@@ -1175,15 +1183,15 @@ export type PostCreateArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * The data needed to create a Post.
   **/
-  data: PostCreateInput
+  data: XOR<PostCreateInput, PostUncheckedCreateInput>
 }
 
 
@@ -1194,15 +1202,15 @@ export type PostUpdateArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * The data needed to update a Post.
   **/
-  data: PostUpdateInput
+  data: XOR<PostUpdateInput, PostUncheckedUpdateInput>
   /**
    * Choose, which Post to update.
   **/
@@ -1214,7 +1222,7 @@ export type PostUpdateArgs = {
  * Post updateMany
  */
 export type PostUpdateManyArgs = {
-  data: PostUpdateManyMutationInput
+  data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyInput>
   where?: PostWhereInput
 }
 
@@ -1226,11 +1234,11 @@ export type PostUpsertArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * The filter to search for the Post to update in case it exists.
   **/
@@ -1238,11 +1246,11 @@ export type PostUpsertArgs = {
   /**
    * In case the Post found by the \`where\` argument doesn't exist, create a new Post with this data.
   **/
-  create: PostCreateInput
+  create: XOR<PostCreateInput, PostUncheckedCreateInput>
   /**
    * In case the Post was found with the provided \`where\` argument, update it with this data.
   **/
-  update: PostUpdateInput
+  update: XOR<PostUpdateInput, PostUncheckedUpdateInput>
 }
 
 
@@ -1253,11 +1261,11 @@ export type PostDeleteArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
   /**
    * Filter which Post to delete.
   **/
@@ -1280,11 +1288,11 @@ export type PostArgs = {
   /**
    * Select specific fields to fetch from the Post
   **/
-  select?: PostSelect | null
+  select?: XOR<PostSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: PostInclude | null
+  include?: XOR<PostInclude, null>
 }
 
 
@@ -1386,7 +1394,7 @@ export type UserMaxAggregateInputType = {
 
 export type AggregateUserArgs = {
   where?: UserWhereInput
-  orderBy?: Enumerable<UserOrderByInput> | UserOrderByInput
+  orderBy?: XOR<Enumerable<UserOrderByInput>, UserOrderByInput>
   cursor?: UserWhereUniqueInput
   take?: number
   skip?: number
@@ -1669,11 +1677,11 @@ export type FindOneUserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * Filter, which User to fetch.
   **/
@@ -1688,16 +1696,16 @@ export type FindFirstUserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * Filter, which User to fetch.
   **/
   where?: UserWhereInput
-  orderBy?: Enumerable<UserOrderByInput> | UserOrderByInput
+  orderBy?: XOR<Enumerable<UserOrderByInput>, UserOrderByInput>
   cursor?: UserWhereUniqueInput
   take?: number
   skip?: number
@@ -1712,11 +1720,11 @@ export type FindManyUserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * Filter, which Users to fetch.
   **/
@@ -1724,7 +1732,7 @@ export type FindManyUserArgs = {
   /**
    * Determine the order of the Users to fetch.
   **/
-  orderBy?: Enumerable<UserOrderByInput> | UserOrderByInput
+  orderBy?: XOR<Enumerable<UserOrderByInput>, UserOrderByInput>
   /**
    * Sets the position for listing Users.
   **/
@@ -1748,15 +1756,15 @@ export type UserCreateArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * The data needed to create a User.
   **/
-  data: UserCreateInput
+  data: XOR<UserCreateInput, UserUncheckedCreateInput>
 }
 
 
@@ -1767,15 +1775,15 @@ export type UserUpdateArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * The data needed to update a User.
   **/
-  data: UserUpdateInput
+  data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
   /**
    * Choose, which User to update.
   **/
@@ -1787,7 +1795,7 @@ export type UserUpdateArgs = {
  * User updateMany
  */
 export type UserUpdateManyArgs = {
-  data: UserUpdateManyMutationInput
+  data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
   where?: UserWhereInput
 }
 
@@ -1799,11 +1807,11 @@ export type UserUpsertArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * The filter to search for the User to update in case it exists.
   **/
@@ -1811,11 +1819,11 @@ export type UserUpsertArgs = {
   /**
    * In case the User found by the \`where\` argument doesn't exist, create a new User with this data.
   **/
-  create: UserCreateInput
+  create: XOR<UserCreateInput, UserUncheckedCreateInput>
   /**
    * In case the User was found with the provided \`where\` argument, update it with this data.
   **/
-  update: UserUpdateInput
+  update: XOR<UserUpdateInput, UserUncheckedUpdateInput>
 }
 
 
@@ -1826,11 +1834,11 @@ export type UserDeleteArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
   /**
    * Filter which User to delete.
   **/
@@ -1853,11 +1861,11 @@ export type UserArgs = {
   /**
    * Select specific fields to fetch from the User
   **/
-  select?: UserSelect | null
+  select?: XOR<UserSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: UserInclude | null
+  include?: XOR<UserInclude, null>
 }
 
 
@@ -1958,7 +1966,7 @@ export type MMaxAggregateInputType = {
 
 export type AggregateMArgs = {
   where?: MWhereInput
-  orderBy?: Enumerable<MOrderByInput> | MOrderByInput
+  orderBy?: XOR<Enumerable<MOrderByInput>, MOrderByInput>
   cursor?: MWhereUniqueInput
   take?: number
   skip?: number
@@ -2240,11 +2248,11 @@ export type FindOneMArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * Filter, which M to fetch.
   **/
@@ -2259,16 +2267,16 @@ export type FindFirstMArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * Filter, which M to fetch.
   **/
   where?: MWhereInput
-  orderBy?: Enumerable<MOrderByInput> | MOrderByInput
+  orderBy?: XOR<Enumerable<MOrderByInput>, MOrderByInput>
   cursor?: MWhereUniqueInput
   take?: number
   skip?: number
@@ -2283,11 +2291,11 @@ export type FindManyMArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * Filter, which MS to fetch.
   **/
@@ -2295,7 +2303,7 @@ export type FindManyMArgs = {
   /**
    * Determine the order of the MS to fetch.
   **/
-  orderBy?: Enumerable<MOrderByInput> | MOrderByInput
+  orderBy?: XOR<Enumerable<MOrderByInput>, MOrderByInput>
   /**
    * Sets the position for listing MS.
   **/
@@ -2319,15 +2327,15 @@ export type MCreateArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * The data needed to create a M.
   **/
-  data: MCreateInput
+  data: XOR<MCreateInput, MUncheckedCreateInput>
 }
 
 
@@ -2338,15 +2346,15 @@ export type MUpdateArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * The data needed to update a M.
   **/
-  data: MUpdateInput
+  data: XOR<MUpdateInput, MUncheckedUpdateInput>
   /**
    * Choose, which M to update.
   **/
@@ -2358,7 +2366,7 @@ export type MUpdateArgs = {
  * M updateMany
  */
 export type MUpdateManyArgs = {
-  data: MUpdateManyMutationInput
+  data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyInput>
   where?: MWhereInput
 }
 
@@ -2370,11 +2378,11 @@ export type MUpsertArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * The filter to search for the M to update in case it exists.
   **/
@@ -2382,11 +2390,11 @@ export type MUpsertArgs = {
   /**
    * In case the M found by the \`where\` argument doesn't exist, create a new M with this data.
   **/
-  create: MCreateInput
+  create: XOR<MCreateInput, MUncheckedCreateInput>
   /**
    * In case the M was found with the provided \`where\` argument, update it with this data.
   **/
-  update: MUpdateInput
+  update: XOR<MUpdateInput, MUncheckedUpdateInput>
 }
 
 
@@ -2397,11 +2405,11 @@ export type MDeleteArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
   /**
    * Filter which M to delete.
   **/
@@ -2424,11 +2432,11 @@ export type MArgs = {
   /**
    * Select specific fields to fetch from the M
   **/
-  select?: MSelect | null
+  select?: XOR<MSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: MInclude | null
+  include?: XOR<MInclude, null>
 }
 
 
@@ -2529,7 +2537,7 @@ export type NMaxAggregateInputType = {
 
 export type AggregateNArgs = {
   where?: NWhereInput
-  orderBy?: Enumerable<NOrderByInput> | NOrderByInput
+  orderBy?: XOR<Enumerable<NOrderByInput>, NOrderByInput>
   cursor?: NWhereUniqueInput
   take?: number
   skip?: number
@@ -2811,11 +2819,11 @@ export type FindOneNArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * Filter, which N to fetch.
   **/
@@ -2830,16 +2838,16 @@ export type FindFirstNArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * Filter, which N to fetch.
   **/
   where?: NWhereInput
-  orderBy?: Enumerable<NOrderByInput> | NOrderByInput
+  orderBy?: XOR<Enumerable<NOrderByInput>, NOrderByInput>
   cursor?: NWhereUniqueInput
   take?: number
   skip?: number
@@ -2854,11 +2862,11 @@ export type FindManyNArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * Filter, which NS to fetch.
   **/
@@ -2866,7 +2874,7 @@ export type FindManyNArgs = {
   /**
    * Determine the order of the NS to fetch.
   **/
-  orderBy?: Enumerable<NOrderByInput> | NOrderByInput
+  orderBy?: XOR<Enumerable<NOrderByInput>, NOrderByInput>
   /**
    * Sets the position for listing NS.
   **/
@@ -2890,15 +2898,15 @@ export type NCreateArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * The data needed to create a N.
   **/
-  data: NCreateInput
+  data: XOR<NCreateInput, NUncheckedCreateInput>
 }
 
 
@@ -2909,15 +2917,15 @@ export type NUpdateArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * The data needed to update a N.
   **/
-  data: NUpdateInput
+  data: XOR<NUpdateInput, NUncheckedUpdateInput>
   /**
    * Choose, which N to update.
   **/
@@ -2929,7 +2937,7 @@ export type NUpdateArgs = {
  * N updateMany
  */
 export type NUpdateManyArgs = {
-  data: NUpdateManyMutationInput
+  data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyInput>
   where?: NWhereInput
 }
 
@@ -2941,11 +2949,11 @@ export type NUpsertArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * The filter to search for the N to update in case it exists.
   **/
@@ -2953,11 +2961,11 @@ export type NUpsertArgs = {
   /**
    * In case the N found by the \`where\` argument doesn't exist, create a new N with this data.
   **/
-  create: NCreateInput
+  create: XOR<NCreateInput, NUncheckedCreateInput>
   /**
    * In case the N was found with the provided \`where\` argument, update it with this data.
   **/
-  update: NUpdateInput
+  update: XOR<NUpdateInput, NUncheckedUpdateInput>
 }
 
 
@@ -2968,11 +2976,11 @@ export type NDeleteArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
   /**
    * Filter which N to delete.
   **/
@@ -2995,11 +3003,11 @@ export type NArgs = {
   /**
    * Select specific fields to fetch from the N
   **/
-  select?: NSelect | null
+  select?: XOR<NSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: NInclude | null
+  include?: XOR<NInclude, null>
 }
 
 
@@ -3100,7 +3108,7 @@ export type OneOptionalMaxAggregateInputType = {
 
 export type AggregateOneOptionalArgs = {
   where?: OneOptionalWhereInput
-  orderBy?: Enumerable<OneOptionalOrderByInput> | OneOptionalOrderByInput
+  orderBy?: XOR<Enumerable<OneOptionalOrderByInput>, OneOptionalOrderByInput>
   cursor?: OneOptionalWhereUniqueInput
   take?: number
   skip?: number
@@ -3382,11 +3390,11 @@ export type FindOneOneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * Filter, which OneOptional to fetch.
   **/
@@ -3401,16 +3409,16 @@ export type FindFirstOneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * Filter, which OneOptional to fetch.
   **/
   where?: OneOptionalWhereInput
-  orderBy?: Enumerable<OneOptionalOrderByInput> | OneOptionalOrderByInput
+  orderBy?: XOR<Enumerable<OneOptionalOrderByInput>, OneOptionalOrderByInput>
   cursor?: OneOptionalWhereUniqueInput
   take?: number
   skip?: number
@@ -3425,11 +3433,11 @@ export type FindManyOneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * Filter, which OneOptionals to fetch.
   **/
@@ -3437,7 +3445,7 @@ export type FindManyOneOptionalArgs = {
   /**
    * Determine the order of the OneOptionals to fetch.
   **/
-  orderBy?: Enumerable<OneOptionalOrderByInput> | OneOptionalOrderByInput
+  orderBy?: XOR<Enumerable<OneOptionalOrderByInput>, OneOptionalOrderByInput>
   /**
    * Sets the position for listing OneOptionals.
   **/
@@ -3461,15 +3469,15 @@ export type OneOptionalCreateArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * The data needed to create a OneOptional.
   **/
-  data: OneOptionalCreateInput
+  data: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
 }
 
 
@@ -3480,15 +3488,15 @@ export type OneOptionalUpdateArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * The data needed to update a OneOptional.
   **/
-  data: OneOptionalUpdateInput
+  data: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
   /**
    * Choose, which OneOptional to update.
   **/
@@ -3500,7 +3508,7 @@ export type OneOptionalUpdateArgs = {
  * OneOptional updateMany
  */
 export type OneOptionalUpdateManyArgs = {
-  data: OneOptionalUpdateManyMutationInput
+  data: XOR<OneOptionalUpdateManyMutationInput, OneOptionalUncheckedUpdateManyInput>
   where?: OneOptionalWhereInput
 }
 
@@ -3512,11 +3520,11 @@ export type OneOptionalUpsertArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * The filter to search for the OneOptional to update in case it exists.
   **/
@@ -3524,11 +3532,11 @@ export type OneOptionalUpsertArgs = {
   /**
    * In case the OneOptional found by the \`where\` argument doesn't exist, create a new OneOptional with this data.
   **/
-  create: OneOptionalCreateInput
+  create: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
   /**
    * In case the OneOptional was found with the provided \`where\` argument, update it with this data.
   **/
-  update: OneOptionalUpdateInput
+  update: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
 }
 
 
@@ -3539,11 +3547,11 @@ export type OneOptionalDeleteArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
   /**
    * Filter which OneOptional to delete.
   **/
@@ -3566,11 +3574,11 @@ export type OneOptionalArgs = {
   /**
    * Select specific fields to fetch from the OneOptional
   **/
-  select?: OneOptionalSelect | null
+  select?: XOR<OneOptionalSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OneOptionalInclude | null
+  include?: XOR<OneOptionalInclude, null>
 }
 
 
@@ -3680,7 +3688,7 @@ export type ManyRequiredMaxAggregateInputType = {
 
 export type AggregateManyRequiredArgs = {
   where?: ManyRequiredWhereInput
-  orderBy?: Enumerable<ManyRequiredOrderByInput> | ManyRequiredOrderByInput
+  orderBy?: XOR<Enumerable<ManyRequiredOrderByInput>, ManyRequiredOrderByInput>
   cursor?: ManyRequiredWhereUniqueInput
   take?: number
   skip?: number
@@ -3963,11 +3971,11 @@ export type FindOneManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * Filter, which ManyRequired to fetch.
   **/
@@ -3982,16 +3990,16 @@ export type FindFirstManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * Filter, which ManyRequired to fetch.
   **/
   where?: ManyRequiredWhereInput
-  orderBy?: Enumerable<ManyRequiredOrderByInput> | ManyRequiredOrderByInput
+  orderBy?: XOR<Enumerable<ManyRequiredOrderByInput>, ManyRequiredOrderByInput>
   cursor?: ManyRequiredWhereUniqueInput
   take?: number
   skip?: number
@@ -4006,11 +4014,11 @@ export type FindManyManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * Filter, which ManyRequireds to fetch.
   **/
@@ -4018,7 +4026,7 @@ export type FindManyManyRequiredArgs = {
   /**
    * Determine the order of the ManyRequireds to fetch.
   **/
-  orderBy?: Enumerable<ManyRequiredOrderByInput> | ManyRequiredOrderByInput
+  orderBy?: XOR<Enumerable<ManyRequiredOrderByInput>, ManyRequiredOrderByInput>
   /**
    * Sets the position for listing ManyRequireds.
   **/
@@ -4042,15 +4050,15 @@ export type ManyRequiredCreateArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * The data needed to create a ManyRequired.
   **/
-  data: ManyRequiredCreateInput
+  data: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
 }
 
 
@@ -4061,15 +4069,15 @@ export type ManyRequiredUpdateArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * The data needed to update a ManyRequired.
   **/
-  data: ManyRequiredUpdateInput
+  data: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
   /**
    * Choose, which ManyRequired to update.
   **/
@@ -4081,7 +4089,7 @@ export type ManyRequiredUpdateArgs = {
  * ManyRequired updateMany
  */
 export type ManyRequiredUpdateManyArgs = {
-  data: ManyRequiredUpdateManyMutationInput
+  data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyInput>
   where?: ManyRequiredWhereInput
 }
 
@@ -4093,11 +4101,11 @@ export type ManyRequiredUpsertArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * The filter to search for the ManyRequired to update in case it exists.
   **/
@@ -4105,11 +4113,11 @@ export type ManyRequiredUpsertArgs = {
   /**
    * In case the ManyRequired found by the \`where\` argument doesn't exist, create a new ManyRequired with this data.
   **/
-  create: ManyRequiredCreateInput
+  create: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
   /**
    * In case the ManyRequired was found with the provided \`where\` argument, update it with this data.
   **/
-  update: ManyRequiredUpdateInput
+  update: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
 }
 
 
@@ -4120,11 +4128,11 @@ export type ManyRequiredDeleteArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
   /**
    * Filter which ManyRequired to delete.
   **/
@@ -4147,11 +4155,11 @@ export type ManyRequiredArgs = {
   /**
    * Select specific fields to fetch from the ManyRequired
   **/
-  select?: ManyRequiredSelect | null
+  select?: XOR<ManyRequiredSelect, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: ManyRequiredInclude | null
+  include?: XOR<ManyRequiredInclude, null>
 }
 
 
@@ -4261,7 +4269,7 @@ export type OptionalSide1MaxAggregateInputType = {
 
 export type AggregateOptionalSide1Args = {
   where?: OptionalSide1WhereInput
-  orderBy?: Enumerable<OptionalSide1OrderByInput> | OptionalSide1OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide1OrderByInput>, OptionalSide1OrderByInput>
   cursor?: OptionalSide1WhereUniqueInput
   take?: number
   skip?: number
@@ -4544,11 +4552,11 @@ export type FindOneOptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * Filter, which OptionalSide1 to fetch.
   **/
@@ -4563,16 +4571,16 @@ export type FindFirstOptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * Filter, which OptionalSide1 to fetch.
   **/
   where?: OptionalSide1WhereInput
-  orderBy?: Enumerable<OptionalSide1OrderByInput> | OptionalSide1OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide1OrderByInput>, OptionalSide1OrderByInput>
   cursor?: OptionalSide1WhereUniqueInput
   take?: number
   skip?: number
@@ -4587,11 +4595,11 @@ export type FindManyOptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * Filter, which OptionalSide1s to fetch.
   **/
@@ -4599,7 +4607,7 @@ export type FindManyOptionalSide1Args = {
   /**
    * Determine the order of the OptionalSide1s to fetch.
   **/
-  orderBy?: Enumerable<OptionalSide1OrderByInput> | OptionalSide1OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide1OrderByInput>, OptionalSide1OrderByInput>
   /**
    * Sets the position for listing OptionalSide1s.
   **/
@@ -4623,15 +4631,15 @@ export type OptionalSide1CreateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * The data needed to create a OptionalSide1.
   **/
-  data: OptionalSide1CreateInput
+  data: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
 }
 
 
@@ -4642,15 +4650,15 @@ export type OptionalSide1UpdateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * The data needed to update a OptionalSide1.
   **/
-  data: OptionalSide1UpdateInput
+  data: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
   /**
    * Choose, which OptionalSide1 to update.
   **/
@@ -4662,7 +4670,7 @@ export type OptionalSide1UpdateArgs = {
  * OptionalSide1 updateMany
  */
 export type OptionalSide1UpdateManyArgs = {
-  data: OptionalSide1UpdateManyMutationInput
+  data: XOR<OptionalSide1UpdateManyMutationInput, OptionalSide1UncheckedUpdateManyInput>
   where?: OptionalSide1WhereInput
 }
 
@@ -4674,11 +4682,11 @@ export type OptionalSide1UpsertArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * The filter to search for the OptionalSide1 to update in case it exists.
   **/
@@ -4686,11 +4694,11 @@ export type OptionalSide1UpsertArgs = {
   /**
    * In case the OptionalSide1 found by the \`where\` argument doesn't exist, create a new OptionalSide1 with this data.
   **/
-  create: OptionalSide1CreateInput
+  create: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
   /**
    * In case the OptionalSide1 was found with the provided \`where\` argument, update it with this data.
   **/
-  update: OptionalSide1UpdateInput
+  update: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
 }
 
 
@@ -4701,11 +4709,11 @@ export type OptionalSide1DeleteArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
   /**
    * Filter which OptionalSide1 to delete.
   **/
@@ -4728,11 +4736,11 @@ export type OptionalSide1Args = {
   /**
    * Select specific fields to fetch from the OptionalSide1
   **/
-  select?: OptionalSide1Select | null
+  select?: XOR<OptionalSide1Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide1Include | null
+  include?: XOR<OptionalSide1Include, null>
 }
 
 
@@ -4833,7 +4841,7 @@ export type OptionalSide2MaxAggregateInputType = {
 
 export type AggregateOptionalSide2Args = {
   where?: OptionalSide2WhereInput
-  orderBy?: Enumerable<OptionalSide2OrderByInput> | OptionalSide2OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide2OrderByInput>, OptionalSide2OrderByInput>
   cursor?: OptionalSide2WhereUniqueInput
   take?: number
   skip?: number
@@ -5115,11 +5123,11 @@ export type FindOneOptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * Filter, which OptionalSide2 to fetch.
   **/
@@ -5134,16 +5142,16 @@ export type FindFirstOptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * Filter, which OptionalSide2 to fetch.
   **/
   where?: OptionalSide2WhereInput
-  orderBy?: Enumerable<OptionalSide2OrderByInput> | OptionalSide2OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide2OrderByInput>, OptionalSide2OrderByInput>
   cursor?: OptionalSide2WhereUniqueInput
   take?: number
   skip?: number
@@ -5158,11 +5166,11 @@ export type FindManyOptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * Filter, which OptionalSide2s to fetch.
   **/
@@ -5170,7 +5178,7 @@ export type FindManyOptionalSide2Args = {
   /**
    * Determine the order of the OptionalSide2s to fetch.
   **/
-  orderBy?: Enumerable<OptionalSide2OrderByInput> | OptionalSide2OrderByInput
+  orderBy?: XOR<Enumerable<OptionalSide2OrderByInput>, OptionalSide2OrderByInput>
   /**
    * Sets the position for listing OptionalSide2s.
   **/
@@ -5194,15 +5202,15 @@ export type OptionalSide2CreateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * The data needed to create a OptionalSide2.
   **/
-  data: OptionalSide2CreateInput
+  data: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
 }
 
 
@@ -5213,15 +5221,15 @@ export type OptionalSide2UpdateArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * The data needed to update a OptionalSide2.
   **/
-  data: OptionalSide2UpdateInput
+  data: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
   /**
    * Choose, which OptionalSide2 to update.
   **/
@@ -5233,7 +5241,7 @@ export type OptionalSide2UpdateArgs = {
  * OptionalSide2 updateMany
  */
 export type OptionalSide2UpdateManyArgs = {
-  data: OptionalSide2UpdateManyMutationInput
+  data: XOR<OptionalSide2UpdateManyMutationInput, OptionalSide2UncheckedUpdateManyInput>
   where?: OptionalSide2WhereInput
 }
 
@@ -5245,11 +5253,11 @@ export type OptionalSide2UpsertArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * The filter to search for the OptionalSide2 to update in case it exists.
   **/
@@ -5257,11 +5265,11 @@ export type OptionalSide2UpsertArgs = {
   /**
    * In case the OptionalSide2 found by the \`where\` argument doesn't exist, create a new OptionalSide2 with this data.
   **/
-  create: OptionalSide2CreateInput
+  create: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
   /**
    * In case the OptionalSide2 was found with the provided \`where\` argument, update it with this data.
   **/
-  update: OptionalSide2UpdateInput
+  update: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
 }
 
 
@@ -5272,11 +5280,11 @@ export type OptionalSide2DeleteArgs = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
   /**
    * Filter which OptionalSide2 to delete.
   **/
@@ -5299,11 +5307,11 @@ export type OptionalSide2Args = {
   /**
    * Select specific fields to fetch from the OptionalSide2
   **/
-  select?: OptionalSide2Select | null
+  select?: XOR<OptionalSide2Select, null>
   /**
    * Choose, which related nodes to fetch as well.
   **/
-  include?: OptionalSide2Include | null
+  include?: XOR<OptionalSide2Include, null>
 }
 
 
@@ -5318,13 +5326,13 @@ export type A = {
   name: string | null
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 
@@ -5351,37 +5359,37 @@ export type AAvgAggregateOutputType = {
 export type ASumAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 export type AMinAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 export type AMaxAggregateOutputType = {
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial: number
   sSerial: number
   bSerial: number
   inc_int: number
   inc_sInt: number
-  inc_bInt: number
+  inc_bInt: BigInt
 }
 
 
@@ -5435,7 +5443,7 @@ export type AMaxAggregateInputType = {
 
 export type AggregateAArgs = {
   where?: AWhereInput
-  orderBy?: Enumerable<AOrderByInput> | AOrderByInput
+  orderBy?: XOR<Enumerable<AOrderByInput>, AOrderByInput>
   cursor?: AWhereUniqueInput
   take?: number
   skip?: number
@@ -5705,7 +5713,7 @@ export type FindOneAArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * Filter, which A to fetch.
   **/
@@ -5720,12 +5728,12 @@ export type FindFirstAArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * Filter, which A to fetch.
   **/
   where?: AWhereInput
-  orderBy?: Enumerable<AOrderByInput> | AOrderByInput
+  orderBy?: XOR<Enumerable<AOrderByInput>, AOrderByInput>
   cursor?: AWhereUniqueInput
   take?: number
   skip?: number
@@ -5740,7 +5748,7 @@ export type FindManyAArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * Filter, which AS to fetch.
   **/
@@ -5748,7 +5756,7 @@ export type FindManyAArgs = {
   /**
    * Determine the order of the AS to fetch.
   **/
-  orderBy?: Enumerable<AOrderByInput> | AOrderByInput
+  orderBy?: XOR<Enumerable<AOrderByInput>, AOrderByInput>
   /**
    * Sets the position for listing AS.
   **/
@@ -5772,11 +5780,11 @@ export type ACreateArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * The data needed to create a A.
   **/
-  data: ACreateInput
+  data: XOR<ACreateInput, AUncheckedCreateInput>
 }
 
 
@@ -5787,11 +5795,11 @@ export type AUpdateArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * The data needed to update a A.
   **/
-  data: AUpdateInput
+  data: XOR<AUpdateInput, AUncheckedUpdateInput>
   /**
    * Choose, which A to update.
   **/
@@ -5803,7 +5811,7 @@ export type AUpdateArgs = {
  * A updateMany
  */
 export type AUpdateManyArgs = {
-  data: AUpdateManyMutationInput
+  data: XOR<AUpdateManyMutationInput, AUncheckedUpdateManyInput>
   where?: AWhereInput
 }
 
@@ -5815,7 +5823,7 @@ export type AUpsertArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * The filter to search for the A to update in case it exists.
   **/
@@ -5823,11 +5831,11 @@ export type AUpsertArgs = {
   /**
    * In case the A found by the \`where\` argument doesn't exist, create a new A with this data.
   **/
-  create: ACreateInput
+  create: XOR<ACreateInput, AUncheckedCreateInput>
   /**
    * In case the A was found with the provided \`where\` argument, update it with this data.
   **/
-  update: AUpdateInput
+  update: XOR<AUpdateInput, AUncheckedUpdateInput>
 }
 
 
@@ -5838,7 +5846,7 @@ export type ADeleteArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
   /**
    * Filter which A to delete.
   **/
@@ -5861,7 +5869,7 @@ export type AArgs = {
   /**
    * Select specific fields to fetch from the A
   **/
-  select?: ASelect | null
+  select?: XOR<ASelect, null>
 }
 
 
@@ -5946,7 +5954,7 @@ export type BMaxAggregateInputType = {
 
 export type AggregateBArgs = {
   where?: BWhereInput
-  orderBy?: Enumerable<BOrderByInput> | BOrderByInput
+  orderBy?: XOR<Enumerable<BOrderByInput>, BOrderByInput>
   cursor?: BWhereUniqueInput
   take?: number
   skip?: number
@@ -6209,7 +6217,7 @@ export type FindOneBArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * Filter, which B to fetch.
   **/
@@ -6224,12 +6232,12 @@ export type FindFirstBArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * Filter, which B to fetch.
   **/
   where?: BWhereInput
-  orderBy?: Enumerable<BOrderByInput> | BOrderByInput
+  orderBy?: XOR<Enumerable<BOrderByInput>, BOrderByInput>
   cursor?: BWhereUniqueInput
   take?: number
   skip?: number
@@ -6244,7 +6252,7 @@ export type FindManyBArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * Filter, which BS to fetch.
   **/
@@ -6252,7 +6260,7 @@ export type FindManyBArgs = {
   /**
    * Determine the order of the BS to fetch.
   **/
-  orderBy?: Enumerable<BOrderByInput> | BOrderByInput
+  orderBy?: XOR<Enumerable<BOrderByInput>, BOrderByInput>
   /**
    * Sets the position for listing BS.
   **/
@@ -6276,11 +6284,11 @@ export type BCreateArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * The data needed to create a B.
   **/
-  data: BCreateInput
+  data: XOR<BCreateInput, BUncheckedCreateInput>
 }
 
 
@@ -6291,11 +6299,11 @@ export type BUpdateArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * The data needed to update a B.
   **/
-  data: BUpdateInput
+  data: XOR<BUpdateInput, BUncheckedUpdateInput>
   /**
    * Choose, which B to update.
   **/
@@ -6307,7 +6315,7 @@ export type BUpdateArgs = {
  * B updateMany
  */
 export type BUpdateManyArgs = {
-  data: BUpdateManyMutationInput
+  data: XOR<BUpdateManyMutationInput, BUncheckedUpdateManyInput>
   where?: BWhereInput
 }
 
@@ -6319,7 +6327,7 @@ export type BUpsertArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * The filter to search for the B to update in case it exists.
   **/
@@ -6327,11 +6335,11 @@ export type BUpsertArgs = {
   /**
    * In case the B found by the \`where\` argument doesn't exist, create a new B with this data.
   **/
-  create: BCreateInput
+  create: XOR<BCreateInput, BUncheckedCreateInput>
   /**
    * In case the B was found with the provided \`where\` argument, update it with this data.
   **/
-  update: BUpdateInput
+  update: XOR<BUpdateInput, BUncheckedUpdateInput>
 }
 
 
@@ -6342,7 +6350,7 @@ export type BDeleteArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
   /**
    * Filter which B to delete.
   **/
@@ -6365,7 +6373,7 @@ export type BArgs = {
   /**
    * Select specific fields to fetch from the B
   **/
-  select?: BSelect | null
+  select?: XOR<BSelect, null>
 }
 
 
@@ -6393,7 +6401,7 @@ export type AggregateC = {
 
 export type AggregateCArgs = {
   where?: CWhereInput
-  orderBy?: Enumerable<COrderByInput> | COrderByInput
+  orderBy?: XOR<Enumerable<COrderByInput>, COrderByInput>
   cursor?: CWhereUniqueInput
   take?: number
   skip?: number
@@ -6652,7 +6660,7 @@ export type FindOneCArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * Filter, which C to fetch.
   **/
@@ -6667,12 +6675,12 @@ export type FindFirstCArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * Filter, which C to fetch.
   **/
   where?: CWhereInput
-  orderBy?: Enumerable<COrderByInput> | COrderByInput
+  orderBy?: XOR<Enumerable<COrderByInput>, COrderByInput>
   cursor?: CWhereUniqueInput
   take?: number
   skip?: number
@@ -6687,7 +6695,7 @@ export type FindManyCArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * Filter, which CS to fetch.
   **/
@@ -6695,7 +6703,7 @@ export type FindManyCArgs = {
   /**
    * Determine the order of the CS to fetch.
   **/
-  orderBy?: Enumerable<COrderByInput> | COrderByInput
+  orderBy?: XOR<Enumerable<COrderByInput>, COrderByInput>
   /**
    * Sets the position for listing CS.
   **/
@@ -6719,11 +6727,11 @@ export type CCreateArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * The data needed to create a C.
   **/
-  data: CCreateInput
+  data: XOR<CCreateInput, CUncheckedCreateInput>
 }
 
 
@@ -6734,11 +6742,11 @@ export type CUpdateArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * The data needed to update a C.
   **/
-  data: CUpdateInput
+  data: XOR<CUpdateInput, CUncheckedUpdateInput>
   /**
    * Choose, which C to update.
   **/
@@ -6750,7 +6758,7 @@ export type CUpdateArgs = {
  * C updateMany
  */
 export type CUpdateManyArgs = {
-  data: CUpdateManyMutationInput
+  data: XOR<CUpdateManyMutationInput, CUncheckedUpdateManyInput>
   where?: CWhereInput
 }
 
@@ -6762,7 +6770,7 @@ export type CUpsertArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * The filter to search for the C to update in case it exists.
   **/
@@ -6770,11 +6778,11 @@ export type CUpsertArgs = {
   /**
    * In case the C found by the \`where\` argument doesn't exist, create a new C with this data.
   **/
-  create: CCreateInput
+  create: XOR<CCreateInput, CUncheckedCreateInput>
   /**
    * In case the C was found with the provided \`where\` argument, update it with this data.
   **/
-  update: CUpdateInput
+  update: XOR<CUpdateInput, CUncheckedUpdateInput>
 }
 
 
@@ -6785,7 +6793,7 @@ export type CDeleteArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
   /**
    * Filter which C to delete.
   **/
@@ -6808,7 +6816,7 @@ export type CArgs = {
   /**
    * Select specific fields to fetch from the C
   **/
-  select?: CSelect | null
+  select?: XOR<CSelect, null>
 }
 
 
@@ -6835,7 +6843,7 @@ export type AggregateD = {
 
 export type AggregateDArgs = {
   where?: DWhereInput
-  orderBy?: Enumerable<DOrderByInput> | DOrderByInput
+  orderBy?: XOR<Enumerable<DOrderByInput>, DOrderByInput>
   cursor?: DWhereUniqueInput
   take?: number
   skip?: number
@@ -7093,7 +7101,7 @@ export type FindOneDArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * Filter, which D to fetch.
   **/
@@ -7108,12 +7116,12 @@ export type FindFirstDArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * Filter, which D to fetch.
   **/
   where?: DWhereInput
-  orderBy?: Enumerable<DOrderByInput> | DOrderByInput
+  orderBy?: XOR<Enumerable<DOrderByInput>, DOrderByInput>
   cursor?: DWhereUniqueInput
   take?: number
   skip?: number
@@ -7128,7 +7136,7 @@ export type FindManyDArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * Filter, which DS to fetch.
   **/
@@ -7136,7 +7144,7 @@ export type FindManyDArgs = {
   /**
    * Determine the order of the DS to fetch.
   **/
-  orderBy?: Enumerable<DOrderByInput> | DOrderByInput
+  orderBy?: XOR<Enumerable<DOrderByInput>, DOrderByInput>
   /**
    * Sets the position for listing DS.
   **/
@@ -7160,11 +7168,11 @@ export type DCreateArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * The data needed to create a D.
   **/
-  data: DCreateInput
+  data: XOR<DCreateInput, DUncheckedCreateInput>
 }
 
 
@@ -7175,11 +7183,11 @@ export type DUpdateArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * The data needed to update a D.
   **/
-  data: DUpdateInput
+  data: XOR<DUpdateInput, DUncheckedUpdateInput>
   /**
    * Choose, which D to update.
   **/
@@ -7191,7 +7199,7 @@ export type DUpdateArgs = {
  * D updateMany
  */
 export type DUpdateManyArgs = {
-  data: DUpdateManyMutationInput
+  data: XOR<DUpdateManyMutationInput, DUncheckedUpdateManyInput>
   where?: DWhereInput
 }
 
@@ -7203,7 +7211,7 @@ export type DUpsertArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * The filter to search for the D to update in case it exists.
   **/
@@ -7211,11 +7219,11 @@ export type DUpsertArgs = {
   /**
    * In case the D found by the \`where\` argument doesn't exist, create a new D with this data.
   **/
-  create: DCreateInput
+  create: XOR<DCreateInput, DUncheckedCreateInput>
   /**
    * In case the D was found with the provided \`where\` argument, update it with this data.
   **/
-  update: DUpdateInput
+  update: XOR<DUpdateInput, DUncheckedUpdateInput>
 }
 
 
@@ -7226,7 +7234,7 @@ export type DDeleteArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
   /**
    * Filter which D to delete.
   **/
@@ -7249,7 +7257,7 @@ export type DArgs = {
   /**
    * Select specific fields to fetch from the D
   **/
-  select?: DSelect | null
+  select?: XOR<DSelect, null>
 }
 
 
@@ -7274,7 +7282,7 @@ export type AggregateE = {
 
 export type AggregateEArgs = {
   where?: EWhereInput
-  orderBy?: Enumerable<EOrderByInput> | EOrderByInput
+  orderBy?: XOR<Enumerable<EOrderByInput>, EOrderByInput>
   cursor?: EWhereUniqueInput
   take?: number
   skip?: number
@@ -7530,7 +7538,7 @@ export type FindOneEArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * Filter, which E to fetch.
   **/
@@ -7545,12 +7553,12 @@ export type FindFirstEArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * Filter, which E to fetch.
   **/
   where?: EWhereInput
-  orderBy?: Enumerable<EOrderByInput> | EOrderByInput
+  orderBy?: XOR<Enumerable<EOrderByInput>, EOrderByInput>
   cursor?: EWhereUniqueInput
   take?: number
   skip?: number
@@ -7565,7 +7573,7 @@ export type FindManyEArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * Filter, which ES to fetch.
   **/
@@ -7573,7 +7581,7 @@ export type FindManyEArgs = {
   /**
    * Determine the order of the ES to fetch.
   **/
-  orderBy?: Enumerable<EOrderByInput> | EOrderByInput
+  orderBy?: XOR<Enumerable<EOrderByInput>, EOrderByInput>
   /**
    * Sets the position for listing ES.
   **/
@@ -7597,11 +7605,11 @@ export type ECreateArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * The data needed to create a E.
   **/
-  data: ECreateInput
+  data: XOR<ECreateInput, EUncheckedCreateInput>
 }
 
 
@@ -7612,11 +7620,11 @@ export type EUpdateArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * The data needed to update a E.
   **/
-  data: EUpdateInput
+  data: XOR<EUpdateInput, EUncheckedUpdateInput>
   /**
    * Choose, which E to update.
   **/
@@ -7628,7 +7636,7 @@ export type EUpdateArgs = {
  * E updateMany
  */
 export type EUpdateManyArgs = {
-  data: EUpdateManyMutationInput
+  data: XOR<EUpdateManyMutationInput, EUncheckedUpdateManyInput>
   where?: EWhereInput
 }
 
@@ -7640,7 +7648,7 @@ export type EUpsertArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * The filter to search for the E to update in case it exists.
   **/
@@ -7648,11 +7656,11 @@ export type EUpsertArgs = {
   /**
    * In case the E found by the \`where\` argument doesn't exist, create a new E with this data.
   **/
-  create: ECreateInput
+  create: XOR<ECreateInput, EUncheckedCreateInput>
   /**
    * In case the E was found with the provided \`where\` argument, update it with this data.
   **/
-  update: EUpdateInput
+  update: XOR<EUpdateInput, EUncheckedUpdateInput>
 }
 
 
@@ -7663,7 +7671,7 @@ export type EDeleteArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
   /**
    * Filter which E to delete.
   **/
@@ -7686,7 +7694,7 @@ export type EArgs = {
   /**
    * Select specific fields to fetch from the E
   **/
-  select?: ESelect | null
+  select?: XOR<ESelect, null>
 }
 
 
@@ -7697,16 +7705,16 @@ export type EArgs = {
 
 
 export type PostWhereInput = {
-  AND?: PostWhereInput | Enumerable<PostWhereInput>
-  OR?: PostWhereInput | Enumerable<PostWhereInput>
-  NOT?: PostWhereInput | Enumerable<PostWhereInput>
-  id?: IntFilter | number
-  createdAt?: DateTimeFilter | Date | string
-  title?: StringFilter | string
+  AND?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
+  OR?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
+  NOT?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
+  id?: XOR<IntFilter, number>
+  createdAt?: XOR<DateTimeFilter, Date | string>
+  title?: XOR<StringFilter, string>
   content?: StringNullableFilter | string | null
-  published?: BoolFilter | boolean
-  author?: UserRelationFilter | UserWhereInput
-  authorId?: IntFilter | number
+  published?: XOR<BoolFilter, boolean>
+  author?: XOR<UserRelationFilter, UserWhereInput>
+  authorId?: XOR<IntFilter, number>
 }
 
 export type PostOrderByInput = {
@@ -7723,22 +7731,22 @@ export type PostWhereUniqueInput = {
 }
 
 export type UserWhereInput = {
-  AND?: UserWhereInput | Enumerable<UserWhereInput>
-  OR?: UserWhereInput | Enumerable<UserWhereInput>
-  NOT?: UserWhereInput | Enumerable<UserWhereInput>
-  id?: IntFilter | number
-  email?: StringFilter | string
-  int?: IntFilter | number
+  AND?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
+  OR?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
+  NOT?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
+  id?: XOR<IntFilter, number>
+  email?: XOR<StringFilter, string>
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
   posts?: PostListRelationFilter
 }
@@ -7766,22 +7774,22 @@ export type UserWhereUniqueInput = {
 }
 
 export type MWhereInput = {
-  AND?: MWhereInput | Enumerable<MWhereInput>
-  OR?: MWhereInput | Enumerable<MWhereInput>
-  NOT?: MWhereInput | Enumerable<MWhereInput>
-  id?: IntFilter | number
+  AND?: XOR<MWhereInput, Enumerable<MWhereInput>>
+  OR?: XOR<MWhereInput, Enumerable<MWhereInput>>
+  NOT?: XOR<MWhereInput, Enumerable<MWhereInput>>
+  id?: XOR<IntFilter, number>
   n?: NListRelationFilter
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -7806,22 +7814,22 @@ export type MWhereUniqueInput = {
 }
 
 export type NWhereInput = {
-  AND?: NWhereInput | Enumerable<NWhereInput>
-  OR?: NWhereInput | Enumerable<NWhereInput>
-  NOT?: NWhereInput | Enumerable<NWhereInput>
-  id?: IntFilter | number
+  AND?: XOR<NWhereInput, Enumerable<NWhereInput>>
+  OR?: XOR<NWhereInput, Enumerable<NWhereInput>>
+  NOT?: XOR<NWhereInput, Enumerable<NWhereInput>>
+  id?: XOR<IntFilter, number>
   m?: MListRelationFilter
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -7846,22 +7854,22 @@ export type NWhereUniqueInput = {
 }
 
 export type OneOptionalWhereInput = {
-  AND?: OneOptionalWhereInput | Enumerable<OneOptionalWhereInput>
-  OR?: OneOptionalWhereInput | Enumerable<OneOptionalWhereInput>
-  NOT?: OneOptionalWhereInput | Enumerable<OneOptionalWhereInput>
-  id?: IntFilter | number
+  AND?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
+  OR?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
+  NOT?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
+  id?: XOR<IntFilter, number>
   many?: ManyRequiredListRelationFilter
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -7886,23 +7894,23 @@ export type OneOptionalWhereUniqueInput = {
 }
 
 export type ManyRequiredWhereInput = {
-  AND?: ManyRequiredWhereInput | Enumerable<ManyRequiredWhereInput>
-  OR?: ManyRequiredWhereInput | Enumerable<ManyRequiredWhereInput>
-  NOT?: ManyRequiredWhereInput | Enumerable<ManyRequiredWhereInput>
-  id?: IntFilter | number
+  AND?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
+  OR?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
+  NOT?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
+  id?: XOR<IntFilter, number>
   one?: OneOptionalRelationFilter | OneOptionalWhereInput | null
   oneOptionalId?: IntNullableFilter | number | null
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -7928,23 +7936,23 @@ export type ManyRequiredWhereUniqueInput = {
 }
 
 export type OptionalSide1WhereInput = {
-  AND?: OptionalSide1WhereInput | Enumerable<OptionalSide1WhereInput>
-  OR?: OptionalSide1WhereInput | Enumerable<OptionalSide1WhereInput>
-  NOT?: OptionalSide1WhereInput | Enumerable<OptionalSide1WhereInput>
-  id?: IntFilter | number
+  AND?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
+  OR?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
+  NOT?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
+  id?: XOR<IntFilter, number>
   opti?: OptionalSide2RelationFilter | OptionalSide2WhereInput | null
   optionalSide2Id?: IntNullableFilter | number | null
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -7970,22 +7978,22 @@ export type OptionalSide1WhereUniqueInput = {
 }
 
 export type OptionalSide2WhereInput = {
-  AND?: OptionalSide2WhereInput | Enumerable<OptionalSide2WhereInput>
-  OR?: OptionalSide2WhereInput | Enumerable<OptionalSide2WhereInput>
-  NOT?: OptionalSide2WhereInput | Enumerable<OptionalSide2WhereInput>
-  id?: IntFilter | number
+  AND?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
+  OR?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
+  NOT?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
+  id?: XOR<IntFilter, number>
   opti?: OptionalSide1RelationFilter | OptionalSide1WhereInput | null
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
@@ -8010,21 +8018,21 @@ export type OptionalSide2WhereUniqueInput = {
 }
 
 export type AWhereInput = {
-  AND?: AWhereInput | Enumerable<AWhereInput>
-  OR?: AWhereInput | Enumerable<AWhereInput>
-  NOT?: AWhereInput | Enumerable<AWhereInput>
-  id?: StringFilter | string
-  email?: StringFilter | string
+  AND?: XOR<AWhereInput, Enumerable<AWhereInput>>
+  OR?: XOR<AWhereInput, Enumerable<AWhereInput>>
+  NOT?: XOR<AWhereInput, Enumerable<AWhereInput>>
+  id?: XOR<StringFilter, string>
+  email?: XOR<StringFilter, string>
   name?: StringNullableFilter | string | null
-  int?: IntFilter | number
-  sInt?: IntFilter | number
-  bInt?: IntFilter | number
-  serial?: IntFilter | number
-  sSerial?: IntFilter | number
-  bSerial?: IntFilter | number
-  inc_int?: IntFilter | number
-  inc_sInt?: IntFilter | number
-  inc_bInt?: IntFilter | number
+  int?: XOR<IntFilter, number>
+  sInt?: XOR<IntFilter, number>
+  bInt?: XOR<BigIntFilter, BigInt>
+  serial?: XOR<IntFilter, number>
+  sSerial?: XOR<IntFilter, number>
+  bSerial?: XOR<IntFilter, number>
+  inc_int?: XOR<IntFilter, number>
+  inc_sInt?: XOR<IntFilter, number>
+  inc_bInt?: XOR<BigIntFilter, BigInt>
 }
 
 export type AOrderByInput = {
@@ -8048,14 +8056,14 @@ export type AWhereUniqueInput = {
 }
 
 export type BWhereInput = {
-  AND?: BWhereInput | Enumerable<BWhereInput>
-  OR?: BWhereInput | Enumerable<BWhereInput>
-  NOT?: BWhereInput | Enumerable<BWhereInput>
-  id?: StringFilter | string
-  float?: FloatFilter | number
-  dFloat?: FloatFilter | number
-  decFloat?: DecimalFilter | Decimal
-  numFloat?: DecimalFilter | Decimal
+  AND?: XOR<BWhereInput, Enumerable<BWhereInput>>
+  OR?: XOR<BWhereInput, Enumerable<BWhereInput>>
+  NOT?: XOR<BWhereInput, Enumerable<BWhereInput>>
+  id?: XOR<StringFilter, string>
+  float?: XOR<FloatFilter, number>
+  dFloat?: XOR<FloatFilter, number>
+  decFloat?: XOR<DecimalFilter, Decimal>
+  numFloat?: XOR<DecimalFilter, Decimal>
 }
 
 export type BOrderByInput = {
@@ -8071,16 +8079,16 @@ export type BWhereUniqueInput = {
 }
 
 export type CWhereInput = {
-  AND?: CWhereInput | Enumerable<CWhereInput>
-  OR?: CWhereInput | Enumerable<CWhereInput>
-  NOT?: CWhereInput | Enumerable<CWhereInput>
-  id?: StringFilter | string
-  char?: StringFilter | string
-  vChar?: StringFilter | string
-  text?: StringFilter | string
-  bit?: StringFilter | string
-  vBit?: StringFilter | string
-  uuid?: StringFilter | string
+  AND?: XOR<CWhereInput, Enumerable<CWhereInput>>
+  OR?: XOR<CWhereInput, Enumerable<CWhereInput>>
+  NOT?: XOR<CWhereInput, Enumerable<CWhereInput>>
+  id?: XOR<StringFilter, string>
+  char?: XOR<StringFilter, string>
+  vChar?: XOR<StringFilter, string>
+  text?: XOR<StringFilter, string>
+  bit?: XOR<StringFilter, string>
+  vBit?: XOR<StringFilter, string>
+  uuid?: XOR<StringFilter, string>
 }
 
 export type COrderByInput = {
@@ -8098,13 +8106,13 @@ export type CWhereUniqueInput = {
 }
 
 export type DWhereInput = {
-  AND?: DWhereInput | Enumerable<DWhereInput>
-  OR?: DWhereInput | Enumerable<DWhereInput>
-  NOT?: DWhereInput | Enumerable<DWhereInput>
-  id?: StringFilter | string
-  bool?: BoolFilter | boolean
-  byteA?: BytesFilter | Buffer
-  xml?: StringFilter | string
+  AND?: XOR<DWhereInput, Enumerable<DWhereInput>>
+  OR?: XOR<DWhereInput, Enumerable<DWhereInput>>
+  NOT?: XOR<DWhereInput, Enumerable<DWhereInput>>
+  id?: XOR<StringFilter, string>
+  bool?: XOR<BoolFilter, boolean>
+  byteA?: XOR<BytesFilter, Buffer>
+  xml?: XOR<StringFilter, string>
   json?: JsonFilter
   jsonb?: JsonFilter
 }
@@ -8123,13 +8131,13 @@ export type DWhereUniqueInput = {
 }
 
 export type EWhereInput = {
-  AND?: EWhereInput | Enumerable<EWhereInput>
-  OR?: EWhereInput | Enumerable<EWhereInput>
-  NOT?: EWhereInput | Enumerable<EWhereInput>
-  id?: StringFilter | string
-  date?: DateTimeFilter | Date | string
-  time?: DateTimeFilter | Date | string
-  ts?: DateTimeFilter | Date | string
+  AND?: XOR<EWhereInput, Enumerable<EWhereInput>>
+  OR?: XOR<EWhereInput, Enumerable<EWhereInput>>
+  NOT?: XOR<EWhereInput, Enumerable<EWhereInput>>
+  id?: XOR<StringFilter, string>
+  date?: XOR<DateTimeFilter, Date | string>
+  time?: XOR<DateTimeFilter, Date | string>
+  ts?: XOR<DateTimeFilter, Date | string>
 }
 
 export type EOrderByInput = {
@@ -8146,401 +8154,824 @@ export type EWhereUniqueInput = {
 export type PostCreateInput = {
   createdAt?: Date | string
   title: string
-  content?: string | null
+  content?: XOR<string, null>
   published?: boolean
   author: UserCreateOneWithoutPostsInput
 }
 
+export type PostUncheckedCreateInput = {
+  id?: number
+  createdAt?: Date | string
+  title: string
+  content?: XOR<string, null>
+  published?: boolean
+  authorId: number
+}
+
 export type PostUpdateInput = {
-  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
-  title?: string | StringFieldUpdateOperationsInput
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
   content?: string | NullableStringFieldUpdateOperationsInput | null
-  published?: boolean | BoolFieldUpdateOperationsInput
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
   author?: UserUpdateOneRequiredWithoutPostsInput
 }
 
-export type PostUpdateManyMutationInput = {
-  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
-  title?: string | StringFieldUpdateOperationsInput
+export type PostUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
   content?: string | NullableStringFieldUpdateOperationsInput | null
-  published?: boolean | BoolFieldUpdateOperationsInput
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  authorId?: XOR<number, IntFieldUpdateOperationsInput>
+}
+
+export type PostUpdateManyMutationInput = {
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
+}
+
+export type PostUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  authorId?: XOR<number, IntFieldUpdateOperationsInput>
 }
 
 export type UserCreateInput = {
   email: string
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   posts?: PostCreateManyWithoutAuthorInput
 }
 
+export type UserUncheckedCreateInput = {
+  id?: number
+  email: string
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+  posts?: PostUncheckedCreateManyWithoutAuthorInput
+}
+
 export type UserUpdateInput = {
-  email?: string | StringFieldUpdateOperationsInput
-  int?: number | IntFieldUpdateOperationsInput
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   posts?: PostUpdateManyWithoutAuthorInput
 }
 
-export type UserUpdateManyMutationInput = {
-  email?: string | StringFieldUpdateOperationsInput
-  int?: number | IntFieldUpdateOperationsInput
+export type UserUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  posts?: PostUncheckedUpdateManyWithoutAuthorInput
+}
+
+export type UserUpdateManyMutationInput = {
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type UserUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type MCreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   n?: NCreateManyWithoutMInput
 }
 
+export type MUncheckedCreateInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
 export type MUpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   n?: NUpdateManyWithoutMInput
 }
 
-export type MUpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type MUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type MUpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type MUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type NCreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   m?: MCreateManyWithoutNInput
 }
 
+export type NUncheckedCreateInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
 export type NUpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   m?: MUpdateManyWithoutNInput
 }
 
-export type NUpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type NUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type NUpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type NUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OneOptionalCreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   many?: ManyRequiredCreateManyWithoutOneInput
 }
 
+export type OneOptionalUncheckedCreateInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+  many?: ManyRequiredUncheckedCreateManyWithoutOneInput
+}
+
 export type OneOptionalUpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   many?: ManyRequiredUpdateManyWithoutOneInput
 }
 
-export type OneOptionalUpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OneOptionalUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
+}
+
+export type OneOptionalUpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OneOptionalUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type ManyRequiredCreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   one?: OneOptionalCreateOneWithoutManyInput
 }
 
+export type ManyRequiredUncheckedCreateInput = {
+  id?: number
+  oneOptionalId?: XOR<number, null>
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
 export type ManyRequiredUpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   one?: OneOptionalUpdateOneWithoutManyInput
 }
 
-export type ManyRequiredUpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type ManyRequiredUncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  oneOptionalId?: number | NullableIntFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  oneOptionalId?: number | NullableIntFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OptionalSide1CreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   opti?: OptionalSide2CreateOneWithoutOptiInput
 }
 
+export type OptionalSide1UncheckedCreateInput = {
+  id?: number
+  optionalSide2Id?: XOR<number, null>
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
 export type OptionalSide1UpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   opti?: OptionalSide2UpdateOneWithoutOptiInput
 }
 
-export type OptionalSide1UpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OptionalSide1UncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalSide2Id?: number | NullableIntFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide1UpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide1UncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalSide2Id?: number | NullableIntFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OptionalSide2CreateInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
   opti?: OptionalSide1CreateOneWithoutOptiInput
 }
 
+export type OptionalSide2UncheckedCreateInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+  opti?: OptionalSide1UncheckedCreateOneWithoutOptiInput
+}
+
 export type OptionalSide2UpdateInput = {
-  int?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   opti?: OptionalSide1UpdateOneWithoutOptiInput
 }
 
-export type OptionalSide2UpdateManyMutationInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OptionalSide2UncheckedUpdateInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+  opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
+}
+
+export type OptionalSide2UpdateManyMutationInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide2UncheckedUpdateManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type ACreateInput = {
   id?: string
   email: string
-  name?: string | null
+  name?: XOR<string, null>
   int: number
   sInt: number
-  bInt: number
+  bInt: BigInt
   serial?: number
   sSerial?: number
   bSerial?: number
   inc_int?: number
   inc_sInt?: number
-  inc_bInt?: number
+  inc_bInt?: BigInt
+}
+
+export type AUncheckedCreateInput = {
+  id?: string
+  email: string
+  name?: XOR<string, null>
+  int: number
+  sInt: number
+  bInt: BigInt
+  serial?: number
+  sSerial?: number
+  bSerial?: number
+  inc_int?: number
+  inc_sInt?: number
+  inc_bInt?: BigInt
 }
 
 export type AUpdateInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  email?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
   name?: string | NullableStringFieldUpdateOperationsInput | null
-  int?: number | IntFieldUpdateOperationsInput
-  sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
-  serial?: number | IntFieldUpdateOperationsInput
-  sSerial?: number | IntFieldUpdateOperationsInput
-  bSerial?: number | IntFieldUpdateOperationsInput
-  inc_int?: number | IntFieldUpdateOperationsInput
-  inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+  serial?: XOR<number, IntFieldUpdateOperationsInput>
+  sSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  bSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_int?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+}
+
+export type AUncheckedUpdateInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  name?: string | NullableStringFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+  serial?: XOR<number, IntFieldUpdateOperationsInput>
+  sSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  bSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_int?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
 }
 
 export type AUpdateManyMutationInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  email?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
   name?: string | NullableStringFieldUpdateOperationsInput | null
-  int?: number | IntFieldUpdateOperationsInput
-  sInt?: number | IntFieldUpdateOperationsInput
-  bInt?: number | IntFieldUpdateOperationsInput
-  serial?: number | IntFieldUpdateOperationsInput
-  sSerial?: number | IntFieldUpdateOperationsInput
-  bSerial?: number | IntFieldUpdateOperationsInput
-  inc_int?: number | IntFieldUpdateOperationsInput
-  inc_sInt?: number | IntFieldUpdateOperationsInput
-  inc_bInt?: number | IntFieldUpdateOperationsInput
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+  serial?: XOR<number, IntFieldUpdateOperationsInput>
+  sSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  bSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_int?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+}
+
+export type AUncheckedUpdateManyInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  name?: string | NullableStringFieldUpdateOperationsInput | null
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
+  serial?: XOR<number, IntFieldUpdateOperationsInput>
+  sSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  bSerial?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_int?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
+  inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
 }
 
 export type BCreateInput = {
@@ -8551,20 +8982,44 @@ export type BCreateInput = {
   numFloat: Decimal
 }
 
+export type BUncheckedCreateInput = {
+  id?: string
+  float: number
+  dFloat: number
+  decFloat: Decimal
+  numFloat: Decimal
+}
+
 export type BUpdateInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  float?: number | FloatFieldUpdateOperationsInput
-  dFloat?: number | FloatFieldUpdateOperationsInput
-  decFloat?: Decimal | DecimalFieldUpdateOperationsInput
-  numFloat?: Decimal | DecimalFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
+  decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+  numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+}
+
+export type BUncheckedUpdateInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
+  decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+  numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
 }
 
 export type BUpdateManyMutationInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  float?: number | FloatFieldUpdateOperationsInput
-  dFloat?: number | FloatFieldUpdateOperationsInput
-  decFloat?: Decimal | DecimalFieldUpdateOperationsInput
-  numFloat?: Decimal | DecimalFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
+  decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+  numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+}
+
+export type BUncheckedUpdateManyInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
+  decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
+  numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
 }
 
 export type CCreateInput = {
@@ -8577,24 +9032,54 @@ export type CCreateInput = {
   uuid: string
 }
 
+export type CUncheckedCreateInput = {
+  id?: string
+  char: string
+  vChar: string
+  text: string
+  bit: string
+  vBit: string
+  uuid: string
+}
+
 export type CUpdateInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  char?: string | StringFieldUpdateOperationsInput
-  vChar?: string | StringFieldUpdateOperationsInput
-  text?: string | StringFieldUpdateOperationsInput
-  bit?: string | StringFieldUpdateOperationsInput
-  vBit?: string | StringFieldUpdateOperationsInput
-  uuid?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  char?: XOR<string, StringFieldUpdateOperationsInput>
+  vChar?: XOR<string, StringFieldUpdateOperationsInput>
+  text?: XOR<string, StringFieldUpdateOperationsInput>
+  bit?: XOR<string, StringFieldUpdateOperationsInput>
+  vBit?: XOR<string, StringFieldUpdateOperationsInput>
+  uuid?: XOR<string, StringFieldUpdateOperationsInput>
+}
+
+export type CUncheckedUpdateInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  char?: XOR<string, StringFieldUpdateOperationsInput>
+  vChar?: XOR<string, StringFieldUpdateOperationsInput>
+  text?: XOR<string, StringFieldUpdateOperationsInput>
+  bit?: XOR<string, StringFieldUpdateOperationsInput>
+  vBit?: XOR<string, StringFieldUpdateOperationsInput>
+  uuid?: XOR<string, StringFieldUpdateOperationsInput>
 }
 
 export type CUpdateManyMutationInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  char?: string | StringFieldUpdateOperationsInput
-  vChar?: string | StringFieldUpdateOperationsInput
-  text?: string | StringFieldUpdateOperationsInput
-  bit?: string | StringFieldUpdateOperationsInput
-  vBit?: string | StringFieldUpdateOperationsInput
-  uuid?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  char?: XOR<string, StringFieldUpdateOperationsInput>
+  vChar?: XOR<string, StringFieldUpdateOperationsInput>
+  text?: XOR<string, StringFieldUpdateOperationsInput>
+  bit?: XOR<string, StringFieldUpdateOperationsInput>
+  vBit?: XOR<string, StringFieldUpdateOperationsInput>
+  uuid?: XOR<string, StringFieldUpdateOperationsInput>
+}
+
+export type CUncheckedUpdateManyInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  char?: XOR<string, StringFieldUpdateOperationsInput>
+  vChar?: XOR<string, StringFieldUpdateOperationsInput>
+  text?: XOR<string, StringFieldUpdateOperationsInput>
+  bit?: XOR<string, StringFieldUpdateOperationsInput>
+  vBit?: XOR<string, StringFieldUpdateOperationsInput>
+  uuid?: XOR<string, StringFieldUpdateOperationsInput>
 }
 
 export type DCreateInput = {
@@ -8606,20 +9091,47 @@ export type DCreateInput = {
   jsonb: InputJsonValue
 }
 
+export type DUncheckedCreateInput = {
+  id?: string
+  bool: boolean
+  byteA: Buffer
+  xml: string
+  json: InputJsonValue
+  jsonb: InputJsonValue
+}
+
 export type DUpdateInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  bool?: boolean | BoolFieldUpdateOperationsInput
-  byteA?: Buffer | BytesFieldUpdateOperationsInput
-  xml?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
+  xml?: XOR<string, StringFieldUpdateOperationsInput>
+  json?: InputJsonValue
+  jsonb?: InputJsonValue
+}
+
+export type DUncheckedUpdateInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
+  xml?: XOR<string, StringFieldUpdateOperationsInput>
   json?: InputJsonValue
   jsonb?: InputJsonValue
 }
 
 export type DUpdateManyMutationInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  bool?: boolean | BoolFieldUpdateOperationsInput
-  byteA?: Buffer | BytesFieldUpdateOperationsInput
-  xml?: string | StringFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
+  xml?: XOR<string, StringFieldUpdateOperationsInput>
+  json?: InputJsonValue
+  jsonb?: InputJsonValue
+}
+
+export type DUncheckedUpdateManyInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
+  xml?: XOR<string, StringFieldUpdateOperationsInput>
   json?: InputJsonValue
   jsonb?: InputJsonValue
 }
@@ -8631,18 +9143,39 @@ export type ECreateInput = {
   ts: Date | string
 }
 
+export type EUncheckedCreateInput = {
+  id?: string
+  date: Date | string
+  time: Date | string
+  ts: Date | string
+}
+
 export type EUpdateInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  date?: Date | string | DateTimeFieldUpdateOperationsInput
-  time?: Date | string | DateTimeFieldUpdateOperationsInput
-  ts?: Date | string | DateTimeFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+}
+
+export type EUncheckedUpdateInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
 }
 
 export type EUpdateManyMutationInput = {
-  id?: string | StringFieldUpdateOperationsInput
-  date?: Date | string | DateTimeFieldUpdateOperationsInput
-  time?: Date | string | DateTimeFieldUpdateOperationsInput
-  ts?: Date | string | DateTimeFieldUpdateOperationsInput
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+}
+
+export type EUncheckedUpdateManyInput = {
+  id?: XOR<string, StringFieldUpdateOperationsInput>
+  date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
 }
 
 export type IntFilter = {
@@ -8653,7 +9186,7 @@ export type IntFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: number | NestedIntFilter
+  not?: XOR<number, NestedIntFilter>
 }
 
 export type DateTimeFilter = {
@@ -8664,7 +9197,7 @@ export type DateTimeFilter = {
   lte?: Date | string
   gt?: Date | string
   gte?: Date | string
-  not?: Date | string | NestedDateTimeFilter
+  not?: XOR<Date | string, NestedDateTimeFilter>
 }
 
 export type StringFilter = {
@@ -8679,13 +9212,13 @@ export type StringFilter = {
   startsWith?: string
   endsWith?: string
   mode?: QueryMode
-  not?: string | NestedStringFilter
+  not?: XOR<string, NestedStringFilter>
 }
 
 export type StringNullableFilter = {
-  equals?: string | null
-  in?: Enumerable<string> | null
-  notIn?: Enumerable<string> | null
+  equals?: XOR<string, null>
+  in?: XOR<Enumerable<string>, null>
+  notIn?: XOR<Enumerable<string>, null>
   lt?: string
   lte?: string
   gt?: string
@@ -8699,7 +9232,7 @@ export type StringNullableFilter = {
 
 export type BoolFilter = {
   equals?: boolean
-  not?: boolean | NestedBoolFilter
+  not?: XOR<boolean, NestedBoolFilter>
 }
 
 export type UserRelationFilter = {
@@ -8708,9 +9241,9 @@ export type UserRelationFilter = {
 }
 
 export type IntNullableFilter = {
-  equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
+  equals?: XOR<number, null>
+  in?: XOR<Enumerable<number>, null>
+  notIn?: XOR<Enumerable<number>, null>
   lt?: number
   lte?: number
   gt?: number
@@ -8726,13 +9259,13 @@ export type FloatFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: number | NestedFloatFilter
+  not?: XOR<number, NestedFloatFilter>
 }
 
 export type FloatNullableFilter = {
-  equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
+  equals?: XOR<number, null>
+  in?: XOR<Enumerable<number>, null>
+  notIn?: XOR<Enumerable<number>, null>
   lt?: number
   lte?: number
   gt?: number
@@ -8746,26 +9279,26 @@ export type JsonFilter = {
 }
 
 export type JsonNullableFilter = {
-  equals?: InputJsonValue | null
-  not?: InputJsonValue | null
+  equals?: XOR<InputJsonValue, null>
+  not?: XOR<InputJsonValue, null>
 }
 
 export type EnumABeautifulEnumFilter = {
   equals?: ABeautifulEnum
   in?: Enumerable<ABeautifulEnum>
   notIn?: Enumerable<ABeautifulEnum>
-  not?: ABeautifulEnum | NestedEnumABeautifulEnumFilter
+  not?: XOR<ABeautifulEnum, NestedEnumABeautifulEnumFilter>
 }
 
 export type EnumABeautifulEnumNullableFilter = {
-  equals?: ABeautifulEnum | null
-  in?: Enumerable<ABeautifulEnum> | null
-  notIn?: Enumerable<ABeautifulEnum> | null
+  equals?: XOR<ABeautifulEnum, null>
+  in?: XOR<Enumerable<ABeautifulEnum>, null>
+  notIn?: XOR<Enumerable<ABeautifulEnum>, null>
   not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
 }
 
 export type BoolNullableFilter = {
-  equals?: boolean | null
+  equals?: XOR<boolean, null>
   not?: boolean | NestedBoolNullableFilter | null
 }
 
@@ -8794,18 +9327,29 @@ export type ManyRequiredListRelationFilter = {
 }
 
 export type OneOptionalRelationFilter = {
-  is?: OneOptionalWhereInput | null
-  isNot?: OneOptionalWhereInput | null
+  is?: XOR<OneOptionalWhereInput, null>
+  isNot?: XOR<OneOptionalWhereInput, null>
 }
 
 export type OptionalSide2RelationFilter = {
-  is?: OptionalSide2WhereInput | null
-  isNot?: OptionalSide2WhereInput | null
+  is?: XOR<OptionalSide2WhereInput, null>
+  isNot?: XOR<OptionalSide2WhereInput, null>
 }
 
 export type OptionalSide1RelationFilter = {
-  is?: OptionalSide1WhereInput | null
-  isNot?: OptionalSide1WhereInput | null
+  is?: XOR<OptionalSide1WhereInput, null>
+  isNot?: XOR<OptionalSide1WhereInput, null>
+}
+
+export type BigIntFilter = {
+  equals?: BigInt
+  in?: Enumerable<BigInt>
+  notIn?: Enumerable<BigInt>
+  lt?: BigInt
+  lte?: BigInt
+  gt?: BigInt
+  gte?: BigInt
+  not?: XOR<BigInt, NestedBigIntFilter>
 }
 
 export type DecimalFilter = {
@@ -8816,18 +9360,18 @@ export type DecimalFilter = {
   lte?: Decimal
   gt?: Decimal
   gte?: Decimal
-  not?: Decimal | NestedDecimalFilter
+  not?: XOR<Decimal, NestedDecimalFilter>
 }
 
 export type BytesFilter = {
   equals?: Buffer
-  not?: Buffer | NestedBytesFilter
+  not?: XOR<Buffer, NestedBytesFilter>
 }
 
 export type UserCreateOneWithoutPostsInput = {
-  create?: UserCreateWithoutPostsInput
+  create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
   connect?: UserWhereUniqueInput
-  connectOrCreate?: UserCreateOrConnectWithoutPostInput
+  connectOrCreate?: UserCreateOrConnectWithoutpostsInput
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -8839,7 +9383,7 @@ export type StringFieldUpdateOperationsInput = {
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+  set?: XOR<string, null>
 }
 
 export type BoolFieldUpdateOperationsInput = {
@@ -8847,17 +9391,11 @@ export type BoolFieldUpdateOperationsInput = {
 }
 
 export type UserUpdateOneRequiredWithoutPostsInput = {
-  create?: UserCreateWithoutPostsInput
+  create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
   connect?: UserWhereUniqueInput
-  update?: UserUpdateWithoutPostsDataInput
+  update?: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
   upsert?: UserUpsertWithoutPostsInput
-  connectOrCreate?: UserCreateOrConnectWithoutPostInput
-}
-
-export type PostCreateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput>
-  connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  connectOrCreate?: UserCreateOrConnectWithoutpostsInput
 }
 
 export type IntFieldUpdateOperationsInput = {
@@ -8868,8 +9406,20 @@ export type IntFieldUpdateOperationsInput = {
   divide?: number
 }
 
+export type PostCreateManyWithoutAuthorInput = {
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
+}
+
+export type PostUncheckedCreateManyWithoutAuthorInput = {
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
+}
+
 export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
+  set?: XOR<number, null>
   increment?: number
   decrement?: number
   multiply?: number
@@ -8885,7 +9435,7 @@ export type FloatFieldUpdateOperationsInput = {
 }
 
 export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
+  set?: XOR<number, null>
   increment?: number
   decrement?: number
   multiply?: number
@@ -8897,129 +9447,185 @@ export type EnumABeautifulEnumFieldUpdateOperationsInput = {
 }
 
 export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
-  set?: ABeautifulEnum | null
+  set?: XOR<ABeautifulEnum, null>
 }
 
 export type NullableBoolFieldUpdateOperationsInput = {
-  set?: boolean | null
+  set?: XOR<boolean, null>
 }
 
 export type PostUpdateManyWithoutAuthorInput = {
-  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput>
-  connect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  set?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  disconnect?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  delete?: PostWhereUniqueInput | Enumerable<PostWhereUniqueInput>
-  update?: PostUpdateWithWhereUniqueWithoutAuthorInput | Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
-  updateMany?: PostUpdateManyWithWhereNestedInput | Enumerable<PostUpdateManyWithWhereNestedInput>
-  deleteMany?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
-  upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
-  connectOrCreate?: PostCreateOrConnectWithoutUserInput | Enumerable<PostCreateOrConnectWithoutUserInput>
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  set?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  disconnect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  delete?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  update?: XOR<PostUpdateWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>>
+  updateMany?: XOR<PostUpdateManyWithWhereWithoutAuthorInput, Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>>
+  deleteMany?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
+  upsert?: XOR<PostUpsertWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>>
+  connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
+}
+
+export type PostUncheckedUpdateManyWithoutAuthorInput = {
+  create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
+  connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  set?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  disconnect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  delete?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
+  update?: XOR<PostUpdateWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>>
+  updateMany?: XOR<PostUpdateManyWithWhereWithoutAuthorInput, Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>>
+  deleteMany?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
+  upsert?: XOR<PostUpsertWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>>
+  connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
 }
 
 export type NCreateManyWithoutMInput = {
-  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput>
-  connect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  connectOrCreate?: NCreateOrConnectWithoutMInput | Enumerable<NCreateOrConnectWithoutMInput>
+  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
+  connect?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
+  connectOrCreate?: XOR<NCreateOrConnectWithoutmInput, Enumerable<NCreateOrConnectWithoutmInput>>
 }
 
 export type NUpdateManyWithoutMInput = {
-  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput>
-  connect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  set?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  disconnect?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  delete?: NWhereUniqueInput | Enumerable<NWhereUniqueInput>
-  update?: NUpdateWithWhereUniqueWithoutMInput | Enumerable<NUpdateWithWhereUniqueWithoutMInput>
-  updateMany?: NUpdateManyWithWhereNestedInput | Enumerable<NUpdateManyWithWhereNestedInput>
-  deleteMany?: NScalarWhereInput | Enumerable<NScalarWhereInput>
-  upsert?: NUpsertWithWhereUniqueWithoutMInput | Enumerable<NUpsertWithWhereUniqueWithoutMInput>
-  connectOrCreate?: NCreateOrConnectWithoutMInput | Enumerable<NCreateOrConnectWithoutMInput>
+  create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
+  connect?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
+  set?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
+  disconnect?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
+  delete?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
+  update?: XOR<NUpdateWithWhereUniqueWithoutMInput, Enumerable<NUpdateWithWhereUniqueWithoutMInput>>
+  updateMany?: XOR<NUpdateManyWithWhereWithoutMInput, Enumerable<NUpdateManyWithWhereWithoutMInput>>
+  deleteMany?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
+  upsert?: XOR<NUpsertWithWhereUniqueWithoutMInput, Enumerable<NUpsertWithWhereUniqueWithoutMInput>>
+  connectOrCreate?: XOR<NCreateOrConnectWithoutmInput, Enumerable<NCreateOrConnectWithoutmInput>>
 }
 
 export type MCreateManyWithoutNInput = {
-  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput>
-  connect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  connectOrCreate?: MCreateOrConnectWithoutNInput | Enumerable<MCreateOrConnectWithoutNInput>
+  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
+  connect?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
+  connectOrCreate?: XOR<MCreateOrConnectWithoutnInput, Enumerable<MCreateOrConnectWithoutnInput>>
 }
 
 export type MUpdateManyWithoutNInput = {
-  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput>
-  connect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  set?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  disconnect?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  delete?: MWhereUniqueInput | Enumerable<MWhereUniqueInput>
-  update?: MUpdateWithWhereUniqueWithoutNInput | Enumerable<MUpdateWithWhereUniqueWithoutNInput>
-  updateMany?: MUpdateManyWithWhereNestedInput | Enumerable<MUpdateManyWithWhereNestedInput>
-  deleteMany?: MScalarWhereInput | Enumerable<MScalarWhereInput>
-  upsert?: MUpsertWithWhereUniqueWithoutNInput | Enumerable<MUpsertWithWhereUniqueWithoutNInput>
-  connectOrCreate?: MCreateOrConnectWithoutNInput | Enumerable<MCreateOrConnectWithoutNInput>
+  create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
+  connect?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
+  set?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
+  disconnect?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
+  delete?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
+  update?: XOR<MUpdateWithWhereUniqueWithoutNInput, Enumerable<MUpdateWithWhereUniqueWithoutNInput>>
+  updateMany?: XOR<MUpdateManyWithWhereWithoutNInput, Enumerable<MUpdateManyWithWhereWithoutNInput>>
+  deleteMany?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
+  upsert?: XOR<MUpsertWithWhereUniqueWithoutNInput, Enumerable<MUpsertWithWhereUniqueWithoutNInput>>
+  connectOrCreate?: XOR<MCreateOrConnectWithoutnInput, Enumerable<MCreateOrConnectWithoutnInput>>
 }
 
 export type ManyRequiredCreateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput>
-  connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
+}
+
+export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
 }
 
 export type ManyRequiredUpdateManyWithoutOneInput = {
-  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput>
-  connect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  set?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  disconnect?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  delete?: ManyRequiredWhereUniqueInput | Enumerable<ManyRequiredWhereUniqueInput>
-  update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
-  updateMany?: ManyRequiredUpdateManyWithWhereNestedInput | Enumerable<ManyRequiredUpdateManyWithWhereNestedInput>
-  deleteMany?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
-  upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
-  connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneOptionalInput | Enumerable<ManyRequiredCreateOrConnectWithoutOneOptionalInput>
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  set?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  disconnect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  delete?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  update?: XOR<ManyRequiredUpdateWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>>
+  updateMany?: XOR<ManyRequiredUpdateManyWithWhereWithoutOneInput, Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>>
+  deleteMany?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+  upsert?: XOR<ManyRequiredUpsertWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>>
+  connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
+}
+
+export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
+  create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+  connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  set?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  disconnect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  delete?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+  update?: XOR<ManyRequiredUpdateWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>>
+  updateMany?: XOR<ManyRequiredUpdateManyWithWhereWithoutOneInput, Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>>
+  deleteMany?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+  upsert?: XOR<ManyRequiredUpsertWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>>
+  connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
 }
 
 export type OneOptionalCreateOneWithoutManyInput = {
-  create?: OneOptionalCreateWithoutManyInput
+  create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
   connect?: OneOptionalWhereUniqueInput
-  connectOrCreate?: OneOptionalCreateOrConnectWithoutManyRequiredInput
+  connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
 }
 
 export type OneOptionalUpdateOneWithoutManyInput = {
-  create?: OneOptionalCreateWithoutManyInput
+  create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
   connect?: OneOptionalWhereUniqueInput
   disconnect?: boolean
   delete?: boolean
-  update?: OneOptionalUpdateWithoutManyDataInput
+  update?: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
   upsert?: OneOptionalUpsertWithoutManyInput
-  connectOrCreate?: OneOptionalCreateOrConnectWithoutManyRequiredInput
+  connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
 }
 
 export type OptionalSide2CreateOneWithoutOptiInput = {
-  create?: OptionalSide2CreateWithoutOptiInput
+  create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
   connect?: OptionalSide2WhereUniqueInput
-  connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptionalSide1Input
+  connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide2UpdateOneWithoutOptiInput = {
-  create?: OptionalSide2CreateWithoutOptiInput
+  create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
   connect?: OptionalSide2WhereUniqueInput
   disconnect?: boolean
   delete?: boolean
-  update?: OptionalSide2UpdateWithoutOptiDataInput
+  update?: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
   upsert?: OptionalSide2UpsertWithoutOptiInput
-  connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptionalSide1Input
+  connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1CreateOneWithoutOptiInput = {
-  create?: OptionalSide1CreateWithoutOptiInput
+  create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
   connect?: OptionalSide1WhereUniqueInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+}
+
+export type OptionalSide1UncheckedCreateOneWithoutOptiInput = {
+  create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
+  connect?: OptionalSide1WhereUniqueInput
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
 }
 
 export type OptionalSide1UpdateOneWithoutOptiInput = {
-  create?: OptionalSide1CreateWithoutOptiInput
+  create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
   connect?: OptionalSide1WhereUniqueInput
   disconnect?: boolean
   delete?: boolean
-  update?: OptionalSide1UpdateWithoutOptiDataInput
+  update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   upsert?: OptionalSide1UpsertWithoutOptiInput
-  connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptionalSide2Input
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+}
+
+export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
+  create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
+  connect?: OptionalSide1WhereUniqueInput
+  disconnect?: boolean
+  delete?: boolean
+  update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+  upsert?: OptionalSide1UpsertWithoutOptiInput
+  connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+}
+
+export type BigIntFieldUpdateOperationsInput = {
+  set?: BigInt
+  increment?: BigInt
+  decrement?: BigInt
+  multiply?: BigInt
+  divide?: BigInt
 }
 
 export type DecimalFieldUpdateOperationsInput = {
@@ -9042,7 +9648,7 @@ export type NestedIntFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: number | NestedIntFilter
+  not?: XOR<number, NestedIntFilter>
 }
 
 export type NestedDateTimeFilter = {
@@ -9053,7 +9659,7 @@ export type NestedDateTimeFilter = {
   lte?: Date | string
   gt?: Date | string
   gte?: Date | string
-  not?: Date | string | NestedDateTimeFilter
+  not?: XOR<Date | string, NestedDateTimeFilter>
 }
 
 export type NestedStringFilter = {
@@ -9067,13 +9673,13 @@ export type NestedStringFilter = {
   contains?: string
   startsWith?: string
   endsWith?: string
-  not?: string | NestedStringFilter
+  not?: XOR<string, NestedStringFilter>
 }
 
 export type NestedStringNullableFilter = {
-  equals?: string | null
-  in?: Enumerable<string> | null
-  notIn?: Enumerable<string> | null
+  equals?: XOR<string, null>
+  in?: XOR<Enumerable<string>, null>
+  notIn?: XOR<Enumerable<string>, null>
   lt?: string
   lte?: string
   gt?: string
@@ -9086,13 +9692,13 @@ export type NestedStringNullableFilter = {
 
 export type NestedBoolFilter = {
   equals?: boolean
-  not?: boolean | NestedBoolFilter
+  not?: XOR<boolean, NestedBoolFilter>
 }
 
 export type NestedIntNullableFilter = {
-  equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
+  equals?: XOR<number, null>
+  in?: XOR<Enumerable<number>, null>
+  notIn?: XOR<Enumerable<number>, null>
   lt?: number
   lte?: number
   gt?: number
@@ -9108,13 +9714,13 @@ export type NestedFloatFilter = {
   lte?: number
   gt?: number
   gte?: number
-  not?: number | NestedFloatFilter
+  not?: XOR<number, NestedFloatFilter>
 }
 
 export type NestedFloatNullableFilter = {
-  equals?: number | null
-  in?: Enumerable<number> | null
-  notIn?: Enumerable<number> | null
+  equals?: XOR<number, null>
+  in?: XOR<Enumerable<number>, null>
+  notIn?: XOR<Enumerable<number>, null>
   lt?: number
   lte?: number
   gt?: number
@@ -9126,19 +9732,30 @@ export type NestedEnumABeautifulEnumFilter = {
   equals?: ABeautifulEnum
   in?: Enumerable<ABeautifulEnum>
   notIn?: Enumerable<ABeautifulEnum>
-  not?: ABeautifulEnum | NestedEnumABeautifulEnumFilter
+  not?: XOR<ABeautifulEnum, NestedEnumABeautifulEnumFilter>
 }
 
 export type NestedEnumABeautifulEnumNullableFilter = {
-  equals?: ABeautifulEnum | null
-  in?: Enumerable<ABeautifulEnum> | null
-  notIn?: Enumerable<ABeautifulEnum> | null
+  equals?: XOR<ABeautifulEnum, null>
+  in?: XOR<Enumerable<ABeautifulEnum>, null>
+  notIn?: XOR<Enumerable<ABeautifulEnum>, null>
   not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
 }
 
 export type NestedBoolNullableFilter = {
-  equals?: boolean | null
+  equals?: XOR<boolean, null>
   not?: boolean | NestedBoolNullableFilter | null
+}
+
+export type NestedBigIntFilter = {
+  equals?: BigInt
+  in?: Enumerable<BigInt>
+  notIn?: Enumerable<BigInt>
+  lt?: BigInt
+  lte?: BigInt
+  gt?: BigInt
+  gte?: BigInt
+  not?: XOR<BigInt, NestedBigIntFilter>
 }
 
 export type NestedDecimalFilter = {
@@ -9149,483 +9766,729 @@ export type NestedDecimalFilter = {
   lte?: Decimal
   gt?: Decimal
   gte?: Decimal
-  not?: Decimal | NestedDecimalFilter
+  not?: XOR<Decimal, NestedDecimalFilter>
 }
 
 export type NestedBytesFilter = {
   equals?: Buffer
-  not?: Buffer | NestedBytesFilter
+  not?: XOR<Buffer, NestedBytesFilter>
 }
 
 export type UserCreateWithoutPostsInput = {
   email: string
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type UserCreateOrConnectWithoutPostInput = {
+export type UserUncheckedCreateWithoutPostsInput = {
+  id?: number
+  email: string
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type UserCreateOrConnectWithoutpostsInput = {
   where: UserWhereUniqueInput
-  create: UserCreateWithoutPostsInput
+  create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
 }
 
-export type UserUpdateWithoutPostsDataInput = {
-  email?: string | StringFieldUpdateOperationsInput
-  int?: number | IntFieldUpdateOperationsInput
+export type UserUpdateWithoutPostsInput = {
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type UserUncheckedUpdateWithoutPostsInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  email?: XOR<string, StringFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type UserUpsertWithoutPostsInput = {
-  update: UserUpdateWithoutPostsDataInput
-  create: UserCreateWithoutPostsInput
+  update: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
+  create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
 }
 
 export type PostCreateWithoutAuthorInput = {
   createdAt?: Date | string
   title: string
-  content?: string | null
+  content?: XOR<string, null>
   published?: boolean
 }
 
-export type PostCreateOrConnectWithoutUserInput = {
+export type PostUncheckedCreateWithoutAuthorInput = {
+  id?: number
+  createdAt?: Date | string
+  title: string
+  content?: XOR<string, null>
+  published?: boolean
+}
+
+export type PostCreateOrConnectWithoutauthorInput = {
   where: PostWhereUniqueInput
-  create: PostCreateWithoutAuthorInput
+  create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
 }
 
 export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
-  data: PostUpdateWithoutAuthorDataInput
+  data: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
 }
 
-export type PostUpdateManyWithWhereNestedInput = {
+export type PostUpdateManyWithWhereWithoutAuthorInput = {
   where: PostScalarWhereInput
-  data: PostUpdateManyDataInput
+  data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutPostsInput>
 }
 
 export type PostScalarWhereInput = {
-  AND?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
-  OR?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
-  NOT?: PostScalarWhereInput | Enumerable<PostScalarWhereInput>
-  id?: IntFilter | number
-  createdAt?: DateTimeFilter | Date | string
-  title?: StringFilter | string
+  AND?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
+  OR?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
+  NOT?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
+  id?: XOR<IntFilter, number>
+  createdAt?: XOR<DateTimeFilter, Date | string>
+  title?: XOR<StringFilter, string>
   content?: StringNullableFilter | string | null
-  published?: BoolFilter | boolean
-  authorId?: IntFilter | number
+  published?: XOR<BoolFilter, boolean>
+  authorId?: XOR<IntFilter, number>
 }
 
 export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
   where: PostWhereUniqueInput
-  update: PostUpdateWithoutAuthorDataInput
-  create: PostCreateWithoutAuthorInput
+  update: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
+  create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
 }
 
 export type NCreateWithoutMInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type NCreateOrConnectWithoutMInput = {
+export type NUncheckedCreateWithoutMInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type NCreateOrConnectWithoutmInput = {
   where: NWhereUniqueInput
-  create: NCreateWithoutMInput
+  create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
 }
 
 export type NUpdateWithWhereUniqueWithoutMInput = {
   where: NWhereUniqueInput
-  data: NUpdateWithoutMDataInput
+  data: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
 }
 
-export type NUpdateManyWithWhereNestedInput = {
+export type NUpdateManyWithWhereWithoutMInput = {
   where: NScalarWhereInput
-  data: NUpdateManyDataInput
+  data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutNInput>
 }
 
 export type NScalarWhereInput = {
-  AND?: NScalarWhereInput | Enumerable<NScalarWhereInput>
-  OR?: NScalarWhereInput | Enumerable<NScalarWhereInput>
-  NOT?: NScalarWhereInput | Enumerable<NScalarWhereInput>
-  id?: IntFilter | number
-  int?: IntFilter | number
+  AND?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
+  OR?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
+  NOT?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
+  id?: XOR<IntFilter, number>
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type NUpsertWithWhereUniqueWithoutMInput = {
   where: NWhereUniqueInput
-  update: NUpdateWithoutMDataInput
-  create: NCreateWithoutMInput
+  update: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
+  create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
 }
 
 export type MCreateWithoutNInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type MCreateOrConnectWithoutNInput = {
+export type MUncheckedCreateWithoutNInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type MCreateOrConnectWithoutnInput = {
   where: MWhereUniqueInput
-  create: MCreateWithoutNInput
+  create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
 }
 
 export type MUpdateWithWhereUniqueWithoutNInput = {
   where: MWhereUniqueInput
-  data: MUpdateWithoutNDataInput
+  data: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
 }
 
-export type MUpdateManyWithWhereNestedInput = {
+export type MUpdateManyWithWhereWithoutNInput = {
   where: MScalarWhereInput
-  data: MUpdateManyDataInput
+  data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutMInput>
 }
 
 export type MScalarWhereInput = {
-  AND?: MScalarWhereInput | Enumerable<MScalarWhereInput>
-  OR?: MScalarWhereInput | Enumerable<MScalarWhereInput>
-  NOT?: MScalarWhereInput | Enumerable<MScalarWhereInput>
-  id?: IntFilter | number
-  int?: IntFilter | number
+  AND?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
+  OR?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
+  NOT?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
+  id?: XOR<IntFilter, number>
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type MUpsertWithWhereUniqueWithoutNInput = {
   where: MWhereUniqueInput
-  update: MUpdateWithoutNDataInput
-  create: MCreateWithoutNInput
+  update: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
+  create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
 }
 
 export type ManyRequiredCreateWithoutOneInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type ManyRequiredCreateOrConnectWithoutOneOptionalInput = {
+export type ManyRequiredUncheckedCreateWithoutOneInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type ManyRequiredCreateOrConnectWithoutoneInput = {
   where: ManyRequiredWhereUniqueInput
-  create: ManyRequiredCreateWithoutOneInput
+  create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
 }
 
 export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
   where: ManyRequiredWhereUniqueInput
-  data: ManyRequiredUpdateWithoutOneDataInput
+  data: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
 }
 
-export type ManyRequiredUpdateManyWithWhereNestedInput = {
+export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
   where: ManyRequiredScalarWhereInput
-  data: ManyRequiredUpdateManyDataInput
+  data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutManyInput>
 }
 
 export type ManyRequiredScalarWhereInput = {
-  AND?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
-  OR?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
-  NOT?: ManyRequiredScalarWhereInput | Enumerable<ManyRequiredScalarWhereInput>
-  id?: IntFilter | number
+  AND?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+  OR?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+  NOT?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+  id?: XOR<IntFilter, number>
   oneOptionalId?: IntNullableFilter | number | null
-  int?: IntFilter | number
+  int?: XOR<IntFilter, number>
   optionalInt?: IntNullableFilter | number | null
-  float?: FloatFilter | number
+  float?: XOR<FloatFilter, number>
   optionalFloat?: FloatNullableFilter | number | null
-  string?: StringFilter | string
+  string?: XOR<StringFilter, string>
   optionalString?: StringNullableFilter | string | null
   json?: JsonFilter
   optionalJson?: JsonNullableFilter
-  enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+  enum?: XOR<EnumABeautifulEnumFilter, ABeautifulEnum>
   optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-  boolean?: BoolFilter | boolean
+  boolean?: XOR<BoolFilter, boolean>
   optionalBoolean?: BoolNullableFilter | boolean | null
 }
 
 export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
   where: ManyRequiredWhereUniqueInput
-  update: ManyRequiredUpdateWithoutOneDataInput
-  create: ManyRequiredCreateWithoutOneInput
+  update: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
+  create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
 }
 
 export type OneOptionalCreateWithoutManyInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type OneOptionalCreateOrConnectWithoutManyRequiredInput = {
+export type OneOptionalUncheckedCreateWithoutManyInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type OneOptionalCreateOrConnectWithoutmanyInput = {
   where: OneOptionalWhereUniqueInput
-  create: OneOptionalCreateWithoutManyInput
+  create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
 }
 
-export type OneOptionalUpdateWithoutManyDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OneOptionalUpdateWithoutManyInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OneOptionalUncheckedUpdateWithoutManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OneOptionalUpsertWithoutManyInput = {
-  update: OneOptionalUpdateWithoutManyDataInput
-  create: OneOptionalCreateWithoutManyInput
+  update: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
+  create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
 }
 
 export type OptionalSide2CreateWithoutOptiInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type OptionalSide2CreateOrConnectWithoutOptionalSide1Input = {
+export type OptionalSide2UncheckedCreateWithoutOptiInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type OptionalSide2CreateOrConnectWithoutoptiInput = {
   where: OptionalSide2WhereUniqueInput
-  create: OptionalSide2CreateWithoutOptiInput
+  create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
 }
 
-export type OptionalSide2UpdateWithoutOptiDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OptionalSide2UpdateWithoutOptiInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide2UncheckedUpdateWithoutOptiInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OptionalSide2UpsertWithoutOptiInput = {
-  update: OptionalSide2UpdateWithoutOptiDataInput
-  create: OptionalSide2CreateWithoutOptiInput
+  update: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
+  create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
 }
 
 export type OptionalSide1CreateWithoutOptiInput = {
   int: number
-  optionalInt?: number | null
+  optionalInt?: XOR<number, null>
   float: number
-  optionalFloat?: number | null
+  optionalFloat?: XOR<number, null>
   string: string
-  optionalString?: string | null
+  optionalString?: XOR<string, null>
   json: InputJsonValue
-  optionalJson?: InputJsonValue | null
+  optionalJson?: XOR<InputJsonValue, null>
   enum: ABeautifulEnum
-  optionalEnum?: ABeautifulEnum | null
+  optionalEnum?: XOR<ABeautifulEnum, null>
   boolean: boolean
-  optionalBoolean?: boolean | null
+  optionalBoolean?: XOR<boolean, null>
 }
 
-export type OptionalSide1CreateOrConnectWithoutOptionalSide2Input = {
+export type OptionalSide1UncheckedCreateWithoutOptiInput = {
+  id?: number
+  int: number
+  optionalInt?: XOR<number, null>
+  float: number
+  optionalFloat?: XOR<number, null>
+  string: string
+  optionalString?: XOR<string, null>
+  json: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum: ABeautifulEnum
+  optionalEnum?: XOR<ABeautifulEnum, null>
+  boolean: boolean
+  optionalBoolean?: XOR<boolean, null>
+}
+
+export type OptionalSide1CreateOrConnectWithoutoptiInput = {
   where: OptionalSide1WhereUniqueInput
-  create: OptionalSide1CreateWithoutOptiInput
+  create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
 }
 
-export type OptionalSide1UpdateWithoutOptiDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type OptionalSide1UpdateWithoutOptiInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type OptionalSide1UncheckedUpdateWithoutOptiInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
 export type OptionalSide1UpsertWithoutOptiInput = {
-  update: OptionalSide1UpdateWithoutOptiDataInput
-  create: OptionalSide1CreateWithoutOptiInput
+  update: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+  create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
 }
 
-export type PostUpdateWithoutAuthorDataInput = {
-  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
-  title?: string | StringFieldUpdateOperationsInput
+export type PostUpdateWithoutAuthorInput = {
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
   content?: string | NullableStringFieldUpdateOperationsInput | null
-  published?: boolean | BoolFieldUpdateOperationsInput
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
 }
 
-export type PostUpdateManyDataInput = {
-  createdAt?: Date | string | DateTimeFieldUpdateOperationsInput
-  title?: string | StringFieldUpdateOperationsInput
+export type PostUncheckedUpdateWithoutAuthorInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
   content?: string | NullableStringFieldUpdateOperationsInput | null
-  published?: boolean | BoolFieldUpdateOperationsInput
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
 }
 
-export type NUpdateWithoutMDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type PostUncheckedUpdateManyWithoutPostsInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+  title?: XOR<string, StringFieldUpdateOperationsInput>
+  content?: string | NullableStringFieldUpdateOperationsInput | null
+  published?: XOR<boolean, BoolFieldUpdateOperationsInput>
+}
+
+export type NUpdateWithoutMInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type NUpdateManyDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type NUncheckedUpdateWithoutMInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type MUpdateWithoutNDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type NUncheckedUpdateManyWithoutNInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type MUpdateManyDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type MUpdateWithoutNInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type ManyRequiredUpdateWithoutOneDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type MUncheckedUpdateWithoutNInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 
-export type ManyRequiredUpdateManyDataInput = {
-  int?: number | IntFieldUpdateOperationsInput
+export type MUncheckedUpdateManyWithoutMInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
   optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
-  float?: number | FloatFieldUpdateOperationsInput
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
   optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
-  string?: string | StringFieldUpdateOperationsInput
+  string?: XOR<string, StringFieldUpdateOperationsInput>
   optionalString?: string | NullableStringFieldUpdateOperationsInput | null
   json?: InputJsonValue
-  optionalJson?: InputJsonValue | null
-  enum?: ABeautifulEnum | EnumABeautifulEnumFieldUpdateOperationsInput
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
   optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
-  boolean?: boolean | BoolFieldUpdateOperationsInput
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUpdateWithoutOneInput = {
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUncheckedUpdateWithoutOneInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
+}
+
+export type ManyRequiredUncheckedUpdateManyWithoutManyInput = {
+  id?: XOR<number, IntFieldUpdateOperationsInput>
+  int?: XOR<number, IntFieldUpdateOperationsInput>
+  optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
+  float?: XOR<number, FloatFieldUpdateOperationsInput>
+  optionalFloat?: number | NullableFloatFieldUpdateOperationsInput | null
+  string?: XOR<string, StringFieldUpdateOperationsInput>
+  optionalString?: string | NullableStringFieldUpdateOperationsInput | null
+  json?: InputJsonValue
+  optionalJson?: XOR<InputJsonValue, null>
+  enum?: XOR<ABeautifulEnum, EnumABeautifulEnumFieldUpdateOperationsInput>
+  optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
+  boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
   optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
 }
 

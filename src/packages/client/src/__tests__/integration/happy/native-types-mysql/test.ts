@@ -25,7 +25,7 @@ test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async ()
     sInt: 12,
     tInt: true,
     mInt: 100,
-    bInt: 123123123,
+    bInt: BigInt(123123123),
   }
 
   const e = await prisma.a.create({
