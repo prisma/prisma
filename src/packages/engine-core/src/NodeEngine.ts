@@ -197,7 +197,7 @@ export class NodeEngine {
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
-    if (removedFlagsUsed.length > 0) {
+    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
       console.log(
         `${chalk.blueBright(
           'info',

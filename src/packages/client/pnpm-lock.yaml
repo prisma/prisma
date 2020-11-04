@@ -1,0 +1,32 @@
+dependencies:
+  '@prisma/engines-version': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+devDependencies:
+  '@prisma/debug': 'link:../debug'
+  '@prisma/engine-core': 'link:../engine-core'
+  '@prisma/engines': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+  '@prisma/fetch-engine': 'link:../fetch-engine'
+  '@prisma/generator-helper': 'link:../generator-helper'
+  '@prisma/get-platform': 'link:../get-platform'
+  '@prisma/migrate': 'link:../migrate'
+  '@prisma/sdk': 'link:../sdk'
+lockfileVersion: 5.2
+packages:
+  /@prisma/engines-version/2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90:
+    dev: false
+    resolution:
+      integrity: sha512-qhD5Mf8B8jc0n+B0pOxvkrq24QPkln94R6Zenf1WAxV/v+X7h9rHjbUSSIBGPULgRqZXJJeP86If3H5FNJ9Ysg==
+  /@prisma/engines/2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90:
+    dev: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-PFTEd14kHR9QEwqQZeJqDhVjDaFLXaLgmxA7fZrGXOGR61laTyBtPci8PgbT6rQfm/Ah2pmXVo/2vrfU6QrBJQ==
+specifiers:
+  '@prisma/debug': 'workspace:*'
+  '@prisma/engine-core': 'workspace:*'
+  '@prisma/engines': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+  '@prisma/engines-version': 2.11.2-2-7eaf799c2a91e3fb23090404b19cc0398df9bf90
+  '@prisma/fetch-engine': 'workspace:*'
+  '@prisma/generator-helper': 'workspace:*'
+  '@prisma/get-platform': 'workspace:*'
+  '@prisma/migrate': 'workspace:*'
+  '@prisma/sdk': 'workspace:*'

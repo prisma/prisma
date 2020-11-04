@@ -717,6 +717,10 @@ function stringify(
     return JSON.stringify(obj.toString('base64'))
   }
 
+  if (Object.prototype.toString.call(obj) === '[object BigInt]') {
+    return obj.toString()
+  }
+
   if (isJson) {
     if (obj === null) {
       return 'null'
@@ -1273,6 +1277,22 @@ function hasCorrectScalarType(
     return true
   }
 
+  if (graphQLType === 'Int' && expectedType === 'BigInt') {
+    return true
+  }
+
+  if (graphQLType === 'List<Int>' && expectedType === 'List<BigInt>') {
+    return true
+  }
+
+  if (graphQLType === 'List<BigInt | Int>' && expectedType === 'List<BigInt>') {
+    return true
+  }
+
+  if (graphQLType === 'List<Int | BigInt>' && expectedType === 'List<BigInt>') {
+    return true
+  }
+
   if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
     return true
   }
@@ -1684,7 +1704,8 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
     'Bytes': value => Buffer.from(value, 'base64'),
     'Decimal': value => {
       return new Decimal(value)
-    }
+    },
+    'BigInt': value => BigInt(value)
   }
 
   for (const child of field.children) {
