@@ -1114,7 +1114,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         )
       }
     } else if (
-      // matching on all error codes from
+      // matching on all relevant error codes from
       // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
       error.code === 'ECONNRESET' ||
       error.code === 'ECONNREFUSED' ||
