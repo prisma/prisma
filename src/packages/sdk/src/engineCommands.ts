@@ -73,7 +73,9 @@ export async function getDMMF({
       enableExperimental = enableExperimental.filter(f => {
         const removeMessage = removedFeatureFlagMap[f]
         if (removeMessage) {
-          console.log(removeMessage)
+          if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+            console.log(removeMessage)
+          }
           return false
         }
 

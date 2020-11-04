@@ -51,7 +51,8 @@ export const ScalarTypeTable = {
   UUID: true,
   Json: true,
   Bytes: true,
-  Decimal: true
+  Decimal: true,
+  BigInt: true
 }
 
 export function isScalar(str: string): boolean {
@@ -72,7 +73,8 @@ export const GraphQLScalarToJSTypeTable = {
   UUID: 'string',
   Json: 'JsonValue',
   Bytes: 'Buffer',
-  Decimal: 'Decimal'
+  Decimal: 'Decimal',
+  BigInt: 'BigInt'
 }
 
 export const JSOutputTypeToInputType = {
@@ -108,6 +110,10 @@ export function getGraphQLType(
 ): string {
   if (value === null) {
     return 'null'
+  }
+
+  if (Object.prototype.toString.call(value) === '[object BigInt]') {
+    return 'BigInt'
   }
 
   // https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L4499

@@ -14,7 +14,7 @@ model A {
   sInt Int     @db.SmallInt
   tInt Boolean @db.TinyInt
   mInt Int     @db.MediumInt
-  bInt Int     @db.BigInt
+  bInt BigInt  @db.BigInt
 }
 
 model B {

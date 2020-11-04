@@ -25,7 +25,7 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
     name: 'Bob',
     int: 1,
     sInt: 3,
-    bInt: 12312312,
+    bInt: BigInt(12312312),
   }
 
   let a = await prisma.a.create({
@@ -46,7 +46,7 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
     name: 'Bob',
     int: -1,
     sInt: -3,
-    bInt: -12312312,
+    bInt: BigInt(-12312312),
   }
 
   a = await prisma.a.create({
