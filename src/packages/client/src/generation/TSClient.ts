@@ -238,6 +238,14 @@ export declare type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
 export declare type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
+
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+/**
+ * XOR is needed to have a real mutually exclusive union type
+ * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
+ */
+type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+
 declare class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
@@ -1317,38 +1325,42 @@ export class InputField implements Generatable {
   ) { }
   public toTS(): string {
     const { field } = this
-    let fieldType
 
-    if (Array.isArray(field.inputTypes)) {
-      fieldType = field.inputTypes.map((t) => {
-        let type =
-          typeof t.type === 'string'
-            ? GraphQLScalarToJSTypeTable[t.type] || t.type
-            : this.prefixFilter
-              ? `Base${t.type.name}`
-              : t.type.name
-        type = JSOutputTypeToInputType[type] ?? type
+    const fieldTypes = field.inputTypes.map((t) => {
+      let type =
+        typeof t.type === 'string'
+          ? GraphQLScalarToJSTypeTable[t.type] || t.type
+          : this.prefixFilter
+            ? `Base${t.type.name}`
+            : t.type.name
+      type = JSOutputTypeToInputType[type] ?? type
 
-        if (type === 'Null') {
-          return 'null'
-        }
+      if (type === 'Null') {
+        return 'null'
+      }
 
-        if (t.isList) {
-          if (Array.isArray(type)) {
-            return type.map(t => `Enumerable<${t}>`).join(' | ')
-          } else {
-            return `Enumerable<${type}>`
-          }
-        }
-
+      if (t.isList) {
         if (Array.isArray(type)) {
-          type = type.join(' | ')
+          return type.map(t => `Enumerable<${t}>`).join(' | ')
+        } else {
+          return `Enumerable<${type}>`
         }
+      }
 
-        return type
-      }).join(' | ')
+      if (Array.isArray(type)) {
+        type = type.join(' | ')
+      }
 
+      return type
+    })
+
+    let fieldType
+    if (fieldTypes.length === 2) {
+      fieldType = `XOR<${fieldTypes[0]}, ${fieldTypes[1]}>`
+    } else {
+      fieldType = fieldTypes.join(' | ')
     }
+
     const optionalStr = field.isRequired ? '' : '?'
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
 

@@ -27,7 +27,14 @@ async function main() {
           email: 'a@a.de'
         }
       },
-      authorId: ''
+    }
+  })
+
+  await prisma.post.create({
+    data: {
+      title: '',
+      published: true,
+      authorId: 'a@a.de'
     }
   })
 }
