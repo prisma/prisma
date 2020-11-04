@@ -12,3 +12,4 @@ failed-*
 /debug.d.ts
 /debug.js
 /debug.js.map
+pnpm-lock.yaml
