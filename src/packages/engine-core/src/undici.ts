@@ -8,11 +8,7 @@ export class Undici {
     this.pool = new Pool(url, {
       connections: 100,
       pipelining: 10,
-      keepAliveTimeout: 0,
-      keepAliveMaxTimeout: 0,
       socketTimeout: 0,
-      idleTimeout: 0,
-      headersTimeout: 0,
       ...moreArgs,
     })
   }
@@ -27,6 +23,7 @@ export class Undici {
             ...customHeaders,
           },
           body,
+          requestTimeout: 0,
         },
         async (err, result) => {
           if (err) {
