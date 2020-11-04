@@ -6,7 +6,7 @@ test('provider-array', async () => {
   console.warn = (...args) => {
     warnings.push(args)
   }
-  const PrismaClient = await getTestClient()
+  const PrismaClient = await getTestClient(/* schemaDir */ undefined, true)
   const prisma = new PrismaClient()
   const users = await prisma.user.findMany()
   await prisma.$disconnect()
