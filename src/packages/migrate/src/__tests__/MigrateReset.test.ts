@@ -35,7 +35,7 @@ describe('reset', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
             Invariant violation: migration persistence is not initialized.
                0: migration_core::api::ApplyMigrations
-                         at migration-engine/core/src/api.rs:91
+                         at migration-engine/core/src/api.rs:98
 
           `)
     expect(
