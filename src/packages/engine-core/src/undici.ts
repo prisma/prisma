@@ -8,8 +8,11 @@ export class Undici {
     this.pool = new Pool(url, {
       connections: 100,
       pipelining: 10,
-      requestTimeout: 0,
+      keepAliveTimeout: 0,
+      keepAliveMaxTimeout: 0,
       socketTimeout: 0,
+      idleTimeout: 0,
+      headersTimeout: 0,
       ...moreArgs,
     })
   }
