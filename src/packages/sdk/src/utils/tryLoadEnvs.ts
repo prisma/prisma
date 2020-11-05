@@ -83,15 +83,15 @@ function checkForConflicts(
       const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path!)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
-        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}.
+        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
 Conflicting env vars:
 ${conflicts.map((conflict) => `  ${chalk.bold(conflict)}`).join('\n')}
 
 We suggest to move the contents of ${chalk.underline(relativeEnvPath)} to ${chalk.underline(relativeRootEnvPath)} to consolidate your env vars.\n`
         throw new Error(message)
       } else if (type === 'warn') {
-        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts.map(c => chalk.bold(c)).join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}.
-Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}.
+        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts.map(c => chalk.bold(c)).join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
+Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
       `
         console.warn(`${chalk.yellow('warn(prisma)')} ${message}`);
       }
