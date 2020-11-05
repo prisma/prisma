@@ -80,6 +80,19 @@ export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
+
+  export interface MarkMigrationAppliedInput {
+    migrations_directory_path: string
+    migration_name: string
+    // Do we expect to find the migration in a failed state in the migrations table?
+    expect_failed: boolean
+  }
+  export interface MarkMigrationRolledBackInput {
+    migration_name: string
+  }
+  export interface ApplyScriptInput {
+    script: string
+  }
   export interface InitializeInput {
     migrationsDirectoryPath: string
   }

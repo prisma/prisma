@@ -1,5 +1,6 @@
 import { getSchemaPath } from '@prisma/sdk'
 import { Migrate } from '../Migrate'
+import path from 'path'
 import fs from 'fs-jetpack'
 import { consoleContext, Context } from './__helpers__/context'
 
@@ -218,5 +219,172 @@ it('push force should accept dataloss', async () => {
             ],
           }
         `)
+  migrate.stop()
+})
+
+it('markMigrationRolledBack - should fail - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+
+  const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
+    migration_name: '20201014154943_init',
+  })
+
+  await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
+          Generic error: Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
+
+        `)
+
+  migrate.stop()
+})
+
+it('markMigrationRolledBack - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const datamodel = await migrate.getDatamodel()
+  const result = await migrate.engine.createMigration({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    migrationName: 'draft_123',
+    draft: true,
+    prismaSchema: datamodel,
+  })
+
+  expect(result).toMatchInlineSnapshot(`
+          Object {
+            generatedMigrationName: 20201231000000_draft_123,
+          }
+        `)
+
+  fs.write(
+    path.join(
+      migrate.migrationsDirectoryPath,
+      result.generatedMigrationName!,
+      'migration.sql',
+    ),
+    'SELECT KAPUTT',
+  )
+
+  const resultApply = migrate.engine.applyMigrations({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+
+  await expect(resultApply).rejects.toMatchInlineSnapshot(`
+          Error querying the database: Error accessing result set, column not found: KAPUTT
+             0: migration_core::commands::apply_migrations::Applying migration
+                     with migration_name="20201231000000_draft_123"
+                       at migration-engine/core/src/commands/apply_migrations.rs:69
+             1: migration_core::api::ApplyMigrations
+                       at migration-engine/core/src/api.rs:98
+
+        `)
+
+  const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
+    migration_name: result.generatedMigrationName!,
+  })
+
+  await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(
+    `Object {}`,
+  )
+
+  const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
+    migrations_directory_path: migrate.migrationsDirectoryPath,
+    migration_name: result.generatedMigrationName!,
+    // Do we expect to find the migration in a failed state in the migrations table?
+    expect_failed: false,
+  })
+
+  await expect(resultMarkAppliedFailed).rejects.toMatchInlineSnapshot(`
+          Generic error: Invariant violation: expect_failed was passed but no failed migration was found in the database.
+
+        `)
+
+  const resultMarkApplied = migrate.engine.markMigrationApplied({
+    migrations_directory_path: migrate.migrationsDirectoryPath,
+    migration_name: result.generatedMigrationName!,
+    // Do we expect to find the migration in a failed state in the migrations table?
+    expect_failed: true,
+  })
+
+  await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
+
+  migrate.stop()
+})
+
+it('markMigrationApplied - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const datamodel = await migrate.getDatamodel()
+  const result = await migrate.engine.createMigration({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    migrationName: 'draft_123',
+    draft: true,
+    prismaSchema: datamodel,
+  })
+
+  expect(result).toMatchInlineSnapshot(`
+          Object {
+            generatedMigrationName: 20201231000000_draft_123,
+          }
+        `)
+
+  const resultMarkApplied = migrate.engine.markMigrationApplied({
+    migrations_directory_path: migrate.migrationsDirectoryPath,
+    migration_name: result.generatedMigrationName!,
+    // Do we expect to find the migration in a failed state in the migrations table?
+    expect_failed: false,
+  })
+
+  await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
+
+  migrate.stop()
+})
+
+it('applyScript - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.applyScript({
+    script: `create table teams (
+      id int primary key not null,
+      name varchar(50) not null unique
+    );
+    insert into teams (id, name) values (1, 'a');
+    insert into teams (id, name) values (2, 'b');`,
+  })
+
+  await expect(result).resolves.toMatchInlineSnapshot(`Object {}`)
+
+  const datamodel = await migrate.getDatamodel()
+  const pushResult = migrate.engine.schemaPush({
+    force: false,
+    schema: datamodel,
+  })
+
+  await expect(pushResult).resolves.toMatchInlineSnapshot(`
+          Object {
+            executedSteps: 0,
+            unexecutable: Array [],
+            warnings: Array [
+              You are about to drop the \`teams\` table, which is not empty (2 rows).,
+            ],
+          }
+        `)
+
+  migrate.stop()
+})
+
+it('applyScript - error', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.applyScript({
+    script: `InCORRECT SQL;;;`,
+  })
+
+  await expect(result).rejects.toThrow()
+
   migrate.stop()
 })
