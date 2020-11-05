@@ -4,6 +4,7 @@ test('uncheckedScalarInputs', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   await prisma.user.deleteMany()
+  await prisma.post.deleteMany()
   const user = await prisma.user.create({
     data: {
       email: 'bob@bob.de',
@@ -25,6 +26,8 @@ test('uncheckedScalarInputs', async () => {
 
   expect(post.authorId).toEqual(user.id)
   expect(post.authorId).toEqual(post.author.id)
+  await prisma.user.deleteMany()
+  await prisma.post.deleteMany()
 
   prisma.$disconnect()
 })
