@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
-import fs from 'fs'
 import path from 'path'
+import fs from 'fs'
 import { promisify } from 'util'
 const copyFile = promisify(fs.copyFile)
 
