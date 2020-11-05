@@ -1114,13 +1114,16 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         )
       }
     } else if (
-      (error.code && error.code === 'ECONNRESET') ||
+      // matching on all relevant error codes from
+      // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
+      error.code === 'ECONNRESET' ||
       error.code === 'ECONNREFUSED' ||
-      (error.code === 'UND_ERR_SOCKET' &&
-        error.message.toLowerCase().includes('closed')) ||
+      error.code === 'UND_ERR_CLOSED' ||
+      error.code === 'UND_ERR_SOCKET' ||
+      error.code === 'UND_ERR_DESTROYED' ||
+      error.code === 'UND_ERR_ABORTED' ||
       error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed') ||
-      error.code === 'UND_ERR_CLOSED'
+      error.message.toLowerCase().includes('other side closed')
     ) {
       if (this.globalKillSignalReceived && !this.child.connected) {
         throw new PrismaClientUnknownRequestError(
