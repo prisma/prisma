@@ -110,7 +110,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
+      - run: pnpm i sqlite3@5.0 --unsafe-perm --reporter=silent
         if: ${{ matrix.test == 'sqlite' }}
         working-directory: src/packages/tests
 
@@ -448,7 +448,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm i sqlite3@4 --unsafe-perm --reporter=silent
+      - run: pnpm i sqlite3@5.0 --unsafe-perm --reporter=silent
         working-directory: src/packages/cli
 
       - run: pnpm run test
