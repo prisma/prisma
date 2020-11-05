@@ -12,6 +12,7 @@ export class DMMFClass implements DMMF.Document {
   public inputTypes: DMMF.InputType[]
   public inputTypeMap: Dictionary<DMMF.InputType>
   public enumMap: Dictionary<DMMF.SchemaEnum>
+  public datamodelEnumMap: Dictionary<DMMF.DatamodelEnum>
   public modelMap: Dictionary<DMMF.Model>
   public mappingsMap: Dictionary<DMMF.ModelMapping>
   public rootFieldMap: Dictionary<DMMF.SchemaField>
@@ -20,6 +21,7 @@ export class DMMFClass implements DMMF.Document {
     this.schema = schema
     this.mappings = mappings
     this.enumMap = this.getEnumMap()
+    this.datamodelEnumMap = this.getDatamodelEnumMap()
     this.queryType = this.getQueryType()
     this.mutationType = this.getMutationType()
     this.modelMap = this.getModelMap()
@@ -134,6 +136,9 @@ export class DMMFClass implements DMMF.Document {
   }
   protected getOutputTypes(): DMMF.OutputType[] {
     return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
+  }
+  protected getDatamodelEnumMap(): Dictionary<DMMF.DatamodelEnum> {
+    return keyBy(this.datamodel.enums, 'name')
   }
   protected getEnumMap(): Dictionary<DMMF.SchemaEnum> {
     return keyBy(this.schema.enums, 'name')

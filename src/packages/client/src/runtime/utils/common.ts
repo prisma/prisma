@@ -1,8 +1,9 @@
 import chalk from 'chalk'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import { DMMF } from '../dmmf-types'
+import { BaseField, DMMF } from '../dmmf-types'
 import Decimal from 'decimal.js'
+import { DMMFClass } from '../dmmf'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -60,6 +61,24 @@ export function isScalar(str: string): boolean {
     return false
   }
   return ScalarTypeTable[str] || false
+}
+
+export const needNamespace = {
+  Json: 'JsonValue',
+  Decimal: 'Decimal',
+}
+
+export function needsNamespace(field: BaseField, dmmf: DMMFClass): boolean {
+  if (typeof field.type === 'string') {
+    if (dmmf.datamodelEnumMap[field.type]) {
+      return false
+    }
+    if (GraphQLScalarToJSTypeTable[field.type]) {
+      return Boolean(needNamespace[field.type])
+    }
+  }
+
+  return true
 }
 
 export const GraphQLScalarToJSTypeTable = {

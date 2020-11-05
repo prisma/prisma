@@ -6,7 +6,7 @@ test('transaction', async () => {
   await generateTestClient()
   const {
     PrismaClient,
-    prismaVersion,
+    Prisma: { prismaVersion },
   } = require('./node_modules/@prisma/client')
   const db = new PrismaClient()
 
