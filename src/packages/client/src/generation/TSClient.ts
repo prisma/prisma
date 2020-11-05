@@ -552,11 +552,13 @@ export type PrismaAction =
   | 'queryRaw'
   | 'aggregate'
 
+export type ModelName = "${dmmf.mappings.modelOperations.map((m) => `${m.model}`).join('" | "')}"
+
 /**
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  model?: string
+  model?: ModelName
   action: PrismaAction
   args: any
   dataPath: string[]
