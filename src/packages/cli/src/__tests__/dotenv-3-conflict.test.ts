@@ -12,7 +12,7 @@ it('should throw error', async () => {
       throw new Error(message)
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Error: There is a conflict between env var in .env and prisma/.env.
+          Error: There is a conflict between env var in .env and prisma/.env
           Conflicting env vars:
             SHOULD_THROW
 
