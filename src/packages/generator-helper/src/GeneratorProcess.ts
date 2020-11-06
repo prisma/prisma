@@ -1,5 +1,5 @@
-import { ChildProcessByStdio } from 'child_process'
-import { spawn } from 'cross-spawn'
+import { ChildProcessByStdio, fork } from 'child_process'
+import { spawn, } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
@@ -29,7 +29,7 @@ export class GeneratorProcess {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
-  constructor(private executablePath: string) {}
+  constructor(private executablePath: string, private isNode?: boolean) { }
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -39,14 +39,25 @@ export class GeneratorProcess {
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        this.child = spawn(this.executablePath, {
-          stdio: ['pipe', 'inherit', 'pipe'],
-          env: {
-            ...process.env,
-            PRISMA_GENERATOR_INVOCATION: 'true',
-          },
-          shell: true,
-        })
+        if (this.isNode) {
+          this.child = spawn(this.executablePath, {
+            stdio: ['pipe', 'inherit', 'pipe'],
+            env: {
+              ...process.env,
+              PRISMA_GENERATOR_INVOCATION: 'true',
+            },
+            shell: true,
+          })
+
+        } else {
+          this.child = fork(this.executablePath, [], {
+            stdio: ['pipe', 'inherit', 'pipe'],
+            env: {
+              ...process.env,
+              PRISMA_GENERATOR_INVOCATION: 'true',
+            },
+          })
+        }
 
         this.child.on('exit', (code) => {
           this.exitCode = code
@@ -63,8 +74,7 @@ export class GeneratorProcess {
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${
-                  this.executablePath
+                `The executable at ${this.executablePath
                 } lacks the right chmod. Please use ${chalk.bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,
