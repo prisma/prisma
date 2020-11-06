@@ -253,20 +253,6 @@ jobs:
         node: [12]
 
     services:
-      # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
-      # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
-      mysql:
-        image: bitnami/mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tests
-          MYSQL_USER: prisma
-          MYSQL_PASSWORD: prisma
-          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
-        ports:
-          - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
-
       postgres:
         image: postgres:9
         env:
@@ -295,6 +281,20 @@ jobs:
         ports:
           - 1433:1433
         options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 10
+
+      # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
+      # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
+      mysql:
+        image: bitnami/mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: tests
+          MYSQL_USER: prisma
+          MYSQL_PASSWORD: prisma
+          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
+        ports:
+          - 3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
 
     steps:
       - uses: actions/checkout@v2

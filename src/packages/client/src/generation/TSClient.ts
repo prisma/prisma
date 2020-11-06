@@ -329,6 +329,11 @@ path.join(__dirname, 'schema.prisma');
 function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enums.map((type) => new Enum(type, !Boolean(this.dmmf.datamodelEnumMap[type.name])).toJS()).join('\n\n')}
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }, true).toJS()}
+
 
 
 /**
@@ -403,6 +408,10 @@ ${enums.filter(e => e.isUserDefined).length > 0 ? (
 ${enums.filter(e => e.isUserDefined).map(e => e.code).join('\n\n')}
 
 ${prismaClientClass.toTSWithoutNamespace()}
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }, false).toTS()}
 
 export namespace Prisma {
 ${indent(`${commonCode.ts}
@@ -495,100 +504,100 @@ class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never
-> {
-  /**
-   * @private
-   */
-  private fetcher;
-  /**
-   * @private
-   */
-  private readonly dmmf;
-  /**
-   * @private
-   */
-  private connectionPromise?;
-  /**
-   * @private
-   */
-  private disconnectionPromise?;
-  /**
-   * @private
-   */
-  private readonly engineConfig;
-  /**
-   * @private
-   */
-  private readonly measurePerformance;
+      > {
+      /**
+       * @private
+       */
+      private fetcher;
+      /**
+       * @private
+       */
+      private readonly dmmf;
+      /**
+       * @private
+       */
+      private connectionPromise?;
+      /**
+       * @private
+       */
+      private disconnectionPromise?;
+      /**
+       * @private
+       */
+      private readonly engineConfig;
+      /**
+       * @private
+       */
+      private readonly measurePerformance;
 
-${indent(this.jsDoc, tab)}
-  constructor(optionsArg?: T);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
-  /**
-   * @deprecated renamed to \`$on\`
-   */
-  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
-  /**
-   * Connect with the database
-   */
-  $connect(): Promise<void>;
-  /**
-   * @deprecated renamed to \`$connect\`
-   */
-  connect(): Promise<void>;
+      ${indent(this.jsDoc, tab)}
+    constructor(optionsArg ?: T);
+    $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+    /**
+     * @deprecated renamed to \`$on\`
+     */
+    on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+    /**
+     * Connect with the database
+     */
+    $connect(): Promise<void>;
+    /**
+     * @deprecated renamed to \`$connect\`
+     */
+    connect(): Promise<void>;
 
-  /**
-   * Disconnect from the database
-   */
-  $disconnect(): Promise<any>;
-  /**
-   * @deprecated renamed to \`$disconnect\`
-   */
-  disconnect(): Promise<any>;
+    /**
+     * Disconnect from the database
+     */
+    $disconnect(): Promise<any>;
+    /**
+     * @deprecated renamed to \`$disconnect\`
+     */
+    disconnect(): Promise<any>;
 
-  /**
-   * Add a middleware
-   */
-  $use(cb: Prisma.Middleware): void
+    /**
+     * Add a middleware
+     */
+    $use(cb: Prisma.Middleware): void
 
-  /**
-   * Executes a raw query and returns the number of affected rows
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
-   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * // Or
-   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $executeRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+      /**
+       * Executes a raw query and returns the number of affected rows
+       * @example
+       * \`\`\`
+       * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+       * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+       * // Or
+       * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+      * \`\`\`
+      * 
+      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+      */
+      $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
-  /**
-   * @deprecated renamed to \`$executeRaw\`
-   */
-  executeRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+    /**
+     * @deprecated renamed to \`$executeRaw\`
+     */
+    executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
-  /**
-   * Performs a raw query and returns the SELECT data
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
-   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * // Or
-   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $queryRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
- 
-  /**
-   * @deprecated renamed to \`$queryRaw\`
-   */
-  queryRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
-${this.generator?.previewFeatures?.includes('transactionApi')
+    /**
+     * Performs a raw query and returns the SELECT data
+     * @example
+     * \`\`\`
+     * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+     * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+     * // Or
+     * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+    * \`\`\`
+    * 
+    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+    */
+    $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+
+    /**
+     * @deprecated renamed to \`$queryRaw\`
+     */
+    queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+    ${this.generator?.previewFeatures?.includes('transactionApi')
         ? `
   /**
    * Execute queries in a transaction
@@ -609,7 +618,7 @@ ${this.generator?.previewFeatures?.includes('transactionApi')
 `
         : ''
       }
-${indent(
+    ${indent(
         dmmf.mappings.modelOperations
           .filter((m) => m.findMany)
           .map((m) => {
@@ -628,8 +637,9 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
           })
           .join('\n\n'),
         2,
-      )}
-}`
+      )
+      }
+  }`
   }
   public toTS(): string {
     const { dmmf } = this
@@ -669,7 +679,7 @@ export interface PrismaClientOptions {
 }
 
 export type Hooks = {
-  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
+  beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
 }
 
 /* Types for Logging */
@@ -734,7 +744,7 @@ export type Middleware<T = any> = (
 ) => Promise<T>
 
 // tested in getLogLevel.test.ts
-export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;`
+export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined; `
   }
 }
 
@@ -754,15 +764,15 @@ class PayloadType implements Generatable {
 export type ${getPayloadName(name)}<
   S extends boolean | null | undefined | ${argsName},
   U = keyof S
-> = S extends true
-  ? ${name}
+    > = S extends true
+      ? ${name}
   : S extends undefined
   ? never
   : S extends ${argsName} | ${getModelArgName(name, DMMF.ModelAction.findMany)}
-  ? 'include' extends U
-    ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
+  ?'include' extends U
+  ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U
-    ? ${select}
+  ? ${select}
   : ${name}
 : ${name}
 `
@@ -776,12 +786,12 @@ export type ${getPayloadName(name)}<
     }
     const selectPrefix =
       projection === Projection.select
-        ? `P extends keyof ${type.name} ? ${type.name}[P]
+        ? `P extends keyof ${type.name} ?${type.name} [P]
 : `
         : ''
     return `{
-      [P in TrueKeys<S['${projection}']>]:${selectPrefix}
-${indent(
+  [P in TrueKeys<S['${projection}']>]: ${selectPrefix}
+  ${indent(
       relations
         .map(
           (f) => `P extends '${f.name}'
@@ -794,8 +804,9 @@ ${indent(
         )
         .join('\n'),
       6,
-    )} never
-    }`
+    )
+      } never
+} `
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
@@ -803,7 +814,7 @@ ${indent(
       return str
     }
     if (outputType.isList) {
-      return `Array<${str}>`
+      return `Array < ${str}> `
     }
     if (str === 'Null') {
       return 'null'
@@ -842,7 +853,7 @@ export class Model implements Generatable {
       const field = this.dmmf.rootFieldMap[fieldName]
       if (!field) {
         throw new Error(
-          `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
+          `Oops this must not happen.Could not find field ${fieldName} on either Query or Mutation`,
         )
       }
       if (action === 'updateMany' || action === 'deleteMany') {

@@ -267,33 +267,33 @@ export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never
-> {
-  /**
-   * @private
-   */
-  private fetcher;
-  /**
-   * @private
-   */
-  private readonly dmmf;
-  /**
-   * @private
-   */
-  private connectionPromise?;
-  /**
-   * @private
-   */
-  private disconnectionPromise?;
-  /**
-   * @private
-   */
-  private readonly engineConfig;
-  /**
-   * @private
-   */
-  private readonly measurePerformance;
+      > {
+      /**
+       * @private
+       */
+      private fetcher;
+      /**
+       * @private
+       */
+      private readonly dmmf;
+      /**
+       * @private
+       */
+      private connectionPromise?;
+      /**
+       * @private
+       */
+      private disconnectionPromise?;
+      /**
+       * @private
+       */
+      private readonly engineConfig;
+      /**
+       * @private
+       */
+      private readonly measurePerformance;
 
-  /**
+        /**
    * ##  Prisma Client ʲˢ
    * 
    * Type-safe database client for TypeScript & Node.js (ORM replacement)
@@ -307,74 +307,74 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
-  constructor(optionsArg?: T);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
-  /**
-   * @deprecated renamed to \`$on\`
-   */
-  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
-  /**
-   * Connect with the database
-   */
-  $connect(): Promise<void>;
-  /**
-   * @deprecated renamed to \`$connect\`
-   */
-  connect(): Promise<void>;
+    constructor(optionsArg ?: T);
+    $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+    /**
+     * @deprecated renamed to \`$on\`
+     */
+    on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+    /**
+     * Connect with the database
+     */
+    $connect(): Promise<void>;
+    /**
+     * @deprecated renamed to \`$connect\`
+     */
+    connect(): Promise<void>;
 
-  /**
-   * Disconnect from the database
-   */
-  $disconnect(): Promise<any>;
-  /**
-   * @deprecated renamed to \`$disconnect\`
-   */
-  disconnect(): Promise<any>;
+    /**
+     * Disconnect from the database
+     */
+    $disconnect(): Promise<any>;
+    /**
+     * @deprecated renamed to \`$disconnect\`
+     */
+    disconnect(): Promise<any>;
 
-  /**
-   * Add a middleware
-   */
-  $use(cb: Prisma.Middleware): void
+    /**
+     * Add a middleware
+     */
+    $use(cb: Prisma.Middleware): void
 
-  /**
-   * Executes a raw query and returns the number of affected rows
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
-   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * // Or
-   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $executeRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+      /**
+       * Executes a raw query and returns the number of affected rows
+       * @example
+       * \`\`\`
+       * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+       * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+       * // Or
+       * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+      * \`\`\`
+      * 
+      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+      */
+      $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
-  /**
-   * @deprecated renamed to \`$executeRaw\`
-   */
-  executeRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+    /**
+     * @deprecated renamed to \`$executeRaw\`
+     */
+    executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
-  /**
-   * Performs a raw query and returns the SELECT data
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
-   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * // Or
-   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $queryRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
- 
-  /**
-   * @deprecated renamed to \`$queryRaw\`
-   */
-  queryRaw<T = any>(query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+    /**
+     * Performs a raw query and returns the SELECT data
+     * @example
+     * \`\`\`
+     * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+     * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+     * // Or
+     * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+    * \`\`\`
+    * 
+    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+    */
+    $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
 
-  /**
+    /**
+     * @deprecated renamed to \`$queryRaw\`
+     */
+    queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+    
+      /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
     * Example usage:
     * \`\`\`ts
@@ -503,7 +503,25 @@ export class PrismaClient<
     * \`\`\`
     */
   get e(): Prisma.EDelegate;
-}
+  }
+export const ModelName: {
+  Post: 'Post',
+  User: 'User',
+  M: 'M',
+  N: 'N',
+  OneOptional: 'OneOptional',
+  ManyRequired: 'ManyRequired',
+  OptionalSide1: 'OptionalSide1',
+  OptionalSide2: 'OptionalSide2',
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+  E: 'E'
+};
+
+export type ModelName = (typeof ModelName)[keyof typeof ModelName]
+
 
 export namespace Prisma {
   export import DMMF = runtime.DMMF
@@ -674,7 +692,7 @@ export namespace Prisma {
   }
 
   export type Hooks = {
-    beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
+    beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
   }
 
   /* Types for Logging */
@@ -739,7 +757,7 @@ export namespace Prisma {
   ) => Promise<T>
 
   // tested in getLogLevel.test.ts
-  export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
+  export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined; 
   export type Datasource = {
     url?: string
   }
@@ -840,24 +858,24 @@ export namespace Prisma {
   export type PostGetPayload<
     S extends boolean | null | undefined | PostArgs,
     U = keyof S
-  > = S extends true
-    ? Post
+      > = S extends true
+        ? Post
     : S extends undefined
     ? never
     : S extends PostArgs | FindManyPostArgs
-    ? 'include' extends U
-      ? Post  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'author'
+    ?'include' extends U
+    ? Post  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'author'
         ? UserGetPayload<S['include'][P]> : never
-      }
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof Post ? Post[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof Post ?Post [P]
   : 
-        P extends 'author'
+          P extends 'author'
         ? UserGetPayload<S['select'][P]> : never
-      }
+  } 
     : Post
   : Post
 
@@ -1396,24 +1414,24 @@ export namespace Prisma {
   export type UserGetPayload<
     S extends boolean | null | undefined | UserArgs,
     U = keyof S
-  > = S extends true
-    ? User
+      > = S extends true
+        ? User
     : S extends undefined
     ? never
     : S extends UserArgs | FindManyUserArgs
-    ? 'include' extends U
-      ? User  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'posts'
-        ? Array<PostGetPayload<S['include'][P]>> : never
-      }
+    ?'include' extends U
+    ? User  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'posts'
+        ? Array < PostGetPayload<S['include'][P]>>  : never
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof User ? User[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof User ?User [P]
   : 
-        P extends 'posts'
-        ? Array<PostGetPayload<S['select'][P]>> : never
-      }
+          P extends 'posts'
+        ? Array < PostGetPayload<S['select'][P]>>  : never
+  } 
     : User
   : User
 
@@ -1951,24 +1969,24 @@ export namespace Prisma {
   export type MGetPayload<
     S extends boolean | null | undefined | MArgs,
     U = keyof S
-  > = S extends true
-    ? M
+      > = S extends true
+        ? M
     : S extends undefined
     ? never
     : S extends MArgs | FindManyMArgs
-    ? 'include' extends U
-      ? M  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'n'
-        ? Array<NGetPayload<S['include'][P]>> : never
-      }
+    ?'include' extends U
+    ? M  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'n'
+        ? Array < NGetPayload<S['include'][P]>>  : never
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof M ? M[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof M ?M [P]
   : 
-        P extends 'n'
-        ? Array<NGetPayload<S['select'][P]>> : never
-      }
+          P extends 'n'
+        ? Array < NGetPayload<S['select'][P]>>  : never
+  } 
     : M
   : M
 
@@ -2506,24 +2524,24 @@ export namespace Prisma {
   export type NGetPayload<
     S extends boolean | null | undefined | NArgs,
     U = keyof S
-  > = S extends true
-    ? N
+      > = S extends true
+        ? N
     : S extends undefined
     ? never
     : S extends NArgs | FindManyNArgs
-    ? 'include' extends U
-      ? N  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'm'
-        ? Array<MGetPayload<S['include'][P]>> : never
-      }
+    ?'include' extends U
+    ? N  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'm'
+        ? Array < MGetPayload<S['include'][P]>>  : never
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof N ? N[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof N ?N [P]
   : 
-        P extends 'm'
-        ? Array<MGetPayload<S['select'][P]>> : never
-      }
+          P extends 'm'
+        ? Array < MGetPayload<S['select'][P]>>  : never
+  } 
     : N
   : N
 
@@ -3061,24 +3079,24 @@ export namespace Prisma {
   export type OneOptionalGetPayload<
     S extends boolean | null | undefined | OneOptionalArgs,
     U = keyof S
-  > = S extends true
-    ? OneOptional
+      > = S extends true
+        ? OneOptional
     : S extends undefined
     ? never
     : S extends OneOptionalArgs | FindManyOneOptionalArgs
-    ? 'include' extends U
-      ? OneOptional  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'many'
-        ? Array<ManyRequiredGetPayload<S['include'][P]>> : never
-      }
+    ?'include' extends U
+    ? OneOptional  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'many'
+        ? Array < ManyRequiredGetPayload<S['include'][P]>>  : never
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof OneOptional ? OneOptional[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof OneOptional ?OneOptional [P]
   : 
-        P extends 'many'
-        ? Array<ManyRequiredGetPayload<S['select'][P]>> : never
-      }
+          P extends 'many'
+        ? Array < ManyRequiredGetPayload<S['select'][P]>>  : never
+  } 
     : OneOptional
   : OneOptional
 
@@ -3625,24 +3643,24 @@ export namespace Prisma {
   export type ManyRequiredGetPayload<
     S extends boolean | null | undefined | ManyRequiredArgs,
     U = keyof S
-  > = S extends true
-    ? ManyRequired
+      > = S extends true
+        ? ManyRequired
     : S extends undefined
     ? never
     : S extends ManyRequiredArgs | FindManyManyRequiredArgs
-    ? 'include' extends U
-      ? ManyRequired  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'one'
+    ?'include' extends U
+    ? ManyRequired  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'one'
         ? OneOptionalGetPayload<S['include'][P]> | null : never
-      }
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof ManyRequired ? ManyRequired[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof ManyRequired ?ManyRequired [P]
   : 
-        P extends 'one'
+          P extends 'one'
         ? OneOptionalGetPayload<S['select'][P]> | null : never
-      }
+  } 
     : ManyRequired
   : ManyRequired
 
@@ -4189,24 +4207,24 @@ export namespace Prisma {
   export type OptionalSide1GetPayload<
     S extends boolean | null | undefined | OptionalSide1Args,
     U = keyof S
-  > = S extends true
-    ? OptionalSide1
+      > = S extends true
+        ? OptionalSide1
     : S extends undefined
     ? never
     : S extends OptionalSide1Args | FindManyOptionalSide1Args
-    ? 'include' extends U
-      ? OptionalSide1  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'opti'
+    ?'include' extends U
+    ? OptionalSide1  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'opti'
         ? OptionalSide2GetPayload<S['include'][P]> | null : never
-      }
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof OptionalSide1 ? OptionalSide1[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide1 ?OptionalSide1 [P]
   : 
-        P extends 'opti'
+          P extends 'opti'
         ? OptionalSide2GetPayload<S['select'][P]> | null : never
-      }
+  } 
     : OptionalSide1
   : OptionalSide1
 
@@ -4744,24 +4762,24 @@ export namespace Prisma {
   export type OptionalSide2GetPayload<
     S extends boolean | null | undefined | OptionalSide2Args,
     U = keyof S
-  > = S extends true
-    ? OptionalSide2
+      > = S extends true
+        ? OptionalSide2
     : S extends undefined
     ? never
     : S extends OptionalSide2Args | FindManyOptionalSide2Args
-    ? 'include' extends U
-      ? OptionalSide2  & {
-        [P in TrueKeys<S['include']>]:
-        P extends 'opti'
+    ?'include' extends U
+    ? OptionalSide2  & {
+    [P in TrueKeys<S['include']>]: 
+          P extends 'opti'
         ? OptionalSide1GetPayload<S['include'][P]> | null : never
-      }
+  } 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof OptionalSide2 ? OptionalSide2[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide2 ?OptionalSide2 [P]
   : 
-        P extends 'opti'
+          P extends 'opti'
         ? OptionalSide1GetPayload<S['select'][P]> | null : never
-      }
+  } 
     : OptionalSide2
   : OptionalSide2
 
@@ -5325,19 +5343,19 @@ export namespace Prisma {
   export type AGetPayload<
     S extends boolean | null | undefined | AArgs,
     U = keyof S
-  > = S extends true
-    ? A
+      > = S extends true
+        ? A
     : S extends undefined
     ? never
     : S extends AArgs | FindManyAArgs
-    ? 'include' extends U
-      ? A 
+    ?'include' extends U
+    ? A 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof A ? A[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof A ?A [P]
   : 
-   never
-      }
+     never
+  } 
     : A
   : A
 
@@ -5821,19 +5839,19 @@ export namespace Prisma {
   export type BGetPayload<
     S extends boolean | null | undefined | BArgs,
     U = keyof S
-  > = S extends true
-    ? B
+      > = S extends true
+        ? B
     : S extends undefined
     ? never
     : S extends BArgs | FindManyBArgs
-    ? 'include' extends U
-      ? B 
+    ?'include' extends U
+    ? B 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof B ? B[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof B ?B [P]
   : 
-   never
-      }
+     never
+  } 
     : B
   : B
 
@@ -6254,19 +6272,19 @@ export namespace Prisma {
   export type CGetPayload<
     S extends boolean | null | undefined | CArgs,
     U = keyof S
-  > = S extends true
-    ? C
+      > = S extends true
+        ? C
     : S extends undefined
     ? never
     : S extends CArgs | FindManyCArgs
-    ? 'include' extends U
-      ? C 
+    ?'include' extends U
+    ? C 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof C ? C[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof C ?C [P]
   : 
-   never
-      }
+     never
+  } 
     : C
   : C
 
@@ -6686,19 +6704,19 @@ export namespace Prisma {
   export type DGetPayload<
     S extends boolean | null | undefined | DArgs,
     U = keyof S
-  > = S extends true
-    ? D
+      > = S extends true
+        ? D
     : S extends undefined
     ? never
     : S extends DArgs | FindManyDArgs
-    ? 'include' extends U
-      ? D 
+    ?'include' extends U
+    ? D 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof D ? D[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof D ?D [P]
   : 
-   never
-      }
+     never
+  } 
     : D
   : D
 
@@ -7116,19 +7134,19 @@ export namespace Prisma {
   export type EGetPayload<
     S extends boolean | null | undefined | EArgs,
     U = keyof S
-  > = S extends true
-    ? E
+      > = S extends true
+        ? E
     : S extends undefined
     ? never
     : S extends EArgs | FindManyEArgs
-    ? 'include' extends U
-      ? E 
+    ?'include' extends U
+    ? E 
     : 'select' extends U
-      ? {
-        [P in TrueKeys<S['select']>]:P extends keyof E ? E[P]
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof E ?E [P]
   : 
-   never
-      }
+     never
+  } 
     : E
   : E
 

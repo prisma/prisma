@@ -10,7 +10,7 @@ async function main() {
     params.args
     params.dataPath
     params.action
-    params.model
+    params.model as "user" | "Post" | "MachineData" | "Like" | undefined
     params.runInTransaction
     return next(params)
   })
