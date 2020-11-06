@@ -329,11 +329,11 @@ path.join(__dirname, 'schema.prisma');
 function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enums.map((type) => new Enum(type, !Boolean(this.dmmf.datamodelEnumMap[type.name])).toJS()).join('\n\n')}
+
 ${new Enum({
         name: 'ModelName',
         values: this.dmmf.mappings.modelOperations.map((m) => m.model)
       }, true).toJS()}
-
 
 
 /**
@@ -408,13 +408,14 @@ ${enums.filter(e => e.isUserDefined).length > 0 ? (
 ${enums.filter(e => e.isUserDefined).map(e => e.code).join('\n\n')}
 
 ${prismaClientClass.toTSWithoutNamespace()}
-${new Enum({
-        name: 'ModelName',
-        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-      }, false).toTS()}
 
 export namespace Prisma {
 ${indent(`${commonCode.ts}
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }, true).toTS()}
+
 ${prismaClientClass.toTS()}
 export type Datasource = {
   url?: string

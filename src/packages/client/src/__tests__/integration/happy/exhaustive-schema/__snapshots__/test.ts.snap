@@ -504,24 +504,6 @@ export class PrismaClient<
     */
   get e(): Prisma.EDelegate;
   }
-export const ModelName: {
-  Post: 'Post',
-  User: 'User',
-  M: 'M',
-  N: 'N',
-  OneOptional: 'OneOptional',
-  ManyRequired: 'ManyRequired',
-  OptionalSide1: 'OptionalSide1',
-  OptionalSide2: 'OptionalSide2',
-  A: 'A',
-  B: 'B',
-  C: 'C',
-  D: 'D',
-  E: 'E'
-};
-
-export type ModelName = (typeof ModelName)[keyof typeof ModelName]
-
 
 export namespace Prisma {
   export import DMMF = runtime.DMMF
@@ -654,6 +636,25 @@ export namespace Prisma {
     sanitizeMessage(message: string): string;
     protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
   }
+
+  export const ModelName: {
+    Post: 'Post',
+    User: 'User',
+    M: 'M',
+    N: 'N',
+    OneOptional: 'OneOptional',
+    ManyRequired: 'ManyRequired',
+    OptionalSide1: 'OptionalSide1',
+    OptionalSide2: 'OptionalSide2',
+    A: 'A',
+    B: 'B',
+    C: 'C',
+    D: 'D',
+    E: 'E'
+  };
+
+  export type ModelName = (typeof ModelName)[keyof typeof ModelName]
+
 
   export type Datasources = {
     db?: Datasource
