@@ -305,6 +305,7 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
+      datasourceNames: this.options.datasources.map(d => d.name)
     }
 
     return `${commonCodeJS(this.options)}

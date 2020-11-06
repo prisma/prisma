@@ -54,6 +54,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     clientVersion: 'client-test-version',
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
+    datasourceNames: config.datasources.map(d => d.name),
     sqliteDatasourceOverrides: extractSqliteSources(
       datamodel,
       schemaDir,
