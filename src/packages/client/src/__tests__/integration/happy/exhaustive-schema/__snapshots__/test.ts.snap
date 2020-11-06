@@ -232,11 +232,12 @@ export type PrismaAction =
   | 'queryRaw'
   | 'aggregate'
 
+
 /**
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  model?: string
+  model?: ModelName
   action: PrismaAction
   args: any
   dataPath: string[]
@@ -525,6 +526,25 @@ export declare class PrismaClient<
 
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+export declare const ModelName: {
+  Post: 'Post',
+  User: 'User',
+  M: 'M',
+  N: 'N',
+  OneOptional: 'OneOptional',
+  ManyRequired: 'ManyRequired',
+  OptionalSide1: 'OptionalSide1',
+  OptionalSide2: 'OptionalSide2',
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+  E: 'E'
+};
+
+export declare type ModelName = (typeof ModelName)[keyof typeof ModelName]
+
 
 export declare const PostDistinctFieldEnum: {
   id: 'id',
