@@ -1,5 +1,5 @@
 import { ChildProcessByStdio, fork } from 'child_process'
-import { spawn, } from 'cross-spawn'
+import { spawn } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
