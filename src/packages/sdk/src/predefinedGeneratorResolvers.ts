@@ -110,7 +110,6 @@ Please try to install it with ${chalk.bold.greenBright(
 
     return {
       outputPath: prismaClientDir,
-      // generatorPath: `node --max-old-space-size=8096 "${path.resolve(
       generatorPath: path.resolve(
         prismaClientDir,
         'generator-build/index.js',

@@ -40,6 +40,15 @@ export class GeneratorProcess {
     return new Promise((resolve, reject) => {
       try {
         if (this.isNode) {
+          this.child = fork(this.executablePath, [], {
+            stdio: ['pipe', 'inherit', 'pipe', 'ipc'],
+            env: {
+              ...process.env,
+              PRISMA_GENERATOR_INVOCATION: 'true',
+            },
+            execArgv: ['--max-old-space-size=8096']
+          })
+        } else {
           this.child = spawn(this.executablePath, {
             stdio: ['pipe', 'inherit', 'pipe'],
             env: {
@@ -47,15 +56,6 @@ export class GeneratorProcess {
               PRISMA_GENERATOR_INVOCATION: 'true',
             },
             shell: true,
-          })
-
-        } else {
-          this.child = fork(this.executablePath, [], {
-            stdio: ['pipe', 'inherit', 'pipe'],
-            env: {
-              ...process.env,
-              PRISMA_GENERATOR_INVOCATION: 'true',
-            },
           })
         }
 

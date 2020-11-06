@@ -148,7 +148,7 @@ export async function getGenerators({
           generatorPath = paths.generatorPath
         }
 
-        const generatorInstance = new Generator(generatorPath)
+        const generatorInstance = new Generator(generatorPath, paths?.isNode)
 
         await generatorInstance.init()
 
