@@ -49,7 +49,7 @@ export interface UnexecutableMigration {
 
 export type DriftDiagnostic =
   /// The current database schema does not match the schema that would be expected from applying the migration history.
-  | { diagnostic: 'driftDetected' }
+  | { diagnostic: 'driftDetected'; rollback: string }
   // A migration failed to cleanly apply to a temporary database.
   | {
       diagnostic: 'migrationFailedToApply'
@@ -82,13 +82,13 @@ export namespace EngineArgs {
    */
 
   export interface MarkMigrationAppliedInput {
-    migrations_directory_path: string
-    migration_name: string
+    migrationsDirectoryPath: string
+    migrationName: string
     // Do we expect to find the migration in a failed state in the migrations table?
-    expect_failed: boolean
+    expectFailed: boolean
   }
   export interface MarkMigrationRolledBackInput {
-    migration_name: string
+    migrationName: string
   }
   export interface ApplyScriptInput {
     script: string
@@ -171,6 +171,8 @@ export namespace EngineResults {
     failedMigrationNames: string[]
     /// The names of the migrations that were edited after they were applied to the database.
     editedMigrationNames: string[]
+    /// Whether the migrations table is present.
+    hasMigrationsTable: boolean
   }
 
   export interface PlanMigrationOutput {

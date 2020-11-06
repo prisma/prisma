@@ -228,7 +228,7 @@ it('markMigrationRolledBack - should fail - existing-db-1-migration', async () =
   const migrate = new Migrate(schemaPath)
 
   const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
-    migration_name: '20201014154943_init',
+    migrationName: '20201014154943_init',
   })
 
   await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
@@ -281,7 +281,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
         `)
 
   const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
-    migration_name: result.generatedMigrationName!,
+    migrationName: result.generatedMigrationName!,
   })
 
   await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(
@@ -289,10 +289,10 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   )
 
   const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
-    migrations_directory_path: migrate.migrationsDirectoryPath,
-    migration_name: result.generatedMigrationName!,
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    migrationName: result.generatedMigrationName!,
     // Do we expect to find the migration in a failed state in the migrations table?
-    expect_failed: false,
+    expectFailed: false,
   })
 
   await expect(resultMarkAppliedFailed).rejects.toMatchInlineSnapshot(`
@@ -301,10 +301,10 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
         `)
 
   const resultMarkApplied = migrate.engine.markMigrationApplied({
-    migrations_directory_path: migrate.migrationsDirectoryPath,
-    migration_name: result.generatedMigrationName!,
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    migrationName: result.generatedMigrationName!,
     // Do we expect to find the migration in a failed state in the migrations table?
-    expect_failed: true,
+    expectFailed: true,
   })
 
   await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
@@ -331,10 +331,10 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
         `)
 
   const resultMarkApplied = migrate.engine.markMigrationApplied({
-    migrations_directory_path: migrate.migrationsDirectoryPath,
-    migration_name: result.generatedMigrationName!,
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    migrationName: result.generatedMigrationName!,
     // Do we expect to find the migration in a failed state in the migrations table?
-    expect_failed: false,
+    expectFailed: false,
   })
 
   await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
