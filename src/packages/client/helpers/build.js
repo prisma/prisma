@@ -13,7 +13,10 @@ async function main() {
   // do the job for typescript
   if (
     !fs.existsSync('./runtime-dist') &&
-    fs.existsSync('./tsconfig.runtime.tsbuildinfo')
+    (
+      fs.existsSync('./tsconfig.runtime.tsbuildinfo') ||
+      fs.existsSync('./tsconfig.runtime.esm.tsbuildinfo')
+    )
   ) {
     try {
       console.log('unlinking')
@@ -25,6 +28,7 @@ async function main() {
   }
 
   await Promise.all([
+    run('tsc --build tsconfig.runtime.esm.json', true),
     run('tsc --build tsconfig.runtime.json', true),
     run('tsc --build tsconfig.json', true),
     run(
@@ -35,22 +39,27 @@ async function main() {
 
   await Promise.all([
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
+      'esbuild src/runtime/index.ts --outdir=runtime/commonjs --bundle --platform=node --target=node10',
       false,
     ),
     run('rollup -c'),
+    run(
+      'ncp runtime-dist/esm runtime/esm',
+      false,
+    ),
   ])
 
   await Promise.all([
     copyFile('./scripts/backup-index.js', 'index.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
+    copyFile('./scripts/backup-index.mjs', 'index.mjs'),
   ])
 
   // this is needed to remove "export = " statements
-  let file = await readFile('./runtime/index.d.ts', 'utf-8')
+  let file = await readFile('./runtime/commonjs/index.d.ts', 'utf-8')
   file = file.replace(/^export\s+=\s+.*/gm, '')
   file = file.replace('namespace Decimal {', 'declare namespace Decimal {')
-  await writeFile('./runtime/index.d.ts', file)
+  await writeFile('./runtime/commonjs/index.d.ts', file)
 
   const after = Date.now()
   console.log(

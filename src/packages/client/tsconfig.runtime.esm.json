@@ -1,18 +1,19 @@
 {
   "compilerOptions": {
     "lib": ["esnext", "esnext.asynciterable"],
-    "module": "commonjs",
-    "target": "es2018",
+    "module": "ES2020",
+    "target": "ES2020",
     "strict": false,
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "runtime-dist/commonjs",
+    "outDir": "runtime-dist/esm",
     "rootDir": "src/runtime",
     "declaration": true,
     "incremental": true,
     "skipDefaultLibCheck": true,
-    "tsBuildInfoFile": "tsconfig.runtime.tsbuildinfo"
+    "tsBuildInfoFile": "tsconfig.runtime.esm.tsbuildinfo",
+    "moduleResolution": "node"
   },
   "include": ["src/runtime"],
   "exclude": [

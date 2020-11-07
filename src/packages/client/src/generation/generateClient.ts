@@ -15,7 +15,7 @@ import { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
-import { TSClient, TS, JS } from './TSClient'
+import { TSClient, TS, JS, MJS } from './TSClient'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import pkgUp from 'pkg-up'
 
@@ -93,6 +93,7 @@ export async function buildClient({
   const fileMap = {
     'index.d.ts': TS(client),
     'index.js': JS(client),
+    'index.mjs': MJS(client),
   }
 
   return {
@@ -274,8 +275,16 @@ export async function generateClient({
     const pkgJson = JSON.stringify(
       {
         name: '.prisma/client',
+        type: 'commonjs',
         main: 'index.js',
         types: 'index.d.ts',
+        exports: {
+          '.': {
+            require:  './index.js',
+            default: './index.mjs'
+          }
+        },
+        module: 'index.mjs',
       },
       null,
       2,

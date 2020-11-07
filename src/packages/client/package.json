@@ -18,8 +18,20 @@
     "typescript",
     "query-builder"
   ],
+  "type": "commonjs",
   "main": "index.js",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "default": "./index.mjs"
+    },
+    "./runtime": {
+      "require": "./runtime/commonjs/index.js",
+      "default": "./runtime/esm/index.mjs"
+    }
+  },
+  "module": "index.mjs",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=10.4"
@@ -43,7 +55,7 @@
     "lint": "eslint --fix --ext .js,.ts .",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
+    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && cp scripts/backup-index.mjs index.mjs",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
@@ -51,7 +63,8 @@
     "scripts",
     "generator-build",
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "index.mjs"
   ],
   "devDependencies": {
     "@prisma/debug": "workspace:*",
@@ -101,6 +114,7 @@
     "make-dir": "3.1.0",
     "mariadb": "2.5.1",
     "mssql": "6.2.3",
+    "ncp": "^2.0.0",
     "node-fetch": "2.6.1",
     "packwatch": "2.0.0",
     "pg": "8.5.1",
