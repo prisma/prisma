@@ -52,6 +52,14 @@ export function TS(gen: Generatable): string {
   return gen.toTS()
 }
 
+export function MJS(gen: Generatable): string {
+  if (gen.toMJS) {
+    return gen.toMJS()
+  }
+
+  return ''
+}
+
 interface CommonCodeParams {
   runtimePath: string
   clientVersion: string
@@ -257,6 +265,60 @@ declare class PrismaClientFetcher {
 }
 `
 
+const commonCodeMJS = ({
+                        runtimePath,
+                        clientVersion,
+                        engineVersion,
+                      }: CommonCodeParams): string => `
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  warnEnvConflicts,
+  getPrismaClient,
+  sqltag as sql,
+  empty,
+  join,
+  raw,
+  Sql,
+  Decimal,
+} from '${runtimePath}'
+
+import path from 'path'
+import { fileURLToPath } from 'url';
+
+const debug = debugLib('prisma-client')
+
+/**
+ * Polyfill __dirname for esm modules
+ */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/**
+ * Prisma Client JS version: ${clientVersion}
+ * Query Engine version: ${engineVersion}
+ */
+export const prismaVersion = {
+  client: "${clientVersion}",
+  engine: "${engineVersion}"
+}
+
+export { PrismaClientKnownRequestError }
+export { PrismaClientUnknownRequestError }
+export { PrismaClientRustPanicError }
+export { PrismaClientInitializationError }
+export { PrismaClientValidationError }
+export { Decimal }
+
+/**
+ * Re-export of sql-template-tag
+ */
+export { sql, empty, join, raw, Sql }
+`
+
 interface TSClientOptions {
   clientVersion: string
   engineVersion: string
@@ -274,6 +336,7 @@ interface TSClientOptions {
 interface Generatable {
   toJS?(): string
   toTS(): string
+  toMJS?(): string
 }
 
 export class TSClient implements Generatable {
@@ -434,6 +497,96 @@ export type BatchPayload = {
 export declare const dmmf: DMMF.Document;
 export {};
 `
+  }
+  public toMJS(): string {
+    // 'document' is being printed into the file as "dmmf"
+    const {
+      generator,
+      sqliteDatasourceOverrides,
+      outputDir,
+      schemaDir,
+    } = this.options
+    const schemaPath = path.join(schemaDir, 'prisma.schema')
+    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
+    const relativeEnvPaths = {
+      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
+      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath)
+    }
+
+    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
+      generator,
+      relativeEnvPaths,
+      sqliteDatasourceOverrides,
+      relativePath: path.relative(outputDir, schemaDir),
+      clientVersion: this.options.clientVersion,
+      engineVersion: this.options.engineVersion,
+    }
+
+    return `${commonCodeMJS(this.options)}
+
+/**
+ * Build tool annotations
+ * In order to make \`ncc\` and \`node-file-trace\` happy.
+**/
+
+${this.options.platforms
+        ? this.options.platforms
+            .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
+            .join('\n')
+        : ''
+    }
+
+/**
+ * Annotation for \`node-file-trace\`
+**/
+path.join(__dirname, 'schema.prisma');
+
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+
+${new Enum({
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }).toJS()}
+
+${this.dmmf.schema.enums.map((type) => new Enum(type).toMJS()).join('\n\n')}
+
+
+/**
+ * DMMF
+ */
+const dmmfString = ${JSON.stringify(this.dmmfString)}
+
+// We are parsing 2 times, as we want independent objects, because
+// DMMFClass introduces circular references in the dmmf object
+const dmmf = JSON.parse(dmmfString)
+const dmmf2 = JSON.parse(dmmfString)
+export { dmmf2 as dmmf }
+
+/**
+ * Create the Client
+ */
+
+const config = ${JSON.stringify(config, null, 2)}
+config.document = dmmf
+config.dirname = __dirname
+
+/**
+ * Only for env conflict warning
+ * loading of env variable occurs in getPrismaClient
+ */
+const envPaths = {
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(__dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(__dirname, config.relativeEnvPaths.schemaEnvPath)
+}
+warnEnvConflicts(envPaths)
+
+const PrismaClient = getPrismaClient(config)
+export { PrismaClient }`
   }
 }
 
@@ -1640,6 +1793,14 @@ ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 
 export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name
       }]\n`
+  }
+  public toMJS(): string {
+    const { type } = this
+    return `const ${type.name} = makeEnum({
+${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
+});
+
+export { ${type.name} }`
   }
 }
 
