@@ -54,7 +54,7 @@
     "ansi-escapes": "^4.3.1",
     "cli-cursor": "3.1.0",
     "dashify": "2.0.0",
-    "diff": "4.0.2",
+    "diff": "5.0.0",
     "execa": "^4.0.0",
     "figures": "^3.2.0",
     "git-user-email": "^0.2.2",
