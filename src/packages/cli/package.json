@@ -81,9 +81,9 @@
     "@typescript-eslint/parser": "4.6.1",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.3",
+    "esbuild": "0.8.5",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.12.1",
+    "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.0",
@@ -116,10 +116,10 @@
     "strip-indent": "3.0.0",
     "tempy": "1.0.0",
     "terminal-link": "2.1.1",
-    "ts-jest": "26.4.3",
+    "ts-jest": "26.4.4",
     "typescript": "4.0.5",
     "verror": "1.10.0",
-    "ws": "7.3.1"
+    "ws": "7.4.0"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate && jest tests__/introspect && jest studio --maxConcurrency=1",
@@ -150,7 +150,7 @@
     ]
   },
   "dependencies": {
-    "@prisma/bar": "^0.0.0",
-    "@prisma/engines": "2.11.2-8-03d7c3a95fecc4d85eb47a803e35e58821e3f6a0"
+    "@prisma/bar": "0.0.1",
+    "@prisma/engines": "2.11.2-9-a624a6628b9e5e453bb8f8cb0460e233a3a97e62"
   }
 }

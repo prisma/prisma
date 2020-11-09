@@ -28,6 +28,16 @@ export async function ensureDatabaseExists(
     throw new Error(`sqlserver can't be migrated yet`)
   }
 
+  const isNativeTypesEnabled = config.generators.find(
+    (g) => g.previewFeatures && g.previewFeatures.includes('nativeTypes'),
+  )
+
+  if (isNativeTypesEnabled) {
+    throw new Error(
+      `"nativeTypes" preview feature is not supoorted yet. Remove it from your schema to use Prisma Migrate.`,
+    )
+  }
+
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
@@ -78,10 +88,10 @@ export async function askToCreateDb(
     credentials.type === 'mysql'
       ? 'MySQL'
       : credentials.type === 'postgresql'
-        ? 'PostgreSQL'
-        : credentials.type === 'sqlite'
-          ? 'SQLite'
-          : credentials.type
+      ? 'PostgreSQL'
+      : credentials.type === 'sqlite'
+      ? 'SQLite'
+      : credentials.type
 
   const schemaWord = 'database'
 

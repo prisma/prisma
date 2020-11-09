@@ -334,6 +334,11 @@ path.join(__dirname, 'schema.prisma');
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }).toJS()}
+
 ${this.dmmf.schema.enums.map((type) => new Enum(type).toJS()).join('\n\n')}
 
 
@@ -396,6 +401,11 @@ ${/*new Query(this.dmmf, 'query')*/ ''}
 
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+${new Enum({
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }).toTS()}
 
 ${this.dmmf.schema.enums.map((type) => new Enum(type).toTS()).join('\n\n')}
 
@@ -553,11 +563,12 @@ export type PrismaAction =
   | 'queryRaw'
   | 'aggregate'
 
+
 /**
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  model?: string
+  model?: ModelName
   action: PrismaAction
   args: any
   dataPath: string[]
@@ -680,8 +691,6 @@ ${indent(this.jsDoc, tab)}
    * @deprecated renamed to \`$queryRaw\`
    */
   queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
-${this.generator?.previewFeatures?.includes('transactionApi')
-        ? `
   /**
    * Execute queries in a transaction
    * @example
@@ -698,18 +707,16 @@ ${this.generator?.previewFeatures?.includes('transactionApi')
    * @deprecated renamed to \`$transaction\`
    */
   transaction: PromiseConstructor['all']
-`
-        : ''
-      }
+
 ${indent(
-        dmmf.mappings.modelOperations
-          .filter((m) => m.findMany)
-          .map((m) => {
-            const methodName = lowerCase(m.model)
-            return `\
+      dmmf.mappings.modelOperations
+        .filter((m) => m.findMany)
+        .map((m) => {
+          const methodName = lowerCase(m.model)
+          return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model
-              }** model.
+            }** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
@@ -717,10 +724,10 @@ ${indent(
   * \`\`\`
   */
 get ${methodName}(): ${m.model}Delegate;`
-          })
-          .join('\n\n'),
-        2,
-      )}
+        })
+        .join('\n\n'),
+      2,
+    )}
 }`
   }
 }
