@@ -232,7 +232,7 @@ it('markMigrationRolledBack - should fail - existing-db-1-migration', async () =
   })
 
   await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
-          Generic error: Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
+          Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
 
         `)
 
@@ -271,7 +271,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   })
 
   await expect(resultApply).rejects.toMatchInlineSnapshot(`
-          Error querying the database: Error accessing result set, column not found: KAPUTT
+          Database error: Error accessing result set, column not found: KAPUTT
              0: migration_core::commands::apply_migrations::Applying migration
                      with migration_name="20201231000000_draft_123"
                        at migration-engine/core/src/commands/apply_migrations.rs:69
@@ -296,7 +296,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   })
 
   await expect(resultMarkAppliedFailed).rejects.toMatchInlineSnapshot(`
-          Generic error: Invariant violation: expect_failed was passed but no failed migration was found in the database.
+          Invariant violation: there are failed migrations in the database, but expect_failed was not passed.
 
         `)
 
