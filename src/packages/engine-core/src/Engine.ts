@@ -105,9 +105,9 @@ export function getErrorMessageWithLink({
 
 | Name            | Version            |
 |-----------------|--------------------|
-| Node            | ${process.version.padEnd(19)}| 
-| OS              | ${platform.padEnd(19)}|
-| Prisma Client   | ${version.padEnd(19)}|
+| Node            | ${process.version?.padEnd(19)}| 
+| OS              | ${platform?.padEnd(19)}|
+| Prisma Client   | ${version?.padEnd(19)}|
 
 ${moreInfo}
 
