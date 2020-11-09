@@ -44,6 +44,7 @@ import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { tryLoadEnvs } from '@prisma/sdk'
+import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -208,6 +209,7 @@ export interface GetPrismaClientOptions {
   dirname: string
   clientVersion?: string
   engineVersion?: string
+  datasourceNames: string[]
 }
 
 export type Action =
@@ -269,11 +271,14 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _engineMiddlewares: EngineMiddleware[] = []
     private _clientVersion: string
     constructor(optionsArg?: PrismaClientOptions) {
+      if (optionsArg) {
+        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+      }
+
       this._clientVersion = config.clientVersion ?? clientVersion
       const envPaths = {
         rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
-
       }
       const loadedEnv = tryLoadEnvs(envPaths, { conflictCheck: 'none' })
       try {
