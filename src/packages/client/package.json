@@ -67,7 +67,7 @@
     "@types/fs-extra": "9.0.3",
     "@types/jest": "26.0.15",
     "@types/js-levenshtein": "1.1.0",
-    "@types/node": "12.19.3",
+    "@types/node": "12.19.4",
     "@types/node-fetch": "2.5.7",
     "@types/pg": "7.14.6",
     "@typescript-eslint/eslint-plugin": "4.7.0",
