@@ -276,7 +276,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
                      with migration_name="20201231000000_draft_123"
                        at migration-engine/core/src/commands/apply_migrations.rs:69
              1: migration_core::api::ApplyMigrations
-                       at migration-engine/core/src/api.rs:98
+                       at migration-engine/core/src/api.rs:102
 
         `)
 
