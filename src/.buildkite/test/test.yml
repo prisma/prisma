@@ -1,7 +1,16 @@
 steps:
-  - label: ":coverage: Test"
+  - label: ':coverage: Test Node 10'
     plugins:
       - docker-compose#v3.0.3:
+          image: 'node:10'
           config: src/.buildkite/test/docker-compose.yml
           run: app
+
+  - label: ':coverage: Test Node 14'
+    plugins:
+      - docker-compose#v3.0.3:
+          image: 'node:14'
+          config: src/.buildkite/test/docker-compose.yml
+          run: app
+
   - wait
