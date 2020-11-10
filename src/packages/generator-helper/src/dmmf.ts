@@ -62,6 +62,9 @@ export namespace DMMF {
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
 
+  export type InputFieldNamespace = 'model' | 'prisma'
+  export type InputFieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+
   export interface Field {
     kind: FieldKind
     name: string
@@ -89,9 +92,18 @@ export namespace DMMF {
   export interface Schema {
     rootQueryType?: string
     rootMutationType?: string
-    inputTypes: InputType[]
-    outputTypes: OutputType[]
-    enums: SchemaEnum[]
+    inputObjectTypes: {
+      model?: InputType[]
+      prisma: InputType[]
+    }
+    outputObjectTypes: {
+      model: OutputType[]
+      prisma: OutputType[]
+    }
+    enums: {
+      model?: SchemaEnum[]
+      prisma: SchemaEnum[]
+    }
   }
 
   export interface Query {
@@ -111,7 +123,8 @@ export namespace DMMF {
   export interface SchemaArgInputType {
     isList: boolean
     type: ArgType
-    kind: FieldKind
+    location: InputFieldLocation
+    namespace?: InputFieldNamespace
   }
 
   export interface SchemaArg {

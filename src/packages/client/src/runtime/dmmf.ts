@@ -32,7 +32,7 @@ export class DMMFClass implements DMMF.Document {
 
     this.resolveOutputTypes(this.outputTypes)
 
-    this.inputTypes = this.schema.inputTypes
+    this.inputTypes = this.schema.inputObjectTypes.prisma
     this.inputTypeMap = this.getInputTypeMap()
     this.resolveInputTypes(this.inputTypes)
     this.resolveFieldArgumentTypes(this.outputTypes, this.inputTypeMap)
@@ -129,19 +129,19 @@ export class DMMFClass implements DMMF.Document {
     }
   }
   protected getQueryType(): DMMF.OutputType {
-    return this.schema.outputTypes.find((t) => t.name === 'Query')!
+    return this.schema.outputObjectTypes.prisma.find((t) => t.name === 'Query')!
   }
   protected getMutationType(): DMMF.OutputType {
-    return this.schema.outputTypes.find((t) => t.name === 'Mutation')!
+    return this.schema.outputObjectTypes.prisma.find((t) => t.name === 'Mutation')!
   }
   protected getOutputTypes(): DMMF.OutputType[] {
-    return this.schema.outputTypes.map(this.outputTypeToMergedOutputType)
+    return this.schema.outputObjectTypes.prisma.map(this.outputTypeToMergedOutputType)
   }
   protected getDatamodelEnumMap(): Dictionary<DMMF.DatamodelEnum> {
     return keyBy(this.datamodel.enums, 'name')
   }
   protected getEnumMap(): Dictionary<DMMF.SchemaEnum> {
-    return keyBy(this.schema.enums, 'name')
+    return keyBy(this.schema.enums.prisma, 'name')
   }
   protected getModelMap(): Dictionary<DMMF.Model> {
     return keyBy(this.datamodel.models, 'name')
@@ -150,7 +150,7 @@ export class DMMFClass implements DMMF.Document {
     return keyBy(this.outputTypes, 'name')
   }
   protected getInputTypeMap(): Dictionary<DMMF.InputType> {
-    return keyBy(this.schema.inputTypes, 'name')
+    return keyBy(this.schema.inputObjectTypes.prisma, 'name')
   }
   protected getMappingsMap(): Dictionary<DMMF.ModelMapping> {
     return keyBy(this.mappings.modelOperations, 'model')

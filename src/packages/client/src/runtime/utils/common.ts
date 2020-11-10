@@ -339,7 +339,7 @@ export function inputTypeToJson(
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
     isRequired &&
-    inputType.fields.every((arg) => arg.inputTypes[0].kind === 'object' || arg.inputTypes[1]?.kind === 'object')
+    inputType.fields.every((arg) => arg.inputTypes[0].location === 'inputObjectTypes' || arg.inputTypes[1]?.location === 'inputObjectTypes')
 
   if (nameOnly) {
     return getInputTypeName(input)

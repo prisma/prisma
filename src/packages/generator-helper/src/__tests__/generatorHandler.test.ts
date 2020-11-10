@@ -18,9 +18,16 @@ const stubOptions: GeneratorOptions = {
       }
     },
     schema: {
-      enums: [],
-      inputTypes: [],
-      outputTypes: [],
+      enums: {
+        prisma: []
+      },
+      inputObjectTypes: {
+        prisma: []
+      },
+      outputObjectTypes: {
+        model: [],
+        prisma: [],
+      },
     },
   },
   generator: {
