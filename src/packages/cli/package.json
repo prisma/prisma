@@ -68,8 +68,8 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.310.0",
-    "@prisma/studio-server": "0.310.0",
+    "@prisma/studio": "0.311.0",
+    "@prisma/studio-server": "0.311.0",
     "@prisma/tests": "workspace:^0.0.0",
     "@sindresorhus/slugify": "1.1.0",
     "@timsuchanek/copy": "1.4.5",
@@ -77,8 +77,8 @@
     "@types/jest": "26.0.15",
     "@types/verror": "1.10.4",
     "@types/ws": "7.2.9",
-    "@typescript-eslint/eslint-plugin": "4.6.1",
-    "@typescript-eslint/parser": "4.6.1",
+    "@typescript-eslint/eslint-plugin": "4.7.0",
+    "@typescript-eslint/parser": "4.7.0",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
     "esbuild": "0.8.5",
@@ -151,6 +151,6 @@
   },
   "dependencies": {
     "@prisma/bar": "0.0.1",
-    "@prisma/engines": "2.11.2-13-6f54d2d9586e9517623130be2fa6d83fd956e54d"
+    "@prisma/engines": "2.11.0-10.58369335532e47bdcec77a2f1e7c1fb83a463918"
   }
 }

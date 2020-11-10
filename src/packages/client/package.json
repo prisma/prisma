@@ -56,7 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.11.2-13-6f54d2d9586e9517623130be2fa6d83fd956e54d",
+    "@prisma/engines": "2.11.0-10.58369335532e47bdcec77a2f1e7c1fb83a463918",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -67,11 +67,11 @@
     "@types/fs-extra": "9.0.3",
     "@types/jest": "26.0.15",
     "@types/js-levenshtein": "1.1.0",
-    "@types/node": "12.19.3",
+    "@types/node": "12.19.4",
     "@types/node-fetch": "2.5.7",
     "@types/pg": "7.14.6",
-    "@typescript-eslint/eslint-plugin": "4.6.1",
-    "@typescript-eslint/parser": "4.6.1",
+    "@typescript-eslint/eslint-plugin": "4.7.0",
+    "@typescript-eslint/parser": "4.7.0",
     "arg": "4.1.3",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
@@ -120,7 +120,7 @@
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "26.4.4",
-    "ts-loader": "8.0.10",
+    "ts-loader": "8.0.11",
     "ts-node": "9.0.0",
     "typescript": "4.0.5"
   },
@@ -147,6 +147,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines-version": "2.11.2-13-6f54d2d9586e9517623130be2fa6d83fd956e54d"
+    "@prisma/engines-version": "2.11.0-10.58369335532e47bdcec77a2f1e7c1fb83a463918"
   }
 }

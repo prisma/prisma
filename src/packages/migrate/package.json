@@ -10,7 +10,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.11.2-13-6f54d2d9586e9517623130be2fa6d83fd956e54d",
+    "@prisma/engines-version": "2.11.0-10.58369335532e47bdcec77a2f1e7c1fb83a463918",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.2",
@@ -19,11 +19,11 @@
     "@types/pg": "^7.14.5",
     "@types/fs-extra": "9.0.3",
     "@types/jest": "26.0.15",
-    "@types/node": "12.19.3",
+    "@types/node": "12.19.4",
     "@types/prompts": "2.0.9",
     "@types/sqlite3": "3.1.6",
-    "@typescript-eslint/eslint-plugin": "4.6.1",
-    "@typescript-eslint/parser": "4.6.1",
+    "@typescript-eslint/eslint-plugin": "4.7.0",
+    "@typescript-eslint/parser": "4.7.0",
     "chalk": "4.1.0",
     "del": "6.0.0",
     "eslint": "7.13.0",
