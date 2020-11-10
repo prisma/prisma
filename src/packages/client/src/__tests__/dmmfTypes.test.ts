@@ -1,4 +1,4 @@
-import { getDMMF } from '../engineCommands'
+import { getDMMF } from '../generation/getDMMF'
 import fs from 'fs'
 import path from 'path'
 
@@ -27,10 +27,11 @@ test('dmmf types', async () => {
 
 const dmmf: DMMF.Document = ${JSON.stringify(dmmf, null, 2)}
 `
-  fs.writeFileSync(path.join(__dirname, 'helpers/incorrect-types.ts'), file)
+  const target = path.join(__dirname, '__helpers__/incorrect-types.ts')
+  fs.writeFileSync(target, file)
 
   try {
-    await import('./helpers/incorrect-types')
+    await import('./__helpers__/incorrect-types')
   } catch (e) {
     // we need to do this, as jest can't print the errors
     // resulting from the dynamic import

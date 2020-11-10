@@ -62,8 +62,8 @@ export namespace DMMF {
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
 
-  export type InputFieldNamespace = 'model' | 'prisma'
-  export type InputFieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+  export type FieldNamespace = 'model' | 'prisma'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
 
   export interface Field {
     kind: FieldKind
@@ -100,7 +100,7 @@ export namespace DMMF {
       model: OutputType[]
       prisma: OutputType[]
     }
-    enums: {
+    enumTypes: {
       model?: SchemaEnum[]
       prisma: SchemaEnum[]
     }
@@ -123,8 +123,8 @@ export namespace DMMF {
   export interface SchemaArgInputType {
     isList: boolean
     type: ArgType
-    location: InputFieldLocation
-    namespace?: InputFieldNamespace
+    location: FieldLocation
+    namespace?: FieldNamespace
   }
 
   export interface SchemaArg {
@@ -149,7 +149,8 @@ export namespace DMMF {
     outputType: {
       type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes
       isList: boolean
-      kind: FieldKind
+      location: FieldLocation
+      namespace?: FieldNamespace
     }
     args: SchemaArg[]
   }
