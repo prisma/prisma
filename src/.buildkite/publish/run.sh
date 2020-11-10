@@ -9,9 +9,10 @@ if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
 fi
 
+node -v
+npm -v
+
 npm i --silent -g pnpm@5.10.4 --unsafe-perm
-npm i --silent -g yarn || echo "Ok"
-yarn --version || echo "Ok"
 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
