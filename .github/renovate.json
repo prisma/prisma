@@ -21,7 +21,6 @@
     {
       "groupName": "engines",
       "automerge": "true",
-      "rangeStrategy": "bump",
       "separateMajorMinor": "false",
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
@@ -48,7 +47,10 @@
         "@prisma/studio-server"
       ],
       "updateTypes": ["patch", "minor"],
-      "schedule": ["on monday and wednesday"]
+      "schedule": [
+        "before 9am on Monday",
+        "before 9am on Wednesday"
+      ]
     },
     {
       "groupName": "dependencies (non-major)",
