@@ -13,6 +13,8 @@ import { hasYarn } from './utils/hasYarn'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)
+const readdir = promisify(fs.readdir)
+const rename = promisify(fs.rename)
 
 export async function getPackedPackage(
   name: string,
@@ -46,7 +48,6 @@ export async function getPackedPackage(
   const archivePath = path.join(tmpDir, `package.tgz`)
 
   // Check if yarn is available.
-  // Consider some flag to force using node even if yarn is available
   const isYarn = await hasYarn(packageDir);
 
   const packCMD = isYarn ? `yarn pack -f ${archivePath}` : `npm pack ${packageDir}`;
@@ -54,14 +55,14 @@ export async function getPackedPackage(
   // pack into a .tgz in a tmp dir
   await execa.command(packCMD, {
     shell: true,
-    cwd: isYarn ? packageDir : tmpDir,
+    cwd: isYarn ? packageDir : tmpDir, // for npm pack it outputs a file to the cwd
   })
 
   if (!isYarn) { // since npm pack does not have option to specify a filename we change it here
     // find single tgz in temp folder
-    const filename = (await fs.promises.readdir(tmpDir))[0]
+    const filename = (await readdir(tmpDir))[0]
     // rename it to match expected filename
-    await fs.promises.rename(path.join(tmpDir, filename), archivePath)
+    await rename(path.join(tmpDir, filename), archivePath)
   }
 
   // extract and delete the archive
