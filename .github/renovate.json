@@ -49,7 +49,7 @@
       "updateTypes": ["patch", "minor"],
       "schedule": [
         "before 9am on Monday",
-        "before 9am on Wednesday",
+        "before 9am on Wednesday"
       ]
     },
     {
