@@ -9,6 +9,7 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import readPkgUp from 'read-pkg-up'
+import { hasYarn } from './utils/hasYarn'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)
@@ -44,11 +45,24 @@ export async function getPackedPackage(
   const tmpDir = tempy.directory() // thanks Sindre
   const archivePath = path.join(tmpDir, `package.tgz`)
 
+  // Check if yarn is available.
+  // Consider some flag to force using node even if yarn is available
+  const isYarn = await hasYarn(packageDir);
+
+  const packCMD = isYarn ? `yarn pack -f ${archivePath}` : `npm pack ${packageDir}`;
+
   // pack into a .tgz in a tmp dir
-  await execa.command(`yarn pack -f ${archivePath}`, {
+  await execa.command(packCMD, {
     shell: true,
-    cwd: packageDir,
+    cwd: isYarn ? packageDir : tmpDir,
   })
+
+  if (!isYarn) { // since npm pack does not have option to specify a filename we change it here
+    // find single tgz in temp folder
+    const filename = (await fs.promises.readdir(tmpDir))[0]
+    // rename it to match expected filename
+    await fs.promises.rename(path.join(tmpDir, filename), archivePath)
+  }
 
   // extract and delete the archive
   await tar.extract({
