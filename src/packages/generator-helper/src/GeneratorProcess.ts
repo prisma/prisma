@@ -199,4 +199,30 @@ export class GeneratorProcess {
       })
     })
   }
+  getUseMessage(options: GeneratorOptions): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const messageId = this.getMessageId()
+
+      // recompiled generators will respond with '', old generators will never respond
+      const timeout = setTimeout(
+        () => resolve(''),
+        1000,
+      )
+
+      this.registerListener(messageId, (result, error) => {
+        if (timeout) clearTimeout(timeout)
+        if (error) {
+          return reject(error)
+        }
+        resolve(result)
+      })
+
+      this.sendMessage({
+        jsonrpc: '2.0',
+        method: 'useMessage',
+        params: options,
+        id: messageId,
+      })
+    })
+  }
 }

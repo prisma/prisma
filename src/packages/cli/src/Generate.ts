@@ -9,9 +9,7 @@ import {
   getGenerators,
   getSchemaPath,
   HelpError,
-  highlightTS,
   isError,
-  link,
   missingGeneratorMessage,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -74,6 +72,10 @@ export class Generate implements Command {
             `✔ Generated ${chalk.bold(name!)}${version ? ` (version: ${version})` : ''
             }${toStr} in ${formatms(after - before)}\n`,
           )
+          const useMessage = await generator.getUseMessage()
+          if (useMessage) {
+            message.push(`${useMessage}\n`)
+          }
           generator.stop()
         } catch (err) {
           this.hasGeneratorErrored = true
@@ -137,7 +139,6 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
       ),
     )
 
-    let isJSClient
     let generators: Generator[] | undefined
     try {
       generators = await getGenerators({
@@ -150,12 +151,6 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
       if (!generators || generators.length === 0) {
         this.logText += `${missingGeneratorMessage}\n`
       } else {
-        // Only used for CLI output, ie Go client doesn't want JS example output
-        isJSClient = generators.find(
-          (g) =>
-            g.options && g.options.generator.provider === 'prisma-client-js',
-        )
-
         try {
           await this.runGenerate({ generators })
         } catch (errRunGenerate) {
@@ -183,37 +178,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     )}\n`
 
     if (!watchMode) {
-      const prismaClientJSGenerator = generators?.find(
-        (g) => g.options?.generator.provider === 'prisma-client-js',
-      )
-      let hint = ''
-      if (prismaClientJSGenerator) {
-        const importPath = prismaClientJSGenerator.options?.generator
-          ?.isCustomOutput
-          ? prefixRelativePathIfNecessary(
-            path.relative(
-              process.cwd(),
-              prismaClientJSGenerator.options?.generator.output!,
-            ),
-          )
-          : '@prisma/client'
-        hint = `
-You can now start using Prisma Client in your code:
-
-\`\`\`
-${highlightTS(`\
-import { PrismaClient } from '${importPath}'
-// or const { PrismaClient } = require('${importPath}')
-
-const prisma = new PrismaClient()`)}
-\`\`\`
-
-Explore the full API: ${link('http://pris.ly/d/client')}`
-      }
-      const message =
-        '\n' +
-        this.logText +
-        (isJSClient && !this.hasGeneratorErrored ? hint : '')
+      const message = `\n${this.logText}`
 
       if (this.hasGeneratorErrored) {
         if (isPostinstall) {
@@ -278,12 +243,4 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     }
     return Generate.help
   }
-}
-
-function prefixRelativePathIfNecessary(relativePath: string): string {
-  if (relativePath.startsWith('..')) {
-    return relativePath
-  }
-
-  return `./${relativePath}`
 }

@@ -38,4 +38,12 @@ export class Generator {
     }
     this.options.binaryPaths = binaryPaths
   }
+  getUseMessage(): Promise<string> {
+    if (!this.options) {
+      throw new Error(
+          `Please first run .setOptions() on the Generator to initialize the options`,
+      )
+    }
+    return this.generatorProcess.getUseMessage(this.options)
+  }
 }
