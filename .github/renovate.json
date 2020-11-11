@@ -21,7 +21,6 @@
     {
       "groupName": "engines",
       "automerge": "true",
-      "rangeStrategy": "bump",
       "separateMajorMinor": "false",
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
