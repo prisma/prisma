@@ -103,7 +103,7 @@
     "mssql": "6.2.3",
     "node-fetch": "2.6.1",
     "packwatch": "2.0.0",
-    "pg": "8.4.2",
+    "pg": "8.5.0",
     "pidtree": "0.5.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
