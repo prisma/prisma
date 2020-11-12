@@ -30,7 +30,7 @@ async function main() {
     },
   })
 
-  prisma.on('query', (a) => {
+  prisma.$on('query', (a) => {
     //
   })
 
