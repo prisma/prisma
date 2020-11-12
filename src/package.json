@@ -4,6 +4,9 @@
   "main": "index.js",
   "private": true,
   "license": "MIT",
+  "engines": {
+    "node": ">=10.13"
+  },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.0",
     "@types/debug": "4.1.5",
