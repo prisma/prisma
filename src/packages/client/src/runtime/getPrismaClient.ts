@@ -408,14 +408,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    use(...args) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.use() is deprecated, please use prisma.$use() instead`,
-      )
-      return (this.$use as any)(...args)
-    }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
     $use(namespace: 'engine', cb: EngineMiddleware)
@@ -437,14 +429,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         throw new Error(`Invalid middleware ${namespace}`)
       }
     }
-    on(eventType: any, callback: (event: any) => void) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.on() is deprecated, please use prisma.$on() instead`,
-      )
-      return this.$on(eventType, callback)
-    }
+
     $on(eventType: any, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
         this._engine.on('beforeExit', callback)
@@ -470,14 +455,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         })
       }
     }
-    connect() {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.connect() is deprecated, please use prisma.$connect() instead`,
-      )
-      return this.$connect()
-    }
+
     async $connect() {
       try {
         return this._engine.start()
@@ -496,14 +474,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
-    disconnect() {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.disconnect() is deprecated, please use prisma.$disconnect() instead`,
-      )
-      return this.$disconnect()
-    }
+    
     /**
      * Disconnect from the database
      */
@@ -521,14 +492,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.executeRaw() is deprecated, please use prisma.$executeRaw() instead`,
-      )
-      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
-    }
 
     /**
      * Executes a raw query. Always returns a number
@@ -651,14 +614,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return undefined
     }
 
-    queryRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.queryRaw() is deprecated, please use prisma.$queryRaw() instead`,
-      )
-      return this.$queryRaw(stringOrTemplateStringsArray, ...values)
-    }
 
     /**
      * Executes a raw query. Always returns a number
@@ -810,15 +765,6 @@ new PrismaClient({
         headers,
         callsite: this._getCallsite(),
       })
-    }
-
-    transaction(promises) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.transaction() is deprecated, please use prisma.$transaction() instead`,
-      )
-      return this.$transaction(promises)
     }
 
     private async $transactionInternal(promises: Array<any>): Promise<any> {
