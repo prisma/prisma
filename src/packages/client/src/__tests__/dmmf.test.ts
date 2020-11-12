@@ -23,7 +23,9 @@ describe('dmmf', () => {
 
     const dmmf = await getDMMF({ datamodel })
     expect(
-      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
+      dmmf.schema.inputObjectTypes.prisma.find(
+        (i) => i.name === 'NestedEnumPostKindFilter',
+      ),
     ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
@@ -35,7 +37,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -47,7 +50,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -59,7 +63,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -71,12 +76,14 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                kind: object,
+                location: inputObjectTypes,
+                namespace: prisma,
                 type: NestedEnumPostKindFilter,
               },
             ],
@@ -88,8 +95,11 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter'))
-      .toMatchInlineSnapshot(`
+    expect(
+      dmmf.schema.inputObjectTypes.prisma.find(
+        (i) => i.name === 'EnumPostKindFilter',
+      ),
+    ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -100,7 +110,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -112,7 +123,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -124,7 +136,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -136,12 +149,14 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                kind: object,
+                location: inputObjectTypes,
+                namespace: prisma,
                 type: NestedEnumPostKindFilter,
               },
             ],
@@ -176,7 +191,9 @@ describe('dmmf', () => {
 
     const dmmf = await getDMMF({ datamodel })
     expect(
-      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
+      dmmf.schema.inputObjectTypes.prisma.find(
+        (i) => i.name === 'NestedEnumPostKindFilter',
+      ),
     ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
@@ -188,7 +205,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -200,7 +218,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -212,7 +231,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -224,12 +244,14 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                kind: object,
+                location: inputObjectTypes,
+                namespace: prisma,
                 type: NestedEnumPostKindFilter,
               },
             ],
@@ -241,8 +263,11 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter'))
-      .toMatchInlineSnapshot(`
+    expect(
+      dmmf.schema.inputObjectTypes.prisma.find(
+        (i) => i.name === 'EnumPostKindFilter',
+      ),
+    ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -253,7 +278,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -265,7 +291,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -277,7 +304,8 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: true,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
             ],
@@ -289,12 +317,14 @@ describe('dmmf', () => {
             inputTypes: Array [
               Object {
                 isList: false,
-                kind: enum,
+                location: enumTypes,
+                namespace: model,
                 type: PostKind,
               },
               Object {
                 isList: false,
-                kind: object,
+                location: inputObjectTypes,
+                namespace: prisma,
                 type: NestedEnumPostKindFilter,
               },
             ],

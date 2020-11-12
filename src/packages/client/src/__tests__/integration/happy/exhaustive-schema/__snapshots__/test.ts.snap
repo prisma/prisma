@@ -10554,6 +10554,8 @@ export namespace Prisma {
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
   }
 
+
+
   /**
    * Batch Payload for updateMany & deleteMany
    */

@@ -408,7 +408,6 @@ ${modelEnums && modelEnums.length > 0 ? (
 ${modelEnums.join('\n\n')}
 `
       ) : ''}
-
 ${prismaClientClass.toTSWithoutNamespace()}
 
 export namespace Prisma {
@@ -935,7 +934,7 @@ ${aggregateTypes.length > 1
                 inputTypes: [
                   {
                     isList: false,
-                    kind: 'scalar',
+                    location: 'scalar',
                     type: 'true',
                   },
                 ],

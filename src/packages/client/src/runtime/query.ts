@@ -1246,7 +1246,6 @@ function getInvalidTypeArg(
       argName: key,
       requiredType: {
         inputType: arg.inputTypes,
-
         bestFittingType,
       },
     },
