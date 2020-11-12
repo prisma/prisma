@@ -627,27 +627,16 @@ export declare class PrismaClient<
 ${indent(this.jsDoc, tab)}
   constructor(optionsArg?: T);
   $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
-  /**
-   * @deprecated renamed to \`$on\`
-   */
-  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
+
   /**
    * Connect with the database
    */
   $connect(): Promise<void>;
-  /**
-   * @deprecated renamed to \`$connect\`
-   */
-  connect(): Promise<void>;
 
   /**
    * Disconnect from the database
    */
   $disconnect(): Promise<any>;
-  /**
-   * @deprecated renamed to \`$disconnect\`
-   */
-  disconnect(): Promise<any>;
 
   /**
    * Add a middleware
@@ -668,10 +657,6 @@ ${indent(this.jsDoc, tab)}
   */
   $executeRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<number>;
 
-  /**
-   * @deprecated renamed to \`$executeRaw\`
-   */
-  executeRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<number>;
 
   /**
    * Performs a raw query and returns the SELECT data
@@ -686,11 +671,7 @@ ${indent(this.jsDoc, tab)}
   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
   */
   $queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
- 
-  /**
-   * @deprecated renamed to \`$queryRaw\`
-   */
-  queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
+
   /**
    * Execute queries in a transaction
    * @example
@@ -703,10 +684,6 @@ ${indent(this.jsDoc, tab)}
    * \`\`\`
    */
   $transaction: PromiseConstructor['all']
-  /**
-   * @deprecated renamed to \`$transaction\`
-   */
-  transaction: PromiseConstructor['all']
 
 ${indent(
       dmmf.mappings.modelOperations
