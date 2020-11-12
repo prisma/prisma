@@ -328,7 +328,8 @@ path.join(__dirname, 'schema.prisma');
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${this.dmmf.schema.enums.map((type) => new Enum(type, !Boolean(this.dmmf.datamodelEnumMap[type.name])).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum({
         name: 'ModelName',
@@ -382,10 +383,10 @@ exports.PrismaClient = PrismaClient`
       .map((model) => new Model(model, this.dmmf, this.options.generator!))
 
     // TODO: Make this code more efficient and directly return 2 arrays
-    const enums = this.dmmf.schema.enums.map(type => ({
-      isUserDefined: this.dmmf.datamodelEnumMap[type.name],
-      code: new Enum(type, !Boolean(this.dmmf.datamodelEnumMap[type.name])).toTS()
-    }))
+
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map(type => new Enum(type, true).toTS())
+
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map(type => new Enum(type, false).toTS())
 
     return `
 /**
@@ -395,7 +396,7 @@ exports.PrismaClient = PrismaClient`
 ${commonCode.tsWithoutNamespace}
 
 ${models.map(m => m.toTSWithoutNamespace()).join('\n')}
-${enums.filter(e => e.isUserDefined).length > 0 ? (
+${modelEnums && modelEnums.length > 0 ? (
         `
 /**
  * Enums
@@ -403,9 +404,10 @@ ${enums.filter(e => e.isUserDefined).length > 0 ? (
 
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+${modelEnums.join('\n\n')}
 `
       ) : ''}
-${enums.filter(e => e.isUserDefined).map(e => e.code).join('\n\n')}
 
 ${prismaClientClass.toTSWithoutNamespace()}
 
@@ -432,15 +434,18 @@ ${models
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-${enums.filter(e => !e.isUserDefined).map(e => e.code).join('\n\n')}
+${prismaEnums.join('\n\n')}
 
 /**
  * Deep Input Types
  */
 
-${this.dmmf.inputTypes
+${this.dmmf.inputObjectTypes.prisma
           .map((inputType) => new InputType(inputType).toTS())
           .join('\n')}
+
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType).toTS())
+          .join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany
@@ -781,7 +786,7 @@ export type ${getPayloadName(name)}<
   private renderRelations(projection: Projection): string {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter((f) => f.outputType.kind === 'object')
+    const relations = type.fields.filter((f) => f.outputType.location === 'outputObjectTypes')
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
@@ -1011,11 +1016,11 @@ ${indent(
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
         outputType.fields
-          .filter((f) => f.outputType.kind === 'object')
+          .filter((f) => f.outputType.location === 'outputObjectTypes')
           .map(
             (f) =>
               `${f.name}?: boolean` +
-              (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+              (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
           )
           .join('\n'),
         tab,
@@ -1036,7 +1041,7 @@ ${indent(
         .map(
           (f) =>
             `${f.name}?: boolean` +
-            (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+            (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
         )
         .join('\n'),
       tab,
@@ -1304,7 +1309,7 @@ export class Prisma__${name}Client<T> implements Promise<T> {
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
       fields
-        .filter((f) => f.outputType.kind === 'object')
+        .filter((f) => f.outputType.location === 'outputObjectTypes')
         .map((f) => {
           const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
           return `
@@ -1580,12 +1585,12 @@ export class ArgsType implements Generatable {
         inputTypes: [
           {
             type: getSelectName(name),
-            kind: 'object',
+            location: 'inputObjectTypes',
             isList: false,
           },
           {
             type: 'null',
-            kind: 'scalar',
+            location: 'scalar',
             isList: false
           }
         ],
@@ -1603,12 +1608,12 @@ export class ArgsType implements Generatable {
         inputTypes: [
           {
             type: getIncludeName(name),
-            kind: 'object',
+            location: 'inputObjectTypes',
             isList: false,
           },
           {
             type: 'null',
-            kind: 'scalar',
+            location: 'scalar',
             isList: false
           }
         ],

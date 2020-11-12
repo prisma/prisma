@@ -108,7 +108,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const { isInclude } = fieldError.error
         fieldType.fields
           .filter((field) =>
-            isInclude ? field.outputType.kind === 'object' : true,
+            isInclude ? field.outputType.location === 'outputObjectTypes' : true,
           )
           .forEach((field) => {
             const splittedPath = path.split('.')
@@ -142,7 +142,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
         fieldType.fields
           .filter((field) =>
             fieldError.error.type === 'emptyInclude'
-              ? field.outputType.kind === 'object'
+              ? field.outputType.location === 'outputObjectTypes'
               : true,
           )
           .forEach((field) => {
@@ -432,7 +432,7 @@ ${errorMessages}${missingArgsLegend}\n`
       }
       // TODO: we don't yet support enums in a union with a non enum. This is mostly due to not implemented error handling
       // at this code part.
-      if (error.requiredType.bestFittingType.kind === 'enum') {
+      if (error.requiredType.bestFittingType.location === 'enumTypes') {
         return `Argument ${chalk.bold(
           error.argName,
         )}: Provided value ${chalk.redBright(valueStr)}${multilineValue ? '' : ' '
@@ -442,7 +442,7 @@ ${errorMessages}${missingArgsLegend}\n`
             `prisma.${this.children[0].name}`,
           )} is not a ${chalk.greenBright(
             wrapWithList(
-              stringifyGraphQLType(error.requiredType.bestFittingType.kind),
+              stringifyGraphQLType(error.requiredType.bestFittingType.location),
               error.requiredType.bestFittingType.isList,
             ),
           )}.
@@ -932,7 +932,7 @@ export function makeDocument({
     outputType: {
       isList: false,
       type: rootType,
-      kind: 'object',
+      location: "outputObjectTypes"
     },
     isRequired: true,
     name: rootTypeName,
@@ -1011,7 +1011,7 @@ export function selectionToFields(
 
     if (
       typeof value !== 'boolean' &&
-      field.outputType.kind === 'scalar' &&
+      field.outputType.location === 'scalar' &&
       field.name !== 'executeRaw' &&
       field.name !== 'queryRaw' &&
       outputType.name !== 'Query' &&
@@ -1057,7 +1057,7 @@ export function selectionToFields(
           : (field.outputType.type as DMMF.OutputType),
       )
       : undefined
-    const isRelation = field.outputType.kind === 'object'
+    const isRelation = field.outputType.location === 'outputObjectTypes'
 
     // TODO: use default selection for `include` again
 
@@ -1106,10 +1106,10 @@ export function selectionToFields(
         /**
          * Error handling for `include` statements
          */
-        if (field.outputType.kind === 'object') {
+        if (field.outputType.location === 'outputObjectTypes') {
           const fieldOutputType = field.outputType.type as DMMF.OutputType
           const allowedKeys = fieldOutputType.fields
-            .filter((f) => f.outputType.kind === 'object')
+            .filter((f) => f.outputType.location === 'outputObjectTypes')
             .map((f) => f.name)
           const invalidKeys = keys.filter((key) => !allowedKeys.includes(key))
           if (invalidKeys.length > 0) {
@@ -1213,7 +1213,7 @@ export function selectionToFields(
 
 function getDefaultSelection(outputType: DMMF.OutputType) {
   return outputType.fields.reduce((acc, f) => {
-    if (f.outputType.kind === 'scalar' || f.outputType.kind === 'enum') {
+    if (f.outputType.location === 'scalar' || f.outputType.location === 'enumTypes') {
       acc[f.name] = true
     } else {
       // otherwise field is a relation. Only continue if it's an embedded type
@@ -1238,7 +1238,7 @@ function getInvalidTypeArg(
   const arrg = new Arg({
     key,
     value,
-    isEnum: bestFittingType.kind === 'enum',
+    isEnum: bestFittingType.location === 'enumTypes',
     argType: bestFittingType.type,
     error: {
       type: 'invalidType',
@@ -1395,7 +1395,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
     return new Arg({
       key,
       value,
-      isEnum: inputType.kind === 'enum',
+      isEnum: inputType.location === 'enumTypes',
       error: {
         type: 'missingArg',
         missingName: key,
@@ -1417,7 +1417,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       return new Arg({
         key,
         value,
-        isEnum: inputType.kind === 'enum',
+        isEnum: inputType.location === 'enumTypes',
         error: {
           type: 'invalidNullArg',
           name: key,
@@ -1459,7 +1459,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
           key,
           value:
             val === null ? null : objectToArgs(val, inputType.type, arg.inputTypes),
-          isEnum: inputType.kind === 'enum',
+          isEnum: inputType.location === 'enumTypes',
           error,
           argType: inputType.type,
           schemaArg: arg,
@@ -1482,7 +1482,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
     }
   }
 
-  if (inputType.kind === 'enum' || inputType.kind === 'scalar') {
+  if (inputType.location === 'enumTypes' || inputType.location === 'scalar') {
     // if no value is incorrect
     return scalarToArg(key, value, arg, inputType)
   }
@@ -1563,7 +1563,7 @@ function scalarToArg(
     return new Arg({
       key,
       value,
-      isEnum: arg.inputTypes[0].kind === 'enum',
+      isEnum: arg.inputTypes[0].location === 'enumTypes',
       argType: inputType.type,
       schemaArg: arg,
     })
@@ -1642,7 +1642,7 @@ function objectToArgs(
         return new Arg({
           key: arg.name,
           value: undefined,
-          isEnum: argInputType.kind === 'enum',
+          isEnum: argInputType.location === 'enumTypes',
           error: {
             type: 'missingArg',
             missingName: arg.name,
@@ -1739,7 +1739,7 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
       }
     }
 
-    if (child.schemaField && child.schemaField.outputType.kind === 'object') {
+    if (child.schemaField && child.schemaField.outputType.location === 'outputObjectTypes') {
       if (Array.isArray(data)) {
         for (const entry of data) {
           mapScalars({ field: child, data: entry[child.name] })

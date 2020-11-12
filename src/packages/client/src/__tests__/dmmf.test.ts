@@ -23,7 +23,7 @@ describe('dmmf', () => {
 
     const dmmf = await getDMMF({ datamodel })
     expect(
-      dmmf.schema.inputTypes.find((i) => i.name === 'NestedEnumPostKindFilter'),
+      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
     ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
@@ -88,7 +88,7 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(dmmf.schema.inputTypes.find((i) => i.name === 'EnumPostKindFilter'))
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       Object {
         constraints: Object {
@@ -176,7 +176,7 @@ describe('dmmf', () => {
 
     const dmmf = await getDMMF({ datamodel })
     expect(
-      dmmf.schema.inputTypes.find((i) => i.name === 'NestedEnumPostKindFilter'),
+      dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'),
     ).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
@@ -241,7 +241,7 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(dmmf.schema.inputTypes.find((i) => i.name === 'EnumPostKindFilter'))
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter'))
       .toMatchInlineSnapshot(`
       Object {
         constraints: Object {
