@@ -537,68 +537,67 @@ export class PrismaClient<
        */
       private readonly measurePerformance;
 
-      ${indent(this.jsDoc, tab)}
-    constructor(optionsArg ?: T);
-    $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+  ${indent(this.jsDoc, tab)}
 
-    /**
-     * Connect with the database
-     */
-    $connect(): Promise<void>;
+  constructor(optionsArg ?: T);
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
-    /**
-     * Disconnect from the database
-     */
-    $disconnect(): Promise<any>;
+  /**
+   * Connect with the database
+   */
+  $connect(): Promise<void>;
 
-    /**
-     * Add a middleware
-     */
-    $use(cb: Prisma.Middleware): void
+  /**
+   * Disconnect from the database
+   */
+  $disconnect(): Promise<any>;
 
-    /**
-     * Executes a raw query and returns the number of affected rows
-     * @example
-     * \`\`\`
-     * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
-     * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-     * // Or
-     * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-    * \`\`\`
-    * 
-    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-    */
-    $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+  /**
+   * Add a middleware
+   */
+  $use(cb: Prisma.Middleware): void
 
-    /**
-     * Performs a raw query and returns the SELECT data
-     * @example
-     * \`\`\`
-     * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
-     * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-     * // Or
-     * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-    * \`\`\`
-    * 
-    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-    */
-    $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+  /**
+   * Executes a raw query and returns the number of affected rows
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * // Or
+   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
-    /**
-     * Execute queries in a transaction
-     * @example
-     * \`\`\`
-     * const [george, bob, alice] = await prisma.transaction([
-     *   prisma.user.create({ data: { name: 'George' } }),
-     *   prisma.user.create({ data: { name: 'Bob' } }),
-     *   prisma.user.create({ data: { name: 'Alice' } }),
-     * ])
-     * \`\`\`
-     */
-    $transaction: PromiseConstructor['all']
+  /**
+   * Performs a raw query and returns the SELECT data
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * // Or
+   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
 
-        : ''
-      }
+  /**
+   * Execute queries in a transaction
+   * @example
+   * \`\`\`
+   * const [george, bob, alice] = await prisma.transaction([
+   *   prisma.user.create({ data: { name: 'George' } }),
+   *   prisma.user.create({ data: { name: 'Bob' } }),
+   *   prisma.user.create({ data: { name: 'Alice' } }),
+   * ])
+   * \`\`\`
+   */
+  $transaction: PromiseConstructor['all']
+
     ${indent(
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
@@ -620,7 +619,7 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
       2,
     )
       }
-  }`
+}`
   }
   public toTS(): string {
     const { dmmf } = this
