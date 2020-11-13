@@ -38,43 +38,22 @@ describe('select validation', () => {
 
         {
           data: {
-        ?   id?: String | StringFieldUpdateOperationsInput,
-        ?   createdAt?: DateTime | DateTimeFieldUpdateOperationsInput,
-        ?   updatedAt?: DateTime | DateTimeFieldUpdateOperationsInput,
-        ?   published?: Boolean | BoolFieldUpdateOperationsInput,
-        ?   title?: String | StringFieldUpdateOperationsInput,
-        ?   content?: String | NullableStringFieldUpdateOperationsInput | null,
-        ?   optionnal?: Float | NullableFloatFieldUpdateOperationsInput | null,
-        ?   author?: {
-        ?     create?: UserCreateWithoutPostsInput,
-        ?     connect?: UserWhereUniqueInput,
-        ?     disconnect?: Boolean,
-        ?     delete?: Boolean,
-        ?     update?: UserUpdateWithoutPostsInput,
-        ?     upsert?: UserUpsertWithoutPostsInput,
-        ?     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
-        ?   },
-        ?   categories?: {
-        ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
-        ?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-        ?     set?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-        ?     disconnect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-        ?     delete?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-        ?     update?: CategoryUpdateWithWhereUniqueWithoutPostsInput | CategoryUpdateWithWhereUniqueWithoutPostsInput,
-        ?     updateMany?: CategoryUpdateManyWithWhereWithoutPostsInput | CategoryUpdateManyWithWhereWithoutPostsInput,
-        ?     deleteMany?: CategoryScalarWhereInput | CategoryScalarWhereInput,
-        ?     upsert?: CategoryUpsertWithWhereUniqueWithoutPostsInput | CategoryUpsertWithWhereUniqueWithoutPostsInput,
-        ?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
-        ?   }
+            id: null
+                ~~~~
           },
           where: {
             id: 'abc'
           }
         }
 
-        Argument data.id of type StringFieldUpdateOperationsInput needs at least one argument. Available args are listed in green.
+        Argument id: Got invalid value null on prisma.updateOnePost. Provided null, expected String or StringFieldUpdateOperationsInput:
+        type StringFieldUpdateOperationsInput {
+          set?: String
+        }
+        type StringFieldUpdateOperationsInput {
+          set?: String
+        }
 
-        Note: Lines with ? are optional.
 
       `)
     }
@@ -100,20 +79,20 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-                                        Invalid \`prisma.createOnePost()\` invocation:
+                                                Invalid \`prisma.createOnePost()\` invocation:
 
-                                        {
-                                          data: {
-                                            published: true,
-                                            title: null
-                                                   ~~~~
-                                          }
-                                        }
+                                                {
+                                                  data: {
+                                                    published: true,
+                                                    title: null
+                                                           ~~~~
+                                                  }
+                                                }
 
-                                        Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
+                                                Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
 
 
-                              `)
+                                    `)
     }
   })
 })
