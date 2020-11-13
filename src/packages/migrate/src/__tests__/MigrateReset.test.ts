@@ -1,16 +1,11 @@
 process.env.MIGRATE_SKIP_GENERATE = '1'
+process.env.GITHUB_ACTIONS = '1'
 
+import prompt from 'prompts'
 import { MigrateReset } from '../commands/MigrateReset'
 import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
-
-let stdin
-beforeEach(() => {
-  stdin = require('mock-stdin').stdin()
-})
-
-process.env.GITHUB_ACTIONS = '1'
 
 describe('reset', () => {
   it('if no schema file should fail', async () => {
@@ -23,11 +18,28 @@ describe('reset', () => {
           `)
   })
 
-  it('with missing db should fail', async () => {
+  it('with missing db should fail (prompt)', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    // setTimeout(() => stdin.send(`y\r`), 100)
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Invariant violation: migration persistence is not initialized.
+               0: migration_core::api::ApplyMigrations
+                         at migration-engine/core/src/api.rs:102
+
+          `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('with missing db should fail (force)', async () => {
+    ctx.fixture('reset')
+    ctx.fs.remove('prisma/dev.db')
+
     const result = MigrateReset.new().parse([
       '--early-access-feature',
       '--force',
@@ -43,10 +55,32 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('should work', async () => {
+  it('should work (prompt)', async () => {
     ctx.fixture('reset')
 
-    // setTimeout(() => stdin.send(`y\r`), 100)
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+
+      Database reset successful - Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('should work (force)', async () => {
+    ctx.fixture('reset')
+
     const result = MigrateReset.new().parse([
       '--early-access-feature',
       '--force',
@@ -87,17 +121,20 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  // commented because can't run on CI
-  it.skip('should be cancelled if user send n', async () => {
+  it('should be cancelled if user send n (prompt)', async () => {
     ctx.fixture('reset')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
-    // setTimeout(() => stdin.send(`n\r`), 100)
+    prompt.inject([new Error()]) // simulate user cancellation
+
     const result = MigrateReset.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Reset cancelled.
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -108,30 +145,8 @@ describe('reset', () => {
     ctx.fixture('reset')
     const result = MigrateReset.new().parse(['--early-access-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the reset command in an unnattended environment like prisma reset --force --early-access-feature`,
+      `Use the --force flag to use the reset command in an unnattended environment like prisma migrate reset --force --early-access-feature`,
     )
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
-
-  it('should work with --force', async () => {
-    ctx.fixture('reset')
-    const result = MigrateReset.new().parse([
-      '--force',
-      '--early-access-feature',
-    ])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
-
-      Database reset successful - Prisma Migrate applied the following migration(s):
-
-      migrations/
-        └─ 20201231000000_init/
-          └─ migration.sql
-    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`sqlite baseline-sqlite (prompt cancelled) 3`] = `Array []`;
+
+exports[`sqlite baseline-sqlite (prompt cancelled) 4`] = `Array []`;
+
+exports[`sqlite baseline-sqlite (prompt yes) 3`] = `Array []`;
+
+exports[`sqlite baseline-sqlite (prompt yes) 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration-conflict (prompt cancelled) 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration-conflict (prompt cancelled) 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration-conflict (prompt) 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration-conflict (prompt) 4`] = `Array []`;
+
+exports[`sqlite existing-db-brownfield 3`] = `Array []`;
+
+exports[`sqlite existing-db-brownfield 4`] = `Array []`;
+
+exports[`sqlite existing-db-warnings 3`] = `Array []`;
+
+exports[`sqlite existing-db-warnings 4`] = `Array []`;
+
+exports[`sqlite initialized-sqlite 3`] = `Array []`;
+
+exports[`sqlite initialized-sqlite 4`] = `Array []`;
+
+exports[`sqlite old-migrate 3`] = `Array []`;
+
+exports[`sqlite old-migrate 4`] = `Array []`;
+
+exports[`sqlite reset 3`] = `Array []`;
+
+exports[`sqlite reset 4`] = `Array []`;
+
+exports[`sqlite schema-only-sqlite 3`] = `Array []`;
+
+exports[`sqlite schema-only-sqlite 4`] = `Array []`;
+
+exports[`sqlite should fail if no sqlite db - empty schema 3`] = `Array []`;
+
+exports[`sqlite should fail if no sqlite db - empty schema 4`] = `Array []`;

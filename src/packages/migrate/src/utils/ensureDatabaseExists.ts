@@ -12,6 +12,36 @@ import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 
+export async function ensureCanConnectToDatabase(
+  schemaPath?: string,
+): Promise<Boolean | Error> {
+  const datamodel = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel })
+  const activeDatasource = config.datasources[0]
+
+  if (!activeDatasource) {
+    throw new Error(`Couldn't find a datasource in the schema.prisma file`)
+  }
+
+  if (activeDatasource.provider[0] === 'sqlserver') {
+    throw new Error(`sqlserver is not supported yet`)
+  }
+
+  const schemaDir = (await getSchemaDir(schemaPath))!
+
+  const canConnect = await canConnectToDatabase(
+    activeDatasource.url.value,
+    schemaDir,
+  )
+
+  if (canConnect === true) {
+    return true
+  } else {
+    const { code, message } = canConnect
+    throw new Error(`${code}: ${message}`)
+  }
+}
+
 export async function ensureDatabaseExists(
   action: MigrateAction,
   forceCreate = false,

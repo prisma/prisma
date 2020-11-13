@@ -388,3 +388,53 @@ it('applyScript - error', async () => {
 
   migrate.stop()
 })
+
+it('listMigrationDirectories - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.listMigrationDirectories({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            migrations: Array [
+              20201231000000_init,
+            ],
+          }
+        `)
+
+  migrate.stop()
+})
+
+it('listMigrationDirectories - schema-only-sqlite', async () => {
+  ctx.fixture('schema-only-sqlite')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.listMigrationDirectories({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            migrations: Array [],
+          }
+        `)
+
+  migrate.stop()
+})
+
+it('listMigrationDirectories - initialized-sqlite', async () => {
+  ctx.fixture('initialized-sqlite')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.listMigrationDirectories({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            migrations: Array [],
+          }
+        `)
+
+  migrate.stop()
+})

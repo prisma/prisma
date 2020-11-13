@@ -1,6 +1,7 @@
 export { Migrate } from './Migrate'
 export { MigrateEngine } from './MigrateEngine'
 export { MigrateCommand } from './commands/MigrateCommand'
+export { MigrateResolve } from './commands/MigrateResolve'
 export { MigrateReset } from './commands/MigrateReset'
 export { MigrateUp } from './commands/MigrateUp'
 export { DbCommand } from './commands/DbCommand'

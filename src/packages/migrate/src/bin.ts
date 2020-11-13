@@ -46,6 +46,7 @@ import debugLib from 'debug'
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateUp } from './commands/MigrateUp'
+import { MigrateResolve } from './commands/MigrateResolve'
 import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
 import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
@@ -64,6 +65,7 @@ async function main(): Promise<number> {
   const cli = MigrateCommand.new({
     reset: MigrateReset.new(),
     up: MigrateUp.new(),
+    resolve: MigrateResolve.new(),
     // for convenient debugging
     push: DbPush.new(),
     drop: DbDrop.new(),

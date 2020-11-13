@@ -87,11 +87,12 @@ export class MigrateReset implements Command {
     )
 
     if (!args['--force']) {
-      if (isCi()) {
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw Error(
           `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
-              'prisma reset --force --early-access-feature',
+              'prisma migrate reset --force --early-access-feature',
             ),
           )}`,
         )
@@ -109,6 +110,8 @@ export class MigrateReset implements Command {
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         process.exit(0)
+        // For snapshot test, because exit() is mocked
+        return ``
       }
     }
 

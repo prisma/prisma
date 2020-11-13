@@ -269,6 +269,14 @@ export class Migrate {
     return
   }
 
+  public async diagnoseMigrationHistory(): Promise<
+    EngineResults.DiagnoseMigrationHistoryOutput
+  > {
+    return await this.engine.diagnoseMigrationHistory({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
   public async checkHistoryAndReset({
     force = false,
   }): Promise<string[] | undefined> {
@@ -340,11 +348,16 @@ export class Migrate {
     }
 
     if (isResetNeeded) {
-      if (!force && isCi()) {
+      // We use prompts.inject() for testing in our CI
+      if (
+        !force &&
+        isCi() &&
+        Boolean((prompt as any)._injected?.length) === false
+      ) {
         throw Error(
-          `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
+          `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
-              'prisma reset --force --early-access-feature',
+              'prisma migrate --force --early-access-feature',
             ),
           )}`,
         )
@@ -354,24 +367,69 @@ export class Migrate {
     }
   }
 
-  public async confirmReset(): Promise<void> {
+  public async getDbInfo(): Promise<{
+    schemaWord: string
+    dbType: string
+    dbName: string
+    dbLocation: string
+  }> {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
     const activeDatasource = config.datasources[0]
     const credentials = uriToCredentials(activeDatasource.url.value)
-    const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+    const dbLocation = getDbLocation(credentials)
+    return {
+      ...getDbinfoFromCredentials(credentials),
+      dbLocation,
+    }
+  }
+
+  public async confirmReset(): Promise<void> {
+    const { schemaWord, dbType, dbName, dbLocation } = await this.getDbInfo()
 
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${getDbLocation(
-        credentials,
-      )}". ${chalk.red('All data will be lost')}.\nDo you want to continue?`,
+      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
+        'All data will be lost',
+      )}.\nDo you want to continue?`,
     })
 
     if (!confirmation.value) {
       await exit()
     }
+  }
+
+  public async listMigrationDirectories(): Promise<
+    EngineResults.ListMigrationDirectoriesOutput
+  > {
+    const listMigrationDirectoriesResult = await this.engine.listMigrationDirectories(
+      {
+        migrationsDirectoryPath: this.migrationsDirectoryPath,
+      },
+    )
+    debug({ listMigrationDirectoriesResult })
+    return listMigrationDirectoriesResult
+  }
+
+  public async markMigrationApplied({
+    migrationId,
+  }: {
+    migrationId: string
+  }): Promise<void> {
+    const markMigrationApplied = await this.engine.markMigrationApplied({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: migrationId,
+      expectFailed: false,
+    })
+    debug({ markMigrationApplied })
+    return markMigrationApplied
+  }
+
+  public async applyScript({ script }: { script: string }): Promise<void> {
+    const appliedScriptResult = await this.engine.applyScript({ script })
+    debug({ appliedScriptResult })
+    return appliedScriptResult
   }
 
   public async applyOnly(): Promise<string[]> {
@@ -381,6 +439,42 @@ export class Migrate {
     debug({ appliedMigrationNames })
 
     return appliedMigrationNames
+  }
+
+  public async confirmDrift({
+    script,
+  }: {
+    script: string
+  }): Promise<'cancel' | 'keep' | 'rollback' | 'hotfix'> {
+    const { schemaWord, dbType, dbName, dbLocation } = await this.getDbInfo()
+
+    const userChoice = await prompt({
+      type: 'select',
+      name: 'value',
+      message: `Do you want to apply the following to the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}"? ${chalk.red(
+        'Data could be lost',
+      )}.\n${chalk.grey(script)}`,
+      choices: [
+        {
+          title: 'Cancel',
+          value: 'cancel',
+        },
+        {
+          title: 'Unwanted change: do a rollback',
+          description: 'Data could be lost!',
+          value: 'rollback',
+        },
+        { title: 'Needs to be in local history', value: 'keep' },
+        {
+          title: 'Already applied as a hotfix',
+          description: 'The migration will be marked as applied.',
+          value: 'hotfix',
+        },
+      ],
+      // initial: 1
+    })
+
+    return userChoice.value
   }
 
   public async evaluateDataLoss(): Promise<

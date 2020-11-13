@@ -113,7 +113,8 @@ ${chalk.bold('Examples')}
     const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
     const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
     if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
-      if (isCi()) {
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw Error(
           `Using db push alongside migrate will interfere with migrations.
 The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
@@ -139,6 +140,8 @@ Do you want to continue?`,
         console.info() // empty line
         console.info('Push cancelled.')
         process.exit(0)
+        // For snapshot test, because exit() is mocked
+        return ``
       }
     }
 

@@ -14,7 +14,9 @@ export async function getMigrationName(
     return {
       name: slugify(name, { separator: '_' }),
     }
-  } else if (isCi()) {
+  }
+  // We use prompts.inject() for testing in our CI
+  else if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
     return {
       name: '',
     }

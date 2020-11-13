@@ -116,7 +116,8 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     if (!args['--force']) {
-      if (isCi()) {
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor('prisma db drop --preview-feature --force'),

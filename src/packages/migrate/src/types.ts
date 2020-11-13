@@ -81,6 +81,9 @@ export namespace EngineArgs {
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
 
+  export interface ListMigrationDirectoriesInput {
+    migrationsDirectoryPath: string
+  }
   export interface MarkMigrationAppliedInput {
     migrationsDirectoryPath: string
     migrationName: string
@@ -162,6 +165,9 @@ export namespace EngineArgs {
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineResults {
+  export interface ListMigrationDirectoriesOutput {
+    migrations: string[]
+  }
   export interface DiagnoseMigrationHistoryOutput {
     /// Null means no drift was detected.
     drift: DriftDiagnostic | null

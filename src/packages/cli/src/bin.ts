@@ -41,16 +41,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-    `  The ${chalk.redBright(
-      'prisma2',
-    )} command is deprecated and has been renamed to ${chalk.greenBright(
-      'prisma',
-    )}.\nPlease execute ${chalk.bold.greenBright(
-      'prisma' +
-      (process.argv.length > 2
-        ? ' ' + process.argv.slice(2).join(' ')
-        : ''),
-    )} instead.\n`,
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
+      )} instead.\n`,
   )
 }
 
@@ -71,9 +71,9 @@ const args = arg(
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
   try {
-    const envPaths = getEnvPaths(args["--schema"])
+    const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && console.log(envData.message);
+    envData && console.log(envData.message)
   } catch (e) {
     handleIndividualError(e)
   }
@@ -86,6 +86,7 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
+  MigrateResolve,
   MigrateReset,
   MigrateUp,
   DbPush,
@@ -148,6 +149,7 @@ async function main(): Promise<number> {
         down: MigrateDown.new(),
       }),
       migrate: MigrateCommand.new({
+        resolve: MigrateResolve.new(),
         reset: MigrateReset.new(),
         up: MigrateUp.new(),
       }),
@@ -272,7 +274,6 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-
       // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
       if (typeof err[Symbol.iterator] === 'function') {
         for (const individualError of err) {

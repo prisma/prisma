@@ -67,6 +67,12 @@ export class MigrateEngine {
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
 
+  // List migrations in migration directory.
+  public listMigrationDirectories(
+    args: EngineArgs.ListMigrationDirectoriesInput,
+  ): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.runCommand(this.getRPCPayload('listMigrationDirectories', args))
+  }
   // Mark the specified migration as applied in the migrations table. There are two possible cases:
   // - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
   // - The migration is not in the table. We will create a new entry in the migrations table. The `started_at` and `finished_at` will be the same.
