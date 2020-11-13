@@ -61,6 +61,7 @@ export class MigrateCommand implements Command {
     ${chalk.bold('Options')}
 
       -h, --help   Display this help message
+         --draft   Create a draft of a migration that can be edited locally before being applied
 
     ${chalk.bold('Commands')}
 
@@ -74,6 +75,12 @@ export class MigrateCommand implements Command {
 
       Reset your database
       ${chalk.dim('$')} prisma migrate reset --early-access-feature
+
+      Create a draft of a migration
+      ${chalk.dim('$')} prisma migrate --draft --early-access-feature
+
+      To apply the draft later
+      ${chalk.dim('$')} prisma migrate --early-access-feature
   `)
 
   private argsSpec = {
