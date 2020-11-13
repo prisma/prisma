@@ -407,7 +407,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         throw e
       }
 
-      return makeProxy(this)
+      // just for development
+      if (process.env.NODE_ENV !== 'production') {
+        return makeProxy(this)
+      }
     }
 
     $use(cb: Middleware)
