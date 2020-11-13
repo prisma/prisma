@@ -80,7 +80,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
+        const migration = await migrate.createMigrationLegacy('setup')
         const result = await migrate.save(migration!, 'setup')
         migrate.stop()
         if (typeof result === 'undefined') {
@@ -114,7 +114,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('initial setup')
+        const migration = await migrate.createMigrationLegacy('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         migrate.stop()
         if (typeof result === 'undefined') {
@@ -148,7 +148,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('initial setup')
+        const migration = await migrate.createMigrationLegacy('initial setup')
         const result = await migrate.save(migration!, 'initial setup')
         migrate.stop()
         if (typeof result === 'undefined') {
@@ -182,7 +182,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
+        const migration = await migrate.createMigrationLegacy('setup')
         const result = await migrate.save(migration!, 'setup')
         migrate.stop()
         if (typeof result === 'undefined') {
@@ -216,7 +216,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup')
+        const migration = await migrate.createMigrationLegacy('setup')
         const result = await migrate.save(migration!, 'setup')
         migrate.stop()
         if (typeof result === 'undefined') {
@@ -264,7 +264,7 @@ function createTests() {
       },
       fn: async (schemaPath: string): Promise<undefined> => {
         const migrate = new Migrate(schemaPath)
-        const migration = await migrate.createMigration('setup1')
+        const migration = await migrate.createMigrationLegacy('setup1')
         const result = await migrate.save(migration!, 'setup1')
         if (typeof result === 'undefined') {
           return assert.fail(`result shouldn't be undefined`)
@@ -308,7 +308,7 @@ function createTests() {
           'schema2.prisma',
         )
         const migrate2 = new Migrate(schemaPath2)
-        const migration2 = await migrate2.createMigration('setup2')
+        const migration2 = await migrate2.createMigrationLegacy('setup2')
         const result2 = await migrate2.save(migration2!, 'setup2')
         migrate2.stop()
         if (typeof result2 === 'undefined') {

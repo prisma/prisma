@@ -90,3 +90,11 @@ exports[`sqlite first migration after init --force 1`] = ``;
 exports[`sqlite first migration after init --force 3`] = ``;
 
 exports[`sqlite first migration after init --force 4`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt no) 3`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt no) 4`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt yes) 3`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt yes) 4`] = ``;

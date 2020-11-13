@@ -8,8 +8,12 @@ import {
   unknownCommand,
   getSchemaPath,
   getCommandWithExecutor,
+  isCi,
+  IntrospectionEngine,
 } from '@prisma/sdk'
+import Debug from '@prisma/debug'
 import chalk from 'chalk'
+import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
@@ -25,6 +29,8 @@ import {
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { isOldMigrate } from '../utils/detectOldMigrate'
+
+const debug = Debug('migrate:cmd')
 
 /**
  * Migrate command
@@ -214,7 +220,152 @@ Delete the current migrations folder to continue and read the documentation for 
       }
     }
 
-    await migrate.checkHistoryAndReset({ force: args['--force'] })
+    const diagnoseResult = await migrate.diagnoseMigrationHistory()
+
+    let isResetNeeded = false
+
+    if (diagnoseResult.failedMigrationNames.length > 0) {
+      // migration(s), usually one, that failed to apply the the database (which may have data)
+      console.info(
+        `The following migrations failed to apply:\n- ${diagnoseResult.failedMigrationNames.join(
+          '\n- ',
+        )}\n`,
+      )
+      isResetNeeded = true
+    }
+
+    if (diagnoseResult.editedMigrationNames.length > 0) {
+      // migration(s) that were edited since they were applied to the db.
+      console.info(
+        `The following migrations were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
+          '\n- ',
+        )}\n`,
+      )
+      isResetNeeded = true
+    }
+
+    debug({ drift: diagnoseResult.drift })
+    debug({ history: diagnoseResult.history })
+
+    if (diagnoseResult.drift) {
+      if (diagnoseResult.drift.diagnostic === 'migrationFailedToApply') {
+        // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
+        throw new Error(
+          `The migration "${diagnoseResult.drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\n\n${diagnoseResult.drift.error})`,
+        )
+      } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
+        if (diagnoseResult.hasMigrationsTable === false) {
+          const confirmDbPushUsed = await this.confirmDbPushUsed()
+          if (confirmDbPushUsed) {
+            const introspectEngine = new IntrospectionEngine({
+              cwd: path.dirname(schemaPath),
+            })
+
+            const introspectResult = await introspectEngine.introspect(
+              migrate.getDatamodel(),
+            )
+            introspectEngine.stop()
+
+            const createMigrationResult = await migrate.createMigration({
+              migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+              migrationName: '',
+              draft: true,
+              prismaSchema: introspectResult.datamodel,
+            })
+
+            console.info(
+              `Migration "${createMigrationResult.generatedMigrationName!}" created.`,
+            )
+
+            await migrate.markMigrationApplied({
+              migrationId: createMigrationResult.generatedMigrationName!,
+            })
+
+            console.info(
+              `Migration "${createMigrationResult.generatedMigrationName!}" marked applied.`,
+            )
+
+            const createMigrationOptionalResult = await migrate.createMigration(
+              {
+                migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+                migrationName: '',
+                draft: false,
+                prismaSchema: migrate.getDatamodel(),
+              },
+            )
+
+            if (createMigrationOptionalResult.generatedMigrationName) {
+              console.info(
+                `Migration "${createMigrationResult.generatedMigrationName!}" created and applied.`,
+              )
+            }
+            migrate.stop()
+            return `Operation successful.`
+          } else {
+            migrate.stop()
+            throw Error(
+              'Check init flow with introspect + SQL schema dump (TODO docs)',
+            )
+          }
+        } else {
+          // we could try to fix the drift in the future
+          isResetNeeded = true
+        }
+      }
+    }
+
+    if (diagnoseResult.history) {
+      if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
+        await migrate.applyOnly()
+      } else if (
+        diagnoseResult.history.diagnostic === 'migrationsDirectoryIsBehind'
+      ) {
+        isResetNeeded = true
+        debug({
+          unpersistedMigrationNames:
+            diagnoseResult.history.unpersistedMigrationNames,
+        })
+      } else if (diagnoseResult.history.diagnostic === 'historiesDiverge') {
+        isResetNeeded = true
+        debug({
+          lastCommonMigrationName:
+            diagnoseResult.history.lastCommonMigrationName,
+        })
+        debug({
+          unappliedMigrationNames:
+            diagnoseResult.history.unappliedMigrationNames,
+        })
+        debug({
+          unpersistedMigrationNames:
+            diagnoseResult.history.unpersistedMigrationNames,
+        })
+      }
+    }
+
+    if (isResetNeeded) {
+      // We use prompts.inject() for testing in our CI
+      if (
+        !args['--force'] &&
+        isCi() &&
+        Boolean((prompt as any)._injected?.length) === false
+      ) {
+        throw Error(
+          `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
+            getCommandWithExecutor(
+              'prisma migrate --force --early-access-feature',
+            ),
+          )}`,
+        )
+      }
+
+      const confirmedReset = await this.confirmReset(await migrate.getDbInfo())
+      if (!confirmedReset) {
+        console.info() // empty line
+        console.info('Reset cancelled.')
+        process.exit(0)
+      }
+      await migrate.reset()
+    }
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
 
@@ -268,6 +419,33 @@ Delete the current migrations folder to continue and read the documentation for 
     }
 
     return ``
+  }
+
+  private async confirmReset({
+    schemaWord,
+    dbType,
+    dbName,
+    dbLocation,
+  }): Promise<boolean> {
+    const confirmation = await prompt({
+      type: 'confirm',
+      name: 'value',
+      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
+        'All data will be lost',
+      )}.\nDo you want to continue?`,
+    })
+
+    return confirmation.value
+  }
+
+  private async confirmDbPushUsed(): Promise<boolean> {
+    const confirmation = await prompt({
+      type: 'confirm',
+      name: 'value',
+      message: `Did you use ${chalk.green('prisma db push')}?`,
+    })
+
+    return confirmation.value
   }
 
   public help(error?: string): string | HelpError {

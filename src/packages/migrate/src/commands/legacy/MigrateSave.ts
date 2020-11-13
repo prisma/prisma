@@ -119,7 +119,7 @@ export class MigrateSave implements Command {
 
     const migrate = new Migrate(schemaPath)
 
-    const migration = await migrate.createMigration('DUMMY_NAME')
+    const migration = await migrate.createMigrationLegacy('DUMMY_NAME')
 
     if (!migration) {
       migrate.stop()

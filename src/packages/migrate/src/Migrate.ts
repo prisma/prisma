@@ -62,6 +62,7 @@ import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
 import { enginesVersion } from '@prisma/engines-version'
+import { EngineArgs } from '../dist'
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -116,7 +117,7 @@ export class Migrate {
       const datamodel = this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
-        const migration = await this.createMigration(watchMigrationName)
+        const migration = await this.createMigrationLegacy(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
         if (
@@ -253,7 +254,7 @@ export class Migrate {
     string | undefined
   > {
     const datamodel = this.getDatamodel()
-    const createMigrationResult = await this.engine.createMigration({
+    const createMigrationResult = await this.createMigration({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: name,
       draft: true,
@@ -269,6 +270,12 @@ export class Migrate {
     return
   }
 
+  public async createMigration(
+    params: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return await this.engine.createMigration(params)
+  }
+
   public async diagnoseMigrationHistory(): Promise<
     EngineResults.DiagnoseMigrationHistoryOutput
   > {
@@ -277,95 +284,11 @@ export class Migrate {
     })
   }
 
-  public async checkHistoryAndReset({
-    force = false,
-  }): Promise<string[] | undefined> {
-    const {
-      drift,
-      history,
-      failedMigrationNames,
-      editedMigrationNames,
-    } = await this.engine.diagnoseMigrationHistory({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-    })
+  // public async checkHistoryAndReset({
+  //   force = false,
+  // }): Promise<string[] | undefined> {
 
-    let isResetNeeded = false
-
-    if (failedMigrationNames.length > 0) {
-      // migration(s), usually one, that failed to apply the the database (which may have data)
-      console.info(
-        `The following migrations failed to apply:\n- ${failedMigrationNames.join(
-          '\n- ',
-        )}\n`,
-      )
-      isResetNeeded = true
-    }
-
-    if (editedMigrationNames.length > 0) {
-      // migration(s) that were edited since they were applied to the db.
-      console.info(
-        `The following migrations were edited after they were applied:\n- ${editedMigrationNames.join(
-          '\n- ',
-        )}\n`,
-      )
-      isResetNeeded = true
-    }
-
-    if (drift) {
-      debug({ drift })
-      if (drift.diagnostic === 'migrationFailedToApply') {
-        // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
-        throw new Error(
-          `The migration "${drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\n\n${drift.error})`,
-        )
-      } else if (drift.diagnostic === 'driftDetected') {
-        // we could try to fix the drift in the future
-        isResetNeeded = true
-      }
-    }
-
-    if (history) {
-      debug({ history })
-      if (history.diagnostic === 'databaseIsBehind') {
-        return this.applyOnly()
-      } else if (history.diagnostic === 'migrationsDirectoryIsBehind') {
-        isResetNeeded = true
-        debug({
-          unpersistedMigrationNames: history.unpersistedMigrationNames,
-        })
-      } else if (history.diagnostic === 'historiesDiverge') {
-        isResetNeeded = true
-        debug({
-          lastCommonMigrationName: history.lastCommonMigrationName,
-        })
-        debug({
-          unappliedMigrationNames: history.unappliedMigrationNames,
-        })
-        debug({
-          unpersistedMigrationNames: history.unpersistedMigrationNames,
-        })
-      }
-    }
-
-    if (isResetNeeded) {
-      // We use prompts.inject() for testing in our CI
-      if (
-        !force &&
-        isCi() &&
-        Boolean((prompt as any)._injected?.length) === false
-      ) {
-        throw Error(
-          `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma migrate --force --early-access-feature',
-            ),
-          )}`,
-        )
-      }
-      await this.confirmReset()
-      await this.reset()
-    }
-  }
+  // }
 
   public async getDbInfo(): Promise<{
     schemaWord: string
@@ -381,22 +304,6 @@ export class Migrate {
     return {
       ...getDbinfoFromCredentials(credentials),
       dbLocation,
-    }
-  }
-
-  public async confirmReset(): Promise<void> {
-    const { schemaWord, dbType, dbName, dbLocation } = await this.getDbInfo()
-
-    const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
-      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
-        'All data will be lost',
-      )}.\nDo you want to continue?`,
-    })
-
-    if (!confirmation.value) {
-      await exit()
     }
   }
 
@@ -497,7 +404,7 @@ export class Migrate {
     const datamodel = this.getDatamodel()
 
     // success?
-    const createMigrationResult = await this.engine.createMigration({
+    const createMigrationResult = await this.createMigration({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: name,
       draft: false,
@@ -619,7 +526,7 @@ export class Migrate {
     return initLockFile()
   }
 
-  public async createMigration(
+  public async createMigrationLegacy(
     migrationId: string,
   ): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const {

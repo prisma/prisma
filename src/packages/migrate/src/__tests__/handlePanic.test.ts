@@ -137,7 +137,7 @@ describe('handlePanic', () => {
     let error
     try {
       const migrate = new Migrate(schemaPath)
-      await migrate.createMigration('setup')
+      await migrate.createMigrationLegacy('setup')
     } catch (err) {
       // No to send error report
       setTimeout(() => sendKeystrokes(io).then(), 5)
@@ -210,7 +210,7 @@ describe('handlePanic', () => {
 
     try {
       const migrate = new Migrate(schemaPath)
-      await migrate.createMigration('setup')
+      await migrate.createMigrationLegacy('setup')
     } catch (err) {
       expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
