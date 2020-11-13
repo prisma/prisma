@@ -262,6 +262,16 @@ You may have to run ${chalk.greenBright(
       debugLib.enable('*')
     }
     engines.push(this)
+    this.checkForTooManyEngines()
+  }
+
+  private checkForTooManyEngines() {
+    if (engines.length >= 10) {
+      const runningEngines = engines.filter(e => e.child)
+      if (runningEngines.length === 10) {
+        console.warn(`${chalk.yellow('warn(prisma-client)')} Already 10 Prisma Clients are actively running.`)
+      }
+    }
   }
 
   private resolveCwd(cwd?: string): string {
