@@ -78,9 +78,6 @@ export class MigrateCommand implements Command {
 
       Create a draft of a migration
       ${chalk.dim('$')} prisma migrate --draft --early-access-feature
-
-      To apply the draft later
-      ${chalk.dim('$')} prisma migrate --early-access-feature
   `)
 
   private argsSpec = {

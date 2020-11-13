@@ -60,9 +60,6 @@ describe('common', () => {
               Create a draft of a migration
               $ prisma migrate --draft --early-access-feature
 
-              To apply the draft later
-              $ prisma migrate --early-access-feature
-
           `)
   })
   it('should fail if old migrate', async () => {
