@@ -93,6 +93,7 @@ export namespace DMMF {
     rootQueryType?: string
     rootMutationType?: string
     inputObjectTypes: {
+      // For now there are no `model` InputTypes
       model?: InputType[]
       prisma: InputType[]
     }
