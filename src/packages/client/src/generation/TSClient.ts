@@ -859,7 +859,7 @@ export class Model implements Generatable {
       const field = this.dmmf.rootFieldMap[fieldName]
       if (!field) {
         throw new Error(
-          `Oops this must not happen.Could not find field ${fieldName} on either Query or Mutation`,
+          `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
         )
       }
       if (action === 'updateMany' || action === 'deleteMany') {
