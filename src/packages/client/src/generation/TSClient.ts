@@ -540,51 +540,35 @@ export class PrismaClient<
       ${indent(this.jsDoc, tab)}
     constructor(optionsArg ?: T);
     $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
-    /**
-     * @deprecated renamed to \`$on\`
-     */
-    on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+
     /**
      * Connect with the database
      */
     $connect(): Promise<void>;
-    /**
-     * @deprecated renamed to \`$connect\`
-     */
-    connect(): Promise<void>;
 
     /**
      * Disconnect from the database
      */
     $disconnect(): Promise<any>;
-    /**
-     * @deprecated renamed to \`$disconnect\`
-     */
-    disconnect(): Promise<any>;
 
     /**
      * Add a middleware
      */
     $use(cb: Prisma.Middleware): void
 
-      /**
-       * Executes a raw query and returns the number of affected rows
-       * @example
-       * \`\`\`
-       * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
-       * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-       * // Or
-       * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-      * \`\`\`
-      * 
-      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-      */
-      $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
-
     /**
-     * @deprecated renamed to \`$executeRaw\`
-     */
-    executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+     * Executes a raw query and returns the number of affected rows
+     * @example
+     * \`\`\`
+     * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+     * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+     * // Or
+     * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+    * \`\`\`
+    * 
+    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+    */
+    $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
 
     /**
      * Performs a raw query and returns the SELECT data
@@ -601,39 +585,29 @@ export class PrismaClient<
     $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
 
     /**
-     * @deprecated renamed to \`$queryRaw\`
+     * Execute queries in a transaction
+     * @example
+     * \`\`\`
+     * const [george, bob, alice] = await prisma.transaction([
+     *   prisma.user.create({ data: { name: 'George' } }),
+     *   prisma.user.create({ data: { name: 'Bob' } }),
+     *   prisma.user.create({ data: { name: 'Alice' } }),
+     * ])
+     * \`\`\`
      */
-    queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
-    ${this.generator?.previewFeatures?.includes('transactionApi')
-        ? `
-  /**
-   * Execute queries in a transaction
-   * @example
-   * \`\`\`
-   * const [george, bob, alice] = await prisma.transaction([
-   *   prisma.user.create({ data: { name: 'George' } }),
-   *   prisma.user.create({ data: { name: 'Bob' } }),
-   *   prisma.user.create({ data: { name: 'Alice' } }),
-   * ])
-   * \`\`\`
-   */
-  $transaction: PromiseConstructor['all']
-  /**
-   * @deprecated renamed to \`$transaction\`
-   */
-  transaction: PromiseConstructor['all']
-`
+    $transaction: PromiseConstructor['all']
+
         : ''
       }
     ${indent(
-        dmmf.mappings.modelOperations
-          .filter((m) => m.findMany)
-          .map((m) => {
-            const methodName = lowerCase(m.model)
-            return `\
+      dmmf.mappings.modelOperations
+        .filter((m) => m.findMany)
+        .map((m) => {
+          const methodName = lowerCase(m.model)
+          return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model
-              }** model.
+            }** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
@@ -641,10 +615,10 @@ export class PrismaClient<
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate;`
-          })
-          .join('\n\n'),
-        2,
-      )
+        })
+        .join('\n\n'),
+      2,
+    )
       }
   }`
   }

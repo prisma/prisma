@@ -143,49 +143,6 @@ describe('generator', () => {
     }
   })
 
-  test('denylist dynamic from client', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
-    // Make sure, that nothing is cached.
-    try {
-      await del(prismaClientTarget)
-    } catch (e) {
-      //
-    }
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
-    const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'dynamic-denylist.prisma'),
-      baseDir: __dirname,
-      printDownloadProgress: false,
-      skipDownload: true,
-    })
-
-    // Test dynamic denylist errors
-    let dynamicReservedWordError
-    try {
-      await generator.generate()
-    } catch (e) {
-      dynamicReservedWordError = e
-    } finally {
-      expect(
-        stripAnsi(dynamicReservedWordError.message).split('generation/')[1],
-      ).toMatchInlineSnapshot(`
-        dynamic-denylist.prisma" contains reserved keywords.
-               Rename the following items:
-                 - "model UserArgs"
-        To learn more about how to rename models, check out https://pris.ly/d/naming-models
-      `)
-    }
-    generator.stop()
-  })
-
   test('schema path does not exist', async () => {
     const prismaClientTarget = path.join(
       __dirname,
