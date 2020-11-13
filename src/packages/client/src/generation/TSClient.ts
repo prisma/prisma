@@ -987,7 +987,7 @@ ${aggregateTypes.length > 1
     `
   }
   public toTSWithoutNamespace(): string {
-    const { model, } = this
+    const { model } = this
     return `/**
  * Model ${model.name}
  */
