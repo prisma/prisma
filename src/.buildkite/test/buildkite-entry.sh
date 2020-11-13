@@ -4,8 +4,11 @@ set -ex
 
 git clone https://github.com/timsuchanek/last-git-changes.git
 cd last-git-changes
+
+node -v
 npm install
 npm run build
+
 cd ..
 node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md,.github,.prettierrc.yml' 
 export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md,.github,.prettierrc.yml' | wc -l)

@@ -3,7 +3,7 @@ import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
 
-describe('Blog fixture: MSSQL', () => {
+describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
   let requests: any[] = []
 
@@ -27,11 +27,6 @@ describe('Blog fixture: MSSQL', () => {
         measurePerformance: true,
         hooks: {
           beforeRequest: (r: any) => requests.push(r),
-        },
-      },
-      datasources: {
-        db: {
-          url: connectionString,
         },
       },
       log: [

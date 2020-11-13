@@ -162,14 +162,14 @@ describe('push', () => {
   it('should fail if nativeTypes feature is enabled', async () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"nativeTypes" preview feature is not supported yet. Remove it from your schema to use Prisma Migrate.`,
+    )
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Response "Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)"
-      Got result for unknown id undefined
-    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
   })
 })
