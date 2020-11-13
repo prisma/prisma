@@ -24,6 +24,7 @@ import {
   handleWarnings,
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
+import { isOldMigrate } from '../utils/detectOldMigrate'
 
 /**
  * Migrate command
@@ -105,6 +106,18 @@ export class MigrateCommand implements Command {
 
     if (args['--experimental']) {
       throw new ExperimentalFlagWithNewMigrateError()
+    }
+
+    const schemaPath = await getSchemaPath(args['--schema'])
+    if (schemaPath) {
+      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
+      if (isOldMigrate(migrationDirPath)) {
+        // Maybe add link to docs?
+        throw Error(
+          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
+Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
+        )
+      }
     }
 
     // running a subcommand

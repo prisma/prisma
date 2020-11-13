@@ -23,39 +23,47 @@ describe('common', () => {
     const result = MigrateCommand.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            ! Could not find a schema.prisma file that is required for this command.
-            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+                                    ! Could not find a schema.prisma file that is required for this command.
+                                    You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
 
-            🏋️  Migrate your database with confidence
+                                    🏋️  Migrate your database with confidence
 
-            WARNING Prisma's migration functionality is currently in an experimental state.
-            When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.
+                                    WARNING Prisma's migration functionality is currently in an experimental state.
+                                    When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.
 
-            Usage
+                                    Usage
 
-              With an existing schema.prisma:
-              $ prisma migrate [command] [options] --early-access-feature
+                                      With an existing schema.prisma:
+                                      $ prisma migrate [command] [options] --early-access-feature
 
-              Or specify a schema:
-              $ prisma migrate [command] [options] --early-access-feature --schema=./schema.prisma
+                                      Or specify a schema:
+                                      $ prisma migrate [command] [options] --early-access-feature --schema=./schema.prisma
 
-            Options
+                                    Options
 
-              -h, --help   Display this help message
+                                      -h, --help   Display this help message
 
-            Commands
+                                    Commands
 
-                  up      Migrate your database up
-                  reset   Reset your database, all data will be lost
+                                          up      Migrate your database up
+                                          reset   Reset your database, all data will be lost
 
-            Examples
+                                    Examples
 
-              Create a new migration and apply it
-              $ prisma migrate --early-access-feature
+                                      Create a new migration and apply it
+                                      $ prisma migrate --early-access-feature
 
-              Reset your database
-              $ prisma migrate reset --early-access-feature
+                                      Reset your database
+                                      $ prisma migrate reset --early-access-feature
 
+                              `)
+  })
+  it('should fail if old migrate', async () => {
+    ctx.fixture('old-migrate')
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
+            Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
           `)
   })
   it('should fail if no flag', async () => {

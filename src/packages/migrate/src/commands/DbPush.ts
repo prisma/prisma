@@ -17,6 +17,7 @@ import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
+import { isOldMigrate } from '../utils/detectOldMigrate'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -111,10 +112,10 @@ ${chalk.bold('Examples')}
     )
 
     const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-    const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
-    if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
+    if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        // Maybe add link to docs?
         throw Error(
           `Using db push alongside migrate will interfere with migrations.
 The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
