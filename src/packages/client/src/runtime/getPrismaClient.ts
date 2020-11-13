@@ -1162,7 +1162,7 @@ new PrismaClient({
   function makeProxy(client: any): any {
     return new Proxy(client, {
       get: (target, prop) => {
-        if (target[prop]) {
+        if (typeof target[prop] !== 'undefined') {
           return target[prop]
         }
 
