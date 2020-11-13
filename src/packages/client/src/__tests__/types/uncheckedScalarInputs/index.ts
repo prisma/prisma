@@ -1,4 +1,4 @@
-import { PrismaClient, UserCreateOneWithoutPostsInput } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 // tslint:disable
 

@@ -1,4 +1,4 @@
-import { PrismaClient, JsonValue, Decimal } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 async function main() {
   const prisma = new PrismaClient()
@@ -19,7 +19,7 @@ async function main() {
   } = await prisma.a.findFirst()
   const b = await prisma.b.findFirst({
     where: {
-      decFloat: new Decimal('1.23')
+      decFloat: new Prisma.Decimal('1.23')
     }
   })
   const c = await prisma.c.findFirst()
@@ -28,8 +28,8 @@ async function main() {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: JsonValue
-    jsonb: JsonValue
+    json: Prisma.JsonValue
+    jsonb: Prisma.JsonValue
   } = await prisma.d.findFirst()
   const e = await prisma.e.findFirst()
 

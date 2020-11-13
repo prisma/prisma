@@ -1,4 +1,4 @@
-import { PrismaClient, UserCreateOneWithoutPostsInput } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 // tslint:disable
 
@@ -6,7 +6,7 @@ import { PrismaClient, UserCreateOneWithoutPostsInput } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  type Check = 'createOrConnect' extends keyof UserCreateOneWithoutPostsInput
+  type Check = 'createOrConnect' extends keyof Prisma.UserCreateOneWithoutPostsInput
     ? number
     : string
 

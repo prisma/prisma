@@ -38,7 +38,8 @@ describe('drop', () => {
     // setTimeout(() => stdin.send(`y\r`), 100)
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Failed to delete SQLite database at \`dev.db\`: No such file or directory (os error 2)
+            Failed to delete SQLite database at \`dev.db\`.
+            No such file or directory (os error 2)
 
 
           `)
