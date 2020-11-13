@@ -119,7 +119,8 @@ const commonCodeTS = ({
   clientVersion,
   engineVersion,
 }: CommonCodeParams): { ts: string, tsWithoutNamespace: string } => ({
-  tsWithoutNamespace: `import * as runtime from '${runtimePath}';`, ts: `export import DMMF = runtime.DMMF
+  tsWithoutNamespace: `import * as runtime from '${runtimePath}';`,
+  ts: `export import DMMF = runtime.DMMF
 
 /**
  * Prisma Errors
