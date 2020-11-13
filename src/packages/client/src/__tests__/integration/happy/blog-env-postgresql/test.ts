@@ -10,9 +10,13 @@ test('Blog fixture: Postgres', async () => {
 
   const {
     PrismaClient,
+    Prisma,
+  } = require('./node_modules/@prisma/client')
+
+  const {
     PrismaClientValidationError,
     prismaVersion,
-  } = require('./node_modules/@prisma/client')
+  } = Prisma
 
   let originalConnectionString =
     process.env.TEST_POSTGRES_URI ||

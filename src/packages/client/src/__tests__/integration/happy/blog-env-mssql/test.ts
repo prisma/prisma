@@ -43,7 +43,9 @@ describe('blog-env-mssql', () => {
   })
 
   test('includes version in generated client', () => {
-    const { prismaVersion } = require('./node_modules/@prisma/client')
+    const { Prisma } = require('./node_modules/@prisma/client')
+
+    const { prismaVersion } = Prisma
 
     expect(prismaVersion).not.toBeUndefined()
     expect(prismaVersion.client).not.toBeUndefined()
@@ -60,7 +62,9 @@ describe('blog-env-mssql', () => {
 
   test('can throw validation errors', async () => {
     const {
-      PrismaClientValidationError,
+      Prisma: {
+        PrismaClientValidationError,
+      }
     } = require('./node_modules/@prisma/client')
 
     try {

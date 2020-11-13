@@ -2,14 +2,7 @@ import {
   PrismaClient,
   Post,
   User,
-  prismaVersion,
-  FindManyMachineDataArgs,
-  LikeUpdateManyArgs,
-  sql,
-  join,
-  empty,
-  raw,
-  Sql
+  Prisma
 } from '@prisma/client'
 
 // tslint:disable
@@ -34,13 +27,13 @@ async function main() {
     //
   })
 
-  prismaVersion.client
+  Prisma.prismaVersion.client
 
-  const x: Sql = sql`SELECT * FROM ${raw('User')} WHERE 'id' in ${join([
+  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${Prisma.join([
     1,
     2,
     3,
-  ])} ${empty} `
+  ])} ${Prisma.empty} `
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
@@ -49,10 +42,10 @@ async function main() {
     2,
   )
   const queryRaw4 = await prisma.$queryRaw(
-    sql`SELECT * FROM User WHERE id = ${1}`,
+    Prisma.sql`SELECT * FROM User WHERE id = ${1}`,
   )
   const queryRaw5 = await prisma.$queryRaw(
-    sql`SELECT * FROM User ${sql`WHERE id = ${1}`}`,
+    Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`,
   )
 
   const executeRaw1 = await prisma.$executeRaw`SELECT * FROM User WHERE id = 1`
@@ -62,10 +55,10 @@ async function main() {
     2,
   )
   const executeRaw4 = await prisma.$executeRaw(
-    sql`SELECT * FROM User WHERE id = ${1}`,
+    Prisma.sql`SELECT * FROM User WHERE id = ${1}`,
   )
   const executeRaw5 = await prisma.$executeRaw(
-    sql`SELECT * FROM User ${sql`WHERE id = ${1}`}`,
+    Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`,
   )
 
   const result1 = await prisma.user.findMany({
@@ -178,7 +171,7 @@ async function main() {
   const $disconnect: Promise<void> = prisma.$disconnect()
 
   // Trick to define a "positive" test, if "include" is NOT in "FindManyMachineDataArgs"
-  type X = keyof FindManyMachineDataArgs
+  type X = keyof Prisma.FindManyMachineDataArgs
   type Y = 'include' extends X ? number : string
   const y: Y = 'string'
 
@@ -228,7 +221,7 @@ async function main() {
   like2!.post
 
   // make sure, that null is not allowed for this type
-  type LikeUpdateIdType = LikeUpdateManyArgs['data']['id']
+  type LikeUpdateIdType = Prisma.LikeUpdateManyArgs['data']['id']
   type AllowsNull = null extends LikeUpdateIdType ? true : false
   const allowsNull: AllowsNull = false
 
