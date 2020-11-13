@@ -36,6 +36,7 @@ import stringifyObject from './utils/stringifyObject'
 import stripAnsi from 'strip-ansi'
 import { flatMap } from './utils/flatMap'
 import Decimal from 'decimal.js'
+import { isObject } from './utils/isObject'
 
 const tab = 2
 
@@ -1432,10 +1433,14 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       })
     }
   }
+
+
   // then the first
   if (!inputType.isList) {
     if (isInputArgType(inputType.type)) {
-      if (typeof value !== 'object') {
+      if (typeof value !== 'object' ||
+        (inputType.location === 'inputObjectTypes' && !isObject(value))
+      ) {
         return getInvalidTypeArg(key, value, arg, inputType)
       } else {
         let val = cleanObject(value)
