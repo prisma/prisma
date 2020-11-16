@@ -146,7 +146,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOnePost',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
