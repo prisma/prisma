@@ -1100,7 +1100,7 @@ new PrismaClient({
           findOne: mapping.findUnique
         }
 
-        const delegate: any = Object.entries(mapping).reduce(
+        const delegate: any = Object.entries(newMapping).reduce(
           (acc, [actionName, rootField]) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
