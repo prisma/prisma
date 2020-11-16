@@ -44,7 +44,7 @@ import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { tryLoadEnvs } from '@prisma/sdk'
-import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+import { getDidYouMean, validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -406,6 +406,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         e.clientVersion = this._clientVersion
         throw e
       }
+
+      // just for development
+      if (process.env.NODE_ENV !== 'production') {
+        return makeProxy(this)
+      }
     }
 
     $use(cb: Middleware)
@@ -474,7 +479,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
-    
+
     /**
      * Disconnect from the database
      */
@@ -1154,8 +1159,23 @@ new PrismaClient({
     }
   }
 
+  function makeProxy(client: any): any {
+    return new Proxy(client, {
+      get: (target, prop) => {
+        if (typeof target[prop] !== 'undefined') {
+          return target[prop]
+        }
+
+        const didYouMean = getDidYouMean(String(prop), Object.keys(client))
+
+        throw new Error(`PrismaClient - Trying to access unknown property "${String(prop)}".${didYouMean}`)
+      }
+    })
+  }
+
   return NewPrismaClient
 }
+
 
 export class PrismaClientFetcher {
   prisma: any

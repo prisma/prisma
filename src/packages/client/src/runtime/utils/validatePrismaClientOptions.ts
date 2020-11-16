@@ -130,7 +130,7 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
 }
 
 
-function getDidYouMean(str: string, options: string[]): string {
+export function getDidYouMean(str: string, options: string[]): string {
   if (options.length === 0) {
     return ''
   }
@@ -149,7 +149,7 @@ function getDidYouMean(str: string, options: string[]): string {
 }
 
 
-function getAlternative(str: string, options: string[]): null | string {
+export function getAlternative(str: string, options: string[]): null | string {
   if (options.length === 0) {
     return null
   }
