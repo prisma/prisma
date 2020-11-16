@@ -54,7 +54,6 @@ export interface EngineConfig {
   clientVersion?: string
   enableExperimental?: string[]
   engineEndpoint?: string
-  useUds?: boolean
 }
 
 type GetConfigResult = {
@@ -165,8 +164,8 @@ export class NodeEngine {
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
-    useUds,
   }: EngineConfig) {
+    this.useUds = true
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
@@ -210,12 +209,6 @@ export class NodeEngine {
       (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
-
-    if (useUds && process.platform !== 'win32') {
-      this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
-      socketPaths.push(this.socketPath)
-      this.useUds = useUds
-    }
 
     if (engineEndpoint) {
       const url = new URL(engineEndpoint)
@@ -548,6 +541,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.lastPanic = undefined
         this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
+
+        if (this.useUds && process.platform !== 'win32') {
+          this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
+          socketPaths.push(this.socketPath)
+        }
 
         debug({ cwd: this.cwd })
 
@@ -883,18 +881,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     await new Promise((r) => process.nextTick(r))
     this.startPromise = undefined
     this.engineStopDeferred = undefined
-    setTimeout(() => {
-      if (this.socketPath) {
-        try {
-          fs.unlinkSync(this.socketPath)
-        } catch (e) {
-          debug(e)
-          //
-        }
-        socketPaths.splice(socketPaths.indexOf(this.socketPath), 1)
-        this.socketPath = undefined
-      }
-    })
   }
 
   async kill(signal: string): Promise<void> {

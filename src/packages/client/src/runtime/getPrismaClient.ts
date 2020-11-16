@@ -88,7 +88,6 @@ export interface PrismaClientOptions {
   __internal?: {
     debug?: boolean
     hooks?: Hooks
-    useUds?: boolean
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -366,7 +365,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(previewFeatures),
-          useUds: internal.useUds,
         }
 
         const sanitizedEngineConfig = omit(this._engineConfig, [
@@ -476,7 +474,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
-    
+
     /**
      * Disconnect from the database
      */
@@ -881,7 +879,7 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
-      if(action === 'findOne') action = 'findUnique'
+      if (action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
