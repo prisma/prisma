@@ -1,7 +1,7 @@
+import { PrismaClientFetcher } from '../runtime/getPrismaClient'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
-import { PrismaClientFetcher } from '../runtime/getPrismaClient'
 
 describe('batching', () => {
   test('basic batching', async () => {
@@ -25,7 +25,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -47,7 +47,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -70,10 +70,10 @@ describe('batching', () => {
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`Array []`)
-    expect(requests).toMatchInlineSnapshot(`
+    expect(batches).toMatchInlineSnapshot(`
       Array [
-        query {
+        Array [
+          query {
         findOneUser(where: {
           id: "1"
         }) {
@@ -92,7 +92,7 @@ describe('batching', () => {
           coinflips
         }
       },
-        query {
+          query {
         findOneUser(where: {
           id: "2"
         }) {
@@ -111,8 +111,10 @@ describe('batching', () => {
           coinflips
         }
       },
+        ],
       ]
     `)
+    expect(requests).toMatchInlineSnapshot(`Array []`)
   })
 
   test('dont batch different models', async () => {
@@ -136,7 +138,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -146,7 +148,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findOnePost',
         }),
         isList: false,
         rootField: 'query',
@@ -156,7 +158,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -238,7 +240,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -256,7 +258,7 @@ describe('batching', () => {
         args: { where: { email: 'a@a.de' } },
       }),
       fetcher.request({
-        clientMethod: 'findUnique',
+        clientMethod: 'findOne',
         dataPath: [],
         document: makeDocument({
           dmmf,
