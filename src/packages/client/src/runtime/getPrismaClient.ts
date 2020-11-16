@@ -1166,6 +1166,16 @@ new PrismaClient({
           return target[prop]
         }
 
+        const allowList = {
+          then: true,
+          catch: true,
+          finally: true
+        }
+
+        if (allowList[prop]) {
+          return
+        }
+
         const didYouMean = getDidYouMean(String(prop), Object.keys(client))
 
         throw new Error(`PrismaClient - Trying to access unknown property "${String(prop)}".${didYouMean}`)
