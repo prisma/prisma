@@ -56,7 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.11.0-11.-query-engine-second-coming-of-reserved-words5f311a3c26309b4d6cd89438cb1527011ba02057",
+    "@prisma/engines": "2.12.0-3.e721dd1207c4aeb8816ae2d3dec7f24a4c981629",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -147,6 +147,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines-version": "2.11.0-11.-query-engine-second-coming-of-reserved-words5f311a3c26309b4d6cd89438cb1527011ba02057"
+    "@prisma/engines-version": "2.12.0-3.e721dd1207c4aeb8816ae2d3dec7f24a4c981629"
   }
 }
