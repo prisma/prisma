@@ -167,7 +167,6 @@ export async function generateClient({
 
   const denylistsErrors = validateDmmfAgainstDenylists(
     prismaClientDmmf,
-    generator?.previewFeatures,
   )
 
   if (denylistsErrors) {
@@ -334,7 +333,6 @@ async function fileSize(name: string): Promise<number | null> {
 
 function validateDmmfAgainstDenylists(
   prismaClientDmmf: PrismaClientDMMF.Document,
-  previewFeatures: string[] = [],
 ): Error[] | null {
   const errorArray = [] as Error[]
 
@@ -343,107 +341,8 @@ function validateDmmfAgainstDenylists(
     // https://github.com/prisma/prisma-engines/blob/master/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
     models: [
       // reserved GraphQL words
-      'Query',
-      'Mutation',
-      'Subscription',
-      'dmmf',
-      'PromiseType',
-      'PromiseReturnType',
-      'Enumerable',
-      'MergeTruthyValues',
-      'CleanupNever',
-      'Subset',
-      'AtLeastOne',
-      'atMostOne',
-      'OnlyOne',
-      'StringFilter',
-      'IDFilter',
-      'FloatFilter',
-      'IntFilter',
-      'BooleanFilter',
-      'DateTimeFilter',
-      'NullableStringFilter',
-      'NullableIDFilter',
-      'NullableFloatFilter',
-      'NullableIntFilter',
-      'NullableBooleanFilter',
-      'NullableDateTimeFilter',
-      'PrismaClientFetcher',
       'PrismaClient',
-      'Engine',
-      'BatchPayload',
-      'Datasources',
-      'ErrorFormat',
-      'Hooks',
-      'LogLevel',
-      'LogDefinition',
-      'GetLogType',
-      'GetEvents',
-      'QueryEvent',
-      'LogEvent',
-      'ModelDelegate',
-      'QueryDelegate',
-      'missingArg',
-      'ArgError',
-      'InvalidFieldError',
-      'InvalidFieldNameError',
-      'InvalidFieldTypeError',
-      'EmptySelectError',
-      'NoTrueSelectError',
-      'IncludeAndSelectError',
-      'EmptyIncludeError',
-      'InvalidArgError',
-      'InvalidArgNameError',
-      'MissingArgError',
-      'InvalidArgTypeError',
-      'AtLeastOneError',
-      'AtMostOneError',
-      'PrismaClientRequestError',
-      'PrismaClientOptions',
-      'PrismaClientKnownRequestError',
-      'PrismaClientUnknownRequestError',
-      'PrismaClientInitializationError',
-      'PrismaClientRustPanicError',
-      'PrismaVersion',
-      'QueryMode',
-      'SortOrder',
-      'NestedIntFilter',
-      'NestedIntNullableFilter',
-      'IntNullableFilter',
-      'NestedFloatFilter',
-      'NestedFloatNullableFilter',
-      'FloatNullableFilter',
-      'NestedBoolFilter',
-      'BoolFilter',
-      'NestedBoolNullableFilter',
-      'BoolNullableFilter',
-      'NestedStringFilter',
-      'NestedStringNullableFilter',
-      'StringNullableFilter',
-      'NestedDateTimeFilter',
-      'NestedDateTimeNullableFilter',
-      'DateTimeNullableFilter',
-      'NestedJsonFilter',
-      'JsonFilter',
-      'NestedJsonNullableFilter',
-      'JsonNullableFilter',
-      'InputJsonValue',
-      'IntFieldUpdateOperationsInput',
-      'FloatFieldUpdateOperationsInput',
-      'BoolFieldUpdateOperationsInput',
-      'StringFieldUpdateOperationsInput',
-      'DateTimeFieldUpdateOperationsInput',
-      'JsonFieldUpdateOperationsInput',
-      'NullableIntFieldUpdateOperationsInput',
-      'NullableFloatFieldUpdateOperationsInput',
-      'NullableBoolFieldUpdateOperationsInput',
-      'NullableStringFieldUpdateOperationsInput',
-      'NullableDateTimeFieldUpdateOperationsInput',
-      'NullableJsonFieldUpdateOperationsInput',
-      'NullableFloatFieldUpdateOperationsInput',
       // JavaScript keywords
-      'await',
-      'async',
       'break',
       'case',
       'catch',
@@ -490,70 +389,14 @@ function validateDmmfAgainstDenylists(
       'yield',
     ],
     fields: ['AND', 'OR', 'NOT'],
-    dynamic: [] as string[],
-  }
-
-  for (const { name } of prismaClientDmmf.datamodel.models) {
-    denylists.dynamic.push(
-      ...[
-        `${name}Select`,
-        `${name}Include`,
-        `${name}Default`,
-        `${name}Delegate`,
-        `${name}GetPayload`,
-        `${name}Filter`,
-
-        `${name}Args`,
-        `${name}ArgsFilter`,
-        `${name}ArgsRequired`,
-
-        `${name}WhereInput`,
-        `${name}WhereUniqueInput`,
-        `${name}CreateInput`,
-        `${name}UpdateInput`,
-        `${name}UpdateManyMutationInput`,
-        `${name}OrderByInput`,
-
-        `${name}CreateArgs`,
-
-        `${name}UpsertArgs`,
-
-        `${name}UpdateArgs`,
-        `${name}UpdateManyArgs`,
-
-        `${name}DeleteArgs`,
-        `${name}DeleteManyArgs`,
-        `Extract${name}SelectDeleteArgs`,
-        `Extract${name}IncludeDeleteArgs`,
-
-        `FindOne${name}Args`,
-
-        `FindMany${name}Args`,
-
-        /** Aggregate Types */
-
-        `Aggregate${name}`,
-        `${name}AvgAggregateOutputType`,
-        `${name}SumAggregateOutputType`,
-        `${name}MinAggregateOutputType`,
-        `${name}MaxAggregateOutputType`,
-        `${name}AvgAggregateInputType`,
-        `${name}SumAggregateInputType`,
-        `${name}MinAggregateInputType`,
-        `${name}MaxAggregateInputType`,
-        `Aggregate${name}Args`,
-        `Get${name}AggregateType`,
-        `Get${name}AggregateScalarType`,
-      ],
-    )
+    dynamic: [],
   }
 
   if (prismaClientDmmf.datamodel.enums) {
     for (const it of prismaClientDmmf.datamodel.enums) {
       if (
         denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name) ||
-        denylists.dynamic.includes(it.name)
+        denylists.fields.includes(it.name)
       ) {
         errorArray.push(Error(`"enum ${it.name}"`))
       }
@@ -564,8 +407,7 @@ function validateDmmfAgainstDenylists(
     for (const it of prismaClientDmmf.datamodel.models) {
       if (
         denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name) ||
-        denylists.dynamic.includes(it.name)
+        denylists.fields.includes(it.name)
       ) {
         errorArray.push(Error(`"model ${it.name}"`))
       }

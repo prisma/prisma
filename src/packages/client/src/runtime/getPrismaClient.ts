@@ -44,6 +44,7 @@ import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { tryLoadEnvs } from '@prisma/sdk'
+import { getDidYouMean, validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -208,6 +209,7 @@ export interface GetPrismaClientOptions {
   dirname: string
   clientVersion?: string
   engineVersion?: string
+  datasourceNames: string[]
 }
 
 export type Action =
@@ -269,13 +271,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _engineMiddlewares: EngineMiddleware[] = []
     private _clientVersion: string
     constructor(optionsArg?: PrismaClientOptions) {
+      if (optionsArg) {
+        validatePrismaClientOptions(optionsArg, config.datasourceNames)
+      }
+
       this._clientVersion = config.clientVersion ?? clientVersion
       const envPaths = {
         rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
-
       }
-      const loadedEnv = tryLoadEnvs(envPaths, {conflictCheck: 'none'})
+      const loadedEnv = tryLoadEnvs(envPaths, { conflictCheck: 'none' })
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
         const internal = options.__internal ?? {}
@@ -401,16 +406,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         e.clientVersion = this._clientVersion
         throw e
       }
+
+      // just for development
+      if (process.env.NODE_ENV !== 'production') {
+        return makeProxy(this)
+      }
     }
 
-    use(...args) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.use() is deprecated, please use prisma.$use() instead`,
-      )
-      return (this.$use as any)(...args)
-    }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
     $use(namespace: 'engine', cb: EngineMiddleware)
@@ -432,14 +434,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         throw new Error(`Invalid middleware ${namespace}`)
       }
     }
-    on(eventType: any, callback: (event: any) => void) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.on() is deprecated, please use prisma.$on() instead`,
-      )
-      return this.$on(eventType, callback)
-    }
+
     $on(eventType: any, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
         this._engine.on('beforeExit', callback)
@@ -465,14 +460,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         })
       }
     }
-    connect() {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.connect() is deprecated, please use prisma.$connect() instead`,
-      )
-      return this.$connect()
-    }
+
     async $connect() {
       try {
         return this._engine.start()
@@ -491,14 +479,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
-    disconnect() {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.disconnect() is deprecated, please use prisma.$disconnect() instead`,
-      )
-      return this.$disconnect()
-    }
+
     /**
      * Disconnect from the database
      */
@@ -516,14 +497,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider!
     }
 
-    executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.executeRaw() is deprecated, please use prisma.$executeRaw() instead`,
-      )
-      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
-    }
 
     /**
      * Executes a raw query. Always returns a number
@@ -646,14 +619,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return undefined
     }
 
-    queryRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.queryRaw() is deprecated, please use prisma.$queryRaw() instead`,
-      )
-      return this.$queryRaw(stringOrTemplateStringsArray, ...values)
-    }
 
     /**
      * Executes a raw query. Always returns a number
@@ -807,43 +772,28 @@ new PrismaClient({
       })
     }
 
-    transaction(promises) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} prisma.transaction() is deprecated, please use prisma.$transaction() instead`,
-      )
-      return this.$transaction(promises)
-    }
-
     private async $transactionInternal(promises: Array<any>): Promise<any> {
-      if (config.generator?.previewFeatures?.includes('transactionApi')) {
-        for (const p of promises) {
-          if (!p) {
-            throw new Error(
-              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
-            )
-          }
-          if (
-            (!p.requestTransaction ||
-              typeof p.requestTransaction !== 'function') && (!p?.isQueryRaw && !p?.isExecuteRaw)
-          ) {
-            throw new Error(
-              `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
-            )
-          }
+      for (const p of promises) {
+        if (!p) {
+          throw new Error(
+            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+          )
         }
-        return Promise.all(promises.map((p) => {
-          if (p.requestTransaction) {
-            return p.requestTransaction()
-          }
-          return p
-        }))
-      } else {
-        throw new Error(
-          `In order to use the .transaction() api, please enable 'previewFeatures = "transactionApi" in your schema.`,
-        )
+        if (
+          (!p.requestTransaction ||
+            typeof p.requestTransaction !== 'function') && (!p?.isQueryRaw && !p?.isExecuteRaw)
+        ) {
+          throw new Error(
+            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+          )
+        }
       }
+      return Promise.all(promises.map((p) => {
+        if (p.requestTransaction) {
+          return p.requestTransaction()
+        }
+        return p
+      }))
     }
 
     async $transaction(promises: Array<any>): Promise<any> {
@@ -1209,8 +1159,23 @@ new PrismaClient({
     }
   }
 
+  function makeProxy(client: any): any {
+    return new Proxy(client, {
+      get: (target, prop) => {
+        if (typeof target[prop] !== 'undefined') {
+          return target[prop]
+        }
+
+        const didYouMean = getDidYouMean(String(prop), Object.keys(client))
+
+        throw new Error(`PrismaClient - Trying to access unknown property "${String(prop)}".${didYouMean}`)
+      }
+    })
+  }
+
   return NewPrismaClient
 }
+
 
 export class PrismaClientFetcher {
   prisma: any

@@ -27,13 +27,13 @@ test('document stringify', () => {
               inputType: [
                 {
                   isList: false,
-                  kind: 'scalar',
+                  location: 'scalar',
                   type: 'number',
                 },
               ],
               bestFittingType: {
                 isList: false,
-                kind: 'scalar',
+                location: 'scalar',
                 type: 'number',
               },
             },
