@@ -1129,6 +1129,7 @@ const ${lowerCase(mapping.model)} = await ${method}({
         model.name,
         action,
       )}} args - Arguments to find a ${singular}
+@deprecated This will be deprecated please use ${`prisma.${lowerCase(mapping.model)}.findUnique`}
 @example
 // Get one ${singular}
 const ${lowerCase(mapping.model)} = await ${method}({
@@ -1239,7 +1240,7 @@ export class ModelDelegate implements Generatable {
     
     // TODO: handle findUnique
     mapping["findOne"] = mapping['findUnique']
-    
+
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
         key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
