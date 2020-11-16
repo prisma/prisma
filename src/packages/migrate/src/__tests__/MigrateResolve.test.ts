@@ -65,18 +65,14 @@ describe('sqlite', () => {
   })
 
   it('baseline-sqlite (prompt yes)', async () => {
-    // TODO need to see what's happening
     ctx.fixture('baseline-sqlite')
 
     prompt.inject(['y'])
 
     const result = MigrateResolve.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            P3005
-
-            The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
-
-          `)
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Resolve successful, 20201231000000_ is now the the baseline migration for the database.`,
+    )
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -125,12 +121,9 @@ describe('sqlite', () => {
     prompt.inject(['y'])
 
     const result = MigrateResolve.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            P3005
-
-            The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
-
-          `)
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Resolve successful, 20201231000000_init is now the the baseline migration for the database.`,
+    )
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),

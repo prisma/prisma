@@ -105,7 +105,7 @@ describe('push', () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"nativeTypes" preview feature is not supoorted yet. Remove it from your schema to use Prisma Migrate.`,
+      `"nativeTypes" preview feature is not supported yet. Remove it from your schema to use Prisma Migrate.`,
     )
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),

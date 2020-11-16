@@ -257,17 +257,12 @@ describe('sqlite', () => {
 
     const result = MigrateCommand.new().parse(['--early-access-feature'])
 
-    // Todo wait for engines to change
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            P3005
-
-            The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
-
-          `)
+    await expect(result).resolves.toMatchInlineSnapshot(`Operation successful.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
       Migration "20201231000000_" created.
+      Migration "20201231000000_" marked applied.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)

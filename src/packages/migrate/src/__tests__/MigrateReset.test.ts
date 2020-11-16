@@ -18,43 +18,6 @@ describe('reset', () => {
           `)
   })
 
-  it('with missing db should fail (prompt)', async () => {
-    ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
-
-    prompt.inject(['y']) // simulate user yes input
-
-    const result = MigrateReset.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Invariant violation: migration persistence is not initialized.
-               0: migration_core::api::ApplyMigrations
-                         at migration-engine/core/src/api.rs:102
-
-          `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
-
-  it('with missing db should fail (force)', async () => {
-    ctx.fixture('reset')
-    ctx.fs.remove('prisma/dev.db')
-
-    const result = MigrateReset.new().parse([
-      '--early-access-feature',
-      '--force',
-    ])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Invariant violation: migration persistence is not initialized.
-               0: migration_core::api::ApplyMigrations
-                         at migration-engine/core/src/api.rs:102
-
-          `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
-
   it('should work (prompt)', async () => {
     ctx.fixture('reset')
 
@@ -80,6 +43,54 @@ describe('reset', () => {
 
   it('should work (force)', async () => {
     ctx.fixture('reset')
+
+    const result = MigrateReset.new().parse([
+      '--early-access-feature',
+      '--force',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Database reset successful - Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('with missing db (prompt)', async () => {
+    ctx.fixture('reset')
+    ctx.fs.remove('prisma/dev.db')
+
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+
+      Database reset successful - Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('with missing db (force)', async () => {
+    ctx.fixture('reset')
+    ctx.fs.remove('prisma/dev.db')
 
     const result = MigrateReset.new().parse([
       '--early-access-feature',
