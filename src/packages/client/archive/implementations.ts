@@ -1,6 +1,6 @@
 class Prisma {
   users = {
-    findOne() {},
+    findUnique() {},
   }
 }
 

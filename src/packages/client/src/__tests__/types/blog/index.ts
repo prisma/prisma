@@ -1,9 +1,4 @@
-import {
-  PrismaClient,
-  Post,
-  User,
-  Prisma
-} from '@prisma/client'
+import { Post, Prisma, PrismaClient, User } from '@prisma/client'
 
 // tslint:disable
 
@@ -29,11 +24,9 @@ async function main() {
 
   Prisma.prismaVersion.client
 
-  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${Prisma.join([
-    1,
-    2,
-    3,
-  ])} ${Prisma.empty} `
+  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw(
+    'User',
+  )} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${Prisma.empty} `
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
@@ -98,7 +91,7 @@ async function main() {
     title: string
     content: string | null
     author: User | null
-  } | null = await prisma.post.findOne({
+  } | null = await prisma.post.findUnique({
     where: {
       id: '',
     },
@@ -191,7 +184,7 @@ async function main() {
 
   const id = users[0].posts[0].author?.id
 
-  const like = await prisma.like.findOne({
+  const like = await prisma.like.findUnique({
     where: {
       userId_postId: {
         postId: '',

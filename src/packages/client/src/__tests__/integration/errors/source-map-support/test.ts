@@ -8,11 +8,16 @@ test('source-map-support', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
 
-  await expect(prisma.$connect().catch((err) => {
-    console.log(err)
-  }).then(() => {
-    return prisma.user.findOne({ where: { id: null as any } })
-  })).rejects.toMatchSnapshot()
+  await expect(
+    prisma
+      .$connect()
+      .catch((err) => {
+        console.log(err)
+      })
+      .then(() => {
+        return prisma.user.findUnique({ where: { id: null as any } })
+      }),
+  ).rejects.toMatchSnapshot()
 
   prisma.$disconnect()
 })

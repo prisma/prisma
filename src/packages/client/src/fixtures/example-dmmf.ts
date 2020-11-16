@@ -120,7 +120,7 @@ export const dmmfDocument: any = {
   mappings: [
     {
       model: 'User',
-      findOne: 'user',
+      findUnique: 'user',
       findMany: 'users',
       create: 'createUser',
       update: 'updateUser',
@@ -131,7 +131,7 @@ export const dmmfDocument: any = {
     },
     {
       model: 'Profile',
-      findOne: 'profile',
+      findUnique: 'profile',
       findMany: 'profiles',
       create: 'createProfile',
       update: 'updateProfile',
@@ -142,7 +142,7 @@ export const dmmfDocument: any = {
     },
     {
       model: 'Post',
-      findOne: 'post',
+      findUnique: 'post',
       findMany: 'posts',
       create: 'createPost',
       update: 'updatePost',

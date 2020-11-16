@@ -214,6 +214,7 @@ export interface GetPrismaClientOptions {
 
 export type Action =
   | 'findOne'
+  | 'findUnique'
   | 'findFirst'
   | 'findMany'
   | 'create'
@@ -228,6 +229,7 @@ export type Action =
 
 const actionOperationMap = {
   findOne: 'query',
+  findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
   count: 'query',
@@ -879,7 +881,7 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
-
+      if(action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
@@ -973,6 +975,9 @@ new PrismaClient({
           dataPath,
           modelName,
         }) => {
+          if (actionName === 'findOne') {
+            console.warn(`${chalk.yellow('warn(prisma) ')} findOne is deprecated. Please use findUnique instead.`)
+          }
           dataPath = dataPath ?? []
 
           const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -1087,7 +1092,12 @@ new PrismaClient({
           aggregate: true,
         }
 
-        const delegate: any = Object.entries(mapping).reduce(
+        const newMapping = {
+          ...mapping,
+          findOne: mapping.findUnique
+        }
+
+        const delegate: any = Object.entries(newMapping).reduce(
           (acc, [actionName, rootField]) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
@@ -1186,7 +1196,7 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (!request.document.children[0].name.startsWith('findOne')) {
+        if (!(request.document.children[0].name.startsWith('findOne') || request.document.children[0].name.startsWith('findUnique'))) {
           return null
         }
 
@@ -1348,10 +1358,11 @@ export class PrismaClientFetcher {
   }
 }
 
-export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
+export function getOperation(action: DMMF.ModelAction | 'findOne'): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne ||
+    action === DMMF.ModelAction.findUnique ||
+    action === 'findOne' ||
     action === DMMF.ModelAction.findFirst
   ) {
     return 'query'
