@@ -213,6 +213,7 @@ export interface GetPrismaClientOptions {
 }
 
 export type Action =
+  | 'findOne'
   | 'findUnique'
   | 'findFirst'
   | 'findMany'
@@ -227,6 +228,7 @@ export type Action =
   | 'aggregate'
 
 const actionOperationMap = {
+  findOne: 'query',
   findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
@@ -884,7 +886,7 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
-
+      if(action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 

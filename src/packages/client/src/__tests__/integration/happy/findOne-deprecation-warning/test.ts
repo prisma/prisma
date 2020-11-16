@@ -1,7 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('findOne deprecation warning', async () => {
-  const spy = jest.spyOn(console, 'log').mockImplementation()
+  const spy = jest.spyOn(console, 'warn').mockImplementation()
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   const user = await prisma.user.findOne({ where: { email: 'a@a.de' } })
@@ -13,6 +13,8 @@ test('findOne deprecation warning', async () => {
       name: Alice,
     }
   `)
-  expect(spy.mock.calls).toMatchInlineSnapshot(`Array []`)
+  expect(spy.mock.calls.join('\n')).toMatchInlineSnapshot(
+    `warn(prisma)  findOne is deprecated. Please use findUnique instead.`,
+  )
   spy.mockRestore()
 })
