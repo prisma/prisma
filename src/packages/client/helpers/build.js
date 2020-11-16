@@ -2,6 +2,7 @@ const execa = require('execa')
 const fs = require('fs')
 const chalk = require('chalk')
 const { promisify } = require('util')
+const makeDir = require('make-dir')
 
 const copyFile = promisify(fs.copyFile)
 const readFile = promisify(fs.readFile)
@@ -26,6 +27,13 @@ async function main() {
       //
     }
   }
+
+  await Promise.all([
+    makeDir('./runtime-dist/esm'),
+    makeDir('./runtime-dist/commonjs'),
+    makeDir('./runtime/esm'),
+    makeDir('./runtime/commonjs'),
+  ])
 
   await Promise.all([
     run('tsc --build tsconfig.runtime.esm.json', true),
