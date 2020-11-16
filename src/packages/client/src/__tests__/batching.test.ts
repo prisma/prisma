@@ -1,7 +1,7 @@
-import { PrismaClientFetcher } from '../runtime/getPrismaClient'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { PrismaClientFetcher } from '../runtime/getPrismaClient'
 
 describe('batching', () => {
   test('basic batching', async () => {
@@ -25,7 +25,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -35,7 +35,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findUniqueUser',
         }),
         isList: false,
         rootField: 'query',
@@ -47,7 +47,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -57,7 +57,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findUniqueUser',
         }),
         isList: false,
         rootField: 'query',
@@ -74,7 +74,7 @@ describe('batching', () => {
       Array [
         Array [
           query {
-        findOneUser(where: {
+        findUniqueUser(where: {
           id: "1"
         }) {
           id
@@ -93,7 +93,7 @@ describe('batching', () => {
         }
       },
           query {
-        findOneUser(where: {
+        findUniqueUser(where: {
           id: "2"
         }) {
           id
@@ -138,7 +138,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -148,7 +148,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOnePost',
+          rootField: 'findUniquePost',
         }),
         isList: false,
         rootField: 'query',
@@ -158,7 +158,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -168,7 +168,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findUniqueUser',
         }),
         isList: false,
         rootField: 'query',
@@ -183,7 +183,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         query {
-        findOnePost(where: {
+        findUniquePost(where: {
           id: "1"
         }) {
           id
@@ -197,7 +197,7 @@ describe('batching', () => {
         }
       },
         query {
-        findOneUser(where: {
+        findUniqueUser(where: {
           id: "2"
         }) {
           id
@@ -240,7 +240,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -250,7 +250,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findUniqueUser',
         }),
         isList: false,
         rootField: 'query',
@@ -258,7 +258,7 @@ describe('batching', () => {
         args: { where: { email: 'a@a.de' } },
       }),
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -268,7 +268,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findOneUser',
+          rootField: 'findUniqueUser',
         }),
         isList: false,
         rootField: 'query',
@@ -281,7 +281,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         query {
-        findOneUser(where: {
+        findUniqueUser(where: {
           email: "a@a.de"
         }) {
           id
@@ -300,7 +300,7 @@ describe('batching', () => {
         }
       },
         query {
-        findOneUser(where: {
+        findUniqueUser(where: {
           id: "2"
         }) {
           id

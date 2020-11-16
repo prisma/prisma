@@ -421,9 +421,9 @@ Note: Lines with + are required, lines with ? are optional.
 
 `;
 
-exports[`select validation reject all undefined where for findOne 1`] = `
+exports[`select validation reject all undefined where for findUnique 1`] = `
 query {
-  findOnePost(where: {
+  findUniquePost(where: {
 
   }) {
     author {
@@ -433,9 +433,9 @@ query {
 }
 `;
 
-exports[`select validation reject all undefined where for findOne 2`] = `
+exports[`select validation reject all undefined where for findUnique 2`] = `
 
-Invalid \`prisma.findOnePost()\` invocation:
+Invalid \`prisma.findUniquePost()\` invocation:
 
 {
   select: {
@@ -456,9 +456,9 @@ Note: Lines with ? are optional.
 
 `;
 
-exports[`select validation reject empty where for findOne 1`] = `
+exports[`select validation reject empty where for findUnique 1`] = `
 query {
-  findOnePost(where: {
+  findUniquePost(where: {
 
   }) {
     author {
@@ -468,9 +468,9 @@ query {
 }
 `;
 
-exports[`select validation reject empty where for findOne 2`] = `
+exports[`select validation reject empty where for findUnique 2`] = `
 
-Invalid \`prisma.findOnePost()\` invocation:
+Invalid \`prisma.findUniquePost()\` invocation:
 
 {
   select: {

@@ -1,7 +1,4 @@
-prisma.users
-  .findOne()
-  .posts()
-  .title()
+prisma.users.findUnique().posts().title()
 
 class PrismaC {
   instructions: string[]
@@ -11,16 +8,16 @@ class PrismaC {
     }
   }
   users = {
-    findOne() {
+    findUnique() {
       if (this.instructions) {
         return this
       }
-      const instance = new PrismaC(['users.findOne'])
+      const instance = new PrismaC(['users.findUnique'])
     },
   }
 }
 
-const postsPointer = prisma.users.findOne().posts()
+const postsPointer = prisma.users.findUnique().posts()
 const titlePointer = postsPointer.title()
 
 await Promise.all(postsPointer, titlePointer)

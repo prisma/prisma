@@ -2,7 +2,7 @@ import { Input } from '../../__helpers__/integrationTest'
 
 export const scenarios = [
   {
-    name: 'findOne where PK',
+    name: 'findUnique where PK',
     up: `
         create table teams (
           id int primary key not null,
@@ -12,7 +12,7 @@ export const scenarios = [
         insert into teams (id, name) values (2, 'b');
       `,
     do: async (client) => {
-      return client.teams.findOne({ where: { id: 2 } })
+      return client.teams.findUnique({ where: { id: 2 } })
     },
     expect: {
       id: 2,
@@ -20,7 +20,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where PK with select',
+    name: 'findUnique where PK with select',
     up: `
         create table teams (
           id int primary key not null,
@@ -31,7 +31,7 @@ export const scenarios = [
         insert into teams (id, name, email) values (2, 'b', 'b@b');
       `,
     do: async (client) => {
-      return client.teams.findOne({
+      return client.teams.findUnique({
         where: { id: 2 },
         select: { name: true },
       })
@@ -41,7 +41,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where PK with include',
+    name: 'findUnique where PK with include',
     up: `
         create table users (
           id serial primary key not null,
@@ -59,7 +59,7 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (2, 'C');
       `,
     do: async (client) => {
-      return client.users.findOne({
+      return client.users.findUnique({
         where: { id: 1 },
         include: { posts: true },
       })
@@ -261,7 +261,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where unique',
+    name: 'findUnique where unique',
     up: `
         create table users (
           id serial primary key not null,
@@ -270,7 +270,7 @@ export const scenarios = [
         insert into users ("email") values ('ada@prisma.io');
       `,
     do: async (client) => {
-      return client.users.findOne({ where: { email: 'ada@prisma.io' } })
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } })
     },
     expect: {
       id: 1,
@@ -278,7 +278,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite unique',
+    name: 'findUnique where composite unique',
     up: `
         create table users (
           id serial primary key not null,
@@ -289,7 +289,7 @@ export const scenarios = [
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
     do: async (client) => {
-      return client.users.findOne({
+      return client.users.findUnique({
         where: {
           users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
         },
@@ -418,7 +418,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where unique with foreign key and unpack',
+    name: 'findUnique where unique with foreign key and unpack',
     up: `
         create table users (
           id serial primary key not null,
@@ -436,7 +436,9 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (2, 'C');
       `,
     do: async (client) => {
-      return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
+      return client.users
+        .findUnique({ where: { email: 'ada@prisma.io' } })
+        .posts()
     },
     expect: [
       {
@@ -937,7 +939,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where in[]',
+    name: 'findUnique where in[]',
     todo: true,
     up: `
         create table crons (
@@ -950,7 +952,7 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
     do: async (client) => {
-      return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
+      return client.crons.findUnique({ where: { job: { in: ['j20', 'j1'] } } })
     },
     expect: [
       {
@@ -1420,7 +1422,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where decimal',
+    name: 'findUnique where decimal',
     up: `
         create table exercises (
           id serial primary key not null,
@@ -1429,7 +1431,7 @@ export const scenarios = [
         insert into exercises (distance) values (12.213);
       `,
     do: async (client) => {
-      return client.exercises.findOne({ where: { distance: 12.213 } })
+      return client.exercises.findUnique({ where: { distance: 12.213 } })
     },
     expect: {
       distance: 12.213,
@@ -1437,7 +1439,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where decimal - default value',
+    name: 'findUnique where decimal - default value',
     up: `
         create table exercises (
           id serial primary key not null,
@@ -1447,7 +1449,7 @@ export const scenarios = [
         insert into exercises (id) values (2);
       `,
     do: async (client) => {
-      return client.exercises.findOne({ where: { distance: 12.3 } })
+      return client.exercises.findUnique({ where: { distance: 12.3 } })
     },
     expect: {
       distance: 12.3,
@@ -1469,7 +1471,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite PK',
+    name: 'findUnique where composite PK',
     up: `
         create table variables (
           name text not null,
@@ -1481,7 +1483,7 @@ export const scenarios = [
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
     do: async (client) => {
-      return client.variables.findOne({
+      return client.variables.findUnique({
         where: { name_key: { key: 'b', name: 'a' } },
       })
     },
@@ -1594,7 +1596,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where unique composite',
+    name: 'findUnique where unique composite',
     up: `
         create table variables (
           id serial primary key not null,
@@ -1607,7 +1609,7 @@ export const scenarios = [
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
     do: async (client) => {
-      return client.variables.findOne({
+      return client.variables.findUnique({
         where: { variables_name_key_key: { key: 'b', name: 'a' } },
       })
     },
@@ -1620,7 +1622,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where unique composite (PK is a composite)',
+    name: 'findUnique where unique composite (PK is a composite)',
     up: `
         create table variables (
           name text not null,
@@ -1633,7 +1635,7 @@ export const scenarios = [
         insert into variables (name, key, value, email) values ('a', 'b', 'c', 'd');
       `,
     do: async (client) => {
-      return client.variables.findOne({
+      return client.variables.findUnique({
         where: { variables_value_email_key: { value: 'c', email: 'd' } },
       })
     },
@@ -1645,7 +1647,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite PK with foreign key',
+    name: 'findUnique where composite PK with foreign key',
     up: `
           create table a (
             one integer not null,
@@ -1662,7 +1664,7 @@ export const scenarios = [
           insert into b ("one", "two") values (1, 2);
         `,
     do: async (client) => {
-      return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
+      return client.a.findUnique({ where: { one_two: { one: 1, two: 2 } } })
     },
     expect: {
       one: 1,
@@ -1671,7 +1673,7 @@ export const scenarios = [
   },
   {
     todo: true,
-    name: 'findOne - list all possible datatypes',
+    name: 'findUnique - list all possible datatypes',
     up: `
         create table crazy (
           c1 bigint,
@@ -1851,7 +1853,7 @@ export const scenarios = [
         );
       `,
     do: async (client) => {
-      return client.crazy.findOne({
+      return client.crazy.findUnique({
         where: { value_email: { value: 'c', email: 'd' } },
       })
     },
@@ -1923,7 +1925,7 @@ export const scenarios = [
     expect: [],
   },
   {
-    name: 'findOne - check typeof js object is object for Json field',
+    name: 'findUnique - check typeof js object is object for Json field',
     up: `
         create table posts (
           id serial primary key not null,
@@ -1959,7 +1961,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne - check typeof Date is string for Json field',
+    name: 'findUnique - check typeof Date is string for Json field',
     up: `
         create table posts (
           id serial primary key not null,
@@ -1995,7 +1997,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne - check typeof array for Json field with array',
+    name: 'findUnique - check typeof array for Json field with array',
     up: `
         create table posts (
           id serial primary key not null,
@@ -2010,7 +2012,7 @@ export const scenarios = [
           data: ['some', 'array', 1, 2, 3, { object: 'value' }],
         },
       })
-      const post = await client.posts.findOne({
+      const post = await client.posts.findUnique({
         where: { id: 1 },
       })
       return post

@@ -213,7 +213,7 @@ export interface GetPrismaClientOptions {
 }
 
 export type Action =
-  | 'findOne'
+  | 'findUnique'
   | 'findFirst'
   | 'findMany'
   | 'create'
@@ -227,7 +227,7 @@ export type Action =
   | 'aggregate'
 
 const actionOperationMap = {
-  findOne: 'query',
+  findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
   count: 'query',
@@ -978,6 +978,9 @@ new PrismaClient({
           dataPath,
           modelName,
         }) => {
+          if (actionName === 'findOne') {
+            console.warn(`${chalk.yellow('warn(prisma) ')} findOne is deprecated. Please use findUnique instead.`)
+          }
           dataPath = dataPath ?? []
 
           const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -1090,6 +1093,11 @@ new PrismaClient({
           model: true,
           plural: true,
           aggregate: true,
+        }
+
+        const newMapping = {
+          ...mapping,
+          findOne: mapping.findUnique
         }
 
         const delegate: any = Object.entries(mapping).reduce(
@@ -1206,7 +1214,7 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (!request.document.children[0].name.startsWith('findOne')) {
+        if (!request.document.children[0].name.startsWith('findOne') || !request.document.children[0].name.startsWith('findUnique')) {
           return null
         }
 
@@ -1368,10 +1376,11 @@ export class PrismaClientFetcher {
   }
 }
 
-export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
+export function getOperation(action: DMMF.ModelAction | 'findOne'): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne ||
+    action === DMMF.ModelAction.findUnique ||
+    action === 'findOne' ||
     action === DMMF.ModelAction.findFirst
   ) {
     return 'query'

@@ -1,6 +1,6 @@
 import { recommender } from '../fixtures/recommender'
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
 
 let dmmf
 describe('no args', () => {
@@ -8,12 +8,12 @@ describe('no args', () => {
     dmmf = new DMMFClass(await getDMMF({ datamodel: recommender }))
   })
 
-  test('findOne', () => {
+  test('findUnique', () => {
     const document = makeDocument({
       dmmf,
       select: undefined,
       rootTypeName: 'query',
-      rootField: 'findOneUser',
+      rootField: 'findUniqueUser',
     })
     expect(() =>
       document.validate(undefined, false, 'user', 'colorless'),

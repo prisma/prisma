@@ -1,4 +1,4 @@
-import { PrismaClient, RandomModel, AccountData } from '@prisma/client'
+import { AccountData, PrismaClient, RandomModel } from '@prisma/client'
 
 // tslint:disable
 
@@ -10,7 +10,7 @@ async function main() {
     accounts: {
       id: string
     }[]
-  } | null = await prisma.globalConfiguration.findOne({
+  } | null = await prisma.globalConfiguration.findUnique({
     where: {
       id: '',
     },
@@ -33,7 +33,7 @@ async function main() {
         }
       }[]
     }
-  } | null = await prisma.userTest.findOne({
+  } | null = await prisma.userTest.findUnique({
     where: {
       id: 'Example',
     },

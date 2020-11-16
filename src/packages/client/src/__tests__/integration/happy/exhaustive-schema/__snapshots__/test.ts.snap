@@ -720,7 +720,7 @@ export namespace Prisma {
 
 
   export type PrismaAction =
-    | 'findOne'
+    | 'findUnique'
     | 'findMany'
     | 'findFirst'
     | 'create'
@@ -882,13 +882,13 @@ export namespace Prisma {
      * @param {FindOnePostArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
-     * const post = await prisma.post.findOne({
+     * const post = await prisma.post.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOnePostArgs>(
+    findUnique<T extends FindOnePostArgs>(
       args: Subset<T, FindOnePostArgs>
     ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
     /**
@@ -1084,7 +1084,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * Post findOne
+   * Post findUnique
    */
   export type FindOnePostArgs = {
     /**
@@ -1438,13 +1438,13 @@ export namespace Prisma {
      * @param {FindOneUserArgs} args - Arguments to find a User
      * @example
      * // Get one User
-     * const user = await prisma.user.findOne({
+     * const user = await prisma.user.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneUserArgs>(
+    findUnique<T extends FindOneUserArgs>(
       args: Subset<T, FindOneUserArgs>
     ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
     /**
@@ -1640,7 +1640,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * User findOne
+   * User findUnique
    */
   export type FindOneUserArgs = {
     /**
@@ -1993,13 +1993,13 @@ export namespace Prisma {
      * @param {FindOneMArgs} args - Arguments to find a M
      * @example
      * // Get one M
-     * const m = await prisma.m.findOne({
+     * const m = await prisma.m.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneMArgs>(
+    findUnique<T extends FindOneMArgs>(
       args: Subset<T, FindOneMArgs>
     ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
     /**
@@ -2195,7 +2195,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * M findOne
+   * M findUnique
    */
   export type FindOneMArgs = {
     /**
@@ -2548,13 +2548,13 @@ export namespace Prisma {
      * @param {FindOneNArgs} args - Arguments to find a N
      * @example
      * // Get one N
-     * const n = await prisma.n.findOne({
+     * const n = await prisma.n.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneNArgs>(
+    findUnique<T extends FindOneNArgs>(
       args: Subset<T, FindOneNArgs>
     ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
     /**
@@ -2750,7 +2750,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * N findOne
+   * N findUnique
    */
   export type FindOneNArgs = {
     /**
@@ -3103,13 +3103,13 @@ export namespace Prisma {
      * @param {FindOneOneOptionalArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
-     * const oneOptional = await prisma.oneOptional.findOne({
+     * const oneOptional = await prisma.oneOptional.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneOneOptionalArgs>(
+    findUnique<T extends FindOneOneOptionalArgs>(
       args: Subset<T, FindOneOneOptionalArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
     /**
@@ -3305,7 +3305,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OneOptional findOne
+   * OneOptional findUnique
    */
   export type FindOneOneOptionalArgs = {
     /**
@@ -3667,13 +3667,13 @@ export namespace Prisma {
      * @param {FindOneManyRequiredArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
-     * const manyRequired = await prisma.manyRequired.findOne({
+     * const manyRequired = await prisma.manyRequired.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneManyRequiredArgs>(
+    findUnique<T extends FindOneManyRequiredArgs>(
       args: Subset<T, FindOneManyRequiredArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
     /**
@@ -3869,7 +3869,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * ManyRequired findOne
+   * ManyRequired findUnique
    */
   export type FindOneManyRequiredArgs = {
     /**
@@ -4231,13 +4231,13 @@ export namespace Prisma {
      * @param {FindOneOptionalSide1Args} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
-     * const optionalSide1 = await prisma.optionalSide1.findOne({
+     * const optionalSide1 = await prisma.optionalSide1.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneOptionalSide1Args>(
+    findUnique<T extends FindOneOptionalSide1Args>(
       args: Subset<T, FindOneOptionalSide1Args>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
     /**
@@ -4433,7 +4433,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OptionalSide1 findOne
+   * OptionalSide1 findUnique
    */
   export type FindOneOptionalSide1Args = {
     /**
@@ -4786,13 +4786,13 @@ export namespace Prisma {
      * @param {FindOneOptionalSide2Args} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
-     * const optionalSide2 = await prisma.optionalSide2.findOne({
+     * const optionalSide2 = await prisma.optionalSide2.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneOptionalSide2Args>(
+    findUnique<T extends FindOneOptionalSide2Args>(
       args: Subset<T, FindOneOptionalSide2Args>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
     /**
@@ -4988,7 +4988,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OptionalSide2 findOne
+   * OptionalSide2 findUnique
    */
   export type FindOneOptionalSide2Args = {
     /**
@@ -5362,13 +5362,13 @@ export namespace Prisma {
      * @param {FindOneAArgs} args - Arguments to find a A
      * @example
      * // Get one A
-     * const a = await prisma.a.findOne({
+     * const a = await prisma.a.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneAArgs>(
+    findUnique<T extends FindOneAArgs>(
       args: Subset<T, FindOneAArgs>
     ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
     /**
@@ -5563,7 +5563,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * A findOne
+   * A findUnique
    */
   export type FindOneAArgs = {
     /**
@@ -5858,13 +5858,13 @@ export namespace Prisma {
      * @param {FindOneBArgs} args - Arguments to find a B
      * @example
      * // Get one B
-     * const b = await prisma.b.findOne({
+     * const b = await prisma.b.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneBArgs>(
+    findUnique<T extends FindOneBArgs>(
       args: Subset<T, FindOneBArgs>
     ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
     /**
@@ -6059,7 +6059,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * B findOne
+   * B findUnique
    */
   export type FindOneBArgs = {
     /**
@@ -6291,13 +6291,13 @@ export namespace Prisma {
      * @param {FindOneCArgs} args - Arguments to find a C
      * @example
      * // Get one C
-     * const c = await prisma.c.findOne({
+     * const c = await prisma.c.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneCArgs>(
+    findUnique<T extends FindOneCArgs>(
       args: Subset<T, FindOneCArgs>
     ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
     /**
@@ -6492,7 +6492,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * C findOne
+   * C findUnique
    */
   export type FindOneCArgs = {
     /**
@@ -6723,13 +6723,13 @@ export namespace Prisma {
      * @param {FindOneDArgs} args - Arguments to find a D
      * @example
      * // Get one D
-     * const d = await prisma.d.findOne({
+     * const d = await prisma.d.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneDArgs>(
+    findUnique<T extends FindOneDArgs>(
       args: Subset<T, FindOneDArgs>
     ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
     /**
@@ -6924,7 +6924,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * D findOne
+   * D findUnique
    */
   export type FindOneDArgs = {
     /**
@@ -7153,13 +7153,13 @@ export namespace Prisma {
      * @param {FindOneEArgs} args - Arguments to find a E
      * @example
      * // Get one E
-     * const e = await prisma.e.findOne({
+     * const e = await prisma.e.findUnique({
      *   where: {
      *     // ... provide filter here
      *   }
      * })
     **/
-    findOne<T extends FindOneEArgs>(
+    findUnique<T extends FindOneEArgs>(
       args: Subset<T, FindOneEArgs>
     ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
     /**
@@ -7354,7 +7354,7 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * E findOne
+   * E findUnique
    */
   export type FindOneEArgs = {
     /**

@@ -1,7 +1,7 @@
 import { blog } from '../fixtures/blog'
-import { DMMFClass } from '../runtime'
-import { makeDocument, getField, unpack } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass } from '../runtime'
+import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
 })
 
 describe('getField', () => {
-  test('blog findOneUser', async () => {
+  test('blog findUniqueUser', async () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -23,37 +23,37 @@ describe('getField', () => {
         },
       },
       rootTypeName: 'query',
-      rootField: 'findOneUser',
+      rootField: 'findUniqueUser',
     })
 
-    expect(getField(document, ['findOneUser']).name).toMatchInlineSnapshot(
-      `findOneUser`,
+    expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(
+      `findUniqueUser`,
     )
     expect(
-      getField(document, ['findOneUser', 'id']).name,
+      getField(document, ['findUniqueUser', 'id']).name,
     ).toMatchInlineSnapshot(`id`)
     expect(
-      getField(document, ['findOneUser', 'posts']).name,
+      getField(document, ['findUniqueUser', 'posts']).name,
     ).toMatchInlineSnapshot(`posts`)
     expect(
-      getField(document, ['findOneUser', 'posts', 'title']).name,
+      getField(document, ['findUniqueUser', 'posts', 'title']).name,
     ).toMatchInlineSnapshot(`title`)
   })
 })
 
 describe('unpack', () => {
-  test('findOnePost', async () => {
+  test('findUniquePost', async () => {
     const document = makeDocument({
       dmmf,
       select: {},
       rootTypeName: 'query',
-      rootField: 'findOnePost',
+      rootField: 'findUniquePost',
     })
 
-    const path = ['findOnePost']
+    const path = ['findUniquePost']
 
     const data = {
-      findOnePost: {
+      findUniquePost: {
         id: 'some-id',
         createdAt: '2019-10-17T09:56:37.690Z',
         updatedAt: '2019-10-17T09:56:37.690Z',
@@ -155,7 +155,7 @@ describe('unpack', () => {
     `)
   })
 
-  test('findOneUser', async () => {
+  test('findUniqueUser', async () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -164,13 +164,13 @@ describe('unpack', () => {
         },
       },
       rootTypeName: 'query',
-      rootField: 'findOneUser',
+      rootField: 'findUniqueUser',
     })
 
-    const path = ['findOneUser']
+    const path = ['findUniqueUser']
 
     const data = {
-      findOneUser: {
+      findUniqueUser: {
         id: 'some-id',
         email: 'a@a.com',
         json: '{"hello": "world"}',
