@@ -53,10 +53,6 @@ test('Blog fixture: Postgres', async () => {
     ],
   })
 
-  // Make sure we're not leaking connection strings in node_modules
-
-  expect(prisma.internalDatasources).toBe(undefined)
-
   if (!prismaVersion || !prismaVersion.client) {
     throw new Error(`prismaVersion missing: ${JSON.stringify(prismaVersion)}`)
   }
