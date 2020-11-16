@@ -8,12 +8,12 @@ describe('no args', () => {
     dmmf = new DMMFClass(await getDMMF({ datamodel: recommender }))
   })
 
-  test('findUnique', () => {
+  test('findOne', () => {
     const document = makeDocument({
       dmmf,
       select: undefined,
       rootTypeName: 'query',
-      rootField: 'findUniqueUser',
+      rootField: 'findOneUser',
     })
     expect(() =>
       document.validate(undefined, false, 'user', 'colorless'),

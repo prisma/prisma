@@ -35,7 +35,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniqueUser',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
@@ -57,7 +57,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniqueUser',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
@@ -70,11 +70,11 @@ describe('batching', () => {
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`
+    expect(batches).toMatchInlineSnapshot(`Array []`)
+    expect(requests).toMatchInlineSnapshot(`
       Array [
-        Array [
-          query {
-        findUniqueUser(where: {
+        query {
+        findOneUser(where: {
           id: "1"
         }) {
           id
@@ -92,8 +92,8 @@ describe('batching', () => {
           coinflips
         }
       },
-          query {
-        findUniqueUser(where: {
+        query {
+        findOneUser(where: {
           id: "2"
         }) {
           id
@@ -111,10 +111,8 @@ describe('batching', () => {
           coinflips
         }
       },
-        ],
       ]
     `)
-    expect(requests).toMatchInlineSnapshot(`Array []`)
   })
 
   test('dont batch different models', async () => {
@@ -148,7 +146,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniquePost',
+          rootField: 'findOnePost',
         }),
         isList: false,
         rootField: 'query',
@@ -168,7 +166,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniqueUser',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
@@ -183,7 +181,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         query {
-        findUniquePost(where: {
+        findOnePost(where: {
           id: "1"
         }) {
           id
@@ -197,7 +195,7 @@ describe('batching', () => {
         }
       },
         query {
-        findUniqueUser(where: {
+        findOneUser(where: {
           id: "2"
         }) {
           id
@@ -250,7 +248,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniqueUser',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
@@ -268,7 +266,7 @@ describe('batching', () => {
             },
           },
           rootTypeName: 'query',
-          rootField: 'findUniqueUser',
+          rootField: 'findOneUser',
         }),
         isList: false,
         rootField: 'query',
@@ -281,7 +279,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         query {
-        findUniqueUser(where: {
+        findOneUser(where: {
           email: "a@a.de"
         }) {
           id
@@ -300,7 +298,7 @@ describe('batching', () => {
         }
       },
         query {
-        findUniqueUser(where: {
+        findOneUser(where: {
           id: "2"
         }) {
           id

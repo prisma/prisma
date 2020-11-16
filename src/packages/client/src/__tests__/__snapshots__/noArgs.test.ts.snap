@@ -53,7 +53,7 @@ Argument likedArticles for where.likedArticles must not be null. Please use unde
 
 `;
 
-exports[`no args findUnique 1`] = `
+exports[`no args findOne 1`] = `
 
 Invalid \`prisma.user()\` invocation:
 
