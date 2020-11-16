@@ -2,7 +2,7 @@ import { Input } from '../../__helpers__/integrationTest'
 
 export const scenarios = [
   {
-    name: 'findOne where PK',
+    name: 'findUnique where PK',
     up: `
         create table teams (
           id int primary key not null,
@@ -11,8 +11,8 @@ export const scenarios = [
         insert into teams (id, name) values (1, 'a');
         insert into teams (id, name) values (2, 'b');
       `,
-    do: async client => {
-      return client.teams.findOne({ where: { id: 2 } })
+    do: async (client) => {
+      return client.teams.findUnique({ where: { id: 2 } })
     },
     expect: {
       id: 2,
@@ -20,7 +20,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where PK with select',
+    name: 'findUnique where PK with select',
     up: `
         create table teams (
           id int primary key not null,
@@ -30,8 +30,8 @@ export const scenarios = [
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
       `,
-    do: async client => {
-      return client.teams.findOne({
+    do: async (client) => {
+      return client.teams.findUnique({
         where: { id: 2 },
         select: { name: true },
       })
@@ -41,7 +41,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where PK with include',
+    name: 'findUnique where PK with include',
     up: `
         create table users (
           id int identity primary key not null,
@@ -58,8 +58,8 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
       `,
-    do: async client => {
-      return client.users.findOne({
+    do: async (client) => {
+      return client.users.findUnique({
         where: { id: 1 },
         include: { posts: true },
       })
@@ -89,7 +89,7 @@ export const scenarios = [
           name varchar(32) not null unique
         );
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.create({ data: { name: 'c' } })
     },
     expect: {
@@ -105,7 +105,7 @@ export const scenarios = [
           name varchar(32) not null default 'alice'
         );
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.create({ data: {} })
     },
     expect: {
@@ -121,7 +121,7 @@ export const scenarios = [
           id int identity primary key not null
         );
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.create({ data: {} })
     },
     expect: {
@@ -138,7 +138,7 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.update({
         where: { id: 1 },
         data: { name: 'd' },
@@ -159,7 +159,7 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.update({
         where: { id: 1 },
         data: { active: false },
@@ -181,7 +181,7 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.update({
         where: { id: 1 },
         data: { active: false },
@@ -201,7 +201,7 @@ export const scenarios = [
         );
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.update({
         where: { name: 'c' },
         data: { name: 'd' },
@@ -222,7 +222,7 @@ export const scenarios = [
         insert into teams ("name") values ('c');
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.updateMany({
         where: { name: 'c' },
         data: { name: 'd' },
@@ -242,7 +242,7 @@ export const scenarios = [
         insert into teams ("name") values ('c');
         insert into teams ("name") values ('c');
       `,
-    do: async client => {
+    do: async (client) => {
       await client.teams.updateMany({
         where: { name: 'c' },
         data: { name: 'd' },
@@ -261,7 +261,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where unique',
+    name: 'findUnique where unique',
     up: `
         create table users (
           id int identity primary key not null,
@@ -269,8 +269,8 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-    do: async client => {
-      return client.users.findOne({ where: { email: 'ada@prisma.io' } })
+    do: async (client) => {
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } })
     },
     expect: {
       id: 1,
@@ -278,7 +278,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite unique',
+    name: 'findUnique where composite unique',
     up: `
         create table users (
           id int identity primary key not null,
@@ -288,8 +288,8 @@ export const scenarios = [
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
-    do: async client => {
-      return client.users.findOne({
+    do: async (client) => {
+      return client.users.findUnique({
         where: {
           u_const: { email: 'ada@prisma.io', name: 'Ada' },
         },
@@ -312,7 +312,7 @@ export const scenarios = [
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.update({
         where: {
           u_const: { email: 'ada@prisma.io', name: 'Ada' },
@@ -337,7 +337,7 @@ export const scenarios = [
         );
         insert into users ("email", "name") values ('ada@prisma.io', 'Ada');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.delete({
         where: {
           u_const: { email: 'ada@prisma.io', name: 'Ada' },
@@ -360,7 +360,7 @@ export const scenarios = [
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values (null);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.findMany()
     },
     expect: [
@@ -383,7 +383,7 @@ export const scenarios = [
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.findMany({ where: { email: 'ada@prisma.io' } })
     },
     expect: [
@@ -403,7 +403,7 @@ export const scenarios = [
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.findMany()
     },
     expect: [
@@ -418,7 +418,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where unique with foreign key and unpack',
+    name: 'findUnique where unique with foreign key and unpack',
     up: `
         create table users (
           id int identity primary key not null,
@@ -435,8 +435,10 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (1, 'B');
         insert into posts ("user_id", "title") values (2, 'C');
       `,
-    do: async client => {
-      return client.users.findOne({ where: { email: 'ada@prisma.io' } }).posts()
+    do: async (client) => {
+      return client.users
+        .findUnique({ where: { email: 'ada@prisma.io' } })
+        .posts()
     },
     expect: [
       {
@@ -463,7 +465,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         where: {
           title: { contains: 'A' },
@@ -491,7 +493,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         where: {
           OR: [{ title: { contains: 'A' } }, { title: { contains: 'C' } }],
@@ -524,7 +526,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.upsert({
         where: { id: 1 },
         create: { title: 'D', published: true },
@@ -549,7 +551,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.upsert({
         where: { id: 4 },
         create: { title: 'D', published: false },
@@ -574,7 +576,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         orderBy: {
           title: 'asc',
@@ -611,7 +613,7 @@ export const scenarios = [
         insert into posts ("title", "published") values ('B', 0);
         insert into posts ("title", "published") values ('C', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         orderBy: {
           title: 'desc',
@@ -648,7 +650,7 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.crons.findMany({ where: { job: { contains: 'j2' } } })
     },
     expect: [
@@ -676,7 +678,7 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.crons.findMany({ where: { job: { startsWith: 'j2' } } })
     },
     expect: [
@@ -704,7 +706,7 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.crons.findMany({ where: { job: { endsWith: '1' } } })
     },
     expect: [
@@ -732,7 +734,7 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.crons.findMany({
         where: { job: { in: ['j20', 'j1'] } },
       })
@@ -751,7 +753,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where in[]',
+    name: 'findUnique where in[]',
     todo: true,
     up: `
         create table crons (
@@ -763,8 +765,8 @@ export const scenarios = [
         insert into crons ("job", "frequency") values ('j20', '* * * * 1-5');
         insert into crons ("job", "frequency") values ('j21', '* * * * 1-5');
       `,
-    do: async client => {
-      return client.crons.findOne({ where: { job: { in: ['j20', 'j1'] } } })
+    do: async (client) => {
+      return client.crons.findUnique({ where: { job: { in: ['j20', 'j1'] } } })
     },
     expect: [
       {
@@ -792,11 +794,11 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
     // todo: true,
-    do: async client => {
+    do: async (client) => {
       const posts = await client.posts.findMany({
         where: { created_at: { lte: new Date() } },
       })
-      posts.forEach(post => {
+      posts.forEach((post) => {
         expect(post.created_at).toBeInstanceOf(Date)
         delete post.created_at
       })
@@ -829,7 +831,7 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         where: { created_at: { gte: new Date() } },
       })
@@ -848,7 +850,7 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.posts.findMany({
         where: { created_at: { gt: new Date() } },
       })
@@ -867,11 +869,11 @@ export const scenarios = [
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('C', '2020-01-14T11:10:19.573Z');
       `,
-    do: async client => {
+    do: async (client) => {
       const posts = await client.posts.findMany({
         where: { created_at: { lt: new Date() } },
       })
-      posts.forEach(post => {
+      posts.forEach((post) => {
         expect(post.created_at).toBeInstanceOf(Date)
         delete post.created_at
       })
@@ -901,7 +903,7 @@ export const scenarios = [
         );
         insert into teams (token) values (11);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.update({
         where: { token: 11 },
         data: { token: 10 },
@@ -922,7 +924,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: { time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
       })
@@ -944,7 +946,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: { time: { gt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
       })
@@ -961,7 +963,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: {
           time: { gte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
@@ -985,7 +987,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: { time: { lt: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) } },
       })
@@ -1002,7 +1004,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: {
           time: { lte: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
@@ -1026,7 +1028,7 @@ export const scenarios = [
 
         insert into events ("time") values ('2018-09-04T00:00:00.000Z');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({
         where: {
           time: { not: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)) },
@@ -1047,7 +1049,7 @@ export const scenarios = [
         insert into events ("time") values (NULL);
         insert into events ("time") values (NULL);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.events.findMany({ where: { time: null } })
     },
     expect: [
@@ -1077,7 +1079,7 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.findMany({ where: { id: { in: [] } } })
     },
     expect: [],
@@ -1093,7 +1095,7 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.findMany({
         where: { id: { in: [] }, token: { in: [11, 22] } },
       })
@@ -1111,7 +1113,7 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.findMany({ where: { token: { in: [11, 22] } } })
     },
     expect: [
@@ -1138,7 +1140,7 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.findMany({
         where: { token: { notIn: [11, 22] } },
       })
@@ -1156,7 +1158,7 @@ export const scenarios = [
         insert into teams (token, name) values (11, 'a');
         insert into teams (token, name) values (22, 'b');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.teams.findMany({ where: { token: { notIn: [] } } })
     },
     expect: [
@@ -1190,7 +1192,7 @@ export const scenarios = [
         insert into users ("email", team_id) values ('a', NULL);
         insert into users ("email", "team_id") values ('b', 1);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.users.findMany({ where: { team_id: null } })
     },
     expect: [
@@ -1210,7 +1212,7 @@ export const scenarios = [
         );
         insert into exercises (distance) values (12.213);
       `,
-    do: async client => {
+    do: async (client) => {
       return client.exercises.findMany({ where: { distance: 12.213 } })
     },
     expect: [
@@ -1221,7 +1223,7 @@ export const scenarios = [
     ],
   },
   {
-    name: 'findOne where decimal',
+    name: 'findUnique where decimal',
     up: `
         create table exercises (
           id int identity primary key not null,
@@ -1229,8 +1231,8 @@ export const scenarios = [
         );
         insert into exercises (distance) values (12.213);
       `,
-    do: async client => {
-      return client.exercises.findOne({ where: { distance: 12.213 } })
+    do: async (client) => {
+      return client.exercises.findUnique({ where: { distance: 12.213 } })
     },
     expect: {
       distance: 12.213,
@@ -1238,7 +1240,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where decimal - default value',
+    name: 'findUnique where decimal - default value',
     up: `
         create table exercises (
           id int identity primary key not null,
@@ -1248,8 +1250,8 @@ export const scenarios = [
         insert into exercises (distance) values (12.213);
         insert into exercises default values;
       `,
-    do: async client => {
-      return client.exercises.findOne({ where: { distance: 12.3 } })
+    do: async (client) => {
+      return client.exercises.findUnique({ where: { distance: 12.3 } })
     },
     expect: {
       distance: 12.3,
@@ -1263,7 +1265,7 @@ export const scenarios = [
           version bigint not null primary key
         );
       `,
-    do: async client => {
+    do: async (client) => {
       return client.migrate.create({ data: { version: 1 } })
     },
     expect: {
@@ -1271,7 +1273,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite PK',
+    name: 'findUnique where composite PK',
     up: `
         create table variables (
           name varchar(32) not null,
@@ -1282,8 +1284,8 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
-      return client.variables.findOne({
+    do: async (client) => {
+      return client.variables.findUnique({
         where: { name_key: { key: 'b', name: 'a' } },
       })
     },
@@ -1306,7 +1308,7 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.variables.update({
         where: { name_key: { key: 'b', name: 'a' } },
         data: { email: 'e' },
@@ -1331,7 +1333,7 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.variables.upsert({
         where: { name_key: { key: 'b', name: 'a' } },
         create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1357,7 +1359,7 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.variables.upsert({
         where: { name_key: { key: 'd', name: 'a' } },
         create: { name: '1', key: '2', value: '3', email: '4' },
@@ -1383,7 +1385,7 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
+    do: async (client) => {
       return client.variables.delete({
         where: { name_key: { key: 'b', name: 'a' } },
       })
@@ -1396,7 +1398,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where unique composite',
+    name: 'findUnique where unique composite',
     up: `
         create table variables (
           id int identity primary key not null,
@@ -1408,8 +1410,8 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
-      return client.variables.findOne({
+    do: async (client) => {
+      return client.variables.findUnique({
         where: { u_const: { key: 'b', name: 'a' } },
       })
     },
@@ -1422,7 +1424,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where unique composite (PK is a composite)',
+    name: 'findUnique where unique composite (PK is a composite)',
     up: `
         create table variables (
           name varchar(32) not null,
@@ -1434,8 +1436,8 @@ export const scenarios = [
         );
         insert into variables (name, "key", value, email) values ('a', 'b', 'c', 'd');
       `,
-    do: async client => {
-      return client.variables.findOne({
+    do: async (client) => {
+      return client.variables.findUnique({
         where: { u_const: { value: 'c', email: 'd' } },
       })
     },
@@ -1447,7 +1449,7 @@ export const scenarios = [
     },
   },
   {
-    name: 'findOne where composite PK with foreign key',
+    name: 'findUnique where composite PK with foreign key',
     up: `
           create table a (
             one integer not null,
@@ -1463,8 +1465,8 @@ export const scenarios = [
           insert into a ("one", "two") values (1, 2);
           insert into b ("one", "two") values (1, 2);
         `,
-    do: async client => {
-      return client.a.findOne({ where: { one_two: { one: 1, two: 2 } } })
+    do: async (client) => {
+      return client.a.findUnique({ where: { one_two: { one: 1, two: 2 } } })
     },
     expect: {
       one: 1,
@@ -1473,7 +1475,7 @@ export const scenarios = [
   },
   {
     todo: true,
-    name: 'findOne - list all possible datatypes',
+    name: 'findUnique - list all possible datatypes',
     up: `
         create table crazy (
           c1 int,
@@ -1514,8 +1516,8 @@ export const scenarios = [
           c36 geometry,
         );
       `,
-    do: async client => {
-      return client.crazy.findOne({
+    do: async (client) => {
+      return client.crazy.findUnique({
         where: { value_email: { value: 'c', email: 'd' } },
       })
     },
@@ -1534,7 +1536,7 @@ export const scenarios = [
         insert into teams (name) values (NULL);
         insert into teams (name) values (NULL);
       `,
-    do: async client => {
+    do: async (client) => {
       await client.teams.updateMany({
         data: { name: 'b' },
         where: { name: null },

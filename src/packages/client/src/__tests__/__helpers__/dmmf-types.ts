@@ -2727,7 +2727,7 @@ const dmmf: DMMF.Document = {
               }
             },
             {
-              "name": "findOnePost",
+              "name": "findUniquePost",
               "args": [
                 {
                   "name": "where",
@@ -3038,7 +3038,7 @@ const dmmf: DMMF.Document = {
               }
             },
             {
-              "name": "findOneUser",
+              "name": "findUniqueUser",
               "args": [
                 {
                   "name": "where",
@@ -4101,7 +4101,7 @@ const dmmf: DMMF.Document = {
       {
         "model": "Post",
         "plural": "posts",
-        "findOne": "findOnePost",
+        "findUnique": "findUniquePost",
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "create": "createOnePost",
@@ -4115,7 +4115,7 @@ const dmmf: DMMF.Document = {
       {
         "model": "User",
         "plural": "users",
-        "findOne": "findOneUser",
+        "findUnique": "findUniqueUser",
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "create": "createOneUser",

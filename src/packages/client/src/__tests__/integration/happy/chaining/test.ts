@@ -7,7 +7,7 @@ test('chaining', async () => {
   const a: any[] = []
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -17,7 +17,7 @@ test('chaining', async () => {
 
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -28,7 +28,7 @@ test('chaining', async () => {
 
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -40,7 +40,7 @@ test('chaining', async () => {
 
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -53,7 +53,7 @@ test('chaining', async () => {
 
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -67,7 +67,7 @@ test('chaining', async () => {
 
   a.push(
     await prisma.user
-      .findOne({
+      .findUnique({
         where: {
           email: 'a@a.de',
         },

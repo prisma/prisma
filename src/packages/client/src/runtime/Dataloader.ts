@@ -49,7 +49,7 @@ export class Dataloader<T = any> {
       delete this.batches[key]
 
       // only batch if necessary
-      // this might occur, if there's e.g. only 1 findOne in the batch
+      // this might occur, if there's e.g. only 1 findUnique in the batch
       if (batch.length === 1) {
         this.options
           .singleLoader(batch[0].request)

@@ -693,7 +693,7 @@ export type LogEvent = {
 
 
 export type PrismaAction =
-  | 'findOne'
+  | 'findUnique'
   | 'findMany'
   | 'findFirst'
   | 'create'
@@ -1035,7 +1035,7 @@ ${this.argsTypes.map(TS).join('\n')}
 }
 
 function getMethodJSDocBody(
-  action: DMMF.ModelAction,
+  action: DMMF.ModelAction | 'findOne',
   mapping: DMMF.ModelMapping,
   model: DMMF.Model,
 ): string {
@@ -1109,12 +1109,27 @@ const ${mapping.plural} = await ${method}({ take: 10 })
 ${onlySelect}
 `
     }
-    case DMMF.ModelAction.findOne: {
+    case DMMF.ModelAction.findUnique: {
       return `Find zero or one ${singular} that matches the filter.
 @param {${getModelArgName(
         model.name,
         action,
       )}} args - Arguments to find a ${singular}
+@example
+// Get one ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  }
+})`
+    }
+    case 'findOne': {
+      return `Find zero or one ${singular} that matches the filter.
+@param {${getModelArgName(
+        model.name,
+        action,
+      )}} args - Arguments to find a ${singular}
+@deprecated This will be deprecated please use ${`prisma.${lowerCase(mapping.model)}.findUnique`}
 @example
 // Get one ${singular}
 const ${lowerCase(mapping.model)} = await ${method}({
@@ -1222,6 +1237,9 @@ export class ModelDelegate implements Generatable {
       return ''
     }
     const model = this.dmmf.modelMap[name]
+    
+    // TODO: handle findUnique
+    mapping["findOne"] = mapping['findUnique']
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
@@ -1295,7 +1313,7 @@ ${f.name}<T extends ${getFieldArgName(
             name: fieldTypeName,
             actionName: f.outputType.isList
               ? DMMF.ModelAction.findMany
-              : DMMF.ModelAction.findOne,
+              : DMMF.ModelAction.findUnique,
             hideCondition: false,
             isField: true,
             renderPromise: true,
@@ -1495,6 +1513,9 @@ ${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const topLevelArgsJsDocs = {
   findOne: {
+    where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
+  },
+  findUnique: {
     where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
   },
   findFirst: {
