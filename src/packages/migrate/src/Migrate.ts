@@ -36,6 +36,7 @@ import {
   LocalMigrationWithDatabaseSteps,
   LockFile,
   Migration,
+  EngineArgs,
 } from './types'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formatms'
@@ -62,7 +63,7 @@ import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
 import { enginesVersion } from '@prisma/engines-version'
-import { EngineArgs } from '../dist'
+
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
