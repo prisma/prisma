@@ -1216,7 +1216,7 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (!request.document.children[0].name.startsWith('findOne') || !request.document.children[0].name.startsWith('findUnique')) {
+        if (!(request.document.children[0].name.startsWith('findOne') || request.document.children[0].name.startsWith('findUnique'))) {
           return null
         }
 
