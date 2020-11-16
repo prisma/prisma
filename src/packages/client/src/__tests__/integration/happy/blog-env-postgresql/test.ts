@@ -10,9 +10,13 @@ test('Blog fixture: Postgres', async () => {
 
   const {
     PrismaClient,
+    Prisma,
+  } = require('./node_modules/@prisma/client')
+
+  const {
     PrismaClientValidationError,
     prismaVersion,
-  } = require('./node_modules/@prisma/client')
+  } = Prisma
 
   let originalConnectionString =
     process.env.TEST_POSTGRES_URI ||
@@ -48,10 +52,6 @@ test('Blog fixture: Postgres', async () => {
       },
     ],
   })
-
-  // Make sure we're not leaking connection strings in node_modules
-
-  expect(prisma.internalDatasources).toBe(undefined)
 
   if (!prismaVersion || !prismaVersion.client) {
     throw new Error(`prismaVersion missing: ${JSON.stringify(prismaVersion)}`)

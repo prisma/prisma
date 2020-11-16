@@ -1,4 +1,4 @@
-import { PrismaClient, JsonValue } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 // tslint:disable
 

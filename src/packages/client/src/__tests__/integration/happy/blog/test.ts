@@ -6,14 +6,18 @@ test('blog', async () => {
 
   const {
     PrismaClient,
-    PrismaClientValidationError,
-    PrismaClientKnownRequestError,
+    Prisma,
+  } = require('./node_modules/@prisma/client')
+
+  const {
     prismaVersion,
     sql,
     raw,
     join,
     empty,
-  } = require('./node_modules/@prisma/client')
+    PrismaClientValidationError,
+    PrismaClientKnownRequestError,
+  } = Prisma
 
   const requests: any[] = []
   const db = new PrismaClient({

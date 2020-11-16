@@ -56,7 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.12.0-1.ebf0f4d10e5b5e396811addb862c01449d05c81a",
+    "@prisma/engines": "2.12.0-3.e721dd1207c4aeb8816ae2d3dec7f24a4c981629",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -64,7 +64,7 @@
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
-    "@types/fs-extra": "9.0.3",
+    "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.15",
     "@types/js-levenshtein": "1.1.0",
     "@types/node": "12.19.4",
@@ -77,12 +77,12 @@
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.5",
+    "esbuild": "0.8.8",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.1.0",
+    "eslint-plugin-jest": "24.1.3",
     "eslint-plugin-prettier": "3.1.4",
     "execa": "4.1.0",
     "flat-map-polyfill": "0.3.8",
@@ -103,15 +103,15 @@
     "mssql": "6.2.3",
     "node-fetch": "2.6.1",
     "packwatch": "2.0.0",
-    "pg": "8.5.0",
+    "pg": "8.5.1",
     "pidtree": "0.5.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "prettier": "2.1.2",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.33.1",
-    "rollup-plugin-dts": "1.4.13",
+    "rollup": "2.33.2",
+    "rollup-plugin-dts": "1.4.14",
     "set-value": "3.0.2",
     "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
@@ -147,6 +147,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines-version": "2.12.0-1.ebf0f4d10e5b5e396811addb862c01449d05c81a"
+    "@prisma/engines-version": "2.12.0-3.e721dd1207c4aeb8816ae2d3dec7f24a4c981629"
   }
 }

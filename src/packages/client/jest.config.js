@@ -16,7 +16,7 @@ module.exports = {
     'runner.js',
     'node_modules/',
     'exhaustive-schema/generated-dmmf.ts',
-    '__helpers__'
+    '__helpers__',
   ],
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
   testTimeout: 10000,

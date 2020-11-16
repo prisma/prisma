@@ -58,12 +58,6 @@ if [[ ${GENERATE_DENYLIST} != *"Error validating model \"public\""* ]]; then
   exit 1
 fi
 
-GENERATE_DYNAMIC_DENYLIST=$(node ../../../dist/bin.js generate --schema=dynamic-denylist.prisma 2>&1)
-if [[ ${GENERATE_DYNAMIC_DENYLIST} != *"model BlogInclude"* ]]; then
-  echo "prisma generate dynamic denylist is broken"
-  exit 1
-fi
-
 #
 # Test --schema from schema dir
 #
