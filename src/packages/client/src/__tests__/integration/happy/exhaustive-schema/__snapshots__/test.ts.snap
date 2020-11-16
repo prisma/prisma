@@ -879,7 +879,7 @@ export namespace Prisma {
   export interface PostDelegate {
     /**
      * Find zero or one Post that matches the filter.
-     * @param {FindOnePostArgs} args - Arguments to find a Post
+     * @param {FindUniquePostArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
      * const post = await prisma.post.findUnique({
@@ -888,8 +888,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOnePostArgs>(
-      args: Subset<T, FindOnePostArgs>
+    findUnique<T extends FindUniquePostArgs>(
+      args: Subset<T, FindUniquePostArgs>
     ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
     /**
      * Find the first Post that matches the filter.
@@ -1024,6 +1024,21 @@ export namespace Prisma {
       args: Subset<T, PostUpsertArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
     /**
+     * Find zero or one Post that matches the filter.
+     * @param {FindUniquePostArgs} args - Arguments to find a Post
+     * @deprecated This will be deprecated please use prisma.post.findUnique
+     * @example
+     * // Get one Post
+     * const post = await prisma.post.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniquePostArgs>(
+      args: Subset<T, FindUniquePostArgs>
+    ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
@@ -1086,7 +1101,7 @@ export namespace Prisma {
   /**
    * Post findUnique
    */
-  export type FindOnePostArgs = {
+  export type FindUniquePostArgs = {
     /**
      * Select specific fields to fetch from the Post
     **/
@@ -1435,7 +1450,7 @@ export namespace Prisma {
   export interface UserDelegate {
     /**
      * Find zero or one User that matches the filter.
-     * @param {FindOneUserArgs} args - Arguments to find a User
+     * @param {FindUniqueUserArgs} args - Arguments to find a User
      * @example
      * // Get one User
      * const user = await prisma.user.findUnique({
@@ -1444,8 +1459,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneUserArgs>(
-      args: Subset<T, FindOneUserArgs>
+    findUnique<T extends FindUniqueUserArgs>(
+      args: Subset<T, FindUniqueUserArgs>
     ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
     /**
      * Find the first User that matches the filter.
@@ -1580,6 +1595,21 @@ export namespace Prisma {
       args: Subset<T, UserUpsertArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
     /**
+     * Find zero or one User that matches the filter.
+     * @param {FindUniqueUserArgs} args - Arguments to find a User
+     * @deprecated This will be deprecated please use prisma.user.findUnique
+     * @example
+     * // Get one User
+     * const user = await prisma.user.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueUserArgs>(
+      args: Subset<T, FindUniqueUserArgs>
+    ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
@@ -1642,7 +1672,7 @@ export namespace Prisma {
   /**
    * User findUnique
    */
-  export type FindOneUserArgs = {
+  export type FindUniqueUserArgs = {
     /**
      * Select specific fields to fetch from the User
     **/
@@ -1990,7 +2020,7 @@ export namespace Prisma {
   export interface MDelegate {
     /**
      * Find zero or one M that matches the filter.
-     * @param {FindOneMArgs} args - Arguments to find a M
+     * @param {FindUniqueMArgs} args - Arguments to find a M
      * @example
      * // Get one M
      * const m = await prisma.m.findUnique({
@@ -1999,8 +2029,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneMArgs>(
-      args: Subset<T, FindOneMArgs>
+    findUnique<T extends FindUniqueMArgs>(
+      args: Subset<T, FindUniqueMArgs>
     ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
     /**
      * Find the first M that matches the filter.
@@ -2135,6 +2165,21 @@ export namespace Prisma {
       args: Subset<T, MUpsertArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
     /**
+     * Find zero or one M that matches the filter.
+     * @param {FindUniqueMArgs} args - Arguments to find a M
+     * @deprecated This will be deprecated please use prisma.m.findUnique
+     * @example
+     * // Get one M
+     * const m = await prisma.m.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueMArgs>(
+      args: Subset<T, FindUniqueMArgs>
+    ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
@@ -2197,7 +2242,7 @@ export namespace Prisma {
   /**
    * M findUnique
    */
-  export type FindOneMArgs = {
+  export type FindUniqueMArgs = {
     /**
      * Select specific fields to fetch from the M
     **/
@@ -2545,7 +2590,7 @@ export namespace Prisma {
   export interface NDelegate {
     /**
      * Find zero or one N that matches the filter.
-     * @param {FindOneNArgs} args - Arguments to find a N
+     * @param {FindUniqueNArgs} args - Arguments to find a N
      * @example
      * // Get one N
      * const n = await prisma.n.findUnique({
@@ -2554,8 +2599,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneNArgs>(
-      args: Subset<T, FindOneNArgs>
+    findUnique<T extends FindUniqueNArgs>(
+      args: Subset<T, FindUniqueNArgs>
     ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
     /**
      * Find the first N that matches the filter.
@@ -2690,6 +2735,21 @@ export namespace Prisma {
       args: Subset<T, NUpsertArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
     /**
+     * Find zero or one N that matches the filter.
+     * @param {FindUniqueNArgs} args - Arguments to find a N
+     * @deprecated This will be deprecated please use prisma.n.findUnique
+     * @example
+     * // Get one N
+     * const n = await prisma.n.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueNArgs>(
+      args: Subset<T, FindUniqueNArgs>
+    ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
@@ -2752,7 +2812,7 @@ export namespace Prisma {
   /**
    * N findUnique
    */
-  export type FindOneNArgs = {
+  export type FindUniqueNArgs = {
     /**
      * Select specific fields to fetch from the N
     **/
@@ -3100,7 +3160,7 @@ export namespace Prisma {
   export interface OneOptionalDelegate {
     /**
      * Find zero or one OneOptional that matches the filter.
-     * @param {FindOneOneOptionalArgs} args - Arguments to find a OneOptional
+     * @param {FindUniqueOneOptionalArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
      * const oneOptional = await prisma.oneOptional.findUnique({
@@ -3109,8 +3169,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneOneOptionalArgs>(
-      args: Subset<T, FindOneOneOptionalArgs>
+    findUnique<T extends FindUniqueOneOptionalArgs>(
+      args: Subset<T, FindUniqueOneOptionalArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
     /**
      * Find the first OneOptional that matches the filter.
@@ -3245,6 +3305,21 @@ export namespace Prisma {
       args: Subset<T, OneOptionalUpsertArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
     /**
+     * Find zero or one OneOptional that matches the filter.
+     * @param {FindUniqueOneOptionalArgs} args - Arguments to find a OneOptional
+     * @deprecated This will be deprecated please use prisma.oneOptional.findUnique
+     * @example
+     * // Get one OneOptional
+     * const oneOptional = await prisma.oneOptional.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueOneOptionalArgs>(
+      args: Subset<T, FindUniqueOneOptionalArgs>
+    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
@@ -3307,7 +3382,7 @@ export namespace Prisma {
   /**
    * OneOptional findUnique
    */
-  export type FindOneOneOptionalArgs = {
+  export type FindUniqueOneOptionalArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
     **/
@@ -3664,7 +3739,7 @@ export namespace Prisma {
   export interface ManyRequiredDelegate {
     /**
      * Find zero or one ManyRequired that matches the filter.
-     * @param {FindOneManyRequiredArgs} args - Arguments to find a ManyRequired
+     * @param {FindUniqueManyRequiredArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
      * const manyRequired = await prisma.manyRequired.findUnique({
@@ -3673,8 +3748,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneManyRequiredArgs>(
-      args: Subset<T, FindOneManyRequiredArgs>
+    findUnique<T extends FindUniqueManyRequiredArgs>(
+      args: Subset<T, FindUniqueManyRequiredArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
     /**
      * Find the first ManyRequired that matches the filter.
@@ -3809,6 +3884,21 @@ export namespace Prisma {
       args: Subset<T, ManyRequiredUpsertArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
     /**
+     * Find zero or one ManyRequired that matches the filter.
+     * @param {FindUniqueManyRequiredArgs} args - Arguments to find a ManyRequired
+     * @deprecated This will be deprecated please use prisma.manyRequired.findUnique
+     * @example
+     * // Get one ManyRequired
+     * const manyRequired = await prisma.manyRequired.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueManyRequiredArgs>(
+      args: Subset<T, FindUniqueManyRequiredArgs>
+    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
@@ -3871,7 +3961,7 @@ export namespace Prisma {
   /**
    * ManyRequired findUnique
    */
-  export type FindOneManyRequiredArgs = {
+  export type FindUniqueManyRequiredArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
     **/
@@ -4228,7 +4318,7 @@ export namespace Prisma {
   export interface OptionalSide1Delegate {
     /**
      * Find zero or one OptionalSide1 that matches the filter.
-     * @param {FindOneOptionalSide1Args} args - Arguments to find a OptionalSide1
+     * @param {FindUniqueOptionalSide1Args} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
      * const optionalSide1 = await prisma.optionalSide1.findUnique({
@@ -4237,8 +4327,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneOptionalSide1Args>(
-      args: Subset<T, FindOneOptionalSide1Args>
+    findUnique<T extends FindUniqueOptionalSide1Args>(
+      args: Subset<T, FindUniqueOptionalSide1Args>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -4373,6 +4463,21 @@ export namespace Prisma {
       args: Subset<T, OptionalSide1UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
     /**
+     * Find zero or one OptionalSide1 that matches the filter.
+     * @param {FindUniqueOptionalSide1Args} args - Arguments to find a OptionalSide1
+     * @deprecated This will be deprecated please use prisma.optionalSide1.findUnique
+     * @example
+     * // Get one OptionalSide1
+     * const optionalSide1 = await prisma.optionalSide1.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueOptionalSide1Args>(
+      args: Subset<T, FindUniqueOptionalSide1Args>
+    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
@@ -4435,7 +4540,7 @@ export namespace Prisma {
   /**
    * OptionalSide1 findUnique
    */
-  export type FindOneOptionalSide1Args = {
+  export type FindUniqueOptionalSide1Args = {
     /**
      * Select specific fields to fetch from the OptionalSide1
     **/
@@ -4783,7 +4888,7 @@ export namespace Prisma {
   export interface OptionalSide2Delegate {
     /**
      * Find zero or one OptionalSide2 that matches the filter.
-     * @param {FindOneOptionalSide2Args} args - Arguments to find a OptionalSide2
+     * @param {FindUniqueOptionalSide2Args} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
      * const optionalSide2 = await prisma.optionalSide2.findUnique({
@@ -4792,8 +4897,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneOptionalSide2Args>(
-      args: Subset<T, FindOneOptionalSide2Args>
+    findUnique<T extends FindUniqueOptionalSide2Args>(
+      args: Subset<T, FindUniqueOptionalSide2Args>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -4928,6 +5033,21 @@ export namespace Prisma {
       args: Subset<T, OptionalSide2UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
     /**
+     * Find zero or one OptionalSide2 that matches the filter.
+     * @param {FindUniqueOptionalSide2Args} args - Arguments to find a OptionalSide2
+     * @deprecated This will be deprecated please use prisma.optionalSide2.findUnique
+     * @example
+     * // Get one OptionalSide2
+     * const optionalSide2 = await prisma.optionalSide2.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueOptionalSide2Args>(
+      args: Subset<T, FindUniqueOptionalSide2Args>
+    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
@@ -4990,7 +5110,7 @@ export namespace Prisma {
   /**
    * OptionalSide2 findUnique
    */
-  export type FindOneOptionalSide2Args = {
+  export type FindUniqueOptionalSide2Args = {
     /**
      * Select specific fields to fetch from the OptionalSide2
     **/
@@ -5359,7 +5479,7 @@ export namespace Prisma {
   export interface ADelegate {
     /**
      * Find zero or one A that matches the filter.
-     * @param {FindOneAArgs} args - Arguments to find a A
+     * @param {FindUniqueAArgs} args - Arguments to find a A
      * @example
      * // Get one A
      * const a = await prisma.a.findUnique({
@@ -5368,8 +5488,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneAArgs>(
-      args: Subset<T, FindOneAArgs>
+    findUnique<T extends FindUniqueAArgs>(
+      args: Subset<T, FindUniqueAArgs>
     ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
     /**
      * Find the first A that matches the filter.
@@ -5504,6 +5624,21 @@ export namespace Prisma {
       args: Subset<T, AUpsertArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
     /**
+     * Find zero or one A that matches the filter.
+     * @param {FindUniqueAArgs} args - Arguments to find a A
+     * @deprecated This will be deprecated please use prisma.a.findUnique
+     * @example
+     * // Get one A
+     * const a = await prisma.a.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueAArgs>(
+      args: Subset<T, FindUniqueAArgs>
+    ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
@@ -5565,7 +5700,7 @@ export namespace Prisma {
   /**
    * A findUnique
    */
-  export type FindOneAArgs = {
+  export type FindUniqueAArgs = {
     /**
      * Select specific fields to fetch from the A
     **/
@@ -5855,7 +5990,7 @@ export namespace Prisma {
   export interface BDelegate {
     /**
      * Find zero or one B that matches the filter.
-     * @param {FindOneBArgs} args - Arguments to find a B
+     * @param {FindUniqueBArgs} args - Arguments to find a B
      * @example
      * // Get one B
      * const b = await prisma.b.findUnique({
@@ -5864,8 +5999,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneBArgs>(
-      args: Subset<T, FindOneBArgs>
+    findUnique<T extends FindUniqueBArgs>(
+      args: Subset<T, FindUniqueBArgs>
     ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
     /**
      * Find the first B that matches the filter.
@@ -6000,6 +6135,21 @@ export namespace Prisma {
       args: Subset<T, BUpsertArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
     /**
+     * Find zero or one B that matches the filter.
+     * @param {FindUniqueBArgs} args - Arguments to find a B
+     * @deprecated This will be deprecated please use prisma.b.findUnique
+     * @example
+     * // Get one B
+     * const b = await prisma.b.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueBArgs>(
+      args: Subset<T, FindUniqueBArgs>
+    ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
@@ -6061,7 +6211,7 @@ export namespace Prisma {
   /**
    * B findUnique
    */
-  export type FindOneBArgs = {
+  export type FindUniqueBArgs = {
     /**
      * Select specific fields to fetch from the B
     **/
@@ -6288,7 +6438,7 @@ export namespace Prisma {
   export interface CDelegate {
     /**
      * Find zero or one C that matches the filter.
-     * @param {FindOneCArgs} args - Arguments to find a C
+     * @param {FindUniqueCArgs} args - Arguments to find a C
      * @example
      * // Get one C
      * const c = await prisma.c.findUnique({
@@ -6297,8 +6447,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneCArgs>(
-      args: Subset<T, FindOneCArgs>
+    findUnique<T extends FindUniqueCArgs>(
+      args: Subset<T, FindUniqueCArgs>
     ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
     /**
      * Find the first C that matches the filter.
@@ -6433,6 +6583,21 @@ export namespace Prisma {
       args: Subset<T, CUpsertArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
     /**
+     * Find zero or one C that matches the filter.
+     * @param {FindUniqueCArgs} args - Arguments to find a C
+     * @deprecated This will be deprecated please use prisma.c.findUnique
+     * @example
+     * // Get one C
+     * const c = await prisma.c.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueCArgs>(
+      args: Subset<T, FindUniqueCArgs>
+    ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
@@ -6494,7 +6659,7 @@ export namespace Prisma {
   /**
    * C findUnique
    */
-  export type FindOneCArgs = {
+  export type FindUniqueCArgs = {
     /**
      * Select specific fields to fetch from the C
     **/
@@ -6720,7 +6885,7 @@ export namespace Prisma {
   export interface DDelegate {
     /**
      * Find zero or one D that matches the filter.
-     * @param {FindOneDArgs} args - Arguments to find a D
+     * @param {FindUniqueDArgs} args - Arguments to find a D
      * @example
      * // Get one D
      * const d = await prisma.d.findUnique({
@@ -6729,8 +6894,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneDArgs>(
-      args: Subset<T, FindOneDArgs>
+    findUnique<T extends FindUniqueDArgs>(
+      args: Subset<T, FindUniqueDArgs>
     ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
     /**
      * Find the first D that matches the filter.
@@ -6865,6 +7030,21 @@ export namespace Prisma {
       args: Subset<T, DUpsertArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
     /**
+     * Find zero or one D that matches the filter.
+     * @param {FindUniqueDArgs} args - Arguments to find a D
+     * @deprecated This will be deprecated please use prisma.d.findUnique
+     * @example
+     * // Get one D
+     * const d = await prisma.d.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueDArgs>(
+      args: Subset<T, FindUniqueDArgs>
+    ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
@@ -6926,7 +7106,7 @@ export namespace Prisma {
   /**
    * D findUnique
    */
-  export type FindOneDArgs = {
+  export type FindUniqueDArgs = {
     /**
      * Select specific fields to fetch from the D
     **/
@@ -7150,7 +7330,7 @@ export namespace Prisma {
   export interface EDelegate {
     /**
      * Find zero or one E that matches the filter.
-     * @param {FindOneEArgs} args - Arguments to find a E
+     * @param {FindUniqueEArgs} args - Arguments to find a E
      * @example
      * // Get one E
      * const e = await prisma.e.findUnique({
@@ -7159,8 +7339,8 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends FindOneEArgs>(
-      args: Subset<T, FindOneEArgs>
+    findUnique<T extends FindUniqueEArgs>(
+      args: Subset<T, FindUniqueEArgs>
     ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
     /**
      * Find the first E that matches the filter.
@@ -7295,6 +7475,21 @@ export namespace Prisma {
       args: Subset<T, EUpsertArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
     /**
+     * Find zero or one E that matches the filter.
+     * @param {FindUniqueEArgs} args - Arguments to find a E
+     * @deprecated This will be deprecated please use prisma.e.findUnique
+     * @example
+     * // Get one E
+     * const e = await prisma.e.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueEArgs>(
+      args: Subset<T, FindUniqueEArgs>
+    ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
+    /**
      * Count
      */
     count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
@@ -7356,7 +7551,7 @@ export namespace Prisma {
   /**
    * E findUnique
    */
-  export type FindOneEArgs = {
+  export type FindUniqueEArgs = {
     /**
      * Select specific fields to fetch from the E
     **/
