@@ -3,6 +3,7 @@ import Debug from '@prisma/debug'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
 import { enginesVersion } from '@prisma/engines-version'
+import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
@@ -42,4 +43,5 @@ generatorHandler({
   },
 })
 
-export { getDMMF }
+
+export { getDMMF, externalToInternalDmmf }
