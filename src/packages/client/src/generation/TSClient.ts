@@ -215,7 +215,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
 
-export type Enumerable<T> = T | Array<T>;
+export type Enumerable<T> = T | ReadonlyArray<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K
@@ -1619,7 +1619,7 @@ export class InputType implements Generatable {
     const { type } = this
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
-    const body = `{
+    const body = `Readonly<{
 ${indent(
       fields
         .map((arg) =>
@@ -1628,7 +1628,7 @@ ${indent(
         .join('\n'),
       tab,
     )}
-}`
+}>`
     return `
 export type ${type.name} = ${body}`
   }
