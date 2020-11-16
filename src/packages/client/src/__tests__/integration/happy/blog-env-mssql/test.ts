@@ -51,10 +51,6 @@ describe('blog-env-mssql', () => {
     expect(prismaVersion.client).not.toBeUndefined()
   })
 
-  test('does not leak connection strings in node_modules', () => {
-    expect(prisma.internalDatasources).toBeUndefined()
-  })
-
   test('invokes beforeRequest hook', async () => {
     await prisma.user.findMany()
     expect(requests).toHaveLength(1)
