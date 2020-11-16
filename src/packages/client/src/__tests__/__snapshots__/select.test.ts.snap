@@ -423,7 +423,7 @@ Note: Lines with + are required, lines with ? are optional.
 
 exports[`select validation reject all undefined where for findUnique 1`] = `
 query {
-  findUniquePost(where: {
+  findOnePost(where: {
 
   }) {
     author {
@@ -435,7 +435,7 @@ query {
 
 exports[`select validation reject all undefined where for findUnique 2`] = `
 
-Invalid \`prisma.findUniquePost()\` invocation:
+Invalid \`prisma.findOnePost()\` invocation:
 
 {
   select: {
@@ -458,7 +458,7 @@ Note: Lines with ? are optional.
 
 exports[`select validation reject empty where for findUnique 1`] = `
 query {
-  findUniquePost(where: {
+  findOnePost(where: {
 
   }) {
     author {
@@ -470,7 +470,7 @@ query {
 
 exports[`select validation reject empty where for findUnique 2`] = `
 
-Invalid \`prisma.findUniquePost()\` invocation:
+Invalid \`prisma.findOnePost()\` invocation:
 
 {
   select: {

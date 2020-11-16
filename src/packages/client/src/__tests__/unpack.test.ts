@@ -13,7 +13,7 @@ beforeAll(async () => {
 })
 
 describe('getField', () => {
-  test('blog findUniqueUser', async () => {
+  test('blog findOneUser', async () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -23,37 +23,37 @@ describe('getField', () => {
         },
       },
       rootTypeName: 'query',
-      rootField: 'findUniqueUser',
+      rootField: 'findOneUser',
     })
 
-    expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(
-      `findUniqueUser`,
+    expect(getField(document, ['findOneUser']).name).toMatchInlineSnapshot(
+      `findOneUser`,
     )
     expect(
-      getField(document, ['findUniqueUser', 'id']).name,
+      getField(document, ['findOneUser', 'id']).name,
     ).toMatchInlineSnapshot(`id`)
     expect(
-      getField(document, ['findUniqueUser', 'posts']).name,
+      getField(document, ['findOneUser', 'posts']).name,
     ).toMatchInlineSnapshot(`posts`)
     expect(
-      getField(document, ['findUniqueUser', 'posts', 'title']).name,
+      getField(document, ['findOneUser', 'posts', 'title']).name,
     ).toMatchInlineSnapshot(`title`)
   })
 })
 
 describe('unpack', () => {
-  test('findUniquePost', async () => {
+  test('findOnePost', async () => {
     const document = makeDocument({
       dmmf,
       select: {},
       rootTypeName: 'query',
-      rootField: 'findUniquePost',
+      rootField: 'findOnePost',
     })
 
-    const path = ['findUniquePost']
+    const path = ['findOnePost']
 
     const data = {
-      findUniquePost: {
+      findOnePost: {
         id: 'some-id',
         createdAt: '2019-10-17T09:56:37.690Z',
         updatedAt: '2019-10-17T09:56:37.690Z',
@@ -155,7 +155,7 @@ describe('unpack', () => {
     `)
   })
 
-  test('findUniqueUser', async () => {
+  test('findOneUser', async () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -164,13 +164,13 @@ describe('unpack', () => {
         },
       },
       rootTypeName: 'query',
-      rootField: 'findUniqueUser',
+      rootField: 'findOneUser',
     })
 
-    const path = ['findUniqueUser']
+    const path = ['findOneUser']
 
     const data = {
-      findUniqueUser: {
+      findOneUser: {
         id: 'some-id',
         email: 'a@a.com',
         json: '{"hello": "world"}',
