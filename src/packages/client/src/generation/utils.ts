@@ -87,7 +87,7 @@ export function getArgName(name: string, isList: boolean): string {
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(
   modelName: string,
-  action?: DMMF.ModelAction,
+  action?: DMMF.ModelAction | 'findOne',
 ): string {
   if (!action) {
     return `${modelName}Args`
@@ -95,8 +95,10 @@ export function getModelArgName(
   switch (action) {
     case DMMF.ModelAction.findMany:
       return `FindMany${modelName}Args`
-    case DMMF.ModelAction.findOne:
-      return `FindOne${modelName}Args`
+    case DMMF.ModelAction.findUnique:
+      return `FindUnique${modelName}Args`
+    case 'findOne':
+      return `FindUnique${modelName}Args`
     case DMMF.ModelAction.findFirst:
       return `FindFirst${modelName}Args`
     case DMMF.ModelAction.upsert:
@@ -131,7 +133,7 @@ export function getDefaultArgName(
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne
+    action === DMMF.ModelAction.findUnique || 'findOne'
   ) {
     return 'query'
   }
@@ -183,7 +185,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: DMMF.ModelAction
+  actionName: DMMF.ModelAction | 'findOne'
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
@@ -223,20 +225,20 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
-    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findUnique' || actionName === 'findOne'|| actionName === 'findFirst') ? ' | null' : ''
+    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findUnique' || actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
     }>>`
 }
 
 export function isQueryAction(
-  action: DMMF.ModelAction,
+  action: DMMF.ModelAction | 'findOne',
   operation: 'query' | 'mutation',
 ): boolean {
   if (!(action in DMMF.ModelAction)) {
     return false
   }
   const result =
-    action === DMMF.ModelAction.findOne || action === DMMF.ModelAction.findMany
+    action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findMany || action === 'findOne'
   return operation === 'query' ? result : !result
 }
 

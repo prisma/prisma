@@ -113,77 +113,18 @@ describe('generator', () => {
         11 |   id Int @id
         12 | }
            | 
-        error: Error validating model "dmmf": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:14
            | 
         13 | 
-        14 | model dmmf {
+        14 | model return {
         15 |   id Int @id
         16 | }
            | 
-        error: Error validating model "OnlyOne": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:18
-           | 
-        17 | 
-        18 | model OnlyOne {
-        19 |   id Int @id
-        20 | }
-           | 
-        error: Error validating model "delete": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:22
-           | 
-        21 | 
-        22 | model delete {
-        23 |   id Int @id
-        24 | }
-           | 
 
-        Validation Error Count: 4
+        Validation Error Count: 2
       `)
     }
-  })
-
-  test('denylist dynamic from client', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
-    // Make sure, that nothing is cached.
-    try {
-      await del(prismaClientTarget)
-    } catch (e) {
-      //
-    }
-    await getPackedPackage('@prisma/client', prismaClientTarget)
-
-    if (!fs.existsSync(prismaClientTarget)) {
-      throw new Error(`Prisma Client didn't get packed properly 🤔`)
-    }
-
-    const generator = await getGenerator({
-      schemaPath: path.join(__dirname, 'dynamic-denylist.prisma'),
-      baseDir: __dirname,
-      printDownloadProgress: false,
-      skipDownload: true,
-    })
-
-    // Test dynamic denylist errors
-    let dynamicReservedWordError
-    try {
-      await generator.generate()
-    } catch (e) {
-      dynamicReservedWordError = e
-    } finally {
-      expect(
-        stripAnsi(dynamicReservedWordError.message).split('generation/')[1],
-      ).toMatchInlineSnapshot(`
-        dynamic-denylist.prisma" contains reserved keywords.
-               Rename the following items:
-                 - "model UserArgs"
-        To learn more about how to rename models, check out https://pris.ly/d/naming-models
-      `)
-    }
-    generator.stop()
   })
 
   test('schema path does not exist', async () => {

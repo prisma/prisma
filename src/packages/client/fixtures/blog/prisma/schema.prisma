@@ -17,6 +17,7 @@ model User {
   likes      Like[]
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String
+  json       Json?
 }
 
 model Property {

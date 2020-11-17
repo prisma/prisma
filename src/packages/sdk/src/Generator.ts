@@ -9,8 +9,8 @@ export class Generator {
   private generatorProcess: GeneratorProcess
   public manifest: GeneratorManifest | null = null
   public options?: GeneratorOptions
-  constructor(private executablePath: string) {
-    this.generatorProcess = new GeneratorProcess(this.executablePath)
+  constructor(executablePath: string, isNode?: boolean) {
+    this.generatorProcess = new GeneratorProcess(executablePath, isNode)
   }
   async init(): Promise<void> {
     await this.generatorProcess.init()

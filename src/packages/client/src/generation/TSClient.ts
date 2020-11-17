@@ -10,11 +10,11 @@ import {
   GraphQLScalarToJSTypeTable,
   lowerCase,
   JSOutputTypeToInputType,
+  needsNamespace,
 } from '../runtime/utils/common'
 import { InternalDatasource } from '../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './extractSqliteSources'
 import {
-  flatMap,
   getFieldArgName,
   getIncludeName,
   getModelArgName,
@@ -75,8 +75,6 @@ const {
   getPrismaClient,
   debugLib,
   sqltag,
-  sql,
-  Sql,
   empty,
   join,
   raw,
@@ -86,74 +84,76 @@ const {
 const path = require('path')
 const debug = debugLib('prisma-client')
 
+const Prisma = {}
+
+exports.Prisma = Prisma
+
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
  */
-exports.prismaVersion = {
+Prisma.prismaVersion = {
   client: "${clientVersion}",
   engine: "${engineVersion}"
 }
 
-exports.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
-exports.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
-exports.PrismaClientRustPanicError = PrismaClientRustPanicError;
-exports.PrismaClientInitializationError = PrismaClientInitializationError;
-exports.PrismaClientValidationError = PrismaClientValidationError;
-exports.Decimal = Decimal
+Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
+Prisma.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
+Prisma.PrismaClientRustPanicError = PrismaClientRustPanicError;
+Prisma.PrismaClientInitializationError = PrismaClientInitializationError;
+Prisma.PrismaClientValidationError = PrismaClientValidationError;
+Prisma.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
  */
 
-exports.sql = sqltag
-exports.empty = empty
-exports.join = join
-exports.raw = raw
+Prisma.sql = sqltag
+Prisma.empty = empty
+Prisma.join = join
+Prisma.raw = raw
 `
 
 const commonCodeTS = ({
   runtimePath,
   clientVersion,
   engineVersion,
-}: CommonCodeParams): string => `import {
-  DMMF,
-  DMMFClass,
-  Engine,
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientInitializationError,
-  PrismaClientValidationError,
-  sqltag as sql,
-  empty,
-  join,
-  raw,
-  Sql,
-  Decimal,
-} from '${runtimePath}';
+}: CommonCodeParams): { ts: string, tsWithoutNamespace: string } => ({
+  tsWithoutNamespace: `import * as runtime from '${runtimePath}';`,
+  ts: `export import DMMF = runtime.DMMF
 
-export { PrismaClientKnownRequestError }
-export { PrismaClientUnknownRequestError }
-export { PrismaClientRustPanicError }
-export { PrismaClientInitializationError }
-export { PrismaClientValidationError }
-export { Decimal }
+/**
+ * Prisma Errors
+ */
+export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export type PrismaClientValidationError = runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
  */
-export { sql, empty, join, raw, Sql }
+export import sql = runtime.sqltag
+export import empty = runtime.empty
+export import join = runtime.join
+export import raw = runtime.raw
+export import Sql = runtime.Sql
+
+/**
+ * Decimal.js
+ */
+export import Decimal = runtime.Decimal
 
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
  */
-export declare type PrismaVersion = {
+export type PrismaVersion = {
   client: string
 }
 
-export declare const prismaVersion: PrismaVersion 
+export const prismaVersion: PrismaVersion 
 
 /**
  * Utility Types
@@ -164,43 +164,39 @@ export declare const prismaVersion: PrismaVersion
  * Matches a JSON object.
  * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. 
  */
-export declare type JsonObject = {[Key in string]?: JsonValue}
+export type JsonObject = {[Key in string]?: JsonValue}
  
 /**
  * From https://github.com/sindresorhus/type-fest/
  * Matches a JSON array.
  */
-export declare interface JsonArray extends Array<JsonValue> {}
+export interface JsonArray extends Array<JsonValue> {}
  
 /**
  * From https://github.com/sindresorhus/type-fest/
  * Matches any valid JSON value.
  */
-export declare type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
 
 /**
  * Same as JsonObject, but allows undefined
  */
-export declare type InputJsonObject = {[Key in string]?: JsonValue}
+export type InputJsonObject = {[Key in string]?: JsonValue}
  
-export declare interface InputJsonArray extends Array<JsonValue> {}
+export interface InputJsonArray extends Array<JsonValue> {}
  
-export declare type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
-
-declare type SelectAndInclude = {
+export type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
+ type SelectAndInclude = {
   select: any
   include: any
 }
-
-declare type HasSelect = {
+type HasSelect = {
   select: any
 }
-
-declare type HasInclude = {
+type HasInclude = {
   include: any
 }
-
-declare type CheckSelect<T, S, U> = T extends SelectAndInclude
+type CheckSelect<T, S, U> = T extends SelectAndInclude
   ? 'Please either choose \`select\` or \`include\`'
   : T extends HasSelect
   ? U
@@ -211,42 +207,43 @@ declare type CheckSelect<T, S, U> = T extends SelectAndInclude
 /**
  * Get the type of the value, that the Promise holds.
  */
-export declare type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? U : T;
+export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? U : T;
 
 /**
  * Get the return type of a function which returns a Promise.
  */
-export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
 
-export declare type Enumerable<T> = T | Array<T>;
+export type Enumerable<T> = T | ReadonlyArray<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K
 }[keyof T]
 
-export declare type TruthyKeys<T> = {
+export type TruthyKeys<T> = {
   [key in keyof T]: T[key] extends false | undefined | null ? never : key
 }[keyof T]
 
-export declare type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
+export type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
 
 /**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
  */
-export declare type Subset<T, U> = {
+export type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
 
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+
 /**
  * XOR is needed to have a real mutually exclusive union type
  * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
  */
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-declare class PrismaClientFetcher {
+class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
   private readonly hooks?;
@@ -255,7 +252,7 @@ declare class PrismaClientFetcher {
   sanitizeMessage(message: string): string;
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
 }
-`
+`})
 
 interface TSClientOptions {
   clientVersion: string
@@ -274,6 +271,7 @@ interface TSClientOptions {
 interface Generatable {
   toJS?(): string
   toTS(): string
+  toTSWithoutNamespace?(): string
 }
 
 export class TSClient implements Generatable {
@@ -305,6 +303,7 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
+      datasourceNames: this.options.datasources.map(d => d.name)
     }
 
     return `${commonCodeJS(this.options)}
@@ -333,12 +332,13 @@ path.join(__dirname, 'schema.prisma');
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${new Enum({
-  name: 'ModelName',
-  values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-}).toJS()}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
-${this.dmmf.schema.enums.map((type) => new Enum(type).toJS()).join('\n\n')}
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }, true).toJS()}
 
 
 /**
@@ -349,7 +349,7 @@ const dmmfString = ${JSON.stringify(this.dmmfString)}
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
 const dmmf = JSON.parse(dmmfString)
-exports.dmmf = JSON.parse(dmmfString)
+exports.Prisma.dmmf = JSON.parse(dmmfString)
 
 /**
  * Create the Client
@@ -373,16 +373,7 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient`
   }
   public toTS(): string {
-    return `${commonCodeTS(this.options)}
-
-/**
- * Client
-**/
-
-export declare type Datasource = {
-  url?: string
-}
-${new PrismaClientClass(
+    const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
@@ -390,9 +381,54 @@ ${new PrismaClientClass(
       this.options.generator,
       this.options.sqliteDatasourceOverrides,
       this.options.schemaDir,
-    ).toTS()}
+    )
+    const commonCode = commonCodeTS(this.options)
+    const models = Object.values(this.dmmf.modelMap)
+      .map((model) => new Model(model, this.dmmf, this.options.generator!))
 
-${/*new Query(this.dmmf, 'query')*/ ''}
+    // TODO: Make this code more efficient and directly return 2 arrays
+
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map(type => new Enum(type, true).toTS())
+
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map(type => new Enum(type, false).toTS())
+
+    return `
+/**
+ * Client
+**/
+
+${commonCode.tsWithoutNamespace}
+
+${models.map(m => m.toTSWithoutNamespace()).join('\n')}
+${modelEnums && modelEnums.length > 0 ? (
+        `
+/**
+ * Enums
+ */
+
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+
+${modelEnums.join('\n\n')}
+`
+      ) : ''}
+${prismaClientClass.toTSWithoutNamespace()}
+
+export namespace Prisma {
+${indent(`${commonCode.ts}
+${new Enum({
+        name: 'ModelName',
+        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+      }, true).toTS()}
+
+${prismaClientClass.toTS()}
+export type Datasource = {
+  url?: string
+}
+
+${models
+          .map((model) => model.toTS())
+          .join('\n')}
 
 /**
  * Enums
@@ -401,24 +437,18 @@ ${/*new Query(this.dmmf, 'query')*/ ''}
 // Based on
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-${new Enum({
-  name: 'ModelName',
-  values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-}).toTS()}
-
-${this.dmmf.schema.enums.map((type) => new Enum(type).toTS()).join('\n\n')}
-
-${Object.values(this.dmmf.modelMap)
-        .map((model) => new Model(model, this.dmmf, this.options.generator!).toTS())
-        .join('\n')}
+${prismaEnums.join('\n\n')}
 
 /**
  * Deep Input Types
  */
 
-${this.dmmf.inputTypes
-        .map((inputType) => new InputType(inputType).toTS())
-        .join('\n')}
+${this.dmmf.inputObjectTypes.prisma
+          .map((inputType) => new InputType(inputType).toTS())
+          .join('\n')}
+
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType).toTS())
+          .join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany
@@ -431,9 +461,8 @@ export type BatchPayload = {
 /**
  * DMMF
  */
-export declare const dmmf: DMMF.Document;
-export {};
-`
+export const dmmf: runtime.DMMF.Document;
+`, 2)}}`
   }
 }
 
@@ -478,11 +507,126 @@ class PrismaClientClass implements Generatable {
  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */`
   }
+  public toTSWithoutNamespace(): string {
+    const { dmmf } = this
+    return `${this.jsDoc}
+export class PrismaClient<
+  T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+  U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never
+      > {
+      /**
+       * @private
+       */
+      private fetcher;
+      /**
+       * @private
+       */
+      private readonly dmmf;
+      /**
+       * @private
+       */
+      private connectionPromise?;
+      /**
+       * @private
+       */
+      private disconnectionPromise?;
+      /**
+       * @private
+       */
+      private readonly engineConfig;
+      /**
+       * @private
+       */
+      private readonly measurePerformance;
+
+  ${indent(this.jsDoc, tab)}
+
+  constructor(optionsArg ?: T);
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+
+  /**
+   * Connect with the database
+   */
+  $connect(): Promise<void>;
+
+  /**
+   * Disconnect from the database
+   */
+  $disconnect(): Promise<any>;
+
+  /**
+   * Add a middleware
+   */
+  $use(cb: Prisma.Middleware): void
+
+  /**
+   * Executes a raw query and returns the number of affected rows
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
+   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * // Or
+   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+
+  /**
+   * Performs a raw query and returns the SELECT data
+   * @example
+   * \`\`\`
+   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
+   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * // Or
+   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+  * \`\`\`
+  * 
+  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+  */
+  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+
+  /**
+   * Execute queries in a transaction
+   * @example
+   * \`\`\`
+   * const [george, bob, alice] = await prisma.transaction([
+   *   prisma.user.create({ data: { name: 'George' } }),
+   *   prisma.user.create({ data: { name: 'Bob' } }),
+   *   prisma.user.create({ data: { name: 'Alice' } }),
+   * ])
+   * \`\`\`
+   */
+  $transaction: PromiseConstructor['all']
+
+    ${indent(
+      dmmf.mappings.modelOperations
+        .filter((m) => m.findMany)
+        .map((m) => {
+          const methodName = lowerCase(m.model)
+          return `\
+/**
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model
+            }** model.
+  * Example usage:
+  * \`\`\`ts
+  * // Fetch zero or more ${capitalize(m.plural)}
+  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
+  * \`\`\`
+  */
+get ${methodName}(): Prisma.${m.model}Delegate;`
+        })
+        .join('\n\n'),
+      2,
+    )
+      }
+}`
+  }
   public toTS(): string {
     const { dmmf } = this
 
-    return `
-${new Datasources(this.internalDatasources).toTS()}
+    return `${new Datasources(this.internalDatasources).toTS()}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -517,7 +661,7 @@ export interface PrismaClientOptions {
 }
 
 export type Hooks = {
-  beforeRequest?: (options: {query: string, path: string[], rootField?: string, typeName?: string, document: any}) => any
+  beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
 }
 
 /* Types for Logging */
@@ -549,7 +693,7 @@ export type LogEvent = {
 
 
 export type PrismaAction =
-  | 'findOne'
+  | 'findUnique'
   | 'findMany'
   | 'findFirst'
   | 'create'
@@ -562,12 +706,11 @@ export type PrismaAction =
   | 'queryRaw'
   | 'aggregate'
 
-
 /**
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  model?: ModelName
+  model?: string
   action: PrismaAction
   args: any
   dataPath: string[]
@@ -583,155 +726,7 @@ export type Middleware<T = any> = (
 ) => Promise<T>
 
 // tested in getLogLevel.test.ts
-export declare function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
-
-${this.jsDoc}
-export declare class PrismaClient<
-  T extends PrismaClientOptions = PrismaClientOptions,
-  U = 'log' extends keyof T ? T['log'] extends Array<LogLevel | LogDefinition> ? GetEvents<T['log']> : never : never
-> {
-  /**
-   * @private
-   */
-  private fetcher;
-  /**
-   * @private
-   */
-  private readonly dmmf;
-  /**
-   * @private
-   */
-  private connectionPromise?;
-  /**
-   * @private
-   */
-  private disconnectionPromise?;
-  /**
-   * @private
-   */
-  private readonly engineConfig;
-  /**
-   * @private
-   */
-  private readonly measurePerformance;
-  /**
-   * @private
-   */
-  private engine: Engine;
-  /**
-   * @private
-   */
-  private errorFormat: ErrorFormat;
-
-${indent(this.jsDoc, tab)}
-  constructor(optionsArg?: T);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
-  /**
-   * @deprecated renamed to \`$on\`
-   */
-  on<V extends U>(eventType: V, callback: (event: V extends 'query' ? QueryEvent : LogEvent) => void): void;
-  /**
-   * Connect with the database
-   */
-  $connect(): Promise<void>;
-  /**
-   * @deprecated renamed to \`$connect\`
-   */
-  connect(): Promise<void>;
-
-  /**
-   * Disconnect from the database
-   */
-  $disconnect(): Promise<any>;
-  /**
-   * @deprecated renamed to \`$disconnect\`
-   */
-  disconnect(): Promise<any>;
-
-  /**
-   * Add a middleware
-   */
-  $use(cb: Middleware): void
-
-  /**
-   * Executes a raw query and returns the number of affected rows
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.executeRaw\`\`, values will be escaped automatically
-   * const result = await prisma.executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * // Or
-   * const result = await prisma.executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $executeRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<number>;
-
-  /**
-   * @deprecated renamed to \`$executeRaw\`
-   */
-  executeRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<number>;
-
-  /**
-   * Performs a raw query and returns the SELECT data
-   * @example
-   * \`\`\`
-   * // With parameters use prisma.queryRaw\`\`, values will be escaped automatically
-   * const result = await prisma.queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * // Or
-   * const result = await prisma.queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
- 
-  /**
-   * @deprecated renamed to \`$queryRaw\`
-   */
-  queryRaw<T = any>(query: string | TemplateStringsArray | Sql, ...values: any[]): Promise<T>;
-${this.generator?.previewFeatures?.includes('transactionApi')
-        ? `
-  /**
-   * Execute queries in a transaction
-   * @example
-   * \`\`\`
-   * const [george, bob, alice] = await prisma.transaction([
-   *   prisma.user.create({ data: { name: 'George' } }),
-   *   prisma.user.create({ data: { name: 'Bob' } }),
-   *   prisma.user.create({ data: { name: 'Alice' } }),
-   * ])
-   * \`\`\`
-   */
-  $transaction: PromiseConstructor['all']
-  /**
-   * @deprecated renamed to \`$transaction\`
-   */
-  transaction: PromiseConstructor['all']
-`
-        : ''
-      }
-${indent(
-        dmmf.mappings.modelOperations
-          .filter((m) => m.findMany)
-          .map((m) => {
-            const methodName = lowerCase(m.model)
-            return `\
-/**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model
-              }** model.
-  * Example usage:
-  * \`\`\`ts
-  * // Fetch zero or more ${capitalize(m.plural)}
-  * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
-  * \`\`\`
-  */
-get ${methodName}(): ${m.model}Delegate;`
-          })
-          .join('\n\n'),
-        2,
-      )}
-}`
+export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined; `
   }
 }
 
@@ -751,15 +746,15 @@ class PayloadType implements Generatable {
 export type ${getPayloadName(name)}<
   S extends boolean | null | undefined | ${argsName},
   U = keyof S
-> = S extends true
-  ? ${name}
+    > = S extends true
+      ? ${name}
   : S extends undefined
   ? never
   : S extends ${argsName} | ${getModelArgName(name, DMMF.ModelAction.findMany)}
-  ? 'include' extends U
-    ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
+  ?'include' extends U
+  ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U
-    ? ${select}
+  ? ${select}
   : ${name}
 : ${name}
 `
@@ -767,18 +762,18 @@ export type ${getPayloadName(name)}<
   private renderRelations(projection: Projection): string {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter((f) => f.outputType.kind === 'object')
+    const relations = type.fields.filter((f) => f.outputType.location === 'outputObjectTypes')
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
     const selectPrefix =
       projection === Projection.select
-        ? `P extends keyof ${type.name} ? ${type.name}[P]
+        ? `P extends keyof ${type.name} ?${type.name} [P]
 : `
         : ''
     return `{
-      [P in TrueKeys<S['${projection}']>]:${selectPrefix}
-${indent(
+  [P in TrueKeys<S['${projection}']>]: ${selectPrefix}
+  ${indent(
       relations
         .map(
           (f) => `P extends '${f.name}'
@@ -791,8 +786,9 @@ ${indent(
         )
         .join('\n'),
       6,
-    )} never
-    }`
+    )
+      } never
+} `
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
@@ -800,7 +796,7 @@ ${indent(
       return str
     }
     if (outputType.isList) {
-      return `Array<${str}>`
+      return `Array < ${str}> `
     }
     if (str === 'Null') {
       return 'null'
@@ -821,7 +817,7 @@ export class Model implements Generatable {
     protected readonly generator?: GeneratorConfig,
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
-    this.outputType = new OutputType(outputType)
+    this.outputType = new OutputType(dmmf, outputType)
     this.mapping = dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
@@ -915,7 +911,7 @@ ${aggregateTypes.length > 1
                 inputTypes: [
                   {
                     isList: false,
-                    kind: 'scalar',
+                    location: 'scalar',
                     type: 'true',
                   },
                 ],
@@ -966,6 +962,23 @@ ${aggregateTypes.length > 1
     
     `
   }
+  public toTSWithoutNamespace(): string {
+    const { model } = this
+    return `/**
+ * Model ${model.name}
+ */
+
+export type ${model.name} = {
+${indent(
+      model.fields
+        .filter((f) => f.kind !== 'object')
+        .map((field) => new OutputField(this.dmmf, field, true).toTS())
+        .join('\n'),
+      tab,
+    )}
+}
+`
+  }
   public toTS(): string {
     const { model, outputType } = this
 
@@ -979,11 +992,11 @@ ${aggregateTypes.length > 1
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
         outputType.fields
-          .filter((f) => f.outputType.kind === 'object')
+          .filter((f) => f.outputType.location === 'outputObjectTypes')
           .map(
             (f) =>
               `${f.name}?: boolean` +
-              (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+              (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
           )
           .join('\n'),
         tab,
@@ -996,16 +1009,6 @@ ${indent(
  * Model ${model.name}
  */
 
-export type ${model.name} = {
-${indent(
-      model.fields
-        .filter((f) => f.kind !== 'object')
-        .map((field) => new OutputField(field).toTS())
-        .join('\n'),
-      tab,
-    )}
-}
-
 ${this.getAggregationTypes()}
 
 export type ${getSelectName(model.name)} = {
@@ -1014,7 +1017,7 @@ ${indent(
         .map(
           (f) =>
             `${f.name}?: boolean` +
-            (f.outputType.kind === 'object' ? ` | ${getFieldArgName(f)}` : ''),
+            (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
         )
         .join('\n'),
       tab,
@@ -1032,7 +1035,7 @@ ${this.argsTypes.map(TS).join('\n')}
 }
 
 function getMethodJSDocBody(
-  action: DMMF.ModelAction,
+  action: DMMF.ModelAction | 'findOne',
   mapping: DMMF.ModelMapping,
   model: DMMF.Model,
 ): string {
@@ -1106,12 +1109,27 @@ const ${mapping.plural} = await ${method}({ take: 10 })
 ${onlySelect}
 `
     }
-    case DMMF.ModelAction.findOne: {
+    case DMMF.ModelAction.findUnique: {
       return `Find zero or one ${singular} that matches the filter.
 @param {${getModelArgName(
         model.name,
         action,
       )}} args - Arguments to find a ${singular}
+@example
+// Get one ${singular}
+const ${lowerCase(mapping.model)} = await ${method}({
+  where: {
+    // ... provide filter here
+  }
+})`
+    }
+    case 'findOne': {
+      return `Find zero or one ${singular} that matches the filter.
+@param {${getModelArgName(
+        model.name,
+        action,
+      )}} args - Arguments to find a ${singular}
+@deprecated This will be deprecated please use ${`prisma.${lowerCase(mapping.model)}.findUnique`}
 @example
 // Get one ${singular}
 const ${lowerCase(mapping.model)} = await ${method}({
@@ -1219,6 +1237,9 @@ export class ModelDelegate implements Generatable {
       return ''
     }
     const model = this.dmmf.modelMap[name]
+    
+    // TODO: handle findUnique
+    mapping["findOne"] = mapping['findUnique']
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
@@ -1265,7 +1286,7 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
  * Because we want to prevent naming conflicts as mentioned in 
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export declare class Prisma__${name}Client<T> implements Promise<T> {
+export class Prisma__${name}Client<T> implements Promise<T> {
   private readonly _dmmf;
   private readonly _fetcher;
   private readonly _queryType;
@@ -1278,11 +1299,11 @@ export declare class Prisma__${name}Client<T> implements Promise<T> {
   private _isList;
   private _callsite;
   private _requestPromise?;
-  constructor(_dmmf: DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
       fields
-        .filter((f) => f.outputType.kind === 'object')
+        .filter((f) => f.outputType.location === 'outputObjectTypes')
         .map((f) => {
           const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
           return `
@@ -1292,7 +1313,7 @@ ${f.name}<T extends ${getFieldArgName(
             name: fieldTypeName,
             actionName: f.outputType.isList
               ? DMMF.ModelAction.findMany
-              : DMMF.ModelAction.findOne,
+              : DMMF.ModelAction.findUnique,
             hideCondition: false,
             isField: true,
             renderPromise: true,
@@ -1380,9 +1401,13 @@ export class InputField implements Generatable {
 }
 
 export class OutputField implements Generatable {
-  constructor(protected readonly field: BaseField) { }
+  constructor(
+    protected readonly dmmf: DMMFClass,
+    protected readonly field: BaseField,
+    protected readonly useNamespace = false
+  ) { }
   public toTS(): string {
-    const { field } = this
+    const { field, useNamespace } = this
     // ENUMTODO
     let fieldType =
       typeof field.type === 'string'
@@ -1393,7 +1418,8 @@ export class OutputField implements Generatable {
     }
     const arrayStr = field.isList ? `[]` : ''
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
-    return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
+    const namespaceStr = useNamespace && needsNamespace(field, this.dmmf) ? `Prisma.` : ''
+    return `${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
   }
 }
 
@@ -1442,7 +1468,10 @@ ${indent(
 export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(protected readonly type: DMMF.OutputType) {
+  constructor(
+    protected readonly dmmf: DMMFClass,
+    protected readonly type: DMMF.OutputType
+  ) {
     this.name = type.name
     this.fields = type.fields
   }
@@ -1452,7 +1481,7 @@ export class OutputType implements Generatable {
 export type ${type.name} = {
 ${indent(
       type.fields
-        .map((field) => new OutputField({ ...field, ...field.outputType }).toTS())
+        .map((field) => new OutputField(this.dmmf, { ...field, ...field.outputType }).toTS())
         .join('\n'),
       tab,
     )}
@@ -1484,6 +1513,9 @@ ${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 /* eslint-disable @typescript-eslint/no-unused-vars */
 const topLevelArgsJsDocs = {
   findOne: {
+    where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
+  },
+  findUnique: {
     where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
   },
   findFirst: {
@@ -1550,12 +1582,12 @@ export class ArgsType implements Generatable {
         inputTypes: [
           {
             type: getSelectName(name),
-            kind: 'object',
+            location: 'inputObjectTypes',
             isList: false,
           },
           {
             type: 'null',
-            kind: 'scalar',
+            location: 'scalar',
             isList: false
           }
         ],
@@ -1573,12 +1605,12 @@ export class ArgsType implements Generatable {
         inputTypes: [
           {
             type: getIncludeName(name),
-            kind: 'object',
+            location: 'inputObjectTypes',
             isList: false,
           },
           {
             type: 'null',
-            kind: 'scalar',
+            location: 'scalar',
             isList: false
           }
         ],
@@ -1608,7 +1640,7 @@ export class InputType implements Generatable {
     const { type } = this
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
-    const body = `{
+    const body = `Readonly<{
 ${indent(
       fields
         .map((arg) =>
@@ -1617,28 +1649,28 @@ ${indent(
         .join('\n'),
       tab,
     )}
-}`
+}>`
     return `
 export type ${type.name} = ${body}`
   }
 }
 
 export class Enum implements Generatable {
-  constructor(protected readonly type: DMMF.SchemaEnum) { }
+  constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) { }
   public toJS(): string {
     const { type } = this
-    return `exports.${type.name} = makeEnum({
+    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = makeEnum({
 ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 });`
   }
   public toTS(): string {
     const { type } = this
 
-    return `export declare const ${type.name}: {
+    return `export const ${type.name}: {
 ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
 };
 
-export declare type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name
+export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name
       }]\n`
   }
 }

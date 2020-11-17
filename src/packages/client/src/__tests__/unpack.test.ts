@@ -1,7 +1,7 @@
 import { blog } from '../fixtures/blog'
-import { DMMFClass } from '../runtime'
-import { makeDocument, getField, unpack } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass } from '../runtime'
+import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf
 

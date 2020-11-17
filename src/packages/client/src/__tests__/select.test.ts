@@ -1,8 +1,8 @@
 import stripAnsi from 'strip-ansi'
 import { blog } from '../fixtures/blog'
+import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
-import { getDMMF } from '../generation/getDMMF'
 
 let dmmf
 beforeAll(async () => {
@@ -367,7 +367,7 @@ describe('select validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
-  test('reject empty where for findOne', () => {
+  test('reject empty where for findUnique', () => {
     const ast = {
       select: {
         author: {
@@ -394,7 +394,7 @@ describe('select validation', () => {
     }
   })
 
-  test('reject all undefined where for findOne', () => {
+  test('reject all undefined where for findUnique', () => {
     const ast = {
       select: {
         author: {

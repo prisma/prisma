@@ -3,7 +3,7 @@ import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
 
-describe('Blog fixture: MSSQL', () => {
+describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
   let requests: any[] = []
 
@@ -29,11 +29,6 @@ describe('Blog fixture: MSSQL', () => {
           beforeRequest: (r: any) => requests.push(r),
         },
       },
-      datasources: {
-        db: {
-          url: connectionString,
-        },
-      },
       log: [
         {
           emit: 'event',
@@ -48,7 +43,9 @@ describe('Blog fixture: MSSQL', () => {
   })
 
   test('includes version in generated client', () => {
-    const { prismaVersion } = require('./node_modules/@prisma/client')
+    const { Prisma } = require('./node_modules/@prisma/client')
+
+    const { prismaVersion } = Prisma
 
     expect(prismaVersion).not.toBeUndefined()
     expect(prismaVersion.client).not.toBeUndefined()
@@ -65,7 +62,9 @@ describe('Blog fixture: MSSQL', () => {
 
   test('can throw validation errors', async () => {
     const {
-      PrismaClientValidationError,
+      Prisma: {
+        PrismaClientValidationError,
+      }
     } = require('./node_modules/@prisma/client')
 
     try {

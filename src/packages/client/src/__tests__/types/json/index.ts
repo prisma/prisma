@@ -1,4 +1,4 @@
-import { PrismaClient, JsonValue } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 // tslint:disable
 
@@ -7,7 +7,7 @@ async function main() {
   const prisma = new PrismaClient()
 
   const x = await prisma.user.findMany()
-  const info: JsonValue = x[0].info
+  const info: Prisma.JsonValue = x[0].info
 
   type OptionalObject = {
     value?: string | undefined

@@ -62,6 +62,9 @@ export namespace DMMF {
 
   export type FieldKind = 'scalar' | 'object' | 'enum'
 
+  export type FieldNamespace = 'model' | 'prisma'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+
   export interface Field {
     kind: FieldKind
     name: string
@@ -89,9 +92,19 @@ export namespace DMMF {
   export interface Schema {
     rootQueryType?: string
     rootMutationType?: string
-    inputTypes: InputType[]
-    outputTypes: OutputType[]
-    enums: SchemaEnum[]
+    inputObjectTypes: {
+      // For now there are no `model` InputTypes
+      model?: InputType[]
+      prisma: InputType[]
+    }
+    outputObjectTypes: {
+      model: OutputType[]
+      prisma: OutputType[]
+    }
+    enumTypes: {
+      model?: SchemaEnum[]
+      prisma: SchemaEnum[]
+    }
   }
 
   export interface Query {
@@ -111,7 +124,8 @@ export namespace DMMF {
   export interface SchemaArgInputType {
     isList: boolean
     type: ArgType
-    kind: FieldKind
+    location: FieldLocation
+    namespace?: FieldNamespace
   }
 
   export interface SchemaArg {
@@ -136,7 +150,8 @@ export namespace DMMF {
     outputType: {
       type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes
       isList: boolean
-      kind: FieldKind
+      location: FieldLocation
+      namespace?: FieldNamespace
     }
     args: SchemaArg[]
   }
@@ -154,7 +169,7 @@ export namespace DMMF {
   export interface ModelMapping {
     model: string
     plural: string
-    findOne?: string | null
+    findUnique?: string | null
     findFirst?: string | null
     findMany?: string | null
     create?: string | null
@@ -167,7 +182,7 @@ export namespace DMMF {
   }
 
   export enum ModelAction {
-    findOne = 'findOne',
+    findUnique = 'findUnique',
     findFirst = 'findFirst',
     findMany = 'findMany',
     create = 'create',
