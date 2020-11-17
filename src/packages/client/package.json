@@ -72,7 +72,7 @@
     "@types/pg": "7.14.6",
     "@typescript-eslint/eslint-plugin": "4.7.0",
     "@typescript-eslint/parser": "4.7.0",
-    "arg": "4.1.3",
+    "arg": "5.0.0",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
