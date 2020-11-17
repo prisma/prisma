@@ -25,7 +25,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -47,7 +47,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -138,7 +138,7 @@ describe('batching', () => {
 
     await Promise.all([
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,
@@ -158,7 +158,7 @@ describe('batching', () => {
         },
       }),
       fetcher.request({
-        clientMethod: 'findOne',
+        clientMethod: 'findUnique',
         dataPath: [],
         document: makeDocument({
           dmmf,

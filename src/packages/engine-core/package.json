@@ -10,6 +10,7 @@
     "@types/node": "12.19.4",
     "@typescript-eslint/eslint-plugin": "4.7.0",
     "@typescript-eslint/parser": "4.7.0",
+    "abort-controller": "3.0.0",
     "del-cli": "3.0.1",
     "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
@@ -33,7 +34,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.12.0-4.243198d73f9423e89c036b2e5ae3c21e5c58ebf3",
+    "@prisma/engines": "2.12.0-8.538958d94346122ee7084ce34b93c09e4d933b15",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
@@ -44,7 +45,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "2.1.1"
+    "undici": "2.2.0"
   },
   "files": [
     "!**/__tests__",

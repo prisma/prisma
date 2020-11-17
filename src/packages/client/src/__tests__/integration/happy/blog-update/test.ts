@@ -1,11 +1,14 @@
-import { getTestClient } from '../../../../utils/getTestClient'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
 import { promisify } from 'util'
+import { getTestClient } from '../../../../utils/getTestClient'
 const copyFile = promisify(fs.copyFile)
 
 test('blog-update', async () => {
-  await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
+  await copyFile(
+    path.join(__dirname, 'dev.db'),
+    path.join(__dirname, 'dev-tmp.db'),
+  )
 
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
@@ -43,7 +46,7 @@ test('blog-update', async () => {
     },
   })
 
-  const user = await prisma.user.findOne({
+  const user = await prisma.user.findUnique({
     where: {
       email: `a@hey.com`,
     },

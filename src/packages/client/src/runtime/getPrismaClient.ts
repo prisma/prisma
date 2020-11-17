@@ -44,7 +44,7 @@ import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { tryLoadEnvs } from '@prisma/sdk'
-import { getDidYouMean, validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -88,7 +88,6 @@ export interface PrismaClientOptions {
   __internal?: {
     debug?: boolean
     hooks?: Hooks
-    useUds?: boolean
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -214,6 +213,7 @@ export interface GetPrismaClientOptions {
 
 export type Action =
   | 'findOne'
+  | 'findUnique'
   | 'findFirst'
   | 'findMany'
   | 'create'
@@ -228,6 +228,7 @@ export type Action =
 
 const actionOperationMap = {
   findOne: 'query',
+  findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
   count: 'query',
@@ -364,7 +365,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(previewFeatures),
-          useUds: internal.useUds,
         }
 
         const sanitizedEngineConfig = omit(this._engineConfig, [
@@ -405,11 +405,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
-      }
-
-      // just for development
-      if (process.env.NODE_ENV !== 'production') {
-        return makeProxy(this)
       }
     }
 
@@ -884,7 +879,7 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
-
+      if (action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
@@ -978,6 +973,9 @@ new PrismaClient({
           dataPath,
           modelName,
         }) => {
+          if (actionName === 'findOne') {
+            console.warn(`${chalk.yellow('warn(prisma) ')} findOne is deprecated. Please use findUnique instead.`)
+          }
           dataPath = dataPath ?? []
 
           const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -1092,7 +1090,12 @@ new PrismaClient({
           aggregate: true,
         }
 
-        const delegate: any = Object.entries(mapping).reduce(
+        const newMapping = {
+          ...mapping,
+          findOne: mapping.findUnique
+        }
+
+        const delegate: any = Object.entries(newMapping).reduce(
           (acc, [actionName, rootField]) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
@@ -1159,33 +1162,8 @@ new PrismaClient({
     }
   }
 
-  function makeProxy(client: any): any {
-    return new Proxy(client, {
-      get: (target, prop) => {
-        if (typeof target[prop] !== 'undefined') {
-          return target[prop]
-        }
-
-        const allowList = {
-          then: true,
-          catch: true,
-          finally: true
-        }
-
-        if (allowList[prop]) {
-          return
-        }
-
-        const didYouMean = getDidYouMean(String(prop), Object.keys(client))
-
-        throw new Error(`PrismaClient - Trying to access unknown property "${String(prop)}".${didYouMean}`)
-      }
-    })
-  }
-
   return NewPrismaClient
 }
-
 
 export class PrismaClientFetcher {
   prisma: any
@@ -1216,7 +1194,7 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (!request.document.children[0].name.startsWith('findOne')) {
+        if (!(request.document.children[0].name.startsWith('findOne') || request.document.children[0].name.startsWith('findUnique'))) {
           return null
         }
 
@@ -1378,10 +1356,11 @@ export class PrismaClientFetcher {
   }
 }
 
-export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
+export function getOperation(action: DMMF.ModelAction | 'findOne'): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne ||
+    action === DMMF.ModelAction.findUnique ||
+    action === 'findOne' ||
     action === DMMF.ModelAction.findFirst
   ) {
     return 'query'

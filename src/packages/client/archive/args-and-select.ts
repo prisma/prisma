@@ -1,5 +1,5 @@
 prisma.users
-  .findOne({
+  .findUnique({
     select: {
       posts: {
         select: {
@@ -17,7 +17,7 @@ prisma.users
   .title()
 
 prisma.users
-  .findOne({
+  .findUnique({
     where: { age: { gt: 5 } },
   })
   .select({

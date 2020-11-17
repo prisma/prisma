@@ -15,7 +15,7 @@ model Article {
   content String
   date    DateTime
   likedBy User[]
-  link    Link
+  link    Link?
 }
 
 model Link {

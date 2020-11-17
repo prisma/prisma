@@ -4101,7 +4101,7 @@ const dmmf: DMMF.Document = {
       {
         "model": "Post",
         "plural": "posts",
-        "findOne": "findOnePost",
+        "findUnique": "findOnePost",
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "create": "createOnePost",
@@ -4115,7 +4115,7 @@ const dmmf: DMMF.Document = {
       {
         "model": "User",
         "plural": "users",
-        "findOne": "findOneUser",
+        "findUnique": "findOneUser",
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "create": "createOneUser",
