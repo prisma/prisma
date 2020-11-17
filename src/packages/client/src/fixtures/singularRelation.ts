@@ -18,6 +18,6 @@ model Location {
 
 model Company {
   id Int @id
-  location Location
+  location Location?
 }
 `
