@@ -8,6 +8,10 @@ exports[`sqlite baseline-sqlite (prompt yes) 3`] = `Array []`;
 
 exports[`sqlite baseline-sqlite (prompt yes) 4`] = `Array []`;
 
+exports[`sqlite existing-db-1-failed-migration 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-failed-migration 4`] = `Array []`;
+
 exports[`sqlite existing-db-1-migration 3`] = `Array []`;
 
 exports[`sqlite existing-db-1-migration 4`] = `Array []`;

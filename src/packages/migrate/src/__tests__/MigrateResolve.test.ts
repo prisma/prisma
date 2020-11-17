@@ -54,14 +54,14 @@ describe('sqlite', () => {
   it('existing-db-1-failed-migration', async () => {
     // TODO should be fixed in engines first because diagnore returns failedMigrationNames: [] (empty)
     ctx.fixture('existing-db-1-failed-migration')
-    // const result = MigrateResolve.new().parse(['--early-access-feature'])
-    // await expect(result).rejects.toMatchInlineSnapshot(`updateme`)
+    const result = MigrateResolve.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(`Nothing to resolve.`)
 
-    // expect(
-    //   ctx.mocked['console.info'].mock.calls.join('\n'),
-    // ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/empty.prisma`)
-    // expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    // expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
   it('baseline-sqlite (prompt yes)', async () => {

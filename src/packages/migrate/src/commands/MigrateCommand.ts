@@ -234,7 +234,7 @@ Delete the current migrations folder to continue and read the documentation for 
       if (diagnoseResult.failedMigrationNames.length > 0) {
         // migration(s), usually one, that failed to apply the the database (which may have data)
         console.info(
-          `The following migrations failed to apply:\n- ${diagnoseResult.failedMigrationNames.join(
+          `The following migration(s) failed to apply:\n- ${diagnoseResult.failedMigrationNames.join(
             '\n- ',
           )}\n`,
         )
@@ -243,7 +243,7 @@ Delete the current migrations folder to continue and read the documentation for 
       if (diagnoseResult.editedMigrationNames.length > 0) {
         // migration(s) that were edited since they were applied to the db.
         console.info(
-          `The following migrations were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
+          `The following migration(s) were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
             '\n- ',
           )}\n`,
         )
@@ -326,24 +326,13 @@ Delete the current migrations folder to continue and read the documentation for 
           diagnoseResult.history.diagnostic === 'migrationsDirectoryIsBehind'
         ) {
           isResetNeeded = true
-          debug({
-            unpersistedMigrationNames:
-              diagnoseResult.history.unpersistedMigrationNames,
-          })
         } else if (diagnoseResult.history.diagnostic === 'historiesDiverge') {
           isResetNeeded = true
-          debug({
-            lastCommonMigrationName:
-              diagnoseResult.history.lastCommonMigrationName,
-          })
-          debug({
-            unappliedMigrationNames:
-              diagnoseResult.history.unappliedMigrationNames,
-          })
-          debug({
-            unpersistedMigrationNames:
-              diagnoseResult.history.unpersistedMigrationNames,
-          })
+          // migration(s) were removed from directory since they were applied to the db.
+          console.info(
+            `The following migration(s) are applied to the database but missing from the local migrations directory:
+- ${diagnoseResult.history.unpersistedMigrationNames.join('\n- ')}\n`,
+          )
         }
       }
     }
