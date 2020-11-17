@@ -284,6 +284,33 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
   })
+
+  it('edited migration and unapplied draft', async () => {
+    ctx.fixture('edited-and-draft')
+
+    prompt.inject(['y'])
+
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+      The following migrations were edited after they were applied:
+      - 20201231000000_test
+
+
+      Prisma Migrate applied the following migration(s):
+
+      migrations/
+        └─ 20201231000000_test/
+          └─ migration.sql
+        └─ 20201231000000_draft/
+          └─ migration.sql
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+  })
 })
 
 describe('postgresql', () => {

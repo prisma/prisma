@@ -67,6 +67,10 @@ exports[`sqlite draft migration and apply (prompt) 5`] = ``;
 
 exports[`sqlite draft migration and apply (prompt) 6`] = ``;
 
+exports[`sqlite edited migration and unapplied draft 3`] = ``;
+
+exports[`sqlite edited migration and unapplied draft 4`] = ``;
+
 exports[`sqlite first migration after init (--name) 1`] = ``;
 
 exports[`sqlite first migration after init (--name) 3`] = `Array []`;
