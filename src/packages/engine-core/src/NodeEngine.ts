@@ -29,7 +29,6 @@ import { fixBinaryTargets, getRandomString, plusX } from './util'
 
 const debug = debugLib('engine')
 const exists = promisify(fs.exists)
-const readdir = promisify(fs.readdir)
 
 export interface DatasourceOverwrite {
   name: string
@@ -165,7 +164,7 @@ export class NodeEngine {
     enableDebugLogs,
     enableEngineDebugMode,
   }: EngineConfig) {
-    this.useUds = true
+    this.useUds = process.platform !== 'win32'
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
@@ -542,7 +541,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
 
-        if (this.useUds && process.platform !== 'win32') {
+        if (this.useUds) {
           this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
           socketPaths.push(this.socketPath)
         }
