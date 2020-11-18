@@ -152,8 +152,8 @@ export async function generateClient({
     ? await getDotPrismaDir(outputDir)
     : outputDir
 
-
-  const projectRoot = path.dirname((await pkgUp({ cwd: path.dirname(finalOutputDir) }))!)
+  const packageRoot = (await pkgUp({ cwd: path.dirname(finalOutputDir) }))
+  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
