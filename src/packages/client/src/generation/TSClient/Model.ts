@@ -27,6 +27,7 @@ import { InputType } from './Input'
 import { OutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
 import { tab } from './constants';
+import { PayloadType } from './Payload';
 
 
 export class Model implements Generatable {

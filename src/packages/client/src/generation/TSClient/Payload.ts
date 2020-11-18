@@ -11,7 +11,7 @@ import {
 import { Generatable } from './Generatable'
 
 
-class PayloadType implements Generatable {
+export class PayloadType implements Generatable {
   constructor(protected readonly type: OutputType) { }
 
   public toTS(): string {
