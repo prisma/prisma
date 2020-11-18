@@ -338,7 +338,9 @@ const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
 ${this.options.platforms
         ? this.options.platforms
           .map((p) => `path.join(dirname, 'query-engine-${p}');
-path.join(__dirname, 'query-engine-${p}');`)
+path.join(__dirname, 'query-engine-${p}');
+path.join(process.cwd(), ${JSON.stringify(path.join(cwdDirname, `query-engine-${p}`))})
+`)
           .join('\n')
         : ''
       }
@@ -348,6 +350,7 @@ path.join(__dirname, 'query-engine-${p}');`)
 **/
 path.join(dirname, 'schema.prisma');
 path.join(__dirname, 'schema.prisma');
+path.join(process.cwd(), ${JSON.stringify(path.join(cwdDirname, `schema.prisma`))})
 
 /**
  * Enums
