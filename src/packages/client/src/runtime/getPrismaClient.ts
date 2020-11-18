@@ -37,7 +37,6 @@ import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { ConnectorType } from './utils/printDatasources'
-import { omit } from './utils/omit'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
@@ -367,11 +366,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           enableExperimental: mapPreviewFeatures(previewFeatures),
         }
 
-        const sanitizedEngineConfig = omit(this._engineConfig, [
-          'env',
-          'datasources',
-        ])
-        debug({ engineConfig: sanitizedEngineConfig })
+        debug({ clientVersion: config.clientVersion })
 
         this._engine = new NodeEngine(this._engineConfig)
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
