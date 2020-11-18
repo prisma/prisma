@@ -224,6 +224,8 @@ Delete the current migrations folder to continue and read the documentation for 
     debug({ diagnoseResult })
 
     let isResetNeeded = false
+    let migrationIdsFromDatabaseIsBehind: string[] = []
+
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
     const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
@@ -323,7 +325,21 @@ Delete the current migrations folder to continue and read the documentation for 
 
       if (diagnoseResult.history) {
         if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          await migrate.applyOnly()
+          migrationIdsFromDatabaseIsBehind = await migrate.applyOnly()
+          // Inform user about applied migrations now
+          if (migrationIdsFromDatabaseIsBehind.length > 0) {
+            console.info(
+              `\nPrisma Migrate applied the following unapplied migration(s):\n\n${chalk(
+                printFilesFromMigrationIds(
+                  'migrations',
+                  migrationIdsFromDatabaseIsBehind,
+                  {
+                    'migration.sql': '',
+                  },
+                ),
+              )}`,
+            )
+          }
         } else if (
           diagnoseResult.history.diagnostic === 'migrationsDirectoryIsBehind'
         ) {
@@ -395,14 +411,28 @@ Delete the current migrations folder to continue and read the documentation for 
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      console.info(
-        `\n${chalk.green(
-          'Everything is already in sync',
-        )} - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
-      )
+      if (migrationIdsFromDatabaseIsBehind?.length > 0) {
+        // Run if not skipped
+        if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+          await migrate.tryToRunGenerate()
+        }
+
+        // During databaseIsBehind diagnostic migrations were applied and displayed
+        console.info(`\n${chalk.green('Everything is now in sync.')}`)
+      } else {
+        console.info(
+          `\n${chalk.green(
+            'Everything is already in sync',
+          )} - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
+        )
+      }
     } else {
+      if (migrationIdsFromDatabaseIsBehind?.length > 0) {
+        console.info() // empty line
+      }
+
       console.info(
-        `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
+        `Prisma Migrate created and applied the following migration(s) from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),
@@ -413,6 +443,8 @@ Delete the current migrations folder to continue and read the documentation for 
       if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
         await migrate.tryToRunGenerate()
       }
+
+      console.info(`\n${chalk.green('Everything is now in sync.')}`)
     }
 
     return ``

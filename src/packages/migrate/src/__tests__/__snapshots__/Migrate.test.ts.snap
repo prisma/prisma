@@ -75,6 +75,18 @@ exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
 
+exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 1`] = ``;
+
+exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft 1`] = ``;
+
+exports[`sqlite existingdb: 1 unapplied draft 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft 4`] = `Array []`;
+
 exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
 
 exports[`sqlite existingdb: has a failed migration (--force) 4`] = ``;
