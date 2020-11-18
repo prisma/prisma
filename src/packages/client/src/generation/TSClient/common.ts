@@ -1,10 +1,10 @@
-interface CommonCodeParams {
+export interface CommonCodeParams {
   runtimePath: string
   clientVersion: string
   engineVersion: string
 }
 
-const commonCodeJS = ({
+export const commonCodeJS = ({
   runtimePath,
   clientVersion,
   engineVersion,
@@ -60,7 +60,7 @@ Prisma.join = join
 Prisma.raw = raw
 `
 
-const commonCodeTS = ({
+export const commonCodeTS = ({
   runtimePath,
   clientVersion,
   engineVersion,

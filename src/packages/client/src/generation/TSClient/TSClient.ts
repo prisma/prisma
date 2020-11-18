@@ -17,6 +17,7 @@ import { Enum } from './Enum'
 import { PrismaClientClass } from './PrismaClient'
 import { Model } from './Model'
 import { InputType } from './Input'
+import { commonCodeTS } from './common'
 
 export interface TSClientOptions {
   clientVersion: string
@@ -63,7 +64,7 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map(d => d.name)
     }
 
-    const code = `${commonCodeJS(this.options)}
+    const code = `${commonCodeTS(this.options)}
 
 /**
  * Build tool annotations
