@@ -154,6 +154,7 @@ async function main(): Promise<number> {
         up: MigrateUp.new(),
       }),
       db: DbCommand.new({
+        pull: Introspect.new(),
         push: DbPush.new(),
         drop: DbDrop.new(),
       }),
