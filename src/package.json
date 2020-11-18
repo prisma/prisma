@@ -4,11 +4,14 @@
   "main": "index.js",
   "private": true,
   "license": "MIT",
+  "engines": {
+    "node": ">=10.13"
+  },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.0",
     "@types/debug": "4.1.5",
     "@types/graphviz": "0.0.32",
-    "@types/node": "12.19.4",
+    "@types/node": "12.19.5",
     "@types/redis": "2.8.28",
     "arg": "5.0.0",
     "batching-toposort": "1.2.0",

@@ -20,10 +20,10 @@
   ],
   "devDependencies": {
     "@types/jest": "26.0.15",
-    "@types/node": "12.19.4",
-    "@types/tar": "4.0.3",
-    "@typescript-eslint/eslint-plugin": "4.7.0",
-    "@typescript-eslint/parser": "4.7.0",
+    "@types/node": "12.19.5",
+    "@types/tar": "4.0.4",
+    "@typescript-eslint/eslint-plugin": "4.8.1",
+    "@typescript-eslint/parser": "4.8.1",
     "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.12.0-8.538958d94346122ee7084ce34b93c09e4d933b15",
+    "@prisma/engines": "2.12.0-10.a4ef806349a7b17c41f45735ce4a36322e01c250",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
