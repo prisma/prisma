@@ -22,7 +22,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10"
+    "node": ">=10.4"
   },
   "homepage": "https://github.com/prisma/prisma-client-js",
   "repository": {
