@@ -282,7 +282,6 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS(): string {
-    // 'document' is being printed into the file as "dmmf"
     const {
       generator,
       sqliteDatasourceOverrides,
@@ -1237,7 +1236,7 @@ export class ModelDelegate implements Generatable {
       return ''
     }
     const model = this.dmmf.modelMap[name]
-    
+
     // TODO: handle findUnique
     mapping["findOne"] = mapping['findUnique']
 
