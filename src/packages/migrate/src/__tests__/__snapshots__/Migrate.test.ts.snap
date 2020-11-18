@@ -75,6 +75,12 @@ exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
 
+exports[`sqlite empty schema 1`] = ``;
+
+exports[`sqlite empty schema 3`] = `Array []`;
+
+exports[`sqlite empty schema 4`] = `Array []`;
+
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 1`] = ``;
 
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 3`] = `Array []`;
@@ -95,33 +101,29 @@ exports[`sqlite existingdb: has a failed migration 3`] = ``;
 
 exports[`sqlite existingdb: has a failed migration 4`] = ``;
 
-exports[`sqlite first migration after init (--name) 1`] = ``;
+exports[`sqlite first migration (--name) 1`] = ``;
 
-exports[`sqlite first migration after init (--name) 3`] = `Array []`;
+exports[`sqlite first migration (--name) 3`] = `Array []`;
 
-exports[`sqlite first migration after init (--name) 4`] = `Array []`;
+exports[`sqlite first migration (--name) 4`] = `Array []`;
 
-exports[`sqlite first migration after init (prompt) 1`] = ``;
+exports[`sqlite first migration (prompt) 1`] = ``;
 
-exports[`sqlite first migration after init (prompt) 3`] = `Array []`;
+exports[`sqlite first migration (prompt) 3`] = `Array []`;
 
-exports[`sqlite first migration after init (prompt) 4`] = `Array []`;
+exports[`sqlite first migration (prompt) 4`] = `Array []`;
 
-exports[`sqlite first migration after init - empty.prisma 1`] = ``;
+exports[`sqlite first migration --force 1`] = ``;
 
-exports[`sqlite first migration after init - empty.prisma 3`] = `Array []`;
+exports[`sqlite first migration --force 3`] = ``;
 
-exports[`sqlite first migration after init - empty.prisma 4`] = `Array []`;
-
-exports[`sqlite first migration after init --force 1`] = ``;
-
-exports[`sqlite first migration after init --force 3`] = ``;
-
-exports[`sqlite first migration after init --force 4`] = ``;
+exports[`sqlite first migration --force 4`] = ``;
 
 exports[`sqlite removed applied migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite removed applied migration and unapplied empty draft 4`] = ``;
+
+exports[`sqlite snapshot of sql 1`] = ``;
 
 exports[`sqlite transition-db-push-migrate (prompt no) 3`] = ``;
 

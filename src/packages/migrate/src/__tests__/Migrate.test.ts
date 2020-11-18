@@ -1,5 +1,6 @@
 import prompt from 'prompts'
 import fs from 'fs-jetpack'
+import path from 'path'
 import { MigrateCommand } from '../commands/MigrateCommand'
 import { consoleContext, Context } from './__helpers__/context'
 import { tearDownMysql } from '../utils/setupMysql'
@@ -89,7 +90,7 @@ describe('common', () => {
 })
 
 describe('sqlite', () => {
-  it('first migration after init - empty.prisma', async () => {
+  it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--schema=./prisma/empty.prisma',
@@ -110,7 +111,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration after init (prompt)', async () => {
+  it('first migration (prompt)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--name=first',
@@ -136,7 +137,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration after init (--name)', async () => {
+  it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
 
     prompt.inject(['first'])
@@ -162,7 +163,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration after init --force', async () => {
+  it('first migration --force', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateCommand.new().parse([
       '--name=first',
@@ -187,6 +188,34 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  })
+
+  it('snapshot of sql', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateCommand.new().parse([
+      '--name=first',
+      '--force',
+      '--early-access-feature',
+    ])
+
+    await expect(result).resolves.toMatchSnapshot()
+
+    const baseDir = path.join('prisma', 'migrations')
+    const migrationDirList = fs.list(baseDir)
+    const migrationFilePath = path.join(
+      baseDir,
+      migrationDirList![0],
+      'migration.sql',
+    )
+    const migrationFile = await fs.read(migrationFilePath)
+    expect(migrationFile).toMatchInlineSnapshot(`
+      -- CreateTable
+      CREATE TABLE "Blog" (
+          "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+          "viewCount20" INTEGER NOT NULL
+      );
+
+    `)
   })
 
   it('draft migration and apply (prompt)', async () => {
