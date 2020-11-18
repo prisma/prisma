@@ -47,14 +47,20 @@ export interface UnexecutableMigration {
   description: string
 }
 
+interface UserFacingError {
+  is_panic: boolean
+  message: string
+  meta?: unknown
+  error_code?: string
+}
+
 export type DriftDiagnostic =
   /// The current database schema does not match the schema that would be expected from applying the migration history.
   | { diagnostic: 'driftDetected'; rollback: string }
   // A migration failed to cleanly apply to a temporary database.
   | {
       diagnostic: 'migrationFailedToApply'
-      migrationName: string
-      error: string
+      error: UserFacingError
     }
 
 export type HistoryDiagnostic =

@@ -183,7 +183,7 @@ describe('sqlite', () => {
           └─ migration.sql
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('draft migration and apply (prompt)', async () => {
@@ -265,7 +265,7 @@ describe('sqlite', () => {
       Migration "20201231000000_" marked applied.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('transition-db-push-migrate (prompt no)', async () => {
@@ -282,7 +282,7 @@ describe('sqlite', () => {
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('edited migration and unapplied empty draft', async () => {
@@ -309,7 +309,7 @@ describe('sqlite', () => {
           └─ migration.sql
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('removed applied migration and unapplied empty draft', async () => {
@@ -337,7 +337,7 @@ describe('sqlite', () => {
           └─ migration.sql
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('broken migration should fail', async () => {
@@ -359,23 +359,46 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
   it('existingdb: has a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
+
+    await expect(result).rejects.toMatchInlineSnapshot(
+      `Use the --force flag to use the migrate command in an unnattended environment like prisma migrate --force --early-access-feature`,
+    )
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+      The following migration(s) failed to apply:
+      - 20201231000000_failed
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  })
+
+  it('existingdb: has a failed migration (--force)', async () => {
+    ctx.fixture('existing-db-1-failed-migration')
+
     try {
-      await MigrateCommand.new().parse(['--early-access-feature'])
+      await MigrateCommand.new().parse(['--early-access-feature', '--force'])
     } catch (e) {
       expect(e.code).toMatchInlineSnapshot(`P3006`)
     }
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+      The following migration(s) failed to apply:
+      - 20201231000000_failed
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 })
 

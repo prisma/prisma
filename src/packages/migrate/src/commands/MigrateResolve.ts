@@ -174,16 +174,47 @@ export class MigrateResolve implements Command {
           this.cancelledByUserExitProcess()
         }
       } else {
-        debug(`${diagnoseResult.failedMigrationNames} mark as fixed?`)
-        migrate.stop()
-        throw Error('Unhandled else case for "close the case"')
         // - Offer the option to "close the case" and mark the failed migration as fixed.
         //     - The migration can be fixed as rolled back or forward. Ask the user, and call the engine commands in consequence:
         //     - If the migration was rolled back, ↩️ **RPC**: `markMigrationRolledBack`
         //     - If the migration was finished by the user, ↩️ **RPC**: `markMigrationApplied`
-      }
+        const migrationId = diagnoseResult.failedMigrationNames[0]
 
-      return ``
+        console.info() // empty line
+        const confirmRolledBackOrForward = await this.confirmRolledBackOrForward(
+          {
+            ...(await migrate.getDbInfo()),
+            migrationId,
+          },
+        )
+        debug({ confirmRolledBackOrForward })
+
+        if (
+          !confirmRolledBackOrForward ||
+          confirmRolledBackOrForward === 'cancel'
+        ) {
+          migrate.stop()
+          this.cancelledByUserExitProcess()
+        } else if (confirmRolledBackOrForward === 'markrolledback') {
+          await migrate.markMigrationRolledBack({
+            migrationId,
+          })
+          migrate.stop()
+          return `Migration ${migrationId} marked as rolled back.`
+        } else if (confirmRolledBackOrForward === 'markapplied') {
+          await migrate.markMigrationApplied({
+            migrationId,
+            expectFailed: true,
+          })
+          migrate.stop()
+          return `Migration ${migrationId} marked as applied.`
+        } else {
+          migrate.stop()
+          throw new Error(
+            `Unhandled case, run again with DEBUG="*" and create an issue in prisma/migrate.`,
+          )
+        }
+      }
     } else if (diagnoseResult.drift?.diagnostic === 'driftDetected') {
       debug('driftDetected')
       // - Offer to
@@ -192,12 +223,13 @@ export class MigrateResolve implements Command {
       // - *User committed the changes in a migration and applied them outside of prisma migrate:* mark a migration that isn't applied yet as applied (hotfix case).
       //     - Call ↩️ **RPC**: ****`markMigrationApplied`
 
-      const confirmDrift = await migrate.confirmDrift({
+      const confirmDrift = await this.confirmDrift({
+        ...(await migrate.getDbInfo()),
         script: diagnoseResult.drift.rollback,
       })
       debug({ confirmDrift })
 
-      if (confirmDrift === 'cancel') {
+      if (!confirmDrift || confirmDrift === 'cancel') {
         migrate.stop()
         this.cancelledByUserExitProcess()
       } else if (confirmDrift === 'rollback') {
@@ -232,6 +264,7 @@ export class MigrateResolve implements Command {
       }
     } else {
       migrate.stop()
+      console.info() // empty line
       return `Nothing to resolve.`
     }
 
@@ -242,6 +275,79 @@ export class MigrateResolve implements Command {
     console.info() // empty line
     console.info('Resolve cancelled.')
     process.exit(0)
+  }
+
+  private async confirmRolledBackOrForward({
+    schemaWord,
+    dbType,
+    dbName,
+    dbLocation,
+    migrationId,
+  }): Promise<'cancel' | 'markrolledback' | 'markapplied'> {
+    const userChoice = await prompt({
+      type: 'select',
+      name: 'value',
+      message: `We found that the migration ${migrationId} failed to apply to the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}":`,
+      choices: [
+        {
+          title: 'Mark this migration as rolled back.',
+          value: 'markrolledback',
+        },
+        {
+          title: 'Mark this migration as applied.',
+          value: 'markapplied',
+        },
+        {
+          title: 'Cancel',
+          value: 'cancel',
+        },
+      ],
+      initial: 2,
+    })
+
+    return userChoice.value
+  }
+
+  private async confirmDrift({
+    schemaWord,
+    dbType,
+    dbName,
+    dbLocation,
+    script,
+  }: {
+    schemaWord: string
+    dbType: string
+    dbName: string
+    dbLocation: string
+    script: string
+  }): Promise<'cancel' | 'keep' | 'rollback' | 'hotfix'> {
+    const userChoice = await prompt({
+      type: 'select',
+      name: 'value',
+      message: `Do you want to apply the following to the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}"? ${chalk.red(
+        'Data could be lost',
+      )}.\n${chalk.grey(script)}`,
+      choices: [
+        {
+          title: 'Unwanted change: do a rollback',
+          description: 'Data could be lost!',
+          value: 'rollback',
+        },
+        { title: 'Needs to be in local history', value: 'keep' },
+        {
+          title: 'Already applied as a hotfix',
+          description: 'The migration will be marked as applied.',
+          value: 'hotfix',
+        },
+        {
+          title: 'Cancel',
+          value: 'cancel',
+        },
+      ],
+      initial: 2,
+    })
+
+    return userChoice.value
   }
 
   private async confirmBaselineMigration({

@@ -322,16 +322,28 @@ export class Migrate {
 
   public async markMigrationApplied({
     migrationId,
+    expectFailed = false,
   }: {
     migrationId: string
+    expectFailed?: boolean
   }): Promise<void> {
     const markMigrationApplied = await this.engine.markMigrationApplied({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: migrationId,
-      expectFailed: false,
+      expectFailed,
     })
-    debug({ markMigrationApplied })
     return markMigrationApplied
+  }
+
+  public async markMigrationRolledBack({
+    migrationId,
+  }: {
+    migrationId: string
+  }): Promise<void> {
+    const markMigrationRolledBack = await this.engine.markMigrationRolledBack({
+      migrationName: migrationId,
+    })
+    return markMigrationRolledBack
   }
 
   public async applyScript({ script }: { script: string }): Promise<void> {
@@ -347,42 +359,6 @@ export class Migrate {
     debug({ appliedMigrationNames })
 
     return appliedMigrationNames
-  }
-
-  public async confirmDrift({
-    script,
-  }: {
-    script: string
-  }): Promise<'cancel' | 'keep' | 'rollback' | 'hotfix'> {
-    const { schemaWord, dbType, dbName, dbLocation } = await this.getDbInfo()
-
-    const userChoice = await prompt({
-      type: 'select',
-      name: 'value',
-      message: `Do you want to apply the following to the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}"? ${chalk.red(
-        'Data could be lost',
-      )}.\n${chalk.grey(script)}`,
-      choices: [
-        {
-          title: 'Cancel',
-          value: 'cancel',
-        },
-        {
-          title: 'Unwanted change: do a rollback',
-          description: 'Data could be lost!',
-          value: 'rollback',
-        },
-        { title: 'Needs to be in local history', value: 'keep' },
-        {
-          title: 'Already applied as a hotfix',
-          description: 'The migration will be marked as applied.',
-          value: 'hotfix',
-        },
-      ],
-      // initial: 1
-    })
-
-    return userChoice.value
   }
 
   public async evaluateDataLoss(): Promise<

@@ -51,15 +51,62 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('existing-db-1-failed-migration', async () => {
-    // TODO should be fixed in engines first because diagnore returns failedMigrationNames: [] (empty)
+  it('existing-db-1-failed-migration (prompt cancelled)', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Nothing to resolve.`)
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    prompt.inject([new Error()])
+
+    const result = MigrateResolve.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+
+      Resolve cancelled.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+
+    expect(mockExit).toBeCalledWith(0)
+  })
+
+  it('existing-db-1-failed-migration (prompt markrolledback)', async () => {
+    ctx.fixture('existing-db-1-failed-migration')
+
+    prompt.inject(['markrolledback'])
+
+    const result = MigrateResolve.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Migration 20201231000000_failed marked as rolled back.`,
+    )
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it('existing-db-1-failed-migration (prompt markapplied)', async () => {
+    ctx.fixture('existing-db-1-failed-migration')
+
+    prompt.inject(['markapplied'])
+
+    const result = MigrateResolve.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Migration 20201231000000_failed marked as applied.`,
+    )
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -108,9 +155,11 @@ describe('sqlite', () => {
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`Nothing to resolve.`)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -213,9 +262,11 @@ describe('sqlite', () => {
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`Nothing to resolve.`)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -326,7 +377,7 @@ describe('sqlite', () => {
 //           └─ migration.sql
 //     `)
 //     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-//     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot(``)
+//     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
 //   })
 
 //   it('draft migration and apply (prompt)', async () => {

@@ -221,17 +221,17 @@ Delete the current migrations folder to continue and read the documentation for 
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory()
+    debug({ diagnoseResult })
 
     let isResetNeeded = false
+    const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
+    const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
-    // if failedMigrationNames or editedMigrationNames print and got to reset
-    if (
-      diagnoseResult.failedMigrationNames.length > 0 ||
-      diagnoseResult.editedMigrationNames.length > 0
-    ) {
+    // if failed migration(s) or edited migration(s) print and got to reset
+    if (hasFailedMigrations || hasEditedMigrations) {
       isResetNeeded = true
 
-      if (diagnoseResult.failedMigrationNames.length > 0) {
+      if (hasFailedMigrations) {
         // migration(s), usually one, that failed to apply the the database (which may have data)
         console.info(
           `The following migration(s) failed to apply:\n- ${diagnoseResult.failedMigrationNames.join(
@@ -240,7 +240,7 @@ Delete the current migrations folder to continue and read the documentation for 
         )
       }
 
-      if (diagnoseResult.editedMigrationNames.length > 0) {
+      if (hasEditedMigrations) {
         // migration(s) that were edited since they were applied to the db.
         console.info(
           `The following migration(s) were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
@@ -253,10 +253,12 @@ Delete the current migrations folder to continue and read the documentation for 
       debug({ history: diagnoseResult.history })
 
       if (diagnoseResult.drift) {
-        if (diagnoseResult.drift.diagnostic === 'migrationFailedToApply') {
-          // Migration has a problem (failed to cleanly apply to a temporary database) and needs to be fixed or the database has a problem (example: incorrect version, missing extension)
+        // TODO it seems this condition is never true
+        if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
+          // Migration has a problem (failed to cleanly apply to a temporary database) and
+          // needs to be fixed or the database has a problem (example: incorrect version, missing extension)
           throw new Error(
-            `The migration "${diagnoseResult.drift.migrationName}" failed to apply to the shadow database.\nFix the migration before applying it again.\n\n${diagnoseResult.drift.error})`,
+            `A migration failed while applying it to the shadow database.\nFix the migration before applying it again.\n\n${diagnoseResult.drift.error})`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
           if (diagnoseResult.hasMigrationsTable === false) {
@@ -338,28 +340,28 @@ Delete the current migrations folder to continue and read the documentation for 
     }
 
     if (isResetNeeded) {
-      // We use prompts.inject() for testing in our CI
-      if (
-        !args['--force'] &&
-        isCi() &&
-        Boolean((prompt as any)._injected?.length) === false
-      ) {
-        throw Error(
-          `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma migrate --force --early-access-feature',
-            ),
-          )}`,
-        )
-      }
+      if (!args['--force']) {
+        // We use prompts.inject() for testing in our CI
+        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+          throw Error(
+            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
+              getCommandWithExecutor(
+                'prisma migrate --force --early-access-feature',
+              ),
+            )}`,
+          )
+        }
 
-      const confirmedReset = await this.confirmReset(await migrate.getDbInfo())
-      if (!confirmedReset) {
-        console.info() // empty line
-        console.info('Reset cancelled.')
-        process.exit(0)
+        const confirmedReset = await this.confirmReset(
+          await migrate.getDbInfo(),
+        )
+        if (!confirmedReset) {
+          console.info() // empty line
+          console.info('Reset cancelled.')
+          process.exit(0)
+        }
+        await migrate.reset()
       }
-      await migrate.reset()
     }
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()

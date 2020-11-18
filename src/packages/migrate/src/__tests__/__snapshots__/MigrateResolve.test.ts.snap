@@ -8,9 +8,17 @@ exports[`sqlite baseline-sqlite (prompt yes) 3`] = `Array []`;
 
 exports[`sqlite baseline-sqlite (prompt yes) 4`] = `Array []`;
 
-exports[`sqlite existing-db-1-failed-migration 3`] = `Array []`;
+exports[`sqlite existing-db-1-failed-migration (prompt cancelled) 3`] = `Array []`;
 
-exports[`sqlite existing-db-1-failed-migration 4`] = `Array []`;
+exports[`sqlite existing-db-1-failed-migration (prompt cancelled) 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-failed-migration (prompt markapplied) 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-failed-migration (prompt markapplied) 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-failed-migration (prompt markrolledback) 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-failed-migration (prompt markrolledback) 4`] = `Array []`;
 
 exports[`sqlite existing-db-1-migration 3`] = `Array []`;
 

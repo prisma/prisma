@@ -75,6 +75,10 @@ exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
 
+exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
+
+exports[`sqlite existingdb: has a failed migration (--force) 4`] = ``;
+
 exports[`sqlite existingdb: has a failed migration 3`] = ``;
 
 exports[`sqlite existingdb: has a failed migration 4`] = ``;
