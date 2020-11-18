@@ -7,7 +7,7 @@ import {
   needsNamespace,
 } from '../../runtime/utils/common'
 import { ExportCollector } from "./helpers"
-import { tab } from "./constants"
+import { TAB_SIZE } from "./constants"
 
 export class OutputField implements Generatable {
   constructor(
@@ -52,7 +52,7 @@ ${indent(
       type.fields
         .map((field) => new OutputField(this.dmmf, { ...field, ...field.outputType }).toTS())
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }`
   }

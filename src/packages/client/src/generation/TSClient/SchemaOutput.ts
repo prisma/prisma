@@ -4,7 +4,7 @@ import { DMMF } from '../../runtime/dmmf-types'
 import {
   GraphQLScalarToJSTypeTable,
 } from '../../runtime/utils/common'
-import { tab } from './constants'
+import { TAB_SIZE } from './constants'
 import { Generatable } from './Generatable'
 import { ExportCollector } from './helpers'
 
@@ -48,7 +48,7 @@ ${indent(
           new SchemaOutputField({ ...field, ...field.outputType }).toTS(),
         )
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }`
   }

@@ -7,7 +7,7 @@ import {
 } from '../../runtime/utils/common'
 import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './../extractSqliteSources'
-import { tab } from './constants'
+import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import { Generatable } from './Generatable'
 
@@ -74,7 +74,7 @@ export class PrismaClient<
        */
       private readonly measurePerformance;
 
-  ${indent(this.jsDoc, tab)}
+  ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: T);
   $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;

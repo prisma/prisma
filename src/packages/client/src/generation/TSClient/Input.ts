@@ -2,7 +2,7 @@ import indent from 'indent-string';
 import { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
-import { tab } from './constants';
+import { TAB_SIZE } from './constants';
 import { Generatable } from './Generatable'
 import { ExportCollector, wrapComment } from './helpers'
 
@@ -72,7 +72,7 @@ ${indent(
           new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
         )
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }>`
     return `

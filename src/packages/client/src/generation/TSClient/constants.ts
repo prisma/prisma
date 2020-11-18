@@ -1,1 +1,2 @@
-export const tab = 2
+
+export const TAB_SIZE = 2

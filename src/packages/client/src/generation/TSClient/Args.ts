@@ -5,7 +5,7 @@ import { ExportCollector, topLevelArgsJsDocs } from "./helpers"
 import pluralize from 'pluralize'
 import { getIncludeName, getModelArgName, getSelectName } from "../utils"
 import { InputField } from './Input';
-import { tab } from './constants';
+import { TAB_SIZE } from './constants';
 
 export class ArgsType implements Generatable {
   constructor(
@@ -89,7 +89,7 @@ export class ArgsType implements Generatable {
 export type ${modelArgName} = {
 ${indent(
       bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }
 `
@@ -116,7 +116,7 @@ export class MinimalArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${typeName} = {
-${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
+${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }

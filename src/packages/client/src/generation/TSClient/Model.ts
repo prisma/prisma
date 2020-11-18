@@ -26,7 +26,7 @@ import { ExportCollector, getMethodJSDoc } from './helpers'
 import { InputType } from './Input'
 import { OutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
-import { tab } from './constants';
+import { TAB_SIZE } from './constants';
 import { PayloadType } from './Payload';
 
 
@@ -168,7 +168,7 @@ ${indent(
             }),
           )
           .join('\n'),
-        tab,
+        TAB_SIZE,
       )}
 }
 
@@ -204,7 +204,7 @@ ${indent(
         .filter((f) => f.kind !== 'object')
         .map((field) => new OutputField(this.dmmf, field, true).toTS())
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }
 `
@@ -229,7 +229,7 @@ ${indent(
               (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
           )
           .join('\n'),
-        tab,
+        TAB_SIZE,
       )}
 }\n`
       : ''
@@ -250,7 +250,7 @@ ${indent(
             (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
         )
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
 }
 ${includeType}
@@ -299,7 +299,7 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
         )
         .join('\n'),
-      tab,
+      TAB_SIZE,
     )}
   /**
    * Count
