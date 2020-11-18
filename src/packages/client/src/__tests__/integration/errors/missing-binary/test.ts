@@ -43,6 +43,7 @@ test('missing-binary', async () => {
             /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client
             /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
             /client/src/__tests__/integration/errors/missing-binary
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
 
 
           To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:

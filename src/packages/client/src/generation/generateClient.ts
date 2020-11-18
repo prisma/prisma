@@ -34,6 +34,7 @@ export class DenylistError extends Error {
 }
 
 export interface GenerateClientOptions {
+  projectRoot?: string
   datamodel: string
   datamodelPath: string
   browser?: boolean
@@ -69,8 +70,10 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
+  projectRoot
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
+
 
   const client = new TSClient({
     document,
@@ -88,6 +91,7 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
+    projectRoot: projectRoot!
   })
 
   const fileMap = {
@@ -148,6 +152,9 @@ export async function generateClient({
     ? await getDotPrismaDir(outputDir)
     : outputDir
 
+
+  const projectRoot = path.dirname((await pkgUp({ cwd: path.dirname(finalOutputDir) }))!)
+
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
@@ -162,6 +169,7 @@ export async function generateClient({
     binaryPaths,
     clientVersion,
     engineVersion,
+    projectRoot
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(
