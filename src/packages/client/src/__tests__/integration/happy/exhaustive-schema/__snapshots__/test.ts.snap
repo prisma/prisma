@@ -8,6 +8,133 @@ exports[`exhaustive-schema 1`] = `
 
 import * as runtime from '@prisma/client/runtime';
 
+export import DMMF = runtime.DMMF
+
+/**
+ * Prisma Errors
+ */
+export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export type PrismaClientValidationError = runtime.PrismaClientValidationError
+
+/**
+ * Re-export of sql-template-tag
+ */
+export import sql = runtime.sqltag
+export import empty = runtime.empty
+export import join = runtime.join
+export import raw = runtime.raw
+export import Sql = runtime.Sql
+
+/**
+ * Decimal.js
+ */
+export import Decimal = runtime.Decimal
+
+/**
+ * Prisma Client JS version: local
+ * Query Engine version: local
+ */
+export type PrismaVersion = {
+  client: string
+}
+
+export const prismaVersion: PrismaVersion 
+
+/**
+ * Utility Types
+ */
+
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches a JSON object.
+ * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. 
+ */
+export type JsonObject = {[Key in string]?: JsonValue}
+ 
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches a JSON array.
+ */
+export interface JsonArray extends Array<JsonValue> {}
+ 
+/**
+ * From https://github.com/sindresorhus/type-fest/
+ * Matches any valid JSON value.
+ */
+export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+
+/**
+ * Same as JsonObject, but allows undefined
+ */
+export type InputJsonObject = {[Key in string]?: JsonValue}
+ 
+export interface InputJsonArray extends Array<JsonValue> {}
+ 
+export type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
+ type SelectAndInclude = {
+  select: any
+  include: any
+}
+type HasSelect = {
+  select: any
+}
+type HasInclude = {
+  include: any
+}
+type CheckSelect<T, S, U> = T extends SelectAndInclude
+  ? 'Please either choose \`select\` or \`include\`'
+  : T extends HasSelect
+  ? U
+  : T extends HasInclude
+  ? U
+  : S
+
+/**
+ * Get the type of the value, that the Promise holds.
+ */
+export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infer U> ? U : T;
+
+/**
+ * Get the return type of a function which returns a Promise.
+ */
+export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+
+
+export type Enumerable<T> = T | ReadonlyArray<T>;
+
+export type RequiredKeys<T> = {
+  [K in keyof T]-?: {} extends Pick<T, K> ? never : K
+}[keyof T]
+
+export type TruthyKeys<T> = {
+  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+}[keyof T]
+
+export type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
+
+/**
+ * Subset
+ * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
+ */
+export type Subset<T, U> = {
+  [key in keyof T]: key extends keyof U ? T[key] : never;
+};
+
+type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+
+/**
+ * XOR is needed to have a real mutually exclusive union type
+ * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
+ */
+type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+
+
+
+
+
 /**
  * Model Post
  */
@@ -10759,4 +10886,524 @@ export namespace Prisma {
    */
   export const dmmf: runtime.DMMF.Document;
 }
+
+/*
+* Exports for compatiblity introduced in 2.12.0
+* Please import from the Prisma namespace instead
+*/
+export import PostDistinctFieldEnum = Prisma.PostDistinctFieldEnum
+export import UserDistinctFieldEnum = Prisma.UserDistinctFieldEnum
+export import MDistinctFieldEnum = Prisma.MDistinctFieldEnum
+export import NDistinctFieldEnum = Prisma.NDistinctFieldEnum
+export import OneOptionalDistinctFieldEnum = Prisma.OneOptionalDistinctFieldEnum
+export import ManyRequiredDistinctFieldEnum = Prisma.ManyRequiredDistinctFieldEnum
+export import OptionalSide1DistinctFieldEnum = Prisma.OptionalSide1DistinctFieldEnum
+export import OptionalSide2DistinctFieldEnum = Prisma.OptionalSide2DistinctFieldEnum
+export import ADistinctFieldEnum = Prisma.ADistinctFieldEnum
+export import BDistinctFieldEnum = Prisma.BDistinctFieldEnum
+export import CDistinctFieldEnum = Prisma.CDistinctFieldEnum
+export import DDistinctFieldEnum = Prisma.DDistinctFieldEnum
+export import EDistinctFieldEnum = Prisma.EDistinctFieldEnum
+export import SortOrder = Prisma.SortOrder
+export import QueryMode = Prisma.QueryMode
+export import ModelName = Prisma.ModelName
+export import AggregatePost = Prisma.AggregatePost
+export import PostAvgAggregateOutputType = Prisma.PostAvgAggregateOutputType
+export import PostSumAggregateOutputType = Prisma.PostSumAggregateOutputType
+export import PostMinAggregateOutputType = Prisma.PostMinAggregateOutputType
+export import PostMaxAggregateOutputType = Prisma.PostMaxAggregateOutputType
+export import AggregatePostArgs = Prisma.AggregatePostArgs
+export import PostAvgAggregateInputType = Prisma.PostAvgAggregateInputType
+export import PostSumAggregateInputType = Prisma.PostSumAggregateInputType
+export import PostMinAggregateInputType = Prisma.PostMinAggregateInputType
+export import PostMaxAggregateInputType = Prisma.PostMaxAggregateInputType
+export import PostSelect = Prisma.PostSelect
+export import PostInclude = Prisma.PostInclude
+export import FindUniquePostArgs = Prisma.FindUniquePostArgs
+export import FindFirstPostArgs = Prisma.FindFirstPostArgs
+export import FindManyPostArgs = Prisma.FindManyPostArgs
+export import PostCreateArgs = Prisma.PostCreateArgs
+export import PostUpdateArgs = Prisma.PostUpdateArgs
+export import PostUpdateManyArgs = Prisma.PostUpdateManyArgs
+export import PostUpsertArgs = Prisma.PostUpsertArgs
+export import PostDeleteArgs = Prisma.PostDeleteArgs
+export import PostDeleteManyArgs = Prisma.PostDeleteManyArgs
+export import AggregateUser = Prisma.AggregateUser
+export import UserAvgAggregateOutputType = Prisma.UserAvgAggregateOutputType
+export import UserSumAggregateOutputType = Prisma.UserSumAggregateOutputType
+export import UserMinAggregateOutputType = Prisma.UserMinAggregateOutputType
+export import UserMaxAggregateOutputType = Prisma.UserMaxAggregateOutputType
+export import AggregateUserArgs = Prisma.AggregateUserArgs
+export import UserAvgAggregateInputType = Prisma.UserAvgAggregateInputType
+export import UserSumAggregateInputType = Prisma.UserSumAggregateInputType
+export import UserMinAggregateInputType = Prisma.UserMinAggregateInputType
+export import UserMaxAggregateInputType = Prisma.UserMaxAggregateInputType
+export import UserSelect = Prisma.UserSelect
+export import UserInclude = Prisma.UserInclude
+export import FindUniqueUserArgs = Prisma.FindUniqueUserArgs
+export import FindFirstUserArgs = Prisma.FindFirstUserArgs
+export import FindManyUserArgs = Prisma.FindManyUserArgs
+export import UserCreateArgs = Prisma.UserCreateArgs
+export import UserUpdateArgs = Prisma.UserUpdateArgs
+export import UserUpdateManyArgs = Prisma.UserUpdateManyArgs
+export import UserUpsertArgs = Prisma.UserUpsertArgs
+export import UserDeleteArgs = Prisma.UserDeleteArgs
+export import UserDeleteManyArgs = Prisma.UserDeleteManyArgs
+export import AggregateM = Prisma.AggregateM
+export import MAvgAggregateOutputType = Prisma.MAvgAggregateOutputType
+export import MSumAggregateOutputType = Prisma.MSumAggregateOutputType
+export import MMinAggregateOutputType = Prisma.MMinAggregateOutputType
+export import MMaxAggregateOutputType = Prisma.MMaxAggregateOutputType
+export import AggregateMArgs = Prisma.AggregateMArgs
+export import MAvgAggregateInputType = Prisma.MAvgAggregateInputType
+export import MSumAggregateInputType = Prisma.MSumAggregateInputType
+export import MMinAggregateInputType = Prisma.MMinAggregateInputType
+export import MMaxAggregateInputType = Prisma.MMaxAggregateInputType
+export import MSelect = Prisma.MSelect
+export import MInclude = Prisma.MInclude
+export import FindUniqueMArgs = Prisma.FindUniqueMArgs
+export import FindFirstMArgs = Prisma.FindFirstMArgs
+export import FindManyMArgs = Prisma.FindManyMArgs
+export import MCreateArgs = Prisma.MCreateArgs
+export import MUpdateArgs = Prisma.MUpdateArgs
+export import MUpdateManyArgs = Prisma.MUpdateManyArgs
+export import MUpsertArgs = Prisma.MUpsertArgs
+export import MDeleteArgs = Prisma.MDeleteArgs
+export import MDeleteManyArgs = Prisma.MDeleteManyArgs
+export import AggregateN = Prisma.AggregateN
+export import NAvgAggregateOutputType = Prisma.NAvgAggregateOutputType
+export import NSumAggregateOutputType = Prisma.NSumAggregateOutputType
+export import NMinAggregateOutputType = Prisma.NMinAggregateOutputType
+export import NMaxAggregateOutputType = Prisma.NMaxAggregateOutputType
+export import AggregateNArgs = Prisma.AggregateNArgs
+export import NAvgAggregateInputType = Prisma.NAvgAggregateInputType
+export import NSumAggregateInputType = Prisma.NSumAggregateInputType
+export import NMinAggregateInputType = Prisma.NMinAggregateInputType
+export import NMaxAggregateInputType = Prisma.NMaxAggregateInputType
+export import NSelect = Prisma.NSelect
+export import NInclude = Prisma.NInclude
+export import FindUniqueNArgs = Prisma.FindUniqueNArgs
+export import FindFirstNArgs = Prisma.FindFirstNArgs
+export import FindManyNArgs = Prisma.FindManyNArgs
+export import NCreateArgs = Prisma.NCreateArgs
+export import NUpdateArgs = Prisma.NUpdateArgs
+export import NUpdateManyArgs = Prisma.NUpdateManyArgs
+export import NUpsertArgs = Prisma.NUpsertArgs
+export import NDeleteArgs = Prisma.NDeleteArgs
+export import NDeleteManyArgs = Prisma.NDeleteManyArgs
+export import AggregateOneOptional = Prisma.AggregateOneOptional
+export import OneOptionalAvgAggregateOutputType = Prisma.OneOptionalAvgAggregateOutputType
+export import OneOptionalSumAggregateOutputType = Prisma.OneOptionalSumAggregateOutputType
+export import OneOptionalMinAggregateOutputType = Prisma.OneOptionalMinAggregateOutputType
+export import OneOptionalMaxAggregateOutputType = Prisma.OneOptionalMaxAggregateOutputType
+export import AggregateOneOptionalArgs = Prisma.AggregateOneOptionalArgs
+export import OneOptionalAvgAggregateInputType = Prisma.OneOptionalAvgAggregateInputType
+export import OneOptionalSumAggregateInputType = Prisma.OneOptionalSumAggregateInputType
+export import OneOptionalMinAggregateInputType = Prisma.OneOptionalMinAggregateInputType
+export import OneOptionalMaxAggregateInputType = Prisma.OneOptionalMaxAggregateInputType
+export import OneOptionalSelect = Prisma.OneOptionalSelect
+export import OneOptionalInclude = Prisma.OneOptionalInclude
+export import FindUniqueOneOptionalArgs = Prisma.FindUniqueOneOptionalArgs
+export import FindFirstOneOptionalArgs = Prisma.FindFirstOneOptionalArgs
+export import FindManyOneOptionalArgs = Prisma.FindManyOneOptionalArgs
+export import OneOptionalCreateArgs = Prisma.OneOptionalCreateArgs
+export import OneOptionalUpdateArgs = Prisma.OneOptionalUpdateArgs
+export import OneOptionalUpdateManyArgs = Prisma.OneOptionalUpdateManyArgs
+export import OneOptionalUpsertArgs = Prisma.OneOptionalUpsertArgs
+export import OneOptionalDeleteArgs = Prisma.OneOptionalDeleteArgs
+export import OneOptionalDeleteManyArgs = Prisma.OneOptionalDeleteManyArgs
+export import AggregateManyRequired = Prisma.AggregateManyRequired
+export import ManyRequiredAvgAggregateOutputType = Prisma.ManyRequiredAvgAggregateOutputType
+export import ManyRequiredSumAggregateOutputType = Prisma.ManyRequiredSumAggregateOutputType
+export import ManyRequiredMinAggregateOutputType = Prisma.ManyRequiredMinAggregateOutputType
+export import ManyRequiredMaxAggregateOutputType = Prisma.ManyRequiredMaxAggregateOutputType
+export import AggregateManyRequiredArgs = Prisma.AggregateManyRequiredArgs
+export import ManyRequiredAvgAggregateInputType = Prisma.ManyRequiredAvgAggregateInputType
+export import ManyRequiredSumAggregateInputType = Prisma.ManyRequiredSumAggregateInputType
+export import ManyRequiredMinAggregateInputType = Prisma.ManyRequiredMinAggregateInputType
+export import ManyRequiredMaxAggregateInputType = Prisma.ManyRequiredMaxAggregateInputType
+export import ManyRequiredSelect = Prisma.ManyRequiredSelect
+export import ManyRequiredInclude = Prisma.ManyRequiredInclude
+export import FindUniqueManyRequiredArgs = Prisma.FindUniqueManyRequiredArgs
+export import FindFirstManyRequiredArgs = Prisma.FindFirstManyRequiredArgs
+export import FindManyManyRequiredArgs = Prisma.FindManyManyRequiredArgs
+export import ManyRequiredCreateArgs = Prisma.ManyRequiredCreateArgs
+export import ManyRequiredUpdateArgs = Prisma.ManyRequiredUpdateArgs
+export import ManyRequiredUpdateManyArgs = Prisma.ManyRequiredUpdateManyArgs
+export import ManyRequiredUpsertArgs = Prisma.ManyRequiredUpsertArgs
+export import ManyRequiredDeleteArgs = Prisma.ManyRequiredDeleteArgs
+export import ManyRequiredDeleteManyArgs = Prisma.ManyRequiredDeleteManyArgs
+export import AggregateOptionalSide1 = Prisma.AggregateOptionalSide1
+export import OptionalSide1AvgAggregateOutputType = Prisma.OptionalSide1AvgAggregateOutputType
+export import OptionalSide1SumAggregateOutputType = Prisma.OptionalSide1SumAggregateOutputType
+export import OptionalSide1MinAggregateOutputType = Prisma.OptionalSide1MinAggregateOutputType
+export import OptionalSide1MaxAggregateOutputType = Prisma.OptionalSide1MaxAggregateOutputType
+export import AggregateOptionalSide1Args = Prisma.AggregateOptionalSide1Args
+export import OptionalSide1AvgAggregateInputType = Prisma.OptionalSide1AvgAggregateInputType
+export import OptionalSide1SumAggregateInputType = Prisma.OptionalSide1SumAggregateInputType
+export import OptionalSide1MinAggregateInputType = Prisma.OptionalSide1MinAggregateInputType
+export import OptionalSide1MaxAggregateInputType = Prisma.OptionalSide1MaxAggregateInputType
+export import OptionalSide1Select = Prisma.OptionalSide1Select
+export import OptionalSide1Include = Prisma.OptionalSide1Include
+export import FindUniqueOptionalSide1Args = Prisma.FindUniqueOptionalSide1Args
+export import FindFirstOptionalSide1Args = Prisma.FindFirstOptionalSide1Args
+export import FindManyOptionalSide1Args = Prisma.FindManyOptionalSide1Args
+export import OptionalSide1CreateArgs = Prisma.OptionalSide1CreateArgs
+export import OptionalSide1UpdateArgs = Prisma.OptionalSide1UpdateArgs
+export import OptionalSide1UpdateManyArgs = Prisma.OptionalSide1UpdateManyArgs
+export import OptionalSide1UpsertArgs = Prisma.OptionalSide1UpsertArgs
+export import OptionalSide1DeleteArgs = Prisma.OptionalSide1DeleteArgs
+export import OptionalSide1DeleteManyArgs = Prisma.OptionalSide1DeleteManyArgs
+export import AggregateOptionalSide2 = Prisma.AggregateOptionalSide2
+export import OptionalSide2AvgAggregateOutputType = Prisma.OptionalSide2AvgAggregateOutputType
+export import OptionalSide2SumAggregateOutputType = Prisma.OptionalSide2SumAggregateOutputType
+export import OptionalSide2MinAggregateOutputType = Prisma.OptionalSide2MinAggregateOutputType
+export import OptionalSide2MaxAggregateOutputType = Prisma.OptionalSide2MaxAggregateOutputType
+export import AggregateOptionalSide2Args = Prisma.AggregateOptionalSide2Args
+export import OptionalSide2AvgAggregateInputType = Prisma.OptionalSide2AvgAggregateInputType
+export import OptionalSide2SumAggregateInputType = Prisma.OptionalSide2SumAggregateInputType
+export import OptionalSide2MinAggregateInputType = Prisma.OptionalSide2MinAggregateInputType
+export import OptionalSide2MaxAggregateInputType = Prisma.OptionalSide2MaxAggregateInputType
+export import OptionalSide2Select = Prisma.OptionalSide2Select
+export import OptionalSide2Include = Prisma.OptionalSide2Include
+export import FindUniqueOptionalSide2Args = Prisma.FindUniqueOptionalSide2Args
+export import FindFirstOptionalSide2Args = Prisma.FindFirstOptionalSide2Args
+export import FindManyOptionalSide2Args = Prisma.FindManyOptionalSide2Args
+export import OptionalSide2CreateArgs = Prisma.OptionalSide2CreateArgs
+export import OptionalSide2UpdateArgs = Prisma.OptionalSide2UpdateArgs
+export import OptionalSide2UpdateManyArgs = Prisma.OptionalSide2UpdateManyArgs
+export import OptionalSide2UpsertArgs = Prisma.OptionalSide2UpsertArgs
+export import OptionalSide2DeleteArgs = Prisma.OptionalSide2DeleteArgs
+export import OptionalSide2DeleteManyArgs = Prisma.OptionalSide2DeleteManyArgs
+export import AggregateA = Prisma.AggregateA
+export import AAvgAggregateOutputType = Prisma.AAvgAggregateOutputType
+export import ASumAggregateOutputType = Prisma.ASumAggregateOutputType
+export import AMinAggregateOutputType = Prisma.AMinAggregateOutputType
+export import AMaxAggregateOutputType = Prisma.AMaxAggregateOutputType
+export import AggregateAArgs = Prisma.AggregateAArgs
+export import AAvgAggregateInputType = Prisma.AAvgAggregateInputType
+export import ASumAggregateInputType = Prisma.ASumAggregateInputType
+export import AMinAggregateInputType = Prisma.AMinAggregateInputType
+export import AMaxAggregateInputType = Prisma.AMaxAggregateInputType
+export import ASelect = Prisma.ASelect
+export import FindUniqueAArgs = Prisma.FindUniqueAArgs
+export import FindFirstAArgs = Prisma.FindFirstAArgs
+export import FindManyAArgs = Prisma.FindManyAArgs
+export import ACreateArgs = Prisma.ACreateArgs
+export import AUpdateArgs = Prisma.AUpdateArgs
+export import AUpdateManyArgs = Prisma.AUpdateManyArgs
+export import AUpsertArgs = Prisma.AUpsertArgs
+export import ADeleteArgs = Prisma.ADeleteArgs
+export import ADeleteManyArgs = Prisma.ADeleteManyArgs
+export import AggregateB = Prisma.AggregateB
+export import BAvgAggregateOutputType = Prisma.BAvgAggregateOutputType
+export import BSumAggregateOutputType = Prisma.BSumAggregateOutputType
+export import BMinAggregateOutputType = Prisma.BMinAggregateOutputType
+export import BMaxAggregateOutputType = Prisma.BMaxAggregateOutputType
+export import AggregateBArgs = Prisma.AggregateBArgs
+export import BAvgAggregateInputType = Prisma.BAvgAggregateInputType
+export import BSumAggregateInputType = Prisma.BSumAggregateInputType
+export import BMinAggregateInputType = Prisma.BMinAggregateInputType
+export import BMaxAggregateInputType = Prisma.BMaxAggregateInputType
+export import BSelect = Prisma.BSelect
+export import FindUniqueBArgs = Prisma.FindUniqueBArgs
+export import FindFirstBArgs = Prisma.FindFirstBArgs
+export import FindManyBArgs = Prisma.FindManyBArgs
+export import BCreateArgs = Prisma.BCreateArgs
+export import BUpdateArgs = Prisma.BUpdateArgs
+export import BUpdateManyArgs = Prisma.BUpdateManyArgs
+export import BUpsertArgs = Prisma.BUpsertArgs
+export import BDeleteArgs = Prisma.BDeleteArgs
+export import BDeleteManyArgs = Prisma.BDeleteManyArgs
+export import AggregateC = Prisma.AggregateC
+export import AggregateCArgs = Prisma.AggregateCArgs
+export import CSelect = Prisma.CSelect
+export import FindUniqueCArgs = Prisma.FindUniqueCArgs
+export import FindFirstCArgs = Prisma.FindFirstCArgs
+export import FindManyCArgs = Prisma.FindManyCArgs
+export import CCreateArgs = Prisma.CCreateArgs
+export import CUpdateArgs = Prisma.CUpdateArgs
+export import CUpdateManyArgs = Prisma.CUpdateManyArgs
+export import CUpsertArgs = Prisma.CUpsertArgs
+export import CDeleteArgs = Prisma.CDeleteArgs
+export import CDeleteManyArgs = Prisma.CDeleteManyArgs
+export import AggregateD = Prisma.AggregateD
+export import AggregateDArgs = Prisma.AggregateDArgs
+export import DSelect = Prisma.DSelect
+export import FindUniqueDArgs = Prisma.FindUniqueDArgs
+export import FindFirstDArgs = Prisma.FindFirstDArgs
+export import FindManyDArgs = Prisma.FindManyDArgs
+export import DCreateArgs = Prisma.DCreateArgs
+export import DUpdateArgs = Prisma.DUpdateArgs
+export import DUpdateManyArgs = Prisma.DUpdateManyArgs
+export import DUpsertArgs = Prisma.DUpsertArgs
+export import DDeleteArgs = Prisma.DDeleteArgs
+export import DDeleteManyArgs = Prisma.DDeleteManyArgs
+export import AggregateE = Prisma.AggregateE
+export import AggregateEArgs = Prisma.AggregateEArgs
+export import ESelect = Prisma.ESelect
+export import FindUniqueEArgs = Prisma.FindUniqueEArgs
+export import FindFirstEArgs = Prisma.FindFirstEArgs
+export import FindManyEArgs = Prisma.FindManyEArgs
+export import ECreateArgs = Prisma.ECreateArgs
+export import EUpdateArgs = Prisma.EUpdateArgs
+export import EUpdateManyArgs = Prisma.EUpdateManyArgs
+export import EUpsertArgs = Prisma.EUpsertArgs
+export import EDeleteArgs = Prisma.EDeleteArgs
+export import EDeleteManyArgs = Prisma.EDeleteManyArgs
+export import PostWhereInput = Prisma.PostWhereInput
+export import PostOrderByInput = Prisma.PostOrderByInput
+export import PostWhereUniqueInput = Prisma.PostWhereUniqueInput
+export import UserWhereInput = Prisma.UserWhereInput
+export import UserOrderByInput = Prisma.UserOrderByInput
+export import UserWhereUniqueInput = Prisma.UserWhereUniqueInput
+export import MWhereInput = Prisma.MWhereInput
+export import MOrderByInput = Prisma.MOrderByInput
+export import MWhereUniqueInput = Prisma.MWhereUniqueInput
+export import NWhereInput = Prisma.NWhereInput
+export import NOrderByInput = Prisma.NOrderByInput
+export import NWhereUniqueInput = Prisma.NWhereUniqueInput
+export import OneOptionalWhereInput = Prisma.OneOptionalWhereInput
+export import OneOptionalOrderByInput = Prisma.OneOptionalOrderByInput
+export import OneOptionalWhereUniqueInput = Prisma.OneOptionalWhereUniqueInput
+export import ManyRequiredWhereInput = Prisma.ManyRequiredWhereInput
+export import ManyRequiredOrderByInput = Prisma.ManyRequiredOrderByInput
+export import ManyRequiredWhereUniqueInput = Prisma.ManyRequiredWhereUniqueInput
+export import OptionalSide1WhereInput = Prisma.OptionalSide1WhereInput
+export import OptionalSide1OrderByInput = Prisma.OptionalSide1OrderByInput
+export import OptionalSide1WhereUniqueInput = Prisma.OptionalSide1WhereUniqueInput
+export import OptionalSide2WhereInput = Prisma.OptionalSide2WhereInput
+export import OptionalSide2OrderByInput = Prisma.OptionalSide2OrderByInput
+export import OptionalSide2WhereUniqueInput = Prisma.OptionalSide2WhereUniqueInput
+export import AWhereInput = Prisma.AWhereInput
+export import AOrderByInput = Prisma.AOrderByInput
+export import AWhereUniqueInput = Prisma.AWhereUniqueInput
+export import BWhereInput = Prisma.BWhereInput
+export import BOrderByInput = Prisma.BOrderByInput
+export import BWhereUniqueInput = Prisma.BWhereUniqueInput
+export import CWhereInput = Prisma.CWhereInput
+export import COrderByInput = Prisma.COrderByInput
+export import CWhereUniqueInput = Prisma.CWhereUniqueInput
+export import DWhereInput = Prisma.DWhereInput
+export import DOrderByInput = Prisma.DOrderByInput
+export import DWhereUniqueInput = Prisma.DWhereUniqueInput
+export import EWhereInput = Prisma.EWhereInput
+export import EOrderByInput = Prisma.EOrderByInput
+export import EWhereUniqueInput = Prisma.EWhereUniqueInput
+export import PostCreateInput = Prisma.PostCreateInput
+export import PostUncheckedCreateInput = Prisma.PostUncheckedCreateInput
+export import PostUpdateInput = Prisma.PostUpdateInput
+export import PostUncheckedUpdateInput = Prisma.PostUncheckedUpdateInput
+export import PostUpdateManyMutationInput = Prisma.PostUpdateManyMutationInput
+export import PostUncheckedUpdateManyInput = Prisma.PostUncheckedUpdateManyInput
+export import UserCreateInput = Prisma.UserCreateInput
+export import UserUncheckedCreateInput = Prisma.UserUncheckedCreateInput
+export import UserUpdateInput = Prisma.UserUpdateInput
+export import UserUncheckedUpdateInput = Prisma.UserUncheckedUpdateInput
+export import UserUpdateManyMutationInput = Prisma.UserUpdateManyMutationInput
+export import UserUncheckedUpdateManyInput = Prisma.UserUncheckedUpdateManyInput
+export import MCreateInput = Prisma.MCreateInput
+export import MUncheckedCreateInput = Prisma.MUncheckedCreateInput
+export import MUpdateInput = Prisma.MUpdateInput
+export import MUncheckedUpdateInput = Prisma.MUncheckedUpdateInput
+export import MUpdateManyMutationInput = Prisma.MUpdateManyMutationInput
+export import MUncheckedUpdateManyInput = Prisma.MUncheckedUpdateManyInput
+export import NCreateInput = Prisma.NCreateInput
+export import NUncheckedCreateInput = Prisma.NUncheckedCreateInput
+export import NUpdateInput = Prisma.NUpdateInput
+export import NUncheckedUpdateInput = Prisma.NUncheckedUpdateInput
+export import NUpdateManyMutationInput = Prisma.NUpdateManyMutationInput
+export import NUncheckedUpdateManyInput = Prisma.NUncheckedUpdateManyInput
+export import OneOptionalCreateInput = Prisma.OneOptionalCreateInput
+export import OneOptionalUncheckedCreateInput = Prisma.OneOptionalUncheckedCreateInput
+export import OneOptionalUpdateInput = Prisma.OneOptionalUpdateInput
+export import OneOptionalUncheckedUpdateInput = Prisma.OneOptionalUncheckedUpdateInput
+export import OneOptionalUpdateManyMutationInput = Prisma.OneOptionalUpdateManyMutationInput
+export import OneOptionalUncheckedUpdateManyInput = Prisma.OneOptionalUncheckedUpdateManyInput
+export import ManyRequiredCreateInput = Prisma.ManyRequiredCreateInput
+export import ManyRequiredUncheckedCreateInput = Prisma.ManyRequiredUncheckedCreateInput
+export import ManyRequiredUpdateInput = Prisma.ManyRequiredUpdateInput
+export import ManyRequiredUncheckedUpdateInput = Prisma.ManyRequiredUncheckedUpdateInput
+export import ManyRequiredUpdateManyMutationInput = Prisma.ManyRequiredUpdateManyMutationInput
+export import ManyRequiredUncheckedUpdateManyInput = Prisma.ManyRequiredUncheckedUpdateManyInput
+export import OptionalSide1CreateInput = Prisma.OptionalSide1CreateInput
+export import OptionalSide1UncheckedCreateInput = Prisma.OptionalSide1UncheckedCreateInput
+export import OptionalSide1UpdateInput = Prisma.OptionalSide1UpdateInput
+export import OptionalSide1UncheckedUpdateInput = Prisma.OptionalSide1UncheckedUpdateInput
+export import OptionalSide1UpdateManyMutationInput = Prisma.OptionalSide1UpdateManyMutationInput
+export import OptionalSide1UncheckedUpdateManyInput = Prisma.OptionalSide1UncheckedUpdateManyInput
+export import OptionalSide2CreateInput = Prisma.OptionalSide2CreateInput
+export import OptionalSide2UncheckedCreateInput = Prisma.OptionalSide2UncheckedCreateInput
+export import OptionalSide2UpdateInput = Prisma.OptionalSide2UpdateInput
+export import OptionalSide2UncheckedUpdateInput = Prisma.OptionalSide2UncheckedUpdateInput
+export import OptionalSide2UpdateManyMutationInput = Prisma.OptionalSide2UpdateManyMutationInput
+export import OptionalSide2UncheckedUpdateManyInput = Prisma.OptionalSide2UncheckedUpdateManyInput
+export import ACreateInput = Prisma.ACreateInput
+export import AUncheckedCreateInput = Prisma.AUncheckedCreateInput
+export import AUpdateInput = Prisma.AUpdateInput
+export import AUncheckedUpdateInput = Prisma.AUncheckedUpdateInput
+export import AUpdateManyMutationInput = Prisma.AUpdateManyMutationInput
+export import AUncheckedUpdateManyInput = Prisma.AUncheckedUpdateManyInput
+export import BCreateInput = Prisma.BCreateInput
+export import BUncheckedCreateInput = Prisma.BUncheckedCreateInput
+export import BUpdateInput = Prisma.BUpdateInput
+export import BUncheckedUpdateInput = Prisma.BUncheckedUpdateInput
+export import BUpdateManyMutationInput = Prisma.BUpdateManyMutationInput
+export import BUncheckedUpdateManyInput = Prisma.BUncheckedUpdateManyInput
+export import CCreateInput = Prisma.CCreateInput
+export import CUncheckedCreateInput = Prisma.CUncheckedCreateInput
+export import CUpdateInput = Prisma.CUpdateInput
+export import CUncheckedUpdateInput = Prisma.CUncheckedUpdateInput
+export import CUpdateManyMutationInput = Prisma.CUpdateManyMutationInput
+export import CUncheckedUpdateManyInput = Prisma.CUncheckedUpdateManyInput
+export import DCreateInput = Prisma.DCreateInput
+export import DUncheckedCreateInput = Prisma.DUncheckedCreateInput
+export import DUpdateInput = Prisma.DUpdateInput
+export import DUncheckedUpdateInput = Prisma.DUncheckedUpdateInput
+export import DUpdateManyMutationInput = Prisma.DUpdateManyMutationInput
+export import DUncheckedUpdateManyInput = Prisma.DUncheckedUpdateManyInput
+export import ECreateInput = Prisma.ECreateInput
+export import EUncheckedCreateInput = Prisma.EUncheckedCreateInput
+export import EUpdateInput = Prisma.EUpdateInput
+export import EUncheckedUpdateInput = Prisma.EUncheckedUpdateInput
+export import EUpdateManyMutationInput = Prisma.EUpdateManyMutationInput
+export import EUncheckedUpdateManyInput = Prisma.EUncheckedUpdateManyInput
+export import IntFilter = Prisma.IntFilter
+export import DateTimeFilter = Prisma.DateTimeFilter
+export import StringFilter = Prisma.StringFilter
+export import StringNullableFilter = Prisma.StringNullableFilter
+export import BoolFilter = Prisma.BoolFilter
+export import UserRelationFilter = Prisma.UserRelationFilter
+export import IntNullableFilter = Prisma.IntNullableFilter
+export import FloatFilter = Prisma.FloatFilter
+export import FloatNullableFilter = Prisma.FloatNullableFilter
+export import JsonFilter = Prisma.JsonFilter
+export import JsonNullableFilter = Prisma.JsonNullableFilter
+export import EnumABeautifulEnumFilter = Prisma.EnumABeautifulEnumFilter
+export import EnumABeautifulEnumNullableFilter = Prisma.EnumABeautifulEnumNullableFilter
+export import BoolNullableFilter = Prisma.BoolNullableFilter
+export import PostListRelationFilter = Prisma.PostListRelationFilter
+export import NListRelationFilter = Prisma.NListRelationFilter
+export import MListRelationFilter = Prisma.MListRelationFilter
+export import ManyRequiredListRelationFilter = Prisma.ManyRequiredListRelationFilter
+export import OneOptionalRelationFilter = Prisma.OneOptionalRelationFilter
+export import OptionalSide2RelationFilter = Prisma.OptionalSide2RelationFilter
+export import OptionalSide1RelationFilter = Prisma.OptionalSide1RelationFilter
+export import BigIntFilter = Prisma.BigIntFilter
+export import DecimalFilter = Prisma.DecimalFilter
+export import BytesFilter = Prisma.BytesFilter
+export import UserCreateOneWithoutPostsInput = Prisma.UserCreateOneWithoutPostsInput
+export import DateTimeFieldUpdateOperationsInput = Prisma.DateTimeFieldUpdateOperationsInput
+export import StringFieldUpdateOperationsInput = Prisma.StringFieldUpdateOperationsInput
+export import NullableStringFieldUpdateOperationsInput = Prisma.NullableStringFieldUpdateOperationsInput
+export import BoolFieldUpdateOperationsInput = Prisma.BoolFieldUpdateOperationsInput
+export import UserUpdateOneRequiredWithoutPostsInput = Prisma.UserUpdateOneRequiredWithoutPostsInput
+export import IntFieldUpdateOperationsInput = Prisma.IntFieldUpdateOperationsInput
+export import PostCreateManyWithoutAuthorInput = Prisma.PostCreateManyWithoutAuthorInput
+export import PostUncheckedCreateManyWithoutAuthorInput = Prisma.PostUncheckedCreateManyWithoutAuthorInput
+export import NullableIntFieldUpdateOperationsInput = Prisma.NullableIntFieldUpdateOperationsInput
+export import FloatFieldUpdateOperationsInput = Prisma.FloatFieldUpdateOperationsInput
+export import NullableFloatFieldUpdateOperationsInput = Prisma.NullableFloatFieldUpdateOperationsInput
+export import EnumABeautifulEnumFieldUpdateOperationsInput = Prisma.EnumABeautifulEnumFieldUpdateOperationsInput
+export import NullableEnumABeautifulEnumFieldUpdateOperationsInput = Prisma.NullableEnumABeautifulEnumFieldUpdateOperationsInput
+export import NullableBoolFieldUpdateOperationsInput = Prisma.NullableBoolFieldUpdateOperationsInput
+export import PostUpdateManyWithoutAuthorInput = Prisma.PostUpdateManyWithoutAuthorInput
+export import PostUncheckedUpdateManyWithoutAuthorInput = Prisma.PostUncheckedUpdateManyWithoutAuthorInput
+export import NCreateManyWithoutMInput = Prisma.NCreateManyWithoutMInput
+export import NUpdateManyWithoutMInput = Prisma.NUpdateManyWithoutMInput
+export import MCreateManyWithoutNInput = Prisma.MCreateManyWithoutNInput
+export import MUpdateManyWithoutNInput = Prisma.MUpdateManyWithoutNInput
+export import ManyRequiredCreateManyWithoutOneInput = Prisma.ManyRequiredCreateManyWithoutOneInput
+export import ManyRequiredUncheckedCreateManyWithoutOneInput = Prisma.ManyRequiredUncheckedCreateManyWithoutOneInput
+export import ManyRequiredUpdateManyWithoutOneInput = Prisma.ManyRequiredUpdateManyWithoutOneInput
+export import ManyRequiredUncheckedUpdateManyWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutOneInput
+export import OneOptionalCreateOneWithoutManyInput = Prisma.OneOptionalCreateOneWithoutManyInput
+export import OneOptionalUpdateOneWithoutManyInput = Prisma.OneOptionalUpdateOneWithoutManyInput
+export import OptionalSide2CreateOneWithoutOptiInput = Prisma.OptionalSide2CreateOneWithoutOptiInput
+export import OptionalSide2UpdateOneWithoutOptiInput = Prisma.OptionalSide2UpdateOneWithoutOptiInput
+export import OptionalSide1CreateOneWithoutOptiInput = Prisma.OptionalSide1CreateOneWithoutOptiInput
+export import OptionalSide1UncheckedCreateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateOneWithoutOptiInput
+export import OptionalSide1UpdateOneWithoutOptiInput = Prisma.OptionalSide1UpdateOneWithoutOptiInput
+export import OptionalSide1UncheckedUpdateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateOneWithoutOptiInput
+export import BigIntFieldUpdateOperationsInput = Prisma.BigIntFieldUpdateOperationsInput
+export import DecimalFieldUpdateOperationsInput = Prisma.DecimalFieldUpdateOperationsInput
+export import BytesFieldUpdateOperationsInput = Prisma.BytesFieldUpdateOperationsInput
+export import NestedIntFilter = Prisma.NestedIntFilter
+export import NestedDateTimeFilter = Prisma.NestedDateTimeFilter
+export import NestedStringFilter = Prisma.NestedStringFilter
+export import NestedStringNullableFilter = Prisma.NestedStringNullableFilter
+export import NestedBoolFilter = Prisma.NestedBoolFilter
+export import NestedIntNullableFilter = Prisma.NestedIntNullableFilter
+export import NestedFloatFilter = Prisma.NestedFloatFilter
+export import NestedFloatNullableFilter = Prisma.NestedFloatNullableFilter
+export import NestedEnumABeautifulEnumFilter = Prisma.NestedEnumABeautifulEnumFilter
+export import NestedEnumABeautifulEnumNullableFilter = Prisma.NestedEnumABeautifulEnumNullableFilter
+export import NestedBoolNullableFilter = Prisma.NestedBoolNullableFilter
+export import NestedBigIntFilter = Prisma.NestedBigIntFilter
+export import NestedDecimalFilter = Prisma.NestedDecimalFilter
+export import NestedBytesFilter = Prisma.NestedBytesFilter
+export import UserCreateWithoutPostsInput = Prisma.UserCreateWithoutPostsInput
+export import UserUncheckedCreateWithoutPostsInput = Prisma.UserUncheckedCreateWithoutPostsInput
+export import UserCreateOrConnectWithoutpostsInput = Prisma.UserCreateOrConnectWithoutpostsInput
+export import UserUpdateWithoutPostsInput = Prisma.UserUpdateWithoutPostsInput
+export import UserUncheckedUpdateWithoutPostsInput = Prisma.UserUncheckedUpdateWithoutPostsInput
+export import UserUpsertWithoutPostsInput = Prisma.UserUpsertWithoutPostsInput
+export import PostCreateWithoutAuthorInput = Prisma.PostCreateWithoutAuthorInput
+export import PostUncheckedCreateWithoutAuthorInput = Prisma.PostUncheckedCreateWithoutAuthorInput
+export import PostCreateOrConnectWithoutauthorInput = Prisma.PostCreateOrConnectWithoutauthorInput
+export import PostUpdateWithWhereUniqueWithoutAuthorInput = Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput
+export import PostUpdateManyWithWhereWithoutAuthorInput = Prisma.PostUpdateManyWithWhereWithoutAuthorInput
+export import PostScalarWhereInput = Prisma.PostScalarWhereInput
+export import PostUpsertWithWhereUniqueWithoutAuthorInput = Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput
+export import NCreateWithoutMInput = Prisma.NCreateWithoutMInput
+export import NUncheckedCreateWithoutMInput = Prisma.NUncheckedCreateWithoutMInput
+export import NCreateOrConnectWithoutmInput = Prisma.NCreateOrConnectWithoutmInput
+export import NUpdateWithWhereUniqueWithoutMInput = Prisma.NUpdateWithWhereUniqueWithoutMInput
+export import NUpdateManyWithWhereWithoutMInput = Prisma.NUpdateManyWithWhereWithoutMInput
+export import NScalarWhereInput = Prisma.NScalarWhereInput
+export import NUpsertWithWhereUniqueWithoutMInput = Prisma.NUpsertWithWhereUniqueWithoutMInput
+export import MCreateWithoutNInput = Prisma.MCreateWithoutNInput
+export import MUncheckedCreateWithoutNInput = Prisma.MUncheckedCreateWithoutNInput
+export import MCreateOrConnectWithoutnInput = Prisma.MCreateOrConnectWithoutnInput
+export import MUpdateWithWhereUniqueWithoutNInput = Prisma.MUpdateWithWhereUniqueWithoutNInput
+export import MUpdateManyWithWhereWithoutNInput = Prisma.MUpdateManyWithWhereWithoutNInput
+export import MScalarWhereInput = Prisma.MScalarWhereInput
+export import MUpsertWithWhereUniqueWithoutNInput = Prisma.MUpsertWithWhereUniqueWithoutNInput
+export import ManyRequiredCreateWithoutOneInput = Prisma.ManyRequiredCreateWithoutOneInput
+export import ManyRequiredUncheckedCreateWithoutOneInput = Prisma.ManyRequiredUncheckedCreateWithoutOneInput
+export import ManyRequiredCreateOrConnectWithoutoneInput = Prisma.ManyRequiredCreateOrConnectWithoutoneInput
+export import ManyRequiredUpdateWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpdateWithWhereUniqueWithoutOneInput
+export import ManyRequiredUpdateManyWithWhereWithoutOneInput = Prisma.ManyRequiredUpdateManyWithWhereWithoutOneInput
+export import ManyRequiredScalarWhereInput = Prisma.ManyRequiredScalarWhereInput
+export import ManyRequiredUpsertWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpsertWithWhereUniqueWithoutOneInput
+export import OneOptionalCreateWithoutManyInput = Prisma.OneOptionalCreateWithoutManyInput
+export import OneOptionalUncheckedCreateWithoutManyInput = Prisma.OneOptionalUncheckedCreateWithoutManyInput
+export import OneOptionalCreateOrConnectWithoutmanyInput = Prisma.OneOptionalCreateOrConnectWithoutmanyInput
+export import OneOptionalUpdateWithoutManyInput = Prisma.OneOptionalUpdateWithoutManyInput
+export import OneOptionalUncheckedUpdateWithoutManyInput = Prisma.OneOptionalUncheckedUpdateWithoutManyInput
+export import OneOptionalUpsertWithoutManyInput = Prisma.OneOptionalUpsertWithoutManyInput
+export import OptionalSide2CreateWithoutOptiInput = Prisma.OptionalSide2CreateWithoutOptiInput
+export import OptionalSide2UncheckedCreateWithoutOptiInput = Prisma.OptionalSide2UncheckedCreateWithoutOptiInput
+export import OptionalSide2CreateOrConnectWithoutoptiInput = Prisma.OptionalSide2CreateOrConnectWithoutoptiInput
+export import OptionalSide2UpdateWithoutOptiInput = Prisma.OptionalSide2UpdateWithoutOptiInput
+export import OptionalSide2UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide2UncheckedUpdateWithoutOptiInput
+export import OptionalSide2UpsertWithoutOptiInput = Prisma.OptionalSide2UpsertWithoutOptiInput
+export import OptionalSide1CreateWithoutOptiInput = Prisma.OptionalSide1CreateWithoutOptiInput
+export import OptionalSide1UncheckedCreateWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateWithoutOptiInput
+export import OptionalSide1CreateOrConnectWithoutoptiInput = Prisma.OptionalSide1CreateOrConnectWithoutoptiInput
+export import OptionalSide1UpdateWithoutOptiInput = Prisma.OptionalSide1UpdateWithoutOptiInput
+export import OptionalSide1UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateWithoutOptiInput
+export import OptionalSide1UpsertWithoutOptiInput = Prisma.OptionalSide1UpsertWithoutOptiInput
+export import PostUpdateWithoutAuthorInput = Prisma.PostUpdateWithoutAuthorInput
+export import PostUncheckedUpdateWithoutAuthorInput = Prisma.PostUncheckedUpdateWithoutAuthorInput
+export import PostUncheckedUpdateManyWithoutPostsInput = Prisma.PostUncheckedUpdateManyWithoutPostsInput
+export import NUpdateWithoutMInput = Prisma.NUpdateWithoutMInput
+export import NUncheckedUpdateWithoutMInput = Prisma.NUncheckedUpdateWithoutMInput
+export import NUncheckedUpdateManyWithoutNInput = Prisma.NUncheckedUpdateManyWithoutNInput
+export import MUpdateWithoutNInput = Prisma.MUpdateWithoutNInput
+export import MUncheckedUpdateWithoutNInput = Prisma.MUncheckedUpdateWithoutNInput
+export import MUncheckedUpdateManyWithoutMInput = Prisma.MUncheckedUpdateManyWithoutMInput
+export import ManyRequiredUpdateWithoutOneInput = Prisma.ManyRequiredUpdateWithoutOneInput
+export import ManyRequiredUncheckedUpdateWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateWithoutOneInput
+export import ManyRequiredUncheckedUpdateManyWithoutManyInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutManyInput
 `;

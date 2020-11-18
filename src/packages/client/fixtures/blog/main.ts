@@ -1,4 +1,4 @@
-import { PrismaClient } from './@prisma/client'
+import { PrismaClient, FindFirstPostArgs, sql } from './@prisma/client'
 
 const prisma = new PrismaClient({
   errorFormat: 'pretty',
@@ -8,12 +8,8 @@ const prisma = new PrismaClient({
 } as any)
 
 async function main() {
-  const x = await prisma.post.findFirst({
-    // where: {
-    //   // author: null
-    //   id: 'asd',
-    // },
-  })
+  const args: FindFirstPostArgs = {}
+  const x = await prisma.$queryRaw(sql`SELECT 1`)
   console.log(x)
   prisma.$disconnect()
 }
