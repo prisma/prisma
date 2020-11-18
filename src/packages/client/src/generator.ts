@@ -54,7 +54,7 @@ generatorHandler({
         )
         : '@prisma/client'
 
-    const instruction = String(highlightTS(`\
+    const instruction = String(highlightTS(`
 import { PrismaClient } from '${importPath}'
 // or const { PrismaClient } = require('${importPath}')
 

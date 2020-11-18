@@ -9,7 +9,9 @@ import {
   getGenerators,
   getSchemaPath,
   HelpError,
+  highlightTS,
   isError,
+  link,
   missingGeneratorMessage,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -75,6 +77,29 @@ export class Generate implements Command {
           const useMessage = await generator.getUseMessage()
           if (useMessage) {
             message.push(`${useMessage}\n`)
+          } else if (generator.options?.generator.provider === 'prisma-client-js') {
+            const importPath = generator.options?.generator?.isCustomOutput
+              ? prefixRelativePathIfNecessary(
+                path.relative(
+                  process.cwd(),
+                  generator.options?.generator.output!,
+                ),
+              )
+              : '@prisma/client'
+
+            const instruction = String(highlightTS(`
+import { PrismaClient } from '${importPath}'
+// or const { PrismaClient } = require('${importPath}')
+
+const prisma = new PrismaClient()`))
+
+            message.push(`You can now start using Prisma Client in your code:
+
+\`\`\`
+${instruction}
+\`\`\`
+
+Explore the full API: ${link('http://pris.ly/d/client')}\n`)
           }
           generator.stop()
         } catch (err) {
@@ -243,4 +268,12 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     }
     return Generate.help
   }
+}
+
+function prefixRelativePathIfNecessary(relativePath: string): string {
+  if (relativePath.startsWith('..')) {
+    return relativePath
+  }
+
+  return `./${relativePath}`
 }
