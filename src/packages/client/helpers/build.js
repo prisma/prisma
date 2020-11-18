@@ -51,10 +51,6 @@ async function main() {
       false,
     ),
     run('rollup -c'),
-    run(
-      'ncp runtime-dist/esm runtime/esm',
-      false,
-    ),
   ])
 
   await Promise.all([
@@ -68,6 +64,7 @@ async function main() {
   file = file.replace(/^export\s+=\s+.*/gm, '')
   file = file.replace('namespace Decimal {', 'declare namespace Decimal {')
   await writeFile('./runtime/commonjs/index.d.ts', file)
+  await writeFile('./runtime/esm/index.d.ts', file)
 
   const after = Date.now()
   console.log(

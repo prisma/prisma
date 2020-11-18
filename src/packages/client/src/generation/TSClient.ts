@@ -269,10 +269,10 @@ ${!hideFetcher ? (
 `})
 
 const commonCodeMJS = ({
-                        runtimePath,
-                        clientVersion,
-                        engineVersion,
-                      }: CommonCodeParams): string => `
+  runtimePath,
+  clientVersion,
+  engineVersion,
+}: CommonCodeParams): string => `
 import {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -281,45 +281,53 @@ import {
   PrismaClientValidationError,
   warnEnvConflicts,
   getPrismaClient,
-  sqltag as sql,
+  debugLib,
+  sqltag,
   empty,
   join,
   raw,
-  Sql,
-  Decimal,
+  Decimal
 } from '${runtimePath}'
 
 import path from 'path'
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'
 
 const debug = debugLib('prisma-client')
 
 /**
  * Polyfill __dirname for esm modules
  */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const Prisma = {}
+
+export default Prisma
 
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
  */
-export const prismaVersion = {
+Prisma.prismaVersion = {
   client: "${clientVersion}",
   engine: "${engineVersion}"
 }
 
-export { PrismaClientKnownRequestError }
-export { PrismaClientUnknownRequestError }
-export { PrismaClientRustPanicError }
-export { PrismaClientInitializationError }
-export { PrismaClientValidationError }
-export { Decimal }
+Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
+Prisma.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
+Prisma.PrismaClientRustPanicError = PrismaClientRustPanicError;
+Prisma.PrismaClientInitializationError = PrismaClientInitializationError;
+Prisma.PrismaClientValidationError = PrismaClientValidationError;
+Prisma.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
  */
-export { sql, empty, join, raw, Sql }
+
+Prisma.sql = sqltag
+Prisma.empty = empty
+Prisma.join = join
+Prisma.raw = raw
 `
 
 interface TSClientOptions {
@@ -590,6 +598,7 @@ export const dmmf: runtime.DMMF.Document;
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
+      datasourceNames: this.options.datasources.map(d => d.name)
     }
 
     return `${commonCodeMJS(this.options)}
@@ -600,10 +609,10 @@ export const dmmf: runtime.DMMF.Document;
 **/
 
 ${this.options.platforms
-        ? this.options.platforms
-            .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
-            .join('\n')
-        : ''
+      ? this.options.platforms
+        .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
+        .join('\n')
+      : ''
     }
 
 /**
@@ -618,12 +627,13 @@ path.join(__dirname, 'schema.prisma');
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toMJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toMJS()).join('\n\n') ?? ''}
+
 ${new Enum({
       name: 'ModelName',
       values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-    }).toJS()}
-
-${this.dmmf.schema.enums.map((type) => new Enum(type).toMJS()).join('\n\n')}
+    }, true).toMJS()}
 
 
 /**
@@ -634,8 +644,7 @@ const dmmfString = ${JSON.stringify(this.dmmfString)}
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
 const dmmf = JSON.parse(dmmfString)
-const dmmf2 = JSON.parse(dmmfString)
-export { dmmf2 as dmmf }
+Prisma.dmmf = JSON.parse(dmmfString)
 
 /**
  * Create the Client
@@ -655,8 +664,8 @@ const envPaths = {
 }
 warnEnvConflicts(envPaths)
 
-const PrismaClient = getPrismaClient(config)
-export { PrismaClient }`
+export const PrismaClient = getPrismaClient(config)
+`
   }
 }
 
@@ -1907,11 +1916,9 @@ export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name
   }
   public toMJS(): string {
     const { type } = this
-    return `const ${type.name} = makeEnum({
+    return `${this.useNamespace ? 'Prisma.' : 'export const '}${type.name} = makeEnum({
 ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), tab)}
-});
-
-export { ${type.name} }`
+});`
   }
 }
 
