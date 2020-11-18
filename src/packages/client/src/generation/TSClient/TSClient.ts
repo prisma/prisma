@@ -1,5 +1,4 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
-import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 import indent from 'indent-string'
 import path from 'path'
 import { DMMFClass } from '../../runtime/dmmf'
