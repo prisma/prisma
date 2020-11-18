@@ -396,7 +396,14 @@ This probably happens, because you built Prisma Client on a different platform.
 
 Searched Locations:
 
-${searchedLocations.map((f) => `  ${f}`).join('\n')}\n`
+${searchedLocations.map((f) => {
+        let msg = `  ${f}`
+        if (process.env.DEBUG && fs.existsSync(f)) {
+          const dir = fs.readdirSync(f)
+          msg += dir.map(d => `    ${d}`).join('\n')
+        }
+        return msg
+      }).join('\n' + (process.env.DEBUG ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
