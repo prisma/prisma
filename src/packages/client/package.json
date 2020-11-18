@@ -56,7 +56,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.12.0-6.25e9759940a4e792233f1137f1bcf3548c684179",
+    "@prisma/engines": "2.12.0-10.a4ef806349a7b17c41f45735ce4a36322e01c250",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -67,17 +67,17 @@
     "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.15",
     "@types/js-levenshtein": "1.1.0",
-    "@types/node": "12.19.4",
+    "@types/node": "12.19.5",
     "@types/node-fetch": "2.5.7",
-    "@types/pg": "7.14.6",
-    "@typescript-eslint/eslint-plugin": "4.7.0",
-    "@typescript-eslint/parser": "4.7.0",
+    "@types/pg": "7.14.7",
+    "@typescript-eslint/eslint-plugin": "4.8.1",
+    "@typescript-eslint/parser": "4.8.1",
     "arg": "5.0.0",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.8",
+    "esbuild": "0.8.10",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.13.0",
     "eslint-config-prettier": "6.15.0",
@@ -110,7 +110,7 @@
     "prettier": "2.1.2",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.33.2",
+    "rollup": "2.33.3",
     "rollup-plugin-dts": "1.4.14",
     "set-value": "3.0.2",
     "source-map-support": "0.5.19",
@@ -147,6 +147,6 @@
     ]
   },
   "dependencies": {
-    "@prisma/engines-version": "2.12.0-6.25e9759940a4e792233f1137f1bcf3548c684179"
+    "@prisma/engines-version": "2.12.0-10.a4ef806349a7b17c41f45735ce4a36322e01c250"
   }
 }

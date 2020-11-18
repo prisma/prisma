@@ -32,6 +32,7 @@ import {
   getAggregateGetName,
   getAggregateScalarGetName,
   getAggregateInputType,
+  unique,
 } from './utils'
 import { uniqueBy } from '../runtime/utils/uniqueBy'
 import { GetPrismaClientOptions } from '../runtime/getPrismaClient'
@@ -118,9 +119,12 @@ const commonCodeTS = ({
   runtimePath,
   clientVersion,
   engineVersion,
-}: CommonCodeParams): { ts: string, tsWithoutNamespace: string } => ({
-  tsWithoutNamespace: `import * as runtime from '${runtimePath}';`,
-  ts: `export import DMMF = runtime.DMMF
+}: CommonCodeParams) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
+
+${commonCodeTS({ runtimePath, clientVersion, engineVersion }).ts(true)}
+`,
+  ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
 
 /**
  * Prisma Errors
@@ -243,7 +247,8 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
  */
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-class PrismaClientFetcher {
+${!hideFetcher ? (
+      `class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
   private readonly hooks?;
@@ -251,7 +256,8 @@ class PrismaClientFetcher {
   request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
   sanitizeMessage(message: string): string;
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
-}
+}`) : ''
+    }
 `})
 
 interface TSClientOptions {
@@ -272,6 +278,16 @@ interface Generatable {
   toJS?(): string
   toTS(): string
   toTSWithoutNamespace?(): string
+}
+
+class ExportCollector {
+  symbols: string[] = []
+  addSymbol(symbol: string) {
+    this.symbols.push(symbol)
+  }
+  getSymbols() {
+    return unique(this.symbols)
+  }
 }
 
 export class TSClient implements Generatable {
@@ -305,7 +321,7 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map(d => d.name)
     }
 
-    return `${commonCodeJS(this.options)}
+    const code = `${commonCodeJS(this.options)}
 
 /**
  * Build tool annotations
@@ -369,7 +385,19 @@ const envPaths = {
 warnEnvConflicts(envPaths)
 
 const PrismaClient = getPrismaClient(config)
-exports.PrismaClient = PrismaClient`
+exports.PrismaClient = PrismaClient
+
+Object.assign(exports, Prisma)`
+
+    //     const symbols = collector.getSymbols()
+
+    //     code += `/*
+    // * Exports for compatiblity introduced in 2.12.0
+    // * Please import from the Prisma namespace instead
+    // */
+    // ` + symbols.map(s => `exports.${s} = Prisma.${s}`).join('\n')
+
+    return code
   }
   public toTS(): string {
     const prismaClientClass = new PrismaClientClass(
@@ -381,22 +409,25 @@ exports.PrismaClient = PrismaClient`
       this.options.sqliteDatasourceOverrides,
       this.options.schemaDir,
     )
+
+    const collector = new ExportCollector()
+
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap)
-      .map((model) => new Model(model, this.dmmf, this.options.generator!))
+      .map((model) => new Model(model, this.dmmf, this.options.generator!, collector))
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map(type => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map(type => new Enum(type, true, collector).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map(type => new Enum(type, false).toTS())
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map(type => new Enum(type, false, collector).toTS())
 
-    return `
+    let code = `
 /**
  * Client
 **/
 
-${commonCode.tsWithoutNamespace}
+${commonCode.tsWithoutNamespace()}
 
 ${models.map(m => m.toTSWithoutNamespace()).join('\n')}
 ${modelEnums && modelEnums.length > 0 ? (
@@ -414,11 +445,11 @@ ${modelEnums.join('\n\n')}
 ${prismaClientClass.toTSWithoutNamespace()}
 
 export namespace Prisma {
-${indent(`${commonCode.ts}
+${indent(`${commonCode.ts()}
 ${new Enum({
         name: 'ModelName',
         values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-      }, true).toTS()}
+      }, true, collector).toTS()}
 
 ${prismaClientClass.toTS()}
 export type Datasource = {
@@ -443,10 +474,10 @@ ${prismaEnums.join('\n\n')}
  */
 
 ${this.dmmf.inputObjectTypes.prisma
-          .map((inputType) => new InputType(inputType).toTS())
+          .map((inputType) => new InputType(inputType, collector).toTS())
           .join('\n')}
 
-${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType).toTS())
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, collector).toTS())
           .join('\n') ?? ''}
 
 /**
@@ -462,6 +493,17 @@ export type BatchPayload = {
  */
 export const dmmf: runtime.DMMF.Document;
 `, 2)}}`
+
+    const symbols = collector.getSymbols()
+
+    code += `\n
+/*
+* Exports for compatiblity introduced in 2.12.0
+* Please import from the Prisma namespace instead
+*/
+` + symbols.map(s => `export import ${s} = Prisma.${s}`).join('\n')
+
+    return code
   }
 }
 
@@ -814,6 +856,7 @@ export class Model implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
     protected readonly generator?: GeneratorConfig,
+    protected readonly collector?: ExportCollector
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(dmmf, outputType)
@@ -839,11 +882,11 @@ export class Model implements Generatable {
       }
       if (action === 'updateMany' || action === 'deleteMany') {
         argsTypes.push(
-          new MinimalArgsType(field.args, model, action as DMMF.ModelAction),
+          new MinimalArgsType(field.args, model, action as DMMF.ModelAction, this.collector),
         )
       } else {
         argsTypes.push(
-          new ArgsType(field.args, model, action as DMMF.ModelAction),
+          new ArgsType(field.args, model, action as DMMF.ModelAction, this.collector),
         )
       }
     }
@@ -888,8 +931,15 @@ export class Model implements Generatable {
       )
     }
 
+    for (const aggregateType of aggregateTypes) {
+      this.collector?.addSymbol(aggregateType.name)
+    }
+
+    const aggregateArgsName = getAggregateArgsName(model.name)
+    this.collector?.addSymbol(aggregateArgsName)
+
     return `${aggregateTypes
-      .map((type) => new SchemaOutputType(type).toTS())
+      .map((type) => new SchemaOutputType(type, this.collector).toTS())
       .join('\n')}
 
 ${aggregateTypes.length > 1
@@ -916,13 +966,13 @@ ${aggregateTypes.length > 1
                 ],
               })),
             }
-            return new InputType(newType).toTS()
+            return new InputType(newType, this.collector).toTS()
           })
           .join('\n')
         : ''
       }
 
-export type ${getAggregateArgsName(model.name)} = {
+export type ${aggregateArgsName} = {
 ${indent(
         aggregateRootField.args
           .map((arg) => new InputField(arg).toTS())
@@ -1444,9 +1494,13 @@ export class SchemaOutputField implements Generatable {
 export class SchemaOutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(protected readonly type: DMMF.OutputType) {
+  constructor(
+    protected readonly type: DMMF.OutputType,
+    protected readonly collector?: ExportCollector
+  ) {
     this.name = type.name
     this.fields = type.fields
+    collector?.addSymbol(this.name)
   }
   public toTS(): string {
     const { type } = this
@@ -1469,10 +1523,12 @@ export class OutputType implements Generatable {
   public fields: DMMF.SchemaField[]
   constructor(
     protected readonly dmmf: DMMFClass,
-    protected readonly type: DMMF.OutputType
+    protected readonly type: DMMF.OutputType,
+    protected readonly collector?: ExportCollector
   ) {
     this.name = type.name
     this.fields = type.fields
+    collector?.addSymbol(this.name)
   }
   public toTS(): string {
     const { type } = this
@@ -1493,16 +1549,21 @@ export class MinimalArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
+    protected readonly collector?: ExportCollector
   ) { }
   public toTS(): string {
     const { action, args } = this
     const { name } = this.model
 
+    const typeName = getModelArgName(name, action)
+
+    this.collector?.addSymbol(typeName)
+
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, action)} = {
+export type ${typeName} = {
 ${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), tab)}
 }
 `
@@ -1558,6 +1619,7 @@ export class ArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
+    protected readonly collector?: ExportCollector
   ) { }
   public toTS(): string {
     const { action, args } = this
@@ -1573,6 +1635,9 @@ export class ArgsType implements Generatable {
       }
     }
 
+    const selectName = getSelectName(name)
+    this.collector?.addSymbol(selectName)
+
     const bothArgsOptional: DMMF.SchemaArg[] = [
       {
         name: 'select',
@@ -1580,7 +1645,7 @@ export class ArgsType implements Generatable {
         isNullable: true,
         inputTypes: [
           {
-            type: getSelectName(name),
+            type: selectName,
             location: 'inputObjectTypes',
             isList: false,
           },
@@ -1597,13 +1662,15 @@ export class ArgsType implements Generatable {
     const hasRelationField = this.model.fields.some((f) => f.kind === 'object')
 
     if (hasRelationField) {
+      const includeName = getIncludeName(name)
+      this.collector?.addSymbol(includeName)
       bothArgsOptional.push({
         name: 'include',
         isRequired: false,
         isNullable: true,
         inputTypes: [
           {
-            type: getIncludeName(name),
+            type: includeName,
             location: 'inputObjectTypes',
             isList: false,
           },
@@ -1619,11 +1686,14 @@ export class ArgsType implements Generatable {
 
     bothArgsOptional.push(...args)
 
+    const modelArgName = getModelArgName(name, action)
+    this.collector?.addSymbol(modelArgName)
+
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${getModelArgName(name, action)} = {
+export type ${modelArgName} = {
 ${indent(
       bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
       tab,
@@ -1634,9 +1704,11 @@ ${indent(
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType) { }
+  constructor(protected readonly type: DMMF.InputType, protected readonly collector?: ExportCollector) { }
   public toTS(): string {
     const { type } = this
+    this.collector?.addSymbol(type.name)
+
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `Readonly<{
@@ -1655,7 +1727,15 @@ export type ${type.name} = ${body}`
 }
 
 export class Enum implements Generatable {
-  constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) { }
+  constructor(
+    protected readonly type: DMMF.SchemaEnum,
+    protected readonly useNamespace: boolean,
+    protected readonly collector?: ExportCollector,
+  ) {
+    if (useNamespace) {
+      this.collector?.addSymbol(type.name)
+    }
+  }
   public toJS(): string {
     const { type } = this
     return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = makeEnum({

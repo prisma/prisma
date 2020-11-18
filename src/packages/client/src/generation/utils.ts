@@ -225,7 +225,7 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findUnique' || actionName === 'findOne'|| actionName === 'findFirst') ? ' | null' : ''
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findUnique' || actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
     }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findUnique' || actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
     }>>`
 }
@@ -277,4 +277,26 @@ export function flatMap<T, U>(
   thisArg?: any,
 ): U[] {
   return flatten(array.map(callbackFn, thisArg))
+}
+
+/**
+ * Returns unique elements of array
+ * @param arr Array
+ */
+
+export function unique<T>(arr: T[]): T[] {
+  const { length } = arr
+  const result: T[] = []
+  const seen = new Set() // just a cache
+
+  loop: for (let i = 0; i < length; i++) {
+    const value = arr[i]
+    if (seen.has(value)) {
+      continue loop
+    }
+    seen.add(value)
+    result.push(value)
+  }
+
+  return result
 }
