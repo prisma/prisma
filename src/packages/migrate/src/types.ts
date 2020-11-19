@@ -50,8 +50,22 @@ export interface UnexecutableMigration {
 interface UserFacingError {
   is_panic: boolean
   message: string
-  meta?: unknown
   error_code?: string
+  meta?: unknown
+}
+
+export type UserFacingErrorWithMeta = {
+  is_panic: boolean
+  message: string
+  error_code: '3306'
+  meta: {
+    migration_name: string
+    inner_error?: {
+      is_panic: boolean
+      message: string
+      backtrace: string
+    }
+  }
 }
 
 export type DriftDiagnostic =

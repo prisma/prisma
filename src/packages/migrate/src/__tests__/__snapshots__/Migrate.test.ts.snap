@@ -81,6 +81,10 @@ exports[`sqlite empty schema 3`] = `Array []`;
 
 exports[`sqlite empty schema 4`] = `Array []`;
 
+exports[`sqlite existing-db-1-migration edit migration with broken sql (--force) 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration edit migration with broken sql (--force) 4`] = `Array []`;
+
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 1`] = ``;
 
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 3`] = `Array []`;

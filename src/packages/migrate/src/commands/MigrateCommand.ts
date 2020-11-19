@@ -16,6 +16,7 @@ import chalk from 'chalk'
 import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
+import { UserFacingErrorWithMeta } from '../types'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import {
   EarlyAcessFlagError,
@@ -249,18 +250,44 @@ Delete the current migrations folder to continue and read the documentation for 
             '\n- ',
           )}\n`,
         )
+
+        if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
+          // Migration has a problem (failed to cleanly apply to a temporary database) and
+          // needs to be fixed or the database has a problem (example: incorrect version, missing extension)
+          if (diagnoseResult.drift.error.error_code === 'P3006') {
+            const failedMigrationError = diagnoseResult.drift
+              .error as UserFacingErrorWithMeta
+
+            throw new Error(
+              `The migration ${
+                failedMigrationError.meta.migration_name
+              } failed when applied to the shadow database.
+${chalk.green(
+  `Fix the migration script and run ${getCommandWithExecutor(
+    'prisma migrate --early-access-feature' +
+      (args['--force'] ? ' --force' : ''),
+  )} again.`,
+)}
+  
+${failedMigrationError.error_code}
+${failedMigrationError.message}`,
+            )
+          }
+        }
       }
     } else {
       debug({ drift: diagnoseResult.drift })
       debug({ history: diagnoseResult.history })
 
       if (diagnoseResult.drift) {
-        // TODO it seems this condition is never true
         if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
           // Migration has a problem (failed to cleanly apply to a temporary database) and
           // needs to be fixed or the database has a problem (example: incorrect version, missing extension)
           throw new Error(
-            `A migration failed while applying it to the shadow database.\nFix the migration before applying it again.\n\n${diagnoseResult.drift.error})`,
+            `A migration failed when applied to the shadow database:
+
+${diagnoseResult.drift.error.error_code}
+${diagnoseResult.drift.error.message}`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
           if (diagnoseResult.hasMigrationsTable === false) {

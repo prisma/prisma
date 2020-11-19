@@ -427,6 +427,39 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
+  it('existing-db-1-migration edit migration with broken sql (--force)', async () => {
+    ctx.fixture('existing-db-1-migration')
+
+    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    // Edit with broken SQL
+    fs.write(
+      'prisma/migrations/20201014154943_init/migration.sql',
+      'CREATE BROKEN',
+    )
+
+    try {
+      await MigrateCommand.new().parse(['--early-access-feature', '--force'])
+    } catch (e) {
+      expect(e.message).toContain('P3006')
+      expect(e.message).toContain('failed when applied to the shadow database.')
+    }
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+
+      Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
+      Prisma Schema loaded from prisma/schema.prisma
+      The following migration(s) were edited after they were applied:
+      - 20201231000000_init
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
   it('existingdb: has a failed migration (--force)', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
@@ -434,6 +467,10 @@ describe('sqlite', () => {
       await MigrateCommand.new().parse(['--early-access-feature', '--force'])
     } catch (e) {
       expect(e.code).toMatchInlineSnapshot(`P3006`)
+      expect(e.message).toContain('P3006')
+      expect(e.message).toContain(
+        'failed to apply cleanly to a temporary database.',
+      )
     }
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
