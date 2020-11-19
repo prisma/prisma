@@ -261,6 +261,7 @@ ${!hideFetcher ? (
 `})
 
 interface TSClientOptions {
+  projectRoot: string
   clientVersion: string
   engineVersion: string
   document: DMMF.Document
@@ -318,27 +319,16 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
-      datasourceNames: this.options.datasources.map(d => d.name)
+      datasourceNames: this.options.datasources.map(d => d.name),
     }
 
+    // used for the __dirname polyfill needed for Next.js
+    const cwdDirname = path.relative(this.options.projectRoot, outputDir)
+
     const code = `${commonCodeJS(this.options)}
+const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
 
-/**
- * Build tool annotations
- * In order to make \`ncc\` and \`node-file-trace\` happy.
-**/
-
-${this.options.platforms
-        ? this.options.platforms
-          .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
-          .join('\n')
-        : ''
-      }
-
-/**
- * Annotation for \`node-file-trace\`
-**/
-path.join(__dirname, 'schema.prisma');
+const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
 
 /**
  * Enums
@@ -351,9 +341,9 @@ ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).j
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum({
-        name: 'ModelName',
-        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-      }, true).toJS()}
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }, true).toJS()}
 
 
 /**
@@ -372,22 +362,47 @@ exports.Prisma.dmmf = JSON.parse(dmmfString)
 
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
-config.dirname = __dirname
+config.dirname = dirname
 
 /**
  * Only for env conflict warning
  * loading of env variable occurs in getPrismaClient
  */
 const envPaths = {
-  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(__dirname, config.relativeEnvPaths.rootEnvPath),
-  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(__dirname, config.relativeEnvPaths.schemaEnvPath)
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
 }
 warnEnvConflicts(envPaths)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 
-Object.assign(exports, Prisma)`
+Object.assign(exports, Prisma)
+
+
+
+/**
+ * Build tool annotations
+ * In order to make \`ncc\` and \`@vercel/nft\` happy.
+ * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
+**/
+
+${this.options.platforms
+        ? this.options.platforms
+          .map((p) => `path.join(__dirname, 'query-engine-${p}');
+path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
+`)
+          .join('\n')
+        : ''
+      }
+
+/**
+ * Annotation for \`@vercel/nft\`
+ * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
+**/
+path.join(__dirname, 'schema.prisma');
+path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
+`
 
     //     const symbols = collector.getSymbols()
 
