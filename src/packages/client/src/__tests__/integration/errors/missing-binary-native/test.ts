@@ -43,6 +43,7 @@ test('missing-binary-native', async () => {
             /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client
             /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
             /client/src/__tests__/integration/errors/missing-binary-native
+            /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
 
           You already added the platform "native" to the "generator" block
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,

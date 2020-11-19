@@ -37,6 +37,7 @@ export interface DatasourceOverwrite {
 
 export interface EngineConfig {
   cwd?: string
+  dirname?: string
   datamodelPath: string
   enableDebugLogs?: boolean
   enableEngineDebugMode?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
@@ -121,6 +122,7 @@ export class NodeEngine {
   private getConfigPromise?: Promise<GetConfigResult>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
+  private dirname?: string
   exitCode: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
@@ -163,7 +165,9 @@ export class NodeEngine {
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
+    dirname
   }: EngineConfig) {
+    this.dirname = dirname
     this.useUds = process.platform !== 'win32'
     this.env = env
     this.cwd = this.resolveCwd(cwd)
@@ -354,6 +358,11 @@ You may have to run ${chalk.greenBright(
       path.dirname(this.datamodelPath), // Datamodel Dir
       this.cwd, //cwdPath
     ]
+
+    if (this.dirname) {
+      searchLocations.push(this.dirname)
+    }
+
     for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Search for Query Engine in ${location}`)
@@ -387,7 +396,14 @@ This probably happens, because you built Prisma Client on a different platform.
 
 Searched Locations:
 
-${searchedLocations.map((f) => `  ${f}`).join('\n')}\n`
+${searchedLocations.map((f) => {
+        let msg = `  ${f}`
+        if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
+          const dir = fs.readdirSync(f)
+          msg += dir.map(d => `    ${d}`).join('\n')
+        }
+        return msg
+      }).join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
