@@ -708,65 +708,66 @@ export class Args {
 
 /**
  * Custom stringify which turns undefined into null - needed by GraphQL
- * @param obj to stringify
+ * @param value to stringify
  * @param _
  * @param tab
  */
 function stringify(
-  obj,
-  _?: any,
-  tabbing?: string | number,
-  isEnum?: boolean,
-  isJson?: boolean,
+  value: any,
+  inputType?: DMMF.SchemaArgInputType
 ) {
-  if (Buffer.isBuffer(obj)) {
-    return JSON.stringify(obj.toString('base64'))
+  if (Buffer.isBuffer(value)) {
+    return JSON.stringify(value.toString('base64'))
   }
 
-  if (Object.prototype.toString.call(obj) === '[object BigInt]') {
-    return obj.toString()
+  if (Object.prototype.toString.call(value) === '[object BigInt]') {
+    return value.toString()
   }
 
-  if (isJson) {
-    if (obj === null) {
+  if (typeof inputType?.type === 'string' && inputType.type === 'Json') {
+    if (value === null) {
       return 'null'
     }
-    if (obj && obj.values && obj.__prismaRawParamaters__) {
-      return JSON.stringify(obj.values)
+    if (value && value.values && value.__prismaRawParamaters__) {
+      return JSON.stringify(value.values)
     }
-    return JSON.stringify(JSON.stringify(obj))
+    if (inputType?.isList && Array.isArray(value)) {
+      return JSON.stringify(value.map(o => JSON.stringify(o)))
+    }
+    // because we send json as a string
+    return JSON.stringify(JSON.stringify(value))
   }
 
-  if (obj === undefined) {
+  if (value === undefined) {
+    // TODO: This is a bit weird. can't we unify this with the === null caes?
     return null
   }
 
-  if (obj === null) {
+  if (value === null) {
     return 'null'
   }
 
-  if (Decimal.isDecimal(obj)) {
-    return obj.toString()
+  if (Decimal.isDecimal(value)) {
+    return value.toString()
   }
 
-  if (isEnum && typeof obj === 'string') {
-    return obj
+  if (inputType?.location === 'enumTypes' && typeof value === 'string') {
+    if (Array.isArray(value)) {
+      return `[${value.join(', ')}]`
+    }
+    return value
   }
 
-  if (isEnum && Array.isArray(obj)) {
-    return `[${obj.join(', ')}]`
-  }
-
-  return JSON.stringify(obj, _, tabbing)
+  return JSON.stringify(value, null, 2)
 }
 
 interface ArgOptions {
   key: string
   value: ArgValue
-  argType?: DMMF.ArgType // just needed to transform the ast
   isEnum?: boolean
   error?: InvalidArgError
   schemaArg?: DMMF.SchemaArg
+  inputType?: DMMF.SchemaArgInputType
 }
 
 export class Arg {
@@ -777,20 +778,20 @@ export class Arg {
   public hasError: boolean
   public isEnum: boolean
   public schemaArg?: DMMF.SchemaArg
-  public argType?: DMMF.ArgType
   public isNullable: boolean
+  public inputType?: DMMF.SchemaArgInputType
 
   constructor({
     key,
     value,
-    argType,
     isEnum = false,
     error,
     schemaArg,
+    inputType
   }: ArgOptions) {
+    this.inputType = inputType
     this.key = key
     this.value = value
-    this.argType = argType
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg
@@ -811,28 +812,16 @@ export class Arg {
     }
 
     if (value instanceof Args) {
-      if (
-        value.args.length === 1 &&
-        value.args[0].key === 'set' &&
-        value.args[0].schemaArg?.inputTypes[0].type === 'Json'
-      ) {
-        return `${key}: {
-  set: ${stringify(value.args[0].value, null, 2, this.isEnum, true)}
-}`
-      }
       return `${key}: {
 ${indent(value.toString(), 2)}
 }`
     }
 
     if (Array.isArray(value)) {
-      if (this.argType === 'Json') {
+      if (this.inputType?.type === 'Json') {
         return `${key}: ${stringify(
           value,
-          null,
-          2,
-          this.isEnum,
-          this.argType === 'Json',
+          this.inputType
         )}`
       }
 
@@ -843,7 +832,7 @@ ${indent(value.toString(), 2)}
             if (nestedValue instanceof Args) {
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
             }
-            return stringify(nestedValue, null, 2, this.isEnum)
+            return stringify(nestedValue, this.inputType)
           })
           .join(`,${isScalar ? ' ' : '\n'}`),
         isScalar ? 0 : tab,
@@ -852,10 +841,7 @@ ${indent(value.toString(), 2)}
 
     return `${key}: ${stringify(
       value,
-      null,
-      2,
-      this.isEnum,
-      this.argType === 'Json',
+      this.inputType
     )}`
   }
   public toString() {
@@ -1245,7 +1231,7 @@ function getInvalidTypeArg(
     key,
     value,
     isEnum: bestFittingType.location === 'enumTypes',
-    argType: bestFittingType.type,
+    inputType: bestFittingType,
     error: {
       type: 'invalidType',
       providedValue: value,
@@ -1401,6 +1387,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       key,
       value,
       isEnum: inputType.location === 'enumTypes',
+      inputType,
       error: {
         type: 'missingArg',
         missingName: key,
@@ -1423,6 +1410,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
         key,
         value,
         isEnum: inputType.location === 'enumTypes',
+        inputType,
         error: {
           type: 'invalidNullArg',
           name: key,
@@ -1470,7 +1458,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
             val === null ? null : objectToArgs(val, inputType.type, arg.inputTypes),
           isEnum: inputType.location === 'enumTypes',
           error,
-          argType: inputType.type,
+          inputType,
           schemaArg: arg,
         })
       }
@@ -1522,10 +1510,10 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
   }
 
   if (!Array.isArray(value)) {
-    for (const argInputType of arg.inputTypes) {
-      const args = objectToArgs(value, argInputType.type as DMMF.InputType)
+    for (const nestedArgInputType of arg.inputTypes) {
+      const args = objectToArgs(value, nestedArgInputType.type as DMMF.InputType)
       if (args.collectErrors().length === 0) {
-        return new Arg({ key, value: args, isEnum: false, argType: argInputType.type, schemaArg: arg, })
+        return new Arg({ key, value: args, isEnum: false, schemaArg: arg, inputType: nestedArgInputType })
       }
     }
   }
@@ -1543,7 +1531,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       return objectToArgs(v, argInputType)
     }),
     isEnum: false,
-    argType: argInputType,
+    inputType,
     schemaArg: arg,
     error: err,
   })
@@ -1572,9 +1560,10 @@ function scalarToArg(
     return new Arg({
       key,
       value,
+      // TODO: going for arg.inputTypes[0] is probably a bad idea
       isEnum: arg.inputTypes[0].location === 'enumTypes',
-      argType: inputType.type,
       schemaArg: arg,
+      inputType: arg.inputTypes[0]
     })
   }
   return getInvalidTypeArg(key, value, arg, inputType)
@@ -1659,6 +1648,7 @@ function objectToArgs(
             atLeastOne: Boolean(inputType.constraints.minNumFields) || false,
             atMostOne: inputType.constraints.maxNumFields === 1 || false,
           },
+          inputType: argInputType
         })
       }),
     )
