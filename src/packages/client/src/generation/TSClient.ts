@@ -331,26 +331,6 @@ const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
 const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
 
 /**
- * Build tool annotations
- * In order to make \`ncc\` and \`node-file-trace\` happy.
-**/
-
-${this.options.platforms
-        ? this.options.platforms
-          .map((p) => `path.join(__dirname, 'query-engine-${p}');
-path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
-`)
-          .join('\n')
-        : ''
-      }
-
-/**
- * Annotation for \`node-file-trace\`
-**/
-path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
-
-/**
  * Enums
  */
 // Based on
@@ -361,9 +341,9 @@ ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).j
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum({
-        name: 'ModelName',
-        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-      }, true).toJS()}
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }, true).toJS()}
 
 
 /**
@@ -397,7 +377,32 @@ warnEnvConflicts(envPaths)
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 
-Object.assign(exports, Prisma)`
+Object.assign(exports, Prisma)
+
+
+
+/**
+ * Build tool annotations
+ * In order to make \`ncc\` and \`@vercel/nft\` happy.
+ * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
+**/
+
+${this.options.platforms
+        ? this.options.platforms
+          .map((p) => `path.join(__dirname, 'query-engine-${p}');
+path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
+`)
+          .join('\n')
+        : ''
+      }
+
+/**
+ * Annotation for \`@vercel/nft\`
+ * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
+**/
+path.join(__dirname, 'schema.prisma');
+path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
+`
 
     //     const symbols = collector.getSymbols()
 
