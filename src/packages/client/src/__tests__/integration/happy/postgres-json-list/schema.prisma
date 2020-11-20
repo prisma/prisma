@@ -1,0 +1,14 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
+}
+
+model User {
+  id       String @id @default(uuid())
+  jsonList Json[]
+}
