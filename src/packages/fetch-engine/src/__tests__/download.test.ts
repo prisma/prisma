@@ -164,7 +164,7 @@ describe('download', () => {
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown binaryTargets marvin"`,
+      `"Unknown binaryTarget marvin and no custom binaries were provided"`,
     )
   })
 
