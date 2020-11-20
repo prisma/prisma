@@ -93,7 +93,6 @@
     "fs-jetpack": "4.1.0",
     "get-port": "5.1.1",
     "global-dirs": "2.0.1",
-    "husky": "4.3.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.3.2",
     "jest": "26.6.3",
@@ -133,17 +132,12 @@
     "build": "node helpers/build.js",
     "pkg": "pkg . -o pkg-build",
     "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "preinstall": "node scripts/preinstall-entry.js",
+    "precommit": "lint-staged"
   },
   "lint-staged": {
     "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "*.{js,ts}": [
       "eslint"

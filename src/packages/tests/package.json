@@ -26,7 +26,6 @@
     "eslint-plugin-jest": "24.0.2",
     "eslint-plugin-prettier": "3.1.4",
     "fs-jetpack": "^4.0.0",
-    "husky": "4.3.0",
     "jest": "26.4.2",
     "lint-staged": "10.4.0",
     "make-dir": "^3.1.0",
@@ -56,7 +55,8 @@
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest"
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "files": [
     "!**/__tests__",
@@ -65,15 +65,9 @@
   "dependencies": {
     "debug": "^4.1.1"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ],
     "*.{js,ts}": [
       "eslint"
