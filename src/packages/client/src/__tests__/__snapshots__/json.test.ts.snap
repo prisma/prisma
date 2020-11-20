@@ -26,6 +26,7 @@ query {
     name
     email
     json
+    jsonList
   }
 }
 `;
@@ -50,12 +51,14 @@ mutation {
   createOneUser(data: {
     email: "a@a.de"
     json: "{\\"hello\\":\\"world\\"}"
+    jsonList: ["{\\"hello\\":\\"world\\"}"]
     name: "Bob"
   }) {
     id
     name
     email
     json
+    jsonList
   }
 }
 `;
