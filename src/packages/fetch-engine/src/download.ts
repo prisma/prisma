@@ -141,12 +141,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    const isSupported = platforms.includes(platform)
+    const isSupported = platforms.includes(job.binaryTarget as Platform)
     const shouldDownload = isSupported && !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
     if(needsToBeDownloaded && !isSupported){
-      console.error(
-        `${chalk.yellow('Warning')} ${platform} is unsupported and no custom binaries were provided`,
-      )
+      throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`)
     }
     return shouldDownload
   })
@@ -168,6 +166,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     // Node 14 for whatever reason can't handle concurrent writes
     await Promise.all(
       binariesToDownload.map((job) =>
+
         downloadBinary({
           ...job,
           version: options.version,
