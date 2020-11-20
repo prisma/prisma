@@ -255,6 +255,7 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mas
 ## Build Status
 
 - Prisma Tests Status:  
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6db8cf503c3a4f41b25e7cf0b53be60e)](https://app.codacy.com/gh/prisma/prisma?utm_source=github.com&utm_medium=referral&utm_content=prisma/prisma&utm_campaign=Badge_Grade)
   [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=master)](https://buildkite.com/prisma/prisma2-test)
 - E2E Tests Status:  
   [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
