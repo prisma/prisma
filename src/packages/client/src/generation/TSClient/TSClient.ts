@@ -82,9 +82,9 @@ ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).j
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum({
-        name: 'ModelName',
-        values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-      }, true).toJS()}
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }, true).toJS()}
 
 
 /**
@@ -140,14 +140,6 @@ path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
 path.join(__dirname, 'schema.prisma');
 path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 `
-
-    //     const symbols = collector.getSymbols()
-
-    //     code += `/*
-    // * Exports for compatiblity introduced in 2.12.0
-    // * Please import from the Prisma namespace instead
-    // */
-    // ` + symbols.map(s => `exports.${s} = Prisma.${s}`).join('\n')
 
     return code
   }
