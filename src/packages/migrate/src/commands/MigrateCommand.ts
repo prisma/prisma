@@ -207,15 +207,11 @@ Delete the current migrations folder to continue and read the documentation for 
       })
       migrate.stop()
 
-      if (migrationId) {
-        return `\nPrisma Migrate created a draft migration ${printMigrationId(
-          migrationId,
-        )}\n\nYou can now edit it and then apply it by running ${chalk.greenBright(
-          getCommandWithExecutor('prisma migrate --early-access-feature'),
-        )} again.`
-      } else {
-        return `\nNo migration was created. Your Prisma schema and database are already in sync.\n`
-      }
+      return `\nPrisma Migrate created a migration draft ${printMigrationId(
+        migrationId,
+      )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
+        getCommandWithExecutor('prisma migrate --early-access-feature'),
+      )}.`
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory()

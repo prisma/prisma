@@ -251,9 +251,7 @@ export class Migrate {
     await this.engine.reset()
   }
 
-  public async draft({ name = '' }: MigrateOptions = {}): Promise<
-    string | undefined
-  > {
+  public async draft({ name = '' }: MigrateOptions = {}): Promise<string> {
     const datamodel = this.getDatamodel()
     const createMigrationResult = await this.createMigration({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
@@ -263,12 +261,7 @@ export class Migrate {
     })
 
     // A migration was created
-    if (createMigrationResult.generatedMigrationName) {
-      return createMigrationResult.generatedMigrationName
-    }
-
-    // No migration created
-    return
+    return createMigrationResult.generatedMigrationName!
   }
 
   public async createMigration(

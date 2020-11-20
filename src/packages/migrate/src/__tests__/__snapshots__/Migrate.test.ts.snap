@@ -2,9 +2,9 @@
 
 exports[`postgresql draft migration and apply 1`] = `
 
-Prisma Migrate created a draft migration 20201231000000_first
+Prisma Migrate created a migration draft 20201231000000_first
 
-You can now edit it and then apply it by running prisma migrate --early-access-feature again.
+You can now edit it and apply it by running prisma migrate --early-access-feature.
 `;
 
 exports[`postgresql draft migration and apply 2`] = ``;
@@ -47,9 +47,9 @@ exports[`sqlite broken migration should fail 3`] = ``;
 
 exports[`sqlite draft migration and apply (--name) 1`] = `
 
-Prisma Migrate created a draft migration 20201231000000_first
+Prisma Migrate created a migration draft 20201231000000_first
 
-You can now edit it and then apply it by running prisma migrate --early-access-feature again.
+You can now edit it and apply it by running prisma migrate --early-access-feature.
 `;
 
 exports[`sqlite draft migration and apply (--name) 2`] = ``;
@@ -60,9 +60,9 @@ exports[`sqlite draft migration and apply (--name) 6`] = ``;
 
 exports[`sqlite draft migration and apply (prompt) 1`] = `
 
-Prisma Migrate created a draft migration 20201231000000_some_draft
+Prisma Migrate created a migration draft 20201231000000_some_draft
 
-You can now edit it and then apply it by running prisma migrate --early-access-feature again.
+You can now edit it and apply it by running prisma migrate --early-access-feature.
 `;
 
 exports[`sqlite draft migration and apply (prompt) 2`] = ``;
