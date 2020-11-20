@@ -1,24 +1,27 @@
-import Debug from '@prisma/debug'
-import { getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
-import chalk from 'chalk'
-import execa from 'execa'
 import fs from 'fs'
-import makeDir from 'make-dir'
-import pFilter from 'p-filter'
+import { promisify } from 'util'
+import chalk from 'chalk'
+
 // Packages
 import path from 'path'
+import Debug from '@prisma/debug'
+import makeDir from 'make-dir'
+import execa from 'execa'
+import pFilter from 'p-filter'
+import hasha from 'hasha'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
-import plusxSync from './chmod'
-import { cleanupCache } from './cleanupCache'
-import { copy } from './copy'
-import { downloadZip } from './downloadZip'
-import { flatMap } from './flatMap'
-import { getHash } from './getHash'
-import { getLatestTag } from './getLatestTag'
+
 // Utils
 import { getBar } from './log'
+import plusxSync from './chmod'
+import { copy } from './copy'
+import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
+import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
+import { cleanupCache } from './cleanupCache'
+import { flatMap } from './flatMap'
+import { getLatestTag } from './getLatestTag'
+import { getHash } from './getHash'
 
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
@@ -166,7 +169,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     // Node 14 for whatever reason can't handle concurrent writes
     await Promise.all(
       binariesToDownload.map((job) =>
-
         downloadBinary({
           ...job,
           version: options.version,
