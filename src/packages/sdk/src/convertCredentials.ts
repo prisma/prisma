@@ -104,6 +104,12 @@ export function uriToCredentials(
     }
   } else if (uri.pathname.length > 1) {
     database = uri.pathname.slice(1)
+
+    if (type === 'postgresql' && !database) {
+      // use postgres as default, it's 99% accurate
+      // could also be template1 for example in rare cases
+      database = 'postgres'
+    }
   }
 
   return {
