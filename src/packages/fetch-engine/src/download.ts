@@ -1,27 +1,24 @@
-import fs from 'fs'
-import { promisify } from 'util'
+import Debug from '@prisma/debug'
+import { getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-
+import execa from 'execa'
+import fs from 'fs'
+import makeDir from 'make-dir'
+import pFilter from 'p-filter'
 // Packages
 import path from 'path'
-import Debug from '@prisma/debug'
-import makeDir from 'make-dir'
-import execa from 'execa'
-import pFilter from 'p-filter'
-import hasha from 'hasha'
 import tempDir from 'temp-dir'
-
+import { promisify } from 'util'
+import plusxSync from './chmod'
+import { cleanupCache } from './cleanupCache'
+import { copy } from './copy'
+import { downloadZip } from './downloadZip'
+import { flatMap } from './flatMap'
+import { getHash } from './getHash'
+import { getLatestTag } from './getLatestTag'
 // Utils
 import { getBar } from './log'
-import plusxSync from './chmod'
-import { copy } from './copy'
-import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
-import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
-import { cleanupCache } from './cleanupCache'
-import { flatMap } from './flatMap'
-import { getLatestTag } from './getLatestTag'
-import { getHash } from './getHash'
 
 const debug = Debug('download')
 const writeFile = promisify(fs.writeFile)
@@ -78,7 +75,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (['arm', 'nixos'].includes(os.distro)) {
     console.error(
-      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${os.distro
+      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
+        os.distro
       }.`,
     )
   } else if (
@@ -96,14 +94,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     return {}
   }
 
-  if (options.binaryTargets && Array.isArray(options.binaryTargets)) {
-    const unknownTargets = options.binaryTargets.filter(
-      (t) => !platforms.includes(t),
-    )
-    if (unknownTargets.length > 0) {
-      throw new Error(`Unknown binaryTargets ${unknownTargets.join(', ')}`)
-    }
-  }
 
   // merge options
   options = {
@@ -151,7 +141,14 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
+    const isSupported = platforms.includes(platform)
+    const shouldDownload = isSupported && !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
+    if(needsToBeDownloaded && !isSupported){
+      console.error(
+        `${chalk.yellow('Warning')} ${platform} is unsupported and no custom binaries were provided`,
+      )
+    }
+    return shouldDownload
   })
 
   if (binariesToDownload.length > 0) {
