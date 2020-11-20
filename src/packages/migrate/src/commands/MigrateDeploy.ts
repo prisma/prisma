@@ -16,30 +16,30 @@ import {
 } from '../utils/flagErrors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
-export class MigrateUp implements Command {
-  public static new(): MigrateUp {
-    return new MigrateUp()
+export class MigrateDeploy implements Command {
+  public static new(): MigrateDeploy {
+    return new MigrateDeploy()
   }
 
   private static help = format(`
-    Migrate your database up to a specific state.
+Deploy your migrations to your database.
 
-  ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
   )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
-    )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+)}
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate up --experimental
+  ${chalk.dim('$')} prisma migrate deploy [options] --early-access-feature
 
-    ${chalk.bold('Options')}
+${chalk.bold('Options')}
 
-           -h, --help   Display this help message
-      --skip-generate   Skip generate
-  `)
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(
@@ -47,7 +47,6 @@ export class MigrateUp implements Command {
       {
         '--help': Boolean,
         '-h': '--help',
-        '--skip-generate': Boolean,
         '--experimental': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
@@ -101,35 +100,24 @@ export class MigrateUp implements Command {
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      console.info(
-        `\n${chalk.green(
-          'Everything is already in sync',
-        )} - Prisma Migrate didn't find unapplied migrations.`,
-      )
+      return `\n${chalk.green(
+        'Everything is already in sync',
+      )} - Prisma Migrate didn't find unapplied migrations.`
     } else {
-      console.info(
-        `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
-          printFilesFromMigrationIds('migrations', migrationIds, {
-            'migration.sql': '',
-          }),
-        )}`,
-      )
-
-      // Run if not skipped
-      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-        await migrate.tryToRunGenerate()
-      }
+      return `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
+        printFilesFromMigrationIds('migrations', migrationIds, {
+          'migration.sql': '',
+        }),
+      )}`
     }
-
-    return ``
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateUp.help}`,
+        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateDeploy.help}`,
       )
     }
-    return MigrateUp.help
+    return MigrateDeploy.help
   }
 }

@@ -86,9 +86,10 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
+  MigrateDev,
   MigrateResolve,
   MigrateReset,
-  MigrateUp,
+  MigrateDeploy,
   DbPush,
   DbDrop,
   DbCommand,
@@ -149,9 +150,10 @@ async function main(): Promise<number> {
         down: MigrateDown.new(),
       }),
       migrate: MigrateCommand.new({
-        resolve: MigrateResolve.new(),
+        dev: MigrateDev.new(),
         reset: MigrateReset.new(),
-        up: MigrateUp.new(),
+        deploy: MigrateDeploy.new(),
+        resolve: MigrateResolve.new(),
       }),
       db: DbCommand.new({
         pull: Introspect.new(),

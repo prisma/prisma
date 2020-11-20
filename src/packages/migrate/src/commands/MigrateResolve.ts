@@ -17,7 +17,7 @@ import {
 } from '../utils/flagErrors'
 import Debug from '@prisma/debug'
 
-const debug = Debug('resolve')
+const debug = Debug('migrate:resolve')
 
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
@@ -25,42 +25,42 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-  Resolve your database migration state
+Resolve your database migration state
 
-  ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
   )}
-  ${chalk.dim(
-    'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
-  )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+)}
   
-  ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    ${chalk.dim('$')} prisma migrate resolve [options] --early-access-feature
-    
-  ${chalk.bold('Options')}
+  ${chalk.dim('$')} prisma migrate resolve [options] --early-access-feature
+  
+${chalk.bold('Options')}
 
-          -h, --help   Display this help message
-           --applied   Mark a migration as applied
-        --rolledback   Mark a migration as rolled back
-            --schema   Custom path to your Prisma schema
+    -h, --help   Display this help message
+      --schema   Custom path to your Prisma schema
+     --applied   Mark a migration as applied
+  --rolledback   Mark a migration as rolled back
 
-  ${chalk.bold('Examples')}
+${chalk.bold('Examples')}
 
   Mark a migration as applied
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --early-access-feature --applied="20201231000000_add_users_table"
+  )} prisma migrate resolve --early-access-feature --applied=20201231000000_add_users_table
 
   Mark a migration as rolled back
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --early-access-feature --rolledback="20201231000000_add_users_table"
+  )} prisma migrate resolve --early-access-feature --rolledback=20201231000000_add_users_table
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --early-access-feature --rolledback="20201231000000_add_users_table" --schema=./schema.prisma'
+  )} prisma migrate resolve --early-access-feature --rolledback=20201231000000_add_users_table --schema=./schema.prisma'
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {

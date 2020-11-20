@@ -24,25 +24,26 @@ export class MigrateReset implements Command {
   }
 
   private static help = format(`
-    Reset your database and reapply migrations
+Reset your database and reapply migrations
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
   )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
-    )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+)}
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma migrate reset --early-access-feature
+  ${chalk.dim('$')} prisma migrate reset [options] --early-access-feature
 
-    ${chalk.bold('Options')}
+${chalk.bold('Options')}
 
-           -h, --help   Display this help message
-          -f, --force   Skip the confirmation prompt
-      --skip-generate   Skip generate
-  `)
+       -h, --help   Display this help message
+         --schema   Custom path to your Prisma schema
+      -f, --force   Skip the confirmation prompt
+  --skip-generate   Skip generate
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {

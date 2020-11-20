@@ -48,8 +48,9 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-   -h, --help      Display this help message
-  -f, --force      Skip the confirmation prompt
+   -h, --help   Display this help message
+     --schema   Custom path to your Prisma schema
+  -f, --force   Skip the confirmation prompt
 
 ${chalk.bold('Examples')}
 
@@ -61,7 +62,7 @@ ${chalk.bold('Examples')}
 
   Use --force to skip the confirmation prompt
   ${chalk.dim('$')} prisma db drop --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {

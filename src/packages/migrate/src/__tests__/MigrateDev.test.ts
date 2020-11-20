@@ -1,7 +1,7 @@
 import prompt from 'prompts'
 import fs from 'fs-jetpack'
 import path from 'path'
-import { MigrateCommand } from '../commands/MigrateCommand'
+import { MigrateDev } from '../commands/MigrateDev'
 import { consoleContext, Context } from './__helpers__/context'
 import { tearDownMysql } from '../utils/setupMysql'
 import {
@@ -21,50 +21,15 @@ process.env.MIGRATE_SKIP_GENERATE = '1'
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-            ! Could not find a schema.prisma file that is required for this command.
+            Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-            🏋️  Migrate your database with confidence
-
-            WARNING Prisma's migration functionality is currently in Early Access.
-            When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.
-              
-            Usage
-
-              $ prisma migrate [command] [options] --early-access-feature
-
-              Commands
-
-                      up   Migrate your database up
-                   reset   Reset your database, all data will be lost
-                 resolve   Resolve your database migration state
-
-              Options
-
-              -h, --help   Display this help message
-                 --draft   Create a draft of a migration that can be edited locally before being applied
-
-            Examples
-
-              Specify a schema
-              $ prisma migrate --early-access-feature --schema=./schema.prisma'
-
-              Create a new migration and apply it
-              $ prisma migrate --early-access-feature
-
-              Reset your database
-              $ prisma migrate --early-access-feature reset
-
-              Create a draft of a migration
-              $ prisma migrate --early-access-feature --draft
-
           `)
   })
   it('should fail if old migrate', async () => {
     ctx.fixture('old-migrate')
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
             Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
@@ -72,7 +37,7 @@ describe('common', () => {
   })
   it('should fail if no flag', async () => {
     ctx.fixture('empty')
-    const result = MigrateCommand.new().parse([])
+    const result = MigrateDev.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
                   Please provide the --early-access-feature flag to use this command.
@@ -80,7 +45,7 @@ describe('common', () => {
   })
   it('should fail if experimental flag', async () => {
     ctx.fixture('empty')
-    const result = MigrateCommand.new().parse(['--experimental'])
+    const result = MigrateDev.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Prisma Migrate was Experimental and is now in Early Access.
                   WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --early-access-feature.
@@ -91,7 +56,7 @@ describe('common', () => {
 describe('sqlite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--schema=./prisma/empty.prisma',
       '--early-access-feature',
     ])
@@ -112,7 +77,7 @@ describe('sqlite', () => {
 
   it('first migration (prompt)', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--early-access-feature',
     ])
@@ -141,7 +106,7 @@ describe('sqlite', () => {
 
     prompt.inject(['first'])
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -164,7 +129,7 @@ describe('sqlite', () => {
 
   it('first migration --force', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--force',
       '--early-access-feature',
@@ -191,7 +156,7 @@ describe('sqlite', () => {
 
   it('snapshot of sql', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--force',
       '--early-access-feature',
@@ -222,14 +187,14 @@ describe('sqlite', () => {
 
     prompt.inject(['some-Draft'])
 
-    const draftResult = MigrateCommand.new().parse([
-      '--draft',
+    const draftResult = MigrateDev.new().parse([
+      '--create-only',
       '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
+    const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(applyResult).resolves.toMatchSnapshot()
     expect(
@@ -258,15 +223,15 @@ describe('sqlite', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
-    const draftResult = MigrateCommand.new().parse([
-      '--draft',
+    const draftResult = MigrateDev.new().parse([
+      '--create-only',
       '--name=first',
       '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
+    const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(applyResult).resolves.toMatchSnapshot()
     expect(
@@ -298,7 +263,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchInlineSnapshot(`Operation successful.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -316,7 +281,7 @@ describe('sqlite', () => {
 
     prompt.inject([new Error()])
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).rejects.toMatchInlineSnapshot(
       `Check init flow with introspect + SQL schema dump (TODO docs)`,
@@ -333,7 +298,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -362,7 +327,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -389,7 +354,7 @@ describe('sqlite', () => {
     ctx.fixture('broken-migration')
 
     try {
-      await MigrateCommand.new().parse(['--early-access-feature'])
+      await MigrateDev.new().parse(['--early-access-feature'])
     } catch (e) {
       expect(e.message).toContain(
         'Database error: Error querying the database: near "BROKEN": syntax error',
@@ -410,7 +375,7 @@ describe('sqlite', () => {
   it('existingdb: has a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --force flag to use the migrate command in an unnattended environment like prisma migrate --force --early-access-feature`,
@@ -429,7 +394,7 @@ describe('sqlite', () => {
   it('existing-db-1-migration edit migration with broken sql (--force)', async () => {
     ctx.fixture('existing-db-1-migration')
 
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     // Edit with broken SQL
@@ -439,7 +404,7 @@ describe('sqlite', () => {
     )
 
     try {
-      await MigrateCommand.new().parse(['--early-access-feature', '--force'])
+      await MigrateDev.new().parse(['--early-access-feature', '--force'])
     } catch (e) {
       expect(e.message).toContain('P3006')
       expect(e.message).toContain('failed when applied to the shadow database.')
@@ -463,7 +428,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-failed-migration')
 
     try {
-      await MigrateCommand.new().parse(['--early-access-feature', '--force'])
+      await MigrateDev.new().parse(['--early-access-feature', '--force'])
     } catch (e) {
       expect(e.code).toMatchInlineSnapshot(`P3006`)
       expect(e.message).toContain('P3006')
@@ -485,7 +450,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft', async () => {
     ctx.fixture('existing-db-1-draft')
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -506,7 +471,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft + 1 schema change', async () => {
     ctx.fixture('existing-db-1-draft-1-change')
-    const result = MigrateCommand.new().parse(['--early-access-feature'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -555,10 +520,7 @@ describe('postgresql', () => {
   it('schema only (--force)', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateCommand.new().parse([
-      '--early-access-feature',
-      '--force',
-    ])
+    const result = MigrateDev.new().parse(['--early-access-feature', '--force'])
     await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
       `undefined`,
     )
@@ -579,7 +541,7 @@ describe('postgresql', () => {
 
   it('first migration after init - empty.prisma', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--schema=./prisma/empty.prisma',
       '--early-access-feature',
     ])
@@ -597,7 +559,7 @@ describe('postgresql', () => {
 
   it('first migration after init', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--early-access-feature',
     ])
@@ -620,7 +582,7 @@ describe('postgresql', () => {
 
   it('first migration after init --force + --name', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--force',
       '--early-access-feature',
@@ -644,15 +606,15 @@ describe('postgresql', () => {
 
   it('draft migration and apply', async () => {
     ctx.fixture('schema-only-postgresql')
-    const draftResult = MigrateCommand.new().parse([
-      '--draft',
+    const draftResult = MigrateDev.new().parse([
+      '--create-only',
       '--name=first',
       '--early-access-feature',
     ])
 
     await expect(draftResult).resolves.toMatchSnapshot()
 
-    const applyResult = MigrateCommand.new().parse(['--early-access-feature'])
+    const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -674,7 +636,7 @@ describe('postgresql', () => {
 
   it('existingdb: first migration after init', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateCommand.new().parse([
+    const result = MigrateDev.new().parse([
       '--name=first',
       '--early-access-feature',
     ])
@@ -697,7 +659,7 @@ describe('postgresql', () => {
 
   // it('real-world-grading-app: compare snapshot', async () => {
   //   ctx.fixture('real-world-grading-app')
-  //   const result = MigrateCommand.new().parse(['--early-access-feature'])
+  //   const result = MigrateDev.new().parse(['--early-access-feature'])
 
   //   await expect(result).resolves.toMatchSnapshot()
   //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))

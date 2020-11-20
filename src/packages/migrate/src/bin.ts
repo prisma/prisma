@@ -44,8 +44,9 @@ import chalk from 'chalk'
 import debugLib from 'debug'
 
 import { MigrateCommand } from './commands/MigrateCommand'
+import { MigrateDev } from './commands/MigrateDev'
 import { MigrateReset } from './commands/MigrateReset'
-import { MigrateUp } from './commands/MigrateUp'
+import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
@@ -63,8 +64,9 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = MigrateCommand.new({
+    dev: MigrateDev.new(),
     reset: MigrateReset.new(),
-    up: MigrateUp.new(),
+    deploy: MigrateDeploy.new(),
     resolve: MigrateResolve.new(),
     // for convenient debugging
     push: DbPush.new(),

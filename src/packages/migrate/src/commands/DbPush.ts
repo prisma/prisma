@@ -60,7 +60,7 @@ ${chalk.bold('Examples')}
 
   Use --force to ignore data loss warnings
   ${chalk.dim('$')} prisma db push --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(
@@ -118,7 +118,7 @@ ${chalk.bold('Examples')}
         // Maybe add link to docs?
         throw Error(
           `Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
 Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
               'prisma db push --preview-feature --ignore-migrations',
@@ -133,7 +133,7 @@ Use the --ignore-migrations flag to ignore this message in an unnattended enviro
         message: `${chalk.yellow(
           'Warning',
         )}: Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
 Do you want to continue?`,
       })
 

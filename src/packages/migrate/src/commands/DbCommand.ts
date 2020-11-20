@@ -34,17 +34,12 @@ ${chalk.bold('Flag')}
 
 ${chalk.bold('Usage')}
 
-  With an existing schema.prisma:
   ${chalk.dim('$')} prisma db [command] [options] --preview-feature
-
-  Or specify a schema path:
-  ${chalk.dim(
-    '$',
-  )} prisma db [command] [options] --preview-feature --schema=./schema.prisma
 
 ${chalk.bold('Options')}
 
   -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
 
 ${chalk.bold('Commands')}
 
@@ -56,7 +51,8 @@ ${chalk.bold('Examples')}
 
   Using prisma db push
   ${chalk.dim('$')} prisma db push --preview-feature
-  `)
+`)
+
   private constructor(private readonly cmds: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {

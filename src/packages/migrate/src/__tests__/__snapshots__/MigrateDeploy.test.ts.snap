@@ -1,14 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sqlite 1 unapplied migration 1`] = ``;
-
-exports[`sqlite 1 unapplied migration 2`] = ``;
-
 exports[`sqlite 1 unapplied migration 4`] = `Array []`;
 
 exports[`sqlite 1 unapplied migration 5`] = `Array []`;
-
-exports[`sqlite no unapplied migrations 1`] = ``;
 
 exports[`sqlite no unapplied migrations 3`] = `Array []`;
 
