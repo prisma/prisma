@@ -1560,10 +1560,9 @@ function scalarToArg(
     return new Arg({
       key,
       value,
-      // TODO: going for arg.inputTypes[0] is probably a bad idea
-      isEnum: arg.inputTypes[0].location === 'enumTypes',
+      isEnum: inputType.location === 'enumTypes',
       schemaArg: arg,
-      inputType: arg.inputTypes[0]
+      inputType
     })
   }
   return getInvalidTypeArg(key, value, arg, inputType)
