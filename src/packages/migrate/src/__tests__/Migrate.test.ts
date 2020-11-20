@@ -49,16 +49,16 @@ describe('common', () => {
             Examples
 
               Specify a schema
-              $ prisma db push --preview-feature --schema=./schema.prisma'
+              $ prisma migrate --early-access-feature --schema=./schema.prisma'
 
               Create a new migration and apply it
               $ prisma migrate --early-access-feature
 
               Reset your database
-              $ prisma migrate reset --early-access-feature
+              $ prisma migrate --early-access-feature reset
 
               Create a draft of a migration
-              $ prisma migrate --draft --early-access-feature
+              $ prisma migrate --early-access-feature --draft
 
           `)
   })
