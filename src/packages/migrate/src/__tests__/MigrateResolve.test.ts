@@ -8,8 +8,6 @@ import {
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-process.env.GITHUB_ACTIONS = '1'
-
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
