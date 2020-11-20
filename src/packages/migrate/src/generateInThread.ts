@@ -1,6 +1,7 @@
 import { fork } from 'child_process'
 import { GeneratorOptions } from '@prisma/sdk'
 import fs from 'fs'
+import path from 'path'
 import { promisify } from 'util'
 
 const writeFile = promisify(fs.writeFile)
@@ -11,20 +12,11 @@ export type GeneratorWorkerJob = {
   config: GeneratorOptions
 }
 
-// generateInThread({
-//   packagePath: generator.packagePath,
-//   config: {
-//     cwd,
-//     generator: definition,
-//     otherGenerators,
-//   },
-// }),
 export async function generateInThread(
   options: GeneratorWorkerJob,
 ): Promise<string> {
-  const workerPath = eval(
-    `require('path').join(__dirname, 'GeneratorWorker.js')`,
-  ) // ncc, leave us alone
+  const workerPath = path.join(__dirname, 'GeneratorWorker.js')
+  // ncc, leave us alone
   await ensureWorker(workerPath)
   return new Promise((resolve, reject) => {
     const child = fork(workerPath, [], {

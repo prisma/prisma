@@ -187,7 +187,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   const binaryPaths = binaryJobsToBinaryPaths(binaryJobs)
-  const dir = eval('__dirname')
+  const dir = __dirname
 
   // this is necessary for pkg
   if (dir.startsWith('/snapshot/')) {
@@ -520,7 +520,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
-  const dir = eval('__dirname')
+  const dir = __dirname
   if (dir.startsWith('/snapshot/')) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)

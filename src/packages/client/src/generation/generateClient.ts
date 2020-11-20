@@ -205,8 +205,8 @@ export async function generateClient({
     }),
   )
   const runtimeSourceDir = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
-    : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
+    ? require('path').join(__dirname, '../../runtime') // tslint:disable-line
+    : require('path').join(__dirname, '../runtime') // tslint:disable-line
 
   // if users use a custom output dir
   if (

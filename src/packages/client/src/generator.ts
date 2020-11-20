@@ -24,7 +24,6 @@ generatorHandler({
   async onGenerate(options) {
     if (debugEnabled) {
       console.log('__dirname', __dirname)
-      console.log(eval(`__dirname`)) // tslint:disable-line
     }
 
     return generateClient({

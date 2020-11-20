@@ -77,7 +77,7 @@ export async function getGenerators({
 
   // overwrite query engine if the version is provided
   if (version) {
-    const potentialPath = eval(`require('path').join(__dirname, '..')`)
+    const potentialPath = path.join(__dirname, '..')
     // for pkg we need to make an exception
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
@@ -248,9 +248,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       }
 
       // download
-      let binaryTargetBaseDir = eval(
-        `require('path').join(__dirname, '..')`,
-      )
+      let binaryTargetBaseDir = path.join(__dirname, '..')
 
       if (version !== currentVersion) {
         binaryTargetBaseDir = path.join(binaryTargetBaseDir, `./engines/${currentVersion}/`)

@@ -20,7 +20,7 @@ import logUpdate from 'log-update'
 import path from 'path'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
-const pkg = eval(`require('../package.json')`)
+const pkg = require('../package.json')
 
 /**
  * $ prisma generate
