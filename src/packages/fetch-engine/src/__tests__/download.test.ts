@@ -10,6 +10,7 @@ import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import { enginesVersion } from '@prisma/engines-version'
 import del from 'del'
+import stripAnsi from 'strip-ansi'
 
 const CURRENT_BINARIES_HASH = enginesVersion
 // From npx @prisma/cli@2.6.2 -v
@@ -168,18 +169,21 @@ describe('download', () => {
     )
   })
   test('handle non-existent binary target with missing custom binaries', async () => {
+    expect.assertions(1)
     process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
-    await expect(
-      download({
+    try {
+      await download({
         binaries: {
           'query-engine': __dirname,
         },
         version: FIXED_BINARIES_HASH,
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-      }),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Env var [1mPRISMA_QUERY_ENGINE_BINARY[22m is provided but provided path [4m../query-engine[24m can't be resolved."`,
-    )
+      })
+    } catch (err) {
+      expect(stripAnsi(err.message)).toMatchInlineSnapshot(
+        `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
+      )
+    }
   })
   test('handle non-existent binary target with custom binaries', async () => {
     const e = await download({
