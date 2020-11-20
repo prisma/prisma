@@ -68,8 +68,8 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.313.0",
-    "@prisma/studio-server": "0.313.0",
+    "@prisma/studio": "0.318.0",
+    "@prisma/studio-server": "0.318.0",
     "@prisma/tests": "workspace:^0.0.0",
     "@sindresorhus/slugify": "1.1.0",
     "@timsuchanek/copy": "1.4.5",
@@ -151,6 +151,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.12.0-10.a4ef806349a7b17c41f45735ce4a36322e01c250"
+    "@prisma/engines": "2.12.0-11.27db1c55cd118b091170f883f58cc7cd1754c97b"
   }
 }

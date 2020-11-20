@@ -332,16 +332,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         if (!fs.existsSync(cwd)) {
           cwd = config.dirname
         }
-        const schemaPath = path.resolve(
-          config.dirname,
-          config.relativePath,
-          '.schema',
-        )
 
         const previewFeatures = config.generator?.previewFeatures ?? []
 
         this._engineConfig = {
           cwd,
+          dirname: config.dirname,
           enableDebugLogs: useDebug,
           enableEngineDebugMode: engineConfig.enableEngineDebugMode,
           datamodelPath: path.join(config.dirname, 'schema.prisma'),

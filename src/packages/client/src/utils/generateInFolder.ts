@@ -57,6 +57,10 @@ export async function generateInFolder({
     ? path.join(projectDir, 'node_modules/@prisma/client')
     : path.join(projectDir, '@prisma/client')
 
+  // if (transpile && config.generators[0]?.output) {
+  //   outputDir = path.join(path.dirname(schemaPath), config.generators[0]?.output)
+  // }
+
   await del(outputDir)
 
   if (transpile) {
