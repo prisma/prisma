@@ -26,31 +26,30 @@ describe('common', () => {
 
             ! Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-
             🏋️  Migrate your database with confidence
 
-            WARNING Prisma's migration functionality is currently in an experimental state.
+            WARNING Prisma's migration functionality is currently in Early Access.
             When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.
-
+              
             Usage
 
-              With an existing schema.prisma:
               $ prisma migrate [command] [options] --early-access-feature
 
-              Or specify a schema:
-              $ prisma migrate [command] [options] --early-access-feature --schema=./schema.prisma
+              Commands
 
-            Options
+                      up   Migrate your database up
+                   reset   Reset your database, all data will be lost
+                 resolve   Resolve your database migration state
+
+              Options
 
               -h, --help   Display this help message
                  --draft   Create a draft of a migration that can be edited locally before being applied
 
-            Commands
-
-                  up      Migrate your database up
-                  reset   Reset your database, all data will be lost
-
             Examples
+
+              Specify a schema
+              $ prisma db push --preview-feature --schema=./schema.prisma'
 
               Create a new migration and apply it
               $ prisma migrate --early-access-feature

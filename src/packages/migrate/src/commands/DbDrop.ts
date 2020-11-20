@@ -57,7 +57,7 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
   ${chalk.dim('$')} prisma db drop --preview-feature --force

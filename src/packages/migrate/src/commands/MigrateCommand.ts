@@ -41,50 +41,45 @@ export class MigrateCommand implements Command {
     return new MigrateCommand(cmds)
   }
 
-  private static help = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-    }Migrate your database with confidence
+  private static help = format(`${
+    process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+  }Migrate your database with confidence
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in an experimental state.",
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's migration functionality is currently in Early Access.",
   )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
-    )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+)}
+  
+${chalk.bold('Usage')}
 
-    ${chalk.bold('Usage')}
+  ${chalk.dim('$')} prisma migrate [command] [options] --early-access-feature
 
-      With an existing schema.prisma:
-      ${chalk.dim(
-        '$',
-      )} prisma migrate [command] [options] --early-access-feature
+  ${chalk.bold('Commands')}
 
-      Or specify a schema:
-      ${chalk.dim(
-        '$',
-      )} prisma migrate [command] [options] --early-access-feature --schema=./schema.prisma
+          up   Migrate your database up
+       reset   Reset your database, all data will be lost
+     resolve   Resolve your database migration state
 
-    ${chalk.bold('Options')}
+  ${chalk.bold('Options')}
 
-      -h, --help   Display this help message
-         --draft   Create a draft of a migration that can be edited locally before being applied
+  -h, --help   Display this help message
+     --draft   Create a draft of a migration that can be edited locally before being applied
 
-    ${chalk.bold('Commands')}
+${chalk.bold('Examples')}
 
-          up      Migrate your database up
-          reset   Reset your database, all data will be lost
+  Specify a schema
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
 
-    ${chalk.bold('Examples')}
+  Create a new migration and apply it
+  ${chalk.dim('$')} prisma migrate --early-access-feature
 
-      Create a new migration and apply it
-      ${chalk.dim('$')} prisma migrate --early-access-feature
+  Reset your database
+  ${chalk.dim('$')} prisma migrate reset --early-access-feature
 
-      Reset your database
-      ${chalk.dim('$')} prisma migrate reset --early-access-feature
-
-      Create a draft of a migration
-      ${chalk.dim('$')} prisma migrate --draft --early-access-feature
+  Create a draft of a migration
+  ${chalk.dim('$')} prisma migrate --draft --early-access-feature
   `)
 
   private argsSpec = {

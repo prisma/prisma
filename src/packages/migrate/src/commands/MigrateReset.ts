@@ -12,7 +12,10 @@ import chalk from 'chalk'
 import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import { EarlyAcessFlagError } from '../utils/flagErrors'
+import {
+  EarlyAcessFlagError,
+  ExperimentalFlagWithNewMigrateError,
+} from '../utils/flagErrors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 export class MigrateReset implements Command {
@@ -39,7 +42,6 @@ export class MigrateReset implements Command {
            -h, --help   Display this help message
           -f, --force   Skip the confirmation prompt
       --skip-generate   Skip generate
-
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -49,6 +51,7 @@ export class MigrateReset implements Command {
       '--force': Boolean,
       '-f': '--force',
       '--skip-generate': Boolean,
+      '--experimental': Boolean,
       '--early-access-feature': Boolean,
       '--schema': String,
       '--telemetry-information': String,
@@ -60,6 +63,10 @@ export class MigrateReset implements Command {
 
     if (args['--help']) {
       return this.help()
+    }
+
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
     }
 
     if (!args['--early-access-feature']) {

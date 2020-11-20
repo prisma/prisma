@@ -24,11 +24,11 @@ export class MigrateUp implements Command {
   private static help = format(`
     Migrate your database up to a specific state.
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in an experimental state.",
+  ${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's migration functionality is currently in Early Access.",
   )}
     ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
+      'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
     )}
 
     ${chalk.bold('Usage')}
