@@ -70,16 +70,18 @@ ${chalk.bold('Usage')}
 ${chalk.bold('Examples')}
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
+  ${chalk.dim(
+    '$',
+  )} prisma migrate --early-access-feature --schema=./schema.prisma'
 
   Create a new migration and apply it
   ${chalk.dim('$')} prisma migrate --early-access-feature
 
   Reset your database
-  ${chalk.dim('$')} prisma migrate reset --early-access-feature
+  ${chalk.dim('$')} prisma migrate --early-access-feature reset
 
   Create a draft of a migration
-  ${chalk.dim('$')} prisma migrate --draft --early-access-feature
+  ${chalk.dim('$')} prisma migrate --early-access-feature --draft
   `)
 
   private argsSpec = {
