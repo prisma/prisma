@@ -5,6 +5,7 @@
   <a href="https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+  <a href="https://app.codacy.com/gh/prisma/prisma?utm_source=github.com&utm_medium=referral&utm_content=prisma/prisma&utm_campaign=Badge_Grade"><img src="https://api.codacy.com/project/badge/Grade/6db8cf503c3a4f41b25e7cf0b53be60e" /></a>
 </h1>
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
