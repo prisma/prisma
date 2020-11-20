@@ -1,33 +1,33 @@
 class CaptureStdout {
-  capturedText: string[];
-  oldStdoutWrite: any;
+  capturedText: string[]
+  oldStdoutWrite: any
   constructor() {
-    this.capturedText = [];
-    this.oldStdoutWrite = null;
+    this.capturedText = []
+    this.oldStdoutWrite = null
   }
 
   public startCapture = () => {
-    this.oldStdoutWrite = process.stdout.write;
+    this.oldStdoutWrite = process.stdout.write
     //@ts-ignore
-    process.stdout.write = this.writeCapture;
+    process.stdout.write = this.writeCapture
   }
 
   public stopCapture = () => {
     if (this.oldStdoutWrite) {
-      process.stdout.write = this.oldStdoutWrite;
+      process.stdout.write = this.oldStdoutWrite
     }
   }
 
   private writeCapture = (string) => {
-    this.capturedText.push(string.replace(/\n/g, ''));
+    this.capturedText.push(string.replace(/\n/g, ''))
   }
 
   public getCapturedText = () => {
-    return this.capturedText;
+    return this.capturedText
   }
 
   public clearCaptureText = () => {
-    this.capturedText = [];
+    this.capturedText = []
   }
 }
 

@@ -2,7 +2,7 @@ import newGithubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
-import {getPlatform} from '@prisma/get-platform'
+import { getPlatform } from '@prisma/get-platform'
 export function getGithubIssueUrl({
   title,
   user = 'prisma',
@@ -25,19 +25,16 @@ export function getGithubIssueUrl({
   })
 }
 interface IssueOptions {
-  title?: string,
-  error: any,
-  cliVersion: string,
-  binaryVersion: string,
-  prompt: Boolean,
-  reportId?: number,
+  title?: string
+  error: any
+  cliVersion: string
+  binaryVersion: string
+  prompt: boolean
+  reportId?: number
 }
-export async function wouldYouLikeToCreateANewIssue(
-  options: IssueOptions
-) {
-
-  let shouldCreateNewIssue;
-  if(options.prompt) { 
+export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
+  let shouldCreateNewIssue
+  if (options.prompt) {
     shouldCreateNewIssue = await prompt({
       type: 'select',
       name: 'value',
@@ -61,7 +58,7 @@ export async function wouldYouLikeToCreateANewIssue(
   }
   if (shouldCreateNewIssue.value) {
     const platform = await getPlatform()
-    
+
     const url = getGithubIssueUrl({
       title: options.title ?? '',
       body: issueTemplate(platform, options),
@@ -71,9 +68,13 @@ export async function wouldYouLikeToCreateANewIssue(
 }
 
 const issueTemplate = (platform: string, options: IssueOptions) => {
-    return stripAnsi(`
-Hi Prisma Team! Prisma Migrate just crashed. ${options.reportId ? `This is the report:
-  Report Id: ${options.reportId}` : ''}
+  return stripAnsi(`
+Hi Prisma Team! Prisma Migrate just crashed. ${
+    options.reportId
+      ? `This is the report:
+  Report Id: ${options.reportId}`
+      : ''
+  }
 
 ## Versions
       
@@ -89,4 +90,5 @@ Hi Prisma Team! Prisma Migrate just crashed. ${options.reportId ? `This is the r
 ${options.error}
 \`\`\`
 
-`)}
+`)
+}

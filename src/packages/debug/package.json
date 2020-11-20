@@ -27,7 +27,7 @@
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
+    "lint": "eslint --fix --ext .ts .",
     "test": "jest"
   },
   "files": [
@@ -47,7 +47,7 @@
       "prettier --write",
       "git add"
     ],
-    "*.{js,ts}": [
+    "*.{ts}": [
       "eslint"
     ]
   }

@@ -6,4 +6,4 @@ src/utils/byline.ts
 src/utils/charm
 src/utils/charm.ts
 *.test.ts
-.eslintrc.js
+src/utils/test-*.ts
