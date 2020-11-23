@@ -103,7 +103,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
 
-export type Enumerable<T> = T | ReadonlyArray<T>;
+export type Enumerable<T> = T | Array<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K
@@ -721,7 +721,7 @@ export namespace Prisma {
   export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
 
-  export type Enumerable<T> = T | ReadonlyArray<T>;
+  export type Enumerable<T> = T | Array<T>;
 
   export type RequiredKeys<T> = {
     [K in keyof T]-?: {} extends Pick<T, K> ? never : K
@@ -920,25 +920,25 @@ export namespace Prisma {
   }
 
 
-  export type PostAvgAggregateInputType = Readonly<{
+  export type PostAvgAggregateInputType = {
     id?: true
     authorId?: true
-  }>
+  }
 
-  export type PostSumAggregateInputType = Readonly<{
+  export type PostSumAggregateInputType = {
     id?: true
     authorId?: true
-  }>
+  }
 
-  export type PostMinAggregateInputType = Readonly<{
+  export type PostMinAggregateInputType = {
     id?: true
     authorId?: true
-  }>
+  }
 
-  export type PostMaxAggregateInputType = Readonly<{
+  export type PostMaxAggregateInputType = {
     id?: true
     authorId?: true
-  }>
+  }
 
   export type AggregatePostArgs = {
     where?: PostWhereInput
@@ -1471,37 +1471,37 @@ export namespace Prisma {
   }
 
 
-  export type UserAvgAggregateInputType = Readonly<{
+  export type UserAvgAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type UserSumAggregateInputType = Readonly<{
+  export type UserSumAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type UserMinAggregateInputType = Readonly<{
+  export type UserMinAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type UserMaxAggregateInputType = Readonly<{
+  export type UserMaxAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateUserArgs = {
     where?: UserWhereInput
@@ -2042,37 +2042,37 @@ export namespace Prisma {
   }
 
 
-  export type MAvgAggregateInputType = Readonly<{
+  export type MAvgAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type MSumAggregateInputType = Readonly<{
+  export type MSumAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type MMinAggregateInputType = Readonly<{
+  export type MMinAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type MMaxAggregateInputType = Readonly<{
+  export type MMaxAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateMArgs = {
     where?: MWhereInput
@@ -2612,37 +2612,37 @@ export namespace Prisma {
   }
 
 
-  export type NAvgAggregateInputType = Readonly<{
+  export type NAvgAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type NSumAggregateInputType = Readonly<{
+  export type NSumAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type NMinAggregateInputType = Readonly<{
+  export type NMinAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type NMaxAggregateInputType = Readonly<{
+  export type NMaxAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateNArgs = {
     where?: NWhereInput
@@ -3182,37 +3182,37 @@ export namespace Prisma {
   }
 
 
-  export type OneOptionalAvgAggregateInputType = Readonly<{
+  export type OneOptionalAvgAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OneOptionalSumAggregateInputType = Readonly<{
+  export type OneOptionalSumAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OneOptionalMinAggregateInputType = Readonly<{
+  export type OneOptionalMinAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OneOptionalMaxAggregateInputType = Readonly<{
+  export type OneOptionalMaxAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateOneOptionalArgs = {
     where?: OneOptionalWhereInput
@@ -3756,41 +3756,41 @@ export namespace Prisma {
   }
 
 
-  export type ManyRequiredAvgAggregateInputType = Readonly<{
+  export type ManyRequiredAvgAggregateInputType = {
     id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type ManyRequiredSumAggregateInputType = Readonly<{
+  export type ManyRequiredSumAggregateInputType = {
     id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type ManyRequiredMinAggregateInputType = Readonly<{
+  export type ManyRequiredMinAggregateInputType = {
     id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type ManyRequiredMaxAggregateInputType = Readonly<{
+  export type ManyRequiredMaxAggregateInputType = {
     id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateManyRequiredArgs = {
     where?: ManyRequiredWhereInput
@@ -4335,41 +4335,41 @@ export namespace Prisma {
   }
 
 
-  export type OptionalSide1AvgAggregateInputType = Readonly<{
+  export type OptionalSide1AvgAggregateInputType = {
     id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide1SumAggregateInputType = Readonly<{
+  export type OptionalSide1SumAggregateInputType = {
     id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide1MinAggregateInputType = Readonly<{
+  export type OptionalSide1MinAggregateInputType = {
     id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide1MaxAggregateInputType = Readonly<{
+  export type OptionalSide1MaxAggregateInputType = {
     id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateOptionalSide1Args = {
     where?: OptionalSide1WhereInput
@@ -4910,37 +4910,37 @@ export namespace Prisma {
   }
 
 
-  export type OptionalSide2AvgAggregateInputType = Readonly<{
+  export type OptionalSide2AvgAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide2SumAggregateInputType = Readonly<{
+  export type OptionalSide2SumAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide2MinAggregateInputType = Readonly<{
+  export type OptionalSide2MinAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
-  export type OptionalSide2MaxAggregateInputType = Readonly<{
+  export type OptionalSide2MaxAggregateInputType = {
     id?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
-  }>
+  }
 
   export type AggregateOptionalSide2Args = {
     where?: OptionalSide2WhereInput
@@ -5496,7 +5496,7 @@ export namespace Prisma {
   }
 
 
-  export type AAvgAggregateInputType = Readonly<{
+  export type AAvgAggregateInputType = {
     int?: true
     sInt?: true
     bInt?: true
@@ -5506,9 +5506,9 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-  }>
+  }
 
-  export type ASumAggregateInputType = Readonly<{
+  export type ASumAggregateInputType = {
     int?: true
     sInt?: true
     bInt?: true
@@ -5518,9 +5518,9 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-  }>
+  }
 
-  export type AMinAggregateInputType = Readonly<{
+  export type AMinAggregateInputType = {
     int?: true
     sInt?: true
     bInt?: true
@@ -5530,9 +5530,9 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-  }>
+  }
 
-  export type AMaxAggregateInputType = Readonly<{
+  export type AMaxAggregateInputType = {
     int?: true
     sInt?: true
     bInt?: true
@@ -5542,7 +5542,7 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-  }>
+  }
 
   export type AggregateAArgs = {
     where?: AWhereInput
@@ -6034,33 +6034,33 @@ export namespace Prisma {
   }
 
 
-  export type BAvgAggregateInputType = Readonly<{
+  export type BAvgAggregateInputType = {
     float?: true
     dFloat?: true
     decFloat?: true
     numFloat?: true
-  }>
+  }
 
-  export type BSumAggregateInputType = Readonly<{
+  export type BSumAggregateInputType = {
     float?: true
     dFloat?: true
     decFloat?: true
     numFloat?: true
-  }>
+  }
 
-  export type BMinAggregateInputType = Readonly<{
+  export type BMinAggregateInputType = {
     float?: true
     dFloat?: true
     decFloat?: true
     numFloat?: true
-  }>
+  }
 
-  export type BMaxAggregateInputType = Readonly<{
+  export type BMaxAggregateInputType = {
     float?: true
     dFloat?: true
     decFloat?: true
     numFloat?: true
-  }>
+  }
 
   export type AggregateBArgs = {
     where?: BWhereInput
@@ -8083,7 +8083,7 @@ export namespace Prisma {
    */
 
 
-  export type PostWhereInput = Readonly<{
+  export type PostWhereInput = {
     AND?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
     OR?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
     NOT?: XOR<PostWhereInput, Enumerable<PostWhereInput>>
@@ -8094,22 +8094,22 @@ export namespace Prisma {
     published?: XOR<BoolFilter, boolean>
     author?: XOR<UserRelationFilter, UserWhereInput>
     authorId?: XOR<IntFilter, number>
-  }>
+  }
 
-  export type PostOrderByInput = Readonly<{
+  export type PostOrderByInput = {
     id?: SortOrder
     createdAt?: SortOrder
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
     authorId?: SortOrder
-  }>
+  }
 
-  export type PostWhereUniqueInput = Readonly<{
+  export type PostWhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type UserWhereInput = Readonly<{
+  export type UserWhereInput = {
     AND?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
     OR?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
     NOT?: XOR<UserWhereInput, Enumerable<UserWhereInput>>
@@ -8128,9 +8128,9 @@ export namespace Prisma {
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
     posts?: PostListRelationFilter
-  }>
+  }
 
-  export type UserOrderByInput = Readonly<{
+  export type UserOrderByInput = {
     id?: SortOrder
     email?: SortOrder
     int?: SortOrder
@@ -8145,14 +8145,14 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type UserWhereUniqueInput = Readonly<{
+  export type UserWhereUniqueInput = {
     id?: number
     email?: string
-  }>
+  }
 
-  export type MWhereInput = Readonly<{
+  export type MWhereInput = {
     AND?: XOR<MWhereInput, Enumerable<MWhereInput>>
     OR?: XOR<MWhereInput, Enumerable<MWhereInput>>
     NOT?: XOR<MWhereInput, Enumerable<MWhereInput>>
@@ -8170,9 +8170,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type MOrderByInput = Readonly<{
+  export type MOrderByInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -8186,13 +8186,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type MWhereUniqueInput = Readonly<{
+  export type MWhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type NWhereInput = Readonly<{
+  export type NWhereInput = {
     AND?: XOR<NWhereInput, Enumerable<NWhereInput>>
     OR?: XOR<NWhereInput, Enumerable<NWhereInput>>
     NOT?: XOR<NWhereInput, Enumerable<NWhereInput>>
@@ -8210,9 +8210,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type NOrderByInput = Readonly<{
+  export type NOrderByInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -8226,13 +8226,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type NWhereUniqueInput = Readonly<{
+  export type NWhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type OneOptionalWhereInput = Readonly<{
+  export type OneOptionalWhereInput = {
     AND?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
     OR?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
     NOT?: XOR<OneOptionalWhereInput, Enumerable<OneOptionalWhereInput>>
@@ -8250,9 +8250,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type OneOptionalOrderByInput = Readonly<{
+  export type OneOptionalOrderByInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -8266,13 +8266,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type OneOptionalWhereUniqueInput = Readonly<{
+  export type OneOptionalWhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type ManyRequiredWhereInput = Readonly<{
+  export type ManyRequiredWhereInput = {
     AND?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
     OR?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
     NOT?: XOR<ManyRequiredWhereInput, Enumerable<ManyRequiredWhereInput>>
@@ -8291,9 +8291,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type ManyRequiredOrderByInput = Readonly<{
+  export type ManyRequiredOrderByInput = {
     id?: SortOrder
     oneOptionalId?: SortOrder
     int?: SortOrder
@@ -8308,13 +8308,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type ManyRequiredWhereUniqueInput = Readonly<{
+  export type ManyRequiredWhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type OptionalSide1WhereInput = Readonly<{
+  export type OptionalSide1WhereInput = {
     AND?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
     OR?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
     NOT?: XOR<OptionalSide1WhereInput, Enumerable<OptionalSide1WhereInput>>
@@ -8333,9 +8333,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type OptionalSide1OrderByInput = Readonly<{
+  export type OptionalSide1OrderByInput = {
     id?: SortOrder
     optionalSide2Id?: SortOrder
     int?: SortOrder
@@ -8350,13 +8350,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type OptionalSide1WhereUniqueInput = Readonly<{
+  export type OptionalSide1WhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type OptionalSide2WhereInput = Readonly<{
+  export type OptionalSide2WhereInput = {
     AND?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
     OR?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
     NOT?: XOR<OptionalSide2WhereInput, Enumerable<OptionalSide2WhereInput>>
@@ -8374,9 +8374,9 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type OptionalSide2OrderByInput = Readonly<{
+  export type OptionalSide2OrderByInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -8390,13 +8390,13 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }>
+  }
 
-  export type OptionalSide2WhereUniqueInput = Readonly<{
+  export type OptionalSide2WhereUniqueInput = {
     id?: number
-  }>
+  }
 
-  export type AWhereInput = Readonly<{
+  export type AWhereInput = {
     AND?: XOR<AWhereInput, Enumerable<AWhereInput>>
     OR?: XOR<AWhereInput, Enumerable<AWhereInput>>
     NOT?: XOR<AWhereInput, Enumerable<AWhereInput>>
@@ -8412,9 +8412,9 @@ export namespace Prisma {
     inc_int?: XOR<IntFilter, number>
     inc_sInt?: XOR<IntFilter, number>
     inc_bInt?: XOR<BigIntFilter, BigInt>
-  }>
+  }
 
-  export type AOrderByInput = Readonly<{
+  export type AOrderByInput = {
     id?: SortOrder
     email?: SortOrder
     name?: SortOrder
@@ -8427,14 +8427,14 @@ export namespace Prisma {
     inc_int?: SortOrder
     inc_sInt?: SortOrder
     inc_bInt?: SortOrder
-  }>
+  }
 
-  export type AWhereUniqueInput = Readonly<{
+  export type AWhereUniqueInput = {
     id?: string
     email?: string
-  }>
+  }
 
-  export type BWhereInput = Readonly<{
+  export type BWhereInput = {
     AND?: XOR<BWhereInput, Enumerable<BWhereInput>>
     OR?: XOR<BWhereInput, Enumerable<BWhereInput>>
     NOT?: XOR<BWhereInput, Enumerable<BWhereInput>>
@@ -8443,21 +8443,21 @@ export namespace Prisma {
     dFloat?: XOR<FloatFilter, number>
     decFloat?: XOR<DecimalFilter, Decimal>
     numFloat?: XOR<DecimalFilter, Decimal>
-  }>
+  }
 
-  export type BOrderByInput = Readonly<{
+  export type BOrderByInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
     decFloat?: SortOrder
     numFloat?: SortOrder
-  }>
+  }
 
-  export type BWhereUniqueInput = Readonly<{
+  export type BWhereUniqueInput = {
     id?: string
-  }>
+  }
 
-  export type CWhereInput = Readonly<{
+  export type CWhereInput = {
     AND?: XOR<CWhereInput, Enumerable<CWhereInput>>
     OR?: XOR<CWhereInput, Enumerable<CWhereInput>>
     NOT?: XOR<CWhereInput, Enumerable<CWhereInput>>
@@ -8468,9 +8468,9 @@ export namespace Prisma {
     bit?: XOR<StringFilter, string>
     vBit?: XOR<StringFilter, string>
     uuid?: XOR<StringFilter, string>
-  }>
+  }
 
-  export type COrderByInput = Readonly<{
+  export type COrderByInput = {
     id?: SortOrder
     char?: SortOrder
     vChar?: SortOrder
@@ -8478,13 +8478,13 @@ export namespace Prisma {
     bit?: SortOrder
     vBit?: SortOrder
     uuid?: SortOrder
-  }>
+  }
 
-  export type CWhereUniqueInput = Readonly<{
+  export type CWhereUniqueInput = {
     id?: string
-  }>
+  }
 
-  export type DWhereInput = Readonly<{
+  export type DWhereInput = {
     AND?: XOR<DWhereInput, Enumerable<DWhereInput>>
     OR?: XOR<DWhereInput, Enumerable<DWhereInput>>
     NOT?: XOR<DWhereInput, Enumerable<DWhereInput>>
@@ -8494,22 +8494,22 @@ export namespace Prisma {
     xml?: XOR<StringFilter, string>
     json?: JsonFilter
     jsonb?: JsonFilter
-  }>
+  }
 
-  export type DOrderByInput = Readonly<{
+  export type DOrderByInput = {
     id?: SortOrder
     bool?: SortOrder
     byteA?: SortOrder
     xml?: SortOrder
     json?: SortOrder
     jsonb?: SortOrder
-  }>
+  }
 
-  export type DWhereUniqueInput = Readonly<{
+  export type DWhereUniqueInput = {
     id?: string
-  }>
+  }
 
-  export type EWhereInput = Readonly<{
+  export type EWhereInput = {
     AND?: XOR<EWhereInput, Enumerable<EWhereInput>>
     OR?: XOR<EWhereInput, Enumerable<EWhereInput>>
     NOT?: XOR<EWhereInput, Enumerable<EWhereInput>>
@@ -8517,70 +8517,70 @@ export namespace Prisma {
     date?: XOR<DateTimeFilter, Date | string>
     time?: XOR<DateTimeFilter, Date | string>
     ts?: XOR<DateTimeFilter, Date | string>
-  }>
+  }
 
-  export type EOrderByInput = Readonly<{
+  export type EOrderByInput = {
     id?: SortOrder
     date?: SortOrder
     time?: SortOrder
     ts?: SortOrder
-  }>
+  }
 
-  export type EWhereUniqueInput = Readonly<{
+  export type EWhereUniqueInput = {
     id?: string
-  }>
+  }
 
-  export type PostCreateInput = Readonly<{
+  export type PostCreateInput = {
     createdAt?: Date | string
     title: string
     content?: XOR<string, null>
     published?: boolean
     author: UserCreateOneWithoutPostsInput
-  }>
+  }
 
-  export type PostUncheckedCreateInput = Readonly<{
+  export type PostUncheckedCreateInput = {
     id?: number
     createdAt?: Date | string
     title: string
     content?: XOR<string, null>
     published?: boolean
     authorId: number
-  }>
+  }
 
-  export type PostUpdateInput = Readonly<{
+  export type PostUpdateInput = {
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
     author?: UserUpdateOneRequiredWithoutPostsInput
-  }>
+  }
 
-  export type PostUncheckedUpdateInput = Readonly<{
+  export type PostUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
     authorId?: XOR<number, IntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type PostUpdateManyMutationInput = Readonly<{
+  export type PostUpdateManyMutationInput = {
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type PostUncheckedUpdateManyInput = Readonly<{
+  export type PostUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
     authorId?: XOR<number, IntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type UserCreateInput = Readonly<{
+  export type UserCreateInput = {
     email: string
     int: number
     optionalInt?: XOR<number, null>
@@ -8595,9 +8595,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     posts?: PostCreateManyWithoutAuthorInput
-  }>
+  }
 
-  export type UserUncheckedCreateInput = Readonly<{
+  export type UserUncheckedCreateInput = {
     id?: number
     email: string
     int: number
@@ -8613,9 +8613,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     posts?: PostUncheckedCreateManyWithoutAuthorInput
-  }>
+  }
 
-  export type UserUpdateInput = Readonly<{
+  export type UserUpdateInput = {
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8630,9 +8630,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     posts?: PostUpdateManyWithoutAuthorInput
-  }>
+  }
 
-  export type UserUncheckedUpdateInput = Readonly<{
+  export type UserUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -8648,9 +8648,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     posts?: PostUncheckedUpdateManyWithoutAuthorInput
-  }>
+  }
 
-  export type UserUpdateManyMutationInput = Readonly<{
+  export type UserUpdateManyMutationInput = {
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8664,9 +8664,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type UserUncheckedUpdateManyInput = Readonly<{
+  export type UserUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -8681,9 +8681,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MCreateInput = Readonly<{
+  export type MCreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -8697,9 +8697,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     n?: NCreateManyWithoutMInput
-  }>
+  }
 
-  export type MUncheckedCreateInput = Readonly<{
+  export type MUncheckedCreateInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -8713,9 +8713,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type MUpdateInput = Readonly<{
+  export type MUpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8729,9 +8729,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     n?: NUpdateManyWithoutMInput
-  }>
+  }
 
-  export type MUncheckedUpdateInput = Readonly<{
+  export type MUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8745,9 +8745,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MUpdateManyMutationInput = Readonly<{
+  export type MUpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8760,9 +8760,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MUncheckedUpdateManyInput = Readonly<{
+  export type MUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8776,9 +8776,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type NCreateInput = Readonly<{
+  export type NCreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -8792,9 +8792,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     m?: MCreateManyWithoutNInput
-  }>
+  }
 
-  export type NUncheckedCreateInput = Readonly<{
+  export type NUncheckedCreateInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -8808,9 +8808,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type NUpdateInput = Readonly<{
+  export type NUpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8824,9 +8824,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     m?: MUpdateManyWithoutNInput
-  }>
+  }
 
-  export type NUncheckedUpdateInput = Readonly<{
+  export type NUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8840,9 +8840,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type NUpdateManyMutationInput = Readonly<{
+  export type NUpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8855,9 +8855,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type NUncheckedUpdateManyInput = Readonly<{
+  export type NUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8871,9 +8871,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OneOptionalCreateInput = Readonly<{
+  export type OneOptionalCreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -8887,9 +8887,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     many?: ManyRequiredCreateManyWithoutOneInput
-  }>
+  }
 
-  export type OneOptionalUncheckedCreateInput = Readonly<{
+  export type OneOptionalUncheckedCreateInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -8904,9 +8904,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     many?: ManyRequiredUncheckedCreateManyWithoutOneInput
-  }>
+  }
 
-  export type OneOptionalUpdateInput = Readonly<{
+  export type OneOptionalUpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8920,9 +8920,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     many?: ManyRequiredUpdateManyWithoutOneInput
-  }>
+  }
 
-  export type OneOptionalUncheckedUpdateInput = Readonly<{
+  export type OneOptionalUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8937,9 +8937,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
-  }>
+  }
 
-  export type OneOptionalUpdateManyMutationInput = Readonly<{
+  export type OneOptionalUpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -8952,9 +8952,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OneOptionalUncheckedUpdateManyInput = Readonly<{
+  export type OneOptionalUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -8968,9 +8968,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredCreateInput = Readonly<{
+  export type ManyRequiredCreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -8984,9 +8984,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     one?: OneOptionalCreateOneWithoutManyInput
-  }>
+  }
 
-  export type ManyRequiredUncheckedCreateInput = Readonly<{
+  export type ManyRequiredUncheckedCreateInput = {
     id?: number
     oneOptionalId?: XOR<number, null>
     int: number
@@ -9001,9 +9001,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type ManyRequiredUpdateInput = Readonly<{
+  export type ManyRequiredUpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9017,9 +9017,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     one?: OneOptionalUpdateOneWithoutManyInput
-  }>
+  }
 
-  export type ManyRequiredUncheckedUpdateInput = Readonly<{
+  export type ManyRequiredUncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     oneOptionalId?: number | NullableIntFieldUpdateOperationsInput | null
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -9034,9 +9034,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredUpdateManyMutationInput = Readonly<{
+  export type ManyRequiredUpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9049,9 +9049,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredUncheckedUpdateManyInput = Readonly<{
+  export type ManyRequiredUncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     oneOptionalId?: number | NullableIntFieldUpdateOperationsInput | null
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -9066,9 +9066,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide1CreateInput = Readonly<{
+  export type OptionalSide1CreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -9082,9 +9082,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     opti?: OptionalSide2CreateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide1UncheckedCreateInput = Readonly<{
+  export type OptionalSide1UncheckedCreateInput = {
     id?: number
     optionalSide2Id?: XOR<number, null>
     int: number
@@ -9099,9 +9099,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OptionalSide1UpdateInput = Readonly<{
+  export type OptionalSide1UpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9115,9 +9115,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     opti?: OptionalSide2UpdateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide1UncheckedUpdateInput = Readonly<{
+  export type OptionalSide1UncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     optionalSide2Id?: number | NullableIntFieldUpdateOperationsInput | null
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -9132,9 +9132,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide1UpdateManyMutationInput = Readonly<{
+  export type OptionalSide1UpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9147,9 +9147,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide1UncheckedUpdateManyInput = Readonly<{
+  export type OptionalSide1UncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     optionalSide2Id?: number | NullableIntFieldUpdateOperationsInput | null
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -9164,9 +9164,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide2CreateInput = Readonly<{
+  export type OptionalSide2CreateInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -9180,9 +9180,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     opti?: OptionalSide1CreateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide2UncheckedCreateInput = Readonly<{
+  export type OptionalSide2UncheckedCreateInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -9197,9 +9197,9 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
     opti?: OptionalSide1UncheckedCreateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide2UpdateInput = Readonly<{
+  export type OptionalSide2UpdateInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9213,9 +9213,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     opti?: OptionalSide1UpdateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide2UncheckedUpdateInput = Readonly<{
+  export type OptionalSide2UncheckedUpdateInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -9230,9 +9230,9 @@ export namespace Prisma {
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
     opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
-  }>
+  }
 
-  export type OptionalSide2UpdateManyMutationInput = Readonly<{
+  export type OptionalSide2UpdateManyMutationInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -9245,9 +9245,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide2UncheckedUpdateManyInput = Readonly<{
+  export type OptionalSide2UncheckedUpdateManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -9261,9 +9261,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ACreateInput = Readonly<{
+  export type ACreateInput = {
     id?: string
     email: string
     name?: XOR<string, null>
@@ -9276,9 +9276,9 @@ export namespace Prisma {
     inc_int?: number
     inc_sInt?: number
     inc_bInt?: BigInt
-  }>
+  }
 
-  export type AUncheckedCreateInput = Readonly<{
+  export type AUncheckedCreateInput = {
     id?: string
     email: string
     name?: XOR<string, null>
@@ -9291,9 +9291,9 @@ export namespace Prisma {
     inc_int?: number
     inc_sInt?: number
     inc_bInt?: BigInt
-  }>
+  }
 
-  export type AUpdateInput = Readonly<{
+  export type AUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     name?: string | NullableStringFieldUpdateOperationsInput | null
@@ -9306,9 +9306,9 @@ export namespace Prisma {
     inc_int?: XOR<number, IntFieldUpdateOperationsInput>
     inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
     inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type AUncheckedUpdateInput = Readonly<{
+  export type AUncheckedUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     name?: string | NullableStringFieldUpdateOperationsInput | null
@@ -9321,9 +9321,9 @@ export namespace Prisma {
     inc_int?: XOR<number, IntFieldUpdateOperationsInput>
     inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
     inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type AUpdateManyMutationInput = Readonly<{
+  export type AUpdateManyMutationInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     name?: string | NullableStringFieldUpdateOperationsInput | null
@@ -9336,9 +9336,9 @@ export namespace Prisma {
     inc_int?: XOR<number, IntFieldUpdateOperationsInput>
     inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
     inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type AUncheckedUpdateManyInput = Readonly<{
+  export type AUncheckedUpdateManyInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     name?: string | NullableStringFieldUpdateOperationsInput | null
@@ -9351,57 +9351,57 @@ export namespace Prisma {
     inc_int?: XOR<number, IntFieldUpdateOperationsInput>
     inc_sInt?: XOR<number, IntFieldUpdateOperationsInput>
     inc_bInt?: XOR<BigInt, BigIntFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type BCreateInput = Readonly<{
+  export type BCreateInput = {
     id?: string
     float: number
     dFloat: number
     decFloat: Decimal
     numFloat: Decimal
-  }>
+  }
 
-  export type BUncheckedCreateInput = Readonly<{
+  export type BUncheckedCreateInput = {
     id?: string
     float: number
     dFloat: number
     decFloat: Decimal
     numFloat: Decimal
-  }>
+  }
 
-  export type BUpdateInput = Readonly<{
+  export type BUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     float?: XOR<number, FloatFieldUpdateOperationsInput>
     dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
     decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
     numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type BUncheckedUpdateInput = Readonly<{
+  export type BUncheckedUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     float?: XOR<number, FloatFieldUpdateOperationsInput>
     dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
     decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
     numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type BUpdateManyMutationInput = Readonly<{
+  export type BUpdateManyMutationInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     float?: XOR<number, FloatFieldUpdateOperationsInput>
     dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
     decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
     numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type BUncheckedUpdateManyInput = Readonly<{
+  export type BUncheckedUpdateManyInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     float?: XOR<number, FloatFieldUpdateOperationsInput>
     dFloat?: XOR<number, FloatFieldUpdateOperationsInput>
     decFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
     numFloat?: XOR<Decimal, DecimalFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type CCreateInput = Readonly<{
+  export type CCreateInput = {
     id?: string
     char: string
     vChar: string
@@ -9409,9 +9409,9 @@ export namespace Prisma {
     bit: string
     vBit: string
     uuid: string
-  }>
+  }
 
-  export type CUncheckedCreateInput = Readonly<{
+  export type CUncheckedCreateInput = {
     id?: string
     char: string
     vChar: string
@@ -9419,9 +9419,9 @@ export namespace Prisma {
     bit: string
     vBit: string
     uuid: string
-  }>
+  }
 
-  export type CUpdateInput = Readonly<{
+  export type CUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     char?: XOR<string, StringFieldUpdateOperationsInput>
     vChar?: XOR<string, StringFieldUpdateOperationsInput>
@@ -9429,9 +9429,9 @@ export namespace Prisma {
     bit?: XOR<string, StringFieldUpdateOperationsInput>
     vBit?: XOR<string, StringFieldUpdateOperationsInput>
     uuid?: XOR<string, StringFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type CUncheckedUpdateInput = Readonly<{
+  export type CUncheckedUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     char?: XOR<string, StringFieldUpdateOperationsInput>
     vChar?: XOR<string, StringFieldUpdateOperationsInput>
@@ -9439,9 +9439,9 @@ export namespace Prisma {
     bit?: XOR<string, StringFieldUpdateOperationsInput>
     vBit?: XOR<string, StringFieldUpdateOperationsInput>
     uuid?: XOR<string, StringFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type CUpdateManyMutationInput = Readonly<{
+  export type CUpdateManyMutationInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     char?: XOR<string, StringFieldUpdateOperationsInput>
     vChar?: XOR<string, StringFieldUpdateOperationsInput>
@@ -9449,9 +9449,9 @@ export namespace Prisma {
     bit?: XOR<string, StringFieldUpdateOperationsInput>
     vBit?: XOR<string, StringFieldUpdateOperationsInput>
     uuid?: XOR<string, StringFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type CUncheckedUpdateManyInput = Readonly<{
+  export type CUncheckedUpdateManyInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     char?: XOR<string, StringFieldUpdateOperationsInput>
     vChar?: XOR<string, StringFieldUpdateOperationsInput>
@@ -9459,105 +9459,105 @@ export namespace Prisma {
     bit?: XOR<string, StringFieldUpdateOperationsInput>
     vBit?: XOR<string, StringFieldUpdateOperationsInput>
     uuid?: XOR<string, StringFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type DCreateInput = Readonly<{
+  export type DCreateInput = {
     id?: string
     bool: boolean
     byteA: Buffer
     xml: string
     json: InputJsonValue
     jsonb: InputJsonValue
-  }>
+  }
 
-  export type DUncheckedCreateInput = Readonly<{
+  export type DUncheckedCreateInput = {
     id?: string
     bool: boolean
     byteA: Buffer
     xml: string
     json: InputJsonValue
     jsonb: InputJsonValue
-  }>
+  }
 
-  export type DUpdateInput = Readonly<{
+  export type DUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
     byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
     xml?: XOR<string, StringFieldUpdateOperationsInput>
     json?: InputJsonValue
     jsonb?: InputJsonValue
-  }>
+  }
 
-  export type DUncheckedUpdateInput = Readonly<{
+  export type DUncheckedUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
     byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
     xml?: XOR<string, StringFieldUpdateOperationsInput>
     json?: InputJsonValue
     jsonb?: InputJsonValue
-  }>
+  }
 
-  export type DUpdateManyMutationInput = Readonly<{
+  export type DUpdateManyMutationInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
     byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
     xml?: XOR<string, StringFieldUpdateOperationsInput>
     json?: InputJsonValue
     jsonb?: InputJsonValue
-  }>
+  }
 
-  export type DUncheckedUpdateManyInput = Readonly<{
+  export type DUncheckedUpdateManyInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     bool?: XOR<boolean, BoolFieldUpdateOperationsInput>
     byteA?: XOR<Buffer, BytesFieldUpdateOperationsInput>
     xml?: XOR<string, StringFieldUpdateOperationsInput>
     json?: InputJsonValue
     jsonb?: InputJsonValue
-  }>
+  }
 
-  export type ECreateInput = Readonly<{
+  export type ECreateInput = {
     id?: string
     date: Date | string
     time: Date | string
     ts: Date | string
-  }>
+  }
 
-  export type EUncheckedCreateInput = Readonly<{
+  export type EUncheckedCreateInput = {
     id?: string
     date: Date | string
     time: Date | string
     ts: Date | string
-  }>
+  }
 
-  export type EUpdateInput = Readonly<{
+  export type EUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type EUncheckedUpdateInput = Readonly<{
+  export type EUncheckedUpdateInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type EUpdateManyMutationInput = Readonly<{
+  export type EUpdateManyMutationInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type EUncheckedUpdateManyInput = Readonly<{
+  export type EUncheckedUpdateManyInput = {
     id?: XOR<string, StringFieldUpdateOperationsInput>
     date?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     time?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     ts?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type IntFilter = Readonly<{
+  export type IntFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -9566,9 +9566,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: XOR<number, NestedIntFilter>
-  }>
+  }
 
-  export type DateTimeFilter = Readonly<{
+  export type DateTimeFilter = {
     equals?: Date | string
     in?: Enumerable<Date> | Enumerable<string>
     notIn?: Enumerable<Date> | Enumerable<string>
@@ -9577,9 +9577,9 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: XOR<Date | string, NestedDateTimeFilter>
-  }>
+  }
 
-  export type StringFilter = Readonly<{
+  export type StringFilter = {
     equals?: string
     in?: Enumerable<string>
     notIn?: Enumerable<string>
@@ -9592,9 +9592,9 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: XOR<string, NestedStringFilter>
-  }>
+  }
 
-  export type StringNullableFilter = Readonly<{
+  export type StringNullableFilter = {
     equals?: XOR<string, null>
     in?: XOR<Enumerable<string>, null>
     notIn?: XOR<Enumerable<string>, null>
@@ -9607,19 +9607,19 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: string | NestedStringNullableFilter | null
-  }>
+  }
 
-  export type BoolFilter = Readonly<{
+  export type BoolFilter = {
     equals?: boolean
     not?: XOR<boolean, NestedBoolFilter>
-  }>
+  }
 
-  export type UserRelationFilter = Readonly<{
+  export type UserRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
-  }>
+  }
 
-  export type IntNullableFilter = Readonly<{
+  export type IntNullableFilter = {
     equals?: XOR<number, null>
     in?: XOR<Enumerable<number>, null>
     notIn?: XOR<Enumerable<number>, null>
@@ -9628,9 +9628,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: number | NestedIntNullableFilter | null
-  }>
+  }
 
-  export type FloatFilter = Readonly<{
+  export type FloatFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -9639,9 +9639,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: XOR<number, NestedFloatFilter>
-  }>
+  }
 
-  export type FloatNullableFilter = Readonly<{
+  export type FloatNullableFilter = {
     equals?: XOR<number, null>
     in?: XOR<Enumerable<number>, null>
     notIn?: XOR<Enumerable<number>, null>
@@ -9650,77 +9650,77 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: number | NestedFloatNullableFilter | null
-  }>
+  }
 
-  export type JsonFilter = Readonly<{
+  export type JsonFilter = {
     equals?: InputJsonValue
     not?: InputJsonValue
-  }>
+  }
 
-  export type JsonNullableFilter = Readonly<{
+  export type JsonNullableFilter = {
     equals?: XOR<InputJsonValue, null>
     not?: XOR<InputJsonValue, null>
-  }>
+  }
 
-  export type EnumABeautifulEnumFilter = Readonly<{
+  export type EnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: XOR<ABeautifulEnum, NestedEnumABeautifulEnumFilter>
-  }>
+  }
 
-  export type EnumABeautifulEnumNullableFilter = Readonly<{
+  export type EnumABeautifulEnumNullableFilter = {
     equals?: XOR<ABeautifulEnum, null>
     in?: XOR<Enumerable<ABeautifulEnum>, null>
     notIn?: XOR<Enumerable<ABeautifulEnum>, null>
     not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
-  }>
+  }
 
-  export type BoolNullableFilter = Readonly<{
+  export type BoolNullableFilter = {
     equals?: XOR<boolean, null>
     not?: boolean | NestedBoolNullableFilter | null
-  }>
+  }
 
-  export type PostListRelationFilter = Readonly<{
+  export type PostListRelationFilter = {
     every?: PostWhereInput
     some?: PostWhereInput
     none?: PostWhereInput
-  }>
+  }
 
-  export type NListRelationFilter = Readonly<{
+  export type NListRelationFilter = {
     every?: NWhereInput
     some?: NWhereInput
     none?: NWhereInput
-  }>
+  }
 
-  export type MListRelationFilter = Readonly<{
+  export type MListRelationFilter = {
     every?: MWhereInput
     some?: MWhereInput
     none?: MWhereInput
-  }>
+  }
 
-  export type ManyRequiredListRelationFilter = Readonly<{
+  export type ManyRequiredListRelationFilter = {
     every?: ManyRequiredWhereInput
     some?: ManyRequiredWhereInput
     none?: ManyRequiredWhereInput
-  }>
+  }
 
-  export type OneOptionalRelationFilter = Readonly<{
+  export type OneOptionalRelationFilter = {
     is?: XOR<OneOptionalWhereInput, null>
     isNot?: XOR<OneOptionalWhereInput, null>
-  }>
+  }
 
-  export type OptionalSide2RelationFilter = Readonly<{
+  export type OptionalSide2RelationFilter = {
     is?: XOR<OptionalSide2WhereInput, null>
     isNot?: XOR<OptionalSide2WhereInput, null>
-  }>
+  }
 
-  export type OptionalSide1RelationFilter = Readonly<{
+  export type OptionalSide1RelationFilter = {
     is?: XOR<OptionalSide1WhereInput, null>
     isNot?: XOR<OptionalSide1WhereInput, null>
-  }>
+  }
 
-  export type BigIntFilter = Readonly<{
+  export type BigIntFilter = {
     equals?: BigInt
     in?: Enumerable<BigInt>
     notIn?: Enumerable<BigInt>
@@ -9729,9 +9729,9 @@ export namespace Prisma {
     gt?: BigInt
     gte?: BigInt
     not?: XOR<BigInt, NestedBigIntFilter>
-  }>
+  }
 
-  export type DecimalFilter = Readonly<{
+  export type DecimalFilter = {
     equals?: Decimal
     in?: Enumerable<Decimal>
     notIn?: Enumerable<Decimal>
@@ -9740,100 +9740,100 @@ export namespace Prisma {
     gt?: Decimal
     gte?: Decimal
     not?: XOR<Decimal, NestedDecimalFilter>
-  }>
+  }
 
-  export type BytesFilter = Readonly<{
+  export type BytesFilter = {
     equals?: Buffer
     not?: XOR<Buffer, NestedBytesFilter>
-  }>
+  }
 
-  export type UserCreateOneWithoutPostsInput = Readonly<{
+  export type UserCreateOneWithoutPostsInput = {
     create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
     connect?: UserWhereUniqueInput
     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
-  }>
+  }
 
-  export type DateTimeFieldUpdateOperationsInput = Readonly<{
+  export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
-  }>
+  }
 
-  export type StringFieldUpdateOperationsInput = Readonly<{
+  export type StringFieldUpdateOperationsInput = {
     set?: string
-  }>
+  }
 
-  export type NullableStringFieldUpdateOperationsInput = Readonly<{
+  export type NullableStringFieldUpdateOperationsInput = {
     set?: XOR<string, null>
-  }>
+  }
 
-  export type BoolFieldUpdateOperationsInput = Readonly<{
+  export type BoolFieldUpdateOperationsInput = {
     set?: boolean
-  }>
+  }
 
-  export type UserUpdateOneRequiredWithoutPostsInput = Readonly<{
+  export type UserUpdateOneRequiredWithoutPostsInput = {
     create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
     connect?: UserWhereUniqueInput
     update?: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
     upsert?: UserUpsertWithoutPostsInput
     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
-  }>
+  }
 
-  export type IntFieldUpdateOperationsInput = Readonly<{
+  export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
-  }>
+  }
 
-  export type PostCreateManyWithoutAuthorInput = Readonly<{
+  export type PostCreateManyWithoutAuthorInput = {
     create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
     connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
     connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
-  }>
+  }
 
-  export type PostUncheckedCreateManyWithoutAuthorInput = Readonly<{
+  export type PostUncheckedCreateManyWithoutAuthorInput = {
     create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
     connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
     connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
-  }>
+  }
 
-  export type NullableIntFieldUpdateOperationsInput = Readonly<{
+  export type NullableIntFieldUpdateOperationsInput = {
     set?: XOR<number, null>
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
-  }>
+  }
 
-  export type FloatFieldUpdateOperationsInput = Readonly<{
+  export type FloatFieldUpdateOperationsInput = {
     set?: number
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
-  }>
+  }
 
-  export type NullableFloatFieldUpdateOperationsInput = Readonly<{
+  export type NullableFloatFieldUpdateOperationsInput = {
     set?: XOR<number, null>
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
-  }>
+  }
 
-  export type EnumABeautifulEnumFieldUpdateOperationsInput = Readonly<{
+  export type EnumABeautifulEnumFieldUpdateOperationsInput = {
     set?: ABeautifulEnum
-  }>
+  }
 
-  export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = Readonly<{
+  export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
     set?: XOR<ABeautifulEnum, null>
-  }>
+  }
 
-  export type NullableBoolFieldUpdateOperationsInput = Readonly<{
+  export type NullableBoolFieldUpdateOperationsInput = {
     set?: XOR<boolean, null>
-  }>
+  }
 
-  export type PostUpdateManyWithoutAuthorInput = Readonly<{
+  export type PostUpdateManyWithoutAuthorInput = {
     create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
     connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
     set?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
@@ -9844,9 +9844,9 @@ export namespace Prisma {
     deleteMany?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
     upsert?: XOR<PostUpsertWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>>
     connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
-  }>
+  }
 
-  export type PostUncheckedUpdateManyWithoutAuthorInput = Readonly<{
+  export type PostUncheckedUpdateManyWithoutAuthorInput = {
     create?: PostCreateWithoutAuthorInput | Enumerable<PostCreateWithoutAuthorInput> | PostUncheckedCreateWithoutAuthorInput | Enumerable<PostUncheckedCreateWithoutAuthorInput>
     connect?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
     set?: XOR<PostWhereUniqueInput, Enumerable<PostWhereUniqueInput>>
@@ -9857,15 +9857,15 @@ export namespace Prisma {
     deleteMany?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
     upsert?: XOR<PostUpsertWithWhereUniqueWithoutAuthorInput, Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>>
     connectOrCreate?: XOR<PostCreateOrConnectWithoutauthorInput, Enumerable<PostCreateOrConnectWithoutauthorInput>>
-  }>
+  }
 
-  export type NCreateManyWithoutMInput = Readonly<{
+  export type NCreateManyWithoutMInput = {
     create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
     connect?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
     connectOrCreate?: XOR<NCreateOrConnectWithoutmInput, Enumerable<NCreateOrConnectWithoutmInput>>
-  }>
+  }
 
-  export type NUpdateManyWithoutMInput = Readonly<{
+  export type NUpdateManyWithoutMInput = {
     create?: NCreateWithoutMInput | Enumerable<NCreateWithoutMInput> | NUncheckedCreateWithoutMInput | Enumerable<NUncheckedCreateWithoutMInput>
     connect?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
     set?: XOR<NWhereUniqueInput, Enumerable<NWhereUniqueInput>>
@@ -9876,15 +9876,15 @@ export namespace Prisma {
     deleteMany?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
     upsert?: XOR<NUpsertWithWhereUniqueWithoutMInput, Enumerable<NUpsertWithWhereUniqueWithoutMInput>>
     connectOrCreate?: XOR<NCreateOrConnectWithoutmInput, Enumerable<NCreateOrConnectWithoutmInput>>
-  }>
+  }
 
-  export type MCreateManyWithoutNInput = Readonly<{
+  export type MCreateManyWithoutNInput = {
     create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
     connect?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
     connectOrCreate?: XOR<MCreateOrConnectWithoutnInput, Enumerable<MCreateOrConnectWithoutnInput>>
-  }>
+  }
 
-  export type MUpdateManyWithoutNInput = Readonly<{
+  export type MUpdateManyWithoutNInput = {
     create?: MCreateWithoutNInput | Enumerable<MCreateWithoutNInput> | MUncheckedCreateWithoutNInput | Enumerable<MUncheckedCreateWithoutNInput>
     connect?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
     set?: XOR<MWhereUniqueInput, Enumerable<MWhereUniqueInput>>
@@ -9895,34 +9895,21 @@ export namespace Prisma {
     deleteMany?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
     upsert?: XOR<MUpsertWithWhereUniqueWithoutNInput, Enumerable<MUpsertWithWhereUniqueWithoutNInput>>
     connectOrCreate?: XOR<MCreateOrConnectWithoutnInput, Enumerable<MCreateOrConnectWithoutnInput>>
-  }>
+  }
 
-  export type ManyRequiredCreateManyWithoutOneInput = Readonly<{
+  export type ManyRequiredCreateManyWithoutOneInput = {
     create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
     connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
     connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
-  }>
+  }
 
-  export type ManyRequiredUncheckedCreateManyWithoutOneInput = Readonly<{
+  export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
     create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
     connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
     connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
-  }>
+  }
 
-  export type ManyRequiredUpdateManyWithoutOneInput = Readonly<{
-    create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
-    connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
-    set?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
-    disconnect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
-    delete?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
-    update?: XOR<ManyRequiredUpdateWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>>
-    updateMany?: XOR<ManyRequiredUpdateManyWithWhereWithoutOneInput, Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>>
-    deleteMany?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
-    upsert?: XOR<ManyRequiredUpsertWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>>
-    connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
-  }>
-
-  export type ManyRequiredUncheckedUpdateManyWithoutOneInput = Readonly<{
+  export type ManyRequiredUpdateManyWithoutOneInput = {
     create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
     connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
     set?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
@@ -9933,15 +9920,28 @@ export namespace Prisma {
     deleteMany?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
     upsert?: XOR<ManyRequiredUpsertWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>>
     connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
-  }>
+  }
 
-  export type OneOptionalCreateOneWithoutManyInput = Readonly<{
+  export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
+    create?: ManyRequiredCreateWithoutOneInput | Enumerable<ManyRequiredCreateWithoutOneInput> | ManyRequiredUncheckedCreateWithoutOneInput | Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>
+    connect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+    set?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+    disconnect?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+    delete?: XOR<ManyRequiredWhereUniqueInput, Enumerable<ManyRequiredWhereUniqueInput>>
+    update?: XOR<ManyRequiredUpdateWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>>
+    updateMany?: XOR<ManyRequiredUpdateManyWithWhereWithoutOneInput, Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>>
+    deleteMany?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
+    upsert?: XOR<ManyRequiredUpsertWithWhereUniqueWithoutOneInput, Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>>
+    connectOrCreate?: XOR<ManyRequiredCreateOrConnectWithoutoneInput, Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>>
+  }
+
+  export type OneOptionalCreateOneWithoutManyInput = {
     create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connect?: OneOptionalWhereUniqueInput
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
-  }>
+  }
 
-  export type OneOptionalUpdateOneWithoutManyInput = Readonly<{
+  export type OneOptionalUpdateOneWithoutManyInput = {
     create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connect?: OneOptionalWhereUniqueInput
     disconnect?: boolean
@@ -9949,15 +9949,15 @@ export namespace Prisma {
     update?: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
     upsert?: OneOptionalUpsertWithoutManyInput
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
-  }>
+  }
 
-  export type OptionalSide2CreateOneWithoutOptiInput = Readonly<{
+  export type OptionalSide2CreateOneWithoutOptiInput = {
     create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connect?: OptionalSide2WhereUniqueInput
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
-  }>
+  }
 
-  export type OptionalSide2UpdateOneWithoutOptiInput = Readonly<{
+  export type OptionalSide2UpdateOneWithoutOptiInput = {
     create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connect?: OptionalSide2WhereUniqueInput
     disconnect?: boolean
@@ -9965,31 +9965,21 @@ export namespace Prisma {
     update?: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
     upsert?: OptionalSide2UpsertWithoutOptiInput
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
-  }>
+  }
 
-  export type OptionalSide1CreateOneWithoutOptiInput = Readonly<{
+  export type OptionalSide1CreateOneWithoutOptiInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
-  }>
+  }
 
-  export type OptionalSide1UncheckedCreateOneWithoutOptiInput = Readonly<{
+  export type OptionalSide1UncheckedCreateOneWithoutOptiInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
-  }>
+  }
 
-  export type OptionalSide1UpdateOneWithoutOptiInput = Readonly<{
-    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
-    connect?: OptionalSide1WhereUniqueInput
-    disconnect?: boolean
-    delete?: boolean
-    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
-    upsert?: OptionalSide1UpsertWithoutOptiInput
-    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
-  }>
-
-  export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = Readonly<{
+  export type OptionalSide1UpdateOneWithoutOptiInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
@@ -9997,29 +9987,39 @@ export namespace Prisma {
     update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
     upsert?: OptionalSide1UpsertWithoutOptiInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
-  }>
+  }
 
-  export type BigIntFieldUpdateOperationsInput = Readonly<{
+  export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
+    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
+    connect?: OptionalSide1WhereUniqueInput
+    disconnect?: boolean
+    delete?: boolean
+    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+    upsert?: OptionalSide1UpsertWithoutOptiInput
+    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+  }
+
+  export type BigIntFieldUpdateOperationsInput = {
     set?: BigInt
     increment?: BigInt
     decrement?: BigInt
     multiply?: BigInt
     divide?: BigInt
-  }>
+  }
 
-  export type DecimalFieldUpdateOperationsInput = Readonly<{
+  export type DecimalFieldUpdateOperationsInput = {
     set?: Decimal
     increment?: Decimal
     decrement?: Decimal
     multiply?: Decimal
     divide?: Decimal
-  }>
+  }
 
-  export type BytesFieldUpdateOperationsInput = Readonly<{
+  export type BytesFieldUpdateOperationsInput = {
     set?: Buffer
-  }>
+  }
 
-  export type NestedIntFilter = Readonly<{
+  export type NestedIntFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -10028,9 +10028,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: XOR<number, NestedIntFilter>
-  }>
+  }
 
-  export type NestedDateTimeFilter = Readonly<{
+  export type NestedDateTimeFilter = {
     equals?: Date | string
     in?: Enumerable<Date> | Enumerable<string>
     notIn?: Enumerable<Date> | Enumerable<string>
@@ -10039,9 +10039,9 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: XOR<Date | string, NestedDateTimeFilter>
-  }>
+  }
 
-  export type NestedStringFilter = Readonly<{
+  export type NestedStringFilter = {
     equals?: string
     in?: Enumerable<string>
     notIn?: Enumerable<string>
@@ -10053,9 +10053,9 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: XOR<string, NestedStringFilter>
-  }>
+  }
 
-  export type NestedStringNullableFilter = Readonly<{
+  export type NestedStringNullableFilter = {
     equals?: XOR<string, null>
     in?: XOR<Enumerable<string>, null>
     notIn?: XOR<Enumerable<string>, null>
@@ -10067,14 +10067,14 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: string | NestedStringNullableFilter | null
-  }>
+  }
 
-  export type NestedBoolFilter = Readonly<{
+  export type NestedBoolFilter = {
     equals?: boolean
     not?: XOR<boolean, NestedBoolFilter>
-  }>
+  }
 
-  export type NestedIntNullableFilter = Readonly<{
+  export type NestedIntNullableFilter = {
     equals?: XOR<number, null>
     in?: XOR<Enumerable<number>, null>
     notIn?: XOR<Enumerable<number>, null>
@@ -10083,9 +10083,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: number | NestedIntNullableFilter | null
-  }>
+  }
 
-  export type NestedFloatFilter = Readonly<{
+  export type NestedFloatFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -10094,9 +10094,9 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: XOR<number, NestedFloatFilter>
-  }>
+  }
 
-  export type NestedFloatNullableFilter = Readonly<{
+  export type NestedFloatNullableFilter = {
     equals?: XOR<number, null>
     in?: XOR<Enumerable<number>, null>
     notIn?: XOR<Enumerable<number>, null>
@@ -10105,28 +10105,28 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: number | NestedFloatNullableFilter | null
-  }>
+  }
 
-  export type NestedEnumABeautifulEnumFilter = Readonly<{
+  export type NestedEnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: XOR<ABeautifulEnum, NestedEnumABeautifulEnumFilter>
-  }>
+  }
 
-  export type NestedEnumABeautifulEnumNullableFilter = Readonly<{
+  export type NestedEnumABeautifulEnumNullableFilter = {
     equals?: XOR<ABeautifulEnum, null>
     in?: XOR<Enumerable<ABeautifulEnum>, null>
     notIn?: XOR<Enumerable<ABeautifulEnum>, null>
     not?: ABeautifulEnum | NestedEnumABeautifulEnumNullableFilter | null
-  }>
+  }
 
-  export type NestedBoolNullableFilter = Readonly<{
+  export type NestedBoolNullableFilter = {
     equals?: XOR<boolean, null>
     not?: boolean | NestedBoolNullableFilter | null
-  }>
+  }
 
-  export type NestedBigIntFilter = Readonly<{
+  export type NestedBigIntFilter = {
     equals?: BigInt
     in?: Enumerable<BigInt>
     notIn?: Enumerable<BigInt>
@@ -10135,9 +10135,9 @@ export namespace Prisma {
     gt?: BigInt
     gte?: BigInt
     not?: XOR<BigInt, NestedBigIntFilter>
-  }>
+  }
 
-  export type NestedDecimalFilter = Readonly<{
+  export type NestedDecimalFilter = {
     equals?: Decimal
     in?: Enumerable<Decimal>
     notIn?: Enumerable<Decimal>
@@ -10146,14 +10146,14 @@ export namespace Prisma {
     gt?: Decimal
     gte?: Decimal
     not?: XOR<Decimal, NestedDecimalFilter>
-  }>
+  }
 
-  export type NestedBytesFilter = Readonly<{
+  export type NestedBytesFilter = {
     equals?: Buffer
     not?: XOR<Buffer, NestedBytesFilter>
-  }>
+  }
 
-  export type UserCreateWithoutPostsInput = Readonly<{
+  export type UserCreateWithoutPostsInput = {
     email: string
     int: number
     optionalInt?: XOR<number, null>
@@ -10167,9 +10167,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type UserUncheckedCreateWithoutPostsInput = Readonly<{
+  export type UserUncheckedCreateWithoutPostsInput = {
     id?: number
     email: string
     int: number
@@ -10184,14 +10184,14 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type UserCreateOrConnectWithoutpostsInput = Readonly<{
+  export type UserCreateOrConnectWithoutpostsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
-  }>
+  }
 
-  export type UserUpdateWithoutPostsInput = Readonly<{
+  export type UserUpdateWithoutPostsInput = {
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10205,9 +10205,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type UserUncheckedUpdateWithoutPostsInput = Readonly<{
+  export type UserUncheckedUpdateWithoutPostsInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     email?: XOR<string, StringFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
@@ -10222,44 +10222,44 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type UserUpsertWithoutPostsInput = Readonly<{
+  export type UserUpsertWithoutPostsInput = {
     update: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
     create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
-  }>
+  }
 
-  export type PostCreateWithoutAuthorInput = Readonly<{
+  export type PostCreateWithoutAuthorInput = {
     createdAt?: Date | string
     title: string
     content?: XOR<string, null>
     published?: boolean
-  }>
+  }
 
-  export type PostUncheckedCreateWithoutAuthorInput = Readonly<{
+  export type PostUncheckedCreateWithoutAuthorInput = {
     id?: number
     createdAt?: Date | string
     title: string
     content?: XOR<string, null>
     published?: boolean
-  }>
+  }
 
-  export type PostCreateOrConnectWithoutauthorInput = Readonly<{
+  export type PostCreateOrConnectWithoutauthorInput = {
     where: PostWhereUniqueInput
     create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
-  }>
+  }
 
-  export type PostUpdateWithWhereUniqueWithoutAuthorInput = Readonly<{
+  export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
     data: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
-  }>
+  }
 
-  export type PostUpdateManyWithWhereWithoutAuthorInput = Readonly<{
+  export type PostUpdateManyWithWhereWithoutAuthorInput = {
     where: PostScalarWhereInput
     data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutPostsInput>
-  }>
+  }
 
-  export type PostScalarWhereInput = Readonly<{
+  export type PostScalarWhereInput = {
     AND?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
     OR?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
     NOT?: XOR<PostScalarWhereInput, Enumerable<PostScalarWhereInput>>
@@ -10269,15 +10269,15 @@ export namespace Prisma {
     content?: StringNullableFilter | string | null
     published?: XOR<BoolFilter, boolean>
     authorId?: XOR<IntFilter, number>
-  }>
+  }
 
-  export type PostUpsertWithWhereUniqueWithoutAuthorInput = Readonly<{
+  export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
     update: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
     create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
-  }>
+  }
 
-  export type NCreateWithoutMInput = Readonly<{
+  export type NCreateWithoutMInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10290,9 +10290,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type NUncheckedCreateWithoutMInput = Readonly<{
+  export type NUncheckedCreateWithoutMInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10306,24 +10306,24 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type NCreateOrConnectWithoutmInput = Readonly<{
+  export type NCreateOrConnectWithoutmInput = {
     where: NWhereUniqueInput
     create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
-  }>
+  }
 
-  export type NUpdateWithWhereUniqueWithoutMInput = Readonly<{
+  export type NUpdateWithWhereUniqueWithoutMInput = {
     where: NWhereUniqueInput
     data: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
-  }>
+  }
 
-  export type NUpdateManyWithWhereWithoutMInput = Readonly<{
+  export type NUpdateManyWithWhereWithoutMInput = {
     where: NScalarWhereInput
     data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutNInput>
-  }>
+  }
 
-  export type NScalarWhereInput = Readonly<{
+  export type NScalarWhereInput = {
     AND?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
     OR?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
     NOT?: XOR<NScalarWhereInput, Enumerable<NScalarWhereInput>>
@@ -10340,15 +10340,15 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type NUpsertWithWhereUniqueWithoutMInput = Readonly<{
+  export type NUpsertWithWhereUniqueWithoutMInput = {
     where: NWhereUniqueInput
     update: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
     create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
-  }>
+  }
 
-  export type MCreateWithoutNInput = Readonly<{
+  export type MCreateWithoutNInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10361,9 +10361,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type MUncheckedCreateWithoutNInput = Readonly<{
+  export type MUncheckedCreateWithoutNInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10377,24 +10377,24 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type MCreateOrConnectWithoutnInput = Readonly<{
+  export type MCreateOrConnectWithoutnInput = {
     where: MWhereUniqueInput
     create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
-  }>
+  }
 
-  export type MUpdateWithWhereUniqueWithoutNInput = Readonly<{
+  export type MUpdateWithWhereUniqueWithoutNInput = {
     where: MWhereUniqueInput
     data: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
-  }>
+  }
 
-  export type MUpdateManyWithWhereWithoutNInput = Readonly<{
+  export type MUpdateManyWithWhereWithoutNInput = {
     where: MScalarWhereInput
     data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutMInput>
-  }>
+  }
 
-  export type MScalarWhereInput = Readonly<{
+  export type MScalarWhereInput = {
     AND?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
     OR?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
     NOT?: XOR<MScalarWhereInput, Enumerable<MScalarWhereInput>>
@@ -10411,15 +10411,15 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type MUpsertWithWhereUniqueWithoutNInput = Readonly<{
+  export type MUpsertWithWhereUniqueWithoutNInput = {
     where: MWhereUniqueInput
     update: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
     create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
-  }>
+  }
 
-  export type ManyRequiredCreateWithoutOneInput = Readonly<{
+  export type ManyRequiredCreateWithoutOneInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10432,9 +10432,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type ManyRequiredUncheckedCreateWithoutOneInput = Readonly<{
+  export type ManyRequiredUncheckedCreateWithoutOneInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10448,24 +10448,24 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type ManyRequiredCreateOrConnectWithoutoneInput = Readonly<{
+  export type ManyRequiredCreateOrConnectWithoutoneInput = {
     where: ManyRequiredWhereUniqueInput
     create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
-  }>
+  }
 
-  export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = Readonly<{
+  export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
     data: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
-  }>
+  }
 
-  export type ManyRequiredUpdateManyWithWhereWithoutOneInput = Readonly<{
+  export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
     where: ManyRequiredScalarWhereInput
     data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutManyInput>
-  }>
+  }
 
-  export type ManyRequiredScalarWhereInput = Readonly<{
+  export type ManyRequiredScalarWhereInput = {
     AND?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
     OR?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
     NOT?: XOR<ManyRequiredScalarWhereInput, Enumerable<ManyRequiredScalarWhereInput>>
@@ -10483,15 +10483,15 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: XOR<BoolFilter, boolean>
     optionalBoolean?: BoolNullableFilter | boolean | null
-  }>
+  }
 
-  export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = Readonly<{
+  export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
     update: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
     create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
-  }>
+  }
 
-  export type OneOptionalCreateWithoutManyInput = Readonly<{
+  export type OneOptionalCreateWithoutManyInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10504,9 +10504,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OneOptionalUncheckedCreateWithoutManyInput = Readonly<{
+  export type OneOptionalUncheckedCreateWithoutManyInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10520,14 +10520,14 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OneOptionalCreateOrConnectWithoutmanyInput = Readonly<{
+  export type OneOptionalCreateOrConnectWithoutmanyInput = {
     where: OneOptionalWhereUniqueInput
     create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
-  }>
+  }
 
-  export type OneOptionalUpdateWithoutManyInput = Readonly<{
+  export type OneOptionalUpdateWithoutManyInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10540,9 +10540,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OneOptionalUncheckedUpdateWithoutManyInput = Readonly<{
+  export type OneOptionalUncheckedUpdateWithoutManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10556,14 +10556,14 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OneOptionalUpsertWithoutManyInput = Readonly<{
+  export type OneOptionalUpsertWithoutManyInput = {
     update: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
     create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
-  }>
+  }
 
-  export type OptionalSide2CreateWithoutOptiInput = Readonly<{
+  export type OptionalSide2CreateWithoutOptiInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10576,9 +10576,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OptionalSide2UncheckedCreateWithoutOptiInput = Readonly<{
+  export type OptionalSide2UncheckedCreateWithoutOptiInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10592,14 +10592,14 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OptionalSide2CreateOrConnectWithoutoptiInput = Readonly<{
+  export type OptionalSide2CreateOrConnectWithoutoptiInput = {
     where: OptionalSide2WhereUniqueInput
     create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
-  }>
+  }
 
-  export type OptionalSide2UpdateWithoutOptiInput = Readonly<{
+  export type OptionalSide2UpdateWithoutOptiInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10612,9 +10612,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide2UncheckedUpdateWithoutOptiInput = Readonly<{
+  export type OptionalSide2UncheckedUpdateWithoutOptiInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10628,14 +10628,14 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide2UpsertWithoutOptiInput = Readonly<{
+  export type OptionalSide2UpsertWithoutOptiInput = {
     update: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
     create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
-  }>
+  }
 
-  export type OptionalSide1CreateWithoutOptiInput = Readonly<{
+  export type OptionalSide1CreateWithoutOptiInput = {
     int: number
     optionalInt?: XOR<number, null>
     float: number
@@ -10648,9 +10648,9 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OptionalSide1UncheckedCreateWithoutOptiInput = Readonly<{
+  export type OptionalSide1UncheckedCreateWithoutOptiInput = {
     id?: number
     int: number
     optionalInt?: XOR<number, null>
@@ -10664,14 +10664,14 @@ export namespace Prisma {
     optionalEnum?: XOR<ABeautifulEnum, null>
     boolean: boolean
     optionalBoolean?: XOR<boolean, null>
-  }>
+  }
 
-  export type OptionalSide1CreateOrConnectWithoutoptiInput = Readonly<{
+  export type OptionalSide1CreateOrConnectWithoutoptiInput = {
     where: OptionalSide1WhereUniqueInput
     create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
-  }>
+  }
 
-  export type OptionalSide1UpdateWithoutOptiInput = Readonly<{
+  export type OptionalSide1UpdateWithoutOptiInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10684,9 +10684,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide1UncheckedUpdateWithoutOptiInput = Readonly<{
+  export type OptionalSide1UncheckedUpdateWithoutOptiInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10700,37 +10700,37 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type OptionalSide1UpsertWithoutOptiInput = Readonly<{
+  export type OptionalSide1UpsertWithoutOptiInput = {
     update: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
     create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
-  }>
+  }
 
-  export type PostUpdateWithoutAuthorInput = Readonly<{
+  export type PostUpdateWithoutAuthorInput = {
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type PostUncheckedUpdateWithoutAuthorInput = Readonly<{
-    id?: XOR<number, IntFieldUpdateOperationsInput>
-    createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
-    title?: XOR<string, StringFieldUpdateOperationsInput>
-    content?: string | NullableStringFieldUpdateOperationsInput | null
-    published?: XOR<boolean, BoolFieldUpdateOperationsInput>
-  }>
-
-  export type PostUncheckedUpdateManyWithoutPostsInput = Readonly<{
+  export type PostUncheckedUpdateWithoutAuthorInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
     title?: XOR<string, StringFieldUpdateOperationsInput>
     content?: string | NullableStringFieldUpdateOperationsInput | null
     published?: XOR<boolean, BoolFieldUpdateOperationsInput>
-  }>
+  }
 
-  export type NUpdateWithoutMInput = Readonly<{
+  export type PostUncheckedUpdateManyWithoutPostsInput = {
+    id?: XOR<number, IntFieldUpdateOperationsInput>
+    createdAt?: XOR<Date | string, DateTimeFieldUpdateOperationsInput>
+    title?: XOR<string, StringFieldUpdateOperationsInput>
+    content?: string | NullableStringFieldUpdateOperationsInput | null
+    published?: XOR<boolean, BoolFieldUpdateOperationsInput>
+  }
+
+  export type NUpdateWithoutMInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10743,9 +10743,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type NUncheckedUpdateWithoutMInput = Readonly<{
+  export type NUncheckedUpdateWithoutMInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10759,9 +10759,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type NUncheckedUpdateManyWithoutNInput = Readonly<{
+  export type NUncheckedUpdateManyWithoutNInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10775,9 +10775,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MUpdateWithoutNInput = Readonly<{
+  export type MUpdateWithoutNInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10790,9 +10790,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MUncheckedUpdateWithoutNInput = Readonly<{
+  export type MUncheckedUpdateWithoutNInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10806,9 +10806,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type MUncheckedUpdateManyWithoutMInput = Readonly<{
+  export type MUncheckedUpdateManyWithoutMInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10822,9 +10822,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredUpdateWithoutOneInput = Readonly<{
+  export type ManyRequiredUpdateWithoutOneInput = {
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
     float?: XOR<number, FloatFieldUpdateOperationsInput>
@@ -10837,9 +10837,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredUncheckedUpdateWithoutOneInput = Readonly<{
+  export type ManyRequiredUncheckedUpdateWithoutOneInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10853,9 +10853,9 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
-  export type ManyRequiredUncheckedUpdateManyWithoutManyInput = Readonly<{
+  export type ManyRequiredUncheckedUpdateManyWithoutManyInput = {
     id?: XOR<number, IntFieldUpdateOperationsInput>
     int?: XOR<number, IntFieldUpdateOperationsInput>
     optionalInt?: number | NullableIntFieldUpdateOperationsInput | null
@@ -10869,7 +10869,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | NullableEnumABeautifulEnumFieldUpdateOperationsInput | null
     boolean?: XOR<boolean, BoolFieldUpdateOperationsInput>
     optionalBoolean?: boolean | NullableBoolFieldUpdateOperationsInput | null
-  }>
+  }
 
 
 
