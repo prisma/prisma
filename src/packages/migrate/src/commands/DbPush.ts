@@ -56,7 +56,7 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma
 
   Use --force to ignore data loss warnings
   ${chalk.dim('$')} prisma db push --preview-feature --force

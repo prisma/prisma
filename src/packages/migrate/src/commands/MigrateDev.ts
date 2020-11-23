@@ -65,13 +65,10 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate dev --early-access-feature --schema=./schema.prisma'
+  )} prisma migrate dev --early-access-feature --schema=./schema.prisma
 
   Create a new migration and apply it
   ${chalk.dim('$')} prisma migrate dev --early-access-feature
-
-  Reset your database
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature reset
 
   Create a migration without applying it
   ${chalk.dim('$')} prisma migrate dev --early-access-feature --create-only
@@ -167,7 +164,7 @@ Delete the current migrations folder to continue and read the documentation for 
       return `\nPrisma Migrate created a migration draft ${printMigrationId(
         migrationId,
       )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
-        getCommandWithExecutor('prisma migrate --early-access-feature'),
+        getCommandWithExecutor('prisma migrate dev --early-access-feature'),
       )}.`
     }
 
@@ -214,7 +211,7 @@ Delete the current migrations folder to continue and read the documentation for 
               } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate --early-access-feature' +
+    'prisma migrate dev --early-access-feature' +
       (args['--force'] ? ' --force' : ''),
   )} again.`,
 )}
@@ -339,7 +336,7 @@ ${diagnoseResult.drift.error.message}`,
           throw Error(
             `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
               getCommandWithExecutor(
-                'prisma migrate --force --early-access-feature',
+                'prisma migrate dev --force --early-access-feature',
               ),
             )}`,
           )

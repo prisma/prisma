@@ -43,7 +43,17 @@ ${chalk.bold('Options')}
          --schema   Custom path to your Prisma schema
       -f, --force   Skip the confirmation prompt
   --skip-generate   Skip generate
-`)
+
+${chalk.bold('Examples')}
+
+  Reset your database, structure and data will be lost
+  ${chalk.dim('$')} prisma migrate reset --early-access-feature
+
+  Specify a schema
+  ${chalk.dim(
+    '$',
+  )} prisma migrate reset --schema=./schema.prisma' --early-access-feature 
+  `)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {

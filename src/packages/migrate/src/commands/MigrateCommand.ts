@@ -48,21 +48,21 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate --early-access-feature dev --schema=./schema.prisma'
+  )} prisma migrate --early-access-feature dev --schema=./schema.prisma
 
   Automatically create a migration and apply it if there is a schema change
-  ${chalk.dim('$')} prisma migrate --early-access-feature dev
+  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Reset your database
-  ${chalk.dim('$')} prisma migrate --early-access-feature reset
+  ${chalk.dim('$')} prisma migrate reset --early-access-feature
 
   Deploy the migrations to your database
-  ${chalk.dim('$')} prisma migrate --early-access-feature deploy
+  ${chalk.dim('$')} prisma migrate deploy --early-access-feature
 
   Mark a migration as applied
   ${chalk.dim(
     '$',
-  )} prisma migrate --early-access-feature resolve --applied=20201231000000_add_users_table
+  )} prisma migrate resolve --applied=20201231000000_add_users_table --early-access-feature
 `)
 
   private constructor(private readonly cmds: Commands) {}

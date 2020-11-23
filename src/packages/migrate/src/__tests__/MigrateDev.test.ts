@@ -378,7 +378,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse(['--early-access-feature'])
 
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the migrate command in an unnattended environment like prisma migrate --force --early-access-feature`,
+      `Use the --force flag to use the migrate command in an unnattended environment like prisma migrate dev --force --early-access-feature`,
     )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`

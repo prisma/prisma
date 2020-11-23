@@ -42,7 +42,7 @@ export async function handleWarnings(
         throw Error(
           `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
-              'prisma migrate --force --early-access-feature',
+              'prisma migrate dev --force --early-access-feature',
             ),
           )}`,
         )

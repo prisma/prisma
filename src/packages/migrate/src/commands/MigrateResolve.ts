@@ -60,7 +60,7 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --early-access-feature --rolledback=20201231000000_add_users_table --schema=./schema.prisma'
+  )} prisma migrate resolve --early-access-feature --rolledback=20201231000000_add_users_table --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
