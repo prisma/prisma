@@ -2,15 +2,20 @@ export interface CommonCodeParams {
   runtimePath: string
   clientVersion: string
   engineVersion: string
+  browser?: boolean
 }
 
 export const commonCodeJS = ({
   runtimePath,
+  browser,
   clientVersion,
   engineVersion,
 }: CommonCodeParams): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
-
+${
+  browser
+    ? ''
+    : `
 const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -29,6 +34,8 @@ const {
 
 const path = require('path')
 const debug = debugLib('prisma-client')
+`
+}
 
 const Prisma = {}
 
@@ -43,23 +50,30 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
-Prisma.PrismaClientKnownRequestError = PrismaClientKnownRequestError;
-Prisma.PrismaClientUnknownRequestError = PrismaClientUnknownRequestError;
-Prisma.PrismaClientRustPanicError = PrismaClientRustPanicError;
-Prisma.PrismaClientInitializationError = PrismaClientInitializationError;
-Prisma.PrismaClientValidationError = PrismaClientValidationError;
-Prisma.Decimal = Decimal
+Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
+Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnknownRequestError', browser)}
+Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
+Prisma.PrismaClientInitializationError = ${notSupportOnBrowser('PrismaClientInitializationError', browser)}
+Prisma.PrismaClientValidationError = ${notSupportOnBrowser('PrismaClientValidationError', browser)}
+Prisma.Decimal = ${notSupportOnBrowser('Decimal', browser)}
 
 /**
  * Re-export of sql-template-tag
  */
 
-Prisma.sql = sqltag
-Prisma.empty = empty
-Prisma.join = join
-Prisma.raw = raw
+Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
+Prisma.empty = ${notSupportOnBrowser('empty', browser)}
+Prisma.join = ${notSupportOnBrowser('join', browser)}
+Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 `
-
+export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
+  if (browser)
+    return `() => throw new Error(
+  \`${fnc} is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)`
+  return fnc
+}
 export const commonCodeTS = ({
   runtimePath,
   clientVersion,
@@ -192,8 +206,9 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
  */
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-${!hideFetcher ? (
-      `class PrismaClientFetcher {
+${
+  !hideFetcher
+    ? `class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
   private readonly hooks?;
@@ -201,6 +216,8 @@ ${!hideFetcher ? (
   request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
   sanitizeMessage(message: string): string;
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
-}`) : ''
-    }
-`})
+}`
+    : ''
+}
+`,
+})

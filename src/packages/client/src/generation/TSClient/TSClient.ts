@@ -69,7 +69,7 @@ export class TSClient implements Generatable {
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
 
-    const code = `${commonCodeJS(this.options)}
+    const code = `${commonCodeJS({...this.options, browser: false})}
 
 const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
 const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
@@ -293,7 +293,7 @@ export import ${s} = Prisma.${s}`,
 
   public toBrowserJS(): string {
     // used for the __dirname polyfill needed for Next.js
-    const code = `
+    const code = `${commonCodeJS({...this.options, browser: true})}
 /**
  * Enums
  */
