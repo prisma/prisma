@@ -3,7 +3,7 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-it('doctor should succeed when schema and db do match', async () => {
+it.skip('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project')
   const result = Doctor.new().parse([])
   await expect(result).resolves.toEqual('Everything in sync 🔄')
