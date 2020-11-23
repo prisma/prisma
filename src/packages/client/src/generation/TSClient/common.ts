@@ -68,10 +68,10 @@ Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 `
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
-    return `() => throw new Error(
+    return `() => {throw new Error(
   \`${fnc} is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)`
+)}`
   return fnc
 }
 export const commonCodeTS = ({
