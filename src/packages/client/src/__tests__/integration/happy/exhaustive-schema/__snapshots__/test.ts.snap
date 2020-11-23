@@ -18,51 +18,51 @@ Prisma.prismaVersion = {
   engine: "local"
 }
 
-Prisma.PrismaClientKnownRequestError = () => throw new Error(
+Prisma.PrismaClientKnownRequestError = () => {throw new Error(
   \`PrismaClientKnownRequestError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-);
-Prisma.PrismaClientUnknownRequestError = () => throw new Error(
+)};
+Prisma.PrismaClientUnknownRequestError = () => {throw new Error(
   \`PrismaClientUnknownRequestError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.PrismaClientRustPanicError = () => throw new Error(
+)}
+Prisma.PrismaClientRustPanicError = () => {throw new Error(
   \`PrismaClientRustPanicError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.PrismaClientInitializationError = () => throw new Error(
+)}
+Prisma.PrismaClientInitializationError = () => {throw new Error(
   \`PrismaClientInitializationError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.PrismaClientValidationError = () => throw new Error(
+)}
+Prisma.PrismaClientValidationError = () => {throw new Error(
   \`PrismaClientValidationError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.Decimal = () => throw new Error(
+)}
+Prisma.Decimal = () => {throw new Error(
   \`Decimal is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
+)}
 
 /**
  * Re-export of sql-template-tag
  */
 
-Prisma.sql = () => throw new Error(
+Prisma.sql = () => {throw new Error(
   \`sqltag is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.empty = () => throw new Error(
+)}
+Prisma.empty = () => {throw new Error(
   \`empty is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.join = () => throw new Error(
+)}
+Prisma.join = () => {throw new Error(
   \`join is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
-Prisma.raw = () => throw new Error(
+)}
+Prisma.raw = () => {throw new Error(
   \`raw is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
-)
+)}
 
 /**
  * Enums
