@@ -25,6 +25,7 @@
     "lint-staged": "10.5.1",
     "prettier": "2.1.2",
     "ts-jest": "26.4.4",
+    "strip-ansi": "6.0.0",
     "typescript": "4.0.5"
   },
   "dependencies": {
