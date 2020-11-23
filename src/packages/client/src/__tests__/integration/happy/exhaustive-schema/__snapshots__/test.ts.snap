@@ -10888,7 +10888,7 @@ export namespace Prisma {
 }
 
 /*
-* Exports for compatiblity introduced in 2.12.0
+* Exports for compatibility introduced in 2.12.0
 * Please import from the Prisma namespace instead
 */
 
