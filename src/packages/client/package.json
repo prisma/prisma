@@ -52,7 +52,8 @@
     "scripts",
     "generator-build",
     "index.js",
-    "index.d.ts"
+    "index.d.ts",
+    "index-browser.js"
   ],
   "devDependencies": {
     "@prisma/debug": "workspace:*",
