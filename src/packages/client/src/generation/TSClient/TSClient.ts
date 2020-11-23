@@ -292,36 +292,8 @@ export import ${s} = Prisma.${s}`,
   }
 
   public toBrowserJS(): string {
-    const {
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaDir,
-    } = this.options
-    const schemaPath = path.join(schemaDir, 'prisma.schema')
-    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
-    const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
-      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath)
-    }
-
-    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
-      generator,
-      relativeEnvPaths,
-      sqliteDatasourceOverrides,
-      relativePath: path.relative(outputDir, schemaDir),
-      clientVersion: this.options.clientVersion,
-      engineVersion: this.options.engineVersion,
-      datasourceNames: this.options.datasources.map(d => d.name)
-    }
     // used for the __dirname polyfill needed for Next.js
-    const cwdDirname = path.relative(this.options.projectRoot, outputDir)
-
-    const code = `${commonCodeJS(this.options)}
-
-const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
-const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
-
+    const code = `
 /**
  * Enums
  */
@@ -337,17 +309,6 @@ ${new Enum({
       values: this.dmmf.mappings.modelOperations.map((m) => m.model)
     }, true).toJS()}
 
-
-/**
- * DMMF
- */
-const dmmfString = ${JSON.stringify(this.dmmfString)}
-
-// We are parsing 2 times, as we want independent objects, because
-// DMMFClass introduces circular references in the dmmf object
-const dmmf = JSON.parse(dmmfString)
-exports.Prisma.dmmf = JSON.parse(dmmfString)
-
 /**
  * Create the Client
  */
@@ -362,28 +323,7 @@ In case this error is unexpected for you, please report it in https://github.com
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)
-
-/**
- * Build tool annotations
- * In order to make \`ncc\` and \`@vercel/nft\` happy.
- * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
-**/
-${this.options.platforms
-        ? this.options.platforms
-          .map((p) => `path.join(__dirname, 'query-engine-${p}');
-path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
-`)
-          .join('\n')
-        : ''
-      }
-/**
- * Annotation for \`@vercel/nft\`
- * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
-**/
-path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 `
-
     return code
   }
 }
