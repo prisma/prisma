@@ -10,6 +10,7 @@ import { getPlatform } from '@prisma/get-platform'
 import { cleanupCache } from '../cleanupCache'
 import { enginesVersion } from '@prisma/engines-version'
 import del from 'del'
+import stripAnsi from 'strip-ansi'
 
 const CURRENT_BINARIES_HASH = enginesVersion
 // From npx @prisma/cli@2.6.2 -v
@@ -24,7 +25,7 @@ describe('download', () => {
     await del(__dirname + '/**/*engine*')
     await del(__dirname + '/**/prisma-fmt*')
   })
-
+  afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
   test('basic download', async () => {
     const platform = await getPlatform()
     const queryEnginePath = path.join(
@@ -164,10 +165,48 @@ describe('download', () => {
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown binaryTargets marvin"`,
+      `"Unknown binaryTarget marvin and no custom binaries were provided"`,
     )
   })
+  test('handle non-existent binary target with missing custom binaries', async () => {
+    expect.assertions(1)
+    process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
+    try {
+      await download({
+        binaries: {
+          'query-engine': __dirname,
+        },
+        version: FIXED_BINARIES_HASH,
+        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      })
+    } catch (err) {
+      expect(stripAnsi(err.message)).toMatchInlineSnapshot(
+        `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
+      )
+    }
+  })
+  test('handle non-existent binary target with custom binaries', async () => {
+    const e = await download({
+      binaries: {
+        'query-engine': __dirname,
+      },
+    })
+    const dummyPath = e['query-engine'][Object.keys(e['query-engine'])[0]]!
+    process.env.PRISMA_QUERY_ENGINE_BINARY = dummyPath
+    const targetPath = path.join(
+      __dirname,
+      getBinaryName('query-engine', 'marvin'),
+    )
+    fs.copyFileSync(dummyPath, targetPath)
 
+    let testResult = await download({
+      binaries: {
+        'query-engine': __dirname,
+      },
+      binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    })
+    expect(testResult['query-engine']['marvin']).toEqual(dummyPath)
+  })
   test('download all binaries & cache them', async () => {
     const baseDir = path.join(__dirname, 'all')
     await download({

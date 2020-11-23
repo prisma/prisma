@@ -78,7 +78,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (['arm', 'nixos'].includes(os.distro)) {
     console.error(
-      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${os.distro
+      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
+        os.distro
       }.`,
     )
   } else if (
@@ -96,14 +97,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     return {}
   }
 
-  if (options.binaryTargets && Array.isArray(options.binaryTargets)) {
-    const unknownTargets = options.binaryTargets.filter(
-      (t) => !platforms.includes(t),
-    )
-    if (unknownTargets.length > 0) {
-      throw new Error(`Unknown binaryTargets ${unknownTargets.join(', ')}`)
-    }
-  }
 
   // merge options
   options = {
@@ -151,7 +144,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
+    const isSupported = platforms.includes(job.binaryTarget as Platform)
+    const shouldDownload = isSupported && !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
+    if(needsToBeDownloaded && !isSupported){
+      throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`)
+    }
+    return shouldDownload
   })
 
   if (binariesToDownload.length > 0) {
