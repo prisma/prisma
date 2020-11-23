@@ -19,6 +19,7 @@
     "query-builder"
   ],
   "main": "index.js",
+  "browser": "index-browser.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {

@@ -18,6 +18,7 @@ import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient, TS, JS } from './TSClient'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import pkgUp from 'pkg-up'
+import { BrowserJS } from './TSClient/Generatable'
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -97,6 +98,7 @@ export async function buildClient({
   const fileMap = {
     'index.d.ts': TS(client),
     'index.js': JS(client),
+    'index-browser.js': BrowserJS(client),
   }
 
   return {
@@ -284,6 +286,7 @@ export async function generateClient({
         name: '.prisma/client',
         main: 'index.js',
         types: 'index.d.ts',
+        browser: 'index-browser.js'
       },
       null,
       2,
@@ -308,6 +311,7 @@ export async function generateClient({
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
+  const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
     await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
