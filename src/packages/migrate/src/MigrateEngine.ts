@@ -92,9 +92,6 @@ export class MigrateEngine {
   public applyScript(args: EngineArgs.ApplyScriptInput): Promise<void> {
     return this.runCommand(this.getRPCPayload('applyScript', args))
   }
-  public initialize(args: EngineArgs.InitializeInput): Promise<void> {
-    return this.runCommand(this.getRPCPayload('initialize', args))
-  }
   public diagnoseMigrationHistory(
     args: EngineArgs.DiagnoseMigrationHistoryInput,
   ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
