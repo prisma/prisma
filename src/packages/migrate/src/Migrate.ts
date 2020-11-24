@@ -265,12 +265,6 @@ export class Migrate {
     })
   }
 
-  // public async checkHistoryAndReset({
-  //   force = false,
-  // }): Promise<string[] | undefined> {
-
-  // }
-
   public async getDbInfo(): Promise<{
     schemaWord: string
     dbType: string

@@ -15,9 +15,6 @@ const ctx = Context.new().add(consoleContext()).assemble()
 process.env.GITHUB_ACTIONS = '1'
 process.env.MIGRATE_SKIP_GENERATE = '1'
 
-// TODO
-// add test for isReset needed https://github.com/prisma/prisma/blob/a6c91fd6816bd33d3c44ce3bc56af06c01ddfdba/src/packages/migrate/src/Migrate.ts#L350
-
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
@@ -192,7 +189,12 @@ describe('sqlite', () => {
       '--early-access-feature',
     ])
 
-    await expect(draftResult).resolves.toMatchSnapshot()
+    await expect(draftResult).resolves.toMatchInlineSnapshot(`
+
+            Prisma Migrate created a migration draft 20201231000000_some_draft
+
+            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+          `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -229,7 +231,12 @@ describe('sqlite', () => {
       '--early-access-feature',
     ])
 
-    await expect(draftResult).resolves.toMatchSnapshot()
+    await expect(draftResult).resolves.toMatchInlineSnapshot(`
+
+                        Prisma Migrate created a migration draft 20201231000000_first
+
+                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                    `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -612,7 +619,12 @@ describe('postgresql', () => {
       '--early-access-feature',
     ])
 
-    await expect(draftResult).resolves.toMatchSnapshot()
+    await expect(draftResult).resolves.toMatchInlineSnapshot(`
+
+                Prisma Migrate created a migration draft 20201231000000_first
+
+                You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+            `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()

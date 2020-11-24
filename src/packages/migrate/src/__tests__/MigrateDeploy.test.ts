@@ -48,8 +48,8 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                    Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
-                              `)
+                                                Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
+                                        `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -65,19 +65,19 @@ describe('sqlite', () => {
     const result = MigrateDeploy.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate applied the following migration(s):
+                        Prisma Migrate applied the following migration(s):
 
-            migrations/
-              └─ 20201231000000_init/
-                └─ migration.sql
-          `)
+                        migrations/
+                          └─ 20201231000000_init/
+                            └─ migration.sql
+                    `)
 
     // Second time should do nothing (already applied)
     const resultBis = MigrateDeploy.new().parse(['--early-access-feature'])
     await expect(resultBis).resolves.toMatchInlineSnapshot(`
 
-                        Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
-                    `)
+                                    Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
+                              `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -92,7 +92,12 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
     const result = MigrateDeploy.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchSnapshot()
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            P3005
+
+            The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
+
+          `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -121,8 +126,6 @@ describe.skip('postgresql', () => {
       console.error(e)
     })
   })
-
-  it.skip('should throw if database is not empty', async () => {})
 })
 
 describe.skip('mysql', () => {
