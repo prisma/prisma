@@ -221,6 +221,8 @@ describe('postgresql', () => {
 
   it('should fail if no postgres db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
+    jest.setTimeout(6000)
+
     const result = MigrateResolve.new().parse([
       '--schema=./prisma/invalid-url.prisma',
       '--early-access-feature',

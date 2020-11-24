@@ -114,6 +114,7 @@ it('diagnoseMigrationHistory - existing-db-1-migration', async () => {
           Object {
             drift: null,
             editedMigrationNames: Array [],
+            errorInUnappliedMigration: null,
             failedMigrationNames: Array [],
             hasMigrationsTable: true,
             history: null,
