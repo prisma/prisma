@@ -18,4 +18,5 @@ dist/
 .pnpm-store
 
 .vscode
+!.vscode/launch.json
 coverage

@@ -1,0 +1,30 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Client - Current TS File",
+      "type": "node",
+      "request": "launch",
+      "args": ["${workspaceFolder}/${relativeFile}"],
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "env": {
+        "TS_NODE_PROJECT": "${workspaceFolder}/src/packages/client/tsconfig.json"
+      }
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Client - Jest Current File",
+      "program": "${workspaceFolder}/src/packages/client/node_modules/jest/bin/jest.js",
+      "args": [
+        "--runTestsByPath",
+        "${workspaceFolder}/${relativeFile}",
+        "--config",
+        "${workspaceFolder}/src/packages/client/jest.config.js"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "disableOptimisticBPs": true
+    }
+  ]
+}

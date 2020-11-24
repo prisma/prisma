@@ -449,7 +449,7 @@ export class Migrate {
           const version = generator.manifest?.version
           message.push(
             `✔ Generated ${chalk.bold(name!)}${
-              version ? ` (version: ${version})` : ''
+              version ? ` (${version})` : ''
             }${toStr} in ${formatms(after - before)}`,
           )
           generator.stop()
@@ -854,7 +854,7 @@ export class Migrate {
           console.log(`stderr ${d.toString()}`)
         })
         progressRenderer.showLogs(path.basename(after), child.stdout)
-        await new Promise((r) => {
+        await new Promise<void>((r) => {
           child.on('close', () => {
             r()
           })

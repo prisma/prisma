@@ -68,8 +68,8 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.318.0",
-    "@prisma/studio-server": "0.318.0",
+    "@prisma/studio": "0.322.0",
+    "@prisma/studio-server": "0.322.0",
     "@prisma/tests": "workspace:^0.0.0",
     "@sindresorhus/slugify": "1.1.0",
     "@timsuchanek/copy": "1.4.5",
@@ -81,9 +81,9 @@
     "@typescript-eslint/parser": "4.8.1",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.10",
+    "esbuild": "0.8.12",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.13.0",
+    "eslint": "7.14.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
@@ -107,7 +107,7 @@
     "pg": "8.5.1",
     "pkg": "4.4.9",
     "pkg-up": "3.1.0",
-    "prettier": "2.1.2",
+    "prettier": "2.2.0",
     "replace-string": "3.1.0",
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
@@ -117,7 +117,7 @@
     "tempy": "1.0.0",
     "terminal-link": "2.1.1",
     "ts-jest": "26.4.4",
-    "typescript": "4.0.5",
+    "typescript": "4.1.2",
     "verror": "1.10.0",
     "ws": "7.4.0"
   },
@@ -151,6 +151,6 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.12.0-11.27db1c55cd118b091170f883f58cc7cd1754c97b"
+    "@prisma/engines": "2.12.0-18.cf0680a1bfe8d5e743dc659cc7f08009f9587d58"
   }
 }

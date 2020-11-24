@@ -7,7 +7,7 @@ export async function handlePanic(
   error: RustPanic,
   cliVersion: string,
   binaryVersion: string,
-): Promise<boolean> {
+): Promise<void> {
   return new Promise(async function (resolve, reject) {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {

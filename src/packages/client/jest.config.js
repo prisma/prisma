@@ -18,6 +18,7 @@ module.exports = {
     'exhaustive-schema/generated-dmmf.ts',
     '__helpers__',
   ],
+  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
   testTimeout: 10000,
   setupFiles: ['./helpers/jestSetup.js']

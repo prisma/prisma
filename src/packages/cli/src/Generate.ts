@@ -18,6 +18,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
+import { breakingChangesMessage } from './utils/breakingChanges'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 const pkg = eval(`require('../package.json')`)
@@ -72,7 +73,7 @@ export class Generate implements Command {
           const version = generator.manifest?.version
           message.push(
             `✔ Generated ${chalk.bold(name!)}${
-              version ? ` (version: ${version})` : ''
+              version ? ` (${version})` : ''
             }${toStr} in ${formatms(after - before)}\n`,
           )
           generator.stop()
@@ -198,18 +199,16 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               ),
             )
           : '@prisma/client'
-        hint = `
-You can now start using Prisma Client in your code:
-
-\`\`\`
+        hint = `You can now start using Prisma Client in your code. Reference: ${link(
+          'https://pris.ly/d/client',
+        )}
+${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
-// or const { PrismaClient } = require('${importPath}')
-
 const prisma = new PrismaClient()`)}
-\`\`\`
+${chalk.dim('```')}
 
-Explore the full API: ${link('http://pris.ly/d/client')}`
+${breakingChangesMessage}`
       }
       const message =
         '\n' +
