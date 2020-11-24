@@ -677,7 +677,7 @@ export class Migrate {
           console.log(`stderr ${d.toString()}`)
         })
         progressRenderer.showLogs(path.basename(after), child.stdout)
-        await new Promise((r) => {
+        await new Promise<void>((r) => {
           child.on('close', () => {
             r()
           })

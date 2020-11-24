@@ -7,7 +7,7 @@ export async function handlePanic(
   error: RustPanic,
   cliVersion: string,
   binaryVersion: string,
-): Promise<boolean> {
+): Promise<void> {
   return new Promise(async function (resolve, reject) {
     if (isCi()) {
       return reject(error)

@@ -824,7 +824,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         }
 
         try {
-          await new Promise((resolve, reject) => {
+          await new Promise<void>((resolve, reject) => {
             this.engineStartDeferred = { resolve, reject }
           })
         } catch (err) {
