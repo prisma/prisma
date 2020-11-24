@@ -11,12 +11,12 @@
     "@sindresorhus/slugify": "1.1.0",
     "@types/debug": "4.1.5",
     "@types/graphviz": "0.0.32",
-    "@types/node": "12.19.5",
+    "@types/node": "12.19.6",
     "@types/redis": "2.8.28",
     "arg": "5.0.0",
     "batching-toposort": "1.2.0",
     "chalk": "4.1.0",
-    "debug": "4.2.0",
+    "debug": "4.3.1",
     "execa": "4.1.0",
     "globby": "11.0.1",
     "graphviz": "0.0.9",
@@ -27,7 +27,7 @@
     "redis-lock": "0.1.4",
     "semver": "7.3.2",
     "ts-node": "9.0.0",
-    "typescript": "4.0.5"
+    "typescript": "4.1.2"
   },
   "scripts": {
     "preinstall": "node -e \"!process.env.npm_config_user_agent.startsWith('pnpm/') && !console.log('Use pnpm install to install dependencies in this repository\\n') && process.exit(1)\"",

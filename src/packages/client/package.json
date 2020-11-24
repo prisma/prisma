@@ -67,7 +67,7 @@
     "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.15",
     "@types/js-levenshtein": "1.1.0",
-    "@types/node": "12.19.5",
+    "@types/node": "12.19.6",
     "@types/node-fetch": "2.5.7",
     "@types/pg": "7.14.7",
     "@typescript-eslint/eslint-plugin": "4.8.1",
@@ -77,9 +77,9 @@
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.10",
+    "esbuild": "0.8.12",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.13.0",
+    "eslint": "7.14.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
@@ -107,7 +107,7 @@
     "pidtree": "0.5.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
-    "prettier": "2.1.2",
+    "prettier": "2.2.0",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
     "rollup": "2.33.3",
@@ -122,7 +122,7 @@
     "ts-jest": "26.4.4",
     "ts-loader": "8.0.11",
     "ts-node": "9.0.0",
-    "typescript": "4.0.5"
+    "typescript": "4.1.2"
   },
   "peerDependencies": {
     "@prisma/cli": "*"
