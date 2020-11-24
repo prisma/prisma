@@ -89,7 +89,7 @@ export class Init implements Command {
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
         printError(`File ${chalk.bold(
-          'prisma/schema.prisma',
+          './schema.prisma',
         )} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
@@ -172,7 +172,7 @@ export class Init implements Command {
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
+✔ Your Prisma schema was created at ${chalk.green('./schema.prisma')}.
   You can now open it in your favorite editor.
 
 Next steps:
