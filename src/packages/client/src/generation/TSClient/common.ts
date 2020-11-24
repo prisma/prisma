@@ -164,7 +164,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
 
-export type Enumerable<T> = T | ReadonlyArray<T>;
+export type Enumerable<T> = T | Array<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Pick<T, K> ? never : K

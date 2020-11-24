@@ -103,7 +103,7 @@ afterEach(async () => {
 })
 
 it('launches client correctly', async () => {
-  await new Promise((res, rej) => {
+  await new Promise<void>((res, rej) => {
     http.get(`http://localhost:${STUDIO_TEST_PORT}`, response => {
       try {
         expect(response.statusCode).toEqual(200)

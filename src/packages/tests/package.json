@@ -36,7 +36,7 @@
     "prettier": "2.1.2",
     "replace-string": "^3.1.0",
     "sqlite-async": "^1.1.0",
-    "sqlite3": "5.0.0",
+    "sqlite3": "4.2.0",
     "string-hash": "^1.1.3",
     "strip-ansi": "6.0.0",
     "tempy": "^1.0.0",
