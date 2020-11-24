@@ -12,6 +12,7 @@ import path from 'path'
 import chalk from 'chalk'
 import { printError } from './prompt/utils/print'
 import { link, canConnectToDatabase } from '@prisma/sdk'
+import dotenv from 'dotenv'
 
 export const defaultSchema = (
   provider = 'postgresql',
@@ -73,7 +74,6 @@ export class Init implements Command {
     }
 
     const outputDir = process.cwd()
-    const prismaFolder = path.join(outputDir, 'prisma')
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
@@ -86,18 +86,7 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    if (fs.existsSync(prismaFolder)) {
-      console.log(
-        printError(`A folder called ${chalk.bold(
-          'prisma',
-        )} already exists in your project.
-        Please try again in a project that is not yet using Prisma.
-      `),
-      )
-      process.exit(1)
-    }
-
-    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
+    if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
         printError(`File ${chalk.bold(
           'prisma/schema.prisma',
@@ -138,15 +127,23 @@ export class Init implements Command {
       fs.mkdirSync(outputDir)
     }
 
-    if (!fs.existsSync(prismaFolder)) {
-      fs.mkdirSync(prismaFolder)
-    }
-
     fs.writeFileSync(
-      path.join(prismaFolder, 'schema.prisma'),
+      path.join(outputDir, 'schema.prisma'),
       defaultSchema(provider),
     )
-    fs.writeFileSync(path.join(prismaFolder, '.env'), defaultEnv(url))
+    const envPath = path.join(outputDir, '.env')
+    if (!fs.existsSync(envPath)) {
+      fs.writeFileSync(envPath, defaultEnv(url))
+    }  else {
+      const envFile = fs.readFileSync(envPath, { encoding: 'utf8'})
+      const config = dotenv.parse(envFile) // will return an object
+      if(Object.keys(config).includes("DATABASE_URL")){
+        console.warn(`${chalk.yellow('warn')}: DATABASE_URL already exists in ${chalk.bold(envPath)}`)
+      } else {
+        fs.appendFileSync(envPath, defaultEnv(url));
+      }
+
+    }
 
     const steps = [
       `Run ${chalk.green(
