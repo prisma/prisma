@@ -488,6 +488,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Executes a raw query. Always returns a number
      */
     private async $executeRawInternal(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
+      // TODO Clean up types
       let query = ''
       let parameters: any = undefined
 
@@ -533,7 +534,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'sqlserver': {
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray as any)
             parameters = {
               values: serializeRawParameters(values),
               __prismaRawParamaters__: true,
