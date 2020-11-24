@@ -4,18 +4,16 @@ exports[`should work with a custom output dir 1`] = `
 
 Prisma schema loaded from prisma/schema.prisma
 
-✔ Generated Prisma Client (version: 0.0.0) to ./generated/client in XXms
-
-You can now start using Prisma Client in your code:
-
+✔ Generated Prisma Client (2.11.0-dev.20) to ./generated/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
 \`\`\`
 import { PrismaClient } from './generated/client'
-// or const { PrismaClient } = require('./generated/client')
-
 const prisma = new PrismaClient()
 \`\`\`
 
-Explore the full API: http://pris.ly/d/client
+warn Prisma 2.12.0 has breaking changes.
+You can update your code with npx @prisma/codemods update-2.12 ./
+Read more at https://pris.ly/2.12
 `;
 
 exports[`should work with a custom output dir 2`] = `
