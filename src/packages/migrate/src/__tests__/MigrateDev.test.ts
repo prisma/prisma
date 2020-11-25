@@ -191,10 +191,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created a migration draft 20201231000000_some_draft
+                        Prisma Migrate created a migration draft 20201231000000_some_draft
 
-            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-          `)
+                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                    `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -233,10 +233,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                        Prisma Migrate created a migration draft 20201231000000_first
+                                    Prisma Migrate created a migration draft 20201231000000_first
 
-                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                    `)
+                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                              `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -512,6 +512,12 @@ describe('postgresql', () => {
     dirname: './fixtures',
   }
 
+  beforeAll(async () => {
+    await tearDownPostgres(SetupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
   beforeEach(async () => {
     await setupPostgres(SetupParams).catch((e) => {
       console.error(e)
@@ -611,7 +617,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('draft migration and apply', async () => {
+  it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-postgresql')
     const draftResult = MigrateDev.new().parse([
       '--create-only',
@@ -621,14 +627,17 @@ describe('postgresql', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                Prisma Migrate created a migration draft 20201231000000_first
+                            Prisma Migrate created a migration draft 20201231000000_first
 
-                You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-            `)
+                            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                      `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
 
+    expect(
+      (fs.list('prisma/migrations')?.length || 0) > 0,
+    ).toMatchInlineSnapshot(`true`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma

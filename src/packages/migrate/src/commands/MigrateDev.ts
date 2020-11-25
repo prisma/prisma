@@ -296,9 +296,8 @@ ${diagnoseResult.drift.error.message}`,
 
       if (diagnoseResult.history) {
         if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          const {
-            appliedMigrationNames: migrationIdsFromDatabaseIsBehind,
-          } = await migrate.applyOnly()
+          const { appliedMigrationNames } = await migrate.applyOnly()
+          migrationIdsFromDatabaseIsBehind = appliedMigrationNames
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
