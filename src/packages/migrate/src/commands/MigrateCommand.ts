@@ -7,75 +7,72 @@ import {
   isError,
   unknownCommand,
 } from '@prisma/sdk'
+import Debug from '@prisma/debug'
 import chalk from 'chalk'
-import { getNextFreePort } from '../utils/occupyPath'
+import { ExperimentalFlagWithNewMigrateError } from '../utils/flagErrors'
 
-/**
- * Migrate command
- */
 export class MigrateCommand implements Command {
   public static new(cmds: Commands): MigrateCommand {
     return new MigrateCommand(cmds)
   }
 
-  // static help template
-  private static help = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-    }Migrate your database with confidence
+  private static help = format(`${
+    process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+  }Migrate your database with confidence
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in an experimental state.",
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    "Prisma's migration functionality is currently in Early Access.",
   )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+)}
+  
+${chalk.bold('Usage')}
 
-    ${chalk.bold('Usage')}
+  ${chalk.dim('$')} prisma migrate [command] [options] --early-access-feature
 
-      With an existing schema.prisma:
-      ${chalk.dim('$')} prisma migrate [command] [options] --experimental
+${chalk.bold('Commands')}
 
-      Or specify a schema:
-      ${chalk.dim(
-        '$',
-      )} prisma migrate [command] [options] --experimental --schema=./schema.prisma
+         dev   Easily create and apply migrations during development
+      deploy   Deploy your migrations to your database
+       reset   Reset your database, all data will be lost
+     resolve   Resolve your database migration state
 
-    ${chalk.bold('Options')}
+${chalk.bold('Options')}
 
-      -h, --help   Display this help message
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
 
-    ${chalk.bold('Commands')}
+${chalk.bold('Examples')}
 
-        save   Create a new migration
-          up   Migrate your database up
-        down   Migrate your database down
+  Specify a schema
+  ${chalk.dim(
+    '$',
+  )} prisma migrate --early-access-feature dev --schema=./schema.prisma
 
-    ${chalk.bold('Examples')}
+  Automatically create a migration and apply it if there is a schema change
+  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
-      Create new migration
-      ${chalk.dim('$')} prisma migrate save --experimental
+  Reset your database
+  ${chalk.dim('$')} prisma migrate reset --early-access-feature
 
-      Migrate up to the latest datamodel
-      ${chalk.dim('$')} prisma migrate up --experimental
+  Deploy the migrations to your database
+  ${chalk.dim('$')} prisma migrate deploy --early-access-feature
 
-      Preview the next migration without migrating
-      ${chalk.dim('$')} prisma migrate up --preview --experimental
+  Mark a migration as applied
+  ${chalk.dim(
+    '$',
+  )} prisma migrate resolve --applied=20201231000000_add_users_table --early-access-feature
+`)
 
-      Rollback a migration
-      ${chalk.dim('$')} prisma migrate down 1 --experimental
-
-      Get more help on a migrate up
-      ${chalk.dim('$')} prisma migrate up -h --experimental
-  `)
   private constructor(private readonly cmds: Commands) {}
 
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--experimental': Boolean,
+      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -88,28 +85,15 @@ export class MigrateCommand implements Command {
       return this.help()
     }
 
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
+    }
+
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const nextFreePort = await getNextFreePort(process.cwd())
-      if (typeof nextFreePort !== 'number') {
-        const command = `prisma migrate ${argv.join(' ')}`
-        throw new Error(`Cannot run ${chalk.bold(
-          command,
-        )} because there is a ${chalk.bold(
-          'prisma dev',
-        )} command running in this directory.
-Please ${chalk.rgb(
-          228,
-          155,
-          15,
-        )(
-          `stop ${chalk.bold('prisma dev')} first`,
-        )}, then try ${chalk.greenBright.bold(command)} again`)
-      }
-
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+      const argsForCmd = args['--early-access-feature']
+        ? [...args._.slice(1), `--early-access-feature`]
         : args._.slice(1)
       return cmd.parse(argsForCmd)
     }

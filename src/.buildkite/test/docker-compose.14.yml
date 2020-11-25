@@ -7,6 +7,7 @@ services:
     working_dir: /app
     command: /app/src/.buildkite/test/run.sh
     environment:
+      - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres:5432/tests-migrate
       - TEST_POSTGRES_BASE_URI=postgres://prisma:prisma@postgres:5432
       - TEST_MYSQL_BASE_URI=mysql://root:root@mysql:3306
       - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306

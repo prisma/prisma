@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`postgresql should fail if no postgres db - invalid url 3`] = `Array []`;
+
+exports[`postgresql should fail if no postgres db - invalid url 4`] = `Array []`;
+
+exports[`sqlite --applied should work on a failed migration 3`] = `Array []`;
+
+exports[`sqlite --applied should work on a failed migration 4`] = `Array []`;
+
+exports[`sqlite --rolledback should work on a failed migration 3`] = `Array []`;
+
+exports[`sqlite --rolledback should work on a failed migration 4`] = `Array []`;
+
+exports[`sqlite --rolledback works if migration is already rolled back 4`] = `Array []`;
+
+exports[`sqlite --rolledback works if migration is already rolled back 5`] = `Array []`;
+
+exports[`sqlite should fail if no sqlite db - empty schema 3`] = `Array []`;
+
+exports[`sqlite should fail if no sqlite db - empty schema 4`] = `Array []`;

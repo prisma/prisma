@@ -402,7 +402,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 5
+    timeout-minutes: 7
     runs-on: ubuntu-latest
 
     strategy:
@@ -410,6 +410,17 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
+
+    services:
+      postgres:
+        image: postgres:9
+        env:
+          POSTGRES_DB: tests
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
@@ -446,6 +457,8 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
+          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests-migrate
 
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}

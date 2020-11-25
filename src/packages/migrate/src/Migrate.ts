@@ -7,6 +7,9 @@ import {
   getCommandWithExecutor,
   highlightDatamodel,
   maskSchema,
+  uriToCredentials,
+  getConfig,
+  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -33,6 +36,7 @@ import {
   LocalMigrationWithDatabaseSteps,
   LockFile,
   Migration,
+  EngineArgs,
 } from './types'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formatms'
@@ -51,10 +55,15 @@ import {
 } from './utils/printDatabaseSteps'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
+import {
+  getDbinfoFromCredentials,
+  getDbLocation,
+} from './utils/ensureDatabaseExists'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
 import { enginesVersion } from '@prisma/engines-version'
+
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -62,6 +71,10 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
+export interface MigrateOptions {
+  name?: string
+  isDraft?: boolean
+}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -105,7 +118,7 @@ export class Migrate {
       const datamodel = this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
-        const migration = await this.createMigration(watchMigrationName)
+        const migration = await this.createMigrationLegacy(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
         if (
@@ -176,17 +189,22 @@ export class Migrate {
               debug(`Generating ${generator.manifest!.prettyName}`)
               await generator.generate()
               generator.stop()
-            } catch (error) { }
+            } catch (error) {}
           }
         }
-      } catch (error) { }
+      } catch (error) {}
     },
   )
   // tsline:enable
   private datamodelBeforeWatch = ''
   private schemaPath: string
+  public migrationsDirectoryPath: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     this.schemaPath = this.getSchemaPath(schemaPath)
+    this.migrationsDirectoryPath = path.join(
+      path.dirname(this.schemaPath),
+      'migrations',
+    )
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
@@ -216,31 +234,137 @@ export class Migrate {
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
-  // TODO: optimize datapaths, where we have a datamodel already, use it
-  public getSourceConfig(): string {
-    return this.getDatamodel()
+  public async reset(): Promise<void> {
+    await this.engine.reset()
   }
 
-  public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(
-      path.dirname(this.schemaPath),
-      'migrations',
-      'migrate.lock',
-    )
-    if (await exists(lockFilePath)) {
-      const file = await readFile(lockFilePath, 'utf-8')
-      const lockFile = deserializeLockFile(file)
-      if (lockFile.remoteBranch) {
-        throw new Error(
-          `There's a merge conflict in the ${chalk.bold(
-            'migrations/migrate.lock',
-          )} file.`,
-        )
-      }
-      return lockFile
-    }
+  public async draft({ name = '' }: MigrateOptions = {}): Promise<string> {
+    const datamodel = this.getDatamodel()
+    const createMigrationResult = await this.createMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: name,
+      draft: true,
+      prismaSchema: datamodel,
+    })
 
-    return initLockFile()
+    // A migration was created
+    return createMigrationResult.generatedMigrationName!
+  }
+
+  public async createMigration(
+    params: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return await this.engine.createMigration(params)
+  }
+
+  public async diagnoseMigrationHistory(): Promise<
+    EngineResults.DiagnoseMigrationHistoryOutput
+  > {
+    return await this.engine.diagnoseMigrationHistory({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
+  public async getDbInfo(): Promise<{
+    schemaWord: string
+    dbType: string
+    dbName: string
+    dbLocation: string
+  }> {
+    const datamodel = this.getDatamodel()
+    const config = await getConfig({ datamodel })
+    const activeDatasource = config.datasources[0]
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const dbLocation = getDbLocation(credentials)
+    return {
+      ...getDbinfoFromCredentials(credentials),
+      dbLocation,
+    }
+  }
+
+  public async listMigrationDirectories(): Promise<
+    EngineResults.ListMigrationDirectoriesOutput
+  > {
+    const listMigrationDirectoriesResult = await this.engine.listMigrationDirectories(
+      {
+        migrationsDirectoryPath: this.migrationsDirectoryPath,
+      },
+    )
+    debug({ listMigrationDirectoriesResult })
+    return listMigrationDirectoriesResult
+  }
+
+  public async markMigrationApplied({
+    migrationId,
+    expectFailed = false,
+  }: {
+    migrationId: string
+    expectFailed?: boolean
+  }): Promise<void> {
+    const markMigrationApplied = await this.engine.markMigrationApplied({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: migrationId,
+      expectFailed,
+    })
+    return markMigrationApplied
+  }
+
+  public async markMigrationRolledBack({
+    migrationId,
+  }: {
+    migrationId: string
+  }): Promise<void> {
+    const markMigrationRolledBack = await this.engine.markMigrationRolledBack({
+      migrationName: migrationId,
+    })
+    return markMigrationRolledBack
+  }
+
+  public async applyScript({ script }: { script: string }): Promise<void> {
+    const appliedScriptResult = await this.engine.applyScript({ script })
+    debug({ appliedScriptResult })
+    return appliedScriptResult
+  }
+
+  public async applyOnly(): Promise<string[]> {
+    const { appliedMigrationNames } = await this.engine.applyMigrations({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+    debug({ appliedMigrationNames })
+
+    return appliedMigrationNames
+  }
+
+  public async evaluateDataLoss(): Promise<
+    EngineResults.EvaluateDataLossOutput
+  > {
+    const datamodel = this.getDatamodel()
+
+    const evaluateDataLossResult = await this.engine.evaluateDataLoss({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      prismaSchema: datamodel,
+    })
+
+    debug({ evaluateDataLossResult })
+    return evaluateDataLossResult
+  }
+
+  public async createAndApply({ name = '' }: MigrateOptions = {}): Promise<
+    string[]
+  > {
+    const datamodel = this.getDatamodel()
+
+    // success?
+    const createMigrationResult = await this.createMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: name,
+      draft: false,
+      prismaSchema: datamodel,
+    })
+    debug({ createMigrationResult })
+
+    // success?
+    return this.applyOnly()
   }
 
   public async push({
@@ -287,11 +411,11 @@ export class Migrate {
       for (const generator of generators) {
         const toStr = generator.options!.generator.output!
           ? chalk.dim(
-            ` to .${path.sep}${path.relative(
-              process.cwd(),
-              generator.options!.generator.output!,
-            )}`,
-          )
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
           : ''
         const name = generator.manifest
           ? generator.manifest.prettyName
@@ -305,7 +429,8 @@ export class Migrate {
           const after = Date.now()
           const version = generator.manifest?.version
           message.push(
-            `✔ Generated ${chalk.bold(name!)}${version ? ` (version: ${version})` : ''
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (${version})` : ''
             }${toStr} in ${formatms(after - before)}`,
           )
           generator.stop()
@@ -321,7 +446,38 @@ export class Migrate {
     logUpdate(message.join('\n'))
   }
 
-  public async createMigration(
+  //
+  // "Old" Migrate
+  //
+
+  // TODO: optimize datapaths, where we have a datamodel already, use it
+  public getSourceConfig(): string {
+    return this.getDatamodel()
+  }
+
+  public async getLockFile(): Promise<LockFile> {
+    const lockFilePath = path.resolve(
+      path.dirname(this.schemaPath),
+      'migrations',
+      'migrate.lock',
+    )
+    if (await exists(lockFilePath)) {
+      const file = await readFile(lockFilePath, 'utf-8')
+      const lockFile = deserializeLockFile(file)
+      if (lockFile.remoteBranch) {
+        throw new Error(
+          `There's a merge conflict in the ${chalk.bold(
+            'migrations/migrate.lock',
+          )} file.`,
+        )
+      }
+      return lockFile
+    }
+
+    return initLockFile()
+  }
+
+  public async createMigrationLegacy(
     migrationId: string,
   ): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const {
@@ -440,7 +596,6 @@ export class Migrate {
       sourceConfig: datamodel,
     })
 
-    // TODO cleanup
     let lastAppliedIndex = -1
     const appliedMigrations = localMigrations.filter(
       (localMigration, index) => {
@@ -472,7 +627,8 @@ export class Migrate {
       throw new Error(
         `You provided ${chalk.redBright(
           `n = ${chalk.bold(String(n))}`,
-        )}, but there are only ${appliedMigrations.length
+        )}, but there are only ${
+          appliedMigrations.length
         } applied migrations that can be rolled back. Please provide ${chalk.green(
           String(appliedMigrations.length),
         )} or lower.`,
@@ -498,11 +654,12 @@ export class Migrate {
       lastAppliedIndex--
     }
 
-    return `${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
+    return `${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({
+  public async upLegacy({
     n,
     preview,
     short,
@@ -529,7 +686,8 @@ export class Migrate {
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
       console.log(
-        `${process.platform === 'win32' ? '' : '🏋️‍  '
+        `${
+          process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
       )
 
@@ -695,9 +853,11 @@ export class Migrate {
       console.log('\n')
     }
 
-    return `\n${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
-      }  Done with ${migrationsToApply.length} migration${migrationsToApply.length > 1 ? 's' : ''
-      } in ${formatms(Date.now() - before)}.\n`
+    return `\n${
+      process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+    }  Done with ${migrationsToApply.length} migration${
+      migrationsToApply.length > 1 ? 's' : ''
+    } in ${formatms(Date.now() - before)}.\n`
   }
 
   public stop(): void {
@@ -885,9 +1045,10 @@ export class Migrate {
       )
 
       throw new Error(
-        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${localMigrationIds.length > 0
-          ? localMigrationIds.join(', ')
-          : `(empty)`
+        `There are more migrations in the database than locally. This must not happen.\nLocal migration ids: ${
+          localMigrationIds.length > 0
+            ? localMigrationIds.join(', ')
+            : `(empty)`
         }.\nRemote migration ids: ${remoteMigrationIds.join(', ')}`,
       )
     }
@@ -1024,7 +1185,8 @@ class ProgressRenderer {
         ) {
           return (
             newLine +
-            `Done ${process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
+            `Done ${
+              process.platform === 'win32' ? '' : chalk.bold.green('🚀  ')
             }` +
             m.scripts
           )
