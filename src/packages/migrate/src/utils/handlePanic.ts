@@ -9,7 +9,8 @@ export async function handlePanic(
   binaryVersion: string,
 ): Promise<void> {
   return new Promise(async function (resolve, reject) {
-    if (isCi()) {
+    // We use prompts.inject() for testing in our CI
+    if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       return reject(error)
     }
 

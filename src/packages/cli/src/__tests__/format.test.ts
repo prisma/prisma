@@ -1,4 +1,4 @@
-import * as fs from 'fs-jetpack'
+import fs from 'fs-jetpack'
 import { Format } from '../Format'
 import { Context } from './__helpers__/context'
 

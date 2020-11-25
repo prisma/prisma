@@ -5,6 +5,7 @@ import { stdin } from 'mock-stdin'
 import { dirname, join, resolve } from 'path'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
+import prompt from 'prompts'
 import tempy from 'tempy'
 import { promisify } from 'util'
 import { Migrate } from '../Migrate'
@@ -136,7 +137,7 @@ describe('handlePanic', () => {
     let error
     try {
       const migrate = new Migrate(schemaPath)
-      await migrate.createMigration('setup')
+      await migrate.createMigrationLegacy('setup')
     } catch (err) {
       // No to send error report
       setTimeout(() => sendKeystrokes(io).then(), 5)
@@ -149,7 +150,8 @@ describe('handlePanic', () => {
         error = err
       }
     }
-    if (isCi()) {
+    // We use prompts.inject() for testing in our CI
+    if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
         Error in migration engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
@@ -208,7 +210,7 @@ describe('handlePanic', () => {
 
     try {
       const migrate = new Migrate(schemaPath)
-      await migrate.createMigration('setup')
+      await migrate.createMigrationLegacy('setup')
     } catch (err) {
       expect(error).toMatchInlineSnapshot(`Some error message!`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(

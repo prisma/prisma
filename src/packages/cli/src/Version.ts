@@ -41,7 +41,7 @@ export class Version implements Command {
 
   ${chalk.bold('Options')}
 
-    -h, --help     Displays this help message
+    -h, --help     Display this help message
         --json     Output JSON
 `)
 

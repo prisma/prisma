@@ -22,7 +22,7 @@ export class CLI implements Command {
   private constructor(
     private readonly cmds: Commands,
     private readonly ensureBinaries: string[],
-  ) { }
+  ) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -32,6 +32,7 @@ export class CLI implements Command {
       '-v': '--version',
       '--json': Boolean, // for -v
       '--experimental': Boolean,
+      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -46,9 +47,9 @@ export class CLI implements Command {
 
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
-      if (args['--experimental']) {
-        return CLI.experimentalHelp
-      }
+      // if (args['--experimental']) {
+      //   return CLI.experimentalHelp
+      // }
       return CLI.help
     }
 
@@ -79,6 +80,11 @@ export class CLI implements Command {
           ...args._.slice(1),
           `--preview-feature=${args['--preview-feature']}`,
         ]
+      } else if (args['--early-access-feature']) {
+        argsForCmd = argsForCmd = [
+          ...args._.slice(1),
+          `--early-access-feature=${args['--early-access-feature']}`,
+        ]
       } else {
         argsForCmd = args._.slice(1)
       }
@@ -97,10 +103,11 @@ export class CLI implements Command {
   }
 
   private static help = format(`
-    ${process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+    ${
+      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
     }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-      'https://prisma.io',
-    )})
+    'https://prisma.io',
+  )})
 
     ${chalk.bold('Usage')}
 
@@ -113,14 +120,15 @@ export class CLI implements Command {
             generate   Generate artifacts (e.g. Prisma Client)
               studio   Open Prisma Studio
               format   Format your schema
+             migrate   Migrate your database ${chalk.dim('(Early Access)')}
                   db   Manage your database schema and lifecycle ${chalk.dim(
-      '(preview)',
-    )}
+                    '(Preview)',
+                  )}
 
     ${chalk.bold('Flags')}
 
-      --experimental   Show and run experimental Prisma commands
-   --preview-feature   Run preview Prisma commands
+         --preview-feature   Run Preview Prisma commands
+    --early-access-feature   Run Early Access Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -136,55 +144,59 @@ export class CLI implements Command {
       Browse your data
       ${chalk.dim('$')} prisma studio
 
+      Create and apply a migration for your database
+      ${chalk.dim('$')} prisma migrate dev --early-access-feature
+  
       Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview-feature
   `)
 
-  private static experimentalHelp = format(`
-    ${process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
-    }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-      'https://prisma.io',
-    )})
+  // private static experimentalHelp = format(`
+  //   ${
+  //     process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+  //   }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
+  //   'https://prisma.io',
+  // )})
 
-    ${chalk.bold('Usage')}
+  //   ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma [command]
+  //     ${chalk.dim('$')} prisma [command]
 
-    ${chalk.bold('Commands')}
+  //   ${chalk.bold('Commands')}
 
-                init   Setup Prisma for your app
-          introspect   Get the datamodel of your database
-            generate   Generate artifacts (e.g. Prisma Client)
-              studio   Open Prisma Studio
-              format   Format your schema
-                  db   Manage your database schema and lifecycle ${chalk.dim(
-      '(preview)',
-    )}
-             migrate   Migrate your schema ${chalk.dim('(experimental)')}
+  //               init   Setup Prisma for your app
+  //         introspect   Get the datamodel of your database
+  //           generate   Generate artifacts (e.g. Prisma Client)
+  //             studio   Open Prisma Studio
+  //             format   Format your schema
+  //                 db   Manage your database schema and lifecycle ${chalk.dim(
+  //                   '(Preview)',
+  //                 )}
+  //            migrate   Migrate your database ${chalk.dim('(Early Access)')}
 
-    ${chalk.bold('Flags')}
+  //   ${chalk.bold('Flags')}
 
-      --experimental   Show and run experimental Prisma commands
-   --preview-feature   Run preview Prisma commands
+  //        --preview-feature   Run Preview Prisma commands
+  //   --early-access-feature   Run Early Access Prisma commands
 
-    ${chalk.bold('Examples')}
+  //   ${chalk.bold('Examples')}
 
-      Setup a new Prisma project
-      ${chalk.dim('$')} prisma init
+  //     Setup a new Prisma project
+  //     ${chalk.dim('$')} prisma init
 
-      Introspect an existing database
-      ${chalk.dim('$')} prisma introspect
+  //     Introspect an existing database
+  //     ${chalk.dim('$')} prisma introspect
 
-      Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma generate
-      
-      Browse your data
-      ${chalk.dim('$')} prisma studio
+  //     Generate artifacts (e.g. Prisma Client)
+  //     ${chalk.dim('$')} prisma generate
 
-      Push the Prisma schema state to the database
-      ${chalk.dim('$')} prisma db push --preview-feature
+  //     Browse your data
+  //     ${chalk.dim('$')} prisma studio
 
-      Create a migration for your database
-      ${chalk.dim('$')} prisma migrate save --experimental
-  `)
+  //     Push the Prisma schema state to the database
+  //     ${chalk.dim('$')} prisma db push --preview-feature
+
+  //     Create a migration for your database
+  //     ${chalk.dim('$')} prisma migrate dev --early-access-feature
+  // `)
 }

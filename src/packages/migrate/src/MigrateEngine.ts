@@ -48,7 +48,12 @@ export class MigrateEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
-  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
+  constructor({
+    projectDir,
+    debug = false,
+    schemaPath,
+    enabledPreviewFeatures,
+  }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
@@ -61,9 +66,64 @@ export class MigrateEngine {
     this.child!.kill()
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
+
+  // List migrations in migration directory.
+  public listMigrationDirectories(
+    args: EngineArgs.ListMigrationDirectoriesInput,
+  ): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.runCommand(this.getRPCPayload('listMigrationDirectories', args))
+  }
+  // Mark the specified migration as applied in the migrations table. There are two possible cases:
+  // - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
+  // - The migration is not in the table. We will create a new entry in the migrations table. The `started_at` and `finished_at` will be the same.
+  // - If it is already applied, we return a user-facing error.
+  public markMigrationApplied(
+    args: EngineArgs.MarkMigrationAppliedInput,
+  ): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationApplied', args))
+  }
+  // Mark an existing failed migration as rolled back in the migrations table. It will still be there, but ignored for all purposes except as audit trail.
+  public markMigrationRolledBack(
+    args: EngineArgs.MarkMigrationRolledBackInput,
+  ): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
+  }
+  // Apply a script without writing to the migrations table. This is currently used for correcting drift.
+  public applyScript(args: EngineArgs.ApplyScriptInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('applyScript', args))
+  }
+  public diagnoseMigrationHistory(
+    args: EngineArgs.DiagnoseMigrationHistoryInput,
+  ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+    return this.runCommand(this.getRPCPayload('diagnoseMigrationHistory', args))
+  }
+  public planMigration(
+    args: EngineArgs.PlanMigrationInput,
+  ): Promise<EngineResults.PlanMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('planMigration', args))
+  }
+  public evaluateDataLoss(
+    args: EngineArgs.EvaluateDataLossInput,
+  ): Promise<EngineResults.EvaluateDataLossOutput> {
+    return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
+  }
+  public createMigration(
+    args: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('createMigration', args))
+  }
+  public applyMigrations(
+    args: EngineArgs.ApplyMigrationsInput,
+  ): Promise<EngineResults.ApplyMigrationsOutput> {
+    return this.runCommand(this.getRPCPayload('applyMigrations', args))
+  }
+  public reset(): Promise<void> {
+    return this.runCommand(this.getRPCPayload('reset', undefined))
+  }
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
+
   public schemaPush(
     args: EngineArgs.SchemaPush,
   ): Promise<EngineResults.SchemaPush> {
@@ -168,8 +228,17 @@ export class MigrateEngine {
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
-        if (this.enabledPreviewFeatures && Array.isArray(this.enabledPreviewFeatures) && this.enabledPreviewFeatures.length > 0) {
-          args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
+        if (
+          this.enabledPreviewFeatures &&
+          Array.isArray(this.enabledPreviewFeatures) &&
+          this.enabledPreviewFeatures.length > 0
+        ) {
+          args.push(
+            ...[
+              '--enabled-preview-features',
+              this.enabledPreviewFeatures.join(','),
+            ],
+          )
         }
         this.child = spawn(binaryPath, args, {
           cwd: this.projectDir,
@@ -268,7 +337,8 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
-        if (response.result) {
+        // can be null, for reset RPC for example
+        if (response.result !== undefined) {
           resolve(response.result)
         } else {
           if (response.error) {
@@ -309,7 +379,8 @@ export class MigrateEngine {
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
+                    response.error.message
                   }\n\n${text}\n`,
                 ),
               )
@@ -370,7 +441,6 @@ Please put that file into a gist and post it in Slack.
       jsonrpc: '2.0',
       method,
       params: {
-        projectInfo: '',
         ...params,
       },
     }
