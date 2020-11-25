@@ -52,7 +52,7 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate reset --schema=./schema.prisma --early-access-feature 
+  )} prisma migrate reset --schema=./schema.prisma' --early-access-feature 
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -137,7 +137,7 @@ ${chalk.bold('Examples')}
 
     await migrate.reset()
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const migrationIds = await migrate.applyOnly()
     migrate.stop()
 
     if (migrationIds.length === 0) {
