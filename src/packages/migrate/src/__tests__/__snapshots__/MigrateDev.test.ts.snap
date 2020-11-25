@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`postgresql draft migration and apply 2`] = ``;
+exports[`postgresql draft migration and apply (--name) 2`] = ``;
 
-exports[`postgresql draft migration and apply 4`] = `Array []`;
+exports[`postgresql draft migration and apply (--name) 5`] = `Array []`;
 
-exports[`postgresql draft migration and apply 5`] = `Array []`;
+exports[`postgresql draft migration and apply (--name) 6`] = `Array []`;
 
 exports[`postgresql existingdb: first migration after init 1`] = ``;
 

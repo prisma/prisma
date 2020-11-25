@@ -200,25 +200,6 @@ describe('sqlite', () => {
 })
 
 describe('postgresql', () => {
-  //   const SetupParams: SetupParams = {
-  //     connectionString:
-  //       process.env.TEST_POSTGRES_URI_MIGRATE ||
-  //       'postgres://prisma:prisma@localhost:5432/tests-migrate',
-  //     dirname: './fixtures',
-  //   }
-
-  //   beforeEach(async () => {
-  //     await setupPostgres(SetupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
-
-  //   afterEach(async () => {
-  //     await tearDownPostgres(SetupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
-
   it('should fail if no postgres db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(6000)
