@@ -191,10 +191,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                        Prisma Migrate created a migration draft 20201231000000_some_draft
+                                                                                                            Prisma Migrate created a migration draft 20201231000000_some_draft
 
-                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                    `)
+                                                                                                            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                          `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -233,10 +233,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                    Prisma Migrate created a migration draft 20201231000000_first
+                                                                                                                        Prisma Migrate created a migration draft 20201231000000_first
 
-                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                              `)
+                                                                                                                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                                    `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -265,39 +265,52 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it('transition-db-push-migrate (prompt yes)', async () => {
+  it('transition-db-push-migrate (prompt reset yes)', async () => {
     ctx.fixture('transition-db-push-migrate')
 
-    prompt.inject(['y'])
+    prompt.inject(['first', 'y'])
 
     const result = MigrateDev.new().parse(['--early-access-feature'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(`Operation successful.`)
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma Schema loaded from prisma/schema.prisma
-      Migration "20201231000000_" created.
-      Migration "20201231000000_" marked applied.
+      Prisma Migrate created and applied the following migration(s) from new schema changes:
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
+      Everything is now in sync.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it('transition-db-push-migrate (prompt no)', async () => {
+  it('transition-db-push-migrate (prompt reset no)', async () => {
     ctx.fixture('transition-db-push-migrate')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
-    prompt.inject([new Error()])
+    prompt.inject(['first', new Error()])
 
     const result = MigrateDev.new().parse(['--early-access-feature'])
 
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Check init flow with introspect + SQL schema dump (TODO docs)`,
-    )
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma Schema loaded from prisma/schema.prisma
+      Prisma Migrate created the following migration from new schema changes:
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
+      Reset cancelled.
+    `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(mockExit).toBeCalledWith(0)
   })
 
   it('edited migration and unapplied empty draft', async () => {
@@ -382,18 +395,16 @@ describe('sqlite', () => {
   it('existingdb: has a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
-    const result = MigrateDev.new().parse(['--early-access-feature'])
+    try {
+      await MigrateDev.new().parse(['--early-access-feature'])
+    } catch (e) {
+      expect(e.message).toContain('P3006')
+      expect(e.message).toContain('failed when applied to the shadow database.')
+    }
 
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the migrate command in an unnattended environment like prisma migrate dev --force --early-access-feature`,
-    )
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
-      The following migration(s) failed to apply:
-      - 20201231000000_failed
-
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
@@ -437,20 +448,15 @@ describe('sqlite', () => {
     try {
       await MigrateDev.new().parse(['--early-access-feature', '--force'])
     } catch (e) {
-      expect(e.code).toMatchInlineSnapshot(`P3006`)
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
         'failed to apply cleanly to a temporary database.',
       )
     }
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
-      The following migration(s) failed to apply:
-      - 20201231000000_failed
-
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
@@ -627,10 +633,10 @@ describe('postgresql', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                            Prisma Migrate created a migration draft 20201231000000_first
+                                                                                                                Prisma Migrate created a migration draft 20201231000000_first
 
-                            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                      `)
+                                                                                                                You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                            `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
