@@ -80,9 +80,9 @@ exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
 
 exports[`sqlite existingdb: has a failed migration (--force) 4`] = ``;
 
-exports[`sqlite existingdb: has a failed migration 3`] = ``;
+exports[`sqlite existingdb: has a failed migration 2`] = ``;
 
-exports[`sqlite existingdb: has a failed migration 4`] = ``;
+exports[`sqlite existingdb: has a failed migration 3`] = ``;
 
 exports[`sqlite first migration (--name) 1`] = ``;
 

@@ -174,6 +174,25 @@ Delete the current migrations folder to continue and read the documentation for 
     let isResetNeeded = false
     let migrationIdsFromDatabaseIsBehind: string[] = []
 
+    if (diagnoseResult.errorInUnappliedMigration) {
+      const failedMigrationError = diagnoseResult.errorInUnappliedMigration as UserFacingErrorWithMeta
+
+      throw new Error(
+        `The migration ${
+          failedMigrationError.meta.migration_name
+        } failed when applied to the shadow database.
+${chalk.green(
+  `Fix the migration script and run ${getCommandWithExecutor(
+    'prisma migrate dev --early-access-feature' +
+      (args['--force'] ? ' --force' : ''),
+  )} again.`,
+)}
+
+${failedMigrationError.error_code}
+${failedMigrationError.message}`,
+      )
+    }
+
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
     const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
