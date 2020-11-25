@@ -95,7 +95,7 @@ ${chalk.bold('Options')}
 
     await ensureDatabaseExists('apply', true, schemaPath)
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const migrationIds = await migrate.applyOnly()
 
     migrate.stop()
 

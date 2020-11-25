@@ -223,6 +223,9 @@ ${failedMigrationError.message}`,
         }
       }
     } else {
+      debug({ drift: diagnoseResult.drift })
+      debug({ history: diagnoseResult.history })
+
       if (diagnoseResult.drift) {
         if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
           // Migration has a problem (failed to cleanly apply to a temporary database) and
@@ -296,9 +299,7 @@ ${diagnoseResult.drift.error.message}`,
 
       if (diagnoseResult.history) {
         if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          const {
-            appliedMigrationNames: migrationIdsFromDatabaseIsBehind,
-          } = await migrate.applyOnly()
+          migrationIdsFromDatabaseIsBehind = await migrate.applyOnly()
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
@@ -378,16 +379,9 @@ ${diagnoseResult.drift.error.message}`,
       }
     }
 
-    const createMigrationResult = await migrate.createMigration({
-      migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-      migrationName: migrationName || '',
-      draft: false,
-      prismaSchema: migrate.getDatamodel(),
+    const migrationIds = await migrate.createAndApply({
+      name: migrationName,
     })
-    debug({ createMigrationResult })
-
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
-
     migrate.stop()
 
     if (migrationIds.length === 0) {

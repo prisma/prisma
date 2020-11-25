@@ -116,6 +116,9 @@ export namespace EngineArgs {
   export interface ApplyScriptInput {
     script: string
   }
+  export interface InitializeInput {
+    migrationsDirectoryPath: string
+  }
   export interface DiagnoseMigrationHistoryInput {
     migrationsDirectoryPath: string
   }

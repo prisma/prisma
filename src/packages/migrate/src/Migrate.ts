@@ -234,8 +234,8 @@ export class Migrate {
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
-  public reset(): Promise<void> {
-    return this.engine.reset()
+  public async reset(): Promise<void> {
+    await this.engine.reset()
   }
 
   public async draft({ name = '' }: MigrateOptions = {}): Promise<string> {
@@ -251,16 +251,16 @@ export class Migrate {
     return createMigrationResult.generatedMigrationName!
   }
 
-  public createMigration(
+  public async createMigration(
     params: EngineArgs.CreateMigrationInput,
   ): Promise<EngineResults.CreateMigrationOutput> {
-    return this.engine.createMigration(params)
+    return await this.engine.createMigration(params)
   }
 
-  public diagnoseMigrationHistory(): Promise<
+  public async diagnoseMigrationHistory(): Promise<
     EngineResults.DiagnoseMigrationHistoryOutput
   > {
-    return this.engine.diagnoseMigrationHistory({
+    return await this.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
   }
@@ -282,14 +282,15 @@ export class Migrate {
     }
   }
 
-  public listMigrationDirectories(): Promise<
+  public async listMigrationDirectories(): Promise<
     EngineResults.ListMigrationDirectoriesOutput
   > {
-    const listMigrationDirectoriesResult = this.engine.listMigrationDirectories(
+    const listMigrationDirectoriesResult = await this.engine.listMigrationDirectories(
       {
         migrationsDirectoryPath: this.migrationsDirectoryPath,
       },
     )
+    debug({ listMigrationDirectoriesResult })
     return listMigrationDirectoriesResult
   }
 
@@ -308,33 +309,62 @@ export class Migrate {
     return markMigrationApplied
   }
 
-  public markMigrationRolledBack({
+  public async markMigrationRolledBack({
     migrationId,
   }: {
     migrationId: string
   }): Promise<void> {
-    return this.engine.markMigrationRolledBack({
+    const markMigrationRolledBack = await this.engine.markMigrationRolledBack({
       migrationName: migrationId,
     })
+    return markMigrationRolledBack
   }
 
-  public applyScript({ script }: { script: string }): Promise<void> {
-    return this.engine.applyScript({ script })
+  public async applyScript({ script }: { script: string }): Promise<void> {
+    const appliedScriptResult = await this.engine.applyScript({ script })
+    debug({ appliedScriptResult })
+    return appliedScriptResult
   }
 
-  public applyOnly(): Promise<EngineResults.ApplyMigrationsOutput> {
-    return this.engine.applyMigrations({
+  public async applyOnly(): Promise<string[]> {
+    const { appliedMigrationNames } = await this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
+    debug({ appliedMigrationNames })
+
+    return appliedMigrationNames
   }
 
-  public evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
+  public async evaluateDataLoss(): Promise<
+    EngineResults.EvaluateDataLossOutput
+  > {
     const datamodel = this.getDatamodel()
 
-    return this.engine.evaluateDataLoss({
+    const evaluateDataLossResult = await this.engine.evaluateDataLoss({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       prismaSchema: datamodel,
     })
+
+    debug({ evaluateDataLossResult })
+    return evaluateDataLossResult
+  }
+
+  public async createAndApply({ name = '' }: MigrateOptions = {}): Promise<
+    string[]
+  > {
+    const datamodel = this.getDatamodel()
+
+    // success?
+    const createMigrationResult = await this.createMigration({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: name,
+      draft: false,
+      prismaSchema: datamodel,
+    })
+    debug({ createMigrationResult })
+
+    // success?
+    return this.applyOnly()
   }
 
   public async push({
