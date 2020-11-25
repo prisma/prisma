@@ -196,6 +196,10 @@ export namespace EngineResults {
     editedMigrationNames: string[]
     /// Whether the migrations table is present.
     hasMigrationsTable: boolean
+    /// An optional error encountered when applying a migration that is not
+    /// applied in the main database to the shadow database. We do this to
+    /// validate that unapplied migrations are at least minimally valid.
+    errorInUnappliedMigration: UserFacingError | null
   }
 
   export interface PlanMigrationOutput {
