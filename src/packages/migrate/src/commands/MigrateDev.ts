@@ -172,6 +172,7 @@ Delete the current migrations folder to continue and read the documentation for 
     debug({ diagnoseResult })
 
     let isResetNeeded = false
+    let isResetNeededAfterCreate = false
     let migrationIdsFromDatabaseIsBehind: string[] = []
 
     if (diagnoseResult.errorInUnappliedMigration) {
@@ -254,58 +255,7 @@ ${diagnoseResult.drift.error.message}`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
           if (diagnoseResult.hasMigrationsTable === false) {
-            const confirmDbPushUsed = await this.confirmDbPushUsed()
-            if (confirmDbPushUsed) {
-              const introspectEngine = new IntrospectionEngine({
-                cwd: path.dirname(schemaPath),
-              })
-
-              const introspectResult = await introspectEngine.introspect(
-                migrate.getDatamodel(),
-              )
-              introspectEngine.stop()
-
-              const createMigrationResult = await migrate.createMigration({
-                migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-                migrationName: '',
-                draft: true,
-                prismaSchema: introspectResult.datamodel,
-              })
-
-              console.info(
-                `Migration "${createMigrationResult.generatedMigrationName!}" created.`,
-              )
-
-              await migrate.markMigrationApplied({
-                migrationId: createMigrationResult.generatedMigrationName!,
-              })
-
-              console.info(
-                `Migration "${createMigrationResult.generatedMigrationName!}" marked applied.`,
-              )
-
-              const createMigrationOptionalResult = await migrate.createMigration(
-                {
-                  migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-                  migrationName: '',
-                  draft: false,
-                  prismaSchema: migrate.getDatamodel(),
-                },
-              )
-
-              if (createMigrationOptionalResult.generatedMigrationName) {
-                console.info(
-                  `Migration "${createMigrationResult.generatedMigrationName!}" created and applied.`,
-                )
-              }
-              migrate.stop()
-              return `Operation successful.`
-            } else {
-              migrate.stop()
-              throw Error(
-                'Check init flow with introspect + SQL schema dump (TODO docs)',
-              )
-            }
+            isResetNeededAfterCreate = true
           } else {
             // we could try to fix the drift in the future
             isResetNeeded = true
@@ -346,7 +296,7 @@ ${diagnoseResult.drift.error.message}`,
       }
     }
 
-    if (isResetNeeded) {
+    if (isResetNeeded && !isResetNeededAfterCreate) {
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
@@ -366,12 +316,15 @@ ${diagnoseResult.drift.error.message}`,
           console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
+          // For snapshot test, because exit() is mocked
+          return ``
         }
         await migrate.reset()
       }
     }
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
+    debug({ evaluateDataLossResult })
 
     // throw error
     handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
@@ -403,6 +356,44 @@ ${diagnoseResult.drift.error.message}`,
       prismaSchema: migrate.getDatamodel(),
     })
     debug({ createMigrationResult })
+
+    if (isResetNeededAfterCreate) {
+      if (!args['--force']) {
+        // We use prompts.inject() for testing in our CI
+        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+          throw Error(
+            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
+              getCommandWithExecutor(
+                'prisma migrate dev --force --early-access-feature',
+              ),
+            )}`,
+          )
+        }
+
+        const confirmedReset = await this.confirmReset(
+          await migrate.getDbInfo(),
+        )
+        if (!confirmedReset) {
+          console.info(
+            `Prisma Migrate created the following migration from new schema changes:\n\n${chalk(
+              printFilesFromMigrationIds(
+                'migrations',
+                [createMigrationResult.generatedMigrationName!],
+                {
+                  'migration.sql': '',
+                },
+              ),
+            )}`,
+          )
+          console.info() // empty line
+          console.info('Reset cancelled.')
+          process.exit(0)
+          // For snapshot test, because exit() is mocked
+          return ``
+        }
+        await migrate.reset()
+      }
+    }
 
     const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
 

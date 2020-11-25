@@ -76,9 +76,9 @@ exports[`sqlite existingdb: 1 unapplied draft 3`] = `Array []`;
 
 exports[`sqlite existingdb: 1 unapplied draft 4`] = `Array []`;
 
-exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
+exports[`sqlite existingdb: has a failed migration (--force) 2`] = ``;
 
-exports[`sqlite existingdb: has a failed migration (--force) 4`] = ``;
+exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
 
 exports[`sqlite existingdb: has a failed migration 2`] = ``;
 
@@ -108,10 +108,10 @@ exports[`sqlite removed applied migration and unapplied empty draft 4`] = ``;
 
 exports[`sqlite snapshot of sql 1`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt no) 3`] = ``;
+exports[`sqlite transition-db-push-migrate (prompt reset no) 3`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt no) 4`] = ``;
+exports[`sqlite transition-db-push-migrate (prompt reset no) 4`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt yes) 3`] = ``;
+exports[`sqlite transition-db-push-migrate (prompt reset yes) 3`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt yes) 4`] = ``;
+exports[`sqlite transition-db-push-migrate (prompt reset yes) 4`] = ``;
