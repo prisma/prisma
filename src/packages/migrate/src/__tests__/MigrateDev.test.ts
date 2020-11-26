@@ -29,7 +29,7 @@ describe('common', () => {
     const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-            Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
+              Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
           `)
   })
   it('should fail if no flag', async () => {
@@ -61,7 +61,7 @@ describe('sqlite', () => {
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/empty.prisma
+      Prisma schema loaded from prisma/empty.prisma
 
       SQLite database dev.db created at file:dev.db
 
@@ -82,7 +82,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
@@ -108,7 +108,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
@@ -135,7 +135,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
@@ -191,10 +191,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                                            Prisma Migrate created a migration draft 20201231000000_some_draft
+                                                                                                                        Prisma Migrate created a migration draft 20201231000000_some_draft
 
-                                                                                                            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                                                                                          `)
+                                                                                                                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                                    `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -205,11 +205,11 @@ describe('sqlite', () => {
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following unapplied migration(s):
 
@@ -233,10 +233,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                        Prisma Migrate created a migration draft 20201231000000_first
+                                                                                                                                    Prisma Migrate created a migration draft 20201231000000_first
 
-                                                                                                                        You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                                                                                                    `)
+                                                                                                                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                                              `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -247,11 +247,11 @@ describe('sqlite', () => {
     expect(fs.exists('prisma/dev.db')).toEqual('file')
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following unapplied migration(s):
 
@@ -275,7 +275,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created and applied the following migration(s) from new schema changes:
 
       migrations/
@@ -299,7 +299,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created the following migration from new schema changes:
 
       migrations/
@@ -323,7 +323,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       The following migration(s) were edited after they were applied:
       - 20201231000000_test
 
@@ -352,7 +352,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       The following migration(s) are applied to the database but missing from the local migrations directory:
       - 20201231000000_test
 
@@ -383,7 +383,7 @@ describe('sqlite', () => {
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       SQLite database dev.db created at file:dev.db
 
@@ -404,7 +404,7 @@ describe('sqlite', () => {
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
@@ -430,10 +430,10 @@ describe('sqlite', () => {
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       The following migration(s) were edited after they were applied:
       - 20201231000000_init
 
@@ -456,7 +456,7 @@ describe('sqlite', () => {
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma Schema loaded from prisma/schema.prisma`)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
@@ -468,7 +468,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following unapplied migration(s):
 
@@ -489,7 +489,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following unapplied migration(s):
 
@@ -547,7 +547,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created and applied the following migration(s) from new schema changes:
 
       migrations/
@@ -568,7 +568,7 @@ describe('postgresql', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/empty.prisma
+      Prisma schema loaded from prisma/empty.prisma
 
       Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.
     `)
@@ -586,7 +586,7 @@ describe('postgresql', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created and applied the following migration(s) from new schema changes:
 
       migrations/
@@ -610,7 +610,7 @@ describe('postgresql', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created and applied the following migration(s) from new schema changes:
 
       migrations/
@@ -633,10 +633,10 @@ describe('postgresql', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                Prisma Migrate created a migration draft 20201231000000_first
+                                                                                                                            Prisma Migrate created a migration draft 20201231000000_first
 
-                                                                                                                You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-                                                                                            `)
+                                                                                                                            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                                                      `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()
@@ -646,8 +646,8 @@ describe('postgresql', () => {
     ).toMatchInlineSnapshot(`true`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Prisma Migrate applied the following unapplied migration(s):
 
@@ -671,7 +671,7 @@ describe('postgresql', () => {
     await expect(result).resolves.toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
       Prisma Migrate created and applied the following migration(s) from new schema changes:
 
       migrations/

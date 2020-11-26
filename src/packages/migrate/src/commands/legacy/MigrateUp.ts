@@ -112,7 +112,7 @@ export class MigrateUp implements Command {
 
     console.info(
       chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
     )
 
