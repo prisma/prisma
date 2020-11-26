@@ -25,7 +25,7 @@ export class MigrateReset implements Command {
   }
 
   private static help = format(`
-Reset your database and apply all migrations, all data will be lost
+Reset your database and apply all migrations
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
