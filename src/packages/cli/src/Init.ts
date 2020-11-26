@@ -138,9 +138,9 @@ export class Init implements Command {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8'})
       const config = dotenv.parse(envFile) // will return an object
       if(Object.keys(config).includes("DATABASE_URL")){
-        console.warn(`${chalk.yellow('warn')}: DATABASE_URL already exists in ${chalk.bold(envPath)}`)
+        console.warn(`${chalk.yellow('warn')} DATABASE_URL already exists in ${chalk.bold(envPath)}`)
       } else {
-        fs.appendFileSync(envPath, defaultEnv(url));
+        fs.appendFileSync(envPath, `\n\n` + defaultEnv(url));
       }
 
     }
