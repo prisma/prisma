@@ -74,11 +74,11 @@ ${commonCodeTS({ runtimePath, clientVersion, engineVersion }).ts(true)}
 /**
  * Prisma Errors
  */
-export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export type PrismaClientValidationError = runtime.PrismaClientValidationError
+export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export import PrismaClientValidationError = runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
@@ -192,8 +192,9 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
  */
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
-${!hideFetcher ? (
-      `class PrismaClientFetcher {
+${
+  !hideFetcher
+    ? `class PrismaClientFetcher {
   private readonly prisma;
   private readonly debug;
   private readonly hooks?;
@@ -201,6 +202,8 @@ ${!hideFetcher ? (
   request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
   sanitizeMessage(message: string): string;
   protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
-}`) : ''
-    }
-`})
+}`
+    : ''
+}
+`,
+})

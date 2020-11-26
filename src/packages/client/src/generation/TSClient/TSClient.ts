@@ -284,7 +284,7 @@ export const dmmf: runtime.DMMF.Document;
 /**
  * @deprecated Renamed to \`Prisma.${s}\`
  */
-export import ${s} = Prisma.${s}`,
+export type ${s} = Prisma.${s}`,
         )
         .join('\n')
 
