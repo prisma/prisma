@@ -191,10 +191,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created the following migration without applying it 20201231000000_some_draft
+                                                                                    Prisma Migrate created the following migration without applying it 20201231000000_some_draft
 
-            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-          `)
+                                                                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                      `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -233,10 +233,10 @@ describe('sqlite', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+                                                                                    Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-          `)
+                                                                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                      `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -508,6 +508,79 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
+
+  it('existingdb: 1 unexecutable schema change', async () => {
+    ctx.fixture('existing-db-1-unexecutable-schema-change')
+    const result = MigrateDev.new().parse(['--early-access-feature'])
+
+    await expect(result).rejects.toMatchInlineSnapshot(`
+
+                                                            ⚠️ We found changes that cannot be executed:
+
+                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+
+                                                  `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it('existingdb: 1 warning from schema change (prompt yes)', async () => {
+    ctx.fixture('existing-db-1-warning')
+
+    prompt.inject(['y'])
+
+    const result = MigrateDev.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+      Prisma Migrate created and applied the following migration(s) from new schema changes:
+
+      migrations/
+        └─ 20201231000000_/
+          └─ migration.sql
+
+      Everything is now in sync.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+
+
+            ⚠️  There will be data loss when applying the migration:
+
+              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+        `)
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it('existingdb: 1 warning from schema change (prompt no)', async () => {
+    ctx.fixture('existing-db-1-warning')
+
+    prompt.inject([new Error()])
+
+    const result = MigrateDev.new().parse(['--early-access-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(`Migration cancelled.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+
+
+            ⚠️  There will be data loss when applying the migration:
+
+              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+        `)
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
 })
 
 describe('postgresql', () => {
@@ -635,10 +708,10 @@ describe('postgresql', () => {
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
 
-            Prisma Migrate created the following migration without applying it 20201231000000_first
+                                                                                    Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev --early-access-feature.
-          `)
+                                                                                    You can now edit it and apply it by running prisma migrate dev --early-access-feature.
+                                                                      `)
 
     const applyResult = MigrateDev.new().parse(['--early-access-feature'])
     await expect(applyResult).resolves.toMatchSnapshot()

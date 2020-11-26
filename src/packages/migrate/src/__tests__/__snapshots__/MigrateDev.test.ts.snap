@@ -76,6 +76,14 @@ exports[`sqlite existingdb: 1 unapplied draft 3`] = `Array []`;
 
 exports[`sqlite existingdb: 1 unapplied draft 4`] = `Array []`;
 
+exports[`sqlite existingdb: 1 unexecutable schema change 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unexecutable schema change 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 warning from schema change (prompt no) 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 warning from schema change (prompt yes) 4`] = `Array []`;
+
 exports[`sqlite existingdb: has a failed migration (--force) 2`] = ``;
 
 exports[`sqlite existingdb: has a failed migration (--force) 3`] = ``;
