@@ -17,6 +17,7 @@ import {
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { isOldMigrate } from '../utils/detectOldMigrate'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -96,13 +97,25 @@ ${chalk.bold('Examples')}
           './prisma/schema.prisma',
         )} https://pris.ly/d/prisma-schema-location`,
       )
-    }
+    } else {
+      console.info(
+        chalk.dim(
+          `Prisma schema loaded from ${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
+      )
 
-    console.info(
-      chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
+      if (isOldMigrate(migrationDirPath)) {
+        // Maybe add link to docs?
+        throw Error(
+          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
+  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
+        )
+      }
+    }
 
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI

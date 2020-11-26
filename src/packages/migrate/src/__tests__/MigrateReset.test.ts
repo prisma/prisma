@@ -27,7 +27,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
 
       Database reset successful - Prisma Migrate applied the following migration(s):
@@ -51,7 +51,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Database reset successful - Prisma Migrate applied the following migration(s):
 
@@ -74,7 +74,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
 
       Database reset successful - Prisma Migrate applied the following migration(s):
@@ -99,7 +99,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Database reset successful - Prisma Migrate applied the following migration(s):
 
@@ -123,7 +123,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Database reset successful - Prisma Migrate didn't find unapplied migrations.
     `)
@@ -142,7 +142,7 @@ describe('reset', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma Schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/schema.prisma
 
       Reset cancelled.
     `)

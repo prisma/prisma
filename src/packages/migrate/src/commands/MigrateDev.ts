@@ -108,17 +108,6 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPath(args['--schema'])
 
-    if (schemaPath) {
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
-    }
-
     if (!schemaPath) {
       throw new Error(
         `Could not find a ${chalk.bold(
@@ -129,13 +118,25 @@ Delete the current migrations folder to continue and read the documentation for 
           './prisma/schema.prisma',
         )} https://pris.ly/d/prisma-schema-location`,
       )
-    }
+    } else {
+      console.info(
+        chalk.dim(
+          `Prisma schema loaded from ${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
+      )
 
-    console.info(
-      chalk.dim(
-        `Prisma Schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
+      if (isOldMigrate(migrationDirPath)) {
+        // Maybe add link to docs?
+        throw Error(
+          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
+  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
+        )
+      }
+    }
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
