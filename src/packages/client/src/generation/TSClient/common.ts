@@ -88,11 +88,11 @@ ${commonCodeTS({ runtimePath, clientVersion, engineVersion }).ts(true)}
 /**
  * Prisma Errors
  */
-export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export type PrismaClientValidationError = runtime.PrismaClientValidationError
+export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export import PrismaClientValidationError = runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
