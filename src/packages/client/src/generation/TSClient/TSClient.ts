@@ -69,7 +69,7 @@ export class TSClient implements Generatable {
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
 
-    const code = `${commonCodeJS(this.options)}
+    const code = `${commonCodeJS({...this.options, browser: false})}
 
 const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
 const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
@@ -274,7 +274,7 @@ export const dmmf: runtime.DMMF.Document;
     code +=
       `\n
 /*
-* Exports for compatiblity introduced in 2.12.0
+* Exports for compatibility introduced in 2.12.0
 * Please import from the Prisma namespace instead
 */
 ` +
@@ -288,6 +288,42 @@ export import ${s} = Prisma.${s}`,
         )
         .join('\n')
 
+    return code
+  }
+
+  public toBrowserJS(): string {
+    // used for the __dirname polyfill needed for Next.js
+    const code = `${commonCodeJS({...this.options, browser: true})}
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+
+${new Enum({
+      name: 'ModelName',
+      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
+    }, true).toJS()}
+
+/**
+ * Create the Client
+ */
+class PrismaClient {
+  constructor() {
+    throw new Error(
+      \`PrismaClient is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+    )
+  }
+}
+exports.PrismaClient = PrismaClient
+
+Object.assign(exports, Prisma)
+`
     return code
   }
 }

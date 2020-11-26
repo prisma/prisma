@@ -1,6 +1,298 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema 1`] = `
+exports[`exhaustive-schema: generatedBrowserJS 1`] = `
+
+Object.defineProperty(exports, "__esModule", { value: true });
+
+
+const Prisma = {}
+
+exports.Prisma = Prisma
+
+/**
+ * Prisma Client JS version: local
+ * Query Engine version: local
+ */
+Prisma.prismaVersion = {
+  client: "local",
+  engine: "local"
+}
+
+Prisma.PrismaClientKnownRequestError = () => {throw new Error(
+  \`PrismaClientKnownRequestError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)};
+Prisma.PrismaClientUnknownRequestError = () => {throw new Error(
+  \`PrismaClientUnknownRequestError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientRustPanicError = () => {throw new Error(
+  \`PrismaClientRustPanicError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientInitializationError = () => {throw new Error(
+  \`PrismaClientInitializationError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientValidationError = () => {throw new Error(
+  \`PrismaClientValidationError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.Decimal = () => {throw new Error(
+  \`Decimal is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+
+/**
+ * Re-export of sql-template-tag
+ */
+
+Prisma.sql = () => {throw new Error(
+  \`sqltag is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.empty = () => {throw new Error(
+  \`empty is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.join = () => {throw new Error(
+  \`join is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.raw = () => {throw new Error(
+  \`raw is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+
+exports.Prisma.PostDistinctFieldEnum = makeEnum({
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title',
+  content: 'content',
+  published: 'published',
+  authorId: 'authorId'
+});
+
+exports.Prisma.UserDistinctFieldEnum = makeEnum({
+  id: 'id',
+  email: 'email',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.MDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.NDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OneOptionalDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.ManyRequiredDistinctFieldEnum = makeEnum({
+  id: 'id',
+  oneOptionalId: 'oneOptionalId',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OptionalSide1DistinctFieldEnum = makeEnum({
+  id: 'id',
+  optionalSide2Id: 'optionalSide2Id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OptionalSide2DistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.ADistinctFieldEnum = makeEnum({
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  int: 'int',
+  sInt: 'sInt',
+  bInt: 'bInt',
+  serial: 'serial',
+  sSerial: 'sSerial',
+  bSerial: 'bSerial',
+  inc_int: 'inc_int',
+  inc_sInt: 'inc_sInt',
+  inc_bInt: 'inc_bInt'
+});
+
+exports.Prisma.BDistinctFieldEnum = makeEnum({
+  id: 'id',
+  float: 'float',
+  dFloat: 'dFloat',
+  decFloat: 'decFloat',
+  numFloat: 'numFloat'
+});
+
+exports.Prisma.CDistinctFieldEnum = makeEnum({
+  id: 'id',
+  char: 'char',
+  vChar: 'vChar',
+  text: 'text',
+  bit: 'bit',
+  vBit: 'vBit',
+  uuid: 'uuid'
+});
+
+exports.Prisma.DDistinctFieldEnum = makeEnum({
+  id: 'id',
+  bool: 'bool',
+  byteA: 'byteA',
+  xml: 'xml',
+  json: 'json',
+  jsonb: 'jsonb'
+});
+
+exports.Prisma.EDistinctFieldEnum = makeEnum({
+  id: 'id',
+  date: 'date',
+  time: 'time',
+  ts: 'ts'
+});
+
+exports.Prisma.SortOrder = makeEnum({
+  asc: 'asc',
+  desc: 'desc'
+});
+
+exports.Prisma.QueryMode = makeEnum({
+  default: 'default',
+  insensitive: 'insensitive'
+});
+exports.ABeautifulEnum = makeEnum({
+  A: 'A',
+  B: 'B',
+  C: 'C'
+});
+
+exports.Prisma.ModelName = makeEnum({
+  Post: 'Post',
+  User: 'User',
+  M: 'M',
+  N: 'N',
+  OneOptional: 'OneOptional',
+  ManyRequired: 'ManyRequired',
+  OptionalSide1: 'OptionalSide1',
+  OptionalSide2: 'OptionalSide2',
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+  E: 'E'
+});
+
+/**
+ * Create the Client
+ */
+class PrismaClient {
+  constructor() {
+    throw new Error(
+      \`PrismaClient is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+    )
+  }
+}
+exports.PrismaClient = PrismaClient
+
+Object.assign(exports, Prisma)
+
+`;
+
+exports[`exhaustive-schema: generatedTypeScript 1`] = `
 
 /**
  * Client
@@ -10888,7 +11180,7 @@ export namespace Prisma {
 }
 
 /*
-* Exports for compatiblity introduced in 2.12.0
+* Exports for compatibility introduced in 2.12.0
 * Please import from the Prisma namespace instead
 */
 
