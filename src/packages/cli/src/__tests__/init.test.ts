@@ -1,112 +1,80 @@
 import fs from 'fs'
 import { join } from 'path'
-import tempy from 'tempy'
-import { Init, defaultSchema, defaultEnv } from '../Init'
 import stripAnsi from 'strip-ansi'
+import { defaultEnv, defaultSchema } from '../Init'
+import { consoleContext, Context } from './__helpers__/context'
 
-describe('init', () => {
-  test('is schema and env written on disk replace', async () => {
-    const tmpDir = tempy.directory()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+const ctx = Context.new().add(consoleContext()).assemble()
 
-    const init = Init.new()
-    const result = stripAnsi(await init.parse([]))
+test('is schema and env written on disk replace', async () => {
+  const result = await ctx.cli('init')
 
-    expect(result).toMatchSnapshot()
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-    const schema = fs.readFileSync(join(tmpDir, 'schema.prisma'), 'utf-8')
-    expect(schema).toMatch(defaultSchema())
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema())
 
-    const env = fs.readFileSync(join(tmpDir, '.env'), 'utf-8')
-    expect(env).toMatch(defaultEnv())
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatch(defaultEnv())
+})
 
-    process.chdir(cwd)
-  })
+test('works with url param', async () => {
+  const result = await ctx.cli(
+    'init',
+    '--url',
+    process.env.TEST_POSTGRES_URI ||
+      'postgres://prisma:prisma@localhost:5432/tests',
+  )
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  test('works with url param', async () => {
-    const tmpDir = tempy.directory()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema())
 
-    const init = Init.new()
-    const result = stripAnsi(
-      await init.parse([
-        '--url',
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ]),
-    )
-    expect(result).toMatchSnapshot()
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatch(
+    defaultEnv(
+      process.env.TEST_POSTGRES_URI ||
+        'postgres://prisma:prisma@localhost:5432/tests',
+    ),
+  )
+})
 
-    const schema = fs.readFileSync(join(tmpDir, 'schema.prisma'), 'utf-8')
-    expect(schema).toMatch(defaultSchema())
+test('warns when DATABASE_URL present in .env ', async () => {
+  fs.writeFileSync(
+    join(ctx.tmpDir, '.env'),
+    `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
+  )
+  const result = await ctx.cli(
+    'init',
+    '--url',
+    process.env.TEST_POSTGRES_URI ||
+      'postgres://prisma:prisma@localhost:5432/tests',
+  )
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+  expect(stripAnsi(result.stderr)).toMatchSnapshot()
 
-    const env = fs.readFileSync(join(tmpDir, '.env'), 'utf-8')
-    expect(env).toMatch(
-      defaultEnv(
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ),
-    )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema())
 
-    process.chdir(cwd)
-  })
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatch(`DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
+  expect(
+    stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n')),
+  ).toMatchInlineSnapshot(``)
+})
+test('appends when .env present', async () => {
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
+  const result = await ctx.cli(
+    'init',
+    '--url',
+    process.env.TEST_POSTGRES_URI ||
+      'postgres://prisma:prisma@localhost:5432/tests',
+  )
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  test('warns when DATABASE_URL present in .env ', async () => {
-    const tmpDir = tempy.directory()
-    const spy = jest.spyOn(console, 'warn').mockImplementation()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
-    fs.writeFileSync(
-      join(tmpDir, '.env'),
-      `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
-    )
-    const init = Init.new()
-    const result = stripAnsi(
-      await init.parse([
-        '--url',
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ]),
-    )
-    expect(result).toMatchSnapshot()
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema())
 
-    const schema = fs.readFileSync(join(tmpDir, 'schema.prisma'), 'utf-8')
-    expect(schema).toMatch(defaultSchema())
-
-    const env = fs.readFileSync(join(tmpDir, '.env'), 'utf-8')
-    expect(env).toMatch(
-      `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
-    )
-    expect(stripAnsi(spy.mock.calls.join('\n'))).toMatchInlineSnapshot(
-      `warn DATABASE_URL already exists in /tmp/dir/.env`,
-    )
-    spy.mockRestore()
-    process.chdir(cwd)
-  })
-  test('appends when .env present', async () => {
-    const tmpDir = tempy.directory()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
-    fs.writeFileSync(join(tmpDir, '.env'), `SOMTHING="is here"`)
-    const init = Init.new()
-    const result = stripAnsi(
-      await init.parse([
-        '--url',
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ]),
-    )
-    expect(result).toMatchSnapshot()
-
-    const schema = fs.readFileSync(join(tmpDir, 'schema.prisma'), 'utf-8')
-    expect(schema).toMatch(defaultSchema())
-
-    const env = fs.readFileSync(join(tmpDir, '.env'), 'utf-8')
-
-    expect(env).toMatchSnapshot()
-
-    process.chdir(cwd)
-  })
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchSnapshot()
 })
