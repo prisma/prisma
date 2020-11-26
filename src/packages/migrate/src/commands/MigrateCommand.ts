@@ -33,7 +33,8 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Commands for development')}
 
-         dev   Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
+         dev   Create migrations from your Prisma schema, apply them to the database,
+               generate artifacts (Prisma Client)
        reset   Reset your database and apply all migrations
 
 ${chalk.bold('Commands for staging/production')}
