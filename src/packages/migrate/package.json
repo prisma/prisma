@@ -25,14 +25,8 @@
     "@typescript-eslint/parser": "4.8.1",
     "chalk": "4.1.0",
     "del": "6.0.0",
-    "eslint": "7.14.0",
-    "eslint-config-prettier": "6.15.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.1.3",
-    "eslint-plugin-prettier": "3.1.4",
     "fs-jetpack": "4.1.0",
     "jest": "26.6.3",
-    "lint-staged": "10.5.1",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "prettier": "2.2.0",
@@ -75,7 +69,6 @@
   },
   "scripts": {
     "run": "node dist/bin.js",
-    "precommit": "lint-staged",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
     "test": "jest --forceExit",
@@ -87,13 +80,5 @@
     "dist",
     "download.js",
     "scripts/download.js"
-  ],
-  "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write"
-    ],
-    "*.{js,ts}": [
-      "eslint"
-    ]
-  }
+  ]
 }

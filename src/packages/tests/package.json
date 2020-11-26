@@ -20,14 +20,8 @@
     "@typescript-eslint/eslint-plugin": "4.2.0",
     "@typescript-eslint/parser": "4.2.0",
     "escape-string-regexp": "^4.0.0",
-    "eslint": "7.10.0",
-    "eslint-config-prettier": "6.12.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.0.2",
-    "eslint-plugin-prettier": "3.1.4",
     "fs-jetpack": "^4.0.0",
     "jest": "26.4.2",
-    "lint-staged": "10.4.0",
     "make-dir": "^3.1.0",
     "mariadb": "^2.5.0",
     "mssql": "^6.2.3",
@@ -55,8 +49,7 @@
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest",
-    "precommit": "lint-staged"
+    "test": "jest"
   },
   "files": [
     "!**/__tests__",
@@ -64,13 +57,5 @@
   ],
   "dependencies": {
     "debug": "^4.1.1"
-  },
-  "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write"
-    ],
-    "*.{js,ts}": [
-      "eslint"
-    ]
   }
 }
