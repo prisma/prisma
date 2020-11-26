@@ -45,10 +45,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
     `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
   )
   const result = await ctx.cli(
-    'init',
-    '--url',
-    process.env.TEST_POSTGRES_URI ||
-      'postgres://prisma:prisma@localhost:5432/tests',
+    'init'
   )
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
   expect(stripAnsi(result.stderr)).toMatchSnapshot()
@@ -66,9 +63,6 @@ test('appends when .env present', async () => {
   fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
   const result = await ctx.cli(
     'init',
-    '--url',
-    process.env.TEST_POSTGRES_URI ||
-      'postgres://prisma:prisma@localhost:5432/tests',
   )
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
