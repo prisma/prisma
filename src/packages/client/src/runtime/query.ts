@@ -48,6 +48,9 @@ export class Document {
     this.type = type
     this.children = children
   }
+  get [Symbol.toStringTag]() {
+    return "Document";
+  }
   public toString() {
     return `${this.type} {
 ${indent(this.children.map(String).join('\n'), tab)}
@@ -571,10 +574,17 @@ ${errorMessages}${missingArgsLegend}\n`
   }
 }
 
-export class PrismaClientValidationError extends Error { }
+export class PrismaClientValidationError extends Error { 
+  get [Symbol.toStringTag]() {
+    return "PrismaClientValidationError";
+  }
+}
 export class PrismaClientConstructorValidationError extends Error {
   constructor(message: string) {
     super(message + `\nRead more at https://pris.ly/d/client-constructor`)
+  }
+  get [Symbol.toStringTag]() {
+    return "PrismaClientConstructorValidationError";
   }
 }
 
@@ -606,6 +616,9 @@ export class Field {
       )
       : false
     this.hasInvalidArg = args ? args.hasInvalidArg : false
+  }
+  get [Symbol.toStringTag]() {
+    return "Field";
   }
   public toString() {
     let str = this.name
@@ -687,6 +700,9 @@ export class Args {
     this.hasInvalidArg = args
       ? args.some((arg) => Boolean(arg.hasError))
       : false
+  }
+  get [Symbol.toStringTag]() {
+    return "Args";
   }
   public toString() {
     if (this.args.length === 0) {
@@ -805,6 +821,9 @@ export class Arg {
       (value instanceof Args ? value.hasInvalidArg : false) ||
       (Array.isArray(value) &&
         value.some((v) => (v instanceof Args ? v.hasInvalidArg : false)))
+  }
+  get [Symbol.toStringTag]() {
+    return "Arg";
   }
   public _toString(value: ArgValue, key: string): string | undefined {
     if (typeof value === 'undefined') {

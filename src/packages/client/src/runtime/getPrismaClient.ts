@@ -398,7 +398,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         throw e
       }
     }
-
+    get [Symbol.toStringTag]() {
+      return "NewPrismaClient";
+    }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
     $use(namespace: 'engine', cb: EngineMiddleware)
@@ -1205,7 +1207,9 @@ export class PrismaClientFetcher {
       },
     })
   }
-
+  get [Symbol.toStringTag]() {
+    return "PrismaClientFetcher";
+  }
   async request({
     document,
     dataPath = [],
