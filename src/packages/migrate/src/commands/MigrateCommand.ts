@@ -33,13 +33,13 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Commands for development')}
 
-         dev   Easily create, apply migrations, generate artifacts (Prisma Client) 
-       reset   Reset your database and apply all migrations, all data will be lost
+         dev   Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
+       reset   Reset your database and apply all migrations
 
 ${chalk.bold('Commands for staging/production')}
 
-      deploy   Deploy your migrations
-     resolve   Resolve your database migration which failed
+      deploy   Apply migrations to update the database schema
+     resolve   Resolve issues with database migrations (baseline, failed migration, hotfix)
 
 ${chalk.bold('Options')}
 
