@@ -11,7 +11,7 @@ export class Telemetry implements Command {
   }
 
   // parse arguments
-  public async parse(argv: string[]): Promise<string | Error> {
+  public async parse(): Promise<string | Error> {
     const info = await checkpoint.getInfo()
     // SHA256 identifier for the project based on the Prisma schema path
     const projectPathHash = await getProjectHash()

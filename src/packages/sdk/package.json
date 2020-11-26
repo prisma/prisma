@@ -10,7 +10,7 @@
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
+    "lint": "eslint --fix --ext .ts .",
     "test": "jest"
   },
   "files": [

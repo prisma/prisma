@@ -7,3 +7,7 @@ preinstall
 prisma-client
 runtime
 src/__tests__
+/fixtures/project/subdir/@prisma/client
+/tmp-mysql
+/tmp-postgresql
+/tmp-sqlite
