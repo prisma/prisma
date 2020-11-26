@@ -205,15 +205,17 @@ function fromEntries<T>(
 }
 
 async function getBranch() {
-  if (process.env.PATCH_BRANCH) {
-    return process.env.PATCH_BRANCH
-  }
-  if (process.env.BUILDKITE_BRANCH) {
-    return process.env.BUILDKITE_BRANCH
-  }
-  if (process.env.GITHUB_CONTEXT) {
-    const context = JSON.parse(process.env.GITHUB_CONTEXT)
-    return context.head_ref
+  if (process.env.NODE_ENV !== 'test') {
+    if (process.env.PATCH_BRANCH) {
+      return process.env.PATCH_BRANCH
+    }
+    if (process.env.BUILDKITE_BRANCH) {
+      return process.env.BUILDKITE_BRANCH
+    }
+    if (process.env.GITHUB_CONTEXT) {
+      const context = JSON.parse(process.env.GITHUB_CONTEXT)
+      return context.head_ref
+    }
   }
 
   // Need to be handled
