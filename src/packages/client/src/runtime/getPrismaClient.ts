@@ -480,7 +480,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
     private async _getActiveProvider(): Promise<ConnectorType> {
       const configResult = await this._engine.getConfig()
-      return configResult.datasources[0].activeProvider!
+      return configResult.datasources[0].activeProvider
     }
 
 
@@ -506,7 +506,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            let queryInstance = sqlTemplateTag.sqltag(
+            const queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
             )
@@ -520,7 +520,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'postgresql': {
-            let queryInstance = sqlTemplateTag.sqltag(
+            const queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
             )
@@ -547,20 +547,20 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).sql
+            query = (stringOrTemplateStringsArray ).sql
             break
           case 'postgresql':
-            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).text
+            query = (stringOrTemplateStringsArray ).text
             break
           case 'sqlserver':
             query = mssqlPreparedStatement(
-              (stringOrTemplateStringsArray as sqlTemplateTag.Sql).strings,
+              (stringOrTemplateStringsArray ).strings,
             )
             break
         }
         parameters = {
           values: serializeRawParameters(
-            (stringOrTemplateStringsArray as sqlTemplateTag.Sql).values,
+            (stringOrTemplateStringsArray ).values,
           ),
           __prismaRawParamaters__: true,
         }
@@ -634,7 +634,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            let queryInstance = sqlTemplateTag.sqltag(
+            const queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
             )
@@ -648,7 +648,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'postgresql': {
-            let queryInstance = sqlTemplateTag.sqltag(
+            const queryInstance = sqlTemplateTag.sqltag(
               stringOrTemplateStringsArray as any,
               ...values,
             )
@@ -675,20 +675,20 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).sql
+            query = (stringOrTemplateStringsArray ).sql
             break
           case 'postgresql':
-            query = (stringOrTemplateStringsArray as sqlTemplateTag.Sql).text
+            query = (stringOrTemplateStringsArray ).text
             break
           case 'sqlserver':
             query = mssqlPreparedStatement(
-              (stringOrTemplateStringsArray as sqlTemplateTag.Sql).strings,
+              (stringOrTemplateStringsArray ).strings,
             )
             break
         }
         parameters = {
           values: serializeRawParameters(
-            (stringOrTemplateStringsArray as sqlTemplateTag.Sql).values,
+            (stringOrTemplateStringsArray ).values,
           ),
           __prismaRawParamaters__: true,
         }

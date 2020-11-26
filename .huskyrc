@@ -1,5 +1,0 @@
-{
-  "hooks": {
-    "pre-commit": "pnpm run precommit -r"
-  }
-}

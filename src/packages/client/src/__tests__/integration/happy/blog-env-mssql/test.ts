@@ -5,7 +5,7 @@ import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
 
 describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
-  let requests: any[] = []
+  const requests: any[] = []
 
   beforeAll(async () => {
     const connectionString =
@@ -39,7 +39,7 @@ describe('blog-env-mssql', () => {
   })
 
   afterAll(async () => {
-    prisma!.$disconnect()
+    prisma.$disconnect()
   })
 
   test('includes version in generated client', () => {

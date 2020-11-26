@@ -18,7 +18,7 @@ export function replaceDates(data: any): any {
 
   if (type === '[object Object]') {
     const tmp = {}
-    for (let key in data) {
+    for (const key in data) {
       if (key !== '__proto__') {
         tmp[key] = replaceDates(data[key])
       }

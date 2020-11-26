@@ -22,8 +22,6 @@
     "@types/jest": "26.0.15",
     "@types/node": "12.19.6",
     "@types/tar": "4.0.4",
-    "@typescript-eslint/eslint-plugin": "4.8.1",
-    "@typescript-eslint/parser": "4.8.1",
     "jest": "26.6.3",
     "prettier": "2.2.0",
     "ts-jest": "26.4.4",

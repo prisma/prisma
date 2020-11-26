@@ -55,7 +55,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
   }
   public validate(
     select?: any,
-    isTopLevelQuery: boolean = false,
+    isTopLevelQuery = false,
     originalMethod?: string,
     errorFormat?: 'pretty' | 'minimal' | 'colorless',
     validationCallsite?: any,
@@ -872,7 +872,7 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }) as any[]),
+        }) ),
       )
     }
 
@@ -1431,7 +1431,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       ) {
         return getInvalidTypeArg(key, value, arg, inputType)
       } else {
-        let val = cleanObject(value)
+        const val = cleanObject(value)
         let error: AtMostOneError | AtLeastOneError | undefined
         const keys = Object.keys(val || {})
         const numKeys = keys.length
@@ -1774,7 +1774,7 @@ export function getField(document: Document, path: string[]): Field {
     if (!child) {
       throw new Error(`Can't find child ${key} of field ${pointer}`)
     }
-    pointer = child!
+    pointer = child
   }
 
   return pointer!

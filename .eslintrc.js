@@ -14,7 +14,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: 'tsconfig.json',
+    project: ['./src/packages/*/tsconfig.json' /*, 'tsconfig.json'*/],
     // debugLevel: true,
   },
   overrides: [
@@ -38,8 +38,19 @@ module.exports = {
         'no-useless-escape': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
         '@typescript-eslint/no-var-requires': 'off',
-        '@typescript-eslint/no-unsafe-return': 'off'
+        '@typescript-eslint/no-unsafe-return': 'off',
+        // added at 2020/11/26
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-unsafe-member-access': 'off',
+        '@typescript-eslint/no-unsafe-assignment': 'off',
+        '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/restrict-template-expressions': 'off',
       },
     },
   ],
+  settings: {
+    jest: {
+      version: 26,
+    },
+  },
 }

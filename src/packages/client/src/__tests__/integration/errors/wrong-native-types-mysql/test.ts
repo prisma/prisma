@@ -54,7 +54,7 @@ test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => 
 
   await prisma.b.deleteMany()
 
-  let data: any = {
+  const data: any = {
     float: 12.2,
     dFloat: 10.2,
     decFloat: 1.1,

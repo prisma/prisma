@@ -77,8 +77,6 @@
     "@types/jest": "26.0.15",
     "@types/verror": "1.10.4",
     "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.8.1",
-    "@typescript-eslint/parser": "4.8.1",
     "checkpoint-client": "1.1.14",
     "dotenv": "8.2.0",
     "esbuild": "0.8.12",

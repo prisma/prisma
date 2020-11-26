@@ -19,7 +19,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
 
   await prisma.a.deleteMany()
 
-  let data = {
+  const data = {
     email: 'a@a.de',
     name: 'Bob',
     int: '',
@@ -55,7 +55,7 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
 
   await prisma.b.deleteMany()
 
-  let data: any = {
+  const data: any = {
     float: '1.23',
     dFloat: '5.2',
     decFloat: 'hello',

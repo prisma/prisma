@@ -174,7 +174,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap).map(
       (model) =>
-        new Model(model, this.dmmf, this.options.generator!, collector),
+        new Model(model, this.dmmf, this.options.generator, collector),
     )
 
     // TODO: Make this code more efficient and directly return 2 arrays
