@@ -13,7 +13,7 @@ export function handleUnexecutableSteps(
       `${chalk.bold.red('\n⚠️ We found changes that cannot be executed:\n')}`,
     )
     for (const item of unexecutableSteps) {
-      messages.push(`${chalk(`  • ${item}`)}`)
+      messages.push(`${chalk(`  • Step ${item.stepIndex} ${item.message}`)}`)
     }
     console.info() // empty line
     // Exit

@@ -305,8 +305,10 @@ ${diagnoseResult.drift.error.message}`,
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
     debug({ evaluateDataLossResult })
 
+    // display unexecutableSteps
     // throw error
     handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
+
     // log warnings and prompt user to continue if needed
     const userCancelled = await handleWarnings(
       evaluateDataLossResult.warnings,
