@@ -23,7 +23,7 @@ export class MigrateDeploy implements Command {
   }
 
   private static help = format(`
-Deploy your migrations to your database.
+Deploy your migrations to your staging/production database
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",

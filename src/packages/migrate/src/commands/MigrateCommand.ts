@@ -31,12 +31,15 @@ ${chalk.bold('Usage')}
 
   ${chalk.dim('$')} prisma migrate [command] [options] --early-access-feature
 
-${chalk.bold('Commands')}
+${chalk.bold('Commands for development')}
 
-         dev   Easily create and apply migrations during development
-      deploy   Deploy your migrations to your database
-       reset   Reset your database, all data will be lost
-     resolve   Resolve your database migration state
+         dev   Easily create, apply migrations, generate artifacts (Prisma Client) 
+       reset   Reset your database and apply all migrations, all data will be lost
+
+${chalk.bold('Commands for staging/production')}
+
+      deploy   Deploy your migrations
+     resolve   Resolve your database migration which failed
 
 ${chalk.bold('Options')}
 
