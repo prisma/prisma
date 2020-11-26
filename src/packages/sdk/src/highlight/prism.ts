@@ -1,4 +1,5 @@
 import { theme, identity } from './theme'
+/** eslint-disable */
 
 /* **********************************************
      Begin prism-core.js
@@ -539,3 +540,5 @@ Token.stringify = function (o, language?: any) {
 function getColorForSyntaxKind(syntaxKind: string) {
   return theme[syntaxKind] || identity
 }
+
+/** eslint-enable */

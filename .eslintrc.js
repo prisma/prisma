@@ -44,6 +44,13 @@ module.exports = {
         '@typescript-eslint/no-unsafe-member-access': 'off',
         '@typescript-eslint/no-unsafe-assignment': 'off',
         '@typescript-eslint/explicit-module-boundary-types': 'off',
+        '@typescript-eslint/ban-ts-comment': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        'eslint-comments/no-unlimited-disable': 'off',
+        'eslint-comments/disable-enable-pair': 'off',
+        // low hanging fruits:
+        '@typescript-eslint/ban-types': 'off',
+        '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
       },
     },

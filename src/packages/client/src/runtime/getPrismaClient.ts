@@ -170,10 +170,10 @@ export type LogDefinition = {
 
 export type GetLogType<
   T extends LogLevel | LogDefinition
-  > = T extends LogDefinition
+> = T extends LogDefinition
   ? T['emit'] extends 'event'
-  ? T['level']
-  : never
+    ? T['level']
+    : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -200,7 +200,7 @@ export interface GetPrismaClientOptions {
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
-    rootEnvPath?: string | null,
+    rootEnvPath?: string | null
     schemaEnvPath?: string | null
   }
   relativePath: string
@@ -277,8 +277,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
       this._clientVersion = config.clientVersion ?? clientVersion
       const envPaths = {
-        rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
-        schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
+        rootEnvPath:
+          config.relativeEnvPaths.rootEnvPath &&
+          path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
+        schemaEnvPath:
+          config.relativeEnvPaths.schemaEnvPath &&
+          path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
       const loadedEnv = tryLoadEnvs(envPaths, { conflictCheck: 'none' })
       try {
@@ -300,8 +304,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           url: 'file:' + path.resolve(config.dirname, d.url),
         }))
 
-        const inputDatasources = Object.entries(options.datasources || {})
-          .filter(([_, source]) => {
+        const inputDatasources = Object.values(options.datasources || {})
+          .filter((source) => {
             return source && source.url
           })
           .map(([name, { url }]: any) => ({ name, url }))
@@ -323,7 +327,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         } else {
           this._errorFormat = 'colorless' // default errorFormat
         }
-
 
         this._dmmf = new DMMFClass(config.document)
 
@@ -353,8 +356,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof options.log === 'string'
                 ? options.log === 'query'
                 : options.log.find((o) =>
-                  typeof o === 'string' ? o === 'query' : o.level === 'query',
-                ),
+                    typeof o === 'string' ? o === 'query' : o.level === 'query',
+                  ),
             ),
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
@@ -373,8 +376,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof log === 'string'
                 ? log
                 : log.emit === 'stdout'
-                  ? log.level
-                  : null
+                ? log.level
+                : null
             if (level) {
               this.$on(level, (event) => {
                 const colorMap = {
@@ -385,7 +388,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 }
                 console.error(
                   chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                  (event.message || event.query),
+                    (event.message || event.query),
                 )
               })
             }
@@ -483,11 +486,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return configResult.datasources[0].activeProvider
     }
 
-
     /**
      * Executes a raw query. Always returns a number
      */
-    private async $executeRawInternal(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
+    private async $executeRawInternal(
+      stringOrTemplateStringsArray:
+        | ReadonlyArray<string>
+        | string
+        | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
+    ) {
       // TODO Clean up types
       let query = ''
       let parameters: any = undefined
@@ -547,21 +555,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = (stringOrTemplateStringsArray ).sql
+            query = stringOrTemplateStringsArray.sql
             break
           case 'postgresql':
-            query = (stringOrTemplateStringsArray ).text
+            query = stringOrTemplateStringsArray.text
             break
           case 'sqlserver':
-            query = mssqlPreparedStatement(
-              (stringOrTemplateStringsArray ).strings,
-            )
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray.strings)
             break
         }
         parameters = {
-          values: serializeRawParameters(
-            (stringOrTemplateStringsArray ).values,
-          ),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
@@ -588,10 +592,19 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $executeRaw(stringOrTemplateStringsArray: ReadonlyArray<string> | string | sqlTemplateTag.Sql, ...values: sqlTemplateTag.RawValue[]) {
+    $executeRaw(
+      stringOrTemplateStringsArray:
+        | ReadonlyArray<string>
+        | string
+        | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
+    ) {
       try {
-        const promise = this.$executeRawInternal(stringOrTemplateStringsArray, ...values)
-          ; (promise as any).isExecuteRaw = true
+        const promise = this.$executeRawInternal(
+          stringOrTemplateStringsArray,
+          ...values,
+        )
+        ;(promise as any).isExecuteRaw = true
         return promise
       } catch (e) {
         e.clientVersion = this._clientVersion
@@ -605,7 +618,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
       return undefined
     }
-
 
     /**
      * Executes a raw query. Always returns a number
@@ -675,21 +687,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = (stringOrTemplateStringsArray ).sql
+            query = stringOrTemplateStringsArray.sql
             break
           case 'postgresql':
-            query = (stringOrTemplateStringsArray ).text
+            query = stringOrTemplateStringsArray.text
             break
           case 'sqlserver':
-            query = mssqlPreparedStatement(
-              (stringOrTemplateStringsArray ).strings,
-            )
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray.strings)
             break
         }
         parameters = {
-          values: serializeRawParameters(
-            (stringOrTemplateStringsArray ).values,
-          ),
+          values: serializeRawParameters(stringOrTemplateStringsArray.values),
           __prismaRawParamaters__: true,
         }
       }
@@ -716,10 +724,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Executes a raw query. Always returns a number
      */
-    $queryRaw(stringOrTemplateStringsArray, ...values: sqlTemplateTag.RawValue[]) {
+    $queryRaw(
+      stringOrTemplateStringsArray,
+      ...values: sqlTemplateTag.RawValue[]
+    ) {
       try {
-        const promise = this.$queryRawInternal(stringOrTemplateStringsArray, ...values)
-          ; (promise as any).isQueryRaw = true
+        const promise = this.$queryRawInternal(
+          stringOrTemplateStringsArray,
+          ...values,
+        )
+        ;(promise as any).isQueryRaw = true
         return promise
       } catch (e) {
         e.clientVersion = this._clientVersion
@@ -727,7 +741,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    async __internal_triggerPanic(fatal: boolean) {
+    __internal_triggerPanic(fatal: boolean) {
       if (!this._engineConfig.enableEngineDebugMode) {
         throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
 new PrismaClient({
@@ -768,19 +782,23 @@ new PrismaClient({
         }
         if (
           (!p.requestTransaction ||
-            typeof p.requestTransaction !== 'function') && (!p?.isQueryRaw && !p?.isExecuteRaw)
+            typeof p.requestTransaction !== 'function') &&
+          !p?.isQueryRaw &&
+          !p?.isExecuteRaw
         ) {
           throw new Error(
             `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
           )
         }
       }
-      return Promise.all(promises.map((p) => {
-        if (p.requestTransaction) {
-          return p.requestTransaction()
-        }
-        return p
-      }))
+      return Promise.all(
+        promises.map((p) => {
+          if (p.requestTransaction) {
+            return p.requestTransaction()
+          }
+          return p
+        }),
+      )
     }
 
     async $transaction(promises: Array<any>): Promise<any> {
@@ -845,9 +863,9 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      ; (params as InternalRequestParams).clientMethod = clientMethod
-        ; (params as InternalRequestParams).callsite = callsite
-        ; (params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).callsite = callsite
+      ;(params as InternalRequestParams).headers = headers
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -950,128 +968,139 @@ new PrismaClient({
     }
 
     private _bootstrapClient() {
-      const clients = this._dmmf.mappings.modelOperations.reduce((acc, mapping) => {
-        const lowerCaseModel = lowerCase(mapping.model)
-        const model = this._dmmf.modelMap[mapping.model]
+      const clients = this._dmmf.mappings.modelOperations.reduce(
+        (acc, mapping) => {
+          const lowerCaseModel = lowerCase(mapping.model)
+          const model = this._dmmf.modelMap[mapping.model]
 
-        if (!model) {
-          throw new Error(`Invalid mapping ${mapping.model}, can't find model`)
-        }
-
-        const prismaClient = ({
-          operation,
-          actionName,
-          args,
-          dataPath,
-          modelName,
-        }) => {
-          if (actionName === 'findOne') {
-            console.warn(`${chalk.yellow('warn(prisma) ')} findOne is deprecated. Please use findUnique instead.`)
-          }
-          dataPath = dataPath ?? []
-
-          const clientMethod = `${lowerCaseModel}.${actionName}`
-
-          let requestPromise: Promise<any>
-          const callsite = this._getCallsite()
-
-          const requestModelName = modelName ?? model.name
-
-          const clientImplementation = {
-            then: (onfulfilled, onrejected) => {
-              if (!requestPromise) {
-                requestPromise = this._request({
-                  args,
-                  dataPath,
-                  action: actionName,
-                  model: requestModelName,
-                  clientMethod,
-                  callsite,
-                  runInTransaction: false,
-                })
-              }
-
-              return requestPromise.then(onfulfilled, onrejected)
-            },
-            requestTransaction: () => {
-              if (!requestPromise) {
-                requestPromise = this._request({
-                  args,
-                  dataPath,
-                  action: actionName,
-                  model: requestModelName,
-                  clientMethod,
-                  callsite,
-                  runInTransaction: true,
-                })
-              }
-
-              return requestPromise
-            },
-            catch: (onrejected) => {
-              if (!requestPromise) {
-                requestPromise = this._request({
-                  args,
-                  dataPath,
-                  action: actionName,
-                  model: requestModelName,
-                  clientMethod,
-                  callsite,
-                  runInTransaction: false,
-                })
-              }
-
-              return requestPromise.catch(onrejected)
-            },
-            finally: (onfinally) => {
-              if (!requestPromise) {
-                requestPromise = this._request({
-                  args,
-                  dataPath,
-                  action: actionName,
-                  model: requestModelName,
-                  clientMethod,
-                  callsite,
-                  runInTransaction: false,
-                })
-              }
-
-              return requestPromise.finally(onfinally)
-            },
+          if (!model) {
+            throw new Error(
+              `Invalid mapping ${mapping.model}, can't find model`,
+            )
           }
 
-          // add relation fields
-          for (const field of model.fields.filter((f) => f.kind === 'object')) {
-            clientImplementation[field.name] = (fieldArgs) => {
-              const prefix = dataPath.includes('select')
-                ? 'select'
-                : dataPath.includes('include')
+          const prismaClient = ({
+            operation,
+            actionName,
+            args,
+            dataPath,
+            modelName,
+          }) => {
+            if (actionName === 'findOne') {
+              console.warn(
+                `${chalk.yellow(
+                  'warn(prisma) ',
+                )} findOne is deprecated. Please use findUnique instead.`,
+              )
+            }
+            dataPath = dataPath ?? []
+
+            const clientMethod = `${lowerCaseModel}.${actionName}`
+
+            let requestPromise: Promise<any>
+            const callsite = this._getCallsite()
+
+            const requestModelName = modelName ?? model.name
+
+            const clientImplementation = {
+              then: (onfulfilled, onrejected) => {
+                if (!requestPromise) {
+                  requestPromise = this._request({
+                    args,
+                    dataPath,
+                    action: actionName,
+                    model: requestModelName,
+                    clientMethod,
+                    callsite,
+                    runInTransaction: false,
+                  })
+                }
+
+                return requestPromise.then(onfulfilled, onrejected)
+              },
+              requestTransaction: () => {
+                if (!requestPromise) {
+                  requestPromise = this._request({
+                    args,
+                    dataPath,
+                    action: actionName,
+                    model: requestModelName,
+                    clientMethod,
+                    callsite,
+                    runInTransaction: true,
+                  })
+                }
+
+                return requestPromise
+              },
+              catch: (onrejected) => {
+                if (!requestPromise) {
+                  requestPromise = this._request({
+                    args,
+                    dataPath,
+                    action: actionName,
+                    model: requestModelName,
+                    clientMethod,
+                    callsite,
+                    runInTransaction: false,
+                  })
+                }
+
+                return requestPromise.catch(onrejected)
+              },
+              finally: (onfinally) => {
+                if (!requestPromise) {
+                  requestPromise = this._request({
+                    args,
+                    dataPath,
+                    action: actionName,
+                    model: requestModelName,
+                    clientMethod,
+                    callsite,
+                    runInTransaction: false,
+                  })
+                }
+
+                return requestPromise.finally(onfinally)
+              },
+            }
+
+            // add relation fields
+            for (const field of model.fields.filter(
+              (f) => f.kind === 'object',
+            )) {
+              clientImplementation[field.name] = (fieldArgs) => {
+                const prefix = dataPath.includes('select')
+                  ? 'select'
+                  : dataPath.includes('include')
                   ? 'include'
                   : 'select'
-              const newDataPath = [...dataPath, prefix, field.name]
-              const newArgs = deepSet(args, newDataPath, fieldArgs || true)
+                const newDataPath = [...dataPath, prefix, field.name]
+                const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
-              return clients[field.type]({
-                operation,
-                actionName,
-                args: newArgs,
-                dataPath: newDataPath,
-                isList: field.isList,
-                /*
-                 * necessary for user.posts() calls -> the original model name needs to be preserved
-                 */
-                modelName: modelName || model.name,
-              })
+                return clients[field.type]({
+                  operation,
+                  actionName,
+                  args: newArgs,
+                  dataPath: newDataPath,
+                  isList: field.isList,
+                  /*
+                   * necessary for user.posts() calls -> the original model name needs to be preserved
+                   */
+                  modelName: modelName || model.name,
+                })
+              }
             }
+
+            return clientImplementation
           }
 
-          return clientImplementation
-        }
+          acc[model.name] = prismaClient
 
-        acc[model.name] = prismaClient
-
-        return acc
-      }, {})
+          return acc
+        },
+        {},
+      )
 
       for (const mapping of this._dmmf.mappings.modelOperations) {
         const lowerCaseModel = lowerCase(mapping.model)
@@ -1084,7 +1113,7 @@ new PrismaClient({
 
         const newMapping = {
           ...mapping,
-          findOne: mapping.findUnique
+          findOne: mapping.findUnique,
         }
 
         const delegate: any = Object.entries(newMapping).reduce(
@@ -1110,9 +1139,9 @@ new PrismaClient({
             actionName: `aggregate`,
             args: args
               ? {
-                ...args,
-                select: { count: true },
-              }
+                  ...args,
+                  select: { count: true },
+                }
               : undefined,
             dataPath: ['count'],
           })
@@ -1186,7 +1215,12 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (!(request.document.children[0].name.startsWith('findOne') || request.document.children[0].name.startsWith('findUnique'))) {
+        if (
+          !(
+            request.document.children[0].name.startsWith('findOne') ||
+            request.document.children[0].name.startsWith('findUnique')
+          )
+        ) {
           return null
         }
 
@@ -1348,7 +1382,9 @@ export class PrismaClientFetcher {
   }
 }
 
-export function getOperation(action: DMMF.ModelAction | 'findOne'): 'query' | 'mutation' {
+export function getOperation(
+  action: DMMF.ModelAction | 'findOne',
+): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
     action === DMMF.ModelAction.findUnique ||

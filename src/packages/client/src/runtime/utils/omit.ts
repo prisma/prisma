@@ -10,7 +10,10 @@ export function omit<T extends object, K extends keyof T>(
   const result: any = {}
   const paths = Array.isArray(path) ? path : [path]
   for (const key in object) {
-    if (object.hasOwnProperty(key) && !paths.includes(key as any)) {
+    if (
+      Object.hasOwnProperty.call(object, key) &&
+      !paths.includes(key as any)
+    ) {
       result[key] = object[key]
     }
   }

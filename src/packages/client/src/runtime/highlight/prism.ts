@@ -1,6 +1,6 @@
 import { identity, theme } from './theme'
 
-/* tslint:disable */
+/* eslint-disable */
 
 /* **********************************************
      Begin prism-core.js
