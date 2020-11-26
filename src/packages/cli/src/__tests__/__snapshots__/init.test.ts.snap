@@ -1,6 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`init appends when .env present 1`] = `
+exports[`appends when .env present 1`] = `
+Environment variables loaded from /tmp/dir/.env
 
 ✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
@@ -14,7 +15,7 @@ https://pris.ly/d/getting-started
     
 `;
 
-exports[`init appends when .env present 2`] = `
+exports[`appends when .env present 2`] = `
 SOMTHING="is here"
 
 # Environment variables declared in this file are automatically made available to Prisma.
@@ -26,7 +27,8 @@ SOMTHING="is here"
 DATABASE_URL="postgres://prisma:prisma@localhost:5432/tests"
 `;
 
-exports[`init is schema and env written on disk replace 1`] = `
+exports[`is schema and env written on disk replace 1`] = `
+
 
 ✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
@@ -42,7 +44,8 @@ https://pris.ly/d/getting-started
     
 `;
 
-exports[`init warns when DATABASE_URL present in .env  1`] = `
+exports[`warns when DATABASE_URL present in .env  1`] = `
+Environment variables loaded from /tmp/dir/.env
 
 ✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
@@ -56,7 +59,10 @@ https://pris.ly/d/getting-started
     
 `;
 
-exports[`init works with url param 1`] = `
+exports[`warns when DATABASE_URL present in .env  2`] = `warn DATABASE_URL already exists in /tmp/dir/.env`;
+
+exports[`works with url param 1`] = `
+
 
 ✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
