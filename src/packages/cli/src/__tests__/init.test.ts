@@ -19,24 +19,23 @@ test('is schema and env written on disk replace', async () => {
 })
 
 test('works with url param', async () => {
-  const result = await ctx.cli(
-    'init',
-    '--url',
-    process.env.TEST_POSTGRES_URI ||
-      'postgres://prisma:prisma@localhost:5432/tests',
-  )
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--url', 'file:dev.db')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
-  expect(schema).toMatch(defaultSchema())
+  expect(schema).toMatch(defaultSchema('sqlite'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
-  expect(env).toMatch(
-    defaultEnv(
-      process.env.TEST_POSTGRES_URI ||
-        'postgres://prisma:prisma@localhost:5432/tests',
-    ),
-  )
+  expect(env).toMatchInlineSnapshot(`
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+
+    # Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+    DATABASE_URL="file:dev.db"
+  `)
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {
@@ -44,10 +43,9 @@ test('warns when DATABASE_URL present in .env ', async () => {
     join(ctx.tmpDir, '.env'),
     `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
   )
-  const result = await ctx.cli(
-    'init'
-  )
+  const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
+  // For Console Warn
   expect(stripAnsi(result.stderr)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
@@ -55,15 +53,10 @@ test('warns when DATABASE_URL present in .env ', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatch(`DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
-  expect(
-    stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n')),
-  ).toMatchInlineSnapshot(``)
 })
 test('appends when .env present', async () => {
   fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
-  const result = await ctx.cli(
-    'init',
-  )
+  const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(join(ctx.tmpDir, 'schema.prisma'), 'utf-8')
