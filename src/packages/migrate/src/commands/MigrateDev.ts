@@ -39,7 +39,7 @@ export class MigrateDev implements Command {
 
   private static help = format(`${
     process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-  }Migrate your database with confidence
+  }Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
