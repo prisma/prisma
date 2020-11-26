@@ -26,7 +26,7 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-Resolve your database migration which failed in your staging/production database 
+Resolve issues with database migrations (baseline, failed migration, hotfix) in staging/production
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
