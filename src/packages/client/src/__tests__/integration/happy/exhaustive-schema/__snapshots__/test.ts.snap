@@ -1402,7 +1402,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends PostDeleteManyArgs>(
-      args: Subset<T, PostDeleteManyArgs>
+      args?: Subset<T, PostDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Posts.
@@ -1973,7 +1973,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends UserDeleteManyArgs>(
-      args: Subset<T, UserDeleteManyArgs>
+      args?: Subset<T, UserDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Users.
@@ -2543,7 +2543,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends MDeleteManyArgs>(
-      args: Subset<T, MDeleteManyArgs>
+      args?: Subset<T, MDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ms.
@@ -3113,7 +3113,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends NDeleteManyArgs>(
-      args: Subset<T, NDeleteManyArgs>
+      args?: Subset<T, NDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ns.
@@ -3683,7 +3683,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OneOptionalDeleteManyArgs>(
-      args: Subset<T, OneOptionalDeleteManyArgs>
+      args?: Subset<T, OneOptionalDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OneOptionals.
@@ -4262,7 +4262,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends ManyRequiredDeleteManyArgs>(
-      args: Subset<T, ManyRequiredDeleteManyArgs>
+      args?: Subset<T, ManyRequiredDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more ManyRequireds.
@@ -4841,7 +4841,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OptionalSide1DeleteManyArgs>(
-      args: Subset<T, OptionalSide1DeleteManyArgs>
+      args?: Subset<T, OptionalSide1DeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OptionalSide1s.
@@ -5411,7 +5411,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OptionalSide2DeleteManyArgs>(
-      args: Subset<T, OptionalSide2DeleteManyArgs>
+      args?: Subset<T, OptionalSide2DeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OptionalSide2s.
@@ -6002,7 +6002,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends ADeleteManyArgs>(
-      args: Subset<T, ADeleteManyArgs>
+      args?: Subset<T, ADeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more As.
@@ -6513,7 +6513,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends BDeleteManyArgs>(
-      args: Subset<T, BDeleteManyArgs>
+      args?: Subset<T, BDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Bs.
@@ -6961,7 +6961,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends CDeleteManyArgs>(
-      args: Subset<T, CDeleteManyArgs>
+      args?: Subset<T, CDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Cs.
@@ -7408,7 +7408,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends DDeleteManyArgs>(
-      args: Subset<T, DDeleteManyArgs>
+      args?: Subset<T, DDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ds.
@@ -7853,7 +7853,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends EDeleteManyArgs>(
-      args: Subset<T, EDeleteManyArgs>
+      args?: Subset<T, EDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Es.
