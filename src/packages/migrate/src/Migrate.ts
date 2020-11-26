@@ -238,19 +238,6 @@ export class Migrate {
     return this.engine.reset()
   }
 
-  public async draft({ name = '' }: MigrateOptions = {}): Promise<string> {
-    const datamodel = this.getDatamodel()
-    const createMigrationResult = await this.createMigration({
-      migrationsDirectoryPath: this.migrationsDirectoryPath,
-      migrationName: name,
-      draft: true,
-      prismaSchema: datamodel,
-    })
-
-    // A migration was created
-    return createMigrationResult.generatedMigrationName!
-  }
-
   public createMigration(
     params: EngineArgs.CreateMigrationInput,
   ): Promise<EngineResults.CreateMigrationOutput> {

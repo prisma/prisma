@@ -65,13 +65,13 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate dev --early-access-feature --schema=./schema.prisma
+  )} prisma migrate dev --schema=./schema.prisma --early-access-feature
 
   Create a new migration and apply it
   ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Create a migration without applying it
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature --create-only
+  ${chalk.dim('$')} prisma migrate dev --create-only --early-access-feature
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -146,28 +146,6 @@ ${chalk.bold('Examples')}
     }
 
     const migrate = new Migrate(schemaPath)
-
-    if (args['--create-only']) {
-      let migrationName: undefined | string = undefined
-      const getMigrationNameResult = await getMigrationName(args['--name'])
-      if (getMigrationNameResult.userCancelled) {
-        migrate.stop()
-        return getMigrationNameResult.userCancelled
-      } else {
-        migrationName = getMigrationNameResult.name
-      }
-
-      const migrationId = await migrate.draft({
-        name: migrationName,
-      })
-      migrate.stop()
-
-      return `\nPrisma Migrate created a migration draft ${printMigrationId(
-        migrationId,
-      )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
-        getCommandWithExecutor('prisma migrate dev --early-access-feature'),
-      )}.`
-    }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory()
     debug({ diagnoseResult })
@@ -353,10 +331,20 @@ ${diagnoseResult.drift.error.message}`,
     const createMigrationResult = await migrate.createMigration({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath,
       migrationName: migrationName || '',
-      draft: false,
+      draft: args['--create-only'] ? true : false,
       prismaSchema: migrate.getDatamodel(),
     })
     debug({ createMigrationResult })
+
+    if (args['--create-only']) {
+      migrate.stop()
+
+      return `\nPrisma Migrate created the following migration without applying it ${printMigrationId(
+        createMigrationResult.generatedMigrationName!,
+      )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
+        getCommandWithExecutor('prisma migrate dev --early-access-feature'),
+      )}.`
+    }
 
     if (isResetNeededAfterCreate) {
       if (!args['--force']) {
