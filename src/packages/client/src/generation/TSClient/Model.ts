@@ -289,13 +289,18 @@ export class ModelDelegate implements Generatable {
     return `\
 export interface ${name}Delegate {
 ${indent(
-      actions
-        .map(
-          ([actionName]: [any, any]): string =>
-            `${getMethodJSDoc(actionName, mapping, model)}
+  actions
+    .map(
+      ([actionName]: [any, any]): string =>
+        `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}<T extends ${getModelArgName(name, actionName)}>(
-  args${(actionName === DMMF.ModelAction.findMany || actionName === DMMF.ModelAction.findFirst) ? '?' : ''
-            }: Subset<T, ${getModelArgName(name, actionName)}>
+  args${
+    actionName === DMMF.ModelAction.findMany ||
+    actionName === DMMF.ModelAction.findFirst ||
+    actionName === DMMF.ModelAction.deleteMany
+      ? '?'
+      : ''
+  }: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
         )
         .join('\n'),
