@@ -1,8 +1,34 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`init appends when .env present 1`] = `
+
+✔ Your Prisma schema was created at ./schema.prisma.
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Run prisma introspect to turn your database schema into a Prisma data model.
+2. Run prisma generate to install Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`init appends when .env present 2`] = `
+SOMTHING="is here"
+
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="postgres://prisma:prisma@localhost:5432/tests"
+`;
+
 exports[`init is schema and env written on disk replace 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
 
 Next steps:
@@ -16,9 +42,23 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`init warns when DATABASE_URL present in .env  1`] = `
+
+✔ Your Prisma schema was created at ./schema.prisma.
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Run prisma introspect to turn your database schema into a Prisma data model.
+2. Run prisma generate to install Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
 exports[`init works with url param 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at ./schema.prisma.
   You can now open it in your favorite editor.
 
 Next steps:
