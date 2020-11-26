@@ -121,7 +121,9 @@ export function getDefaultArgName(
   modelName: string,
   action: DMMF.ModelAction,
 ): string {
-  const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
+  const mapping = dmmf.mappings.modelOperations.find(
+    (m) => m.model === modelName,
+  )!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)
@@ -133,7 +135,7 @@ export function getDefaultArgName(
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findUnique || 'findOne'
+    action === DMMF.ModelAction.findUnique
   ) {
     return 'query'
   }
@@ -225,9 +227,19 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findUnique' || actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
-    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findUnique' || actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
-    }>>`
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
+    actionName === 'findUnique' ||
+    actionName === 'findOne' ||
+    actionName === 'findFirst'
+      ? ' | null'
+      : ''
+  }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
+    actionName === 'findUnique' ||
+    actionName === 'findOne' ||
+    actionName === 'findFirst'
+      ? ' | null'
+      : ''
+  }>>`
 }
 
 export function isQueryAction(
@@ -238,7 +250,9 @@ export function isQueryAction(
     return false
   }
   const result =
-    action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findMany || action === 'findOne'
+    action === DMMF.ModelAction.findUnique ||
+    action === DMMF.ModelAction.findMany ||
+    action === 'findOne'
   return operation === 'query' ? result : !result
 }
 

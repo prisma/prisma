@@ -39,7 +39,7 @@ describe('no args', () => {
       }
     `)
   })
-  test('findMany', () => {
+  test('findMany with filter', () => {
     const select = {
       where: {
         likedArticles: null,

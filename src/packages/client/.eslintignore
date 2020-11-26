@@ -14,3 +14,6 @@ sandbox
 /src/__tests__/types
 /src/__tests__/runtime-tests
 /src/sandbox
+generated-dmmf.ts
+/src/__tests__/__helpers__/dmmf-types.ts
+

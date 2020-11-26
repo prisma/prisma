@@ -38,7 +38,7 @@ describe('blog-env-mssql', () => {
     })
   })
 
-  afterAll(async () => {
+  afterAll(() => {
     prisma.$disconnect()
   })
 
@@ -62,9 +62,7 @@ describe('blog-env-mssql', () => {
 
   test('can throw validation errors', async () => {
     const {
-      Prisma: {
-        PrismaClientValidationError,
-      }
+      Prisma: { PrismaClientValidationError },
     } = require('./node_modules/@prisma/client')
 
     try {

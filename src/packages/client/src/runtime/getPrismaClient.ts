@@ -1116,8 +1116,8 @@ new PrismaClient({
           findOne: mapping.findUnique,
         }
 
-        const delegate: any = Object.entries(newMapping).reduce(
-          (acc, [actionName, rootField]) => {
+        const delegate: any = Object.keys(newMapping).reduce(
+          (acc, actionName) => {
             if (!denyList[actionName]) {
               const operation = getOperation(actionName as any)
               acc[actionName] = (args) =>
@@ -1201,12 +1201,12 @@ export class PrismaClientFetcher {
     this.debug = enableDebug
     this.hooks = hooks
     this.dataloader = new Dataloader({
-      batchLoader: async (requests) => {
+      batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
         return this.prisma._engine.requestBatch(queries, runTransaction)
       },
-      singleLoader: async (request) => {
+      singleLoader: (request) => {
         const query = String(request.document)
         return this.prisma._engine.request(query, request.headers)
       },

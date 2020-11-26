@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 import { getTestClient } from '../../../../utils/getTestClient'
 
+/* eslint-disable */
 // X is here to have a different line count in the transpiled js and ts
 type X = {}
 

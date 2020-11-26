@@ -1,10 +1,7 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { DMMFClass } from '../../runtime/dmmf'
-import {
-  capitalize,
-  lowerCase,
-} from '../../runtime/utils/common'
+import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
@@ -20,7 +17,7 @@ export class PrismaClientClass implements Generatable {
     protected readonly generator?: GeneratorConfig,
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
-  ) { }
+  ) {}
   private get jsDoc(): string {
     const { dmmf } = this
 
@@ -142,8 +139,9 @@ export class PrismaClient<
           const methodName = lowerCase(m.model)
           return `\
 /**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model
-            }** model.
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
+            m.model
+          }** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}
@@ -154,13 +152,10 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
         })
         .join('\n\n'),
       2,
-    )
-      }
+    )}
 }`
   }
   public toTS(): string {
-    const { dmmf } = this
-
     return `${new Datasources(this.internalDatasources).toTS()}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'

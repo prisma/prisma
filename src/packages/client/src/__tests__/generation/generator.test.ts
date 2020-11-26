@@ -1,4 +1,4 @@
-import { getGenerator, getPackedPackage, Generator } from '@prisma/sdk'
+import { getGenerator, getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'

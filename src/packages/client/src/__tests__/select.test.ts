@@ -97,7 +97,7 @@ describe('select validation', () => {
     }
   })
 
-  test('missing arg object', () => {
+  test('missing arg object colorless', () => {
     const ast = {}
 
     const document = makeDocument({
@@ -256,7 +256,7 @@ describe('select validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
-  test('Allow different iso strings 2', () => {
+  test('Allow different iso strings 3', () => {
     const ast = {
       data: {
         title: 'Some title',

@@ -21,7 +21,7 @@ test('restart', async () => {
   }
   let err
   try {
-    const result = await db.user.findMany()
+    await db.user.findMany()
   } catch (e) {
     err = e
   }
