@@ -22,7 +22,7 @@
       "groupName": "engines",
       "automerge": "true",
       "separateMajorMinor": "false",
-      "rangeStrategy": "bump",
+      "rangeStrategy": "widen",
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
