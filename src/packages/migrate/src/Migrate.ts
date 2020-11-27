@@ -244,9 +244,7 @@ export class Migrate {
     return this.engine.createMigration(params)
   }
 
-  public diagnoseMigrationHistory(): Promise<
-    EngineResults.DiagnoseMigrationHistoryOutput
-  > {
+  public diagnoseMigrationHistory(): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     return this.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
@@ -269,15 +267,10 @@ export class Migrate {
     }
   }
 
-  public listMigrationDirectories(): Promise<
-    EngineResults.ListMigrationDirectoriesOutput
-  > {
-    const listMigrationDirectoriesResult = this.engine.listMigrationDirectories(
-      {
-        migrationsDirectoryPath: this.migrationsDirectoryPath,
-      },
-    )
-    return listMigrationDirectoriesResult
+  public listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.engine.listMigrationDirectories({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
   }
 
   public async markMigrationApplied({
@@ -285,11 +278,10 @@ export class Migrate {
   }: {
     migrationId: string
   }): Promise<void> {
-    const markMigrationApplied = await this.engine.markMigrationApplied({
+    return await this.engine.markMigrationApplied({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: migrationId,
     })
-    return markMigrationApplied
   }
 
   public markMigrationRolledBack({
