@@ -282,15 +282,12 @@ export class Migrate {
 
   public async markMigrationApplied({
     migrationId,
-    expectFailed = false,
   }: {
     migrationId: string
-    expectFailed?: boolean
   }): Promise<void> {
     const markMigrationApplied = await this.engine.markMigrationApplied({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: migrationId,
-      expectFailed,
     })
     return markMigrationApplied
   }
