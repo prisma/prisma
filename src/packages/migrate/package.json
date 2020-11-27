@@ -10,16 +10,16 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.12.0-19.b16b3f54202ac4142340a6ab2a2bb75f7fd5ea1f",
+    "@prisma/engines-version": "2.13.0-8.e5fe27434f5b257d9b2cb37cb622e530cbf0b624",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.2",
     "@types/debug": "4.1.5",
     "@types/diff": "4.0.2",
-    "@types/pg": "7.14.7",
     "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.15",
     "@types/node": "12.19.7",
+    "@types/pg": "7.14.7",
     "@types/prompts": "2.0.9",
     "@types/sqlite3": "3.1.6",
     "@typescript-eslint/eslint-plugin": "4.8.2",

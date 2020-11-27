@@ -3,7 +3,7 @@ import stripAnsi from 'strip-ansi'
 import fs from 'fs'
 import path from 'path'
 
-jest.setTimeout(10000)
+jest.setTimeout(15000)
 
 describe('getDMMF', () => {
   test('simple model', async () => {

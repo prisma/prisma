@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/engines-version": "2.12.0-19.b16b3f54202ac4142340a6ab2a2bb75f7fd5ea1f",
+    "@prisma/engines-version": "2.13.0-8.e5fe27434f5b257d9b2cb37cb622e530cbf0b624",
     "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.15",
     "@types/node": "12.19.7",
@@ -24,8 +24,8 @@
     "jest": "26.6.3",
     "lint-staged": "10.5.2",
     "prettier": "2.2.0",
-    "ts-jest": "26.4.4",
     "strip-ansi": "6.0.0",
+    "ts-jest": "26.4.4",
     "typescript": "4.1.2"
   },
   "dependencies": {
