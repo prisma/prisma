@@ -155,12 +155,13 @@ ${chalk.bold('Examples')}
     let migrationIdsFromDatabaseIsBehind: string[] = []
 
     if (diagnoseResult.errorInUnappliedMigration) {
-      const failedMigrationError = diagnoseResult.errorInUnappliedMigration as UserFacingErrorWithMeta
+      if (diagnoseResult.errorInUnappliedMigration.error_code === 'P3006') {
+        const failedMigrationError = diagnoseResult.errorInUnappliedMigration as UserFacingErrorWithMeta
 
-      throw new Error(
-        `The migration ${
-          failedMigrationError.meta.migration_name
-        } failed when applied to the shadow database.
+        throw new Error(
+          `The migration ${
+            failedMigrationError.meta.migration_name
+          } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
     'prisma migrate dev --early-access-feature' +
@@ -170,7 +171,11 @@ ${chalk.green(
 
 ${failedMigrationError.error_code}
 ${failedMigrationError.message}`,
-      )
+        )
+      } else {
+        throw new Error(`${diagnoseResult.errorInUnappliedMigration.error_code}
+${diagnoseResult.errorInUnappliedMigration.message}`)
+      }
     }
 
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0

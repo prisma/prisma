@@ -57,7 +57,7 @@ interface UserFacingError {
 export type UserFacingErrorWithMeta = {
   is_panic: boolean
   message: string
-  error_code: '3306'
+  error_code: 'P3006'
   meta: {
     migration_name: string
     inner_error?: {
@@ -78,7 +78,7 @@ export type DriftDiagnostic =
     }
 
 export type HistoryDiagnostic =
-  | { diagnostic: 'databaseIsBehind'; unappliedMigrationsNames: string[] }
+  | { diagnostic: 'databaseIsBehind'; unappliedMigrationNames: string[] }
   | {
       diagnostic: 'migrationsDirectoryIsBehind'
       unpersistedMigrationNames: string[]
