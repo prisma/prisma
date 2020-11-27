@@ -163,7 +163,6 @@ ${chalk.bold('Examples')}
 
       await migrate.markMigrationApplied({
         migrationId: args['--applied'],
-        expectFailed: true,
       })
       migrate.stop()
 

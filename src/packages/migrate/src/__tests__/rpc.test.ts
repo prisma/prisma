@@ -267,48 +267,38 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
     'SELECT KAPUTT',
   )
 
-  const resultApply = migrate.engine.applyMigrations({
-    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-  })
-
-  await expect(resultApply).rejects.toMatchInlineSnapshot(`
-          Database error: Error accessing result set, column not found: KAPUTT
-             0: migration_core::commands::apply_migrations::Applying migration
-                     with migration_name="20201231000000_draft_123"
-                       at migration-engine/core/src/commands/apply_migrations.rs:69
-             1: migration_core::api::ApplyMigrations
-                       at migration-engine/core/src/api.rs:102
-
-        `)
+  try {
+    await migrate.engine.applyMigrations({
+      migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    })
+  } catch (e) {
+    expect(e.message).toContain(
+      'Database error: Error accessing result set, column not found: KAPUTT',
+    )
+  }
 
   const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
     migrationName: result.generatedMigrationName!,
   })
 
-  await expect(resultMarkRolledBacked).resolves.toMatchInlineSnapshot(
-    `Object {}`,
-  )
+  await expect(resultMarkRolledBacked).resolves.toMatchSnapshot()
 
   const resultMarkAppliedFailed = migrate.engine.markMigrationApplied({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: result.generatedMigrationName!,
-    // Do we expect to find the migration in a failed state in the migrations table?
-    expectFailed: false,
   })
 
-  await expect(resultMarkAppliedFailed).rejects.toMatchInlineSnapshot(`
-          Invariant violation: there are failed migrations in the database, but expect_failed was not passed.
-
-        `)
+  await expect(resultMarkAppliedFailed).resolves.toMatchSnapshot()
 
   const resultMarkApplied = migrate.engine.markMigrationApplied({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: result.generatedMigrationName!,
-    // Do we expect to find the migration in a failed state in the migrations table?
-    expectFailed: true,
   })
 
-  await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
+  await expect(resultMarkApplied).rejects.toMatchInlineSnapshot(`
+          The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
+
+        `)
 
   migrate.stop()
 })
@@ -334,8 +324,6 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
   const resultMarkApplied = migrate.engine.markMigrationApplied({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: result.generatedMigrationName!,
-    // Do we expect to find the migration in a failed state in the migrations table?
-    expectFailed: false,
   })
 
   await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)

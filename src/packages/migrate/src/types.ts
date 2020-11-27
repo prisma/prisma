@@ -107,8 +107,6 @@ export namespace EngineArgs {
   export interface MarkMigrationAppliedInput {
     migrationsDirectoryPath: string
     migrationName: string
-    // Do we expect to find the migration in a failed state in the migrations table?
-    expectFailed: boolean
   }
   export interface MarkMigrationRolledBackInput {
     migrationName: string
