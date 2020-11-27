@@ -8,15 +8,11 @@ export async function handlePanic(
   cliVersion: string,
   binaryVersion: string,
 ): Promise<void> {
-  return new Promise(async function (resolve, reject) {
-    if (isCi()) {
-      return reject(error)
-    }
+  if (isCi()) {
+    throw error
+  }
 
-    await panicDialog(error, cliVersion, binaryVersion)
-
-    return resolve()
-  })
+  await panicDialog(error, cliVersion, binaryVersion)
 }
 
 async function panicDialog(error, cliVersion, binaryVersion) {

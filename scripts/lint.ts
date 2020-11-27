@@ -70,11 +70,10 @@ async function lintPackage(pkg: string): Promise<boolean> {
       },
     })
     printPkg(chalk.bold.greenBright(`✔️`), pkg)
-    console.log()
     return true
   } catch (e) {
-    printPkg(e.stdout, pkg)
     console.log()
+    printPkg(e.stdout, pkg)
     return false
   }
 }

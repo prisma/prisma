@@ -48,7 +48,12 @@ export class MigrateEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
-  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
+  constructor({
+    projectDir,
+    debug = false,
+    schemaPath,
+    enabledPreviewFeatures,
+  }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
@@ -164,12 +169,22 @@ export class MigrateEngine {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
-        if (this.enabledPreviewFeatures && Array.isArray(this.enabledPreviewFeatures) && this.enabledPreviewFeatures.length > 0) {
-          args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
+        if (
+          this.enabledPreviewFeatures &&
+          Array.isArray(this.enabledPreviewFeatures) &&
+          this.enabledPreviewFeatures.length > 0
+        ) {
+          args.push(
+            ...[
+              '--enabled-preview-features',
+              this.enabledPreviewFeatures.join(','),
+            ],
+          )
         }
         this.child = spawn(binaryPath, args, {
           cwd: this.projectDir,
@@ -188,7 +203,7 @@ export class MigrateEngine {
           this.rejectAll(err)
         })
 
-        this.child.on('exit', (code, signal) => {
+        this.child.on('exit', (code) => {
           const messages = this.messages.join('\n')
           let err: RustPanic | Error | undefined
           if (code !== 0 || messages.includes('panicking')) {
@@ -309,7 +324,8 @@ export class MigrateEngine {
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
+                    response.error.message
                   }\n\n${text}\n`,
                 ),
               )

@@ -33,10 +33,8 @@ export function drawBox({
   height,
   str,
   horizontalPadding,
-  verticalPadding,
 }: BoxOptions): string {
   horizontalPadding = horizontalPadding || 0
-  verticalPadding = verticalPadding || 0
   width = width || maxLineLength(str) + horizontalPadding * 2
   const topLine = title
     ? chalk.grey(chars.topLeft + chars.horizontal) +

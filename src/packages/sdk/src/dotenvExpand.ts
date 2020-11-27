@@ -10,7 +10,7 @@ import { DotenvConfigOutput } from 'dotenv'
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *  list of conditions and the following disclaimer.
  *
@@ -30,7 +30,9 @@ import { DotenvConfigOutput } from 'dotenv'
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: boolean }) {
+export function dotenvExpand(
+  config: DotenvConfigOutput & { ignoreProcessEnv?: boolean },
+) {
   // if ignoring process.env, use a blank object
   const environment = config.ignoreProcessEnv ? {} : process.env
 
@@ -54,7 +56,9 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
         const key = parts[2]
         replacePart = parts[0].substring(prefix.length)
         // process.env value 'wins' over .env file's value
-        value = environment.hasOwnProperty(key) ? environment[key] : (config.parsed![key] || '')
+        value = Object.hasOwnProperty.call(environment, key)
+          ? environment[key]
+          : config.parsed![key] || ''
 
         // Resolve recursive interpolations
         value = interpolate(value)
@@ -65,7 +69,9 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
   }
 
   for (const configKey in config.parsed) {
-    const value = environment.hasOwnProperty(configKey) ? environment[configKey] : config.parsed[configKey]
+    const value = Object.hasOwnProperty.call(environment, configKey)
+      ? environment[configKey]
+      : config.parsed[configKey]
 
     config.parsed[configKey] = interpolate(value!)
   }

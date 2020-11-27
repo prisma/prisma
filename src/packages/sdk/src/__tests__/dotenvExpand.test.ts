@@ -286,7 +286,7 @@ describe('integration', function () {
     )
   })
 
-  it('should expand recursively', () => {
+  it('should expand recursively without curly', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
     expect(obj['WITHOUT_CURLY_BRACES_URI_RECURSIVELY']).toBe(
