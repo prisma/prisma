@@ -132,6 +132,8 @@ Delete the current migrations folder to continue and read the documentation for 
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory()
     debug({ diagnoseResult })
+    const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
+    debug({ listMigrationDirectoriesResult })
     migrate.stop()
 
     if (!diagnoseResult.hasMigrationsTable) {
@@ -143,8 +145,6 @@ Delete the current migrations folder to continue and read the documentation for 
       //             - There are local migrations
       //                 - ↩️ **RPC** `listMigrationDirectories` ****Take the first (=oldest) migration.
       //                 - Suggest calling `prisma migrate resolve --applied <migration-name>`
-
-      const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         // TODO
