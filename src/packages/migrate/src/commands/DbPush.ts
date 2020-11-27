@@ -16,7 +16,8 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
-import { PreviewFlagError } from '../utils/experimental'
+import { PreviewFlagError } from '../utils/flagErrors'
+import { isOldMigrate } from '../utils/detectOldMigrate'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -44,7 +45,7 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-           -h, --help   Displays this help message
+           -h, --help   Display this help message
           -f, --force   Ignore data loss warnings
       --skip-generate   Skip generate
   --ignore-migrations   Ignore migrations files warning
@@ -55,11 +56,11 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma
 
   Use --force to ignore data loss warnings
   ${chalk.dim('$')} prisma db push --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(
@@ -111,12 +112,13 @@ ${chalk.bold('Examples')}
     )
 
     const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-    const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
-    if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
-      if (isCi()) {
+    if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        // Maybe add link to docs?
         throw Error(
           `Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
 Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor(
               'prisma db push --preview-feature --ignore-migrations',
@@ -131,7 +133,7 @@ Use the --ignore-migrations flag to ignore this message in an unnattended enviro
         message: `${chalk.yellow(
           'Warning',
         )}: Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
+The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
 Do you want to continue?`,
       })
 
@@ -139,6 +141,8 @@ Do you want to continue?`,
         console.info() // empty line
         console.info('Push cancelled.')
         process.exit(0)
+        // For snapshot test, because exit() is mocked
+        return ``
       }
     }
 

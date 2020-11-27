@@ -41,16 +41,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-    `  The ${chalk.redBright(
-      'prisma2',
-    )} command is deprecated and has been renamed to ${chalk.greenBright(
-      'prisma',
-    )}.\nPlease execute ${chalk.bold.greenBright(
-      'prisma' +
-      (process.argv.length > 2
-        ? ' ' + process.argv.slice(2).join(' ')
-        : ''),
-    )} instead.\n`,
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
+      )} instead.\n`,
   )
 }
 
@@ -71,9 +71,9 @@ const args = arg(
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
   try {
-    const envPaths = getEnvPaths(args["--schema"])
+    const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && console.log(envData.message);
+    envData && console.log(envData.message)
   } catch (e) {
     handleIndividualError(e)
   }
@@ -86,14 +86,21 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
-  MigrateSave,
-  MigrateUp,
-  MigrateDown,
-  MigrateTmpPrepare,
+  MigrateDev,
+  MigrateResolve,
+  MigrateStatus,
+  MigrateReset,
+  MigrateDeploy,
   DbPush,
-  // DbDrop,
+  DbDrop,
   DbCommand,
   handlePanic,
+  // Legacy
+  MigrateCommandLegacy,
+  MigrateSave,
+  MigrateUpLegacy,
+  MigrateDown,
+  MigrateTmpPrepare,
 } from '@prisma/migrate'
 
 import { CLI } from './CLI'
@@ -138,14 +145,22 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      migrate: MigrateCommand.new({
+      'migrate-legacy': MigrateCommandLegacy.new({
         save: MigrateSave.new(),
-        up: MigrateUp.new(),
+        up: MigrateUpLegacy.new(),
         down: MigrateDown.new(),
       }),
+      migrate: MigrateCommand.new({
+        dev: MigrateDev.new(),
+        status: MigrateStatus.new(),
+        resolve: MigrateResolve.new(),
+        reset: MigrateReset.new(),
+        deploy: MigrateDeploy.new(),
+      }),
       db: DbCommand.new({
+        pull: Introspect.new(),
         push: DbPush.new(),
-        // drop: DbDrop.new(),
+        drop: DbDrop.new(),
       }),
       'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
@@ -162,6 +177,7 @@ async function main(): Promise<number> {
       'version',
       'init',
       'migrate',
+      'migrate-legacy',
       'db',
       'tmp-prepare',
       'introspect',
@@ -263,7 +279,6 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-
       // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
       if (typeof err[Symbol.iterator] === 'function') {
         for (const individualError of err) {

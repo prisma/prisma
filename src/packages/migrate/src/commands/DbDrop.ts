@@ -22,7 +22,7 @@ import {
   getDbinfoFromCredentials,
   getDbLocation,
 } from '../utils/ensureDatabaseExists'
-import { PreviewFlagError } from '../utils/experimental'
+import { PreviewFlagError } from '../utils/flagErrors'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -48,8 +48,9 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-   -h, --help      Displays this help message
-  -f, --force      Skip the confirmation prompt
+   -h, --help   Display this help message
+     --schema   Custom path to your Prisma schema
+  -f, --force   Skip the confirmation prompt
 
 ${chalk.bold('Examples')}
 
@@ -57,11 +58,11 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
   ${chalk.dim('$')} prisma db drop --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -116,7 +117,8 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     if (!args['--force']) {
-      if (isCi()) {
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw Error(
           `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
             getCommandWithExecutor('prisma db drop --preview-feature --force'),
@@ -167,7 +169,8 @@ ${chalk.bold('Examples')}
     }
 
     if (
-      result?.exitCode === 0 &&
+      result &&
+      result.exitCode === 0 &&
       result.stderr.includes('The database was successfully dropped')
     ) {
       return `${

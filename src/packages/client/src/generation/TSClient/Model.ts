@@ -315,7 +315,8 @@ ${indent(
 ${actionName}<T extends ${getModelArgName(name, actionName)}>(
   args${
     actionName === DMMF.ModelAction.findMany ||
-    actionName === DMMF.ModelAction.findFirst
+    actionName === DMMF.ModelAction.findFirst ||
+    actionName === DMMF.ModelAction.deleteMany
       ? '?'
       : ''
   }: Subset<T, ${getModelArgName(name, actionName)}>

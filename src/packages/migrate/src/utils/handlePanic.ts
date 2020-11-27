@@ -8,7 +8,7 @@ export async function handlePanic(
   cliVersion: string,
   binaryVersion: string,
 ): Promise<void> {
-  if (isCi()) {
+  if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
     throw error
   }
 

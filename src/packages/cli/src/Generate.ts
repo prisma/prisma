@@ -40,7 +40,7 @@ export class Generate implements Command {
       ${chalk.dim('$')} prisma generate
 
     Or specify a schema:
-      ${chalk.dim('$')} prisma generate --schema=./schema.prisma'
+      ${chalk.dim('$')} prisma generate --schema=./schema.prisma
 
     ${chalk.bold('Flag')}
 

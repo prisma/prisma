@@ -50,6 +50,9 @@ export class PrismaClientKnownRequestError extends Error {
     this.clientVersion = clientVersion
     this.meta = meta
   }
+  get [Symbol.toStringTag]() {
+    return "PrismaClientKnownRequestError";
+  }
 }
 
 export class PrismaClientUnknownRequestError extends Error {
@@ -59,6 +62,9 @@ export class PrismaClientUnknownRequestError extends Error {
     super(message)
 
     this.clientVersion = clientVersion
+  }
+  get [Symbol.toStringTag]() {
+    return "PrismaClientUnknownRequestError";
   }
 }
 
@@ -70,6 +76,9 @@ export class PrismaClientRustPanicError extends Error {
 
     this.clientVersion = clientVersion
   }
+  get [Symbol.toStringTag]() {
+    return "PrismaClientRustPanicError";
+  }
 }
 
 export class PrismaClientInitializationError extends Error {
@@ -79,6 +88,9 @@ export class PrismaClientInitializationError extends Error {
     super(message)
 
     this.clientVersion = clientVersion
+  }
+  get [Symbol.toStringTag]() {
+    return "PrismaClientInitializationError";
   }
 }
 

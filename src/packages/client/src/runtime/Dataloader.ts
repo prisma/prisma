@@ -16,6 +16,9 @@ export class Dataloader<T = any> {
   constructor(private options: DataloaderOptions<T>) {
     this.batches = {}
   }
+  get [Symbol.toStringTag]() {
+    return "Dataloader";
+  }
   request(request: T): Promise<any> {
     const hash = this.options.batchBy(request)
     if (!hash) {

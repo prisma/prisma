@@ -7,6 +7,8 @@ import {
   getCommandWithExecutor,
   highlightDatamodel,
   maskSchema,
+  uriToCredentials,
+  getConfig,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -33,6 +35,7 @@ import {
   LocalMigrationWithDatabaseSteps,
   LockFile,
   Migration,
+  EngineArgs,
 } from './types'
 import { exit } from './utils/exit'
 import { formatms } from './utils/formatms'
@@ -51,10 +54,15 @@ import {
 } from './utils/printDatabaseSteps'
 import { printDatamodelDiff } from './utils/printDatamodelDiff'
 import { printMigrationReadme } from './utils/printMigrationReadme'
+import {
+  getDbinfoFromCredentials,
+  getDbLocation,
+} from './utils/ensureDatabaseExists'
 import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
 import { enginesVersion } from '@prisma/engines-version'
+
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
@@ -62,6 +70,10 @@ const del = promisify(rimraf)
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
+export interface MigrateOptions {
+  name?: string
+  isDraft?: boolean
+}
 export interface UpOptions {
   preview?: boolean
   n?: number
@@ -105,7 +117,7 @@ export class Migrate {
       const datamodel = this.getDatamodel()
       try {
         const watchMigrationName = `watch-${now()}`
-        const migration = await this.createMigration(watchMigrationName)
+        const migration = await this.createMigrationLegacy(watchMigrationName)
         const existingWatchMigrations = await this.getLocalWatchMigrations()
 
         if (
@@ -185,8 +197,13 @@ export class Migrate {
   // tsline:enable
   private datamodelBeforeWatch = ''
   private schemaPath: string
+  public migrationsDirectoryPath: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     this.schemaPath = this.getSchemaPath(schemaPath)
+    this.migrationsDirectoryPath = path.join(
+      path.dirname(this.schemaPath),
+      'migrations',
+    )
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
@@ -216,31 +233,83 @@ export class Migrate {
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
-  // TODO: optimize datapaths, where we have a datamodel already, use it
-  public getSourceConfig(): string {
-    return this.getDatamodel()
+  public reset(): Promise<void> {
+    return this.engine.reset()
   }
 
-  public async getLockFile(): Promise<LockFile> {
-    const lockFilePath = path.resolve(
-      path.dirname(this.schemaPath),
-      'migrations',
-      'migrate.lock',
-    )
-    if (await exists(lockFilePath)) {
-      const file = await readFile(lockFilePath, 'utf-8')
-      const lockFile = deserializeLockFile(file)
-      if (lockFile.remoteBranch) {
-        throw new Error(
-          `There's a merge conflict in the ${chalk.bold(
-            'migrations/migrate.lock',
-          )} file.`,
-        )
-      }
-      return lockFile
-    }
+  public createMigration(
+    params: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return this.engine.createMigration(params)
+  }
 
-    return initLockFile()
+  public diagnoseMigrationHistory(): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+    return this.engine.diagnoseMigrationHistory({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
+  public async getDbInfo(): Promise<{
+    schemaWord: string
+    dbType: string
+    dbName: string
+    dbLocation: string
+  }> {
+    const datamodel = this.getDatamodel()
+    const config = await getConfig({ datamodel })
+    const activeDatasource = config.datasources[0]
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const dbLocation = getDbLocation(credentials)
+    return {
+      ...getDbinfoFromCredentials(credentials),
+      dbLocation,
+    }
+  }
+
+  public listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.engine.listMigrationDirectories({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
+  public async markMigrationApplied({
+    migrationId,
+  }: {
+    migrationId: string
+  }): Promise<void> {
+    return await this.engine.markMigrationApplied({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      migrationName: migrationId,
+    })
+  }
+
+  public markMigrationRolledBack({
+    migrationId,
+  }: {
+    migrationId: string
+  }): Promise<void> {
+    return this.engine.markMigrationRolledBack({
+      migrationName: migrationId,
+    })
+  }
+
+  public applyScript({ script }: { script: string }): Promise<void> {
+    return this.engine.applyScript({ script })
+  }
+
+  public applyOnly(): Promise<EngineResults.ApplyMigrationsOutput> {
+    return this.engine.applyMigrations({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
+  public evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
+    const datamodel = this.getDatamodel()
+
+    return this.engine.evaluateDataLoss({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+      prismaSchema: datamodel,
+    })
   }
 
   public async push({
@@ -276,49 +345,84 @@ export class Migrate {
       )}`,
     )
 
-    const generators = await getGenerators({
-      schemaPath: this.schemaPath,
-      printDownloadProgress: false,
-      version: enginesVersion,
-      cliVersion: packageJson.version,
-    })
+    try {
+      const generators = await getGenerators({
+        schemaPath: this.schemaPath,
+        printDownloadProgress: false,
+        version: enginesVersion,
+        cliVersion: packageJson.version,
+      })
 
-    for (const generator of generators) {
-      const toStr = generator.options!.generator.output!
-        ? chalk.dim(
-            ` to .${path.sep}${path.relative(
-              process.cwd(),
-              generator.options!.generator.output,
-            )}`,
+      for (const generator of generators) {
+        const toStr = generator.options!.generator.output!
+          ? chalk.dim(
+              ` to .${path.sep}${path.relative(
+                process.cwd(),
+                generator.options!.generator.output!,
+              )}`,
+            )
+          : ''
+        const name = generator.manifest
+          ? generator.manifest.prettyName
+          : generator.options!.generator.provider
+
+        logUpdate(`Running generate... - ${name}`)
+
+        const before = Date.now()
+        try {
+          await generator.generate()
+          const after = Date.now()
+          const version = generator.manifest?.version
+          message.push(
+            `✔ Generated ${chalk.bold(name!)}${
+              version ? ` (${version})` : ''
+            }${toStr} in ${formatms(after - before)}`,
           )
-        : ''
-      const name = generator.manifest
-        ? generator.manifest.prettyName
-        : generator.options!.generator.provider
-
-      logUpdate(`Running generate... - ${name}`)
-
-      const before = Date.now()
-      try {
-        await generator.generate()
-        const after = Date.now()
-        const version = generator.manifest?.version
-        message.push(
-          `✔ Generated ${chalk.bold(name!)}${
-            version ? ` (version: ${version})` : ''
-          }${toStr} in ${formatms(after - before)}`,
-        )
-        generator.stop()
-      } catch (err) {
-        message.push(`${err.message}`)
-        generator.stop()
+          generator.stop()
+        } catch (err) {
+          message.push(`${err.message}`)
+          generator.stop()
+        }
       }
+    } catch (errGetGenerators) {
+      throw errGetGenerators
     }
 
     logUpdate(message.join('\n'))
   }
 
-  public async createMigration(
+  //
+  // "Old" Migrate
+  //
+
+  // TODO: optimize datapaths, where we have a datamodel already, use it
+  public getSourceConfig(): string {
+    return this.getDatamodel()
+  }
+
+  public async getLockFile(): Promise<LockFile> {
+    const lockFilePath = path.resolve(
+      path.dirname(this.schemaPath),
+      'migrations',
+      'migrate.lock',
+    )
+    if (await exists(lockFilePath)) {
+      const file = await readFile(lockFilePath, 'utf-8')
+      const lockFile = deserializeLockFile(file)
+      if (lockFile.remoteBranch) {
+        throw new Error(
+          `There's a merge conflict in the ${chalk.bold(
+            'migrations/migrate.lock',
+          )} file.`,
+        )
+      }
+      return lockFile
+    }
+
+    return initLockFile()
+  }
+
+  public async createMigrationLegacy(
     migrationId: string,
   ): Promise<LocalMigrationWithDatabaseSteps | undefined> {
     const {
@@ -437,7 +541,6 @@ export class Migrate {
       sourceConfig: datamodel,
     })
 
-    // TODO cleanup
     let lastAppliedIndex = -1
     const appliedMigrations = localMigrations.filter(
       (localMigration, index) => {
@@ -501,7 +604,7 @@ export class Migrate {
     } Done with ${chalk.bold('down')} in ${formatms(Date.now() - before)}`
   }
 
-  public async up({
+  public async upLegacy({
     n,
     preview,
     short,
@@ -516,6 +619,7 @@ export class Migrate {
     const {
       lastAppliedIndex,
       localMigrations,
+      appliedRemoteMigrations,
       sourceConfig,
     } = migrationsToApplyResult
     let { migrationsToApply } = migrationsToApplyResult
@@ -758,6 +862,7 @@ export class Migrate {
       ],
       {
         // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
+        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         cwd: migrationsDir,
       },

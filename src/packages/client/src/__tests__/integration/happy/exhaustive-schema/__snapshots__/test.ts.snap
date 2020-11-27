@@ -1,6 +1,298 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema 1`] = `
+exports[`exhaustive-schema: generatedBrowserJS 1`] = `
+
+Object.defineProperty(exports, "__esModule", { value: true });
+
+
+const Prisma = {}
+
+exports.Prisma = Prisma
+
+/**
+ * Prisma Client JS version: local
+ * Query Engine version: local
+ */
+Prisma.prismaVersion = {
+  client: "local",
+  engine: "local"
+}
+
+Prisma.PrismaClientKnownRequestError = () => {throw new Error(
+  \`PrismaClientKnownRequestError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)};
+Prisma.PrismaClientUnknownRequestError = () => {throw new Error(
+  \`PrismaClientUnknownRequestError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientRustPanicError = () => {throw new Error(
+  \`PrismaClientRustPanicError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientInitializationError = () => {throw new Error(
+  \`PrismaClientInitializationError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.PrismaClientValidationError = () => {throw new Error(
+  \`PrismaClientValidationError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.Decimal = () => {throw new Error(
+  \`Decimal is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+
+/**
+ * Re-export of sql-template-tag
+ */
+
+Prisma.sql = () => {throw new Error(
+  \`sqltag is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.empty = () => {throw new Error(
+  \`empty is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.join = () => {throw new Error(
+  \`join is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+Prisma.raw = () => {throw new Error(
+  \`raw is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+)}
+
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+
+exports.Prisma.PostDistinctFieldEnum = makeEnum({
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title',
+  content: 'content',
+  published: 'published',
+  authorId: 'authorId'
+});
+
+exports.Prisma.UserDistinctFieldEnum = makeEnum({
+  id: 'id',
+  email: 'email',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.MDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.NDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OneOptionalDistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.ManyRequiredDistinctFieldEnum = makeEnum({
+  id: 'id',
+  oneOptionalId: 'oneOptionalId',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OptionalSide1DistinctFieldEnum = makeEnum({
+  id: 'id',
+  optionalSide2Id: 'optionalSide2Id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.OptionalSide2DistinctFieldEnum = makeEnum({
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+});
+
+exports.Prisma.ADistinctFieldEnum = makeEnum({
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  int: 'int',
+  sInt: 'sInt',
+  bInt: 'bInt',
+  serial: 'serial',
+  sSerial: 'sSerial',
+  bSerial: 'bSerial',
+  inc_int: 'inc_int',
+  inc_sInt: 'inc_sInt',
+  inc_bInt: 'inc_bInt'
+});
+
+exports.Prisma.BDistinctFieldEnum = makeEnum({
+  id: 'id',
+  float: 'float',
+  dFloat: 'dFloat',
+  decFloat: 'decFloat',
+  numFloat: 'numFloat'
+});
+
+exports.Prisma.CDistinctFieldEnum = makeEnum({
+  id: 'id',
+  char: 'char',
+  vChar: 'vChar',
+  text: 'text',
+  bit: 'bit',
+  vBit: 'vBit',
+  uuid: 'uuid'
+});
+
+exports.Prisma.DDistinctFieldEnum = makeEnum({
+  id: 'id',
+  bool: 'bool',
+  byteA: 'byteA',
+  xml: 'xml',
+  json: 'json',
+  jsonb: 'jsonb'
+});
+
+exports.Prisma.EDistinctFieldEnum = makeEnum({
+  id: 'id',
+  date: 'date',
+  time: 'time',
+  ts: 'ts'
+});
+
+exports.Prisma.SortOrder = makeEnum({
+  asc: 'asc',
+  desc: 'desc'
+});
+
+exports.Prisma.QueryMode = makeEnum({
+  default: 'default',
+  insensitive: 'insensitive'
+});
+exports.ABeautifulEnum = makeEnum({
+  A: 'A',
+  B: 'B',
+  C: 'C'
+});
+
+exports.Prisma.ModelName = makeEnum({
+  Post: 'Post',
+  User: 'User',
+  M: 'M',
+  N: 'N',
+  OneOptional: 'OneOptional',
+  ManyRequired: 'ManyRequired',
+  OptionalSide1: 'OptionalSide1',
+  OptionalSide2: 'OptionalSide2',
+  A: 'A',
+  B: 'B',
+  C: 'C',
+  D: 'D',
+  E: 'E'
+});
+
+/**
+ * Create the Client
+ */
+class PrismaClient {
+  constructor() {
+    throw new Error(
+      \`PrismaClient is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+    )
+  }
+}
+exports.PrismaClient = PrismaClient
+
+Object.assign(exports, Prisma)
+
+`;
+
+exports[`exhaustive-schema: generatedTypeScript 1`] = `
 
 /**
  * Client
@@ -13,11 +305,11 @@ export import DMMF = runtime.DMMF
 /**
  * Prisma Errors
  */
-export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
-export type PrismaClientValidationError = runtime.PrismaClientValidationError
+export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
+export import PrismaClientValidationError = runtime.PrismaClientValidationError
 
 /**
  * Re-export of sql-template-tag
@@ -631,11 +923,11 @@ export namespace Prisma {
   /**
    * Prisma Errors
    */
-  export type PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
-  export type PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
-  export type PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
-  export type PrismaClientInitializationError = runtime.PrismaClientInitializationError
-  export type PrismaClientValidationError = runtime.PrismaClientValidationError
+  export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
+  export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError
+  export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
+  export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
+  export import PrismaClientValidationError = runtime.PrismaClientValidationError
 
   /**
    * Re-export of sql-template-tag
@@ -1110,7 +1402,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends PostDeleteManyArgs>(
-      args: Subset<T, PostDeleteManyArgs>
+      args?: Subset<T, PostDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Posts.
@@ -1681,7 +1973,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends UserDeleteManyArgs>(
-      args: Subset<T, UserDeleteManyArgs>
+      args?: Subset<T, UserDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Users.
@@ -2251,7 +2543,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends MDeleteManyArgs>(
-      args: Subset<T, MDeleteManyArgs>
+      args?: Subset<T, MDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ms.
@@ -2821,7 +3113,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends NDeleteManyArgs>(
-      args: Subset<T, NDeleteManyArgs>
+      args?: Subset<T, NDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ns.
@@ -3391,7 +3683,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OneOptionalDeleteManyArgs>(
-      args: Subset<T, OneOptionalDeleteManyArgs>
+      args?: Subset<T, OneOptionalDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OneOptionals.
@@ -3970,7 +4262,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends ManyRequiredDeleteManyArgs>(
-      args: Subset<T, ManyRequiredDeleteManyArgs>
+      args?: Subset<T, ManyRequiredDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more ManyRequireds.
@@ -4549,7 +4841,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OptionalSide1DeleteManyArgs>(
-      args: Subset<T, OptionalSide1DeleteManyArgs>
+      args?: Subset<T, OptionalSide1DeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OptionalSide1s.
@@ -5119,7 +5411,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends OptionalSide2DeleteManyArgs>(
-      args: Subset<T, OptionalSide2DeleteManyArgs>
+      args?: Subset<T, OptionalSide2DeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more OptionalSide2s.
@@ -5710,7 +6002,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends ADeleteManyArgs>(
-      args: Subset<T, ADeleteManyArgs>
+      args?: Subset<T, ADeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more As.
@@ -6221,7 +6513,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends BDeleteManyArgs>(
-      args: Subset<T, BDeleteManyArgs>
+      args?: Subset<T, BDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Bs.
@@ -6669,7 +6961,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends CDeleteManyArgs>(
-      args: Subset<T, CDeleteManyArgs>
+      args?: Subset<T, CDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Cs.
@@ -7116,7 +7408,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends DDeleteManyArgs>(
-      args: Subset<T, DDeleteManyArgs>
+      args?: Subset<T, DDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Ds.
@@ -7561,7 +7853,7 @@ export namespace Prisma {
      * 
     **/
     deleteMany<T extends EDeleteManyArgs>(
-      args: Subset<T, EDeleteManyArgs>
+      args?: Subset<T, EDeleteManyArgs>
     ): Promise<BatchPayload>
     /**
      * Update zero or more Es.
@@ -10888,2582 +11180,2582 @@ export namespace Prisma {
 }
 
 /*
-* Exports for compatiblity introduced in 2.12.0
+* Exports for compatibility introduced in 2.12.0
 * Please import from the Prisma namespace instead
 */
 
 /**
  * @deprecated Renamed to \`Prisma.PostDistinctFieldEnum\`
  */
-export import PostDistinctFieldEnum = Prisma.PostDistinctFieldEnum
+export type PostDistinctFieldEnum = Prisma.PostDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.UserDistinctFieldEnum\`
  */
-export import UserDistinctFieldEnum = Prisma.UserDistinctFieldEnum
+export type UserDistinctFieldEnum = Prisma.UserDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.MDistinctFieldEnum\`
  */
-export import MDistinctFieldEnum = Prisma.MDistinctFieldEnum
+export type MDistinctFieldEnum = Prisma.MDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.NDistinctFieldEnum\`
  */
-export import NDistinctFieldEnum = Prisma.NDistinctFieldEnum
+export type NDistinctFieldEnum = Prisma.NDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalDistinctFieldEnum\`
  */
-export import OneOptionalDistinctFieldEnum = Prisma.OneOptionalDistinctFieldEnum
+export type OneOptionalDistinctFieldEnum = Prisma.OneOptionalDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredDistinctFieldEnum\`
  */
-export import ManyRequiredDistinctFieldEnum = Prisma.ManyRequiredDistinctFieldEnum
+export type ManyRequiredDistinctFieldEnum = Prisma.ManyRequiredDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1DistinctFieldEnum\`
  */
-export import OptionalSide1DistinctFieldEnum = Prisma.OptionalSide1DistinctFieldEnum
+export type OptionalSide1DistinctFieldEnum = Prisma.OptionalSide1DistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2DistinctFieldEnum\`
  */
-export import OptionalSide2DistinctFieldEnum = Prisma.OptionalSide2DistinctFieldEnum
+export type OptionalSide2DistinctFieldEnum = Prisma.OptionalSide2DistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.ADistinctFieldEnum\`
  */
-export import ADistinctFieldEnum = Prisma.ADistinctFieldEnum
+export type ADistinctFieldEnum = Prisma.ADistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.BDistinctFieldEnum\`
  */
-export import BDistinctFieldEnum = Prisma.BDistinctFieldEnum
+export type BDistinctFieldEnum = Prisma.BDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.CDistinctFieldEnum\`
  */
-export import CDistinctFieldEnum = Prisma.CDistinctFieldEnum
+export type CDistinctFieldEnum = Prisma.CDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.DDistinctFieldEnum\`
  */
-export import DDistinctFieldEnum = Prisma.DDistinctFieldEnum
+export type DDistinctFieldEnum = Prisma.DDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.EDistinctFieldEnum\`
  */
-export import EDistinctFieldEnum = Prisma.EDistinctFieldEnum
+export type EDistinctFieldEnum = Prisma.EDistinctFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.SortOrder\`
  */
-export import SortOrder = Prisma.SortOrder
+export type SortOrder = Prisma.SortOrder
 
 /**
  * @deprecated Renamed to \`Prisma.QueryMode\`
  */
-export import QueryMode = Prisma.QueryMode
+export type QueryMode = Prisma.QueryMode
 
 /**
  * @deprecated Renamed to \`Prisma.ModelName\`
  */
-export import ModelName = Prisma.ModelName
+export type ModelName = Prisma.ModelName
 
 /**
  * @deprecated Renamed to \`Prisma.AggregatePost\`
  */
-export import AggregatePost = Prisma.AggregatePost
+export type AggregatePost = Prisma.AggregatePost
 
 /**
  * @deprecated Renamed to \`Prisma.PostAvgAggregateOutputType\`
  */
-export import PostAvgAggregateOutputType = Prisma.PostAvgAggregateOutputType
+export type PostAvgAggregateOutputType = Prisma.PostAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostSumAggregateOutputType\`
  */
-export import PostSumAggregateOutputType = Prisma.PostSumAggregateOutputType
+export type PostSumAggregateOutputType = Prisma.PostSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostMinAggregateOutputType\`
  */
-export import PostMinAggregateOutputType = Prisma.PostMinAggregateOutputType
+export type PostMinAggregateOutputType = Prisma.PostMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostMaxAggregateOutputType\`
  */
-export import PostMaxAggregateOutputType = Prisma.PostMaxAggregateOutputType
+export type PostMaxAggregateOutputType = Prisma.PostMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregatePostArgs\`
  */
-export import AggregatePostArgs = Prisma.AggregatePostArgs
+export type AggregatePostArgs = Prisma.AggregatePostArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostAvgAggregateInputType\`
  */
-export import PostAvgAggregateInputType = Prisma.PostAvgAggregateInputType
+export type PostAvgAggregateInputType = Prisma.PostAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostSumAggregateInputType\`
  */
-export import PostSumAggregateInputType = Prisma.PostSumAggregateInputType
+export type PostSumAggregateInputType = Prisma.PostSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostMinAggregateInputType\`
  */
-export import PostMinAggregateInputType = Prisma.PostMinAggregateInputType
+export type PostMinAggregateInputType = Prisma.PostMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostMaxAggregateInputType\`
  */
-export import PostMaxAggregateInputType = Prisma.PostMaxAggregateInputType
+export type PostMaxAggregateInputType = Prisma.PostMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostSelect\`
  */
-export import PostSelect = Prisma.PostSelect
+export type PostSelect = Prisma.PostSelect
 
 /**
  * @deprecated Renamed to \`Prisma.PostInclude\`
  */
-export import PostInclude = Prisma.PostInclude
+export type PostInclude = Prisma.PostInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniquePostArgs\`
  */
-export import FindUniquePostArgs = Prisma.FindUniquePostArgs
+export type FindUniquePostArgs = Prisma.FindUniquePostArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstPostArgs\`
  */
-export import FindFirstPostArgs = Prisma.FindFirstPostArgs
+export type FindFirstPostArgs = Prisma.FindFirstPostArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyPostArgs\`
  */
-export import FindManyPostArgs = Prisma.FindManyPostArgs
+export type FindManyPostArgs = Prisma.FindManyPostArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateArgs\`
  */
-export import PostCreateArgs = Prisma.PostCreateArgs
+export type PostCreateArgs = Prisma.PostCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateArgs\`
  */
-export import PostUpdateArgs = Prisma.PostUpdateArgs
+export type PostUpdateArgs = Prisma.PostUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateManyArgs\`
  */
-export import PostUpdateManyArgs = Prisma.PostUpdateManyArgs
+export type PostUpdateManyArgs = Prisma.PostUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpsertArgs\`
  */
-export import PostUpsertArgs = Prisma.PostUpsertArgs
+export type PostUpsertArgs = Prisma.PostUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostDeleteArgs\`
  */
-export import PostDeleteArgs = Prisma.PostDeleteArgs
+export type PostDeleteArgs = Prisma.PostDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostDeleteManyArgs\`
  */
-export import PostDeleteManyArgs = Prisma.PostDeleteManyArgs
+export type PostDeleteManyArgs = Prisma.PostDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateUser\`
  */
-export import AggregateUser = Prisma.AggregateUser
+export type AggregateUser = Prisma.AggregateUser
 
 /**
  * @deprecated Renamed to \`Prisma.UserAvgAggregateOutputType\`
  */
-export import UserAvgAggregateOutputType = Prisma.UserAvgAggregateOutputType
+export type UserAvgAggregateOutputType = Prisma.UserAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserSumAggregateOutputType\`
  */
-export import UserSumAggregateOutputType = Prisma.UserSumAggregateOutputType
+export type UserSumAggregateOutputType = Prisma.UserSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserMinAggregateOutputType\`
  */
-export import UserMinAggregateOutputType = Prisma.UserMinAggregateOutputType
+export type UserMinAggregateOutputType = Prisma.UserMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserMaxAggregateOutputType\`
  */
-export import UserMaxAggregateOutputType = Prisma.UserMaxAggregateOutputType
+export type UserMaxAggregateOutputType = Prisma.UserMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateUserArgs\`
  */
-export import AggregateUserArgs = Prisma.AggregateUserArgs
+export type AggregateUserArgs = Prisma.AggregateUserArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserAvgAggregateInputType\`
  */
-export import UserAvgAggregateInputType = Prisma.UserAvgAggregateInputType
+export type UserAvgAggregateInputType = Prisma.UserAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserSumAggregateInputType\`
  */
-export import UserSumAggregateInputType = Prisma.UserSumAggregateInputType
+export type UserSumAggregateInputType = Prisma.UserSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserMinAggregateInputType\`
  */
-export import UserMinAggregateInputType = Prisma.UserMinAggregateInputType
+export type UserMinAggregateInputType = Prisma.UserMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserMaxAggregateInputType\`
  */
-export import UserMaxAggregateInputType = Prisma.UserMaxAggregateInputType
+export type UserMaxAggregateInputType = Prisma.UserMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserSelect\`
  */
-export import UserSelect = Prisma.UserSelect
+export type UserSelect = Prisma.UserSelect
 
 /**
  * @deprecated Renamed to \`Prisma.UserInclude\`
  */
-export import UserInclude = Prisma.UserInclude
+export type UserInclude = Prisma.UserInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueUserArgs\`
  */
-export import FindUniqueUserArgs = Prisma.FindUniqueUserArgs
+export type FindUniqueUserArgs = Prisma.FindUniqueUserArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstUserArgs\`
  */
-export import FindFirstUserArgs = Prisma.FindFirstUserArgs
+export type FindFirstUserArgs = Prisma.FindFirstUserArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyUserArgs\`
  */
-export import FindManyUserArgs = Prisma.FindManyUserArgs
+export type FindManyUserArgs = Prisma.FindManyUserArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateArgs\`
  */
-export import UserCreateArgs = Prisma.UserCreateArgs
+export type UserCreateArgs = Prisma.UserCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateArgs\`
  */
-export import UserUpdateArgs = Prisma.UserUpdateArgs
+export type UserUpdateArgs = Prisma.UserUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateManyArgs\`
  */
-export import UserUpdateManyArgs = Prisma.UserUpdateManyArgs
+export type UserUpdateManyArgs = Prisma.UserUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpsertArgs\`
  */
-export import UserUpsertArgs = Prisma.UserUpsertArgs
+export type UserUpsertArgs = Prisma.UserUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserDeleteArgs\`
  */
-export import UserDeleteArgs = Prisma.UserDeleteArgs
+export type UserDeleteArgs = Prisma.UserDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.UserDeleteManyArgs\`
  */
-export import UserDeleteManyArgs = Prisma.UserDeleteManyArgs
+export type UserDeleteManyArgs = Prisma.UserDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateM\`
  */
-export import AggregateM = Prisma.AggregateM
+export type AggregateM = Prisma.AggregateM
 
 /**
  * @deprecated Renamed to \`Prisma.MAvgAggregateOutputType\`
  */
-export import MAvgAggregateOutputType = Prisma.MAvgAggregateOutputType
+export type MAvgAggregateOutputType = Prisma.MAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.MSumAggregateOutputType\`
  */
-export import MSumAggregateOutputType = Prisma.MSumAggregateOutputType
+export type MSumAggregateOutputType = Prisma.MSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.MMinAggregateOutputType\`
  */
-export import MMinAggregateOutputType = Prisma.MMinAggregateOutputType
+export type MMinAggregateOutputType = Prisma.MMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.MMaxAggregateOutputType\`
  */
-export import MMaxAggregateOutputType = Prisma.MMaxAggregateOutputType
+export type MMaxAggregateOutputType = Prisma.MMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateMArgs\`
  */
-export import AggregateMArgs = Prisma.AggregateMArgs
+export type AggregateMArgs = Prisma.AggregateMArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MAvgAggregateInputType\`
  */
-export import MAvgAggregateInputType = Prisma.MAvgAggregateInputType
+export type MAvgAggregateInputType = Prisma.MAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.MSumAggregateInputType\`
  */
-export import MSumAggregateInputType = Prisma.MSumAggregateInputType
+export type MSumAggregateInputType = Prisma.MSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.MMinAggregateInputType\`
  */
-export import MMinAggregateInputType = Prisma.MMinAggregateInputType
+export type MMinAggregateInputType = Prisma.MMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.MMaxAggregateInputType\`
  */
-export import MMaxAggregateInputType = Prisma.MMaxAggregateInputType
+export type MMaxAggregateInputType = Prisma.MMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.MSelect\`
  */
-export import MSelect = Prisma.MSelect
+export type MSelect = Prisma.MSelect
 
 /**
  * @deprecated Renamed to \`Prisma.MInclude\`
  */
-export import MInclude = Prisma.MInclude
+export type MInclude = Prisma.MInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueMArgs\`
  */
-export import FindUniqueMArgs = Prisma.FindUniqueMArgs
+export type FindUniqueMArgs = Prisma.FindUniqueMArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstMArgs\`
  */
-export import FindFirstMArgs = Prisma.FindFirstMArgs
+export type FindFirstMArgs = Prisma.FindFirstMArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyMArgs\`
  */
-export import FindManyMArgs = Prisma.FindManyMArgs
+export type FindManyMArgs = Prisma.FindManyMArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MCreateArgs\`
  */
-export import MCreateArgs = Prisma.MCreateArgs
+export type MCreateArgs = Prisma.MCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateArgs\`
  */
-export import MUpdateArgs = Prisma.MUpdateArgs
+export type MUpdateArgs = Prisma.MUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateManyArgs\`
  */
-export import MUpdateManyArgs = Prisma.MUpdateManyArgs
+export type MUpdateManyArgs = Prisma.MUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MUpsertArgs\`
  */
-export import MUpsertArgs = Prisma.MUpsertArgs
+export type MUpsertArgs = Prisma.MUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MDeleteArgs\`
  */
-export import MDeleteArgs = Prisma.MDeleteArgs
+export type MDeleteArgs = Prisma.MDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.MDeleteManyArgs\`
  */
-export import MDeleteManyArgs = Prisma.MDeleteManyArgs
+export type MDeleteManyArgs = Prisma.MDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateN\`
  */
-export import AggregateN = Prisma.AggregateN
+export type AggregateN = Prisma.AggregateN
 
 /**
  * @deprecated Renamed to \`Prisma.NAvgAggregateOutputType\`
  */
-export import NAvgAggregateOutputType = Prisma.NAvgAggregateOutputType
+export type NAvgAggregateOutputType = Prisma.NAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.NSumAggregateOutputType\`
  */
-export import NSumAggregateOutputType = Prisma.NSumAggregateOutputType
+export type NSumAggregateOutputType = Prisma.NSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.NMinAggregateOutputType\`
  */
-export import NMinAggregateOutputType = Prisma.NMinAggregateOutputType
+export type NMinAggregateOutputType = Prisma.NMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.NMaxAggregateOutputType\`
  */
-export import NMaxAggregateOutputType = Prisma.NMaxAggregateOutputType
+export type NMaxAggregateOutputType = Prisma.NMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateNArgs\`
  */
-export import AggregateNArgs = Prisma.AggregateNArgs
+export type AggregateNArgs = Prisma.AggregateNArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NAvgAggregateInputType\`
  */
-export import NAvgAggregateInputType = Prisma.NAvgAggregateInputType
+export type NAvgAggregateInputType = Prisma.NAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.NSumAggregateInputType\`
  */
-export import NSumAggregateInputType = Prisma.NSumAggregateInputType
+export type NSumAggregateInputType = Prisma.NSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.NMinAggregateInputType\`
  */
-export import NMinAggregateInputType = Prisma.NMinAggregateInputType
+export type NMinAggregateInputType = Prisma.NMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.NMaxAggregateInputType\`
  */
-export import NMaxAggregateInputType = Prisma.NMaxAggregateInputType
+export type NMaxAggregateInputType = Prisma.NMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.NSelect\`
  */
-export import NSelect = Prisma.NSelect
+export type NSelect = Prisma.NSelect
 
 /**
  * @deprecated Renamed to \`Prisma.NInclude\`
  */
-export import NInclude = Prisma.NInclude
+export type NInclude = Prisma.NInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueNArgs\`
  */
-export import FindUniqueNArgs = Prisma.FindUniqueNArgs
+export type FindUniqueNArgs = Prisma.FindUniqueNArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstNArgs\`
  */
-export import FindFirstNArgs = Prisma.FindFirstNArgs
+export type FindFirstNArgs = Prisma.FindFirstNArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyNArgs\`
  */
-export import FindManyNArgs = Prisma.FindManyNArgs
+export type FindManyNArgs = Prisma.FindManyNArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NCreateArgs\`
  */
-export import NCreateArgs = Prisma.NCreateArgs
+export type NCreateArgs = Prisma.NCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateArgs\`
  */
-export import NUpdateArgs = Prisma.NUpdateArgs
+export type NUpdateArgs = Prisma.NUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateManyArgs\`
  */
-export import NUpdateManyArgs = Prisma.NUpdateManyArgs
+export type NUpdateManyArgs = Prisma.NUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NUpsertArgs\`
  */
-export import NUpsertArgs = Prisma.NUpsertArgs
+export type NUpsertArgs = Prisma.NUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NDeleteArgs\`
  */
-export import NDeleteArgs = Prisma.NDeleteArgs
+export type NDeleteArgs = Prisma.NDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.NDeleteManyArgs\`
  */
-export import NDeleteManyArgs = Prisma.NDeleteManyArgs
+export type NDeleteManyArgs = Prisma.NDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOneOptional\`
  */
-export import AggregateOneOptional = Prisma.AggregateOneOptional
+export type AggregateOneOptional = Prisma.AggregateOneOptional
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalAvgAggregateOutputType\`
  */
-export import OneOptionalAvgAggregateOutputType = Prisma.OneOptionalAvgAggregateOutputType
+export type OneOptionalAvgAggregateOutputType = Prisma.OneOptionalAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalSumAggregateOutputType\`
  */
-export import OneOptionalSumAggregateOutputType = Prisma.OneOptionalSumAggregateOutputType
+export type OneOptionalSumAggregateOutputType = Prisma.OneOptionalSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalMinAggregateOutputType\`
  */
-export import OneOptionalMinAggregateOutputType = Prisma.OneOptionalMinAggregateOutputType
+export type OneOptionalMinAggregateOutputType = Prisma.OneOptionalMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalMaxAggregateOutputType\`
  */
-export import OneOptionalMaxAggregateOutputType = Prisma.OneOptionalMaxAggregateOutputType
+export type OneOptionalMaxAggregateOutputType = Prisma.OneOptionalMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOneOptionalArgs\`
  */
-export import AggregateOneOptionalArgs = Prisma.AggregateOneOptionalArgs
+export type AggregateOneOptionalArgs = Prisma.AggregateOneOptionalArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalAvgAggregateInputType\`
  */
-export import OneOptionalAvgAggregateInputType = Prisma.OneOptionalAvgAggregateInputType
+export type OneOptionalAvgAggregateInputType = Prisma.OneOptionalAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalSumAggregateInputType\`
  */
-export import OneOptionalSumAggregateInputType = Prisma.OneOptionalSumAggregateInputType
+export type OneOptionalSumAggregateInputType = Prisma.OneOptionalSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalMinAggregateInputType\`
  */
-export import OneOptionalMinAggregateInputType = Prisma.OneOptionalMinAggregateInputType
+export type OneOptionalMinAggregateInputType = Prisma.OneOptionalMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalMaxAggregateInputType\`
  */
-export import OneOptionalMaxAggregateInputType = Prisma.OneOptionalMaxAggregateInputType
+export type OneOptionalMaxAggregateInputType = Prisma.OneOptionalMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalSelect\`
  */
-export import OneOptionalSelect = Prisma.OneOptionalSelect
+export type OneOptionalSelect = Prisma.OneOptionalSelect
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalInclude\`
  */
-export import OneOptionalInclude = Prisma.OneOptionalInclude
+export type OneOptionalInclude = Prisma.OneOptionalInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueOneOptionalArgs\`
  */
-export import FindUniqueOneOptionalArgs = Prisma.FindUniqueOneOptionalArgs
+export type FindUniqueOneOptionalArgs = Prisma.FindUniqueOneOptionalArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstOneOptionalArgs\`
  */
-export import FindFirstOneOptionalArgs = Prisma.FindFirstOneOptionalArgs
+export type FindFirstOneOptionalArgs = Prisma.FindFirstOneOptionalArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyOneOptionalArgs\`
  */
-export import FindManyOneOptionalArgs = Prisma.FindManyOneOptionalArgs
+export type FindManyOneOptionalArgs = Prisma.FindManyOneOptionalArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalCreateArgs\`
  */
-export import OneOptionalCreateArgs = Prisma.OneOptionalCreateArgs
+export type OneOptionalCreateArgs = Prisma.OneOptionalCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateArgs\`
  */
-export import OneOptionalUpdateArgs = Prisma.OneOptionalUpdateArgs
+export type OneOptionalUpdateArgs = Prisma.OneOptionalUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateManyArgs\`
  */
-export import OneOptionalUpdateManyArgs = Prisma.OneOptionalUpdateManyArgs
+export type OneOptionalUpdateManyArgs = Prisma.OneOptionalUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpsertArgs\`
  */
-export import OneOptionalUpsertArgs = Prisma.OneOptionalUpsertArgs
+export type OneOptionalUpsertArgs = Prisma.OneOptionalUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalDeleteArgs\`
  */
-export import OneOptionalDeleteArgs = Prisma.OneOptionalDeleteArgs
+export type OneOptionalDeleteArgs = Prisma.OneOptionalDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalDeleteManyArgs\`
  */
-export import OneOptionalDeleteManyArgs = Prisma.OneOptionalDeleteManyArgs
+export type OneOptionalDeleteManyArgs = Prisma.OneOptionalDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateManyRequired\`
  */
-export import AggregateManyRequired = Prisma.AggregateManyRequired
+export type AggregateManyRequired = Prisma.AggregateManyRequired
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredAvgAggregateOutputType\`
  */
-export import ManyRequiredAvgAggregateOutputType = Prisma.ManyRequiredAvgAggregateOutputType
+export type ManyRequiredAvgAggregateOutputType = Prisma.ManyRequiredAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredSumAggregateOutputType\`
  */
-export import ManyRequiredSumAggregateOutputType = Prisma.ManyRequiredSumAggregateOutputType
+export type ManyRequiredSumAggregateOutputType = Prisma.ManyRequiredSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredMinAggregateOutputType\`
  */
-export import ManyRequiredMinAggregateOutputType = Prisma.ManyRequiredMinAggregateOutputType
+export type ManyRequiredMinAggregateOutputType = Prisma.ManyRequiredMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredMaxAggregateOutputType\`
  */
-export import ManyRequiredMaxAggregateOutputType = Prisma.ManyRequiredMaxAggregateOutputType
+export type ManyRequiredMaxAggregateOutputType = Prisma.ManyRequiredMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateManyRequiredArgs\`
  */
-export import AggregateManyRequiredArgs = Prisma.AggregateManyRequiredArgs
+export type AggregateManyRequiredArgs = Prisma.AggregateManyRequiredArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredAvgAggregateInputType\`
  */
-export import ManyRequiredAvgAggregateInputType = Prisma.ManyRequiredAvgAggregateInputType
+export type ManyRequiredAvgAggregateInputType = Prisma.ManyRequiredAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredSumAggregateInputType\`
  */
-export import ManyRequiredSumAggregateInputType = Prisma.ManyRequiredSumAggregateInputType
+export type ManyRequiredSumAggregateInputType = Prisma.ManyRequiredSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredMinAggregateInputType\`
  */
-export import ManyRequiredMinAggregateInputType = Prisma.ManyRequiredMinAggregateInputType
+export type ManyRequiredMinAggregateInputType = Prisma.ManyRequiredMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredMaxAggregateInputType\`
  */
-export import ManyRequiredMaxAggregateInputType = Prisma.ManyRequiredMaxAggregateInputType
+export type ManyRequiredMaxAggregateInputType = Prisma.ManyRequiredMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredSelect\`
  */
-export import ManyRequiredSelect = Prisma.ManyRequiredSelect
+export type ManyRequiredSelect = Prisma.ManyRequiredSelect
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredInclude\`
  */
-export import ManyRequiredInclude = Prisma.ManyRequiredInclude
+export type ManyRequiredInclude = Prisma.ManyRequiredInclude
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueManyRequiredArgs\`
  */
-export import FindUniqueManyRequiredArgs = Prisma.FindUniqueManyRequiredArgs
+export type FindUniqueManyRequiredArgs = Prisma.FindUniqueManyRequiredArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstManyRequiredArgs\`
  */
-export import FindFirstManyRequiredArgs = Prisma.FindFirstManyRequiredArgs
+export type FindFirstManyRequiredArgs = Prisma.FindFirstManyRequiredArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyManyRequiredArgs\`
  */
-export import FindManyManyRequiredArgs = Prisma.FindManyManyRequiredArgs
+export type FindManyManyRequiredArgs = Prisma.FindManyManyRequiredArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredCreateArgs\`
  */
-export import ManyRequiredCreateArgs = Prisma.ManyRequiredCreateArgs
+export type ManyRequiredCreateArgs = Prisma.ManyRequiredCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateArgs\`
  */
-export import ManyRequiredUpdateArgs = Prisma.ManyRequiredUpdateArgs
+export type ManyRequiredUpdateArgs = Prisma.ManyRequiredUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateManyArgs\`
  */
-export import ManyRequiredUpdateManyArgs = Prisma.ManyRequiredUpdateManyArgs
+export type ManyRequiredUpdateManyArgs = Prisma.ManyRequiredUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpsertArgs\`
  */
-export import ManyRequiredUpsertArgs = Prisma.ManyRequiredUpsertArgs
+export type ManyRequiredUpsertArgs = Prisma.ManyRequiredUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredDeleteArgs\`
  */
-export import ManyRequiredDeleteArgs = Prisma.ManyRequiredDeleteArgs
+export type ManyRequiredDeleteArgs = Prisma.ManyRequiredDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredDeleteManyArgs\`
  */
-export import ManyRequiredDeleteManyArgs = Prisma.ManyRequiredDeleteManyArgs
+export type ManyRequiredDeleteManyArgs = Prisma.ManyRequiredDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide1\`
  */
-export import AggregateOptionalSide1 = Prisma.AggregateOptionalSide1
+export type AggregateOptionalSide1 = Prisma.AggregateOptionalSide1
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1AvgAggregateOutputType\`
  */
-export import OptionalSide1AvgAggregateOutputType = Prisma.OptionalSide1AvgAggregateOutputType
+export type OptionalSide1AvgAggregateOutputType = Prisma.OptionalSide1AvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1SumAggregateOutputType\`
  */
-export import OptionalSide1SumAggregateOutputType = Prisma.OptionalSide1SumAggregateOutputType
+export type OptionalSide1SumAggregateOutputType = Prisma.OptionalSide1SumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1MinAggregateOutputType\`
  */
-export import OptionalSide1MinAggregateOutputType = Prisma.OptionalSide1MinAggregateOutputType
+export type OptionalSide1MinAggregateOutputType = Prisma.OptionalSide1MinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1MaxAggregateOutputType\`
  */
-export import OptionalSide1MaxAggregateOutputType = Prisma.OptionalSide1MaxAggregateOutputType
+export type OptionalSide1MaxAggregateOutputType = Prisma.OptionalSide1MaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide1Args\`
  */
-export import AggregateOptionalSide1Args = Prisma.AggregateOptionalSide1Args
+export type AggregateOptionalSide1Args = Prisma.AggregateOptionalSide1Args
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1AvgAggregateInputType\`
  */
-export import OptionalSide1AvgAggregateInputType = Prisma.OptionalSide1AvgAggregateInputType
+export type OptionalSide1AvgAggregateInputType = Prisma.OptionalSide1AvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1SumAggregateInputType\`
  */
-export import OptionalSide1SumAggregateInputType = Prisma.OptionalSide1SumAggregateInputType
+export type OptionalSide1SumAggregateInputType = Prisma.OptionalSide1SumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1MinAggregateInputType\`
  */
-export import OptionalSide1MinAggregateInputType = Prisma.OptionalSide1MinAggregateInputType
+export type OptionalSide1MinAggregateInputType = Prisma.OptionalSide1MinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1MaxAggregateInputType\`
  */
-export import OptionalSide1MaxAggregateInputType = Prisma.OptionalSide1MaxAggregateInputType
+export type OptionalSide1MaxAggregateInputType = Prisma.OptionalSide1MaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1Select\`
  */
-export import OptionalSide1Select = Prisma.OptionalSide1Select
+export type OptionalSide1Select = Prisma.OptionalSide1Select
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1Include\`
  */
-export import OptionalSide1Include = Prisma.OptionalSide1Include
+export type OptionalSide1Include = Prisma.OptionalSide1Include
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueOptionalSide1Args\`
  */
-export import FindUniqueOptionalSide1Args = Prisma.FindUniqueOptionalSide1Args
+export type FindUniqueOptionalSide1Args = Prisma.FindUniqueOptionalSide1Args
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstOptionalSide1Args\`
  */
-export import FindFirstOptionalSide1Args = Prisma.FindFirstOptionalSide1Args
+export type FindFirstOptionalSide1Args = Prisma.FindFirstOptionalSide1Args
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyOptionalSide1Args\`
  */
-export import FindManyOptionalSide1Args = Prisma.FindManyOptionalSide1Args
+export type FindManyOptionalSide1Args = Prisma.FindManyOptionalSide1Args
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1CreateArgs\`
  */
-export import OptionalSide1CreateArgs = Prisma.OptionalSide1CreateArgs
+export type OptionalSide1CreateArgs = Prisma.OptionalSide1CreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateArgs\`
  */
-export import OptionalSide1UpdateArgs = Prisma.OptionalSide1UpdateArgs
+export type OptionalSide1UpdateArgs = Prisma.OptionalSide1UpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateManyArgs\`
  */
-export import OptionalSide1UpdateManyArgs = Prisma.OptionalSide1UpdateManyArgs
+export type OptionalSide1UpdateManyArgs = Prisma.OptionalSide1UpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpsertArgs\`
  */
-export import OptionalSide1UpsertArgs = Prisma.OptionalSide1UpsertArgs
+export type OptionalSide1UpsertArgs = Prisma.OptionalSide1UpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1DeleteArgs\`
  */
-export import OptionalSide1DeleteArgs = Prisma.OptionalSide1DeleteArgs
+export type OptionalSide1DeleteArgs = Prisma.OptionalSide1DeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1DeleteManyArgs\`
  */
-export import OptionalSide1DeleteManyArgs = Prisma.OptionalSide1DeleteManyArgs
+export type OptionalSide1DeleteManyArgs = Prisma.OptionalSide1DeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide2\`
  */
-export import AggregateOptionalSide2 = Prisma.AggregateOptionalSide2
+export type AggregateOptionalSide2 = Prisma.AggregateOptionalSide2
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2AvgAggregateOutputType\`
  */
-export import OptionalSide2AvgAggregateOutputType = Prisma.OptionalSide2AvgAggregateOutputType
+export type OptionalSide2AvgAggregateOutputType = Prisma.OptionalSide2AvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2SumAggregateOutputType\`
  */
-export import OptionalSide2SumAggregateOutputType = Prisma.OptionalSide2SumAggregateOutputType
+export type OptionalSide2SumAggregateOutputType = Prisma.OptionalSide2SumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2MinAggregateOutputType\`
  */
-export import OptionalSide2MinAggregateOutputType = Prisma.OptionalSide2MinAggregateOutputType
+export type OptionalSide2MinAggregateOutputType = Prisma.OptionalSide2MinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2MaxAggregateOutputType\`
  */
-export import OptionalSide2MaxAggregateOutputType = Prisma.OptionalSide2MaxAggregateOutputType
+export type OptionalSide2MaxAggregateOutputType = Prisma.OptionalSide2MaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide2Args\`
  */
-export import AggregateOptionalSide2Args = Prisma.AggregateOptionalSide2Args
+export type AggregateOptionalSide2Args = Prisma.AggregateOptionalSide2Args
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2AvgAggregateInputType\`
  */
-export import OptionalSide2AvgAggregateInputType = Prisma.OptionalSide2AvgAggregateInputType
+export type OptionalSide2AvgAggregateInputType = Prisma.OptionalSide2AvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2SumAggregateInputType\`
  */
-export import OptionalSide2SumAggregateInputType = Prisma.OptionalSide2SumAggregateInputType
+export type OptionalSide2SumAggregateInputType = Prisma.OptionalSide2SumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2MinAggregateInputType\`
  */
-export import OptionalSide2MinAggregateInputType = Prisma.OptionalSide2MinAggregateInputType
+export type OptionalSide2MinAggregateInputType = Prisma.OptionalSide2MinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2MaxAggregateInputType\`
  */
-export import OptionalSide2MaxAggregateInputType = Prisma.OptionalSide2MaxAggregateInputType
+export type OptionalSide2MaxAggregateInputType = Prisma.OptionalSide2MaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2Select\`
  */
-export import OptionalSide2Select = Prisma.OptionalSide2Select
+export type OptionalSide2Select = Prisma.OptionalSide2Select
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2Include\`
  */
-export import OptionalSide2Include = Prisma.OptionalSide2Include
+export type OptionalSide2Include = Prisma.OptionalSide2Include
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueOptionalSide2Args\`
  */
-export import FindUniqueOptionalSide2Args = Prisma.FindUniqueOptionalSide2Args
+export type FindUniqueOptionalSide2Args = Prisma.FindUniqueOptionalSide2Args
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstOptionalSide2Args\`
  */
-export import FindFirstOptionalSide2Args = Prisma.FindFirstOptionalSide2Args
+export type FindFirstOptionalSide2Args = Prisma.FindFirstOptionalSide2Args
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyOptionalSide2Args\`
  */
-export import FindManyOptionalSide2Args = Prisma.FindManyOptionalSide2Args
+export type FindManyOptionalSide2Args = Prisma.FindManyOptionalSide2Args
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2CreateArgs\`
  */
-export import OptionalSide2CreateArgs = Prisma.OptionalSide2CreateArgs
+export type OptionalSide2CreateArgs = Prisma.OptionalSide2CreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateArgs\`
  */
-export import OptionalSide2UpdateArgs = Prisma.OptionalSide2UpdateArgs
+export type OptionalSide2UpdateArgs = Prisma.OptionalSide2UpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateManyArgs\`
  */
-export import OptionalSide2UpdateManyArgs = Prisma.OptionalSide2UpdateManyArgs
+export type OptionalSide2UpdateManyArgs = Prisma.OptionalSide2UpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpsertArgs\`
  */
-export import OptionalSide2UpsertArgs = Prisma.OptionalSide2UpsertArgs
+export type OptionalSide2UpsertArgs = Prisma.OptionalSide2UpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2DeleteArgs\`
  */
-export import OptionalSide2DeleteArgs = Prisma.OptionalSide2DeleteArgs
+export type OptionalSide2DeleteArgs = Prisma.OptionalSide2DeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2DeleteManyArgs\`
  */
-export import OptionalSide2DeleteManyArgs = Prisma.OptionalSide2DeleteManyArgs
+export type OptionalSide2DeleteManyArgs = Prisma.OptionalSide2DeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateA\`
  */
-export import AggregateA = Prisma.AggregateA
+export type AggregateA = Prisma.AggregateA
 
 /**
  * @deprecated Renamed to \`Prisma.AAvgAggregateOutputType\`
  */
-export import AAvgAggregateOutputType = Prisma.AAvgAggregateOutputType
+export type AAvgAggregateOutputType = Prisma.AAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.ASumAggregateOutputType\`
  */
-export import ASumAggregateOutputType = Prisma.ASumAggregateOutputType
+export type ASumAggregateOutputType = Prisma.ASumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AMinAggregateOutputType\`
  */
-export import AMinAggregateOutputType = Prisma.AMinAggregateOutputType
+export type AMinAggregateOutputType = Prisma.AMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AMaxAggregateOutputType\`
  */
-export import AMaxAggregateOutputType = Prisma.AMaxAggregateOutputType
+export type AMaxAggregateOutputType = Prisma.AMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateAArgs\`
  */
-export import AggregateAArgs = Prisma.AggregateAArgs
+export type AggregateAArgs = Prisma.AggregateAArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AAvgAggregateInputType\`
  */
-export import AAvgAggregateInputType = Prisma.AAvgAggregateInputType
+export type AAvgAggregateInputType = Prisma.AAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ASumAggregateInputType\`
  */
-export import ASumAggregateInputType = Prisma.ASumAggregateInputType
+export type ASumAggregateInputType = Prisma.ASumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.AMinAggregateInputType\`
  */
-export import AMinAggregateInputType = Prisma.AMinAggregateInputType
+export type AMinAggregateInputType = Prisma.AMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.AMaxAggregateInputType\`
  */
-export import AMaxAggregateInputType = Prisma.AMaxAggregateInputType
+export type AMaxAggregateInputType = Prisma.AMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ASelect\`
  */
-export import ASelect = Prisma.ASelect
+export type ASelect = Prisma.ASelect
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueAArgs\`
  */
-export import FindUniqueAArgs = Prisma.FindUniqueAArgs
+export type FindUniqueAArgs = Prisma.FindUniqueAArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstAArgs\`
  */
-export import FindFirstAArgs = Prisma.FindFirstAArgs
+export type FindFirstAArgs = Prisma.FindFirstAArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyAArgs\`
  */
-export import FindManyAArgs = Prisma.FindManyAArgs
+export type FindManyAArgs = Prisma.FindManyAArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ACreateArgs\`
  */
-export import ACreateArgs = Prisma.ACreateArgs
+export type ACreateArgs = Prisma.ACreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AUpdateArgs\`
  */
-export import AUpdateArgs = Prisma.AUpdateArgs
+export type AUpdateArgs = Prisma.AUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AUpdateManyArgs\`
  */
-export import AUpdateManyArgs = Prisma.AUpdateManyArgs
+export type AUpdateManyArgs = Prisma.AUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AUpsertArgs\`
  */
-export import AUpsertArgs = Prisma.AUpsertArgs
+export type AUpsertArgs = Prisma.AUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ADeleteArgs\`
  */
-export import ADeleteArgs = Prisma.ADeleteArgs
+export type ADeleteArgs = Prisma.ADeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ADeleteManyArgs\`
  */
-export import ADeleteManyArgs = Prisma.ADeleteManyArgs
+export type ADeleteManyArgs = Prisma.ADeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateB\`
  */
-export import AggregateB = Prisma.AggregateB
+export type AggregateB = Prisma.AggregateB
 
 /**
  * @deprecated Renamed to \`Prisma.BAvgAggregateOutputType\`
  */
-export import BAvgAggregateOutputType = Prisma.BAvgAggregateOutputType
+export type BAvgAggregateOutputType = Prisma.BAvgAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.BSumAggregateOutputType\`
  */
-export import BSumAggregateOutputType = Prisma.BSumAggregateOutputType
+export type BSumAggregateOutputType = Prisma.BSumAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.BMinAggregateOutputType\`
  */
-export import BMinAggregateOutputType = Prisma.BMinAggregateOutputType
+export type BMinAggregateOutputType = Prisma.BMinAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.BMaxAggregateOutputType\`
  */
-export import BMaxAggregateOutputType = Prisma.BMaxAggregateOutputType
+export type BMaxAggregateOutputType = Prisma.BMaxAggregateOutputType
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateBArgs\`
  */
-export import AggregateBArgs = Prisma.AggregateBArgs
+export type AggregateBArgs = Prisma.AggregateBArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BAvgAggregateInputType\`
  */
-export import BAvgAggregateInputType = Prisma.BAvgAggregateInputType
+export type BAvgAggregateInputType = Prisma.BAvgAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.BSumAggregateInputType\`
  */
-export import BSumAggregateInputType = Prisma.BSumAggregateInputType
+export type BSumAggregateInputType = Prisma.BSumAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.BMinAggregateInputType\`
  */
-export import BMinAggregateInputType = Prisma.BMinAggregateInputType
+export type BMinAggregateInputType = Prisma.BMinAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.BMaxAggregateInputType\`
  */
-export import BMaxAggregateInputType = Prisma.BMaxAggregateInputType
+export type BMaxAggregateInputType = Prisma.BMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.BSelect\`
  */
-export import BSelect = Prisma.BSelect
+export type BSelect = Prisma.BSelect
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueBArgs\`
  */
-export import FindUniqueBArgs = Prisma.FindUniqueBArgs
+export type FindUniqueBArgs = Prisma.FindUniqueBArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstBArgs\`
  */
-export import FindFirstBArgs = Prisma.FindFirstBArgs
+export type FindFirstBArgs = Prisma.FindFirstBArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyBArgs\`
  */
-export import FindManyBArgs = Prisma.FindManyBArgs
+export type FindManyBArgs = Prisma.FindManyBArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BCreateArgs\`
  */
-export import BCreateArgs = Prisma.BCreateArgs
+export type BCreateArgs = Prisma.BCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BUpdateArgs\`
  */
-export import BUpdateArgs = Prisma.BUpdateArgs
+export type BUpdateArgs = Prisma.BUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BUpdateManyArgs\`
  */
-export import BUpdateManyArgs = Prisma.BUpdateManyArgs
+export type BUpdateManyArgs = Prisma.BUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BUpsertArgs\`
  */
-export import BUpsertArgs = Prisma.BUpsertArgs
+export type BUpsertArgs = Prisma.BUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BDeleteArgs\`
  */
-export import BDeleteArgs = Prisma.BDeleteArgs
+export type BDeleteArgs = Prisma.BDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.BDeleteManyArgs\`
  */
-export import BDeleteManyArgs = Prisma.BDeleteManyArgs
+export type BDeleteManyArgs = Prisma.BDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateC\`
  */
-export import AggregateC = Prisma.AggregateC
+export type AggregateC = Prisma.AggregateC
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateCArgs\`
  */
-export import AggregateCArgs = Prisma.AggregateCArgs
+export type AggregateCArgs = Prisma.AggregateCArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CSelect\`
  */
-export import CSelect = Prisma.CSelect
+export type CSelect = Prisma.CSelect
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueCArgs\`
  */
-export import FindUniqueCArgs = Prisma.FindUniqueCArgs
+export type FindUniqueCArgs = Prisma.FindUniqueCArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstCArgs\`
  */
-export import FindFirstCArgs = Prisma.FindFirstCArgs
+export type FindFirstCArgs = Prisma.FindFirstCArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyCArgs\`
  */
-export import FindManyCArgs = Prisma.FindManyCArgs
+export type FindManyCArgs = Prisma.FindManyCArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CCreateArgs\`
  */
-export import CCreateArgs = Prisma.CCreateArgs
+export type CCreateArgs = Prisma.CCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CUpdateArgs\`
  */
-export import CUpdateArgs = Prisma.CUpdateArgs
+export type CUpdateArgs = Prisma.CUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CUpdateManyArgs\`
  */
-export import CUpdateManyArgs = Prisma.CUpdateManyArgs
+export type CUpdateManyArgs = Prisma.CUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CUpsertArgs\`
  */
-export import CUpsertArgs = Prisma.CUpsertArgs
+export type CUpsertArgs = Prisma.CUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CDeleteArgs\`
  */
-export import CDeleteArgs = Prisma.CDeleteArgs
+export type CDeleteArgs = Prisma.CDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.CDeleteManyArgs\`
  */
-export import CDeleteManyArgs = Prisma.CDeleteManyArgs
+export type CDeleteManyArgs = Prisma.CDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateD\`
  */
-export import AggregateD = Prisma.AggregateD
+export type AggregateD = Prisma.AggregateD
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateDArgs\`
  */
-export import AggregateDArgs = Prisma.AggregateDArgs
+export type AggregateDArgs = Prisma.AggregateDArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DSelect\`
  */
-export import DSelect = Prisma.DSelect
+export type DSelect = Prisma.DSelect
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueDArgs\`
  */
-export import FindUniqueDArgs = Prisma.FindUniqueDArgs
+export type FindUniqueDArgs = Prisma.FindUniqueDArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstDArgs\`
  */
-export import FindFirstDArgs = Prisma.FindFirstDArgs
+export type FindFirstDArgs = Prisma.FindFirstDArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyDArgs\`
  */
-export import FindManyDArgs = Prisma.FindManyDArgs
+export type FindManyDArgs = Prisma.FindManyDArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DCreateArgs\`
  */
-export import DCreateArgs = Prisma.DCreateArgs
+export type DCreateArgs = Prisma.DCreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DUpdateArgs\`
  */
-export import DUpdateArgs = Prisma.DUpdateArgs
+export type DUpdateArgs = Prisma.DUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DUpdateManyArgs\`
  */
-export import DUpdateManyArgs = Prisma.DUpdateManyArgs
+export type DUpdateManyArgs = Prisma.DUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DUpsertArgs\`
  */
-export import DUpsertArgs = Prisma.DUpsertArgs
+export type DUpsertArgs = Prisma.DUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DDeleteArgs\`
  */
-export import DDeleteArgs = Prisma.DDeleteArgs
+export type DDeleteArgs = Prisma.DDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.DDeleteManyArgs\`
  */
-export import DDeleteManyArgs = Prisma.DDeleteManyArgs
+export type DDeleteManyArgs = Prisma.DDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateE\`
  */
-export import AggregateE = Prisma.AggregateE
+export type AggregateE = Prisma.AggregateE
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateEArgs\`
  */
-export import AggregateEArgs = Prisma.AggregateEArgs
+export type AggregateEArgs = Prisma.AggregateEArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ESelect\`
  */
-export import ESelect = Prisma.ESelect
+export type ESelect = Prisma.ESelect
 
 /**
  * @deprecated Renamed to \`Prisma.FindUniqueEArgs\`
  */
-export import FindUniqueEArgs = Prisma.FindUniqueEArgs
+export type FindUniqueEArgs = Prisma.FindUniqueEArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindFirstEArgs\`
  */
-export import FindFirstEArgs = Prisma.FindFirstEArgs
+export type FindFirstEArgs = Prisma.FindFirstEArgs
 
 /**
  * @deprecated Renamed to \`Prisma.FindManyEArgs\`
  */
-export import FindManyEArgs = Prisma.FindManyEArgs
+export type FindManyEArgs = Prisma.FindManyEArgs
 
 /**
  * @deprecated Renamed to \`Prisma.ECreateArgs\`
  */
-export import ECreateArgs = Prisma.ECreateArgs
+export type ECreateArgs = Prisma.ECreateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.EUpdateArgs\`
  */
-export import EUpdateArgs = Prisma.EUpdateArgs
+export type EUpdateArgs = Prisma.EUpdateArgs
 
 /**
  * @deprecated Renamed to \`Prisma.EUpdateManyArgs\`
  */
-export import EUpdateManyArgs = Prisma.EUpdateManyArgs
+export type EUpdateManyArgs = Prisma.EUpdateManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.EUpsertArgs\`
  */
-export import EUpsertArgs = Prisma.EUpsertArgs
+export type EUpsertArgs = Prisma.EUpsertArgs
 
 /**
  * @deprecated Renamed to \`Prisma.EDeleteArgs\`
  */
-export import EDeleteArgs = Prisma.EDeleteArgs
+export type EDeleteArgs = Prisma.EDeleteArgs
 
 /**
  * @deprecated Renamed to \`Prisma.EDeleteManyArgs\`
  */
-export import EDeleteManyArgs = Prisma.EDeleteManyArgs
+export type EDeleteManyArgs = Prisma.EDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.PostWhereInput\`
  */
-export import PostWhereInput = Prisma.PostWhereInput
+export type PostWhereInput = Prisma.PostWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostOrderByInput\`
  */
-export import PostOrderByInput = Prisma.PostOrderByInput
+export type PostOrderByInput = Prisma.PostOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostWhereUniqueInput\`
  */
-export import PostWhereUniqueInput = Prisma.PostWhereUniqueInput
+export type PostWhereUniqueInput = Prisma.PostWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserWhereInput\`
  */
-export import UserWhereInput = Prisma.UserWhereInput
+export type UserWhereInput = Prisma.UserWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserOrderByInput\`
  */
-export import UserOrderByInput = Prisma.UserOrderByInput
+export type UserOrderByInput = Prisma.UserOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserWhereUniqueInput\`
  */
-export import UserWhereUniqueInput = Prisma.UserWhereUniqueInput
+export type UserWhereUniqueInput = Prisma.UserWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.MWhereInput\`
  */
-export import MWhereInput = Prisma.MWhereInput
+export type MWhereInput = Prisma.MWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.MOrderByInput\`
  */
-export import MOrderByInput = Prisma.MOrderByInput
+export type MOrderByInput = Prisma.MOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.MWhereUniqueInput\`
  */
-export import MWhereUniqueInput = Prisma.MWhereUniqueInput
+export type MWhereUniqueInput = Prisma.MWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.NWhereInput\`
  */
-export import NWhereInput = Prisma.NWhereInput
+export type NWhereInput = Prisma.NWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.NOrderByInput\`
  */
-export import NOrderByInput = Prisma.NOrderByInput
+export type NOrderByInput = Prisma.NOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.NWhereUniqueInput\`
  */
-export import NWhereUniqueInput = Prisma.NWhereUniqueInput
+export type NWhereUniqueInput = Prisma.NWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalWhereInput\`
  */
-export import OneOptionalWhereInput = Prisma.OneOptionalWhereInput
+export type OneOptionalWhereInput = Prisma.OneOptionalWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalOrderByInput\`
  */
-export import OneOptionalOrderByInput = Prisma.OneOptionalOrderByInput
+export type OneOptionalOrderByInput = Prisma.OneOptionalOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalWhereUniqueInput\`
  */
-export import OneOptionalWhereUniqueInput = Prisma.OneOptionalWhereUniqueInput
+export type OneOptionalWhereUniqueInput = Prisma.OneOptionalWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredWhereInput\`
  */
-export import ManyRequiredWhereInput = Prisma.ManyRequiredWhereInput
+export type ManyRequiredWhereInput = Prisma.ManyRequiredWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredOrderByInput\`
  */
-export import ManyRequiredOrderByInput = Prisma.ManyRequiredOrderByInput
+export type ManyRequiredOrderByInput = Prisma.ManyRequiredOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredWhereUniqueInput\`
  */
-export import ManyRequiredWhereUniqueInput = Prisma.ManyRequiredWhereUniqueInput
+export type ManyRequiredWhereUniqueInput = Prisma.ManyRequiredWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1WhereInput\`
  */
-export import OptionalSide1WhereInput = Prisma.OptionalSide1WhereInput
+export type OptionalSide1WhereInput = Prisma.OptionalSide1WhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1OrderByInput\`
  */
-export import OptionalSide1OrderByInput = Prisma.OptionalSide1OrderByInput
+export type OptionalSide1OrderByInput = Prisma.OptionalSide1OrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1WhereUniqueInput\`
  */
-export import OptionalSide1WhereUniqueInput = Prisma.OptionalSide1WhereUniqueInput
+export type OptionalSide1WhereUniqueInput = Prisma.OptionalSide1WhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2WhereInput\`
  */
-export import OptionalSide2WhereInput = Prisma.OptionalSide2WhereInput
+export type OptionalSide2WhereInput = Prisma.OptionalSide2WhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2OrderByInput\`
  */
-export import OptionalSide2OrderByInput = Prisma.OptionalSide2OrderByInput
+export type OptionalSide2OrderByInput = Prisma.OptionalSide2OrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2WhereUniqueInput\`
  */
-export import OptionalSide2WhereUniqueInput = Prisma.OptionalSide2WhereUniqueInput
+export type OptionalSide2WhereUniqueInput = Prisma.OptionalSide2WhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.AWhereInput\`
  */
-export import AWhereInput = Prisma.AWhereInput
+export type AWhereInput = Prisma.AWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.AOrderByInput\`
  */
-export import AOrderByInput = Prisma.AOrderByInput
+export type AOrderByInput = Prisma.AOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.AWhereUniqueInput\`
  */
-export import AWhereUniqueInput = Prisma.AWhereUniqueInput
+export type AWhereUniqueInput = Prisma.AWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.BWhereInput\`
  */
-export import BWhereInput = Prisma.BWhereInput
+export type BWhereInput = Prisma.BWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.BOrderByInput\`
  */
-export import BOrderByInput = Prisma.BOrderByInput
+export type BOrderByInput = Prisma.BOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.BWhereUniqueInput\`
  */
-export import BWhereUniqueInput = Prisma.BWhereUniqueInput
+export type BWhereUniqueInput = Prisma.BWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.CWhereInput\`
  */
-export import CWhereInput = Prisma.CWhereInput
+export type CWhereInput = Prisma.CWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.COrderByInput\`
  */
-export import COrderByInput = Prisma.COrderByInput
+export type COrderByInput = Prisma.COrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.CWhereUniqueInput\`
  */
-export import CWhereUniqueInput = Prisma.CWhereUniqueInput
+export type CWhereUniqueInput = Prisma.CWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.DWhereInput\`
  */
-export import DWhereInput = Prisma.DWhereInput
+export type DWhereInput = Prisma.DWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.DOrderByInput\`
  */
-export import DOrderByInput = Prisma.DOrderByInput
+export type DOrderByInput = Prisma.DOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.DWhereUniqueInput\`
  */
-export import DWhereUniqueInput = Prisma.DWhereUniqueInput
+export type DWhereUniqueInput = Prisma.DWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.EWhereInput\`
  */
-export import EWhereInput = Prisma.EWhereInput
+export type EWhereInput = Prisma.EWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.EOrderByInput\`
  */
-export import EOrderByInput = Prisma.EOrderByInput
+export type EOrderByInput = Prisma.EOrderByInput
 
 /**
  * @deprecated Renamed to \`Prisma.EWhereUniqueInput\`
  */
-export import EWhereUniqueInput = Prisma.EWhereUniqueInput
+export type EWhereUniqueInput = Prisma.EWhereUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateInput\`
  */
-export import PostCreateInput = Prisma.PostCreateInput
+export type PostCreateInput = Prisma.PostCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedCreateInput\`
  */
-export import PostUncheckedCreateInput = Prisma.PostUncheckedCreateInput
+export type PostUncheckedCreateInput = Prisma.PostUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateInput\`
  */
-export import PostUpdateInput = Prisma.PostUpdateInput
+export type PostUpdateInput = Prisma.PostUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateInput\`
  */
-export import PostUncheckedUpdateInput = Prisma.PostUncheckedUpdateInput
+export type PostUncheckedUpdateInput = Prisma.PostUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateManyMutationInput\`
  */
-export import PostUpdateManyMutationInput = Prisma.PostUpdateManyMutationInput
+export type PostUpdateManyMutationInput = Prisma.PostUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateManyInput\`
  */
-export import PostUncheckedUpdateManyInput = Prisma.PostUncheckedUpdateManyInput
+export type PostUncheckedUpdateManyInput = Prisma.PostUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateInput\`
  */
-export import UserCreateInput = Prisma.UserCreateInput
+export type UserCreateInput = Prisma.UserCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUncheckedCreateInput\`
  */
-export import UserUncheckedCreateInput = Prisma.UserUncheckedCreateInput
+export type UserUncheckedCreateInput = Prisma.UserUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateInput\`
  */
-export import UserUpdateInput = Prisma.UserUpdateInput
+export type UserUpdateInput = Prisma.UserUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUncheckedUpdateInput\`
  */
-export import UserUncheckedUpdateInput = Prisma.UserUncheckedUpdateInput
+export type UserUncheckedUpdateInput = Prisma.UserUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateManyMutationInput\`
  */
-export import UserUpdateManyMutationInput = Prisma.UserUpdateManyMutationInput
+export type UserUpdateManyMutationInput = Prisma.UserUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUncheckedUpdateManyInput\`
  */
-export import UserUncheckedUpdateManyInput = Prisma.UserUncheckedUpdateManyInput
+export type UserUncheckedUpdateManyInput = Prisma.UserUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.MCreateInput\`
  */
-export import MCreateInput = Prisma.MCreateInput
+export type MCreateInput = Prisma.MCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedCreateInput\`
  */
-export import MUncheckedCreateInput = Prisma.MUncheckedCreateInput
+export type MUncheckedCreateInput = Prisma.MUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateInput\`
  */
-export import MUpdateInput = Prisma.MUpdateInput
+export type MUpdateInput = Prisma.MUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedUpdateInput\`
  */
-export import MUncheckedUpdateInput = Prisma.MUncheckedUpdateInput
+export type MUncheckedUpdateInput = Prisma.MUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateManyMutationInput\`
  */
-export import MUpdateManyMutationInput = Prisma.MUpdateManyMutationInput
+export type MUpdateManyMutationInput = Prisma.MUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedUpdateManyInput\`
  */
-export import MUncheckedUpdateManyInput = Prisma.MUncheckedUpdateManyInput
+export type MUncheckedUpdateManyInput = Prisma.MUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.NCreateInput\`
  */
-export import NCreateInput = Prisma.NCreateInput
+export type NCreateInput = Prisma.NCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedCreateInput\`
  */
-export import NUncheckedCreateInput = Prisma.NUncheckedCreateInput
+export type NUncheckedCreateInput = Prisma.NUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateInput\`
  */
-export import NUpdateInput = Prisma.NUpdateInput
+export type NUpdateInput = Prisma.NUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedUpdateInput\`
  */
-export import NUncheckedUpdateInput = Prisma.NUncheckedUpdateInput
+export type NUncheckedUpdateInput = Prisma.NUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateManyMutationInput\`
  */
-export import NUpdateManyMutationInput = Prisma.NUpdateManyMutationInput
+export type NUpdateManyMutationInput = Prisma.NUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedUpdateManyInput\`
  */
-export import NUncheckedUpdateManyInput = Prisma.NUncheckedUpdateManyInput
+export type NUncheckedUpdateManyInput = Prisma.NUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalCreateInput\`
  */
-export import OneOptionalCreateInput = Prisma.OneOptionalCreateInput
+export type OneOptionalCreateInput = Prisma.OneOptionalCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUncheckedCreateInput\`
  */
-export import OneOptionalUncheckedCreateInput = Prisma.OneOptionalUncheckedCreateInput
+export type OneOptionalUncheckedCreateInput = Prisma.OneOptionalUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateInput\`
  */
-export import OneOptionalUpdateInput = Prisma.OneOptionalUpdateInput
+export type OneOptionalUpdateInput = Prisma.OneOptionalUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUncheckedUpdateInput\`
  */
-export import OneOptionalUncheckedUpdateInput = Prisma.OneOptionalUncheckedUpdateInput
+export type OneOptionalUncheckedUpdateInput = Prisma.OneOptionalUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateManyMutationInput\`
  */
-export import OneOptionalUpdateManyMutationInput = Prisma.OneOptionalUpdateManyMutationInput
+export type OneOptionalUpdateManyMutationInput = Prisma.OneOptionalUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUncheckedUpdateManyInput\`
  */
-export import OneOptionalUncheckedUpdateManyInput = Prisma.OneOptionalUncheckedUpdateManyInput
+export type OneOptionalUncheckedUpdateManyInput = Prisma.OneOptionalUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredCreateInput\`
  */
-export import ManyRequiredCreateInput = Prisma.ManyRequiredCreateInput
+export type ManyRequiredCreateInput = Prisma.ManyRequiredCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedCreateInput\`
  */
-export import ManyRequiredUncheckedCreateInput = Prisma.ManyRequiredUncheckedCreateInput
+export type ManyRequiredUncheckedCreateInput = Prisma.ManyRequiredUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateInput\`
  */
-export import ManyRequiredUpdateInput = Prisma.ManyRequiredUpdateInput
+export type ManyRequiredUpdateInput = Prisma.ManyRequiredUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedUpdateInput\`
  */
-export import ManyRequiredUncheckedUpdateInput = Prisma.ManyRequiredUncheckedUpdateInput
+export type ManyRequiredUncheckedUpdateInput = Prisma.ManyRequiredUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateManyMutationInput\`
  */
-export import ManyRequiredUpdateManyMutationInput = Prisma.ManyRequiredUpdateManyMutationInput
+export type ManyRequiredUpdateManyMutationInput = Prisma.ManyRequiredUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedUpdateManyInput\`
  */
-export import ManyRequiredUncheckedUpdateManyInput = Prisma.ManyRequiredUncheckedUpdateManyInput
+export type ManyRequiredUncheckedUpdateManyInput = Prisma.ManyRequiredUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1CreateInput\`
  */
-export import OptionalSide1CreateInput = Prisma.OptionalSide1CreateInput
+export type OptionalSide1CreateInput = Prisma.OptionalSide1CreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedCreateInput\`
  */
-export import OptionalSide1UncheckedCreateInput = Prisma.OptionalSide1UncheckedCreateInput
+export type OptionalSide1UncheckedCreateInput = Prisma.OptionalSide1UncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateInput\`
  */
-export import OptionalSide1UpdateInput = Prisma.OptionalSide1UpdateInput
+export type OptionalSide1UpdateInput = Prisma.OptionalSide1UpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedUpdateInput\`
  */
-export import OptionalSide1UncheckedUpdateInput = Prisma.OptionalSide1UncheckedUpdateInput
+export type OptionalSide1UncheckedUpdateInput = Prisma.OptionalSide1UncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateManyMutationInput\`
  */
-export import OptionalSide1UpdateManyMutationInput = Prisma.OptionalSide1UpdateManyMutationInput
+export type OptionalSide1UpdateManyMutationInput = Prisma.OptionalSide1UpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedUpdateManyInput\`
  */
-export import OptionalSide1UncheckedUpdateManyInput = Prisma.OptionalSide1UncheckedUpdateManyInput
+export type OptionalSide1UncheckedUpdateManyInput = Prisma.OptionalSide1UncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2CreateInput\`
  */
-export import OptionalSide2CreateInput = Prisma.OptionalSide2CreateInput
+export type OptionalSide2CreateInput = Prisma.OptionalSide2CreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UncheckedCreateInput\`
  */
-export import OptionalSide2UncheckedCreateInput = Prisma.OptionalSide2UncheckedCreateInput
+export type OptionalSide2UncheckedCreateInput = Prisma.OptionalSide2UncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateInput\`
  */
-export import OptionalSide2UpdateInput = Prisma.OptionalSide2UpdateInput
+export type OptionalSide2UpdateInput = Prisma.OptionalSide2UpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UncheckedUpdateInput\`
  */
-export import OptionalSide2UncheckedUpdateInput = Prisma.OptionalSide2UncheckedUpdateInput
+export type OptionalSide2UncheckedUpdateInput = Prisma.OptionalSide2UncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateManyMutationInput\`
  */
-export import OptionalSide2UpdateManyMutationInput = Prisma.OptionalSide2UpdateManyMutationInput
+export type OptionalSide2UpdateManyMutationInput = Prisma.OptionalSide2UpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UncheckedUpdateManyInput\`
  */
-export import OptionalSide2UncheckedUpdateManyInput = Prisma.OptionalSide2UncheckedUpdateManyInput
+export type OptionalSide2UncheckedUpdateManyInput = Prisma.OptionalSide2UncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.ACreateInput\`
  */
-export import ACreateInput = Prisma.ACreateInput
+export type ACreateInput = Prisma.ACreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.AUncheckedCreateInput\`
  */
-export import AUncheckedCreateInput = Prisma.AUncheckedCreateInput
+export type AUncheckedCreateInput = Prisma.AUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.AUpdateInput\`
  */
-export import AUpdateInput = Prisma.AUpdateInput
+export type AUpdateInput = Prisma.AUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.AUncheckedUpdateInput\`
  */
-export import AUncheckedUpdateInput = Prisma.AUncheckedUpdateInput
+export type AUncheckedUpdateInput = Prisma.AUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.AUpdateManyMutationInput\`
  */
-export import AUpdateManyMutationInput = Prisma.AUpdateManyMutationInput
+export type AUpdateManyMutationInput = Prisma.AUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.AUncheckedUpdateManyInput\`
  */
-export import AUncheckedUpdateManyInput = Prisma.AUncheckedUpdateManyInput
+export type AUncheckedUpdateManyInput = Prisma.AUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.BCreateInput\`
  */
-export import BCreateInput = Prisma.BCreateInput
+export type BCreateInput = Prisma.BCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.BUncheckedCreateInput\`
  */
-export import BUncheckedCreateInput = Prisma.BUncheckedCreateInput
+export type BUncheckedCreateInput = Prisma.BUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.BUpdateInput\`
  */
-export import BUpdateInput = Prisma.BUpdateInput
+export type BUpdateInput = Prisma.BUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.BUncheckedUpdateInput\`
  */
-export import BUncheckedUpdateInput = Prisma.BUncheckedUpdateInput
+export type BUncheckedUpdateInput = Prisma.BUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.BUpdateManyMutationInput\`
  */
-export import BUpdateManyMutationInput = Prisma.BUpdateManyMutationInput
+export type BUpdateManyMutationInput = Prisma.BUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.BUncheckedUpdateManyInput\`
  */
-export import BUncheckedUpdateManyInput = Prisma.BUncheckedUpdateManyInput
+export type BUncheckedUpdateManyInput = Prisma.BUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.CCreateInput\`
  */
-export import CCreateInput = Prisma.CCreateInput
+export type CCreateInput = Prisma.CCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.CUncheckedCreateInput\`
  */
-export import CUncheckedCreateInput = Prisma.CUncheckedCreateInput
+export type CUncheckedCreateInput = Prisma.CUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.CUpdateInput\`
  */
-export import CUpdateInput = Prisma.CUpdateInput
+export type CUpdateInput = Prisma.CUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.CUncheckedUpdateInput\`
  */
-export import CUncheckedUpdateInput = Prisma.CUncheckedUpdateInput
+export type CUncheckedUpdateInput = Prisma.CUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.CUpdateManyMutationInput\`
  */
-export import CUpdateManyMutationInput = Prisma.CUpdateManyMutationInput
+export type CUpdateManyMutationInput = Prisma.CUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.CUncheckedUpdateManyInput\`
  */
-export import CUncheckedUpdateManyInput = Prisma.CUncheckedUpdateManyInput
+export type CUncheckedUpdateManyInput = Prisma.CUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.DCreateInput\`
  */
-export import DCreateInput = Prisma.DCreateInput
+export type DCreateInput = Prisma.DCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.DUncheckedCreateInput\`
  */
-export import DUncheckedCreateInput = Prisma.DUncheckedCreateInput
+export type DUncheckedCreateInput = Prisma.DUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.DUpdateInput\`
  */
-export import DUpdateInput = Prisma.DUpdateInput
+export type DUpdateInput = Prisma.DUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.DUncheckedUpdateInput\`
  */
-export import DUncheckedUpdateInput = Prisma.DUncheckedUpdateInput
+export type DUncheckedUpdateInput = Prisma.DUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.DUpdateManyMutationInput\`
  */
-export import DUpdateManyMutationInput = Prisma.DUpdateManyMutationInput
+export type DUpdateManyMutationInput = Prisma.DUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.DUncheckedUpdateManyInput\`
  */
-export import DUncheckedUpdateManyInput = Prisma.DUncheckedUpdateManyInput
+export type DUncheckedUpdateManyInput = Prisma.DUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.ECreateInput\`
  */
-export import ECreateInput = Prisma.ECreateInput
+export type ECreateInput = Prisma.ECreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.EUncheckedCreateInput\`
  */
-export import EUncheckedCreateInput = Prisma.EUncheckedCreateInput
+export type EUncheckedCreateInput = Prisma.EUncheckedCreateInput
 
 /**
  * @deprecated Renamed to \`Prisma.EUpdateInput\`
  */
-export import EUpdateInput = Prisma.EUpdateInput
+export type EUpdateInput = Prisma.EUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.EUncheckedUpdateInput\`
  */
-export import EUncheckedUpdateInput = Prisma.EUncheckedUpdateInput
+export type EUncheckedUpdateInput = Prisma.EUncheckedUpdateInput
 
 /**
  * @deprecated Renamed to \`Prisma.EUpdateManyMutationInput\`
  */
-export import EUpdateManyMutationInput = Prisma.EUpdateManyMutationInput
+export type EUpdateManyMutationInput = Prisma.EUpdateManyMutationInput
 
 /**
  * @deprecated Renamed to \`Prisma.EUncheckedUpdateManyInput\`
  */
-export import EUncheckedUpdateManyInput = Prisma.EUncheckedUpdateManyInput
+export type EUncheckedUpdateManyInput = Prisma.EUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.IntFilter\`
  */
-export import IntFilter = Prisma.IntFilter
+export type IntFilter = Prisma.IntFilter
 
 /**
  * @deprecated Renamed to \`Prisma.DateTimeFilter\`
  */
-export import DateTimeFilter = Prisma.DateTimeFilter
+export type DateTimeFilter = Prisma.DateTimeFilter
 
 /**
  * @deprecated Renamed to \`Prisma.StringFilter\`
  */
-export import StringFilter = Prisma.StringFilter
+export type StringFilter = Prisma.StringFilter
 
 /**
  * @deprecated Renamed to \`Prisma.StringNullableFilter\`
  */
-export import StringNullableFilter = Prisma.StringNullableFilter
+export type StringNullableFilter = Prisma.StringNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.BoolFilter\`
  */
-export import BoolFilter = Prisma.BoolFilter
+export type BoolFilter = Prisma.BoolFilter
 
 /**
  * @deprecated Renamed to \`Prisma.UserRelationFilter\`
  */
-export import UserRelationFilter = Prisma.UserRelationFilter
+export type UserRelationFilter = Prisma.UserRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.IntNullableFilter\`
  */
-export import IntNullableFilter = Prisma.IntNullableFilter
+export type IntNullableFilter = Prisma.IntNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.FloatFilter\`
  */
-export import FloatFilter = Prisma.FloatFilter
+export type FloatFilter = Prisma.FloatFilter
 
 /**
  * @deprecated Renamed to \`Prisma.FloatNullableFilter\`
  */
-export import FloatNullableFilter = Prisma.FloatNullableFilter
+export type FloatNullableFilter = Prisma.FloatNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.JsonFilter\`
  */
-export import JsonFilter = Prisma.JsonFilter
+export type JsonFilter = Prisma.JsonFilter
 
 /**
  * @deprecated Renamed to \`Prisma.JsonNullableFilter\`
  */
-export import JsonNullableFilter = Prisma.JsonNullableFilter
+export type JsonNullableFilter = Prisma.JsonNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.EnumABeautifulEnumFilter\`
  */
-export import EnumABeautifulEnumFilter = Prisma.EnumABeautifulEnumFilter
+export type EnumABeautifulEnumFilter = Prisma.EnumABeautifulEnumFilter
 
 /**
  * @deprecated Renamed to \`Prisma.EnumABeautifulEnumNullableFilter\`
  */
-export import EnumABeautifulEnumNullableFilter = Prisma.EnumABeautifulEnumNullableFilter
+export type EnumABeautifulEnumNullableFilter = Prisma.EnumABeautifulEnumNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.BoolNullableFilter\`
  */
-export import BoolNullableFilter = Prisma.BoolNullableFilter
+export type BoolNullableFilter = Prisma.BoolNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.PostListRelationFilter\`
  */
-export import PostListRelationFilter = Prisma.PostListRelationFilter
+export type PostListRelationFilter = Prisma.PostListRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NListRelationFilter\`
  */
-export import NListRelationFilter = Prisma.NListRelationFilter
+export type NListRelationFilter = Prisma.NListRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.MListRelationFilter\`
  */
-export import MListRelationFilter = Prisma.MListRelationFilter
+export type MListRelationFilter = Prisma.MListRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredListRelationFilter\`
  */
-export import ManyRequiredListRelationFilter = Prisma.ManyRequiredListRelationFilter
+export type ManyRequiredListRelationFilter = Prisma.ManyRequiredListRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalRelationFilter\`
  */
-export import OneOptionalRelationFilter = Prisma.OneOptionalRelationFilter
+export type OneOptionalRelationFilter = Prisma.OneOptionalRelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2RelationFilter\`
  */
-export import OptionalSide2RelationFilter = Prisma.OptionalSide2RelationFilter
+export type OptionalSide2RelationFilter = Prisma.OptionalSide2RelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1RelationFilter\`
  */
-export import OptionalSide1RelationFilter = Prisma.OptionalSide1RelationFilter
+export type OptionalSide1RelationFilter = Prisma.OptionalSide1RelationFilter
 
 /**
  * @deprecated Renamed to \`Prisma.BigIntFilter\`
  */
-export import BigIntFilter = Prisma.BigIntFilter
+export type BigIntFilter = Prisma.BigIntFilter
 
 /**
  * @deprecated Renamed to \`Prisma.DecimalFilter\`
  */
-export import DecimalFilter = Prisma.DecimalFilter
+export type DecimalFilter = Prisma.DecimalFilter
 
 /**
  * @deprecated Renamed to \`Prisma.BytesFilter\`
  */
-export import BytesFilter = Prisma.BytesFilter
+export type BytesFilter = Prisma.BytesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateOneWithoutPostsInput\`
  */
-export import UserCreateOneWithoutPostsInput = Prisma.UserCreateOneWithoutPostsInput
+export type UserCreateOneWithoutPostsInput = Prisma.UserCreateOneWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.DateTimeFieldUpdateOperationsInput\`
  */
-export import DateTimeFieldUpdateOperationsInput = Prisma.DateTimeFieldUpdateOperationsInput
+export type DateTimeFieldUpdateOperationsInput = Prisma.DateTimeFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.StringFieldUpdateOperationsInput\`
  */
-export import StringFieldUpdateOperationsInput = Prisma.StringFieldUpdateOperationsInput
+export type StringFieldUpdateOperationsInput = Prisma.StringFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NullableStringFieldUpdateOperationsInput\`
  */
-export import NullableStringFieldUpdateOperationsInput = Prisma.NullableStringFieldUpdateOperationsInput
+export type NullableStringFieldUpdateOperationsInput = Prisma.NullableStringFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.BoolFieldUpdateOperationsInput\`
  */
-export import BoolFieldUpdateOperationsInput = Prisma.BoolFieldUpdateOperationsInput
+export type BoolFieldUpdateOperationsInput = Prisma.BoolFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateOneRequiredWithoutPostsInput\`
  */
-export import UserUpdateOneRequiredWithoutPostsInput = Prisma.UserUpdateOneRequiredWithoutPostsInput
+export type UserUpdateOneRequiredWithoutPostsInput = Prisma.UserUpdateOneRequiredWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.IntFieldUpdateOperationsInput\`
  */
-export import IntFieldUpdateOperationsInput = Prisma.IntFieldUpdateOperationsInput
+export type IntFieldUpdateOperationsInput = Prisma.IntFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateManyWithoutAuthorInput\`
  */
-export import PostCreateManyWithoutAuthorInput = Prisma.PostCreateManyWithoutAuthorInput
+export type PostCreateManyWithoutAuthorInput = Prisma.PostCreateManyWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedCreateManyWithoutAuthorInput\`
  */
-export import PostUncheckedCreateManyWithoutAuthorInput = Prisma.PostUncheckedCreateManyWithoutAuthorInput
+export type PostUncheckedCreateManyWithoutAuthorInput = Prisma.PostUncheckedCreateManyWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.NullableIntFieldUpdateOperationsInput\`
  */
-export import NullableIntFieldUpdateOperationsInput = Prisma.NullableIntFieldUpdateOperationsInput
+export type NullableIntFieldUpdateOperationsInput = Prisma.NullableIntFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.FloatFieldUpdateOperationsInput\`
  */
-export import FloatFieldUpdateOperationsInput = Prisma.FloatFieldUpdateOperationsInput
+export type FloatFieldUpdateOperationsInput = Prisma.FloatFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NullableFloatFieldUpdateOperationsInput\`
  */
-export import NullableFloatFieldUpdateOperationsInput = Prisma.NullableFloatFieldUpdateOperationsInput
+export type NullableFloatFieldUpdateOperationsInput = Prisma.NullableFloatFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.EnumABeautifulEnumFieldUpdateOperationsInput\`
  */
-export import EnumABeautifulEnumFieldUpdateOperationsInput = Prisma.EnumABeautifulEnumFieldUpdateOperationsInput
+export type EnumABeautifulEnumFieldUpdateOperationsInput = Prisma.EnumABeautifulEnumFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NullableEnumABeautifulEnumFieldUpdateOperationsInput\`
  */
-export import NullableEnumABeautifulEnumFieldUpdateOperationsInput = Prisma.NullableEnumABeautifulEnumFieldUpdateOperationsInput
+export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = Prisma.NullableEnumABeautifulEnumFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NullableBoolFieldUpdateOperationsInput\`
  */
-export import NullableBoolFieldUpdateOperationsInput = Prisma.NullableBoolFieldUpdateOperationsInput
+export type NullableBoolFieldUpdateOperationsInput = Prisma.NullableBoolFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateManyWithoutAuthorInput\`
  */
-export import PostUpdateManyWithoutAuthorInput = Prisma.PostUpdateManyWithoutAuthorInput
+export type PostUpdateManyWithoutAuthorInput = Prisma.PostUpdateManyWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateManyWithoutAuthorInput\`
  */
-export import PostUncheckedUpdateManyWithoutAuthorInput = Prisma.PostUncheckedUpdateManyWithoutAuthorInput
+export type PostUncheckedUpdateManyWithoutAuthorInput = Prisma.PostUncheckedUpdateManyWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.NCreateManyWithoutMInput\`
  */
-export import NCreateManyWithoutMInput = Prisma.NCreateManyWithoutMInput
+export type NCreateManyWithoutMInput = Prisma.NCreateManyWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateManyWithoutMInput\`
  */
-export import NUpdateManyWithoutMInput = Prisma.NUpdateManyWithoutMInput
+export type NUpdateManyWithoutMInput = Prisma.NUpdateManyWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.MCreateManyWithoutNInput\`
  */
-export import MCreateManyWithoutNInput = Prisma.MCreateManyWithoutNInput
+export type MCreateManyWithoutNInput = Prisma.MCreateManyWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateManyWithoutNInput\`
  */
-export import MUpdateManyWithoutNInput = Prisma.MUpdateManyWithoutNInput
+export type MUpdateManyWithoutNInput = Prisma.MUpdateManyWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredCreateManyWithoutOneInput\`
  */
-export import ManyRequiredCreateManyWithoutOneInput = Prisma.ManyRequiredCreateManyWithoutOneInput
+export type ManyRequiredCreateManyWithoutOneInput = Prisma.ManyRequiredCreateManyWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedCreateManyWithoutOneInput\`
  */
-export import ManyRequiredUncheckedCreateManyWithoutOneInput = Prisma.ManyRequiredUncheckedCreateManyWithoutOneInput
+export type ManyRequiredUncheckedCreateManyWithoutOneInput = Prisma.ManyRequiredUncheckedCreateManyWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateManyWithoutOneInput\`
  */
-export import ManyRequiredUpdateManyWithoutOneInput = Prisma.ManyRequiredUpdateManyWithoutOneInput
+export type ManyRequiredUpdateManyWithoutOneInput = Prisma.ManyRequiredUpdateManyWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedUpdateManyWithoutOneInput\`
  */
-export import ManyRequiredUncheckedUpdateManyWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutOneInput
+export type ManyRequiredUncheckedUpdateManyWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalCreateOneWithoutManyInput\`
  */
-export import OneOptionalCreateOneWithoutManyInput = Prisma.OneOptionalCreateOneWithoutManyInput
+export type OneOptionalCreateOneWithoutManyInput = Prisma.OneOptionalCreateOneWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateOneWithoutManyInput\`
  */
-export import OneOptionalUpdateOneWithoutManyInput = Prisma.OneOptionalUpdateOneWithoutManyInput
+export type OneOptionalUpdateOneWithoutManyInput = Prisma.OneOptionalUpdateOneWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2CreateOneWithoutOptiInput\`
  */
-export import OptionalSide2CreateOneWithoutOptiInput = Prisma.OptionalSide2CreateOneWithoutOptiInput
+export type OptionalSide2CreateOneWithoutOptiInput = Prisma.OptionalSide2CreateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateOneWithoutOptiInput\`
  */
-export import OptionalSide2UpdateOneWithoutOptiInput = Prisma.OptionalSide2UpdateOneWithoutOptiInput
+export type OptionalSide2UpdateOneWithoutOptiInput = Prisma.OptionalSide2UpdateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1CreateOneWithoutOptiInput\`
  */
-export import OptionalSide1CreateOneWithoutOptiInput = Prisma.OptionalSide1CreateOneWithoutOptiInput
+export type OptionalSide1CreateOneWithoutOptiInput = Prisma.OptionalSide1CreateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedCreateOneWithoutOptiInput\`
  */
-export import OptionalSide1UncheckedCreateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateOneWithoutOptiInput
+export type OptionalSide1UncheckedCreateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateOneWithoutOptiInput\`
  */
-export import OptionalSide1UpdateOneWithoutOptiInput = Prisma.OptionalSide1UpdateOneWithoutOptiInput
+export type OptionalSide1UpdateOneWithoutOptiInput = Prisma.OptionalSide1UpdateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedUpdateOneWithoutOptiInput\`
  */
-export import OptionalSide1UncheckedUpdateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateOneWithoutOptiInput
+export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateOneWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.BigIntFieldUpdateOperationsInput\`
  */
-export import BigIntFieldUpdateOperationsInput = Prisma.BigIntFieldUpdateOperationsInput
+export type BigIntFieldUpdateOperationsInput = Prisma.BigIntFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.DecimalFieldUpdateOperationsInput\`
  */
-export import DecimalFieldUpdateOperationsInput = Prisma.DecimalFieldUpdateOperationsInput
+export type DecimalFieldUpdateOperationsInput = Prisma.DecimalFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.BytesFieldUpdateOperationsInput\`
  */
-export import BytesFieldUpdateOperationsInput = Prisma.BytesFieldUpdateOperationsInput
+export type BytesFieldUpdateOperationsInput = Prisma.BytesFieldUpdateOperationsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NestedIntFilter\`
  */
-export import NestedIntFilter = Prisma.NestedIntFilter
+export type NestedIntFilter = Prisma.NestedIntFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedDateTimeFilter\`
  */
-export import NestedDateTimeFilter = Prisma.NestedDateTimeFilter
+export type NestedDateTimeFilter = Prisma.NestedDateTimeFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedStringFilter\`
  */
-export import NestedStringFilter = Prisma.NestedStringFilter
+export type NestedStringFilter = Prisma.NestedStringFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedStringNullableFilter\`
  */
-export import NestedStringNullableFilter = Prisma.NestedStringNullableFilter
+export type NestedStringNullableFilter = Prisma.NestedStringNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedBoolFilter\`
  */
-export import NestedBoolFilter = Prisma.NestedBoolFilter
+export type NestedBoolFilter = Prisma.NestedBoolFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedIntNullableFilter\`
  */
-export import NestedIntNullableFilter = Prisma.NestedIntNullableFilter
+export type NestedIntNullableFilter = Prisma.NestedIntNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedFloatFilter\`
  */
-export import NestedFloatFilter = Prisma.NestedFloatFilter
+export type NestedFloatFilter = Prisma.NestedFloatFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedFloatNullableFilter\`
  */
-export import NestedFloatNullableFilter = Prisma.NestedFloatNullableFilter
+export type NestedFloatNullableFilter = Prisma.NestedFloatNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedEnumABeautifulEnumFilter\`
  */
-export import NestedEnumABeautifulEnumFilter = Prisma.NestedEnumABeautifulEnumFilter
+export type NestedEnumABeautifulEnumFilter = Prisma.NestedEnumABeautifulEnumFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedEnumABeautifulEnumNullableFilter\`
  */
-export import NestedEnumABeautifulEnumNullableFilter = Prisma.NestedEnumABeautifulEnumNullableFilter
+export type NestedEnumABeautifulEnumNullableFilter = Prisma.NestedEnumABeautifulEnumNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedBoolNullableFilter\`
  */
-export import NestedBoolNullableFilter = Prisma.NestedBoolNullableFilter
+export type NestedBoolNullableFilter = Prisma.NestedBoolNullableFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedBigIntFilter\`
  */
-export import NestedBigIntFilter = Prisma.NestedBigIntFilter
+export type NestedBigIntFilter = Prisma.NestedBigIntFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedDecimalFilter\`
  */
-export import NestedDecimalFilter = Prisma.NestedDecimalFilter
+export type NestedDecimalFilter = Prisma.NestedDecimalFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedBytesFilter\`
  */
-export import NestedBytesFilter = Prisma.NestedBytesFilter
+export type NestedBytesFilter = Prisma.NestedBytesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateWithoutPostsInput\`
  */
-export import UserCreateWithoutPostsInput = Prisma.UserCreateWithoutPostsInput
+export type UserCreateWithoutPostsInput = Prisma.UserCreateWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUncheckedCreateWithoutPostsInput\`
  */
-export import UserUncheckedCreateWithoutPostsInput = Prisma.UserUncheckedCreateWithoutPostsInput
+export type UserUncheckedCreateWithoutPostsInput = Prisma.UserUncheckedCreateWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateOrConnectWithoutpostsInput\`
  */
-export import UserCreateOrConnectWithoutpostsInput = Prisma.UserCreateOrConnectWithoutpostsInput
+export type UserCreateOrConnectWithoutpostsInput = Prisma.UserCreateOrConnectWithoutpostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpdateWithoutPostsInput\`
  */
-export import UserUpdateWithoutPostsInput = Prisma.UserUpdateWithoutPostsInput
+export type UserUpdateWithoutPostsInput = Prisma.UserUpdateWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUncheckedUpdateWithoutPostsInput\`
  */
-export import UserUncheckedUpdateWithoutPostsInput = Prisma.UserUncheckedUpdateWithoutPostsInput
+export type UserUncheckedUpdateWithoutPostsInput = Prisma.UserUncheckedUpdateWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserUpsertWithoutPostsInput\`
  */
-export import UserUpsertWithoutPostsInput = Prisma.UserUpsertWithoutPostsInput
+export type UserUpsertWithoutPostsInput = Prisma.UserUpsertWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateWithoutAuthorInput\`
  */
-export import PostCreateWithoutAuthorInput = Prisma.PostCreateWithoutAuthorInput
+export type PostCreateWithoutAuthorInput = Prisma.PostCreateWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedCreateWithoutAuthorInput\`
  */
-export import PostUncheckedCreateWithoutAuthorInput = Prisma.PostUncheckedCreateWithoutAuthorInput
+export type PostUncheckedCreateWithoutAuthorInput = Prisma.PostUncheckedCreateWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateOrConnectWithoutauthorInput\`
  */
-export import PostCreateOrConnectWithoutauthorInput = Prisma.PostCreateOrConnectWithoutauthorInput
+export type PostCreateOrConnectWithoutauthorInput = Prisma.PostCreateOrConnectWithoutauthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput\`
  */
-export import PostUpdateWithWhereUniqueWithoutAuthorInput = Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput
+export type PostUpdateWithWhereUniqueWithoutAuthorInput = Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateManyWithWhereWithoutAuthorInput\`
  */
-export import PostUpdateManyWithWhereWithoutAuthorInput = Prisma.PostUpdateManyWithWhereWithoutAuthorInput
+export type PostUpdateManyWithWhereWithoutAuthorInput = Prisma.PostUpdateManyWithWhereWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostScalarWhereInput\`
  */
-export import PostScalarWhereInput = Prisma.PostScalarWhereInput
+export type PostScalarWhereInput = Prisma.PostScalarWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput\`
  */
-export import PostUpsertWithWhereUniqueWithoutAuthorInput = Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput
+export type PostUpsertWithWhereUniqueWithoutAuthorInput = Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.NCreateWithoutMInput\`
  */
-export import NCreateWithoutMInput = Prisma.NCreateWithoutMInput
+export type NCreateWithoutMInput = Prisma.NCreateWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedCreateWithoutMInput\`
  */
-export import NUncheckedCreateWithoutMInput = Prisma.NUncheckedCreateWithoutMInput
+export type NUncheckedCreateWithoutMInput = Prisma.NUncheckedCreateWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NCreateOrConnectWithoutmInput\`
  */
-export import NCreateOrConnectWithoutmInput = Prisma.NCreateOrConnectWithoutmInput
+export type NCreateOrConnectWithoutmInput = Prisma.NCreateOrConnectWithoutmInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateWithWhereUniqueWithoutMInput\`
  */
-export import NUpdateWithWhereUniqueWithoutMInput = Prisma.NUpdateWithWhereUniqueWithoutMInput
+export type NUpdateWithWhereUniqueWithoutMInput = Prisma.NUpdateWithWhereUniqueWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateManyWithWhereWithoutMInput\`
  */
-export import NUpdateManyWithWhereWithoutMInput = Prisma.NUpdateManyWithWhereWithoutMInput
+export type NUpdateManyWithWhereWithoutMInput = Prisma.NUpdateManyWithWhereWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NScalarWhereInput\`
  */
-export import NScalarWhereInput = Prisma.NScalarWhereInput
+export type NScalarWhereInput = Prisma.NScalarWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpsertWithWhereUniqueWithoutMInput\`
  */
-export import NUpsertWithWhereUniqueWithoutMInput = Prisma.NUpsertWithWhereUniqueWithoutMInput
+export type NUpsertWithWhereUniqueWithoutMInput = Prisma.NUpsertWithWhereUniqueWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.MCreateWithoutNInput\`
  */
-export import MCreateWithoutNInput = Prisma.MCreateWithoutNInput
+export type MCreateWithoutNInput = Prisma.MCreateWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedCreateWithoutNInput\`
  */
-export import MUncheckedCreateWithoutNInput = Prisma.MUncheckedCreateWithoutNInput
+export type MUncheckedCreateWithoutNInput = Prisma.MUncheckedCreateWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MCreateOrConnectWithoutnInput\`
  */
-export import MCreateOrConnectWithoutnInput = Prisma.MCreateOrConnectWithoutnInput
+export type MCreateOrConnectWithoutnInput = Prisma.MCreateOrConnectWithoutnInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateWithWhereUniqueWithoutNInput\`
  */
-export import MUpdateWithWhereUniqueWithoutNInput = Prisma.MUpdateWithWhereUniqueWithoutNInput
+export type MUpdateWithWhereUniqueWithoutNInput = Prisma.MUpdateWithWhereUniqueWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateManyWithWhereWithoutNInput\`
  */
-export import MUpdateManyWithWhereWithoutNInput = Prisma.MUpdateManyWithWhereWithoutNInput
+export type MUpdateManyWithWhereWithoutNInput = Prisma.MUpdateManyWithWhereWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MScalarWhereInput\`
  */
-export import MScalarWhereInput = Prisma.MScalarWhereInput
+export type MScalarWhereInput = Prisma.MScalarWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpsertWithWhereUniqueWithoutNInput\`
  */
-export import MUpsertWithWhereUniqueWithoutNInput = Prisma.MUpsertWithWhereUniqueWithoutNInput
+export type MUpsertWithWhereUniqueWithoutNInput = Prisma.MUpsertWithWhereUniqueWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredCreateWithoutOneInput\`
  */
-export import ManyRequiredCreateWithoutOneInput = Prisma.ManyRequiredCreateWithoutOneInput
+export type ManyRequiredCreateWithoutOneInput = Prisma.ManyRequiredCreateWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedCreateWithoutOneInput\`
  */
-export import ManyRequiredUncheckedCreateWithoutOneInput = Prisma.ManyRequiredUncheckedCreateWithoutOneInput
+export type ManyRequiredUncheckedCreateWithoutOneInput = Prisma.ManyRequiredUncheckedCreateWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredCreateOrConnectWithoutoneInput\`
  */
-export import ManyRequiredCreateOrConnectWithoutoneInput = Prisma.ManyRequiredCreateOrConnectWithoutoneInput
+export type ManyRequiredCreateOrConnectWithoutoneInput = Prisma.ManyRequiredCreateOrConnectWithoutoneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateWithWhereUniqueWithoutOneInput\`
  */
-export import ManyRequiredUpdateWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpdateWithWhereUniqueWithoutOneInput
+export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpdateWithWhereUniqueWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateManyWithWhereWithoutOneInput\`
  */
-export import ManyRequiredUpdateManyWithWhereWithoutOneInput = Prisma.ManyRequiredUpdateManyWithWhereWithoutOneInput
+export type ManyRequiredUpdateManyWithWhereWithoutOneInput = Prisma.ManyRequiredUpdateManyWithWhereWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredScalarWhereInput\`
  */
-export import ManyRequiredScalarWhereInput = Prisma.ManyRequiredScalarWhereInput
+export type ManyRequiredScalarWhereInput = Prisma.ManyRequiredScalarWhereInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpsertWithWhereUniqueWithoutOneInput\`
  */
-export import ManyRequiredUpsertWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpsertWithWhereUniqueWithoutOneInput
+export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = Prisma.ManyRequiredUpsertWithWhereUniqueWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalCreateWithoutManyInput\`
  */
-export import OneOptionalCreateWithoutManyInput = Prisma.OneOptionalCreateWithoutManyInput
+export type OneOptionalCreateWithoutManyInput = Prisma.OneOptionalCreateWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUncheckedCreateWithoutManyInput\`
  */
-export import OneOptionalUncheckedCreateWithoutManyInput = Prisma.OneOptionalUncheckedCreateWithoutManyInput
+export type OneOptionalUncheckedCreateWithoutManyInput = Prisma.OneOptionalUncheckedCreateWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalCreateOrConnectWithoutmanyInput\`
  */
-export import OneOptionalCreateOrConnectWithoutmanyInput = Prisma.OneOptionalCreateOrConnectWithoutmanyInput
+export type OneOptionalCreateOrConnectWithoutmanyInput = Prisma.OneOptionalCreateOrConnectWithoutmanyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpdateWithoutManyInput\`
  */
-export import OneOptionalUpdateWithoutManyInput = Prisma.OneOptionalUpdateWithoutManyInput
+export type OneOptionalUpdateWithoutManyInput = Prisma.OneOptionalUpdateWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUncheckedUpdateWithoutManyInput\`
  */
-export import OneOptionalUncheckedUpdateWithoutManyInput = Prisma.OneOptionalUncheckedUpdateWithoutManyInput
+export type OneOptionalUncheckedUpdateWithoutManyInput = Prisma.OneOptionalUncheckedUpdateWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalUpsertWithoutManyInput\`
  */
-export import OneOptionalUpsertWithoutManyInput = Prisma.OneOptionalUpsertWithoutManyInput
+export type OneOptionalUpsertWithoutManyInput = Prisma.OneOptionalUpsertWithoutManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2CreateWithoutOptiInput\`
  */
-export import OptionalSide2CreateWithoutOptiInput = Prisma.OptionalSide2CreateWithoutOptiInput
+export type OptionalSide2CreateWithoutOptiInput = Prisma.OptionalSide2CreateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UncheckedCreateWithoutOptiInput\`
  */
-export import OptionalSide2UncheckedCreateWithoutOptiInput = Prisma.OptionalSide2UncheckedCreateWithoutOptiInput
+export type OptionalSide2UncheckedCreateWithoutOptiInput = Prisma.OptionalSide2UncheckedCreateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2CreateOrConnectWithoutoptiInput\`
  */
-export import OptionalSide2CreateOrConnectWithoutoptiInput = Prisma.OptionalSide2CreateOrConnectWithoutoptiInput
+export type OptionalSide2CreateOrConnectWithoutoptiInput = Prisma.OptionalSide2CreateOrConnectWithoutoptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpdateWithoutOptiInput\`
  */
-export import OptionalSide2UpdateWithoutOptiInput = Prisma.OptionalSide2UpdateWithoutOptiInput
+export type OptionalSide2UpdateWithoutOptiInput = Prisma.OptionalSide2UpdateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UncheckedUpdateWithoutOptiInput\`
  */
-export import OptionalSide2UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide2UncheckedUpdateWithoutOptiInput
+export type OptionalSide2UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide2UncheckedUpdateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2UpsertWithoutOptiInput\`
  */
-export import OptionalSide2UpsertWithoutOptiInput = Prisma.OptionalSide2UpsertWithoutOptiInput
+export type OptionalSide2UpsertWithoutOptiInput = Prisma.OptionalSide2UpsertWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1CreateWithoutOptiInput\`
  */
-export import OptionalSide1CreateWithoutOptiInput = Prisma.OptionalSide1CreateWithoutOptiInput
+export type OptionalSide1CreateWithoutOptiInput = Prisma.OptionalSide1CreateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedCreateWithoutOptiInput\`
  */
-export import OptionalSide1UncheckedCreateWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateWithoutOptiInput
+export type OptionalSide1UncheckedCreateWithoutOptiInput = Prisma.OptionalSide1UncheckedCreateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1CreateOrConnectWithoutoptiInput\`
  */
-export import OptionalSide1CreateOrConnectWithoutoptiInput = Prisma.OptionalSide1CreateOrConnectWithoutoptiInput
+export type OptionalSide1CreateOrConnectWithoutoptiInput = Prisma.OptionalSide1CreateOrConnectWithoutoptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpdateWithoutOptiInput\`
  */
-export import OptionalSide1UpdateWithoutOptiInput = Prisma.OptionalSide1UpdateWithoutOptiInput
+export type OptionalSide1UpdateWithoutOptiInput = Prisma.OptionalSide1UpdateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UncheckedUpdateWithoutOptiInput\`
  */
-export import OptionalSide1UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateWithoutOptiInput
+export type OptionalSide1UncheckedUpdateWithoutOptiInput = Prisma.OptionalSide1UncheckedUpdateWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1UpsertWithoutOptiInput\`
  */
-export import OptionalSide1UpsertWithoutOptiInput = Prisma.OptionalSide1UpsertWithoutOptiInput
+export type OptionalSide1UpsertWithoutOptiInput = Prisma.OptionalSide1UpsertWithoutOptiInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUpdateWithoutAuthorInput\`
  */
-export import PostUpdateWithoutAuthorInput = Prisma.PostUpdateWithoutAuthorInput
+export type PostUpdateWithoutAuthorInput = Prisma.PostUpdateWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateWithoutAuthorInput\`
  */
-export import PostUncheckedUpdateWithoutAuthorInput = Prisma.PostUncheckedUpdateWithoutAuthorInput
+export type PostUncheckedUpdateWithoutAuthorInput = Prisma.PostUncheckedUpdateWithoutAuthorInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateManyWithoutPostsInput\`
  */
-export import PostUncheckedUpdateManyWithoutPostsInput = Prisma.PostUncheckedUpdateManyWithoutPostsInput
+export type PostUncheckedUpdateManyWithoutPostsInput = Prisma.PostUncheckedUpdateManyWithoutPostsInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUpdateWithoutMInput\`
  */
-export import NUpdateWithoutMInput = Prisma.NUpdateWithoutMInput
+export type NUpdateWithoutMInput = Prisma.NUpdateWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedUpdateWithoutMInput\`
  */
-export import NUncheckedUpdateWithoutMInput = Prisma.NUncheckedUpdateWithoutMInput
+export type NUncheckedUpdateWithoutMInput = Prisma.NUncheckedUpdateWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.NUncheckedUpdateManyWithoutNInput\`
  */
-export import NUncheckedUpdateManyWithoutNInput = Prisma.NUncheckedUpdateManyWithoutNInput
+export type NUncheckedUpdateManyWithoutNInput = Prisma.NUncheckedUpdateManyWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUpdateWithoutNInput\`
  */
-export import MUpdateWithoutNInput = Prisma.MUpdateWithoutNInput
+export type MUpdateWithoutNInput = Prisma.MUpdateWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedUpdateWithoutNInput\`
  */
-export import MUncheckedUpdateWithoutNInput = Prisma.MUncheckedUpdateWithoutNInput
+export type MUncheckedUpdateWithoutNInput = Prisma.MUncheckedUpdateWithoutNInput
 
 /**
  * @deprecated Renamed to \`Prisma.MUncheckedUpdateManyWithoutMInput\`
  */
-export import MUncheckedUpdateManyWithoutMInput = Prisma.MUncheckedUpdateManyWithoutMInput
+export type MUncheckedUpdateManyWithoutMInput = Prisma.MUncheckedUpdateManyWithoutMInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUpdateWithoutOneInput\`
  */
-export import ManyRequiredUpdateWithoutOneInput = Prisma.ManyRequiredUpdateWithoutOneInput
+export type ManyRequiredUpdateWithoutOneInput = Prisma.ManyRequiredUpdateWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedUpdateWithoutOneInput\`
  */
-export import ManyRequiredUncheckedUpdateWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateWithoutOneInput
+export type ManyRequiredUncheckedUpdateWithoutOneInput = Prisma.ManyRequiredUncheckedUpdateWithoutOneInput
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredUncheckedUpdateManyWithoutManyInput\`
  */
-export import ManyRequiredUncheckedUpdateManyWithoutManyInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutManyInput
+export type ManyRequiredUncheckedUpdateManyWithoutManyInput = Prisma.ManyRequiredUncheckedUpdateManyWithoutManyInput
 `;

@@ -25,8 +25,8 @@ const args = arg(
 //
 // Read .env file only if next to schema.prisma
 //
-// if the CLI is called without any command like `up --experimental` we can ignore .env loading
-// should be 2 but because of --experimental flag it will be 3 until removed
+// if the CLI is called without any command like `up --early-access-feature` we can ignore .env loading
+// should be 1 but because of --early-access-feature flag it will be 2 until removed
 if (process.argv.length > 3) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
@@ -44,12 +44,14 @@ import chalk from 'chalk'
 import debugLib from 'debug'
 
 import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateSave } from './commands/MigrateSave'
-import { MigrateDown } from './commands/MigrateDown'
-import { MigrateUp } from './commands/MigrateUp'
+import { MigrateDev } from './commands/MigrateDev'
+import { MigrateReset } from './commands/MigrateReset'
+import { MigrateDeploy } from './commands/MigrateDeploy'
+import { MigrateResolve } from './commands/MigrateResolve'
+import { MigrateStatus } from './commands/MigrateStatus'
 import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
-import { MigrateTmpPrepare } from './commands/MigrateTmpPrepare'
+import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'
 
@@ -61,9 +63,12 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
   const cli = MigrateCommand.new({
-    save: MigrateSave.new(),
-    up: MigrateUp.new(),
-    down: MigrateDown.new(),
+    dev: MigrateDev.new(),
+    reset: MigrateReset.new(),
+    deploy: MigrateDeploy.new(),
+    status: MigrateStatus.new(),
+    resolve: MigrateResolve.new(),
+    // for convenient debugging
     push: DbPush.new(),
     drop: DbDrop.new(),
     ['tmp-prepare']: MigrateTmpPrepare.new(),
