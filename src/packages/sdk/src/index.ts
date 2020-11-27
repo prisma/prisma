@@ -66,6 +66,7 @@ export {
   getSchemaPathFromPackageJsonSync,
 } from './cli/getSchema'
 
+export * as logger from './logger'
 export { getEnvPaths } from './utils/getEnvPaths'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
