@@ -4,18 +4,17 @@ export const tags = {
   error: chalk.red('error'),
   warn: chalk.yellow('warn'),
   info: chalk.blue('info'),
-  log: 'log'
 }
 
-export function log(value: string) {
-  console.log(`${tags.log} ${value}`);
+export function log(...data: any[]) {
+  console.log(...data);
 }
-export function warn(value: string) {
-  console.warn(`${tags.warn} ${value}`);
+export function warn(message: any, ...optionalParams: any[]) {
+  console.warn(`${tags.warn} ${message}`, ...optionalParams);
 }
-export function info(value: string) {
-  console.info(`${tags.info} ${value}`);
+export function info(message: any, ...optionalParams: any[]) {
+  console.info(`${tags.info} ${message}`, ...optionalParams);
 }
-export function error(value: string) {
-  console.error(`${tags.error} ${value}`);
+export function error(message: any, ...optionalParams: any[]) {
+  console.error(`${tags.error} ${message}`, ...optionalParams);
 } 
