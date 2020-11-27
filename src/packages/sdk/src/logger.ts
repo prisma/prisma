@@ -11,10 +11,10 @@ export function log(value: string) {
   console.log(`${tags.log} ${value}`);
 }
 export function warn(value: string) {
-  console.log(`${tags.warn} ${value}`);
+  console.warn(`${tags.warn} ${value}`);
 }
 export function info(value: string) {
-  console.error(`${tags.info} ${value}`);
+  console.info(`${tags.info} ${value}`);
 }
 export function error(value: string) {
   console.error(`${tags.error} ${value}`);
