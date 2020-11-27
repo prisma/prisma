@@ -7,7 +7,6 @@ import {
   isError,
   unknownCommand,
 } from '@prisma/sdk'
-import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import { ExperimentalFlagWithNewMigrateError } from '../utils/flagErrors'
 

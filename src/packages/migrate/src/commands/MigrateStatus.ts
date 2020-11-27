@@ -5,11 +5,9 @@ import {
   getSchemaPath,
   HelpError,
   isError,
-  canConnectToDatabase,
   getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
@@ -17,7 +15,6 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
 import Debug from '@prisma/debug'
 import { isOldMigrate } from '../utils/detectOldMigrate'
 
