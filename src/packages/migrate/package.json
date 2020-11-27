@@ -79,7 +79,7 @@
   },
   "scripts": {
     "run": "node dist/bin.js",
-    "precommit": "lint-staged && npm run test",
+    "precommit": "lint-staged",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "test": "jest --forceExit",
