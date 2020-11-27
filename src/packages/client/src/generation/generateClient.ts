@@ -71,10 +71,9 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
-  projectRoot
+  projectRoot,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-
 
   const client = new TSClient({
     document,
@@ -92,7 +91,7 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
-    projectRoot: projectRoot!
+    projectRoot: projectRoot!,
   })
 
   const fileMap = {
@@ -154,7 +153,7 @@ export async function generateClient({
     ? await getDotPrismaDir(outputDir)
     : outputDir
 
-  const packageRoot = (await pkgUp({ cwd: path.dirname(finalOutputDir) }))
+  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -171,12 +170,10 @@ export async function generateClient({
     binaryPaths,
     clientVersion,
     engineVersion,
-    projectRoot
+    projectRoot,
   })
 
-  const denylistsErrors = validateDmmfAgainstDenylists(
-    prismaClientDmmf,
-  )
+  const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
     let message = `${chalk.redBright.bold(
@@ -286,7 +283,7 @@ export async function generateClient({
         name: '.prisma/client',
         main: 'index.js',
         types: 'index.d.ts',
-        browser: 'index-browser.js'
+        browser: 'index-browser.js',
       },
       null,
       2,
@@ -321,9 +318,15 @@ export async function generateClient({
     await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
+  if (!fs.existsSync(proxyIndexBrowserJsPath)) {
+    await copyFile(
+      path.join(__dirname, '../../index-browser.js'),
+      proxyIndexBrowserJsPath,
+    )
+  }
+
   return { prismaClientDmmf, fileMap }
 }
-
 
 async function fileSize(name: string): Promise<number | null> {
   try {

@@ -812,7 +812,7 @@ export class Arg {
     this.error = error
     this.schemaArg = schemaArg
     this.isNullable =
-      schemaArg?.inputTypes.reduce(
+      schemaArg?.inputTypes.reduce<boolean>(
         (isNullable) => isNullable && schemaArg.isNullable,
         true,
       ) || false
@@ -877,7 +877,7 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       errors.push(
-        ...(flatMap(this.value as any[], (val, index) => {
+        ...flatMap(this.value as any[], (val, index) => {
           if (!val.collectErrors) {
             return []
           }
@@ -885,7 +885,7 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }) as any),
+        }),
       )
     }
 
@@ -954,6 +954,12 @@ export function makeDocument({
 // TODO: get rid of this function
 export function transformDocument(document: Document): Document {
   return document
+}
+function convertToSnakeCase(str: string): string {
+  return str
+    .split(/(?=[A-Z])/)
+    .join('_')
+    .toLowerCase()
 }
 
 export function selectionToFields(
@@ -1575,6 +1581,7 @@ export function isInputArgType(
   if (typeof argType === 'string') {
     return false
   }
+
   if (Object.hasOwnProperty.call(argType, 'values')) {
     return false
   }
