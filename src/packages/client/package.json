@@ -40,7 +40,7 @@
     "build": "node helpers/build.js",
     "test": "jest",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .ts .",
+    "lint": "eslint --cache --fix --ext .ts .",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",

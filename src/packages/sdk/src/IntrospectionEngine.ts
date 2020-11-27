@@ -297,7 +297,7 @@ export class IntrospectionEngine {
           })
 
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          this.child.on('exit', async (code) => {
+          this.child.on('exit', (code) => {
             // handle panics
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {
@@ -387,7 +387,7 @@ export class IntrospectionEngine {
       )
     }
     return new Promise((resolve, reject) => {
-      this.registerCallback(request.id, async (response, err) => {
+      this.registerCallback(request.id, (response, err) => {
         if (err) {
           return reject(err)
         }

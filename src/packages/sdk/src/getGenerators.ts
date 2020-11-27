@@ -233,7 +233,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
 
     // make sure, that at least the current platform is being fetched
-    for (let currentVersion in neededVersions) {
+    for (const currentVersion in neededVersions) {
       // ensure binaryTargets are set correctly
       const neededVersion = neededVersions[currentVersion]
       if (neededVersion.binaryTargets.length === 0) {

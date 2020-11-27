@@ -25,7 +25,7 @@
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .ts .",
+    "lint": "eslint --cache --fix --ext .ts .",
     "test": "jest"
   },
   "files": [

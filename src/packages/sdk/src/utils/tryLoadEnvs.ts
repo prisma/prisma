@@ -80,7 +80,7 @@ function checkForConflicts(
     }
     if (conflicts.length > 0) {
       // const message = `You are trying to load env variables which are already present in your project root .env
-      const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path!)
+      const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
         const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}

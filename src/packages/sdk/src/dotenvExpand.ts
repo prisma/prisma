@@ -35,7 +35,7 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
   const environment = config.ignoreProcessEnv ? {} : process.env
 
   const interpolate = (envValue: string) => {
-    var matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g) || []
+    const matches = envValue.match(/(.?\${(?:[a-zA-Z0-9_]+)?})/g) || []
 
     return matches.reduce(function (newEnv, match) {
       const parts = /(.?)\${([a-zA-Z0-9_]+)?}/g.exec(match)
@@ -70,7 +70,7 @@ export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: b
     config.parsed[configKey] = interpolate(value!)
   }
 
-  for (var processKey in config.parsed) {
+  for (const processKey in config.parsed) {
     environment[processKey] = config.parsed[processKey]
   }
 

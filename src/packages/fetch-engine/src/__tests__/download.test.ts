@@ -199,7 +199,7 @@ describe('download', () => {
     )
     fs.copyFileSync(dummyPath, targetPath)
 
-    let testResult = await download({
+    const testResult = await download({
       binaries: {
         'query-engine': __dirname,
       },

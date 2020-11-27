@@ -1,13 +1,20 @@
 devDependencies:
+  '@types/node': 14.14.10
   '@typescript-eslint/eslint-plugin': 4.8.2_6341bfd4e6c74608cac2d9a1d059520a
   '@typescript-eslint/parser': 4.8.2_eslint@7.14.0+typescript@4.1.2
+  arg: 5.0.0
+  chalk: 4.1.0
   eslint: 7.14.0
   eslint-config-prettier: 6.15.0_eslint@7.14.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.14.0
   eslint-plugin-jest: 24.1.3_eslint@7.14.0+typescript@4.1.2
   eslint-plugin-prettier: 3.1.4_eslint@7.14.0
+  execa: 4.1.0
+  globby: 11.0.1
   husky: 4.3.0
   lint-staged: 10.5.2
+  p-map: 4.0.0
+  staged-git-files: 1.2.0
   ts-node: 9.0.0_typescript@4.1.2
   typescript: 4.1.2
 lockfileVersion: 5.2
@@ -75,6 +82,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-3c+yGKvVP5Y9TYBEibGNR+kLtijnj7mYrXRg+WpFb2X9xm04g/DXYkfg4hmzJQosc9snFNUPkbYIhu+KAm6jJw==
+  /@types/node/14.14.10:
+    dev: true
+    resolution:
+      integrity: sha512-J32dgx2hw8vXrSbu4ZlVhn1Nm3GbeCFNw2FWL8S5QKucHGY0cyNwjdQdO+KMBZ4wpmC7KhLCiNsdk1RFRIYUQQ==
   /@types/parse-json/4.0.0:
     dev: true
     resolution:
@@ -263,6 +274,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-58S9QDqG0Xx27YwPSt9fJxivjYl432YCwfDMfZ+71RAqUrZef7LrKQZ3LHLOwCS4FLNBplP533Zx895SeOCHvA==
+  /arg/5.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-4P8Zm2H+BRS+c/xX1LrHw0qKpEhdlZjLCgWy+d78T9vqa2Z2SiD2wMrYuWIAFy5IZUD7nnNXroRttz+0RzlrzQ==
   /argparse/1.0.10:
     dependencies:
       sprintf-js: 1.0.3
@@ -1447,6 +1462,11 @@ packages:
     dev: true
     resolution:
       integrity: sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
+  /staged-git-files/1.2.0:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha512-MYK3aDsO8XAXkv2ASsrznObxVDlocYm7gc/cMk/hB4vbJZeEqOO7H1mZR7EY2C5q3YgKOBo3Tmu0D30h7RjdWg==
   /string-argv/0.3.1:
     dev: true
     engines:
@@ -1676,14 +1696,21 @@ packages:
     resolution:
       integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
 specifiers:
+  '@types/node': ^14.14.10
   '@typescript-eslint/eslint-plugin': ^4.8.2
   '@typescript-eslint/parser': ^4.8.2
+  arg: ^5.0.0
+  chalk: ^4.1.0
   eslint: ^7.14.0
   eslint-config-prettier: ^6.15.0
   eslint-plugin-eslint-comments: ^3.2.0
   eslint-plugin-jest: ^24.1.3
   eslint-plugin-prettier: ^3.1.4
+  execa: ^4.1.0
+  globby: ^11.0.1
   husky: ^4.3.0
   lint-staged: ^10.5.2
+  p-map: ^4.0.0
+  staged-git-files: ^1.2.0
   ts-node: 9.0.0
   typescript: 4.1.2

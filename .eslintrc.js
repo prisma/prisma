@@ -1,3 +1,22 @@
+const globby = require('globby')
+const fs = require('fs')
+const path = require('path')
+
+const ignoreFiles = globby.sync('src/packages/*/.eslintignore')
+
+const ignorePatterns = flatten(
+  flatten(
+    ignoreFiles.map((f) => {
+      const dir = path.dirname(f)
+      return fs
+        .readFileSync(f, 'utf-8')
+        .split('\n')
+        .filter((l) => l.trim().length > 0)
+        .map((l) => [l, `/${path.join(dir, l)}`])
+    }),
+  ),
+)
+
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -14,9 +33,10 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./src/packages/*/tsconfig.json' /*, 'tsconfig.json'*/],
+    project: ['./src/packages/*/tsconfig.json' /* , 'tsconfig.json' */],
     // debugLevel: true,
   },
+  ignorePatterns,
   overrides: [
     // {
     //   files: ['*.js'],
@@ -51,6 +71,7 @@ module.exports = {
         '@typescript-eslint/no-misused-promises': 'off',
         'jest/expect-expect': 'off',
         'no-empty': 'off',
+        'jest/valid-title': 'off',
         // low hanging fruits:
         '@typescript-eslint/ban-types': 'off',
         '@typescript-eslint/restrict-plus-operands': 'off',
@@ -66,4 +87,21 @@ module.exports = {
       version: 26,
     },
   },
+}
+
+function flatten(input) {
+  const stack = [...input]
+  const res = []
+  while (stack.length) {
+    // pop value from stack
+    const next = stack.pop()
+    if (Array.isArray(next)) {
+      // push back array items, won't modify the original input
+      stack.push(...next)
+    } else {
+      res.push(next)
+    }
+  }
+  // reverse to restore input order
+  return res.reverse()
 }
