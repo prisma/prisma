@@ -136,6 +136,26 @@ Delete the current migrations folder to continue and read the documentation for 
     debug({ listMigrationDirectoriesResult })
     migrate.stop()
 
+    console.info(`\nStatus`)
+
+    if (listMigrationDirectoriesResult.migrations.length > 0) {
+      console.info(
+        `- ${listMigrationDirectoriesResult.migrations.length} migration${
+          listMigrationDirectoriesResult.migrations.length > 1 ? 's' : ''
+        }`,
+      )
+    } else {
+      console.info(`- No migration found`)
+    }
+
+    if (diagnoseResult.editedMigrationNames.length > 0) {
+      console.info(
+        `- ${diagnoseResult.editedMigrationNames.length} edited migration${
+          diagnoseResult.editedMigrationNames.length > 1 ? 's' : ''
+        }: ${diagnoseResult.editedMigrationNames.join(' ,')}`,
+      )
+    }
+
     if (!diagnoseResult.hasMigrationsTable) {
       //         - This is the **baselining** case.
       //         - Look at the migrations in the migrations folder
@@ -170,15 +190,9 @@ ${chalk.bold.greenBright(
       //             - `prisma migrate resolve --applied <migration-name>` if the migration was rolled forward (and completed successfully)
 
       console.info(
-        `Prisma Migrate found failed migration(s):\n\n${chalk(
-          printFilesFromMigrationIds(
-            'migrations',
-            diagnoseResult.failedMigrationNames,
-            {
-              'migration.sql': '',
-            },
-          ),
-        )}`,
+        `- ${diagnoseResult.failedMigrationNames.length} failed migration${
+          diagnoseResult.failedMigrationNames.length > 1 ? 's' : ''
+        }: ${diagnoseResult.failedMigrationNames.join(' ,')}\n`,
       )
 
       if (
@@ -241,7 +255,7 @@ You have 2 options
       )} to create a new migration matching the drift.`
     } else {
       console.info() // empty line
-      return `Status ok.`
+      return `No problem detected.`
     }
   }
 

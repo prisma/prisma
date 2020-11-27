@@ -67,11 +67,11 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate found failed migration(s):
 
-      migrations/
-        └─ 20201231000000_failed/
-          └─ migration.sql
+      Status
+      - 1 migration
+      - 1 failed migration: 20201231000000_failed
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -88,9 +88,13 @@ describe('sqlite', () => {
             prisma migrate resolve --applied "20201231000000_" --early-access-feature
           `)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - 1 migration
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -98,11 +102,14 @@ describe('sqlite', () => {
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Status ok.`)
+    await expect(result).resolves.toMatchInlineSnapshot(`No problem detected.`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - 1 migration
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -120,9 +127,13 @@ describe('sqlite', () => {
             prisma migrate resolve --applied "20201231000000_init" --early-access-feature
           `)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - 1 migration
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -134,9 +145,13 @@ describe('sqlite', () => {
       `Check init flow with introspect + SQL schema dump (TODO docs)`,
     )
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - No migration found
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -148,9 +163,13 @@ describe('sqlite', () => {
       `Check init flow with introspect + SQL schema dump (TODO docs)`,
     )
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - No migration found
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -187,11 +206,14 @@ describe('sqlite', () => {
   it('reset', async () => {
     ctx.fixture('reset')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`Status ok.`)
+    await expect(result).resolves.toMatchInlineSnapshot(`No problem detected.`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
+      Status
+      - 1 migration
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
