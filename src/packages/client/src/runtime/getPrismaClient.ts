@@ -458,7 +458,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    async $connect() {
+    $connect() {
       try {
         return this._engine.start()
       } catch (e) {
@@ -480,7 +480,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     /**
      * Disconnect from the database
      */
-    async $disconnect() {
+    $disconnect() {
       try {
         return this._engine.stop()
       } catch (e) {
