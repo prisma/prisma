@@ -74,6 +74,7 @@ export class Init implements Command {
     }
 
     const outputDir = process.cwd()
+    const prismaFolder = path.join(outputDir, 'prisma')
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
@@ -86,10 +87,21 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
+    if (fs.existsSync(prismaFolder)) {
+      console.log(
+        printError(`A folder called ${chalk.bold(
+          'prisma',
+        )} already exists in your project.
+        Please try again in a project that is not yet using Prisma.
+      `),
+      )
+      process.exit(1)
+    }
+
+    if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
       console.log(
         printError(`File ${chalk.bold(
-          './schema.prisma',
+          'prisma/schema.prisma',
         )} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
@@ -127,8 +139,12 @@ export class Init implements Command {
       fs.mkdirSync(outputDir)
     }
 
+    if (!fs.existsSync(prismaFolder)) {
+      fs.mkdirSync(prismaFolder)
+    }
+
     fs.writeFileSync(
-      path.join(outputDir, 'schema.prisma'),
+      path.join(prismaFolder, 'schema.prisma'),
       defaultSchema(provider),
     )
     const envPath = path.join(outputDir, '.env')
@@ -172,7 +188,7 @@ export class Init implements Command {
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('./schema.prisma')}.
+✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
   You can now open it in your favorite editor.
 
 Next steps:
