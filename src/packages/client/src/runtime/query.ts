@@ -877,7 +877,7 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       errors.push(
-        ...flatMap(this.value as any[], (val, index) => {
+        ...(flatMap(this.value as any[], (val, index) => {
           if (!val.collectErrors) {
             return []
           }
@@ -885,7 +885,7 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }),
+        }) as any),
       )
     }
 
