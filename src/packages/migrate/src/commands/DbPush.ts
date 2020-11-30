@@ -146,9 +146,14 @@ Do you want to continue?`,
       }
     }
 
-    const migrate = new Migrate(args['--schema'])
+    const migrate = new Migrate(schemaPath)
 
-    await ensureDatabaseExists('push', true, args['--schema'])
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
+    }
 
     const before = Date.now()
     const migration = await migrate.push({
