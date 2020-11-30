@@ -52,7 +52,7 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate --early-access-feature dev --schema=./schema.prisma
+  )} prisma migrate dev --schema=./schema.prisma --early-access-feature
 
   Automatically create a migration and apply it if there is a schema change
   ${chalk.dim('$')} prisma migrate dev --early-access-feature
