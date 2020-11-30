@@ -1,4 +1,5 @@
 {
+	"private": true,
 	"scripts": {
 		"lint-old": "eslint --cache --fix --ext .ts src/packages",
 		"lint": "ts-node scripts/lint.ts",
