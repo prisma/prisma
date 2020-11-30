@@ -93,7 +93,7 @@
     "scripts/download.js"
   ],
   "lint-staged": {
-    "*.{ts}": [
+    "*.ts": [
       "eslint",
       "prettier --write"
     ]

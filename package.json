@@ -2,6 +2,7 @@
 	"scripts": {
 		"lint-old": "eslint --cache --fix --ext .ts src/packages",
 		"lint": "ts-node scripts/lint.ts",
+		"precommit-all": "ts-node scripts/lint.ts --staged",
 		"eslint": "eslint"
 	},
 	"devDependencies": {
@@ -18,23 +19,14 @@
 		"execa": "^4.1.0",
 		"globby": "^11.0.1",
 		"husky": "^4.3.0",
-		"lint-staged": "^10.5.2",
 		"p-map": "^4.0.0",
 		"staged-git-files": "^1.2.0",
 		"ts-node": "9.0.0",
 		"typescript": "4.1.2"
 	},
-	"lint-staged": {
-		"*.{js,ts,css,json,md}": [
-			"prettier --write"
-		],
-		"*.{js,ts}": [
-			"eslint"
-		]
-	},
 	"husky": {
 		"hooks": {
-			"pre-commit": "lint-staged"
+			"pre-commit": "ts-node scripts/lint.ts --staged"
 		}
 	}
 }

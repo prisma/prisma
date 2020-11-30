@@ -76,7 +76,7 @@
     "url-parse": "^1.4.7"
   },
   "lint-staged": {
-    "*.{ts}": [
+    "*.ts": [
       "eslint",
       "prettier --write"
     ]

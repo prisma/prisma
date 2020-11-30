@@ -138,9 +138,9 @@
     "@prisma/engines-version": "2.13.0-8.e5fe27434f5b257d9b2cb37cb622e530cbf0b624"
   },
   "lint-staged": {
-    "*.{ts}": [
-      "prettier --write",
-      "eslint"
+    "*.ts": [
+      "eslint",
+      "prettier --write"
     ]
   }
 }

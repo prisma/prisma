@@ -60,7 +60,7 @@
     "dist"
   ],
   "lint-staged": {
-    "*.{ts}": [
+    "*.ts": [
       "eslint",
       "prettier --write"
     ]
