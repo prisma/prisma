@@ -147,7 +147,9 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory()
+    const diagnoseResult = await migrate.diagnoseMigrationHistory({
+      optInToShadowDatabase: true,
+    })
     debug({ diagnoseResult })
 
     let isResetNeeded = false

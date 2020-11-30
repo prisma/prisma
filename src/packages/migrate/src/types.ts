@@ -116,6 +116,8 @@ export namespace EngineArgs {
   }
   export interface DiagnoseMigrationHistoryInput {
     migrationsDirectoryPath: string
+    /// Whether creating shadow/temporary databases is allowed.
+    optInToShadowDatabase: boolean
   }
   export interface PlanMigrationInput {
     migrationsDirectoryPath: string
