@@ -106,7 +106,12 @@ ${chalk.bold('Options')}
 
     const migrate = new Migrate(schemaPath)
 
-    await ensureDatabaseExists('apply', true, schemaPath)
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
+    }
 
     const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
 
