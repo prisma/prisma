@@ -64,7 +64,7 @@ importers:
       '@types/ws': 7.4.0
       '@typescript-eslint/eslint-plugin': 4.8.2_6341bfd4e6c74608cac2d9a1d059520a
       '@typescript-eslint/parser': 4.8.2_eslint@7.14.0+typescript@4.1.2
-      checkpoint-client: 1.1.15
+      checkpoint-client: 1.1.16
       dotenv: 8.2.0
       esbuild: 0.8.14
       escape-string-regexp: 4.0.0
@@ -125,9 +125,9 @@ importers:
       '@types/ws': 7.4.0
       '@typescript-eslint/eslint-plugin': 4.8.2
       '@typescript-eslint/parser': 4.8.2
-      checkpoint-client: 1.1.15
+      checkpoint-client: 1.1.16
       dotenv: 8.2.0
-      esbuild: 0.8.14
+      esbuild: 0.8.17
       escape-string-regexp: 4.0.0
       eslint: 7.14.0
       eslint-config-prettier: 6.15.0
@@ -153,7 +153,7 @@ importers:
       pg: 8.5.1
       pkg: 4.4.9
       pkg-up: 3.1.0
-      prettier: 2.2.0
+      prettier: 2.2.1
       replace-string: 3.1.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
@@ -714,7 +714,7 @@ importers:
       archiver: 4.0.1
       arg: 5.0.0
       chalk: 4.1.0
-      checkpoint-client: 1.1.15
+      checkpoint-client: 1.1.16
       cli-truncate: 2.1.0
       dotenv: 8.2.0
       execa: 4.0.2
@@ -773,7 +773,7 @@ importers:
       archiver: ^4.0.0
       arg: ^5.0.0
       chalk: 4.1.0
-      checkpoint-client: 1.1.15
+      checkpoint-client: 1.1.16
       cli-truncate: ^2.1.0
       dotenv: ^8.2.0
       eslint: 7.14.0
@@ -793,7 +793,7 @@ importers:
       make-dir: ^3.0.2
       node-fetch: 2.6.1
       p-map: ^4.0.0
-      prettier: 2.2.0
+      prettier: 2.2.1
       read-pkg-up: ^7.0.1
       resolve-pkg: ^2.0.0
       rimraf: ^3.0.2
@@ -3744,7 +3744,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-/3wj7LeYK/J/e4pF+WG1JNpRZ3GggoXelgdY8I4VSzmlrlRUe9vJhJQySqYdVrCGe7O6VlfJ1GVlnmw7p8XAKg==
-  /checkpoint-client/1.1.15:
+  /checkpoint-client/1.1.16:
     dependencies:
       ci-info: 2.0.0
       cross-spawn: 7.0.3
@@ -3755,7 +3755,7 @@ packages:
       node-fetch: 2.6.1
       uuid: 8.3.0
     resolution:
-      integrity: sha512-7FzsUGeTGM/kO8gLSiwgQOefIixV07PcDWBoaeVAhCg3odcPBvBq0yDHbxfoNCl8yRdVA72HCBizv9u5wLTmQg==
+      integrity: sha512-DF7MKeswRQCU6b8gCUE+xjPdDlzF0sYELjw04bMZrD9un+e7EarL1GQP1AAB2m9PDgkCNEvYFtNmYbkzATjjfQ==
   /chownr/1.1.4:
     dev: true
     resolution:
