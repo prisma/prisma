@@ -11,7 +11,8 @@
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
-    "test": "jest"
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "files": [
     "!**/__tests__",

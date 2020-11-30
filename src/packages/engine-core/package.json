@@ -29,7 +29,8 @@
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
-    "test": "jest"
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

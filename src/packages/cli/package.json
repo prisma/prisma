@@ -129,7 +129,8 @@
     "build": "node helpers/build.js",
     "pkg": "pkg . -o pkg-build",
     "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js"
+    "preinstall": "node scripts/preinstall-entry.js",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",

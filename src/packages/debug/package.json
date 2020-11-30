@@ -28,7 +28,8 @@
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
-    "test": "jest"
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "files": [
     "!**/__tests__",

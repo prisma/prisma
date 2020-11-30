@@ -26,9 +26,13 @@ async function main() {
     packages = await getAllPackages()
   }
 
-  const results = await pMap(packages, lintPackage, {
-    concurrency: os.cpus().length,
-  })
+  const results = await pMap(
+    packages,
+    (pkg) => lintPackage(pkg, args['--staged']),
+    {
+      concurrency: os.cpus().length,
+    },
+  )
 
   if (results.some((r) => !r)) {
     process.exit(1)
@@ -59,9 +63,12 @@ async function getAllPackages(): Promise<string[]> {
   return packages.map((p) => path.basename(path.dirname(p)))
 }
 
-async function lintPackage(pkg: string): Promise<boolean> {
+async function lintPackage(
+  pkg: string,
+  stagedOnly: boolean = false,
+): Promise<boolean> {
   try {
-    const result = await execa.command(`pnpm run lint`, {
+    await execa.command(`pnpm run ${stagedOnly ? 'precommit' : 'lint'}`, {
       cwd: path.join(__dirname, `../src/packages/${pkg}`),
       stdio: 'pipe',
       env: {
