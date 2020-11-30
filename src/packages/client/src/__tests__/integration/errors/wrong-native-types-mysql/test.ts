@@ -27,7 +27,7 @@ test('wrong-native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', as
     bInt: 123123123.1,
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.a.create({
       data,
       select: {
@@ -61,7 +61,7 @@ test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => 
     numFloat: 'a5.6',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.b.create({
       data,
       select: {
@@ -95,7 +95,7 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
     lText: '🔥'.repeat(80_000),
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.c.create({
       data,
       select: {
@@ -129,7 +129,7 @@ test('wrong-native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async 
     year: 'string',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.d.create({
       data,
       select: {
@@ -166,7 +166,7 @@ test('wrong-native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, Medium
     lBlob: 'longbob',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.e.create({
       data,
       select: {

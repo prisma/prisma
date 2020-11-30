@@ -304,16 +304,21 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           url: 'file:' + path.resolve(config.dirname, d.url),
         }))
 
-        const inputDatasources = Object.values(options.datasources || {})
-          .filter((source) => {
+        const thedatasources = options.datasources || {}
+
+        const inputDatasources = Object.entries(thedatasources)
+          .filter(([_, source]) => {
             return source && source.url
           })
-          .map(([name, { url }]: any) => ({ name, url }))
+          .map(([name, { url }]: any) => ({
+            name,
+            url,
+          }))
 
         const datasources = mergeBy(
           predefinedDatasources,
           inputDatasources,
-          (source) => source.name,
+          (source: any) => source.name,
         )
 
         const engineConfig = internal.engine || {}
@@ -402,7 +407,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
     get [Symbol.toStringTag]() {
-      return "NewPrismaClient";
+      return 'NewPrismaClient'
     }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
@@ -1242,7 +1247,7 @@ export class PrismaClientFetcher {
     })
   }
   get [Symbol.toStringTag]() {
-    return "PrismaClientFetcher";
+    return 'PrismaClientFetcher'
   }
   async request({
     document,

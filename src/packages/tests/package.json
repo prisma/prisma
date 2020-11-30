@@ -27,6 +27,7 @@
     "eslint-plugin-prettier": "^3.1.4",
     "fs-jetpack": "^4.0.0",
     "jest": "26.4.2",
+    "lint-staged": "^10.5.2",
     "make-dir": "^3.1.0",
     "mariadb": "^2.5.0",
     "mssql": "^6.2.3",
@@ -62,5 +63,11 @@
   ],
   "dependencies": {
     "debug": "^4.1.1"
+  },
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

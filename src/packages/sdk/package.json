@@ -73,5 +73,11 @@
     "terminal-link": "^2.1.1",
     "tmp": "0.2.1",
     "url-parse": "^1.4.7"
+  },
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

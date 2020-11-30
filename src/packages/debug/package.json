@@ -36,5 +36,11 @@
   ],
   "dependencies": {
     "debug": "^4.1.1"
+  },
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

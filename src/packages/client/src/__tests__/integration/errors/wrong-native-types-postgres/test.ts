@@ -27,7 +27,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
     bInt: 12312312.123,
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.a.create({
       data,
       select: {
@@ -62,7 +62,7 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
     numFloat: '1.1',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.b.create({
       data,
       select: {
@@ -98,7 +98,7 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
     uuid: '643547a7-9e32-4e63-a52c-2e229f301c622',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.c.create({
       data,
       select: {
@@ -134,7 +134,7 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
     xml: 123,
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.d.create({
       data,
       select: {
@@ -168,7 +168,7 @@ test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
     ts: '22020-05-05T16:28:33.983+03:00',
   }
 
-  await expect(() =>
+  await expect(async () =>
     prisma.e.create({
       data,
       select: {

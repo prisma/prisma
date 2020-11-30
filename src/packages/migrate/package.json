@@ -91,5 +91,11 @@
     "dist",
     "download.js",
     "scripts/download.js"
-  ]
+  ],
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
+  }
 }

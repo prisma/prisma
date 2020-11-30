@@ -37,5 +37,11 @@
     "ts-jest": "26.4.4",
     "ts-node": "9.0.0",
     "typescript": "4.1.2"
+  },
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

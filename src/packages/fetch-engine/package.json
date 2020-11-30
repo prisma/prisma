@@ -57,5 +57,11 @@
   "files": [
     "!**/__tests__",
     "dist"
-  ]
+  ],
+  "lint-staged": {
+    "*.{ts}": [
+      "eslint",
+      "prettier --write"
+    ]
+  }
 }
