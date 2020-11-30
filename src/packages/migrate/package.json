@@ -38,7 +38,7 @@
     "mariadb": "2.5.1",
     "mock-stdin": "1.0.0",
     "pg": "8.5.1",
-    "prettier": "2.2.0",
+    "prettier": "2.2.1",
     "sqlite-async": "1.1.0",
     "sqlite3": "4.2.0",
     "tempy": "1.0.0",

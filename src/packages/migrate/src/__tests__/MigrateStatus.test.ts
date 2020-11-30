@@ -94,6 +94,7 @@ describe('sqlite', () => {
 
       Status
       - 1 migration
+      - 1 unapplied migration: 20201231000000_
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -133,6 +134,7 @@ describe('sqlite', () => {
 
       Status
       - 1 migration
+      - 1 unapplied migration: 20201231000000_init
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

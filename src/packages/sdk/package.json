@@ -32,7 +32,7 @@
     "husky": "4.3.0",
     "jest": "26.6.3",
     "lint-staged": "10.5.2",
-    "prettier": "2.2.0",
+    "prettier": "2.2.1",
     "ts-jest": "26.4.4",
     "ts-node": "9.0.0",
     "typescript": "4.1.2"
@@ -48,7 +48,7 @@
     "archiver": "^4.0.0",
     "arg": "^5.0.0",
     "chalk": "4.1.0",
-    "checkpoint-client": "1.1.14",
+    "checkpoint-client": "1.1.15",
     "cli-truncate": "^2.1.0",
     "dotenv": "^8.2.0",
     "execa": "^4.0.0",

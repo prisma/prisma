@@ -136,20 +136,29 @@ Delete the current migrations folder to continue and read the documentation for 
     console.info(`\nStatus`)
 
     if (listMigrationDirectoriesResult.migrations.length > 0) {
+      const migrations = listMigrationDirectoriesResult.migrations
       console.info(
-        `- ${listMigrationDirectoriesResult.migrations.length} migration${
-          listMigrationDirectoriesResult.migrations.length > 1 ? 's' : ''
-        }`,
+        `- ${migrations.length} migration${migrations.length > 1 ? 's' : ''}`,
       )
     } else {
       console.info(`- No migration found`)
     }
 
     if (diagnoseResult.editedMigrationNames.length > 0) {
+      const editedMigrations = diagnoseResult.editedMigrationNames
       console.info(
-        `- ${diagnoseResult.editedMigrationNames.length} edited migration${
-          diagnoseResult.editedMigrationNames.length > 1 ? 's' : ''
-        }: ${diagnoseResult.editedMigrationNames.join(' ,')}`,
+        `- ${editedMigrations.length} edited migration${
+          editedMigrations.length > 1 ? 's' : ''
+        }: ${editedMigrations.join(' ,')}`,
+      )
+    }
+
+    if (diagnoseResult.history?.diagnostic === 'databaseIsBehind') {
+      const unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
+      console.info(
+        `- ${unappliedMigrations.length} unapplied migration${
+          unappliedMigrations.length > 1 ? 's' : ''
+        }: ${unappliedMigrations.join(' ,')}`,
       )
     }
 
@@ -185,11 +194,12 @@ ${chalk.bold.greenBright(
       //         - Inform the user that they can "close the case" and mark the failed migration as fixed by calling `prisma migrate resolve`.
       //             - `prisma migrate resolve --rolledback <migration-name>` if the migration was rolled back
       //             - `prisma migrate resolve --applied <migration-name>` if the migration was rolled forward (and completed successfully)
+      const failedMigrations = diagnoseResult.failedMigrationNames
 
       console.info(
-        `- ${diagnoseResult.failedMigrationNames.length} failed migration${
-          diagnoseResult.failedMigrationNames.length > 1 ? 's' : ''
-        }: ${diagnoseResult.failedMigrationNames.join(' ,')}\n`,
+        `- ${failedMigrations.length} failed migration${
+          failedMigrations.length > 1 ? 's' : ''
+        }: ${failedMigrations.join(' ,')}\n`,
       )
 
       if (
@@ -200,7 +210,7 @@ ${chalk.bold.greenBright(
 ${chalk.grey(diagnoseResult.drift.rollback)}`)
       }
 
-      const migrationId = diagnoseResult.failedMigrationNames[0]
+      const migrationId = failedMigrations[0]
 
       return `The failed migration(s) can be marked as rolled back or applied:
       
@@ -238,7 +248,7 @@ You have 2 options
 
 1. To keep the database structure change run: 
 - ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma introspect --early-access-feature'),
+        getCommandWithExecutor('prisma introspect'),
       )} to update your schema with the change.
 - ${chalk.bold.greenBright(
         getCommandWithExecutor('prisma migrate dev --early-access-feature'),

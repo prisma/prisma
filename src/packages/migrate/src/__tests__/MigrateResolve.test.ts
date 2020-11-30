@@ -29,7 +29,7 @@ describe('common', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `--applied or --rolledback must be part of the command like prisma migrate resolve --early-access-feature --applied="20201231000000_example"`,
+      `--applied or --rolledback must be part of the command like prisma migrate resolve --applied="20201231000000_example" --early-access-feature`,
     )
   })
   it('should fail if both --applied or --rolledback', async () => {
