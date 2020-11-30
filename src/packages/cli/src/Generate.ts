@@ -59,7 +59,7 @@ export class Generate implements Command {
           ? chalk.dim(
               ` to .${path.sep}${path.relative(
                 process.cwd(),
-                generator.options!.generator.output,
+                generator.options!.generator.output!,
               )}`,
             )
           : ''

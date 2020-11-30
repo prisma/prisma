@@ -72,6 +72,7 @@ module.exports = {
         'jest/expect-expect': 'off',
         'no-empty': 'off',
         'jest/valid-title': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         // low hanging fruits:
         '@typescript-eslint/ban-types': 'off',
         '@typescript-eslint/restrict-plus-operands': 'off',
