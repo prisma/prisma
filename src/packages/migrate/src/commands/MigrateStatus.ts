@@ -9,7 +9,6 @@ import {
   getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
@@ -17,7 +16,6 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
 import Debug from '@prisma/debug'
 import { isOldMigrate } from '../utils/detectOldMigrate'
 
@@ -241,7 +239,7 @@ You have 2 options
 
 1. To keep the database structure change run: 
 - ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma introspect --early-access-feature'),
+        getCommandWithExecutor('prisma introspect'),
       )} to update your schema with the change.
 - ${chalk.bold.greenBright(
         getCommandWithExecutor('prisma migrate dev --early-access-feature'),
