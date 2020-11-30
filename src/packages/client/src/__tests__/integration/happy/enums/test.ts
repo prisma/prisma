@@ -15,7 +15,7 @@ test('enums', async () => {
 
   prisma.$on('query', (e) => queryEvents.push(e))
 
-  const result = await prisma.user.findMany({})
+  await prisma.user.findMany({})
 
   await prisma.$disconnect()
 

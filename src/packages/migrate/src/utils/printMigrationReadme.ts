@@ -1,7 +1,7 @@
 import { createPatch } from 'diff'
 import getEmail from 'git-user-email'
 import getUserName from 'git-user-name'
-import { DatabaseStep, DatabaseSteps } from '../types'
+import { DatabaseSteps } from '../types'
 import { printDetailedDatabaseSteps } from './printDatabaseSteps'
 import { maskSchema } from '@prisma/sdk'
 

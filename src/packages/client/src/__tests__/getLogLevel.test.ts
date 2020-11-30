@@ -37,3 +37,14 @@ test('strings and objects', () => {
 
   expect(level).toMatchInlineSnapshot(`warn`)
 })
+test('strings', () => {
+  const level = getLogLevel('warn')
+
+  expect(level).toMatchInlineSnapshot(`warn`)
+})
+
+test('strings array', () => {
+  const level = getLogLevel(['warn', 'error'])
+
+  expect(level).toMatchInlineSnapshot(`error`)
+})

@@ -199,7 +199,7 @@ describe('download', () => {
     fs.copyFileSync(dummyPath, targetPath)
     process.env.PRISMA_QUERY_ENGINE_BINARY = targetPath
 
-    let testResult = await download({
+    const testResult = await download({
       binaries: {
         'query-engine': path.join(__dirname, 'all'),
       },

@@ -9,7 +9,6 @@ import {
   maskSchema,
   uriToCredentials,
   getConfig,
-  isCi,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -351,47 +350,43 @@ export class Migrate {
       )}`,
     )
 
-    try {
-      const generators = await getGenerators({
-        schemaPath: this.schemaPath,
-        printDownloadProgress: false,
-        version: enginesVersion,
-        cliVersion: packageJson.version,
-      })
+    const generators = await getGenerators({
+      schemaPath: this.schemaPath,
+      printDownloadProgress: false,
+      version: enginesVersion,
+      cliVersion: packageJson.version,
+    })
 
-      for (const generator of generators) {
-        const toStr = generator.options!.generator.output!
-          ? chalk.dim(
-              ` to .${path.sep}${path.relative(
-                process.cwd(),
-                generator.options!.generator.output!,
-              )}`,
-            )
-          : ''
-        const name = generator.manifest
-          ? generator.manifest.prettyName
-          : generator.options!.generator.provider
-
-        logUpdate(`Running generate... - ${name}`)
-
-        const before = Date.now()
-        try {
-          await generator.generate()
-          const after = Date.now()
-          const version = generator.manifest?.version
-          message.push(
-            `✔ Generated ${chalk.bold(name!)}${
-              version ? ` (${version})` : ''
-            }${toStr} in ${formatms(after - before)}`,
+    for (const generator of generators) {
+      const toStr = generator.options!.generator.output!
+        ? chalk.dim(
+            ` to .${path.sep}${path.relative(
+              process.cwd(),
+              generator.options!.generator.output,
+            )}`,
           )
-          generator.stop()
-        } catch (err) {
-          message.push(`${err.message}`)
-          generator.stop()
-        }
+        : ''
+      const name = generator.manifest
+        ? generator.manifest.prettyName
+        : generator.options!.generator.provider
+
+      logUpdate(`Running generate... - ${name}`)
+
+      const before = Date.now()
+      try {
+        await generator.generate()
+        const after = Date.now()
+        const version = generator.manifest?.version
+        message.push(
+          `✔ Generated ${chalk.bold(name!)}${
+            version ? ` (${version})` : ''
+          }${toStr} in ${formatms(after - before)}`,
+        )
+        generator.stop()
+      } catch (err) {
+        message.push(`${err.message}`)
+        generator.stop()
       }
-    } catch (errGetGenerators) {
-      throw errGetGenerators
     }
 
     logUpdate(message.join('\n'))
@@ -625,7 +620,6 @@ export class Migrate {
     const {
       lastAppliedIndex,
       localMigrations,
-      appliedRemoteMigrations,
       sourceConfig,
     } = migrationsToApplyResult
     let { migrationsToApply } = migrationsToApplyResult
@@ -868,7 +862,6 @@ export class Migrate {
       ],
       {
         // globby doesn't have it in its types but it's part of mrmlnc/fast-glob
-        // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
         // @ts-ignore
         cwd: migrationsDir,
       },

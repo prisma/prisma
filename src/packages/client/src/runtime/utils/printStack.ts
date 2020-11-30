@@ -51,14 +51,21 @@ type StackParams = {
   lastErrorHeight: number
 }
 
-function parseStack({ callsite, renderPathRelative, originalMethod, onUs, showColors, isValidationError }: ErrorArgs): StackParams {
+function parseStack({
+  callsite,
+  renderPathRelative,
+  originalMethod,
+  onUs,
+  showColors,
+  isValidationError,
+}: ErrorArgs): StackParams {
   const params = {
     callsiteStr: ':',
     prevLines: '\n',
     functionName: `prisma.${originalMethod}()`,
     afterLines: '',
     indentValue: 0,
-    lastErrorHeight: 20
+    lastErrorHeight: 20,
   }
   // @ts-ignore
   if (!callsite || typeof window !== 'undefined') {
@@ -67,7 +74,7 @@ function parseStack({ callsite, renderPathRelative, originalMethod, onUs, showCo
 
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
-  const trace = stack.reverse().find((t, i) => {
+  const trace = stack.reverse().find((t) => {
     return (
       t.file &&
       !t.file.includes('@prisma') &&
@@ -95,10 +102,7 @@ function parseStack({ callsite, renderPathRelative, originalMethod, onUs, showCo
     const exists = fs.existsSync(trace.file)
     if (exists) {
       const file = fs.readFileSync(trace.file, 'utf-8')
-      const slicedFile = file
-        .split('\n')
-        .slice(start, lineNumber)
-        .join('\n')
+      const slicedFile = file.split('\n').slice(start, lineNumber).join('\n')
       const lines = dedent(slicedFile).split('\n')
 
       const theLine = lines[lines.length - 1]
@@ -107,7 +111,7 @@ function parseStack({ callsite, renderPathRelative, originalMethod, onUs, showCo
       } else {
         // Why even all this effort? Because if a user calls the client instance "db", we want to be able to also say "db.user.findMany"
         const prismaClientRegex = /(\S+(create|updateMany|deleteMany|update|delete|findMany|findOne|findUnique)\()/
-        const match = theLine.match(prismaClientRegex)
+        const match = prismaClientRegex.exec(theLine)
         if (!match) {
           return params
         }
@@ -162,18 +166,25 @@ function parseStack({ callsite, renderPathRelative, originalMethod, onUs, showCo
 }
 
 export const printStack = (args: ErrorArgs): PrintStackResult => {
-  const { callsiteStr, prevLines, functionName, afterLines, indentValue, lastErrorHeight } = parseStack(args)
+  const {
+    callsiteStr,
+    prevLines,
+    functionName,
+    afterLines,
+    indentValue,
+    lastErrorHeight,
+  } = parseStack(args)
 
   const introText = args.onUs
     ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold(
-      'on us',
-    )}, you did nothing wrong.
+        'on us',
+      )}, you did nothing wrong.
 It occured in the ${chalk.bold(
-      `\`${functionName}\``,
-    )} invocation${callsiteStr}`)
+        `\`${functionName}\``,
+      )} invocation${callsiteStr}`)
     : chalk.red(
-      `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
-    )
+        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
+      )
 
   const stackStr = `\n${introText}
 ${prevLines}${chalk.reset()}`

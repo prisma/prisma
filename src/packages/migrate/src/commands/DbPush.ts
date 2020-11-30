@@ -9,7 +9,6 @@ import {
   link,
   isCi,
 } from '@prisma/sdk'
-import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'

@@ -8,15 +8,9 @@ import {
 test('Blog fixture: Postgres', async () => {
   await generateTestClient()
 
-  const {
-    PrismaClient,
-    Prisma,
-  } = require('./node_modules/@prisma/client')
+  const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
 
-  const {
-    PrismaClientValidationError,
-    prismaVersion,
-  } = Prisma
+  const { PrismaClientValidationError, prismaVersion } = Prisma
 
   let originalConnectionString =
     process.env.TEST_POSTGRES_URI ||
@@ -28,7 +22,7 @@ test('Blog fixture: Postgres', async () => {
     dirname: __dirname,
   }
 
-  await setupPostgres(SetupParams).catch(e => console.error(e))
+  await setupPostgres(SetupParams).catch((e) => console.error(e))
 
   const requests: any[] = []
   const errorLogs: any[] = []
@@ -37,7 +31,7 @@ test('Blog fixture: Postgres', async () => {
     __internal: {
       measurePerformance: true,
       hooks: {
-        beforeRequest: request => requests.push(request),
+        beforeRequest: (request) => requests.push(request),
       },
     },
     datasources: {
@@ -94,19 +88,19 @@ test('Blog fixture: Postgres', async () => {
   } catch (e) {
     validationError = e
     errorLogs.push(validationError)
-  } finally {
-    if (
-      !validationError ||
-      !(validationError instanceof PrismaClientValidationError)
-    ) {
-      throw new Error(`Validation error is incorrect`)
-    }
+  }
+
+  if (
+    !validationError ||
+    !(validationError instanceof PrismaClientValidationError)
+  ) {
+    throw new Error(`Validation error is incorrect`)
   }
 
   expect(errorLogs.length).toBe(1)
   try {
-    const users = await prisma.user.findMany()
-  } catch (e) { }
+    await prisma.user.findMany()
+  } catch (e) {}
   const users = await prisma.user.findMany()
   expect(users.length).toBe(1)
   const resultEmptyJson = await prisma.post.create({

@@ -8,16 +8,11 @@ export async function handlePanic(
   cliVersion: string,
   binaryVersion: string,
 ): Promise<void> {
-  return new Promise(async function (resolve, reject) {
-    // We use prompts.inject() for testing in our CI
-    if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-      return reject(error)
-    }
+  if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+    throw error
+  }
 
-    await panicDialog(error, cliVersion, binaryVersion)
-
-    return resolve()
-  })
+  await panicDialog(error, cliVersion, binaryVersion)
 }
 
 async function panicDialog(error, cliVersion, binaryVersion) {

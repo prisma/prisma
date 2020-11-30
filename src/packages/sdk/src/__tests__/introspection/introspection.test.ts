@@ -65,7 +65,7 @@ test('introspection basic', async () => {
   `)
 
   const dbVersion = await engine.getDatabaseVersion(schema)
-  expect(dbVersion.length > 0)
+  expect(dbVersion.length > 0).toBe(true)
 
   const description = await engine.getDatabaseDescription(schema)
 

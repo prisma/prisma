@@ -240,7 +240,7 @@ export function getSuggestion(
 
 export function stringifyInputType(
   input: string | DMMF.InputType | DMMF.SchemaEnum,
-  greenKeys: boolean = false,
+  greenKeys = false,
 ): string {
   if (typeof input === 'string') {
     return input
@@ -318,7 +318,7 @@ export function getOutputTypeName(
 export function inputTypeToJson(
   input: string | DMMF.InputType | DMMF.SchemaEnum,
   isRequired: boolean,
-  nameOnly: boolean = false,
+  nameOnly = false,
 ): string | object {
   if (typeof input === 'string') {
     if (input === 'Null') {

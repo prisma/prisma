@@ -152,7 +152,7 @@ test('native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async () => 
     year: 2020,
   }
 
-  const d = await prisma.d.create({
+  await prisma.d.create({
     data,
     select: {
       date: true,

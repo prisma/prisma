@@ -17,22 +17,10 @@
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.{js,ts}": [
-      "eslint"
-    ]
+    "lint": "eslint --cache --fix --ext .ts .",
+    "lint-ci": "eslint --ext .ts .",
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "devDependencies": {
     "@types/jest": "26.0.15",
@@ -51,5 +39,11 @@
     "ts-jest": "26.4.4",
     "ts-node": "9.0.0",
     "typescript": "4.1.2"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

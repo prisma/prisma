@@ -83,7 +83,7 @@ export declare type Debugger = DebugLib.Debugger
 // we need some space for other characters, so we go for 30k here
 export function getLogs(numChars = 7500): string {
   // flatmap on text level
-  let output = cache.map((c) => c.join('  ')).join('\n')
+  const output = cache.map((c) => c.join('  ')).join('\n')
 
   if (output.length < numChars) {
     return output

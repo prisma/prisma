@@ -1,15 +1,6 @@
-const config = require('../.eslintrc.js')
+const path = require('path')
+const config = require('../../../.eslintrc.js')
 
-config.overrides[0].rules = {
-  '@typescript-eslint/no-use-before-define': 'off',
-  '@typescript-eslint/no-non-null-assertion': 'off',
-  '@typescript-eslint/no-misused-promises': [
-    'error',
-    {
-      checksVoidReturn: false,
-    },
-  ],
-  'no-async-promise-executor': 'off',
-}
+config.parserOptions.project.push(path.join(__dirname, 'tsconfig.json'))
 
 module.exports = config

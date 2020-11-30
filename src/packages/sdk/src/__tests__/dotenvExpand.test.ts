@@ -193,7 +193,7 @@ describe('dotenvExpand', () => {
     `)
   })
 
-  it('does not expand inline escaped dollar sign', () => {
+  it('does not expand inline escaped dollar sign 2', () => {
     const dotenv = {
       parsed: {
         INLINE_ESCAPED_EXPAND_BCRYPT:
@@ -278,7 +278,7 @@ describe('integration', function () {
     )
   })
 
-  it('multiple expand', () => {
+  it('multiple expand without curly', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
     expect(obj['WITHOUT_CURLY_BRACES_URI']).toBe(
@@ -286,7 +286,7 @@ describe('integration', function () {
     )
   })
 
-  it('should expand recursively', () => {
+  it('should expand recursively without curly', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
     expect(obj['WITHOUT_CURLY_BRACES_URI_RECURSIVELY']).toBe(

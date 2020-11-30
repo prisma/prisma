@@ -22,8 +22,6 @@ import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { MigrateUp } from './commands/legacy/MigrateUp'
 import { handlePanic } from './utils/handlePanic'
 
-const debug = debugLib('migrate')
-
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 /**

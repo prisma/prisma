@@ -1,6 +1,5 @@
 import { DatabaseStep } from './types'
 
-/* eslint-disable @typescript-eslint/camelcase */
 export const exampleDbSteps: DatabaseStep[] = [
   {
     RawSql: 'PRAGMA foreign_keys=OFF;',
@@ -68,4 +67,3 @@ export const exampleDbSteps: DatabaseStep[] = [
     RawSql: 'PRAGMA foreign_keys=ON;',
   },
 ]
-/* eslint-enable @typescript-eslint/camelcase */

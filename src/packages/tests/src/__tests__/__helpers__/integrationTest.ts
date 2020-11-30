@@ -87,7 +87,11 @@ type Database<Client> = {
   /**
    * Run logic before each scenario. Typically used to run scenario SQL setup against the database.
    */
-  beforeEach: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
+  beforeEach: (
+    db: Client,
+    sqlScenario: string,
+    ctx: Context,
+  ) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -100,24 +104,24 @@ type Database<Client> = {
    * Give the connection URL for the Prisma schema datasource block or provide your own custom implementation.
    */
   datasource:
-  | {
-    /**
-     * Construct the whole datasource block for the Prisma schema
-     */
-    raw: (ctx: Context) => string
-  }
-  | {
-    /**
-     * Supply the connection URL used in the datasource block.
-     */
-    url: string | ((ctx: Context) => string)
-    /**
-     * Supply the provider name used in the datasource block.
-     *
-     * @dynamicDefault The value passed to database.name
-     */
-    provider?: string
-  }
+    | {
+        /**
+         * Construct the whole datasource block for the Prisma schema
+         */
+        raw: (ctx: Context) => string
+      }
+    | {
+        /**
+         * Supply the connection URL used in the datasource block.
+         */
+        url: string | ((ctx: Context) => string)
+        /**
+         * Supply the provider name used in the datasource block.
+         *
+         * @dynamicDefault The value passed to database.name
+         */
+        provider?: string
+      }
 }
 
 /**
@@ -145,14 +149,17 @@ type Settings = {
 /**
  * A list of available preview features on the Prisma client.
  */
-type PreviewFeature = "connectOrCreate" | "microsoftSqlServer" | "transactionApi"
+type PreviewFeature =
+  | 'connectOrCreate'
+  | 'microsoftSqlServer'
+  | 'transactionApi'
 
 /**
  * Settings to add properties on the Prisma client.
  */
 type PrismaClientSettings = {
   /**
-   *  Supply the enabled preview features for the Prisma client. 
+   *  Supply the enabled preview features for the Prisma client.
    */
   previewFeatures?: PreviewFeature[]
 }
@@ -188,8 +195,8 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
     beforeAllScenarios(kind, input)
   })
 
-  afterAll(async () => {
-    await afterAllScenarios(kind, states)
+  afterAll(() => {
+    afterAllScenarios(kind, states)
   })
 
   /**
@@ -232,18 +239,14 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
     beforeAllScenarios(kind, input)
   })
 
-  afterAll(async () => {
-    await afterAllScenarios(kind, states)
+  afterAll(() => {
+    afterAllScenarios(kind, states)
   })
 
   it.concurrent.each(filterTestScenarios(input.scenarios).slice(0, 1))(
     `${kind}: %s`,
     async (_, scenario) => {
-      const { ctx, state } = await setupScenario(
-        kind,
-        input,
-        scenario,
-      )
+      const { ctx, state } = await setupScenario(kind, input, scenario)
       states[scenario.name] = state
 
       const PrismaClient = await getTestClient(ctx.fs.cwd())
@@ -260,12 +263,12 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
   )
 }
 
-async function afterAllScenarios(
+function afterAllScenarios(
   kind: string,
   states: Record<string, ScenarioState>,
 ) {
   engine.stop()
-  Object.entries(states).forEach(async ([_, state]) => {
+  Object.values(states).forEach(async (state) => {
     // props might be missing if test errors out before they are set.
     if (state.db && state.input.database.close) {
       await state.input.database.close(state.db)
@@ -304,11 +307,11 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     'raw' in input.database.datasource
       ? input.database.datasource.raw(ctx)
       : makeDatasourceBlock(
-        input.database.datasource.provider ?? input.database.name,
-        typeof input.database.datasource.url === 'function'
-          ? input.database.datasource.url(ctx)
-          : input.database.datasource.url,
-      )
+          input.database.datasource.provider ?? input.database.name,
+          typeof input.database.datasource.url === 'function'
+            ? input.database.datasource.url(ctx)
+            : input.database.datasource.url,
+        )
 
   const schemaBase = `
     generator client {
@@ -337,9 +340,7 @@ async function teardownScenario(state: ScenarioState) {
 
   // props might be missing if test errors out before they are set.
   if (state.db) {
-    await Promise.resolve(
-      state.input.database.afterEach?.(state.db)
-    )
+    await Promise.resolve(state.input.database.afterEach?.(state.db))
       .catch((e) => errors.push(e))
       .then(() => state.prisma?.$disconnect())
       .catch((e) => errors.push(e))
@@ -357,7 +358,7 @@ async function teardownScenario(state: ScenarioState) {
  * Convert test scenarios into something jest.each can consume
  */
 function filterTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
-  const onlys = scenarios.filter(scenario => scenario.only)
+  const onlys = scenarios.filter((scenario) => scenario.only)
 
   if (onlys.length) {
     return onlys.map((scenario) => [scenario.name, scenario])
@@ -376,7 +377,10 @@ function getScenarioDir(
   testKind: string,
   scenarioName: string,
 ) {
-  return path.join(getScenariosDir(databaseName, testKind), slugify(scenarioName))
+  return path.join(
+    getScenariosDir(databaseName, testKind),
+    slugify(scenarioName),
+  )
 }
 
 /**
@@ -405,9 +409,13 @@ function makeDatasourceBlock(providerName: string, url: string) {
 /**
  * Create Prisma schema enabled features array of strings.
  */
-function renderPreviewFeatures(featureMatrix: Input['prismaClientSettings']['previewFeatures'] | undefined) {
+function renderPreviewFeatures(
+  featureMatrix: Input['prismaClientSettings']['previewFeatures'] | undefined,
+) {
   if (featureMatrix) {
-    return (`previewFeatures = [${featureMatrix.map(feature => `"`+feature+`"`)}]`)
-  } 
+    return `previewFeatures = [${featureMatrix.map(
+      (feature) => `"` + feature + `"`,
+    )}]`
+  }
   return ''
 }

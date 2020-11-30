@@ -14,15 +14,15 @@ const stubOptions: GeneratorOptions = {
       modelOperations: [],
       otherOperations: {
         read: [],
-        write: []
-      }
+        write: [],
+      },
     },
     schema: {
       enumTypes: {
-        prisma: []
+        prisma: [],
       },
       inputObjectTypes: {
-        prisma: []
+        prisma: [],
       },
       outputObjectTypes: {
         model: [],
@@ -44,13 +44,6 @@ const stubOptions: GeneratorOptions = {
 }
 
 describe('generatorHandler', () => {
-  // test('not executable', async () => {
-  //   expect(() => {
-  //     const generator = new GeneratorProcess(
-  //       path.join(__dirname, 'not-executable'),
-  //     )
-  //   }).toThrow('is not executable')
-  // })
   test('exiting', async () => {
     const generator = new GeneratorProcess(
       path.join(__dirname, 'exiting-executable'),
@@ -112,6 +105,6 @@ describe('generatorHandler', () => {
     const generator = new GeneratorProcess(
       path.join(__dirname, 'random path that doesnt exist'),
     )
-    expect(() => generator.init()).rejects.toThrow()
+    await expect(() => generator.init()).rejects.toThrow()
   })
 })

@@ -10,8 +10,10 @@
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest"
+    "lint": "eslint --cache --fix --ext .ts .",
+    "lint-ci": "eslint --ext .ts .",
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "files": [
     "!**/__tests__",
@@ -74,18 +76,10 @@
     "tmp": "0.2.1",
     "url-parse": "^1.4.7"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.{js,ts}": [
-      "eslint"
+    "*.ts": [
+      "eslint",
+      "prettier --write"
     ]
   }
 }

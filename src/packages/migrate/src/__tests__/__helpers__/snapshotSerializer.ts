@@ -1,4 +1,3 @@
-const path = require('path')
 const stripAnsi = require('strip-ansi')
 
 function normalizeMigrateTimestamps(str) {

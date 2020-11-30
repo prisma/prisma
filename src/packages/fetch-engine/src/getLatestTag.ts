@@ -7,14 +7,6 @@ import pMap from 'p-map'
 import chalk from 'chalk'
 
 export async function getLatestTag(): Promise<any> {
-  // if (process.env.RELEASE_PROMOTE_DEV) {
-  //   const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
-  //   console.log(
-  //     `getLatestTag: taking ${versions.engines} as RELEASE_PROMOTE_DEV has been provided`,
-  //   )
-  //   return versions.engines
-  // }
-
   let branch = await getBranch()
   if (
     branch !== 'master' &&
@@ -131,48 +123,6 @@ async function getFirstFinishedCommit(
   }
 }
 
-async function getCommitAndWaitIfNotDone(
-  branch: string,
-  commits: string[],
-): Promise<string> {
-  for (const commit of commits) {
-    const urls = getAllUrls(branch, commit)
-    let exist = await pMap(urls, urlExists, { concurrency: 10 })
-    let hasMissing = exist.some((e) => !e)
-    let missing = urls.filter((_, i) => !exist[i])
-    if (missing.length === urls.length) {
-      continue
-    }
-
-    if (!hasMissing) {
-      return commit
-    } else {
-      // if all are missing, we don't have to talk about it
-      // it might just be a broken commit or just still building
-      if (missing.length !== urls.length) {
-        const started = Date.now()
-        while (hasMissing) {
-          if (Date.now() - started > 1000 * 60 * 20) {
-            throw new Error(
-              `No new engine for commit ${commit} ready after waiting for 20 minutes.`,
-            )
-          }
-          console.log(
-            `The engine commit ${commit} is not yet done. ${missing.length} urls are missing. Trying again in 10 seconds`,
-          )
-          exist = await pMap(urls, urlExists, { concurrency: 10 })
-          missing = urls.filter((_, i) => !exist[i])
-          hasMissing = exist.some((e) => !e)
-          if (!hasMissing) {
-            return commit
-          }
-          await new Promise((r) => setTimeout(r, 10000))
-        }
-      }
-    }
-  }
-}
-
 export async function urlExists(url) {
   try {
     const res = await fetch(url, {
@@ -237,21 +187,6 @@ async function getBranch() {
 // TODO: Adjust this for stable release
 function isPatchBranch(version: string): boolean {
   return /^2\.(\d+)\.x/.test(version)
-}
-
-async function getVersionHashes(
-  npmVersion: string,
-): Promise<{ engines: string; prisma: string }> {
-  return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
-    headers: {
-      accept: 'application/json',
-    },
-  })
-    .then((res) => res.json())
-    .then((pkg) => ({
-      engines: pkg.prisma.version,
-      prisma: pkg.prisma.prismaCommit,
-    }))
 }
 
 async function getCommits(branch: string): Promise<string[] | object> {

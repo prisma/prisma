@@ -1,4 +1,4 @@
-import { InputField } from './../TSClient';
+import { InputField } from './../TSClient'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { DMMFClass } from '../../runtime/dmmf'
@@ -26,9 +26,8 @@ import { ExportCollector, getMethodJSDoc } from './helpers'
 import { InputType } from './Input'
 import { OutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
-import { TAB_SIZE } from './constants';
-import { PayloadType } from './Payload';
-
+import { TAB_SIZE } from './constants'
+import { PayloadType } from './Payload'
 
 export class Model implements Generatable {
   protected outputType?: OutputType
@@ -37,11 +36,13 @@ export class Model implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFClass,
     protected readonly generator?: GeneratorConfig,
-    protected readonly collector?: ExportCollector
+    protected readonly collector?: ExportCollector,
   ) {
     const outputType = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(dmmf, outputType)
-    this.mapping = dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
+    this.mapping = dmmf.mappings.modelOperations.find(
+      (m) => m.model === model.name,
+    )!
   }
   protected get argsTypes(): Generatable[] {
     const { mapping, model } = this
@@ -63,11 +64,21 @@ export class Model implements Generatable {
       }
       if (action === 'updateMany' || action === 'deleteMany') {
         argsTypes.push(
-          new MinimalArgsType(field.args, model, action as DMMF.ModelAction, this.collector),
+          new MinimalArgsType(
+            field.args,
+            model,
+            action as DMMF.ModelAction,
+            this.collector,
+          ),
         )
       } else {
         argsTypes.push(
-          new ArgsType(field.args, model, action as DMMF.ModelAction, this.collector),
+          new ArgsType(
+            field.args,
+            model,
+            action as DMMF.ModelAction,
+            this.collector,
+          ),
         )
       }
     }
@@ -81,7 +92,8 @@ export class Model implements Generatable {
     const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
     if (!aggregateType) {
       throw new Error(
-        `Could not get aggregate type "${getAggregateName(model.name)}" for "${model.name
+        `Could not get aggregate type "${getAggregateName(model.name)}" for "${
+          model.name
         }"`,
       )
     }
@@ -105,7 +117,7 @@ export class Model implements Generatable {
       aggregateTypes.push(maxType)
     }
 
-    const aggregateRootField = this.dmmf.rootFieldMap[mapping?.aggregate!]
+    const aggregateRootField = this.dmmf.rootFieldMap[mapping!.aggregate!]
     if (!aggregateRootField) {
       throw new Error(
         `Could not find aggregate root field for model ${model.name}. Mapping: ${mapping?.aggregate}`,
@@ -123,72 +135,75 @@ export class Model implements Generatable {
       .map((type) => new SchemaOutputType(type, this.collector).toTS())
       .join('\n')}
 
-${aggregateTypes.length > 1
-        ? aggregateTypes
-          .slice(1)
-          .map((type) => {
-            const newType: DMMF.InputType = {
-              name: getAggregateInputType(type.name),
-              constraints: {
-                maxNumFields: null,
-                minNumFields: null
-              },
-              fields: type.fields.map((field) => ({
-                ...field,
-                name: field.name,
-                isNullable: false,
-                isRequired: false,
-                inputTypes: [
-                  {
-                    isList: false,
-                    location: 'scalar',
-                    type: 'true',
-                  },
-                ],
-              })),
-            }
-            return new InputType(newType, this.collector).toTS()
-          })
-          .join('\n')
-        : ''
-      }
+${
+  aggregateTypes.length > 1
+    ? aggregateTypes
+        .slice(1)
+        .map((type) => {
+          const newType: DMMF.InputType = {
+            name: getAggregateInputType(type.name),
+            constraints: {
+              maxNumFields: null,
+              minNumFields: null,
+            },
+            fields: type.fields.map((field) => ({
+              ...field,
+              name: field.name,
+              isNullable: false,
+              isRequired: false,
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'true',
+                },
+              ],
+            })),
+          }
+          return new InputType(newType, this.collector).toTS()
+        })
+        .join('\n')
+    : ''
+}
 
 export type ${aggregateArgsName} = {
 ${indent(
-        aggregateRootField.args
-          .map((arg) => new InputField(arg).toTS())
-          .concat(
-            aggregateType.fields.map((f) => {
-              if (f.name === 'count') {
-                return `${f.name}?: true`
-              }
-              return `${f.name}?: ${getAggregateInputType(
-                (f.outputType.type as DMMF.OutputType).name,
-              )}`
-            }),
-          )
-          .join('\n'),
-        TAB_SIZE,
-      )}
+  aggregateRootField.args
+    .map((arg) => new InputField(arg).toTS())
+    .concat(
+      aggregateType.fields.map((f) => {
+        if (f.name === 'count') {
+          return `${f.name}?: true`
+        }
+        return `${f.name}?: ${getAggregateInputType(
+          (f.outputType.type as DMMF.OutputType).name,
+        )}`
+      }),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
 }
 
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
-        model.name,
-      )}> = {
-  [P in keyof T]: P extends 'count' ? number : ${aggregateTypes.length > 1
-        ? `${getAggregateScalarGetName(model.name)}<T[P]>`
-        : 'never'
-      }
+      model.name,
+    )}> = {
+  [P in keyof T]: P extends 'count' ? number : ${
+    aggregateTypes.length > 1
+      ? `${getAggregateScalarGetName(model.name)}<T[P]>`
+      : 'never'
+  }
 }
 
-${aggregateTypes.length > 1
-        ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
+${
+  aggregateTypes.length > 1
+    ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
   [P in keyof T]: P extends keyof ${getAvgAggregateName(
-          model.name,
-        )} ? ${getAvgAggregateName(model.name)}[P] : never
+    model.name,
+  )} ? ${getAvgAggregateName(model.name)}[P] : never
 }`
-        : ''
-      }
+    : ''
+}
     
     `
   }
@@ -200,12 +215,12 @@ ${aggregateTypes.length > 1
 
 export type ${model.name} = {
 ${indent(
-      model.fields
-        .filter((f) => f.kind !== 'object')
-        .map((field) => new OutputField(this.dmmf, field, true).toTS())
-        .join('\n'),
-      TAB_SIZE,
-    )}
+  model.fields
+    .filter((f) => f.kind !== 'object')
+    .map((field) => new OutputField(this.dmmf, field, true).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
 }
 `
   }
@@ -221,16 +236,18 @@ ${indent(
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
-        outputType.fields
-          .filter((f) => f.outputType.location === 'outputObjectTypes')
-          .map(
-            (f) =>
-              `${f.name}?: boolean` +
-              (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
-          )
-          .join('\n'),
-        TAB_SIZE,
-      )}
+  outputType.fields
+    .filter((f) => f.outputType.location === 'outputObjectTypes')
+    .map(
+      (f) =>
+        `${f.name}?: boolean` +
+        (f.outputType.location === 'outputObjectTypes'
+          ? ` | ${getFieldArgName(f)}`
+          : ''),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
 }\n`
       : ''
 
@@ -243,15 +260,17 @@ ${this.getAggregationTypes()}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
-      outputType.fields
-        .map(
-          (f) =>
-            `${f.name}?: boolean` +
-            (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
-        )
-        .join('\n'),
-      TAB_SIZE,
-    )}
+  outputType.fields
+    .map(
+      (f) =>
+        `${f.name}?: boolean` +
+        (f.outputType.location === 'outputObjectTypes'
+          ? ` | ${getFieldArgName(f)}`
+          : ''),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
 }
 ${includeType}
 ${new PayloadType(this.outputType!).toTS()}
@@ -268,7 +287,7 @@ export class ModelDelegate implements Generatable {
     protected readonly outputType: OutputType,
     protected readonly dmmf: DMMFClass,
     protected readonly generator?: GeneratorConfig,
-  ) { }
+  ) {}
   public toTS(): string {
     const { fields, name } = this.outputType
     const mapping = this.dmmf.mappingsMap[name]
@@ -278,7 +297,7 @@ export class ModelDelegate implements Generatable {
     const model = this.dmmf.modelMap[name]
 
     // TODO: handle findUnique
-    mapping["findOne"] = mapping['findUnique']
+    mapping['findOne'] = mapping['findUnique']
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
@@ -302,24 +321,24 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
       : ''
   }: Subset<T, ${getModelArgName(name, actionName)}>
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
-        )
-        .join('\n'),
-      TAB_SIZE,
-    )}
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
   /**
    * Count
    */
   count(args?: Omit<${getModelArgName(
-      name,
-      DMMF.ModelAction.findMany,
-    )}, 'select' | 'include'>): Promise<number>
+    name,
+    DMMF.ModelAction.findMany,
+  )}, 'select' | 'include'>): Promise<number>
 
   /**
    * Aggregate
    */
   aggregate<T extends ${getAggregateArgsName(
-      name,
-    )}>(args: Subset<T, ${getAggregateArgsName(
+    name,
+  )}>(args: Subset<T, ${getAggregateArgsName(
       name,
     )}>): Promise<${getAggregateGetName(name)}<T>>
 }
@@ -346,28 +365,28 @@ export class Prisma__${name}Client<T> implements Promise<T> {
   constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
-      fields
-        .filter((f) => f.outputType.location === 'outputObjectTypes')
-        .map((f) => {
-          const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-          return `
+  fields
+    .filter((f) => f.outputType.location === 'outputObjectTypes')
+    .map((f) => {
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
+      return `
 ${f.name}<T extends ${getFieldArgName(
-            f,
-          )} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
-            name: fieldTypeName,
-            actionName: f.outputType.isList
-              ? DMMF.ModelAction.findMany
-              : DMMF.ModelAction.findUnique,
-            hideCondition: false,
-            isField: true,
-            renderPromise: true,
-            fieldName: f.name,
-            projection: Projection.select,
-          })};`
-        })
-        .join('\n'),
-      2,
-    )}
+        f,
+      )} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+        name: fieldTypeName,
+        actionName: f.outputType.isList
+          ? DMMF.ModelAction.findMany
+          : DMMF.ModelAction.findUnique,
+        hideCondition: false,
+        isField: true,
+        renderPromise: true,
+        fieldName: f.name,
+        projection: Projection.select,
+      })};`
+    })
+    .join('\n'),
+  2,
+)}
 
   private get _document();
   /**

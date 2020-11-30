@@ -1,5 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
+/* eslint-disable */
+
 test('disconnect-finally', async () => {
   const PrismaClient = await getTestClient()
 

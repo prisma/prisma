@@ -1,14 +1,12 @@
 import {
   arg,
   Command,
-  Commands,
   format,
   HelpError,
   isError,
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
-  IntrospectionEngine,
 } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import chalk from 'chalk'

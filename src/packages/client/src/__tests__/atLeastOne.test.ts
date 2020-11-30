@@ -72,6 +72,7 @@ describe('at least one validation', () => {
       `)
     }
   })
+
   test('valid query', () => {
     const select = {
       where: {

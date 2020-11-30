@@ -55,8 +55,6 @@ import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'
 
-const debug = debugLib('migrate')
-
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 /**

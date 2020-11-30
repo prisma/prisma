@@ -119,10 +119,10 @@ export function uriToCredentials(
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
     database,
-    schema: uri.query.schema || undefined,
+    schema: schema || undefined,
     uri: connectionString,
     ssl: Boolean(uri.query.sslmode),
-    socket: uri.query.socket || uri.query.host,
+    socket: socket || host,
     extraFields,
   }
 }
