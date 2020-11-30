@@ -102,12 +102,35 @@ it('createMigration draft - existing-db-1-migration', async () => {
   migrate.stop()
 })
 
-it('diagnoseMigrationHistory - existing-db-1-migration', async () => {
+it('diagnoseMigrationHistory - optInToShadowDatabase true - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
   const result = migrate.engine.diagnoseMigrationHistory({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    optInToShadowDatabase: true,
+  })
+
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            drift: null,
+            editedMigrationNames: Array [],
+            errorInUnappliedMigration: null,
+            failedMigrationNames: Array [],
+            hasMigrationsTable: true,
+            history: null,
+          }
+        `)
+  migrate.stop()
+})
+
+it('diagnoseMigrationHistory - optInToShadowDatabase false - existing-db-1-migration', async () => {
+  ctx.fixture('existing-db-1-migration')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.diagnoseMigrationHistory({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+    optInToShadowDatabase: false,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`

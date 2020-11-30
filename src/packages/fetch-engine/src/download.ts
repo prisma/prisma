@@ -264,9 +264,10 @@ async function binaryNeedsToBeDownloaded(
   version: string,
   failSilent: boolean,
 ): Promise<boolean> {
-  // 1. Check if file exists
-  const targetExists = await exists(job.targetFilePath)
+  const binaryPath = job.envVarPath ?? job.targetFilePath
 
+  // 1. Check if file exists
+  const targetExists = await exists(binaryPath)
   // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
   const cachedFile = await getCachedBinaryPath({
@@ -304,7 +305,7 @@ async function binaryNeedsToBeDownloaded(
 
   // 3. If same platform, always check --version
   if (job.binaryTarget === nativePlatform) {
-    const works = await checkVersionCommand(job.targetFilePath)
+    const works = await checkVersionCommand(binaryPath)
     return !works
   }
 

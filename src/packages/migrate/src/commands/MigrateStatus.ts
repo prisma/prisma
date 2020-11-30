@@ -127,7 +127,9 @@ Delete the current migrations folder to continue and read the documentation for 
     //         - Pending migrations (those in the migrations folder that haven't been applied yet)
     //         - If there are no pending migrations, tell the user everything looks OK and up to date.
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory()
+    const diagnoseResult = await migrate.diagnoseMigrationHistory({
+      optInToShadowDatabase: false,
+    })
     debug({ diagnoseResult })
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })

@@ -243,9 +243,14 @@ export class Migrate {
     return this.engine.createMigration(params)
   }
 
-  public diagnoseMigrationHistory(): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+  public diagnoseMigrationHistory({
+    optInToShadowDatabase,
+  }: {
+    optInToShadowDatabase: boolean
+  }): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     return this.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
+      optInToShadowDatabase,
     })
   }
 

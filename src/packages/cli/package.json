@@ -79,7 +79,7 @@
     "@types/ws": "7.4.0",
     "@typescript-eslint/eslint-plugin": "4.8.2",
     "@typescript-eslint/parser": "4.8.2",
-    "checkpoint-client": "1.1.15",
+    "checkpoint-client": "1.1.16",
     "dotenv": "8.2.0",
     "esbuild": "0.8.17",
     "escape-string-regexp": "4.0.0",
@@ -135,7 +135,7 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.13.0-8.e5fe27434f5b257d9b2cb37cb622e530cbf0b624"
+    "@prisma/engines": "2.13.0-11.83bdc1de26302e30fbe738e835013d76247c467a"
   },
   "lint-staged": {
     "*.ts": [

@@ -43,7 +43,8 @@
         "@prisma/engines",
         "@prisma/engines-version",
         "@prisma/studio",
-        "@prisma/studio-server"
+        "@prisma/studio-server",
+        "checkpoint-client"
       ],
       "updateTypes": ["patch", "minor"],
       "schedule": [
@@ -54,7 +55,11 @@
     {
       "groupName": "dependencies (non-major)",
       "depTypeList": ["dependencies"],
-      "excludePackageNames": ["@prisma/engines", "@prisma/engines-version"],
+      "excludePackageNames": [
+        "@prisma/engines",
+        "@prisma/engines-version",
+        "checkpoint-client"
+      ],
       "updateTypes": ["patch", "minor"],
       "schedule": ["on monday and wednesday"]
     }
