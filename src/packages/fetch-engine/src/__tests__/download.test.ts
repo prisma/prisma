@@ -192,20 +192,20 @@ describe('download', () => {
       },
     })
     const dummyPath = e['query-engine'][Object.keys(e['query-engine'])[0]]!
-    process.env.PRISMA_QUERY_ENGINE_BINARY = dummyPath
     const targetPath = path.join(
       __dirname,
       getBinaryName('query-engine', 'marvin'),
     )
     fs.copyFileSync(dummyPath, targetPath)
+    process.env.PRISMA_QUERY_ENGINE_BINARY = targetPath
 
     let testResult = await download({
       binaries: {
-        'query-engine': __dirname,
+        'query-engine': path.join(__dirname, 'all'),
       },
       binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     })
-    expect(testResult['query-engine']['marvin']).toEqual(dummyPath)
+    expect(testResult['query-engine']['marvin']).toEqual(targetPath)
   })
   test('download all binaries & cache them', async () => {
     const baseDir = path.join(__dirname, 'all')
