@@ -68,7 +68,10 @@ async function lintPackage(
   stagedOnly: boolean = false,
 ): Promise<boolean> {
   try {
-    await execa.command(`pnpm run ${stagedOnly ? 'precommit' : 'lint'}`, {
+    const lint = process.env.CI ? 'lint-ci' : 'lint'
+    const command = `pnpm run ${stagedOnly ? 'precommit' : lint}`
+    console.log(`${pkg}: running`, command)
+    await execa.command(command, {
       cwd: path.join(__dirname, `../src/packages/${pkg}`),
       stdio: 'pipe',
       env: {
