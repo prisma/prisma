@@ -3,6 +3,9 @@ import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 
+// We WANT to be able to do the async function without an await
+/* eslint-disable @typescript-eslint/require-await */
+
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-wrong-native-types'
   await tearDownMysql(process.env.TEST_MYSQL_URI!)

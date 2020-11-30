@@ -70,6 +70,7 @@ ${chalk.bold('Examples')}
 
   private constructor(private readonly cmds: Commands) {}
 
+  /* eslint-disable-next-line @typescript-eslint/require-await */
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,

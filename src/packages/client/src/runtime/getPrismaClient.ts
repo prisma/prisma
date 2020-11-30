@@ -307,6 +307,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         const thedatasources = options.datasources || {}
 
         const inputDatasources = Object.entries(thedatasources)
+          /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
           .filter(([_, source]) => {
             return source && source.url
           })

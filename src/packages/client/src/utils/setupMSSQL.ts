@@ -16,5 +16,5 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   const connection = await connectionPool.connect()
 
   await connection.query(schema)
-  connection.close()
+  void connection.close()
 }

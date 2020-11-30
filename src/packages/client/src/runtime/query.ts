@@ -955,12 +955,6 @@ export function makeDocument({
 export function transformDocument(document: Document): Document {
   return document
 }
-function convertToSnakeCase(str: string): string {
-  return str
-    .split(/(?=[A-Z])/)
-    .join('_')
-    .toLowerCase()
-}
 
 export function selectionToFields(
   dmmf: DMMFClass,
