@@ -48,12 +48,16 @@ describe('sqlite', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
-                                        `)
+                                                            Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
+                                                  `)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/empty.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/empty.prisma
+
+      SQLite database dev.db created at file:dev.db
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -65,23 +69,26 @@ describe('sqlite', () => {
     const result = MigrateDeploy.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                        Prisma Migrate applied the following migration(s):
+                                    Prisma Migrate applied the following migration(s):
 
-                        migrations/
-                          └─ 20201231000000_init/
-                            └─ migration.sql
-                    `)
+                                    migrations/
+                                      └─ 20201231000000_init/
+                                        └─ migration.sql
+                              `)
 
     // Second time should do nothing (already applied)
     const resultBis = MigrateDeploy.new().parse(['--early-access-feature'])
     await expect(resultBis).resolves.toMatchInlineSnapshot(`
 
-                                    Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
-                              `)
+                                                Everything is already in sync - Prisma Migrate didn't find unapplied migrations.
+                                        `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+
+      SQLite database dev.db created at file:dev.db
+
       Prisma schema loaded from prisma/schema.prisma
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
