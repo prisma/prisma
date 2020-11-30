@@ -27,7 +27,7 @@ async function main() {
   }
 
   if (packages.length === 0) {
-    console.log(chalk.blueBright('Nothing to lint'))
+    console.log(chalk.blueBright('Nothing to lint ') + chalk.bold.greenBright(`✔️`))
   }
 
   const results = await pMap(
