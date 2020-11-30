@@ -6,10 +6,9 @@ test('blog-dot-env-root', async () => {
   const prisma = new PrismaClient({
     errorFormat: 'colorless',
   })
+
   try {
     await prisma.$connect()
-  } catch (e) {
-    throw e
   } finally {
     prisma.$disconnect()
   }

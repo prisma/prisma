@@ -8,7 +8,6 @@ import Debug from '@prisma/debug'
 import makeDir from 'make-dir'
 import execa from 'execa'
 import pFilter from 'p-filter'
-import hasha from 'hasha'
 import tempDir from 'temp-dir'
 
 // Utils
@@ -97,7 +96,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     return {}
   }
 
-
   // merge options
   options = {
     ...options,
@@ -145,9 +143,14 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.failSilent,
     )
     const isSupported = platforms.includes(job.binaryTarget as Platform)
-    const shouldDownload = isSupported && !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
-    if(needsToBeDownloaded && !isSupported){
-      throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`)
+    const shouldDownload =
+      isSupported &&
+      !job.envVarPath &&
+      (options.ignoreCache || needsToBeDownloaded)
+    if (needsToBeDownloaded && !isSupported) {
+      throw new Error(
+        `Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`,
+      )
     }
     return shouldDownload
   })

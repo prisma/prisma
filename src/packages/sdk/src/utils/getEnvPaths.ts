@@ -49,7 +49,7 @@ function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null 
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {
       try {
-        let pkg = require(pkgPath)
+        const pkg = require(pkgPath)
         if (pkg['name'] !== '.prisma/client') {
           return pkgPath
         }

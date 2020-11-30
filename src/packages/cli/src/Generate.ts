@@ -195,7 +195,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           ? prefixRelativePathIfNecessary(
               path.relative(
                 process.cwd(),
-                prismaClientJSGenerator.options?.generator.output!,
+                prismaClientJSGenerator.options.generator.output!,
               ),
             )
           : '@prisma/client'

@@ -5,7 +5,7 @@ test('exit-hook', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   let beforeExitResult
-  prisma.$on('beforeExit', async () => {
+  prisma.$on('beforeExit', () => {
     beforeExitResult = doWork(prisma)
   })
   let processHookCalled = false

@@ -15,10 +15,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import Debug from '@prisma/debug'
 import { isOldMigrate } from '../utils/detectOldMigrate'
-
-const debug = Debug('migrate:resolve')
 
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {

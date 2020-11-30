@@ -2,7 +2,7 @@ import * as http from 'http'
 
 export class H1Client {
   agent: http.Agent
-  closed: boolean = false
+  closed = false
   constructor() {
     this.agent = new http.Agent({ keepAlive: true, maxSockets: 100 })
   }

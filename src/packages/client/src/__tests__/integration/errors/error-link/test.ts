@@ -1,5 +1,4 @@
 import { getTestClient } from '../../../../utils/getTestClient'
-const stripAnsi = require('strip-ansi')
 
 test('error-link', async () => {
   expect.assertions(1)

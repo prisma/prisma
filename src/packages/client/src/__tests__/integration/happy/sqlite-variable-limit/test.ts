@@ -14,7 +14,7 @@ test('sqlite-variable-limit', async () => {
     await uncompressFile(db)
   }
 
-  const result = await prisma.user.findMany({
+  await prisma.user.findMany({
     include: {
       posts: true,
     },

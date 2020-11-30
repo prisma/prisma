@@ -109,15 +109,15 @@ export class NodeEngine {
   private clientVersion?: string
   private lastPanic?: Error
   private globalKillSignalReceived?: string
-  private restartCount: number = 0
+  private restartCount = 0
   private backoffPromise?: Promise<any>
-  private queryEngineStarted: boolean = false
+  private queryEngineStarted = false
   private enableExperimental: string[] = []
   private engineEndpoint?: string
   private lastLog?: RustLog
   private lastErrorLog?: RustLog
   private lastError?: RustError
-  private useUds: boolean = false
+  private useUds = false
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
   private stopPromise?: Promise<void>
@@ -165,7 +165,7 @@ export class NodeEngine {
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
-    dirname
+    dirname,
   }: EngineConfig) {
     this.dirname = dirname
     this.useUds = process.platform !== 'win32'
@@ -193,13 +193,16 @@ export class NodeEngine {
       'atomicNumberOperations',
       'transactionApi',
       'transaction',
-      'connectOrCreate'
+      'connectOrCreate',
     ]
     const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
-    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+    if (
+      removedFlagsUsed.length > 0 &&
+      !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
+    ) {
       console.log(
         `${chalk.blueBright(
           'info',
@@ -252,7 +255,7 @@ You may have to run ${chalk.greenBright(
         )
       }
     } else {
-      this.getPlatform()
+      void this.getPlatform()
     }
     if (this.enableDebugLogs) {
       debugLib.enable('*')
@@ -263,9 +266,13 @@ You may have to run ${chalk.greenBright(
 
   private checkForTooManyEngines() {
     if (engines.length >= 10) {
-      const runningEngines = engines.filter(e => e.child)
+      const runningEngines = engines.filter((e) => e.child)
       if (runningEngines.length === 10) {
-        console.warn(`${chalk.yellow('warn(prisma-client)')} Already 10 Prisma Clients are actively running.`)
+        console.warn(
+          `${chalk.yellow(
+            'warn(prisma-client)',
+          )} Already 10 Prisma Clients are actively running.`,
+        )
       }
     }
   }
@@ -366,12 +373,12 @@ You may have to run ${chalk.greenBright(
     for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Search for Query Engine in ${location}`)
-      enginePath = await this.getQueryEnginePath(this.platform, location)
+      enginePath = this.getQueryEnginePath(this.platform, location)
       if (fs.existsSync(enginePath)) {
         return { prismaPath: enginePath, searchedLocations }
       }
     }
-    enginePath = await this.getQueryEnginePath(this.platform)
+    enginePath = this.getQueryEnginePath(this.platform)
 
     return { prismaPath: enginePath ?? '', searchedLocations }
   }
@@ -384,8 +391,8 @@ You may have to run ${chalk.greenBright(
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-          `${this.incorrectlyPinnedBinaryTarget}`,
-        )}\n`
+            `${this.incorrectlyPinnedBinaryTarget}`,
+          )}\n`
         : ''
 
       let errorText = `Query engine binary for current platform "${chalk.bold(
@@ -396,14 +403,21 @@ This probably happens, because you built Prisma Client on a different platform.
 
 Searched Locations:
 
-${searchedLocations.map((f) => {
-        let msg = `  ${f}`
-        if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-          const dir = fs.readdirSync(f)
-          msg += dir.map(d => `    ${d}`).join('\n')
-        }
-        return msg
-      }).join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
+${searchedLocations
+  .map((f) => {
+    let msg = `  ${f}`
+    if (
+      process.env.DEBUG === 'node-engine-search-locations' &&
+      fs.existsSync(f)
+    ) {
+      const dir = fs.readdirSync(f)
+      msg += dir.map((d) => `    ${d}`).join('\n')
+    }
+    return msg
+  })
+  .join(
+    '\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''),
+  )}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
@@ -413,10 +427,11 @@ ${searchedLocations.map((f) => {
           this.generator.binaryTargets.includes('native')
         ) {
           errorText += `
-You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''
-            } ${this.generator.binaryTargets
-              .map((t) => `"${chalk.bold(t)}"`)
-              .join(', ')} to the "${chalk.underline('generator')}" block
+You already added the platform${
+            this.generator.binaryTargets.length > 1 ? 's' : ''
+          } ${this.generator.binaryTargets
+            .map((t) => `"${chalk.bold(t)}"`)
+            .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -425,15 +440,16 @@ Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform
-            }" to the "${chalk.underline(
-              'generator',
-            )}" block in the "schema.prisma" file:
+          errorText += `\n\nTo solve this problem, add the platform "${
+            this.platform
+          }" to the "${chalk.underline(
+            'generator',
+          )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
 Then run "${chalk.greenBright(
-              'prisma generate',
-            )}" for your changes to take effect.
+            'prisma generate',
+          )}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -493,7 +509,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return this.startPromise
   }
 
-  private async getEngineEnvVars() {
+  private getEngineEnvVars() {
     const env: any = {
       PRISMA_DML_PATH: this.datamodelPath,
       RUST_BACKTRACE: '1',
@@ -567,8 +583,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const prismaPath = await this.getPrismaPath()
         const experimentalFlags =
           this.enableExperimental &&
-            Array.isArray(this.enableExperimental) &&
-            this.enableExperimental.length > 0
+          Array.isArray(this.enableExperimental) &&
+          this.enableExperimental.length > 0
             ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
             : []
 
@@ -588,7 +604,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         debug({ flags })
 
         this.port = await this.getFreePort()
-        const env = await this.getEngineEnvVars()
+        const env = this.getEngineEnvVars()
 
         this.child = spawn(prismaPath, flags, {
           env,
@@ -676,7 +692,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             this.queryEngineStarted &&
             this.restartCount < 5
           ) {
-            pRetry(
+            void pRetry(
               async (attempt) => {
                 debug(`Restart attempt ${attempt}. Waiting for backoff`)
                 if (this.backoffPromise) {
@@ -715,7 +731,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
-                this.stderrLogs,
+                  this.stderrLogs,
                 this.clientVersion,
               )
             } else {
@@ -766,7 +782,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           this.lastError = {
             message: err.message,
             backtrace: 'Could not start query engine',
-            is_panic: false, // eslint-disable-line @typescript-eslint/camelcase
+            is_panic: false,
           }
           reject(err)
         })
@@ -834,12 +850,12 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
         this.url = `http://localhost:${this.port}`
 
-          // don't wait for this
-          ; (async () => {
-            const engineVersion = await this.version()
-            debug(`Client Version ${this.clientVersion}`)
-            debug(`Engine Version ${engineVersion}`)
-          })()
+        // don't wait for this
+        void (async () => {
+          const engineVersion = await this.version()
+          debug(`Client Version ${this.clientVersion}`)
+          debug(`Engine Version ${engineVersion}`)
+        })()
 
         this.stopPromise = undefined
         resolve()
@@ -898,7 +914,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     this.engineStopDeferred = undefined
   }
 
-  async kill(signal: string): Promise<void> {
+  kill(signal: string): void {
     this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.queryEngineKilled = true
@@ -1203,7 +1219,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           lastLog = this.getLastLog()
         }
         const logs = lastLog || this.stderrLogs || this.stdoutLogs
-        let title = lastLog ?? error.message
+        const title = lastLog ?? error.message
         let description =
           error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
         description =

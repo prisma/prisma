@@ -12,6 +12,7 @@ beforeAll(async () => {
 
 describe('select validation', () => {
   test('unknown arg, field, incorrect arg type', () => {
+    expect.assertions(4)
     const ast = {
       skip: 200,
       where: {
@@ -80,6 +81,7 @@ describe('select validation', () => {
   })
 
   test('missing arg object', () => {
+    expect.assertions(2)
     const ast = {}
 
     const document = makeDocument({
@@ -97,7 +99,8 @@ describe('select validation', () => {
     }
   })
 
-  test('missing arg object', () => {
+  test('missing arg object colorless', () => {
+    expect.assertions(4)
     const ast = {}
 
     const document = makeDocument({
@@ -128,6 +131,7 @@ describe('select validation', () => {
   })
 
   test('missing arg scalar', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'string',
@@ -153,6 +157,7 @@ describe('select validation', () => {
   })
 
   test('missing arg scalar && object', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'string',
@@ -175,6 +180,7 @@ describe('select validation', () => {
   })
 
   test('Allow simple create mutation', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -195,6 +201,7 @@ describe('select validation', () => {
   })
 
   test('Allow explicit null value', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -215,6 +222,7 @@ describe('select validation', () => {
   })
 
   test('Allow different iso strings 1', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -236,6 +244,7 @@ describe('select validation', () => {
   })
 
   test('Allow different iso strings 2', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -256,7 +265,8 @@ describe('select validation', () => {
     expect(() => document.validate(ast)).not.toThrow()
   })
 
-  test('Allow different iso strings 2', () => {
+  test('Allow different iso strings 3', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -278,6 +288,7 @@ describe('select validation', () => {
   })
 
   test('Allow uuid for string input', () => {
+    expect.assertions(2)
     const ast = {
       data: {
         title: 'Some title',
@@ -298,6 +309,7 @@ describe('select validation', () => {
   })
 
   test('Allow deep select query', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -320,6 +332,7 @@ describe('select validation', () => {
   })
 
   test('Accept empty where in findMany', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -343,6 +356,7 @@ describe('select validation', () => {
   })
 
   test('allow where with all undefined in findMany', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -368,6 +382,7 @@ describe('select validation', () => {
   })
 
   test('reject empty where for findUnique', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -395,6 +410,7 @@ describe('select validation', () => {
   })
 
   test('reject all undefined where for findUnique', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -424,6 +440,7 @@ describe('select validation', () => {
   })
 
   test('Allow uuid array for string array', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -451,6 +468,7 @@ describe('select validation', () => {
   })
 
   test('Allow empty input array', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {
@@ -478,6 +496,7 @@ describe('select validation', () => {
   })
 
   test('Allow select with an include', () => {
+    expect.assertions(2)
     const ast = {
       select: {
         author: {

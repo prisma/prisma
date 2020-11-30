@@ -1,5 +1,7 @@
 import fetch from 'cross-fetch'
 
+/* eslint-disable */
+
 export type Fetcher = (input: {
   query: string
   typeName?: string
@@ -23,7 +25,7 @@ export class BrowserEngine {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   async stop(): Promise<void> {}
 
-  defaultFetcher = async ({
+  defaultFetcher = ({
     query,
     typeName, // eslint-disable-line @typescript-eslint/no-unused-vars
   }: {

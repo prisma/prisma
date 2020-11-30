@@ -1,6 +1,5 @@
 import {
   DatabaseSteps,
-  DatabaseStep,
   // RawSqlStep,
   // DropTableStep,
   // RenameTableStep,

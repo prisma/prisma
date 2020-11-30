@@ -224,6 +224,7 @@ export class MigrateEngine {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
@@ -257,7 +258,7 @@ export class MigrateEngine {
           this.rejectAll(err)
         })
 
-        this.child.on('exit', (code, signal) => {
+        this.child.on('exit', (code) => {
           const messages = this.messages.join('\n')
           let err: RustPanic | Error | undefined
           if (code !== 0 || messages.includes('panicking')) {

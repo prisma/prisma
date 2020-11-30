@@ -7,7 +7,6 @@ import {
 } from 'typescript'
 import * as ts from 'typescript'
 
-
 export function compileFile(filePath: string): void {
   const options: CompilerOptions = {
     module: ModuleKind.CommonJS,
@@ -21,7 +20,7 @@ export function compileFile(filePath: string): void {
   }
 
   const compilerHost = createCompilerHost(options)
-  compilerHost.writeFile = (fileName, file) => { }
+  compilerHost.writeFile = () => {}
 
   const program = createProgram([filePath], options, compilerHost)
   const result = program.emit()

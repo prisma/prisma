@@ -35,7 +35,7 @@ beforeAll(async () => {
 })
 
 describe('json', () => {
-  test('should be able to create json', async () => {
+  test('should be able to create json', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -55,7 +55,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json', async () => {
+  test('should be able filter json', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -74,7 +74,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json null', async () => {
+  test('should be able filter json null', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -91,7 +91,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json "null"', async () => {
+  test('should be able filter json "null"', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -108,7 +108,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should error if equals is missing', async () => {
+  test('should error if equals is missing', () => {
     const document = makeDocument({
       dmmf,
       select: {

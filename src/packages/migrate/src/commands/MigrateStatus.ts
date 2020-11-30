@@ -5,7 +5,6 @@ import {
   getSchemaPath,
   HelpError,
   isError,
-  canConnectToDatabase,
   getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'

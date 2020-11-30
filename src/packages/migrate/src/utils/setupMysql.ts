@@ -15,9 +15,8 @@ export async function setupMysql(options: SetupParams): Promise<void> {
 
   await createDatabase(connectionString).catch((e) => console.error(e))
 
-  let db: mariadb.Connection
   const credentials = uriToCredentials(connectionString)
-  db = await mariadb.createConnection({
+  const db = await mariadb.createConnection({
     host: credentials.host,
     port: credentials.port,
     database: credentials.database,
@@ -38,8 +37,7 @@ export async function tearDownMysql(options: SetupParams) {
   const credentialsClone = { ...credentials }
   credentialsClone.database = 'tests'
 
-  let db: mariadb.Connection
-  db = await mariadb.createConnection({
+  const db = await mariadb.createConnection({
     host: credentialsClone.host,
     port: credentialsClone.port,
     database: credentialsClone.database,

@@ -26,7 +26,7 @@ test('blog-update', async () => {
       wakesUpAt: someDate,
       lastLoginAt: someDate,
       posts: {
-        create: new Array(5).fill(undefined).map((_, i) => ({
+        create: new Array(5).fill(undefined).map(() => ({
           published: true,
           title: 'mytitle',
           content: 'somecontent',
