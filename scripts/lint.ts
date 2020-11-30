@@ -26,6 +26,10 @@ async function main() {
     packages = await getAllPackages()
   }
 
+  if (packages.length === 0) {
+    console.log(chalk.blueBright('Nothing to lint'))
+  }
+
   const results = await pMap(
     packages,
     (pkg) => lintPackage(pkg, args['--staged']),
