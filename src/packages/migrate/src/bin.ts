@@ -25,13 +25,12 @@ const args = arg(
 //
 // Read .env file only if next to schema.prisma
 //
-// if the CLI is called without any command like `up --early-access-feature` we can ignore .env loading
-// should be 1 but because of --early-access-feature flag it will be 2 until removed
-if (process.argv.length > 3) {
+// if the CLI is called without any command like `dev` we can ignore .env loading
+if (process.argv.length > 2) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && console.log(envData.message)
+    envData && envData.message && console.log(envData.message)
   } catch (e) {
     console.log(e)
   }
@@ -51,7 +50,6 @@ import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
 import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
-import { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'
 
@@ -71,7 +69,6 @@ async function main(): Promise<number> {
     // for convenient debugging
     push: DbPush.new(),
     drop: DbDrop.new(),
-    ['tmp-prepare']: MigrateTmpPrepare.new(),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
