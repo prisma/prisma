@@ -79,7 +79,7 @@
     "@types/ws": "7.4.0",
     "@typescript-eslint/eslint-plugin": "4.8.2",
     "@typescript-eslint/parser": "4.8.2",
-    "checkpoint-client": "1.1.16",
+    "checkpoint-client": "1.1.17",
     "dotenv": "8.2.0",
     "esbuild": "0.8.17",
     "escape-string-regexp": "4.0.0",

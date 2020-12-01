@@ -50,7 +50,7 @@
     "archiver": "^4.0.0",
     "arg": "^5.0.0",
     "chalk": "4.1.0",
-    "checkpoint-client": "1.1.16",
+    "checkpoint-client": "1.1.17",
     "cli-truncate": "^2.1.0",
     "dotenv": "^8.2.0",
     "execa": "^4.0.0",
