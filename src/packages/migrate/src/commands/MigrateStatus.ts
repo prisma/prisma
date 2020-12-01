@@ -123,7 +123,7 @@ Delete the current migrations folder to continue and read the documentation for 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
     //     4. Otherwise, there is no problem migrate is aware of. We could still display:
-    //         - Which migrations have been edited since applied (maybe too noisy)
+    //         - Edited since applied only relevant when using dev, they are ignored for deploy
     //         - Pending migrations (those in the migrations folder that haven't been applied yet)
     //         - If there are no pending migrations, tell the user everything looks OK and up to date.
 
@@ -140,27 +140,32 @@ Delete the current migrations folder to continue and read the documentation for 
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
       console.info(
-        `- ${migrations.length} migration${migrations.length > 1 ? 's' : ''}`,
+        `${migrations.length} migration${
+          migrations.length > 1 ? 's' : ''
+        } found in prisma/migrations\n`,
       )
     } else {
-      console.info(`- No migration found`)
-    }
-
-    if (diagnoseResult.editedMigrationNames.length > 0) {
-      const editedMigrations = diagnoseResult.editedMigrationNames
-      console.info(
-        `- ${editedMigrations.length} edited migration${
-          editedMigrations.length > 1 ? 's' : ''
-        }: ${editedMigrations.join(', ')}`,
-      )
+      console.info(`No migration found in prisma/migrations\n`)
     }
 
     if (diagnoseResult.history?.diagnostic === 'databaseIsBehind') {
       const unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
       console.info(
-        `- ${unappliedMigrations.length} unapplied migration${
+        `Following migration${
           unappliedMigrations.length > 1 ? 's' : ''
-        }: ${unappliedMigrations.join(', ')}`,
+        } have not yet been applied:
+${unappliedMigrations.join('\n')}
+
+To apply migrations in development run ${chalk.bold.greenBright(
+          getCommandWithExecutor(`prisma migrate dev --early-access-feature`),
+        )}.
+To apply migrations in production run ${chalk.bold.greenBright(
+          getCommandWithExecutor(
+            `prisma migrate deploy --early-access-feature`,
+          ),
+        )}.
+
+Read more in our docs: https://pris.ly/migrate-deploy`,
       )
     }
 
@@ -199,9 +204,14 @@ ${chalk.bold.greenBright(
       const failedMigrations = diagnoseResult.failedMigrationNames
 
       console.info(
-        `- ${failedMigrations.length} failed migration${
+        `Following migration${
           failedMigrations.length > 1 ? 's' : ''
-        }: ${failedMigrations.join(' ,')}\n`,
+        } have failed:
+${failedMigrations.join('\n')}
+
+During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${chalk.bold.greenBright(
+          getCommandWithExecutor(`prisma migrate dev --early-access-feature`),
+        )}.\n`,
       )
 
       if (
@@ -212,23 +222,23 @@ ${chalk.bold.greenBright(
 ${chalk.grey(diagnoseResult.drift.rollback)}`)
       }
 
-      const migrationId = failedMigrations[0]
-
       return `The failed migration(s) can be marked as rolled back or applied:
       
 - If you rolled back the migration(s) manually:
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --rolledback "${migrationId}" --early-access-feature`,
+    `prisma migrate resolve --rolledback "${failedMigrations[0]}" --early-access-feature`,
   ),
 )}
 
 - If you fixed the database manually (hotfix):
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --applied "${migrationId}" --early-access-feature`,
+    `prisma migrate resolve --applied "${failedMigrations[0]}" --early-access-feature`,
   ),
-)}`
+)}
+
+Read more in our docs: https://pris.ly/migrate-resolve`
     } else if (
       diagnoseResult.drift?.diagnostic === 'driftDetected' &&
       (diagnoseResult.history?.diagnostic === 'databaseIsBehind' ||
@@ -242,7 +252,7 @@ ${chalk.bold.greenBright(
 
       const migrationId = diagnoseResult.history.unappliedMigrationNames
 
-      return `Prisma Migrate detected that the current database structure is not in sync with your Prisma schema.
+      return `The current database schema is not in sync with your Prisma schema.
 This is the script to roll back manually:
 ${chalk.grey(diagnoseResult.drift.rollback)}
 
@@ -264,7 +274,7 @@ You have 2 options
       )} to create a new migration matching the drift.`
     } else {
       console.info() // empty line
-      return `No problem detected.`
+      return `Database schema is up to date!`
     }
   }
 
