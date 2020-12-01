@@ -109,20 +109,21 @@ ${chalk.bold('Options')}
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
     if (wasDbCreated) {
-      console.info()
+      console.info() // empty line
       console.info(wasDbCreated)
     }
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const {
+      appliedMigrationNames: migrationIds,
+    } = await migrate.applyMigrations()
 
     migrate.stop()
 
+    console.info() // empty line
     if (migrationIds.length === 0) {
-      return `\n${chalk.green(
-        'Everything is already in sync',
-      )} - Prisma Migrate didn't find unapplied migrations.`
+      return `Database schema unchanged, all migrations are already applied.`
     } else {
-      return `\nPrisma Migrate applied the following migration(s):\n\n${chalk(
+      return `The following migration(s) have been applied:\n\n${chalk(
         printFilesFromMigrationIds('migrations', migrationIds, {
           'migration.sql': '',
         }),

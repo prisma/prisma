@@ -30,7 +30,9 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
 
 
-      Database reset successful - Prisma Migrate applied the following migration(s):
+      Database reset successful
+
+      The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_init/
@@ -53,7 +55,9 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
-      Database reset successful - Prisma Migrate applied the following migration(s):
+      Database reset successful
+
+      The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_init/
@@ -77,7 +81,9 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
 
 
-      Database reset successful - Prisma Migrate applied the following migration(s):
+      Database reset successful
+
+      The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_init/
@@ -101,7 +107,9 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
-      Database reset successful - Prisma Migrate applied the following migration(s):
+      Database reset successful
+
+      The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_init/
@@ -125,7 +133,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
-      Database reset successful - Prisma Migrate didn't find unapplied migrations.
+      Database reset successful
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),

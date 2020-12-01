@@ -154,6 +154,7 @@ ${chalk.bold('Examples')}
     let isResetNeeded = false
     let isResetNeededAfterCreate = false
     let migrationIdsFromDatabaseIsBehind: string[] = []
+    let migrationIdsFromAfterReset: string[] = []
 
     if (diagnoseResult.errorInUnappliedMigration) {
       if (diagnoseResult.errorInUnappliedMigration.error_code === 'P3006') {
@@ -250,12 +251,12 @@ ${diagnoseResult.drift.error.message}`,
 
       if (diagnoseResult.history) {
         if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          const { appliedMigrationNames } = await migrate.applyOnly()
+          const { appliedMigrationNames } = await migrate.applyMigrations()
           migrationIdsFromDatabaseIsBehind = appliedMigrationNames
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
-              `\nPrisma Migrate applied the following unapplied migration(s):\n\n${chalk(
+              `The following unapplied migration(s) have been applied:\n\n${chalk(
                 printFilesFromMigrationIds(
                   'migrations',
                   migrationIdsFromDatabaseIsBehind,
@@ -304,7 +305,23 @@ ${diagnoseResult.drift.error.message}`,
           // For snapshot test, because exit() is mocked
           return ``
         }
-        await migrate.reset()
+      }
+      await migrate.reset()
+      const { appliedMigrationNames } = await migrate.applyMigrations()
+      migrationIdsFromAfterReset = appliedMigrationNames
+      // Inform user about applied migrations now
+      if (migrationIdsFromAfterReset.length > 0) {
+        console.info(
+          `The following migration(s) have been applied after reset:\n\n${chalk(
+            printFilesFromMigrationIds(
+              'migrations',
+              migrationIdsFromAfterReset,
+              {
+                'migration.sql': '',
+              },
+            ),
+          )}`,
+        )
       }
     }
 
@@ -350,7 +367,8 @@ ${diagnoseResult.drift.error.message}`,
     if (args['--create-only']) {
       migrate.stop()
 
-      return `\nPrisma Migrate created the following migration without applying it ${printMigrationId(
+      console.info() // empty line
+      return `Prisma Migrate created the following migration without applying it ${printMigrationId(
         createMigrationResult.generatedMigrationName!,
       )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
         getCommandWithExecutor('prisma migrate dev --early-access-feature'),
@@ -375,7 +393,7 @@ ${diagnoseResult.drift.error.message}`,
         )
         if (!confirmedReset) {
           console.info(
-            `Prisma Migrate created the following migration from new schema changes:\n\n${chalk(
+            `The following migration was created from new schema changes:\n\n${chalk(
               printFilesFromMigrationIds(
                 'migrations',
                 [createMigrationResult.generatedMigrationName!],
@@ -395,33 +413,40 @@ ${diagnoseResult.drift.error.message}`,
       }
     }
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const {
+      appliedMigrationNames: migrationIds,
+    } = await migrate.applyMigrations()
 
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      if (migrationIdsFromDatabaseIsBehind?.length > 0) {
+      if (
+        migrationIdsFromAfterReset.length > 0 ||
+        migrationIdsFromDatabaseIsBehind.length > 0
+      ) {
         // Run if not skipped
         if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
           await migrate.tryToRunGenerate()
         }
 
         // During databaseIsBehind diagnostic migrations were applied and displayed
-        console.info(`\n${chalk.green('Everything is now in sync.')}`)
+        console.info() // empty line
+        return `${chalk.green('Everything is now in sync.')}`
       } else {
-        console.info(
-          `\n${chalk.green(
-            'Everything is already in sync',
-          )} - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
-        )
+        console.info() // empty line
+        return `Already in sync, no schema change or unapplied migration was found.`
       }
     } else {
-      if (migrationIdsFromDatabaseIsBehind?.length > 0) {
+      // For display only
+      if (
+        migrationIdsFromAfterReset.length > 0 ||
+        migrationIdsFromDatabaseIsBehind.length > 0
+      ) {
         console.info() // empty line
       }
 
       console.info(
-        `Prisma Migrate created and applied the following migration(s) from new schema changes:\n\n${chalk(
+        `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),
@@ -433,10 +458,9 @@ ${diagnoseResult.drift.error.message}`,
         await migrate.tryToRunGenerate()
       }
 
-      console.info(`\n${chalk.green('Everything is now in sync.')}`)
+      console.info() // empty line
+      return `${chalk.green('Everything is now in sync.')}`
     }
-
-    return ``
   }
 
   private async confirmReset({
