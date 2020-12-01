@@ -73,7 +73,7 @@ if (process.argv.length > 2) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && console.log(envData.message)
+    envData && envData.message && console.log(envData.message)
   } catch (e) {
     handleIndividualError(e)
   }
