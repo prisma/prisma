@@ -1,30 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`postgresql draft migration and apply (--name) 2`] = ``;
-
 exports[`postgresql draft migration and apply (--name) 5`] = `Array []`;
 
 exports[`postgresql draft migration and apply (--name) 6`] = `Array []`;
-
-exports[`postgresql existingdb: first migration after init 1`] = ``;
 
 exports[`postgresql existingdb: first migration after init 3`] = `Array []`;
 
 exports[`postgresql existingdb: first migration after init 4`] = `Array []`;
 
-exports[`postgresql first migration after init - empty.prisma 1`] = ``;
-
 exports[`postgresql first migration after init - empty.prisma 3`] = `Array []`;
 
 exports[`postgresql first migration after init - empty.prisma 4`] = `Array []`;
 
-exports[`postgresql first migration after init --force + --name 1`] = ``;
-
 exports[`postgresql first migration after init --force + --name 3`] = `Array []`;
 
 exports[`postgresql first migration after init --force + --name 4`] = `Array []`;
-
-exports[`postgresql first migration after init 1`] = ``;
 
 exports[`postgresql first migration after init 3`] = `Array []`;
 
@@ -38,13 +28,9 @@ exports[`sqlite broken migration should fail 2`] = ``;
 
 exports[`sqlite broken migration should fail 3`] = ``;
 
-exports[`sqlite draft migration and apply (--name) 2`] = ``;
-
 exports[`sqlite draft migration and apply (--name) 5`] = ``;
 
 exports[`sqlite draft migration and apply (--name) 6`] = ``;
-
-exports[`sqlite draft migration and apply (prompt) 2`] = ``;
 
 exports[`sqlite draft migration and apply (prompt) 5`] = ``;
 
@@ -58,8 +44,6 @@ exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
 
-exports[`sqlite empty schema 1`] = ``;
-
 exports[`sqlite empty schema 3`] = `Array []`;
 
 exports[`sqlite empty schema 4`] = `Array []`;
@@ -68,13 +52,9 @@ exports[`sqlite existing-db-1-migration edit migration with broken sql (--force)
 
 exports[`sqlite existing-db-1-migration edit migration with broken sql (--force) 4`] = `Array []`;
 
-exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 1`] = ``;
-
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 3`] = `Array []`;
 
 exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 4`] = `Array []`;
-
-exports[`sqlite existingdb: 1 unapplied draft 1`] = ``;
 
 exports[`sqlite existingdb: 1 unapplied draft 3`] = `Array []`;
 
@@ -96,19 +76,13 @@ exports[`sqlite existingdb: has a failed migration 2`] = ``;
 
 exports[`sqlite existingdb: has a failed migration 3`] = ``;
 
-exports[`sqlite first migration (--name) 1`] = ``;
-
 exports[`sqlite first migration (--name) 3`] = `Array []`;
 
 exports[`sqlite first migration (--name) 4`] = `Array []`;
 
-exports[`sqlite first migration (prompt) 1`] = ``;
-
 exports[`sqlite first migration (prompt) 3`] = `Array []`;
 
 exports[`sqlite first migration (prompt) 4`] = `Array []`;
-
-exports[`sqlite first migration --force 1`] = ``;
 
 exports[`sqlite first migration --force 3`] = ``;
 
@@ -117,8 +91,6 @@ exports[`sqlite first migration --force 4`] = ``;
 exports[`sqlite removed applied migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite removed applied migration and unapplied empty draft 4`] = ``;
-
-exports[`sqlite snapshot of sql 1`] = ``;
 
 exports[`sqlite transition-db-push-migrate (prompt reset no) 3`] = ``;
 
