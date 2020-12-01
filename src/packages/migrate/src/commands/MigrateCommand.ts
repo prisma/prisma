@@ -65,7 +65,7 @@ ${chalk.bold('Examples')}
   Mark a migration as applied
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --applied=20201231000000_add_users_table --early-access-feature
+  )} prisma migrate resolve --applied 20201231000000_add_users_table --early-access-feature
 `)
 
   private constructor(private readonly cmds: Commands) {}

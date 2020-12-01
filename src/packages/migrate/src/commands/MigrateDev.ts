@@ -325,7 +325,10 @@ ${diagnoseResult.drift.error.message}`,
     }
 
     let migrationName: undefined | string = undefined
-    if (evaluateDataLossResult.migrationSteps.length > 0) {
+    if (
+      evaluateDataLossResult.migrationSteps.length > 0 ||
+      args['--create-only']
+    ) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
       if (getMigrationNameResult.userCancelled) {
         migrate.stop()

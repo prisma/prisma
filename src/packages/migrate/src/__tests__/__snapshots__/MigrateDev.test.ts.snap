@@ -50,6 +50,10 @@ exports[`sqlite draft migration and apply (prompt) 5`] = ``;
 
 exports[`sqlite draft migration and apply (prompt) 6`] = ``;
 
+exports[`sqlite draft migration with empty schema (prompt) 4`] = ``;
+
+exports[`sqlite draft migration with empty schema (prompt) 5`] = ``;
+
 exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
