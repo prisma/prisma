@@ -54,6 +54,7 @@ ${chalk.bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
+       -n, --name   Name the migration
     --create-only   Only create a migration without applying it
       -f, --force   Skip the data loss confirmation prompt
   --skip-generate   Skip generate
