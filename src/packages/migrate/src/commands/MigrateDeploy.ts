@@ -113,7 +113,9 @@ ${chalk.bold('Options')}
       console.info(wasDbCreated)
     }
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const {
+      appliedMigrationNames: migrationIds,
+    } = await migrate.applyMigrations()
 
     migrate.stop()
 

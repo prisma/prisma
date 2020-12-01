@@ -150,7 +150,9 @@ ${chalk.bold('Examples')}
 
     await migrate.reset()
 
-    const { appliedMigrationNames: migrationIds } = await migrate.applyOnly()
+    const {
+      appliedMigrationNames: migrationIds,
+    } = await migrate.applyMigrations()
     migrate.stop()
 
     if (migrationIds.length === 0) {

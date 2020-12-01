@@ -302,7 +302,7 @@ export class Migrate {
     return this.engine.applyScript({ script })
   }
 
-  public applyOnly(): Promise<EngineResults.ApplyMigrationsOutput> {
+  public applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
     return this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
