@@ -255,7 +255,7 @@ ${diagnoseResult.drift.error.message}`,
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
-              `\nPrisma Migrate applied the following unapplied migration(s):\n\n${chalk(
+              `The following unapplied migration(s) have been applied:\n\n${chalk(
                 printFilesFromMigrationIds(
                   'migrations',
                   migrationIdsFromDatabaseIsBehind,
@@ -311,7 +311,7 @@ ${diagnoseResult.drift.error.message}`,
       // Inform user about applied migrations now
       if (migrationIdsFromAfterReset.length > 0) {
         console.info(
-          `\nPrisma Migrate applied the following migration(s) after reset:\n\n${chalk(
+          `The following migration(s) have been applied after reset:\n\n${chalk(
             printFilesFromMigrationIds(
               'migrations',
               migrationIdsFromAfterReset,
@@ -392,7 +392,7 @@ ${diagnoseResult.drift.error.message}`,
         )
         if (!confirmedReset) {
           console.info(
-            `Prisma Migrate created the following migration from new schema changes:\n\n${chalk(
+            `The following migration was created from new schema changes:\n\n${chalk(
               printFilesFromMigrationIds(
                 'migrations',
                 [createMigrationResult.generatedMigrationName!],
@@ -433,9 +433,7 @@ ${diagnoseResult.drift.error.message}`,
         return `${chalk.green('Everything is now in sync.')}`
       } else {
         console.info() // empty line
-        return `${chalk.green(
-          'Everything is already in sync',
-        )} - Prisma Migrate didn't find any schema changes or unapplied migrations.`
+        return `Already in sync, no schema change or unapplied migration was found.`
       }
     } else {
       // For display only
@@ -447,7 +445,7 @@ ${diagnoseResult.drift.error.message}`,
       }
 
       console.info(
-        `Prisma Migrate created and applied the following migration(s) from new schema changes:\n\n${chalk(
+        `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),

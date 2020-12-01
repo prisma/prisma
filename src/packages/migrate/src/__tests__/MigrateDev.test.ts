@@ -58,7 +58,7 @@ describe('sqlite', () => {
       '--early-access-feature',
     ])
     await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
+      `Already in sync, no schema change or unapplied migration was found.`,
     )
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -89,7 +89,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -116,7 +116,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -144,7 +144,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -219,8 +219,7 @@ describe('sqlite', () => {
 
 
       Prisma schema loaded from prisma/schema.prisma
-
-      Prisma Migrate applied the following unapplied migration(s):
+      The following unapplied migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_some_draft/
@@ -295,8 +294,7 @@ describe('sqlite', () => {
 
 
       Prisma schema loaded from prisma/schema.prisma
-
-      Prisma Migrate applied the following unapplied migration(s):
+      The following unapplied migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_first/
@@ -320,7 +318,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -343,7 +341,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created the following migration from new schema changes:
+      The following migration was created from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -372,8 +370,7 @@ describe('sqlite', () => {
       The following migration(s) were edited after they were applied:
       - 20201231000000_test
 
-
-      Prisma Migrate applied the following migration(s) after reset:
+      The following migration(s) have been applied after reset:
 
       migrations/
         └─ 20201231000000_test/
@@ -403,14 +400,13 @@ describe('sqlite', () => {
       The following migration(s) are applied to the database but missing from the local migrations directory:
       - 20201231000000_test
 
-
-      Prisma Migrate applied the following migration(s) after reset:
+      The following migration(s) have been applied after reset:
 
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_/
@@ -465,7 +461,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
+      `Already in sync, no schema change or unapplied migration was found.`,
     )
 
     // Edit with broken SQL
@@ -523,8 +519,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-
-      Prisma Migrate applied the following unapplied migration(s):
+      The following unapplied migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_draft/
@@ -545,14 +540,13 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-
-      Prisma Migrate applied the following unapplied migration(s):
+      The following unapplied migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_/
@@ -569,11 +563,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                              `)
+                                                                                                                                            `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -596,7 +590,7 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_/
@@ -607,10 +601,10 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
 
 
-                                                ⚠️  There will be data loss when applying the migration:
+                                                                  ⚠️  There will be data loss when applying the migration:
 
-                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                `)
+                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -630,10 +624,10 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
 
 
-                                                ⚠️  There will be data loss when applying the migration:
+                                                                  ⚠️  There will be data loss when applying the migration:
 
-                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                `)
+                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 })
@@ -676,7 +670,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_/
@@ -693,7 +687,7 @@ describe('postgresql', () => {
     ])
 
     await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is already in sync - Prisma Migrate didn't find any schema changes or unapplied migrations.`,
+      `Already in sync, no schema change or unapplied migration was found.`,
     )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -717,7 +711,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -742,7 +736,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/
@@ -782,8 +776,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Prisma schema loaded from prisma/schema.prisma
-
-      Prisma Migrate applied the following unapplied migration(s):
+      The following unapplied migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_first/
@@ -807,7 +800,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Prisma Migrate created and applied the following migration(s) from new schema changes:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
         └─ 20201231000000_first/

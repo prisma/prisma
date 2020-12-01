@@ -156,16 +156,12 @@ ${chalk.bold('Examples')}
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      console.info(
-        `\n${chalk.green(
-          'Database reset successful',
-        )} - Prisma Migrate didn't find unapplied migrations.`,
-      )
+      console.info(`\n${chalk.green('Database reset successful')}`)
     } else {
       console.info(
-        `\n${chalk.green(
-          'Database reset successful',
-        )} - Prisma Migrate applied the following migration(s):\n\n${chalk(
+        `\n${chalk.green('Database reset successful')}
+
+The following migration(s) have been applied:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),
