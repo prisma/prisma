@@ -1,7 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`should work with a custom output dir 1`] = `
-
 Prisma schema loaded from prisma/schema.prisma
 
 ✔ Generated Prisma Client (2.11.0-dev.20) to ./generated/client in XXms
