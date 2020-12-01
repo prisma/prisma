@@ -62,6 +62,8 @@ describe('sqlite', () => {
 
             - If you fixed the database manually (hotfix):
             prisma migrate resolve --applied "20201231000000_failed" --early-access-feature
+
+            Read more in our docs: https://pris.ly/migrate-resolve
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -69,8 +71,12 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - 1 migration
-      - 1 failed migration: 20201231000000_failed
+      1 migration found in prisma/migrations
+
+      Following migration have failed:
+      20201231000000_failed
+
+      During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run prisma migrate dev --early-access-feature.
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -93,8 +99,15 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - 1 migration
-      - 1 unapplied migration: 20201231000000_
+      1 migration found in prisma/migrations
+
+      Following migration have not yet been applied:
+      20201231000000_
+
+      To apply migrations in development run prisma migrate dev --early-access-feature.
+      To apply migrations in production run prisma migrate deploy --early-access-feature.
+
+      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -103,14 +116,17 @@ describe('sqlite', () => {
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`No problem detected.`)
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Database schema is up to date!`,
+    )
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - 1 migration
+      1 migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -133,8 +149,15 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - 1 migration
-      - 1 unapplied migration: 20201231000000_init
+      1 migration found in prisma/migrations
+
+      Following migration have not yet been applied:
+      20201231000000_init
+
+      To apply migrations in development run prisma migrate dev --early-access-feature.
+      To apply migrations in production run prisma migrate deploy --early-access-feature.
+
+      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -152,7 +175,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - No migration found
+      No migration found in prisma/migrations
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -170,7 +194,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - No migration found
+      No migration found in prisma/migrations
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -208,14 +233,17 @@ describe('sqlite', () => {
   it('reset', async () => {
     ctx.fixture('reset')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`No problem detected.`)
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Database schema is up to date!`,
+    )
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
 
       Status
-      - 1 migration
+      1 migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
