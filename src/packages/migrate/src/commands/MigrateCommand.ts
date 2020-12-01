@@ -89,6 +89,14 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
+    if (['up', 'save', 'down'].includes(args._[0])) {
+      // TODO docs
+      throw new Error(
+        `The current command "${args._[0]}" doesn't exist on the latest version of Prisma Migrate.
+You can find the documentation for how to upgrade here: TODO`,
+      )
+    }
+
     if (args['--experimental']) {
       throw new ExperimentalFlagWithNewMigrateError()
     }
