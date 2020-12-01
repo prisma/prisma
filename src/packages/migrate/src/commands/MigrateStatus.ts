@@ -152,7 +152,7 @@ Delete the current migrations folder to continue and read the documentation for 
       console.info(
         `- ${editedMigrations.length} edited migration${
           editedMigrations.length > 1 ? 's' : ''
-        }: ${editedMigrations.join(' ,')}`,
+        }: ${editedMigrations.join(', ')}`,
       )
     }
 
@@ -161,7 +161,7 @@ Delete the current migrations folder to continue and read the documentation for 
       console.info(
         `- ${unappliedMigrations.length} unapplied migration${
           unappliedMigrations.length > 1 ? 's' : ''
-        }: ${unappliedMigrations.join(' ,')}`,
+        }: ${unappliedMigrations.join(', ')}`,
       )
     }
 
