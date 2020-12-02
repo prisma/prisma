@@ -284,7 +284,7 @@ export function stringifyInputType(
   }
 }
 
-function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
+export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   if (typeof arg === 'string') {
     return false
   }
