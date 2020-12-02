@@ -181,10 +181,10 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
     }
 
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
-    const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
+    const hasModifiedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
-    // if failed migration(s) or edited migration(s) print and got to reset
-    if (hasFailedMigrations || hasEditedMigrations) {
+    // if failed migration(s) or modified migration(s) print and got to reset
+    if (hasFailedMigrations || hasModifiedMigrations) {
       isResetNeeded = true
 
       if (hasFailedMigrations) {
@@ -196,10 +196,10 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
         )
       }
 
-      if (hasEditedMigrations) {
-        // migration(s) that were edited since they were applied to the db.
+      if (hasModifiedMigrations) {
+        // migration(s) that were modified since they were applied to the db.
         console.info(
-          `The following migration(s) were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
+          `The following migration(s) were modified after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
             '\n- ',
           )}\n`,
         )

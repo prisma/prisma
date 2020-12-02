@@ -123,7 +123,7 @@ Delete the current migrations folder to continue and read the documentation for 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
     //     4. Otherwise, there is no problem migrate is aware of. We could still display:
-    //         - Edited since applied only relevant when using dev, they are ignored for deploy
+    //         - Modified since applied only relevant when using dev, they are ignored for deploy
     //         - Pending migrations (those in the migrations folder that haven't been applied yet)
     //         - If there are no pending migrations, tell the user everything looks OK and up to date.
 
