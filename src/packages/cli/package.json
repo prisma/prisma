@@ -99,7 +99,7 @@
     "line-replace": "2.0.1",
     "lint-staged": "10.5.2",
     "log-update": "4.0.0",
-    "make-dir": "^3.1.0",
+    "make-dir": "3.1.0",
     "open": "7.3.0",
     "pg": "8.5.1",
     "pkg": "4.4.9",
