@@ -1,11 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 import { generateInFolder } from '../../utils/generateInFolder'
-import { compileFile } from '../../utils/compileFile'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import { getPackedPackage } from '@prisma/sdk'
-import Piscina from 'piscina'
+import { compileFile } from '../../utils/compileFile'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
@@ -13,10 +12,6 @@ jest.setTimeout(30000)
 let packageSource: string
 beforeAll(async () => {
   packageSource = (await getPackedPackage('@prisma/client')) as string
-})
-
-const piscina = new Piscina({
-  filename: path.resolve(__dirname, 'compilerWorker.js'),
 })
 
 describe('valid types', () => {
@@ -37,9 +32,9 @@ describe('valid types', () => {
     const filePath = path.join(dir, 'index.ts')
 
     if (testName.startsWith('unhappy')) {
-      await expect(piscina.runTask(filePath)).rejects.toThrow()
+      await expect(compileFile(filePath)).rejects.toThrow()
     } else {
-      await expect(piscina.runTask(filePath)).resolves.not.toThrow()
+      await expect(compileFile(filePath)).resolves.not.toThrow()
     }
   })
 })

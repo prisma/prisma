@@ -6,7 +6,7 @@ const {
 } = require('typescript')
 const ts = require('typescript')
 
-module.exports = function compileFile(filePath) {
+function compileFile(filePath) {
   const options = {
     module: ModuleKind.CommonJS,
     target: ScriptTarget.ES2018,
@@ -29,3 +29,5 @@ module.exports = function compileFile(filePath) {
     throw new Error('Compilation Error\n' + formatted)
   }
 }
+
+compileFile(process.argv[2])
