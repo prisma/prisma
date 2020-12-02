@@ -57,12 +57,24 @@ export class DbPushIgnoreWarningsWithForceError extends Error {
   }
 }
 
-export class MigrateDevNeedsForceError extends Error {
-  constructor() {
+export class MigrateNeedsForceError extends Error {
+  constructor(subcommand: string) {
     super(
-      `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
+      `Use the --force flag to use the ${subcommand} command in an unnattended environment like ${chalk.bold.greenBright(
         getCommandWithExecutor(
-          'prisma migrate dev --force --early-access-feature',
+          `prisma migrate ${subcommand} --force --early-access-feature`,
+        ),
+      )}`,
+    )
+  }
+}
+
+export class DbNeedsForceError extends Error {
+  constructor(subcommand: string) {
+    super(
+      `Use the --force flag to use the ${subcommand} command in an unnattended environment like ${chalk.bold.greenBright(
+        getCommandWithExecutor(
+          `prisma db ${subcommand} --force --preview-feature`,
         ),
       )}`,
     )

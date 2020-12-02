@@ -23,7 +23,7 @@ import {
   getDbLocation,
 } from '../utils/ensureDatabaseExists'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
+import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -112,11 +112,7 @@ ${chalk.bold('Examples')}
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw Error(
-          `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma db drop --preview-feature --force'),
-          )}`,
-        )
+        throw new DbNeedsForceError('drop')
       }
 
       const confirmation = await prompt({

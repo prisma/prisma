@@ -16,7 +16,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
+import { NoSchemaFoundError, MigrateNeedsForceError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 
@@ -103,13 +103,7 @@ ${chalk.bold('Examples')}
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw Error(
-          `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma migrate reset --force --early-access-feature',
-            ),
-          )}`,
-        )
+        throw new MigrateNeedsForceError('reset')
       }
 
       console.info() // empty line

@@ -19,7 +19,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateDevNeedsForceError } from '../utils/errors'
+import { NoSchemaFoundError, MigrateNeedsForceError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -269,7 +269,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw new MigrateDevNeedsForceError()
+          throw new MigrateNeedsForceError('dev')
         }
 
         const confirmedReset = await this.confirmReset(
@@ -356,13 +356,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new MigrateNeedsForceError('dev')
         }
 
         const confirmedReset = await this.confirmReset(
