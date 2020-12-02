@@ -47,7 +47,8 @@ https://pris.ly/d/getting-started
 
 exports[`warns when DATABASE_URL present in .env  1`] = `
 Environment variables loaded from .env
-warn DATABASE_URL already exists in /tmp/dir/.env
+warn DATABASE_URL already exists in .env
+     Prisma would have added DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
 
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
