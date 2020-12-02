@@ -23,6 +23,7 @@ import {
   getDbLocation,
 } from '../utils/ensureDatabaseExists'
 import { PreviewFlagError } from '../utils/flagErrors'
+import { NoSchemaFoundError } from '../utils/errors'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -90,15 +91,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     console.info(

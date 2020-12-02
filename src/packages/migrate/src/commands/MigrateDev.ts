@@ -19,6 +19,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
+import { NoSchemaFoundError, MigrateDevNeedsForceError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -26,7 +27,7 @@ import {
   handleWarnings,
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { isOldMigrate } from '../utils/detectOldMigrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 
 const debug = Debug('migrate:dev')
 
@@ -108,34 +109,16 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    } else {
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
+      throw new NoSchemaFoundError()
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
@@ -286,13 +269,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new MigrateDevNeedsForceError()
         }
 
         const confirmedReset = await this.confirmReset(

@@ -28,8 +28,10 @@ describe('common', () => {
     ctx.fixture('old-migrate')
     const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-              Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
+            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
+
+            Read more about how to upgrade to the new version of Migrate:
+            https://pris.ly/d/migrate-upgrade
           `)
   })
   it('should fail if no flag', async () => {

@@ -63,7 +63,8 @@ describe('sqlite', () => {
             - If you fixed the database manually (hotfix):
             prisma migrate resolve --applied "20201231000000_failed" --early-access-feature
 
-            Read more in our docs: https://pris.ly/migrate-resolve
+            Read more about how to resolve migration issues in a production database:
+            https://pris.ly/d/migrate-resolve
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -92,6 +93,9 @@ describe('sqlite', () => {
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_":
             prisma migrate resolve --applied "20201231000000_" --early-access-feature
+
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -106,8 +110,6 @@ describe('sqlite', () => {
 
       To apply migrations in development run prisma migrate dev --early-access-feature.
       To apply migrations in production run prisma migrate deploy --early-access-feature.
-
-      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -142,6 +144,9 @@ describe('sqlite', () => {
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_init":
             prisma migrate resolve --applied "20201231000000_init" --early-access-feature
+
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -156,8 +161,6 @@ describe('sqlite', () => {
 
       To apply migrations in development run prisma migrate dev --early-access-feature.
       To apply migrations in production run prisma migrate deploy --early-access-feature.
-
-      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -166,9 +169,10 @@ describe('sqlite', () => {
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Check init flow with introspect + SQL schema dump (TODO docs)`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
+          `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -185,9 +189,10 @@ describe('sqlite', () => {
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Check init flow with introspect + SQL schema dump (TODO docs)`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
+          `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -205,13 +210,15 @@ describe('sqlite', () => {
     ctx.fixture('old-migrate')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-            Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
+            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
+
+            Read more about how to upgrade to the new version of Migrate:
+            https://pris.ly/d/migrate-upgrade
           `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })

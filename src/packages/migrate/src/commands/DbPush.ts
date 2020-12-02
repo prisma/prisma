@@ -16,6 +16,11 @@ import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
+import {
+  DbPushIgnoreWarningsWithForceError,
+  DbPushWithOldMigrateError,
+  NoSchemaFoundError,
+} from '../utils/errors'
 import { isOldMigrate } from '../utils/detectOldMigrate'
 
 export class DbPush implements Command {
@@ -93,15 +98,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     console.info(
@@ -114,16 +111,7 @@ ${chalk.bold('Examples')}
     if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        // Maybe add link to docs?
-        throw Error(
-          `Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
-Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma db push --preview-feature --ignore-migrations',
-            ),
-          )}`,
-        )
+        throw new DbPushWithOldMigrateError()
       }
 
       const confirmation = await prompt({
@@ -185,15 +173,7 @@ Do you want to continue?`,
       console.log() // empty line
 
       if (!args['--force']) {
-        throw Error(
-          chalk.bold(
-            `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma db push --preview-feature --force',
-              ),
-            )}`,
-          ),
-        )
+        throw new DbPushIgnoreWarningsWithForceError()
       }
     }
 
