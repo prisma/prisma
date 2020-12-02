@@ -150,6 +150,7 @@ export class Init implements Command {
       path.join(prismaFolder, 'schema.prisma'),
       defaultSchema(provider),
     )
+    let warning;
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
       fs.writeFileSync(envPath, defaultEnv(url))
@@ -157,7 +158,7 @@ export class Init implements Command {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8'})
       const config = dotenv.parse(envFile) // will return an object
       if(Object.keys(config).includes("DATABASE_URL")){
-        console.warn(`${chalk.yellow('warn')} Prisma would have added ${defaultEnv(url, false)} but it already exists in ${chalk.bold(path.relative(outputDir, envPath))}`)
+        warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(url, false)} but it already exists in ${chalk.bold(path.relative(outputDir, envPath))}`
 
       } else {
         fs.appendFileSync(envPath, `\n\n` +"# This text is inserted by `prisma init`:\n" + defaultEnv(url));
@@ -194,7 +195,7 @@ export class Init implements Command {
     return `
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
   You can now open it in your favorite editor.
-
+${warning ? '\n' + warning + '\n' : ''}
 Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
