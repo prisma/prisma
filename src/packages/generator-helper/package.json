@@ -23,10 +23,10 @@
     "precommit": "lint-staged"
   },
   "devDependencies": {
-    "@types/jest": "26.0.15",
-    "@types/node": "12.19.7",
-    "@typescript-eslint/eslint-plugin": "4.8.2",
-    "@typescript-eslint/parser": "4.8.2",
+    "@types/jest": "26.0.16",
+    "@types/node": "12.19.8",
+    "@typescript-eslint/eslint-plugin": "4.9.0",
+    "@typescript-eslint/parser": "4.9.0",
     "eslint": "7.14.0",
     "eslint-config-prettier": "6.15.0",
     "eslint-plugin-eslint-comments": "3.2.0",
