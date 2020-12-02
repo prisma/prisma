@@ -50,6 +50,16 @@ describe('common', () => {
                   WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --early-access-feature.
           `)
   })
+  it('dev should error in unattended environment', async () => {
+    ctx.fixture('transition-db-push-migrate')
+    const result = MigrateDev.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toMatchInlineSnapshot(
+      `We detected that your environment is non-interactive. Running this command in not supported in this context.`,
+    )
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('sqlite', () => {
@@ -129,39 +139,39 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration --force', async () => {
-    ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse([
-      '--name=first',
-      '--force',
-      '--early-access-feature',
-    ])
+  // it('first migration --force', async () => {
+  //   ctx.fixture('schema-only-sqlite')
+  //   const result = MigrateDev.new().parse([
+  //     '--name=first',
+  //     '--force',
+  //     '--early-access-feature',
+  //   ])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+  //   await expect(result).resolves.toMatchInlineSnapshot(
+  //     `Everything is now in sync.`,
+  //   )
+  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //     .toMatchInlineSnapshot(`
+  //     Prisma schema loaded from prisma/schema.prisma
 
-      SQLite database dev.db created at file:dev.db
+  //     SQLite database dev.db created at file:dev.db
 
-      The following migration(s) have been created and applied from new schema changes:
+  //     The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
-        └─ 20201231000000_first/
-          └─ migration.sql
+  //     migrations/
+  //       └─ 20201231000000_first/
+  //         └─ migration.sql
 
-    `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
-  })
+  //   `)
+  //   expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+  //   expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  // })
 
   it('snapshot of sql', async () => {
     ctx.fixture('schema-only-sqlite')
+
     const result = MigrateDev.new().parse([
       '--name=first',
-      '--force',
       '--early-access-feature',
     ])
 
@@ -458,7 +468,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it('existing-db-1-migration edit migration with broken sql (--force)', async () => {
+  it('existing-db-1-migration edit migration with broken sql', async () => {
     ctx.fixture('existing-db-1-migration')
 
     const result = MigrateDev.new().parse(['--early-access-feature'])
@@ -473,7 +483,7 @@ describe('sqlite', () => {
     )
 
     try {
-      await MigrateDev.new().parse(['--early-access-feature', '--force'])
+      await MigrateDev.new().parse(['--early-access-feature'])
     } catch (e) {
       expect(e.message).toContain('P3006')
       expect(e.message).toContain('failed when applied to the shadow database.')
@@ -492,11 +502,11 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('existingdb: has a failed migration (--force)', async () => {
+  it('existingdb: has a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
     try {
-      await MigrateDev.new().parse(['--early-access-feature', '--force'])
+      await MigrateDev.new().parse(['--early-access-feature'])
     } catch (e) {
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
@@ -660,10 +670,10 @@ describe('postgresql', () => {
     })
   })
 
-  it('schema only (--force)', async () => {
+  it('schema only (prompt yes)', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse(['--early-access-feature', '--force'])
+    const result = MigrateDev.new().parse(['--early-access-feature'])
     await expect(result).resolves.toThrowErrorMatchingInlineSnapshot(
       `undefined`,
     )
@@ -724,30 +734,30 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration after init --force + --name', async () => {
-    ctx.fixture('schema-only-postgresql')
-    const result = MigrateDev.new().parse([
-      '--name=first',
-      '--force',
-      '--early-access-feature',
-    ])
+  // it('first migration after init --force + --name', async () => {
+  //   ctx.fixture('schema-only-postgresql')
+  //   const result = MigrateDev.new().parse([
+  //     '--name=first',
+  //     '--force',
+  //     '--early-access-feature',
+  //   ])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      The following migration(s) have been created and applied from new schema changes:
+  //   await expect(result).resolves.toMatchInlineSnapshot(
+  //     `Everything is now in sync.`,
+  //   )
+  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+  //     .toMatchInlineSnapshot(`
+  //     Prisma schema loaded from prisma/schema.prisma
+  //     The following migration(s) have been created and applied from new schema changes:
 
-      migrations/
-        └─ 20201231000000_first/
-          └─ migration.sql
+  //     migrations/
+  //       └─ 20201231000000_first/
+  //         └─ migration.sql
 
-    `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-  })
+  //   `)
+  //   expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+  //   expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  // })
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-postgresql')

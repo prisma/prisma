@@ -69,6 +69,14 @@ export class MigrateNeedsForceError extends Error {
   }
 }
 
+export class EnvNonInteractiveError extends Error {
+  constructor() {
+    super(
+      `We detected that your environment is non-interactive. Running this command in not supported in this context.`,
+    )
+  }
+}
+
 export class DbNeedsForceError extends Error {
   constructor(subcommand: string) {
     super(

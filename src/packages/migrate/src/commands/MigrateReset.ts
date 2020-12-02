@@ -16,7 +16,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateNeedsForceError } from '../utils/errors'
+import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 
@@ -43,7 +43,6 @@ ${chalk.bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
-      -f, --force   Skip the confirmation prompt
   --skip-generate   Skip generate
 
 ${chalk.bold('Examples')}
@@ -61,8 +60,8 @@ ${chalk.bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--force': Boolean,
-      '-f': '--force',
+      // '--force': Boolean,
+      // '-f': '--force',
       '--skip-generate': Boolean,
       '--experimental': Boolean,
       '--early-access-feature': Boolean,
@@ -103,7 +102,7 @@ ${chalk.bold('Examples')}
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw new MigrateNeedsForceError('reset')
+        throw new EnvNonInteractiveError()
       }
 
       console.info() // empty line
