@@ -7,7 +7,7 @@ import { getPackedPackage } from '@prisma/sdk'
 import { compileFile } from '../../utils/compileFile'
 const del = promisify(rimraf)
 
-jest.setTimeout(30000)
+jest.setTimeout(50000)
 
 let packageSource: string
 beforeAll(async () => {
@@ -16,7 +16,7 @@ beforeAll(async () => {
 
 describe('valid types', () => {
   const subDirs = getSubDirs(__dirname)
-  test.concurrent.each(subDirs)('%s', async (dir) => {
+  test.each(subDirs)('%s', async (dir) => {
     const testName = path.basename(dir)
 
     const nodeModules = path.join(dir, 'node_modules')
