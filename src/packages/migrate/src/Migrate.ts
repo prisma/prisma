@@ -62,6 +62,7 @@ import { serializeFileMap } from './utils/serializeFileMap'
 import { simpleDebounce } from './utils/simpleDebounce'
 import { flatMap } from './utils/flatMap'
 import { enginesVersion } from '@prisma/engines-version'
+import { NoSchemaFoundError } from './utils/errors'
 
 const debug = Debug('migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
@@ -215,15 +216,7 @@ export class Migrate {
     const schemaPath = getSchemaPathSync(schemaPathFromOptions)
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     return schemaPath

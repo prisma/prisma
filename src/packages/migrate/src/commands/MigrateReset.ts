@@ -16,8 +16,9 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
+import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { isOldMigrate } from '../utils/detectOldMigrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -42,7 +43,6 @@ ${chalk.bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
-      -f, --force   Skip the confirmation prompt
   --skip-generate   Skip generate
 
 ${chalk.bold('Examples')}
@@ -60,8 +60,8 @@ ${chalk.bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--force': Boolean,
-      '-f': '--force',
+      // '--force': Boolean,
+      // '-f': '--force',
       '--skip-generate': Boolean,
       '--experimental': Boolean,
       '--early-access-feature': Boolean,
@@ -88,45 +88,21 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    } else {
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
+      throw new NoSchemaFoundError()
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw Error(
-          `Use the --force flag to use the reset command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma migrate reset --force --early-access-feature',
-            ),
-          )}`,
-        )
+        throw new EnvNonInteractiveError()
       }
 
       console.info() // empty line

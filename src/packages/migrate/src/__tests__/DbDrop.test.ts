@@ -141,7 +141,7 @@ describe('drop', () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --preview-feature --force`,
+      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),

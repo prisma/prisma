@@ -1817,7 +1817,7 @@ packages:
       integrity: sha512-8nrGGRpu/OZKpDxpuloLlZ6g9t4+DZW057RgpWrzOHiqt/1kbPvSiMDJa5G8Z635By9fMXEoGvWZ5bO/A6dv/w==
   /@types/cross-spawn/6.0.2:
     dependencies:
-      '@types/node': 14.14.10
+      '@types/node': 12.19.7
     resolution:
       integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==
   /@types/debug/4.1.5:
@@ -1940,7 +1940,6 @@ packages:
     resolution:
       integrity: sha512-8Jduo8wvvwDzEVJCOvS/G6sgilOLvvhn1eMmK3TW8/T217O7u1jdrK6ImKLv80tVryaPSVeKu6sjDEiFjd4/eg==
   /@types/node/12.19.7:
-    dev: true
     resolution:
       integrity: sha512-zvjOU1g4CpPilbTDUATnZCUb/6lARMRAqzT7ILwl1P3YvU2leEcZ2+fw9+Jrw/paXB1CgQyXTrN4hWDtqT9O2A==
   /@types/node/12.19.8:
@@ -1948,6 +1947,7 @@ packages:
     resolution:
       integrity: sha512-D4k2kNi0URNBxIRCb1khTnkWNHv8KSL1owPmS/K5e5t8B2GzMReY7AsJIY1BnP5KdlgC4rj9jk2IkDMasIE7xg==
   /@types/node/14.14.10:
+    dev: true
     resolution:
       integrity: sha512-J32dgx2hw8vXrSbu4ZlVhn1Nm3GbeCFNw2FWL8S5QKucHGY0cyNwjdQdO+KMBZ4wpmC7KhLCiNsdk1RFRIYUQQ==
   /@types/node/8.10.66:
