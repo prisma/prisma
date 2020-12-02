@@ -49,9 +49,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
     `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
   )
   const result = await ctx.cli('init')
-  expect(stripAnsi(result.stdout)).toMatchSnapshot()
-  // For Console Warn
-  expect(stripAnsi(result.stderr)).toMatchSnapshot()
+  expect(stripAnsi(result.all!)).toMatchSnapshot()
 
   const schema = fs.readFileSync(
     join(ctx.tmpDir, 'prisma', 'schema.prisma'),

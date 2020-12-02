@@ -47,6 +47,7 @@ https://pris.ly/d/getting-started
 
 exports[`warns when DATABASE_URL present in .env  1`] = `
 Environment variables loaded from .env
+warn DATABASE_URL already exists in /tmp/dir/.env
 
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
@@ -61,8 +62,6 @@ More information in our documentation:
 https://pris.ly/d/getting-started
     
 `;
-
-exports[`warns when DATABASE_URL present in .env  2`] = `warn DATABASE_URL already exists in /tmp/dir/.env`;
 
 exports[`works with url param 1`] = `
 

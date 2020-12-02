@@ -56,6 +56,7 @@ export const Context = {
           {
             cwd: c.fs.cwd(),
             stdio: 'pipe',
+            all: true
           },
         )
       }
