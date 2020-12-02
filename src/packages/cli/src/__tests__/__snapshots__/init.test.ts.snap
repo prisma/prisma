@@ -31,7 +31,6 @@ DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=pub
 
 exports[`is schema and env written on disk replace 1`] = `
 
-
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
 
@@ -66,7 +65,6 @@ https://pris.ly/d/getting-started
 exports[`warns when DATABASE_URL present in .env  2`] = `warn DATABASE_URL already exists in /tmp/dir/.env`;
 
 exports[`works with url param 1`] = `
-
 
 ✔ Your Prisma schema was created at prisma/schema.prisma.
   You can now open it in your favorite editor.
