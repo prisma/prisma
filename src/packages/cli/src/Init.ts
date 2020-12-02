@@ -157,11 +157,10 @@ export class Init implements Command {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8'})
       const config = dotenv.parse(envFile) // will return an object
       if(Object.keys(config).includes("DATABASE_URL")){
-        console.warn(`${chalk.yellow('warn')} DATABASE_URL already exists in ${chalk.bold(path.relative(outputDir, envPath))}`)
-        console.warn(`     Prisma would have added ${defaultEnv(url, false)}`)
+        console.warn(`${chalk.yellow('warn')} Prisma would have added ${defaultEnv(url, false)} but it already exists in ${chalk.bold(path.relative(outputDir, envPath))}`)
 
       } else {
-        fs.appendFileSync(envPath, `\n\n` + defaultEnv(url));
+        fs.appendFileSync(envPath, `\n\n` +"# This text is inserted by `prisma init`:\n" + defaultEnv(url));
       }
 
     }
