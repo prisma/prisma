@@ -23,24 +23,24 @@ describe('legacy', () => {
   it('up command', async () => {
     await expect(MigrateCommand.new({}).parse(['up'])).rejects
       .toMatchInlineSnapshot(`
-                      The current command "up" doesn't exist on the latest version of Prisma Migrate.
-                      You can find the documentation for how to upgrade here: TODO
-                  `)
+            The current command "up" doesn't exist in the new version of Prisma Migrate.
+            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
+          `)
   })
 
   it('down command', async () => {
     await expect(MigrateCommand.new({}).parse(['down'])).rejects
       .toMatchInlineSnapshot(`
-            The current command "down" doesn't exist on the latest version of Prisma Migrate.
-            You can find the documentation for how to upgrade here: TODO
+            The current command "down" doesn't exist in the new version of Prisma Migrate.
+            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
           `)
   })
 
   it('save command', async () => {
     await expect(MigrateCommand.new({}).parse(['save'])).rejects
       .toMatchInlineSnapshot(`
-            The current command "save" doesn't exist on the latest version of Prisma Migrate.
-            You can find the documentation for how to upgrade here: TODO
+            The current command "save" doesn't exist in the new version of Prisma Migrate.
+            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
           `)
   })
 })

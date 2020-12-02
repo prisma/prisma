@@ -19,6 +19,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
+import { NoSchemaFoundError, MigrateNeedsForceError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -26,7 +27,7 @@ import {
   handleWarnings,
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { isOldMigrate } from '../utils/detectOldMigrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 
 const debug = Debug('migrate:dev')
 
@@ -108,34 +109,16 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    } else {
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
+      throw new NoSchemaFoundError()
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
@@ -181,10 +164,10 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
     }
 
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
-    const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
+    const hasModifiedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
-    // if failed migration(s) or edited migration(s) print and got to reset
-    if (hasFailedMigrations || hasEditedMigrations) {
+    // if failed migration(s) or modified migration(s) print and got to reset
+    if (hasFailedMigrations || hasModifiedMigrations) {
       isResetNeeded = true
 
       if (hasFailedMigrations) {
@@ -196,10 +179,10 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
         )
       }
 
-      if (hasEditedMigrations) {
-        // migration(s) that were edited since they were applied to the db.
+      if (hasModifiedMigrations) {
+        // migration(s) that were modified since they were applied to the db.
         console.info(
-          `The following migration(s) were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
+          `The following migration(s) were modified after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
             '\n- ',
           )}\n`,
         )
@@ -286,13 +269,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new MigrateNeedsForceError('dev')
         }
 
         const confirmedReset = await this.confirmReset(
@@ -379,13 +356,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new MigrateNeedsForceError('dev')
         }
 
         const confirmedReset = await this.confirmReset(
