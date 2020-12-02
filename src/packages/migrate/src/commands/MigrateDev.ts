@@ -19,7 +19,7 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateNeedsForceError } from '../utils/errors'
+import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -57,7 +57,6 @@ ${chalk.bold('Options')}
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Only create a migration without applying it
-      -f, --force   Skip the data loss confirmation prompt
   --skip-generate   Skip generate
 
 ${chalk.bold('Examples')}
@@ -80,8 +79,8 @@ ${chalk.bold('Examples')}
       '-h': '--help',
       '--name': String,
       '-n': '--name',
-      '--force': Boolean,
-      '-f': '--force',
+      // '--force': Boolean,
+      // '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
       '--skip-generate': Boolean,
@@ -149,8 +148,7 @@ ${chalk.bold('Examples')}
           } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature' +
-      (args['--force'] ? ' --force' : ''),
+    'prisma migrate dev --early-access-feature',
   )} again.`,
 )}
 
@@ -200,8 +198,7 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
               } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature' +
-      (args['--force'] ? ' --force' : ''),
+    'prisma migrate dev --early-access-feature',
   )} again.`,
 )}
   
@@ -269,7 +266,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw new MigrateNeedsForceError('dev')
+          throw new EnvNonInteractiveError()
         }
 
         const confirmedReset = await this.confirmReset(
@@ -356,7 +353,7 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw new MigrateNeedsForceError('dev')
+          throw new EnvNonInteractiveError()
         }
 
         const confirmedReset = await this.confirmReset(
