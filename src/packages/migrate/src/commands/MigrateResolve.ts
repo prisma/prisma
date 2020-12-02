@@ -15,8 +15,8 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { isOldMigrate } from '../utils/detectOldMigrate'
-
+import { NoSchemaFoundError } from '../utils/errors'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
     return new MigrateResolve()
@@ -96,34 +96,16 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    } else {
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
+      throw new NoSchemaFoundError()
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // if both are not defined
     if (!args['--applied'] && !args['--rolledback']) {

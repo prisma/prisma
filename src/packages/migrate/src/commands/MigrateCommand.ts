@@ -90,10 +90,9 @@ ${chalk.bold('Examples')}
     }
 
     if (['up', 'save', 'down'].includes(args._[0])) {
-      // TODO docs
       throw new Error(
-        `The current command "${args._[0]}" doesn't exist on the latest version of Prisma Migrate.
-You can find the documentation for how to upgrade here: TODO`,
+        `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
+Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
       )
     }
 
