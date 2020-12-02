@@ -156,8 +156,8 @@ function getValueLength(
   }
 
   if (typeof value === 'object') {
-    return (
-      Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
+    return Math.abs(
+      getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length,
     )
   }
 
@@ -177,16 +177,16 @@ function prefixLines(str: string, indent: string, prefix: string): string {
       index === 0
         ? prefix + indent.slice(1) + line
         : index < arr.length - 1
-          ? prefix + line.slice(1)
-          : line,
+        ? prefix + line.slice(1)
+        : line,
     )
     .map((line) => {
       // we need to use a special token to "mark" a line a "to be dimmed", as chalk (or rather ansi) doesn't allow nesting of dimmed & colored content
       return stripAnsi(line).includes(DIM_TOKEN)
         ? chalk.dim(line.replace(DIM_TOKEN, ''))
         : line.includes('?')
-          ? chalk.dim(line)
-          : line
+        ? chalk.dim(line)
+        : line
     })
     .join('\n')
 }

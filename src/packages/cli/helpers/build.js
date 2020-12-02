@@ -98,7 +98,6 @@ main().catch((e) => {
   process.exit(1)
 })
 
-
 function chmodX(file) {
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1

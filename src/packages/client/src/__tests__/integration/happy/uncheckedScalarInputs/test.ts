@@ -5,7 +5,10 @@ import { promisify } from 'util'
 const copyFile = promisify(fs.copyFile)
 
 test('uncheckedScalarInputs', async () => {
-  await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
+  await copyFile(
+    path.join(__dirname, 'dev.db'),
+    path.join(__dirname, 'dev-tmp.db'),
+  )
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   await prisma.user.deleteMany()
@@ -13,7 +16,7 @@ test('uncheckedScalarInputs', async () => {
   const user = await prisma.user.create({
     data: {
       email: 'bob@bob.de',
-      name: "Alice"
+      name: 'Alice',
     },
   })
 
@@ -22,11 +25,11 @@ test('uncheckedScalarInputs', async () => {
       published: false,
       title: 'Mitle',
       content: 'Blub',
-      authorId: user.id
+      authorId: user.id,
     },
     include: {
-      author: true
-    }
+      author: true,
+    },
   })
 
   expect(post.authorId).toEqual(user.id)

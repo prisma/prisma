@@ -51,7 +51,7 @@ export class DMMFClass implements DMMF.Document {
     this.rootFieldMap = this.getRootFieldMap()
   }
   get [Symbol.toStringTag]() {
-    return "DMMFClass";
+    return 'DMMFClass'
   }
   protected outputTypeToMergedOutputType = (
     outputType: DMMF.OutputType,

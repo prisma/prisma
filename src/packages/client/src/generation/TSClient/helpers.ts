@@ -1,8 +1,5 @@
 import { DMMF } from '../../runtime/dmmf-types'
-import {
-  capitalize,
-  lowerCase,
-} from '../../runtime/utils/common'
+import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getModelArgName, unique } from '../utils'
 
 export function getMethodJSDocBody(
@@ -62,8 +59,8 @@ const { count } = await ${method}({
       const onlySelect = firstScalar
         ? `\n// Only select the \`${firstScalar.name}\`
 const ${lowerCase(mapping.model)}With${capitalize(
-          firstScalar.name,
-        )}Only = await ${method}({ select: { ${firstScalar.name}: true } })`
+            firstScalar.name,
+          )}Only = await ${method}({ select: { ${firstScalar.name}: true } })`
         : ''
 
       return `Find zero or more ${plural} that matches the filter.
@@ -100,7 +97,9 @@ const ${lowerCase(mapping.model)} = await ${method}({
         model.name,
         action,
       )}} args - Arguments to find a ${singular}
-@deprecated This will be deprecated please use ${`prisma.${lowerCase(mapping.model)}.findUnique`}
+@deprecated This will be deprecated please use ${`prisma.${lowerCase(
+        mapping.model,
+      )}.findUnique`}
 @example
 // Get one ${singular}
 const ${lowerCase(mapping.model)} = await ${method}({

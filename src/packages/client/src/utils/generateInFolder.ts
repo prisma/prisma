@@ -102,8 +102,7 @@ export async function generateInFolder({
       queryEngine: {
         [platform]: path.join(
           enginesPath,
-          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''
-          }`,
+          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
         ),
       },
     },

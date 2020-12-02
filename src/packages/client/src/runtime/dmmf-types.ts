@@ -1,4 +1,4 @@
-import { DMMF } from "@prisma/generator-helper";
+import { DMMF } from '@prisma/generator-helper'
 
 export interface BaseField {
   name: string

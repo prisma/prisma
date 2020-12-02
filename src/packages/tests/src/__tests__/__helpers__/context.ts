@@ -77,7 +77,7 @@ type ContextContributorFactory<
   Settings,
   Context,
   NewContext
-  > = Settings extends {}
+> = Settings extends {}
   ? () => ContextContributor<Context, NewContext>
   : (settings: Settings) => ContextContributor<Context, NewContext>
 
@@ -119,10 +119,10 @@ export const consoleContext: ContextContributorFactory<
   beforeEach(() => {
     ctx.mocked['console.error'] = jest
       .spyOn(console, 'error')
-      .mockImplementation(() => { })
+      .mockImplementation(() => {})
     ctx.mocked['console.log'] = jest
       .spyOn(console, 'log')
-      .mockImplementation(() => { })
+      .mockImplementation(() => {})
   })
 
   afterEach(() => {

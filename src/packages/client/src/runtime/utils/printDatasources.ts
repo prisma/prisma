@@ -1,6 +1,12 @@
 import { Dictionary } from './common'
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql' | 'sqlserver' | 'jdbc:sqlserver'
+export type ConnectorType =
+  | 'mysql'
+  | 'mongo'
+  | 'sqlite'
+  | 'postgresql'
+  | 'sqlserver'
+  | 'jdbc:sqlserver'
 
 export interface GeneratorConfig {
   name: string
@@ -12,9 +18,9 @@ export interface GeneratorConfig {
 export type Datasource =
   | string
   | {
-    url: string
-    [key: string]: any | undefined
-  }
+      url: string
+      [key: string]: any | undefined
+    }
 
 export interface InternalDatasource {
   name: string

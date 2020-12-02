@@ -1,4 +1,3 @@
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export interface Document {
@@ -63,7 +62,11 @@ export namespace DMMF {
   export type FieldKind = 'scalar' | 'object' | 'enum'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+  export type FieldLocation =
+    | 'scalar'
+    | 'inputObjectTypes'
+    | 'outputObjectTypes'
+    | 'enumTypes'
 
   export interface Field {
     kind: FieldKind

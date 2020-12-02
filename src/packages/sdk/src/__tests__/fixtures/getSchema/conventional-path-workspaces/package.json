@@ -1,5 +1,7 @@
 {
   "name": "conventional-path-workspaces",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "private": true
 }

@@ -13,9 +13,9 @@ async function main() {
         create: {
           published: false,
           title: 'hi',
-        }
-      }
-    }
+        },
+      },
+    },
   })
 
   await prisma.post.create({
@@ -24,18 +24,18 @@ async function main() {
       published: true,
       author: {
         create: {
-          email: 'a@a.de'
-        }
+          email: 'a@a.de',
+        },
       },
-    }
+    },
   })
 
   await prisma.post.create({
     data: {
       title: '',
       published: true,
-      authorId: 'a@a.de'
-    }
+      authorId: 'a@a.de',
+    },
   })
 }
 

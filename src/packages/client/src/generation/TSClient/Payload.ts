@@ -1,4 +1,4 @@
-import { OutputType } from './Output';
+import { OutputType } from './Output'
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 
@@ -10,9 +10,8 @@ import {
 } from '../utils'
 import { Generatable } from './Generatable'
 
-
 export class PayloadType implements Generatable {
-  constructor(protected readonly type: OutputType) { }
+  constructor(protected readonly type: OutputType) {}
 
   public toTS(): string {
     const { type } = this
@@ -43,7 +42,9 @@ export type ${getPayloadName(name)}<
   private renderRelations(projection: Projection): string {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter((f) => f.outputType.location === 'outputObjectTypes')
+    const relations = type.fields.filter(
+      (f) => f.outputType.location === 'outputObjectTypes',
+    )
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
@@ -55,20 +56,19 @@ export type ${getPayloadName(name)}<
     return `{
   [P in TrueKeys<S['${projection}']>]: ${selectPrefix}
   ${indent(
-      relations
-        .map(
-          (f) => `P extends '${f.name}'
+    relations
+      .map(
+        (f) => `P extends '${f.name}'
 ? ${this.wrapType(
-            f,
-            `${getPayloadName(
-              (f.outputType.type as DMMF.OutputType).name,
-            )}<S['${projection}'][P]>`,
-          )} :`,
-        )
-        .join('\n'),
-      6,
-    )
-      } never
+          f,
+          `${getPayloadName(
+            (f.outputType.type as DMMF.OutputType).name,
+          )}<S['${projection}'][P]>`,
+        )} :`,
+      )
+      .join('\n'),
+    6,
+  )} never
 } `
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
