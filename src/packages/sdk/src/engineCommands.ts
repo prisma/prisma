@@ -5,7 +5,7 @@ import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
 import Debug from '@prisma/debug'
-import { resolveBinary } from './resolveBinary'
+import { resolveBinary, EngineType } from './resolveBinary'
 const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
@@ -316,8 +316,11 @@ export async function formatSchema({
   return result.stdout
 }
 
-export async function getVersion(enginePath?: string): Promise<string> {
-  enginePath = await resolveBinary('query-engine', enginePath)
+export async function getVersion(
+  enginePath?: string,
+  binaryName: EngineType = 'query-engine',
+): Promise<string> {
+  enginePath = await resolveBinary(binaryName, enginePath)
 
   const result = await execa(enginePath, ['--version'], {
     env: {

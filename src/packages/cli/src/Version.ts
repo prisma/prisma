@@ -7,6 +7,7 @@ import {
   getSchemaPath,
   getVersion,
   resolveBinary,
+  EngineType,
   format,
   isError,
   HelpError,
@@ -144,18 +145,18 @@ export class Version implements Command {
   }
 
   private async resolveEngine(
-    binaryName: string,
+    binaryName: EngineType,
     envVar: string,
     platform: string, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): Promise<BinaryInfo> {
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv)
+      const version = await getVersion(pathFromEnv, binaryName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const binaryPath = await resolveBinary(binaryName as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    const version = await getVersion(binaryPath)
+    const binaryPath = await resolveBinary(binaryName)
+    const version = await getVersion(binaryPath, binaryName)
     return { path: binaryPath, version }
   }
 
