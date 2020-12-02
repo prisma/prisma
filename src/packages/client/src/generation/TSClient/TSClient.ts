@@ -324,7 +324,7 @@ class PrismaClient {
   constructor() {
     throw new Error(
       \`PrismaClient is unable to be run in the browser.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
     )
   }
 }
