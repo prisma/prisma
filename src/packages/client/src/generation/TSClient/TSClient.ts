@@ -69,7 +69,7 @@ export class TSClient implements Generatable {
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
 
-    const code = `${commonCodeJS({...this.options, browser: false})}
+    const code = `${commonCodeJS({ ...this.options, browser: false })}
 
 const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
 const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
@@ -173,8 +173,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap).map(
-      (model) =>
-        new Model(model, this.dmmf, this.options.generator, collector),
+      (model) => new Model(model, this.dmmf, this.options.generator, collector),
     )
 
     // TODO: Make this code more efficient and directly return 2 arrays
@@ -293,7 +292,7 @@ export type ${s} = Prisma.${s}`,
 
   public toBrowserJS(): string {
     // used for the __dirname polyfill needed for Next.js
-    const code = `${commonCodeJS({...this.options, browser: true})}
+    const code = `${commonCodeJS({ ...this.options, browser: true })}
 /**
  * Enums
  */
@@ -301,13 +300,22 @@ export type ${s} = Prisma.${s}`,
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma
+  .map((type) => new Enum(type, true).toJS())
+  .join('\n\n')}
+${
+  this.dmmf.schema.enumTypes.model
+    ?.map((type) => new Enum(type, false).toJS())
+    .join('\n\n') ?? ''
+}
 
-${new Enum({
-      name: 'ModelName',
-      values: this.dmmf.mappings.modelOperations.map((m) => m.model)
-    }, true).toJS()}
+${new Enum(
+  {
+    name: 'ModelName',
+    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+  },
+  true,
+).toJS()}
 
 /**
  * Create the Client

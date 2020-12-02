@@ -19,8 +19,8 @@ async function main() {
   } = await prisma.a.findFirst()
   const b = await prisma.b.findFirst({
     where: {
-      decFloat: new Prisma.Decimal('1.23')
-    }
+      decFloat: new Prisma.Decimal('1.23'),
+    },
   })
   const c = await prisma.c.findFirst()
   const d: null | {
@@ -32,7 +32,6 @@ async function main() {
     jsonb: Prisma.JsonValue
   } = await prisma.d.findFirst()
   const e = await prisma.e.findFirst()
-
 }
 
 main()

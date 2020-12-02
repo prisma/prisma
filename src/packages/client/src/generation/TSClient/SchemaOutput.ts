@@ -1,21 +1,19 @@
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 
-import {
-  GraphQLScalarToJSTypeTable,
-} from '../../runtime/utils/common'
+import { GraphQLScalarToJSTypeTable } from '../../runtime/utils/common'
 import { TAB_SIZE } from './constants'
 import { Generatable } from './Generatable'
 import { ExportCollector } from './helpers'
 
 export class SchemaOutputField implements Generatable {
-  constructor(protected readonly field: DMMF.SchemaField) { }
+  constructor(protected readonly field: DMMF.SchemaField) {}
   public toTS(): string {
     const { field } = this
     let fieldType =
       typeof field.outputType.type === 'string'
         ? GraphQLScalarToJSTypeTable[field.outputType.type] ||
-        field.outputType.type
+          field.outputType.type
         : field.outputType.type.name
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
@@ -32,7 +30,7 @@ export class SchemaOutputType implements Generatable {
   public fields: DMMF.SchemaField[]
   constructor(
     protected readonly type: DMMF.OutputType,
-    protected readonly collector?: ExportCollector
+    protected readonly collector?: ExportCollector,
   ) {
     this.name = type.name
     this.fields = type.fields
@@ -43,13 +41,13 @@ export class SchemaOutputType implements Generatable {
     return `
 export type ${type.name} = {
 ${indent(
-      type.fields
-        .map((field) =>
-          new SchemaOutputField({ ...field, ...field.outputType }).toTS(),
-        )
-        .join('\n'),
-      TAB_SIZE,
-    )}
+  type.fields
+    .map((field) =>
+      new SchemaOutputField({ ...field, ...field.outputType }).toTS(),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
 }`
   }
 }

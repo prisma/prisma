@@ -16,7 +16,7 @@ export async function getMigrationName(
     }
   }
   // We use prompts.inject() for testing in our CI
-  else if (isCi() && Boolean((prompt )._injected?.length) === false) {
+  else if (isCi() && Boolean(prompt._injected?.length) === false) {
     return {
       name: '',
     }

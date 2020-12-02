@@ -35,7 +35,6 @@ export function getEnvPaths(
   return { rootEnvPath, schemaEnvPath }
 }
 
-
 function readSchemaPathFromPkgJson(): string | null {
   try {
     return getSchemaPathFromPackageJsonSync(process.cwd())
@@ -44,7 +43,9 @@ function readSchemaPathFromPkgJson(): string | null {
   }
 }
 
-function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null {
+function getProjectRootEnvPath(
+  opts: findUp.Options | undefined,
+): string | null {
   const pkgJsonPath = findUp.sync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {

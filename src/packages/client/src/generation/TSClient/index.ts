@@ -8,4 +8,3 @@ export { Model, ModelDelegate } from './Model'
 export { OutputField, OutputType } from './Output'
 export { SchemaOutputField, SchemaOutputType } from './SchemaOutput'
 export { TSClient } from './TSClient'
-

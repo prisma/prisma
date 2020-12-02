@@ -1,8 +1,11 @@
-import indent from 'indent-string';
+import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
+import {
+  GraphQLScalarToJSTypeTable,
+  JSOutputTypeToInputType,
+} from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
-import { TAB_SIZE } from './constants';
+import { TAB_SIZE } from './constants'
 import { Generatable } from './Generatable'
 import { ExportCollector, wrapComment } from './helpers'
 
@@ -10,7 +13,7 @@ export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
-  ) { }
+  ) {}
   public toTS(): string {
     const { field } = this
 
@@ -19,8 +22,8 @@ export class InputField implements Generatable {
         typeof t.type === 'string'
           ? GraphQLScalarToJSTypeTable[t.type] || t.type
           : this.prefixFilter
-            ? `Base${t.type.name}`
-            : t.type.name
+          ? `Base${t.type.name}`
+          : t.type.name
       type = JSOutputTypeToInputType[type] ?? type
 
       if (type === 'Null') {
@@ -29,7 +32,7 @@ export class InputField implements Generatable {
 
       if (t.isList) {
         if (Array.isArray(type)) {
-          return type.map(t => `Enumerable<${t}>`).join(' | ')
+          return type.map((t) => `Enumerable<${t}>`).join(' | ')
         } else {
           return `Enumerable<${type}>`
         }
@@ -56,9 +59,11 @@ export class InputField implements Generatable {
   }
 }
 
-
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly collector?: ExportCollector) { }
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly collector?: ExportCollector,
+  ) {}
   public toTS(): string {
     const { type } = this
     this.collector?.addSymbol(type.name)
@@ -67,13 +72,13 @@ export class InputType implements Generatable {
     // TO DISCUSS: Should we rely on TypeScript's error messages?
     const body = `{
 ${indent(
-      fields
-        .map((arg) =>
-          new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
-        )
-        .join('\n'),
-      TAB_SIZE,
-    )}
+  fields
+    .map((arg) =>
+      new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
 }`
     return `
 export type ${type.name} = ${body}`

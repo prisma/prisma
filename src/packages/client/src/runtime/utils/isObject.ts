@@ -7,11 +7,13 @@ const notReallyObjects = {
   '[object Date]': true,
   '[object BitInt]': true,
   '[object Uint8Array]': true, // for Buffers
-  '[object Function]': true // for Decimal
+  '[object Function]': true, // for Decimal
 }
 
 export function isObject(value: any): boolean {
-  return value
-    && typeof value === 'object'
-    && !notReallyObjects[Object.prototype.toString.call(value)]
+  return (
+    value &&
+    typeof value === 'object' &&
+    !notReallyObjects[Object.prototype.toString.call(value)]
+  )
 }

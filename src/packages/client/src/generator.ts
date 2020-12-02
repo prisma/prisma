@@ -18,7 +18,7 @@ generatorHandler({
       prettyName: 'Prisma Client',
       requiresEngines: ['queryEngine'],
       version: clientVersion,
-      requiresEngineVersion: enginesVersion
+      requiresEngineVersion: enginesVersion,
     }
   },
   async onGenerate(options) {
@@ -42,6 +42,5 @@ generatorHandler({
     })
   },
 })
-
 
 export { getDMMF, externalToInternalDmmf }

@@ -6,7 +6,7 @@ import { PrismaClient, user } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  const result: {count: number} = await prisma.user.deleteMany()
+  const result: { count: number } = await prisma.user.deleteMany()
 }
 
 main().catch((e) => {

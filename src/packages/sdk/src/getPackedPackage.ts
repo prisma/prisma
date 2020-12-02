@@ -48,9 +48,11 @@ export async function getPackedPackage(
   const archivePath = path.join(tmpDir, `package.tgz`)
 
   // Check if yarn is available.
-  const isYarn = await hasYarn(packageDir);
+  const isYarn = await hasYarn(packageDir)
 
-  const packCMD = isYarn ? `yarn pack -f ${archivePath}` : `npm pack ${packageDir}`;
+  const packCMD = isYarn
+    ? `yarn pack -f ${archivePath}`
+    : `npm pack ${packageDir}`
 
   // pack into a .tgz in a tmp dir
   await execa.command(packCMD, {
@@ -58,7 +60,8 @@ export async function getPackedPackage(
     cwd: isYarn ? packageDir : tmpDir, // for npm pack it outputs a file to the cwd
   })
 
-  if (!isYarn) { // since npm pack does not have option to specify a filename we change it here
+  if (!isYarn) {
+    // since npm pack does not have option to specify a filename we change it here
     // find single tgz in temp folder
     const filename = (await readdir(tmpDir))[0]
     // rename it to match expected filename

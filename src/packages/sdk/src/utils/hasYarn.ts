@@ -1,4 +1,4 @@
-import execa from 'execa';
+import execa from 'execa'
 
 /**
  * Checks if yarn is available
@@ -8,13 +8,14 @@ import execa from 'execa';
  * @return {boolean}
  */
 export async function hasYarn(packageDir: string): Promise<boolean> {
-    try {
-        await execa.command('yarn --version', {
-            shell: true,
-            cwd: packageDir,
-        })
-        return true
-    } catch(e) { // if we are here - yarn is not installed
-        return false
-    }
+  try {
+    await execa.command('yarn --version', {
+      shell: true,
+      cwd: packageDir,
+    })
+    return true
+  } catch (e) {
+    // if we are here - yarn is not installed
+    return false
+  }
 }

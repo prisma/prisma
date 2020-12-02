@@ -9,7 +9,7 @@ beforeAll(async () => {
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
-    schemaPath: path.join(__dirname, 'schema.prisma')
+    schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
 
@@ -77,7 +77,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     dFloat: 1.3,
     decFloat: 0,
     numFloat: '23.12',
-    decArray: [1.1, 2.5]
+    decArray: [1.1, 2.5],
   }
 
   let b = await prisma.b.create({
@@ -87,7 +87,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
       dFloat: true,
       decFloat: true,
       numFloat: true,
-      decArray: true
+      decArray: true,
     },
   })
 
@@ -101,7 +101,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     dFloat: 1.3,
     decFloat: new Decimal(0),
     numFloat: new Decimal('23.12'),
-    decArray: [new Decimal(1.1), new Decimal(2.5)]
+    decArray: [new Decimal(1.1), new Decimal(2.5)],
   }
 
   expect(b).toEqual(mappedData)
@@ -110,7 +110,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     float: 1,
     dFloat: 1.3,
     decFloat: new Decimal('1.2'),
-    numFloat: new Decimal('1232.123456')
+    numFloat: new Decimal('1232.123456'),
   }
 
   b = await prisma.b.create({
@@ -184,7 +184,7 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
     json: { hello: 'world' },
     jsonb: { hello: 'world' },
     xml: '',
-    bytesArray: [Buffer.from(helloString), Buffer.from(helloString)]
+    bytesArray: [Buffer.from(helloString), Buffer.from(helloString)],
   }
   const d = await prisma.d.create({
     data,
@@ -194,7 +194,7 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
       json: true,
       jsonb: true,
       xml: true,
-      bytesArray: true
+      bytesArray: true,
     },
   })
 

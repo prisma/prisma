@@ -1,19 +1,19 @@
-import indent from 'indent-string';
-import { Generatable } from "./Generatable"
+import indent from 'indent-string'
+import { Generatable } from './Generatable'
 import { DMMF } from '../../runtime/dmmf-types'
-import { ExportCollector, topLevelArgsJsDocs } from "./helpers"
+import { ExportCollector, topLevelArgsJsDocs } from './helpers'
 import pluralize from 'pluralize'
-import { getIncludeName, getModelArgName, getSelectName } from "../utils"
-import { InputField } from './Input';
-import { TAB_SIZE } from './constants';
+import { getIncludeName, getModelArgName, getSelectName } from '../utils'
+import { InputField } from './Input'
+import { TAB_SIZE } from './constants'
 
 export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly collector?: ExportCollector
-  ) { }
+    protected readonly collector?: ExportCollector,
+  ) {}
   public toTS(): string {
     const { action, args } = this
     const { name } = this.model
@@ -45,8 +45,8 @@ export class ArgsType implements Generatable {
           {
             type: 'null',
             location: 'scalar',
-            isList: false
-          }
+            isList: false,
+          },
         ],
         comment: `Select specific fields to fetch from the ${name}`,
       },
@@ -70,8 +70,8 @@ export class ArgsType implements Generatable {
           {
             type: 'null',
             location: 'scalar',
-            isList: false
-          }
+            isList: false,
+          },
         ],
         comment: `Choose, which related nodes to fetch as well.`,
       })
@@ -88,9 +88,9 @@ export class ArgsType implements Generatable {
  */
 export type ${modelArgName} = {
 ${indent(
-      bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
-      TAB_SIZE,
-    )}
+  bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
+  TAB_SIZE,
+)}
 }
 `
   }
@@ -101,8 +101,8 @@ export class MinimalArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly model: DMMF.Model,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly collector?: ExportCollector
-  ) { }
+    protected readonly collector?: ExportCollector,
+  ) {}
   public toTS(): string {
     const { action, args } = this
     const { name } = this.model
