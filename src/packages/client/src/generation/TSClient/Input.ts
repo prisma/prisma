@@ -3,6 +3,7 @@ import { DMMF } from '../../runtime/dmmf-types'
 import {
   GraphQLScalarToJSTypeTable,
   JSOutputTypeToInputType,
+  argIsInputType,
 } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'
@@ -17,46 +18,118 @@ export class InputField implements Generatable {
   public toTS(): string {
     const { field } = this
 
-    const fieldTypes = field.inputTypes.map((t) => {
-      let type =
-        typeof t.type === 'string'
-          ? GraphQLScalarToJSTypeTable[t.type] || t.type
-          : this.prefixFilter
-          ? `Base${t.type.name}`
-          : t.type.name
-      type = JSOutputTypeToInputType[type] ?? type
-
-      if (type === 'Null') {
-        return 'null'
-      }
-
-      if (t.isList) {
-        if (Array.isArray(type)) {
-          return type.map((t) => `Enumerable<${t}>`).join(' | ')
-        } else {
-          return `Enumerable<${type}>`
-        }
-      }
-
-      if (Array.isArray(type)) {
-        type = type.join(' | ')
-      }
-
-      return type
-    })
-
-    let fieldType
-    if (fieldTypes.length === 2) {
-      fieldType = `XOR<${fieldTypes[0]}, ${fieldTypes[1]}>`
-    } else {
-      fieldType = fieldTypes.join(' | ')
-    }
-
     const optionalStr = field.isRequired ? '' : '?'
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
+    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter)
 
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
+}
+
+function stringifyInputType(
+  t: DMMF.SchemaArgInputType,
+  prefixFilter: boolean,
+): string {
+  let type =
+    typeof t.type === 'string'
+      ? GraphQLScalarToJSTypeTable[t.type] || t.type
+      : prefixFilter
+      ? `Base${t.type.name}`
+      : t.type.name
+  type = JSOutputTypeToInputType[type] ?? type
+
+  if (type === 'Null') {
+    return 'null'
+  }
+
+  if (t.isList) {
+    if (Array.isArray(type)) {
+      return type.map((t) => `Enumerable<${t}>`).join(' | ')
+    } else {
+      return `Enumerable<${type}>`
+    }
+  }
+
+  if (Array.isArray(type)) {
+    type = type.join(' | ')
+  }
+
+  return type
+}
+
+/**
+ * Examples:
+ * T[], T => Enum<T>
+ * T, U => XOR<T,U>
+ * T[], U => Enum<T> | U
+ * T, U, null => XOR<T,U> | null
+ * T, U, V, W, null => XOR<T, XOR<U, XOR<V, W>>> | null
+ *
+ * 1. Filter out singular T, if list T[] exists
+ * 2. Separate XOR and non XOR items (objects and non-objects)
+ * 3. Generate them out and `|` them
+ */
+function stringifyInputTypes(
+  inputTypes: DMMF.SchemaArgInputType[],
+  prefixFilter: boolean,
+): string {
+  const pairMap: Record<string, number> = Object.create(null)
+
+  const singularPairIndexes = new Set<number>()
+
+  for (let i = 0; i < inputTypes.length; i++) {
+    const inputType = inputTypes[i]
+    if (argIsInputType(inputType.type)) {
+      const { name } = inputType.type
+      if (typeof pairMap[name] === 'number') {
+        if (inputType.isList) {
+          singularPairIndexes.add(pairMap[name])
+        } else {
+          singularPairIndexes.add(i)
+        }
+      } else {
+        pairMap[name] = i
+      }
+    }
+  }
+
+  const filteredInputTypes = inputTypes.filter(
+    (t, i) => !singularPairIndexes.has(i),
+  )
+
+  const inputObjectTypes = filteredInputTypes.filter(
+    (t) => t.location === 'inputObjectTypes',
+  )
+
+  const nonInputObjectTypes = filteredInputTypes.filter(
+    (t) => t.location !== 'inputObjectTypes',
+  )
+
+  const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>(
+    (acc, curr) => {
+      const currentStringified = stringifyInputType(curr, prefixFilter)
+      if (acc.length > 0) {
+        return `XOR<${currentStringified}, ${acc}>`
+      }
+
+      return currentStringified
+    },
+    '',
+  )
+
+  const stringifiedNonInputTypes = nonInputObjectTypes
+    .map((type) => stringifyInputType(type, prefixFilter))
+    .join(' | ')
+
+  if (stringifiedNonInputTypes.length === 0) {
+    return stringifiedInputObjectTypes
+  }
+
+  if (stringifiedInputObjectTypes.length === 0) {
+    return stringifiedNonInputTypes
+  }
+
+  return `${stringifiedInputObjectTypes} | ${stringifiedNonInputTypes}`
 }
 
 export class InputType implements Generatable {
