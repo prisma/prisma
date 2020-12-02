@@ -50,11 +50,26 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
-Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
-Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnknownRequestError', browser)}
-Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
-Prisma.PrismaClientInitializationError = ${notSupportOnBrowser('PrismaClientInitializationError', browser)}
-Prisma.PrismaClientValidationError = ${notSupportOnBrowser('PrismaClientValidationError', browser)}
+Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser(
+  'PrismaClientKnownRequestError',
+  browser,
+)};
+Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser(
+  'PrismaClientUnknownRequestError',
+  browser,
+)}
+Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser(
+  'PrismaClientRustPanicError',
+  browser,
+)}
+Prisma.PrismaClientInitializationError = ${notSupportOnBrowser(
+  'PrismaClientInitializationError',
+  browser,
+)}
+Prisma.PrismaClientValidationError = ${notSupportOnBrowser(
+  'PrismaClientValidationError',
+  browser,
+)}
 Prisma.Decimal = ${notSupportOnBrowser('Decimal', browser)}
 
 /**

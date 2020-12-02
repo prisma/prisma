@@ -15,9 +15,9 @@ export function JS(gen: Generatable): string {
 export function BrowserJS(gen: Generatable): string {
   if (gen.toBrowserJS) {
     return gen.toBrowserJS()
-  } return ''
+  }
+  return ''
 }
 export function TS(gen: Generatable): string {
   return gen.toTS()
 }
-

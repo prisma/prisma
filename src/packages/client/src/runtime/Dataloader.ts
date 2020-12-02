@@ -17,7 +17,7 @@ export class Dataloader<T = any> {
     this.batches = {}
   }
   get [Symbol.toStringTag]() {
-    return "Dataloader";
+    return 'Dataloader'
   }
   request(request: T): Promise<any> {
     const hash = this.options.batchBy(request)

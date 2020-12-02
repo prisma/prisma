@@ -33,8 +33,8 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       '@prisma/photon',
     )} dependency to ${chalk.green('@prisma/client')}
   3. Replace ${chalk.red(
-      "import { Photon } from '@prisma/photon'",
-    )} with ${chalk.green(
+    "import { Photon } from '@prisma/photon'",
+  )} with ${chalk.green(
       "import { PrismaClient } from '@prisma/client'",
     )} in your code.
   4. Run ${chalk.green(getCommandWithExecutor('prisma generate'))} again.
@@ -110,11 +110,8 @@ Please try to install it with ${chalk.bold.greenBright(
 
     return {
       outputPath: prismaClientDir,
-      generatorPath: path.resolve(
-        prismaClientDir,
-        'generator-build/index.js',
-      ),
-      isNode: true
+      generatorPath: path.resolve(prismaClientDir, 'generator-build/index.js'),
+      isNode: true,
     }
   },
 }

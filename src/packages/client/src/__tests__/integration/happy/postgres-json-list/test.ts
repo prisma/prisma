@@ -8,7 +8,7 @@ beforeAll(async () => {
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
     connectionString: process.env.TEST_POSTGRES_URI!,
-    schemaPath: path.join(__dirname, 'schema.prisma')
+    schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
 
@@ -20,27 +20,27 @@ test('postgres-json-list', async () => {
   await prisma.user.deleteMany()
 
   let data = {
-    jsonList: [{ hello: 'world' }]
+    jsonList: [{ hello: 'world' }],
   }
 
   let user = await prisma.user.create({
     data,
     select: {
-      jsonList: true
-    }
+      jsonList: true,
+    },
   })
 
   expect(data).toEqual(user)
 
   data = {
-    jsonList: []
+    jsonList: [],
   }
 
   user = await prisma.user.create({
     data,
     select: {
-      jsonList: true
-    }
+      jsonList: true,
+    },
   })
 
   expect(data).toEqual(user)

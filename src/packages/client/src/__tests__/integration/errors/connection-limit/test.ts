@@ -5,7 +5,7 @@ describe('connection-limit', () => {
   const clients: any[] = []
 
   afterAll(async () => {
-    await Promise.all(clients.map(c => c.$disconnect()))
+    await Promise.all(clients.map((c) => c.$disconnect()))
   })
 
   test('the client cannot query the db with 100 connections already open', async () => {
@@ -23,13 +23,14 @@ describe('connection-limit', () => {
       clients.push(client)
     }
 
-
     try {
       for (const client of clients) {
         await client.$connect()
       }
     } catch (e) {
-      expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
+      expect(e.message).toMatch(
+        'Error querying the database: db error: FATAL: sorry, too many clients already',
+      )
     }
   }, 100000)
 })

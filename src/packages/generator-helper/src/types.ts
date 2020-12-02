@@ -1,4 +1,4 @@
-import { DMMF } from "./dmmf"
+import { DMMF } from './dmmf'
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JsonRPC {
@@ -45,7 +45,12 @@ export interface EnvValue {
   value: string
 }
 
-export type ConnectorType = 'mysql' | 'mongo' | 'sqlite' | 'postgresql' | 'sqlserver'
+export type ConnectorType =
+  | 'mysql'
+  | 'mongo'
+  | 'sqlite'
+  | 'postgresql'
+  | 'sqlserver'
 
 export interface DataSource {
   name: string

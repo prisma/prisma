@@ -45,6 +45,6 @@ function getMappings(
 
   return {
     modelOperations,
-    otherOperations: mappings.otherOperations
+    otherOperations: mappings.otherOperations,
   }
 }
