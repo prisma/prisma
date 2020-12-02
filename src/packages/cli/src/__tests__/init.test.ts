@@ -8,10 +8,12 @@ const ctx = Context.new().add(consoleContext()).assemble()
 
 test('is schema and env written on disk replace', async () => {
   const result = await ctx.cli('init')
-
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -23,7 +25,10 @@ test('works with url param', async () => {
   const result = await ctx.cli('init', '--url', 'file:dev.db')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma','schema.prisma'), 'utf-8')
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
   expect(schema).toMatch(defaultSchema('sqlite'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -48,7 +53,10 @@ test('warns when DATABASE_URL present in .env ', async () => {
   // For Console Warn
   expect(stripAnsi(result.stderr)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -59,7 +67,10 @@ test('appends when .env present', async () => {
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
