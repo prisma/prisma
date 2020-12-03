@@ -1,3 +1,3 @@
-const prisma = require('.prisma/client/index-browser')
+const prisma = require('.prisma/client')
 
 module.exports = prisma
