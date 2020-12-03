@@ -85,7 +85,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration (prompt)', async () => {
+  it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse([
       '--name=first',
@@ -112,10 +112,12 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration (--name)', async () => {
+  it('first migration (prompt)', async () => {
     ctx.fixture('schema-only-sqlite')
 
-    prompt.inject(['first'])
+    prompt.inject([
+      'xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end_this_should_be_truncated',
+    ])
 
     const result = MigrateDev.new().parse(['--early-access-feature'])
 
@@ -131,7 +133,7 @@ describe('sqlite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_first/
+        └─ 20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end/
           └─ migration.sql
 
     `)
@@ -139,7 +141,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  // it('first migration --force', async () => {
+  // it('first migration --name --force', async () => {
   //   ctx.fixture('schema-only-sqlite')
   //   const result = MigrateDev.new().parse([
   //     '--name=first',
@@ -571,11 +573,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                        `)
+                                                                                                                                                                                                                                      `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -609,10 +611,10 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
 
 
-      ⚠️  There will be data loss when applying the migration:
+                        ⚠️  There will be data loss when applying the migration:
 
-        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-    `)
+                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -632,10 +634,10 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
 
 
-      ⚠️  There will be data loss when applying the migration:
+                        ⚠️  There will be data loss when applying the migration:
 
-        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-    `)
+                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 })

@@ -10,9 +10,15 @@ type getMigratioNameOutput = {
 export async function getMigrationName(
   name?: string,
 ): Promise<getMigratioNameOutput> {
+  // Truncate if longer
+  const maxMigrationNameLength = 200
+
   if (name) {
     return {
-      name: slugify(name, { separator: '_' }),
+      name: slugify(name, { separator: '_' }).substring(
+        0,
+        maxMigrationNameLength,
+      ),
     }
   }
   // We use prompts.inject() for testing in our CI
@@ -35,6 +41,10 @@ export async function getMigrationName(
   }
 
   return {
-    name: slugify(response.name, { separator: '_' }) || '',
+    name:
+      slugify(response.name, { separator: '_' }).substring(
+        0,
+        maxMigrationNameLength,
+      ) || '',
   }
 }
