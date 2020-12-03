@@ -5,7 +5,7 @@ import { removeISODate } from '../util'
 describe('debug', () => {
   test('shouldnt log if its not enabled', () => {
     const debug = Debug('my-namespace')
-    const logs = []
+    const logs: string[][] = []
     debug.log = (...args) => {
       logs.push(args.map(stripAnsi))
     }
@@ -28,7 +28,7 @@ describe('debug', () => {
   })
   test('should log if its enabled', () => {
     const debug = Debug('a-namespace')
-    const logs = []
+    const logs: string[][] = []
     debug.log = (...args) => {
       logs.push(args.map(stripAnsi))
     }
