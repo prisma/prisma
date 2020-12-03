@@ -71,7 +71,7 @@ In case this error is unexpected for you, please report it in https://github.com
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-exports.Prisma.PostDistinctFieldEnum = makeEnum({
+exports.Prisma.PostScalarFieldEnum = makeEnum({
   id: 'id',
   createdAt: 'createdAt',
   title: 'title',
@@ -80,7 +80,7 @@ exports.Prisma.PostDistinctFieldEnum = makeEnum({
   authorId: 'authorId'
 });
 
-exports.Prisma.UserDistinctFieldEnum = makeEnum({
+exports.Prisma.UserScalarFieldEnum = makeEnum({
   id: 'id',
   email: 'email',
   int: 'int',
@@ -97,7 +97,7 @@ exports.Prisma.UserDistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.MDistinctFieldEnum = makeEnum({
+exports.Prisma.MScalarFieldEnum = makeEnum({
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -113,7 +113,7 @@ exports.Prisma.MDistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.NDistinctFieldEnum = makeEnum({
+exports.Prisma.NScalarFieldEnum = makeEnum({
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -129,7 +129,7 @@ exports.Prisma.NDistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.OneOptionalDistinctFieldEnum = makeEnum({
+exports.Prisma.OneOptionalScalarFieldEnum = makeEnum({
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -145,7 +145,7 @@ exports.Prisma.OneOptionalDistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.ManyRequiredDistinctFieldEnum = makeEnum({
+exports.Prisma.ManyRequiredScalarFieldEnum = makeEnum({
   id: 'id',
   oneOptionalId: 'oneOptionalId',
   int: 'int',
@@ -162,7 +162,7 @@ exports.Prisma.ManyRequiredDistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.OptionalSide1DistinctFieldEnum = makeEnum({
+exports.Prisma.OptionalSide1ScalarFieldEnum = makeEnum({
   id: 'id',
   optionalSide2Id: 'optionalSide2Id',
   int: 'int',
@@ -179,7 +179,7 @@ exports.Prisma.OptionalSide1DistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.OptionalSide2DistinctFieldEnum = makeEnum({
+exports.Prisma.OptionalSide2ScalarFieldEnum = makeEnum({
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -195,7 +195,7 @@ exports.Prisma.OptionalSide2DistinctFieldEnum = makeEnum({
   optionalBoolean: 'optionalBoolean'
 });
 
-exports.Prisma.ADistinctFieldEnum = makeEnum({
+exports.Prisma.AScalarFieldEnum = makeEnum({
   id: 'id',
   email: 'email',
   name: 'name',
@@ -210,7 +210,7 @@ exports.Prisma.ADistinctFieldEnum = makeEnum({
   inc_bInt: 'inc_bInt'
 });
 
-exports.Prisma.BDistinctFieldEnum = makeEnum({
+exports.Prisma.BScalarFieldEnum = makeEnum({
   id: 'id',
   float: 'float',
   dFloat: 'dFloat',
@@ -218,7 +218,7 @@ exports.Prisma.BDistinctFieldEnum = makeEnum({
   numFloat: 'numFloat'
 });
 
-exports.Prisma.CDistinctFieldEnum = makeEnum({
+exports.Prisma.CScalarFieldEnum = makeEnum({
   id: 'id',
   char: 'char',
   vChar: 'vChar',
@@ -228,7 +228,7 @@ exports.Prisma.CDistinctFieldEnum = makeEnum({
   uuid: 'uuid'
 });
 
-exports.Prisma.DDistinctFieldEnum = makeEnum({
+exports.Prisma.DScalarFieldEnum = makeEnum({
   id: 'id',
   bool: 'bool',
   byteA: 'byteA',
@@ -237,7 +237,7 @@ exports.Prisma.DDistinctFieldEnum = makeEnum({
   jsonb: 'jsonb'
 });
 
-exports.Prisma.EDistinctFieldEnum = makeEnum({
+exports.Prisma.EScalarFieldEnum = makeEnum({
   id: 'id',
   date: 'date',
   time: 'time',
@@ -1184,7 +1184,7 @@ export namespace Prisma {
 
 
   export type AggregatePost = {
-    count: number
+    count: number | null
     avg: PostAvgAggregateOutputType | null
     sum: PostSumAggregateOutputType | null
     min: PostMinAggregateOutputType | null
@@ -1203,11 +1203,19 @@ export namespace Prisma {
 
   export type PostMinAggregateOutputType = {
     id: number
+    createdAt: Date | null
+    title: string | null
+    content: string | null
+    published: boolean | null
     authorId: number
   }
 
   export type PostMaxAggregateOutputType = {
     id: number
+    createdAt: Date | null
+    title: string | null
+    content: string | null
+    published: boolean | null
     authorId: number
   }
 
@@ -1224,11 +1232,19 @@ export namespace Prisma {
 
   export type PostMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    title?: true
+    content?: true
+    published?: true
     authorId?: true
   }
 
   export type PostMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    title?: true
+    content?: true
+    published?: true
     authorId?: true
   }
 
@@ -1238,7 +1254,6 @@ export namespace Prisma {
     cursor?: PostWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<PostDistinctFieldEnum>
     count?: true
     avg?: PostAvgAggregateInputType
     sum?: PostSumAggregateInputType
@@ -1556,7 +1571,7 @@ export namespace Prisma {
     cursor?: PostWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<PostDistinctFieldEnum>
+    distinct?: Enumerable<PostScalarFieldEnum>
   }
 
 
@@ -1592,7 +1607,7 @@ export namespace Prisma {
      * Skip the first \`n\` Posts.
     **/
     skip?: number
-    distinct?: Enumerable<PostDistinctFieldEnum>
+    distinct?: Enumerable<PostScalarFieldEnum>
   }
 
 
@@ -1723,7 +1738,7 @@ export namespace Prisma {
 
 
   export type AggregateUser = {
-    count: number
+    count: number | null
     avg: UserAvgAggregateOutputType | null
     sum: UserSumAggregateOutputType | null
     min: UserMinAggregateOutputType | null
@@ -1748,18 +1763,36 @@ export namespace Prisma {
 
   export type UserMinAggregateOutputType = {
     id: number
+    email: string | null
     int: number
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type UserMaxAggregateOutputType = {
     id: number
+    email: string | null
     int: number
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -1781,18 +1814,36 @@ export namespace Prisma {
 
   export type UserMinAggregateInputType = {
     id?: true
+    email?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type UserMaxAggregateInputType = {
     id?: true
+    email?: true
     int?: true
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateUserArgs = {
@@ -1801,7 +1852,6 @@ export namespace Prisma {
     cursor?: UserWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<UserDistinctFieldEnum>
     count?: true
     avg?: UserAvgAggregateInputType
     sum?: UserSumAggregateInputType
@@ -2127,7 +2177,7 @@ export namespace Prisma {
     cursor?: UserWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<UserDistinctFieldEnum>
+    distinct?: Enumerable<UserScalarFieldEnum>
   }
 
 
@@ -2163,7 +2213,7 @@ export namespace Prisma {
      * Skip the first \`n\` Users.
     **/
     skip?: number
-    distinct?: Enumerable<UserDistinctFieldEnum>
+    distinct?: Enumerable<UserScalarFieldEnum>
   }
 
 
@@ -2294,7 +2344,7 @@ export namespace Prisma {
 
 
   export type AggregateM = {
-    count: number
+    count: number | null
     avg: MAvgAggregateOutputType | null
     sum: MSumAggregateOutputType | null
     min: MMinAggregateOutputType | null
@@ -2323,6 +2373,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type MMaxAggregateOutputType = {
@@ -2331,6 +2389,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -2356,6 +2422,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type MMaxAggregateInputType = {
@@ -2364,6 +2438,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateMArgs = {
@@ -2372,7 +2454,6 @@ export namespace Prisma {
     cursor?: MWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<MDistinctFieldEnum>
     count?: true
     avg?: MAvgAggregateInputType
     sum?: MSumAggregateInputType
@@ -2697,7 +2778,7 @@ export namespace Prisma {
     cursor?: MWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<MDistinctFieldEnum>
+    distinct?: Enumerable<MScalarFieldEnum>
   }
 
 
@@ -2733,7 +2814,7 @@ export namespace Prisma {
      * Skip the first \`n\` MS.
     **/
     skip?: number
-    distinct?: Enumerable<MDistinctFieldEnum>
+    distinct?: Enumerable<MScalarFieldEnum>
   }
 
 
@@ -2864,7 +2945,7 @@ export namespace Prisma {
 
 
   export type AggregateN = {
-    count: number
+    count: number | null
     avg: NAvgAggregateOutputType | null
     sum: NSumAggregateOutputType | null
     min: NMinAggregateOutputType | null
@@ -2893,6 +2974,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type NMaxAggregateOutputType = {
@@ -2901,6 +2990,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -2926,6 +3023,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type NMaxAggregateInputType = {
@@ -2934,6 +3039,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateNArgs = {
@@ -2942,7 +3055,6 @@ export namespace Prisma {
     cursor?: NWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<NDistinctFieldEnum>
     count?: true
     avg?: NAvgAggregateInputType
     sum?: NSumAggregateInputType
@@ -3267,7 +3379,7 @@ export namespace Prisma {
     cursor?: NWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<NDistinctFieldEnum>
+    distinct?: Enumerable<NScalarFieldEnum>
   }
 
 
@@ -3303,7 +3415,7 @@ export namespace Prisma {
      * Skip the first \`n\` NS.
     **/
     skip?: number
-    distinct?: Enumerable<NDistinctFieldEnum>
+    distinct?: Enumerable<NScalarFieldEnum>
   }
 
 
@@ -3434,7 +3546,7 @@ export namespace Prisma {
 
 
   export type AggregateOneOptional = {
-    count: number
+    count: number | null
     avg: OneOptionalAvgAggregateOutputType | null
     sum: OneOptionalSumAggregateOutputType | null
     min: OneOptionalMinAggregateOutputType | null
@@ -3463,6 +3575,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type OneOptionalMaxAggregateOutputType = {
@@ -3471,6 +3591,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -3496,6 +3624,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type OneOptionalMaxAggregateInputType = {
@@ -3504,6 +3640,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateOneOptionalArgs = {
@@ -3512,7 +3656,6 @@ export namespace Prisma {
     cursor?: OneOptionalWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OneOptionalDistinctFieldEnum>
     count?: true
     avg?: OneOptionalAvgAggregateInputType
     sum?: OneOptionalSumAggregateInputType
@@ -3837,7 +3980,7 @@ export namespace Prisma {
     cursor?: OneOptionalWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OneOptionalDistinctFieldEnum>
+    distinct?: Enumerable<OneOptionalScalarFieldEnum>
   }
 
 
@@ -3873,7 +4016,7 @@ export namespace Prisma {
      * Skip the first \`n\` OneOptionals.
     **/
     skip?: number
-    distinct?: Enumerable<OneOptionalDistinctFieldEnum>
+    distinct?: Enumerable<OneOptionalScalarFieldEnum>
   }
 
 
@@ -4004,7 +4147,7 @@ export namespace Prisma {
 
 
   export type AggregateManyRequired = {
-    count: number
+    count: number | null
     avg: ManyRequiredAvgAggregateOutputType | null
     sum: ManyRequiredSumAggregateOutputType | null
     min: ManyRequiredMinAggregateOutputType | null
@@ -4036,6 +4179,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type ManyRequiredMaxAggregateOutputType = {
@@ -4045,6 +4196,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -4073,6 +4232,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type ManyRequiredMaxAggregateInputType = {
@@ -4082,6 +4249,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateManyRequiredArgs = {
@@ -4090,7 +4265,6 @@ export namespace Prisma {
     cursor?: ManyRequiredWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
     count?: true
     avg?: ManyRequiredAvgAggregateInputType
     sum?: ManyRequiredSumAggregateInputType
@@ -4416,7 +4590,7 @@ export namespace Prisma {
     cursor?: ManyRequiredWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
+    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
 
 
@@ -4452,7 +4626,7 @@ export namespace Prisma {
      * Skip the first \`n\` ManyRequireds.
     **/
     skip?: number
-    distinct?: Enumerable<ManyRequiredDistinctFieldEnum>
+    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
 
 
@@ -4583,7 +4757,7 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide1 = {
-    count: number
+    count: number | null
     avg: OptionalSide1AvgAggregateOutputType | null
     sum: OptionalSide1SumAggregateOutputType | null
     min: OptionalSide1MinAggregateOutputType | null
@@ -4615,6 +4789,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type OptionalSide1MaxAggregateOutputType = {
@@ -4624,6 +4806,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -4652,6 +4842,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type OptionalSide1MaxAggregateInputType = {
@@ -4661,6 +4859,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateOptionalSide1Args = {
@@ -4669,7 +4875,6 @@ export namespace Prisma {
     cursor?: OptionalSide1WhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
     count?: true
     avg?: OptionalSide1AvgAggregateInputType
     sum?: OptionalSide1SumAggregateInputType
@@ -4995,7 +5200,7 @@ export namespace Prisma {
     cursor?: OptionalSide1WhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
+    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
   }
 
 
@@ -5031,7 +5236,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide1s.
     **/
     skip?: number
-    distinct?: Enumerable<OptionalSide1DistinctFieldEnum>
+    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
   }
 
 
@@ -5162,7 +5367,7 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide2 = {
-    count: number
+    count: number | null
     avg: OptionalSide2AvgAggregateOutputType | null
     sum: OptionalSide2SumAggregateOutputType | null
     min: OptionalSide2MinAggregateOutputType | null
@@ -5191,6 +5396,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
   export type OptionalSide2MaxAggregateOutputType = {
@@ -5199,6 +5412,14 @@ export namespace Prisma {
     optionalInt: number | null
     float: number
     optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
   }
 
 
@@ -5224,6 +5445,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type OptionalSide2MaxAggregateInputType = {
@@ -5232,6 +5461,14 @@ export namespace Prisma {
     optionalInt?: true
     float?: true
     optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
   }
 
   export type AggregateOptionalSide2Args = {
@@ -5240,7 +5477,6 @@ export namespace Prisma {
     cursor?: OptionalSide2WhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
     count?: true
     avg?: OptionalSide2AvgAggregateInputType
     sum?: OptionalSide2SumAggregateInputType
@@ -5565,7 +5801,7 @@ export namespace Prisma {
     cursor?: OptionalSide2WhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
+    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
   }
 
 
@@ -5601,7 +5837,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide2s.
     **/
     skip?: number
-    distinct?: Enumerable<OptionalSide2DistinctFieldEnum>
+    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
   }
 
 
@@ -5732,7 +5968,7 @@ export namespace Prisma {
 
 
   export type AggregateA = {
-    count: number
+    count: number | null
     avg: AAvgAggregateOutputType | null
     sum: ASumAggregateOutputType | null
     min: AMinAggregateOutputType | null
@@ -5764,6 +6000,9 @@ export namespace Prisma {
   }
 
   export type AMinAggregateOutputType = {
+    id: string | null
+    email: string | null
+    name: string | null
     int: number
     sInt: number
     bInt: BigInt
@@ -5776,6 +6015,9 @@ export namespace Prisma {
   }
 
   export type AMaxAggregateOutputType = {
+    id: string | null
+    email: string | null
+    name: string | null
     int: number
     sInt: number
     bInt: BigInt
@@ -5813,6 +6055,9 @@ export namespace Prisma {
   }
 
   export type AMinAggregateInputType = {
+    id?: true
+    email?: true
+    name?: true
     int?: true
     sInt?: true
     bInt?: true
@@ -5825,6 +6070,9 @@ export namespace Prisma {
   }
 
   export type AMaxAggregateInputType = {
+    id?: true
+    email?: true
+    name?: true
     int?: true
     sInt?: true
     bInt?: true
@@ -5842,7 +6090,6 @@ export namespace Prisma {
     cursor?: AWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ADistinctFieldEnum>
     count?: true
     avg?: AAvgAggregateInputType
     sum?: ASumAggregateInputType
@@ -6147,7 +6394,7 @@ export namespace Prisma {
     cursor?: AWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ADistinctFieldEnum>
+    distinct?: Enumerable<AScalarFieldEnum>
   }
 
 
@@ -6179,7 +6426,7 @@ export namespace Prisma {
      * Skip the first \`n\` AS.
     **/
     skip?: number
-    distinct?: Enumerable<ADistinctFieldEnum>
+    distinct?: Enumerable<AScalarFieldEnum>
   }
 
 
@@ -6290,7 +6537,7 @@ export namespace Prisma {
 
 
   export type AggregateB = {
-    count: number
+    count: number | null
     avg: BAvgAggregateOutputType | null
     sum: BSumAggregateOutputType | null
     min: BMinAggregateOutputType | null
@@ -6312,6 +6559,7 @@ export namespace Prisma {
   }
 
   export type BMinAggregateOutputType = {
+    id: string | null
     float: number
     dFloat: number
     decFloat: Decimal
@@ -6319,6 +6567,7 @@ export namespace Prisma {
   }
 
   export type BMaxAggregateOutputType = {
+    id: string | null
     float: number
     dFloat: number
     decFloat: Decimal
@@ -6341,6 +6590,7 @@ export namespace Prisma {
   }
 
   export type BMinAggregateInputType = {
+    id?: true
     float?: true
     dFloat?: true
     decFloat?: true
@@ -6348,6 +6598,7 @@ export namespace Prisma {
   }
 
   export type BMaxAggregateInputType = {
+    id?: true
     float?: true
     dFloat?: true
     decFloat?: true
@@ -6360,7 +6611,6 @@ export namespace Prisma {
     cursor?: BWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<BDistinctFieldEnum>
     count?: true
     avg?: BAvgAggregateInputType
     sum?: BSumAggregateInputType
@@ -6658,7 +6908,7 @@ export namespace Prisma {
     cursor?: BWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<BDistinctFieldEnum>
+    distinct?: Enumerable<BScalarFieldEnum>
   }
 
 
@@ -6690,7 +6940,7 @@ export namespace Prisma {
      * Skip the first \`n\` BS.
     **/
     skip?: number
-    distinct?: Enumerable<BDistinctFieldEnum>
+    distinct?: Enumerable<BScalarFieldEnum>
   }
 
 
@@ -6801,10 +7051,51 @@ export namespace Prisma {
 
 
   export type AggregateC = {
-    count: number
+    count: number | null
+    min: CMinAggregateOutputType | null
+    max: CMaxAggregateOutputType | null
+  }
+
+  export type CMinAggregateOutputType = {
+    id: string | null
+    char: string | null
+    vChar: string | null
+    text: string | null
+    bit: string | null
+    vBit: string | null
+    uuid: string | null
+  }
+
+  export type CMaxAggregateOutputType = {
+    id: string | null
+    char: string | null
+    vChar: string | null
+    text: string | null
+    bit: string | null
+    vBit: string | null
+    uuid: string | null
   }
 
 
+  export type CMinAggregateInputType = {
+    id?: true
+    char?: true
+    vChar?: true
+    text?: true
+    bit?: true
+    vBit?: true
+    uuid?: true
+  }
+
+  export type CMaxAggregateInputType = {
+    id?: true
+    char?: true
+    vChar?: true
+    text?: true
+    bit?: true
+    vBit?: true
+    uuid?: true
+  }
 
   export type AggregateCArgs = {
     where?: CWhereInput
@@ -6812,8 +7103,9 @@ export namespace Prisma {
     cursor?: CWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<CDistinctFieldEnum>
     count?: true
+    min?: CMinAggregateInputType
+    max?: CMaxAggregateInputType
   }
 
   export type GetCAggregateType<T extends AggregateCArgs> = {
@@ -7106,7 +7398,7 @@ export namespace Prisma {
     cursor?: CWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<CDistinctFieldEnum>
+    distinct?: Enumerable<CScalarFieldEnum>
   }
 
 
@@ -7138,7 +7430,7 @@ export namespace Prisma {
      * Skip the first \`n\` CS.
     **/
     skip?: number
-    distinct?: Enumerable<CDistinctFieldEnum>
+    distinct?: Enumerable<CScalarFieldEnum>
   }
 
 
@@ -7249,10 +7541,47 @@ export namespace Prisma {
 
 
   export type AggregateD = {
-    count: number
+    count: number | null
+    min: DMinAggregateOutputType | null
+    max: DMaxAggregateOutputType | null
+  }
+
+  export type DMinAggregateOutputType = {
+    id: string | null
+    bool: boolean | null
+    byteA: Buffer | null
+    xml: string | null
+    json: JsonValue | null
+    jsonb: JsonValue | null
+  }
+
+  export type DMaxAggregateOutputType = {
+    id: string | null
+    bool: boolean | null
+    byteA: Buffer | null
+    xml: string | null
+    json: JsonValue | null
+    jsonb: JsonValue | null
   }
 
 
+  export type DMinAggregateInputType = {
+    id?: true
+    bool?: true
+    byteA?: true
+    xml?: true
+    json?: true
+    jsonb?: true
+  }
+
+  export type DMaxAggregateInputType = {
+    id?: true
+    bool?: true
+    byteA?: true
+    xml?: true
+    json?: true
+    jsonb?: true
+  }
 
   export type AggregateDArgs = {
     where?: DWhereInput
@@ -7260,8 +7589,9 @@ export namespace Prisma {
     cursor?: DWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<DDistinctFieldEnum>
     count?: true
+    min?: DMinAggregateInputType
+    max?: DMaxAggregateInputType
   }
 
   export type GetDAggregateType<T extends AggregateDArgs> = {
@@ -7553,7 +7883,7 @@ export namespace Prisma {
     cursor?: DWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<DDistinctFieldEnum>
+    distinct?: Enumerable<DScalarFieldEnum>
   }
 
 
@@ -7585,7 +7915,7 @@ export namespace Prisma {
      * Skip the first \`n\` DS.
     **/
     skip?: number
-    distinct?: Enumerable<DDistinctFieldEnum>
+    distinct?: Enumerable<DScalarFieldEnum>
   }
 
 
@@ -7696,10 +8026,39 @@ export namespace Prisma {
 
 
   export type AggregateE = {
-    count: number
+    count: number | null
+    min: EMinAggregateOutputType | null
+    max: EMaxAggregateOutputType | null
+  }
+
+  export type EMinAggregateOutputType = {
+    id: string | null
+    date: Date | null
+    time: Date | null
+    ts: Date | null
+  }
+
+  export type EMaxAggregateOutputType = {
+    id: string | null
+    date: Date | null
+    time: Date | null
+    ts: Date | null
   }
 
 
+  export type EMinAggregateInputType = {
+    id?: true
+    date?: true
+    time?: true
+    ts?: true
+  }
+
+  export type EMaxAggregateInputType = {
+    id?: true
+    date?: true
+    time?: true
+    ts?: true
+  }
 
   export type AggregateEArgs = {
     where?: EWhereInput
@@ -7707,8 +8066,9 @@ export namespace Prisma {
     cursor?: EWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<EDistinctFieldEnum>
     count?: true
+    min?: EMinAggregateInputType
+    max?: EMaxAggregateInputType
   }
 
   export type GetEAggregateType<T extends AggregateEArgs> = {
@@ -7998,7 +8358,7 @@ export namespace Prisma {
     cursor?: EWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<EDistinctFieldEnum>
+    distinct?: Enumerable<EScalarFieldEnum>
   }
 
 
@@ -8030,7 +8390,7 @@ export namespace Prisma {
      * Skip the first \`n\` ES.
     **/
     skip?: number
-    distinct?: Enumerable<EDistinctFieldEnum>
+    distinct?: Enumerable<EScalarFieldEnum>
   }
 
 
@@ -8142,7 +8502,7 @@ export namespace Prisma {
   // Based on
   // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
-  export const PostDistinctFieldEnum: {
+  export const PostScalarFieldEnum: {
     id: 'id',
     createdAt: 'createdAt',
     title: 'title',
@@ -8151,10 +8511,10 @@ export namespace Prisma {
     authorId: 'authorId'
   };
 
-  export type PostDistinctFieldEnum = (typeof PostDistinctFieldEnum)[keyof typeof PostDistinctFieldEnum]
+  export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
 
 
-  export const UserDistinctFieldEnum: {
+  export const UserScalarFieldEnum: {
     id: 'id',
     email: 'email',
     int: 'int',
@@ -8171,10 +8531,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type UserDistinctFieldEnum = (typeof UserDistinctFieldEnum)[keyof typeof UserDistinctFieldEnum]
+  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
-  export const MDistinctFieldEnum: {
+  export const MScalarFieldEnum: {
     id: 'id',
     int: 'int',
     optionalInt: 'optionalInt',
@@ -8190,10 +8550,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type MDistinctFieldEnum = (typeof MDistinctFieldEnum)[keyof typeof MDistinctFieldEnum]
+  export type MScalarFieldEnum = (typeof MScalarFieldEnum)[keyof typeof MScalarFieldEnum]
 
 
-  export const NDistinctFieldEnum: {
+  export const NScalarFieldEnum: {
     id: 'id',
     int: 'int',
     optionalInt: 'optionalInt',
@@ -8209,10 +8569,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type NDistinctFieldEnum = (typeof NDistinctFieldEnum)[keyof typeof NDistinctFieldEnum]
+  export type NScalarFieldEnum = (typeof NScalarFieldEnum)[keyof typeof NScalarFieldEnum]
 
 
-  export const OneOptionalDistinctFieldEnum: {
+  export const OneOptionalScalarFieldEnum: {
     id: 'id',
     int: 'int',
     optionalInt: 'optionalInt',
@@ -8228,10 +8588,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type OneOptionalDistinctFieldEnum = (typeof OneOptionalDistinctFieldEnum)[keyof typeof OneOptionalDistinctFieldEnum]
+  export type OneOptionalScalarFieldEnum = (typeof OneOptionalScalarFieldEnum)[keyof typeof OneOptionalScalarFieldEnum]
 
 
-  export const ManyRequiredDistinctFieldEnum: {
+  export const ManyRequiredScalarFieldEnum: {
     id: 'id',
     oneOptionalId: 'oneOptionalId',
     int: 'int',
@@ -8248,10 +8608,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type ManyRequiredDistinctFieldEnum = (typeof ManyRequiredDistinctFieldEnum)[keyof typeof ManyRequiredDistinctFieldEnum]
+  export type ManyRequiredScalarFieldEnum = (typeof ManyRequiredScalarFieldEnum)[keyof typeof ManyRequiredScalarFieldEnum]
 
 
-  export const OptionalSide1DistinctFieldEnum: {
+  export const OptionalSide1ScalarFieldEnum: {
     id: 'id',
     optionalSide2Id: 'optionalSide2Id',
     int: 'int',
@@ -8268,10 +8628,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type OptionalSide1DistinctFieldEnum = (typeof OptionalSide1DistinctFieldEnum)[keyof typeof OptionalSide1DistinctFieldEnum]
+  export type OptionalSide1ScalarFieldEnum = (typeof OptionalSide1ScalarFieldEnum)[keyof typeof OptionalSide1ScalarFieldEnum]
 
 
-  export const OptionalSide2DistinctFieldEnum: {
+  export const OptionalSide2ScalarFieldEnum: {
     id: 'id',
     int: 'int',
     optionalInt: 'optionalInt',
@@ -8287,10 +8647,10 @@ export namespace Prisma {
     optionalBoolean: 'optionalBoolean'
   };
 
-  export type OptionalSide2DistinctFieldEnum = (typeof OptionalSide2DistinctFieldEnum)[keyof typeof OptionalSide2DistinctFieldEnum]
+  export type OptionalSide2ScalarFieldEnum = (typeof OptionalSide2ScalarFieldEnum)[keyof typeof OptionalSide2ScalarFieldEnum]
 
 
-  export const ADistinctFieldEnum: {
+  export const AScalarFieldEnum: {
     id: 'id',
     email: 'email',
     name: 'name',
@@ -8305,10 +8665,10 @@ export namespace Prisma {
     inc_bInt: 'inc_bInt'
   };
 
-  export type ADistinctFieldEnum = (typeof ADistinctFieldEnum)[keyof typeof ADistinctFieldEnum]
+  export type AScalarFieldEnum = (typeof AScalarFieldEnum)[keyof typeof AScalarFieldEnum]
 
 
-  export const BDistinctFieldEnum: {
+  export const BScalarFieldEnum: {
     id: 'id',
     float: 'float',
     dFloat: 'dFloat',
@@ -8316,10 +8676,10 @@ export namespace Prisma {
     numFloat: 'numFloat'
   };
 
-  export type BDistinctFieldEnum = (typeof BDistinctFieldEnum)[keyof typeof BDistinctFieldEnum]
+  export type BScalarFieldEnum = (typeof BScalarFieldEnum)[keyof typeof BScalarFieldEnum]
 
 
-  export const CDistinctFieldEnum: {
+  export const CScalarFieldEnum: {
     id: 'id',
     char: 'char',
     vChar: 'vChar',
@@ -8329,10 +8689,10 @@ export namespace Prisma {
     uuid: 'uuid'
   };
 
-  export type CDistinctFieldEnum = (typeof CDistinctFieldEnum)[keyof typeof CDistinctFieldEnum]
+  export type CScalarFieldEnum = (typeof CScalarFieldEnum)[keyof typeof CScalarFieldEnum]
 
 
-  export const DDistinctFieldEnum: {
+  export const DScalarFieldEnum: {
     id: 'id',
     bool: 'bool',
     byteA: 'byteA',
@@ -8341,17 +8701,17 @@ export namespace Prisma {
     jsonb: 'jsonb'
   };
 
-  export type DDistinctFieldEnum = (typeof DDistinctFieldEnum)[keyof typeof DDistinctFieldEnum]
+  export type DScalarFieldEnum = (typeof DScalarFieldEnum)[keyof typeof DScalarFieldEnum]
 
 
-  export const EDistinctFieldEnum: {
+  export const EScalarFieldEnum: {
     id: 'id',
     date: 'date',
     time: 'time',
     ts: 'ts'
   };
 
-  export type EDistinctFieldEnum = (typeof EDistinctFieldEnum)[keyof typeof EDistinctFieldEnum]
+  export type EScalarFieldEnum = (typeof EScalarFieldEnum)[keyof typeof EScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -11185,69 +11545,69 @@ export namespace Prisma {
 */
 
 /**
- * @deprecated Renamed to \`Prisma.PostDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.PostScalarFieldEnum\`
  */
-export type PostDistinctFieldEnum = Prisma.PostDistinctFieldEnum
+export type PostScalarFieldEnum = Prisma.PostScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.UserDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.UserScalarFieldEnum\`
  */
-export type UserDistinctFieldEnum = Prisma.UserDistinctFieldEnum
+export type UserScalarFieldEnum = Prisma.UserScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.MDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.MScalarFieldEnum\`
  */
-export type MDistinctFieldEnum = Prisma.MDistinctFieldEnum
+export type MScalarFieldEnum = Prisma.MScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.NDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.NScalarFieldEnum\`
  */
-export type NDistinctFieldEnum = Prisma.NDistinctFieldEnum
+export type NScalarFieldEnum = Prisma.NScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.OneOptionalDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.OneOptionalScalarFieldEnum\`
  */
-export type OneOptionalDistinctFieldEnum = Prisma.OneOptionalDistinctFieldEnum
+export type OneOptionalScalarFieldEnum = Prisma.OneOptionalScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.ManyRequiredDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.ManyRequiredScalarFieldEnum\`
  */
-export type ManyRequiredDistinctFieldEnum = Prisma.ManyRequiredDistinctFieldEnum
+export type ManyRequiredScalarFieldEnum = Prisma.ManyRequiredScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.OptionalSide1DistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.OptionalSide1ScalarFieldEnum\`
  */
-export type OptionalSide1DistinctFieldEnum = Prisma.OptionalSide1DistinctFieldEnum
+export type OptionalSide1ScalarFieldEnum = Prisma.OptionalSide1ScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.OptionalSide2DistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.OptionalSide2ScalarFieldEnum\`
  */
-export type OptionalSide2DistinctFieldEnum = Prisma.OptionalSide2DistinctFieldEnum
+export type OptionalSide2ScalarFieldEnum = Prisma.OptionalSide2ScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.ADistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.AScalarFieldEnum\`
  */
-export type ADistinctFieldEnum = Prisma.ADistinctFieldEnum
+export type AScalarFieldEnum = Prisma.AScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.BDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.BScalarFieldEnum\`
  */
-export type BDistinctFieldEnum = Prisma.BDistinctFieldEnum
+export type BScalarFieldEnum = Prisma.BScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.CDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.CScalarFieldEnum\`
  */
-export type CDistinctFieldEnum = Prisma.CDistinctFieldEnum
+export type CScalarFieldEnum = Prisma.CScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.DDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.DScalarFieldEnum\`
  */
-export type DDistinctFieldEnum = Prisma.DDistinctFieldEnum
+export type DScalarFieldEnum = Prisma.DScalarFieldEnum
 
 /**
- * @deprecated Renamed to \`Prisma.EDistinctFieldEnum\`
+ * @deprecated Renamed to \`Prisma.EScalarFieldEnum\`
  */
-export type EDistinctFieldEnum = Prisma.EDistinctFieldEnum
+export type EScalarFieldEnum = Prisma.EScalarFieldEnum
 
 /**
  * @deprecated Renamed to \`Prisma.SortOrder\`
@@ -12310,9 +12670,29 @@ export type BDeleteManyArgs = Prisma.BDeleteManyArgs
 export type AggregateC = Prisma.AggregateC
 
 /**
+ * @deprecated Renamed to \`Prisma.CMinAggregateOutputType\`
+ */
+export type CMinAggregateOutputType = Prisma.CMinAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.CMaxAggregateOutputType\`
+ */
+export type CMaxAggregateOutputType = Prisma.CMaxAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateCArgs\`
  */
 export type AggregateCArgs = Prisma.AggregateCArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.CMinAggregateInputType\`
+ */
+export type CMinAggregateInputType = Prisma.CMinAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.CMaxAggregateInputType\`
+ */
+export type CMaxAggregateInputType = Prisma.CMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.CSelect\`
@@ -12370,9 +12750,29 @@ export type CDeleteManyArgs = Prisma.CDeleteManyArgs
 export type AggregateD = Prisma.AggregateD
 
 /**
+ * @deprecated Renamed to \`Prisma.DMinAggregateOutputType\`
+ */
+export type DMinAggregateOutputType = Prisma.DMinAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.DMaxAggregateOutputType\`
+ */
+export type DMaxAggregateOutputType = Prisma.DMaxAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateDArgs\`
  */
 export type AggregateDArgs = Prisma.AggregateDArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.DMinAggregateInputType\`
+ */
+export type DMinAggregateInputType = Prisma.DMinAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.DMaxAggregateInputType\`
+ */
+export type DMaxAggregateInputType = Prisma.DMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.DSelect\`
@@ -12430,9 +12830,29 @@ export type DDeleteManyArgs = Prisma.DDeleteManyArgs
 export type AggregateE = Prisma.AggregateE
 
 /**
+ * @deprecated Renamed to \`Prisma.EMinAggregateOutputType\`
+ */
+export type EMinAggregateOutputType = Prisma.EMinAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.EMaxAggregateOutputType\`
+ */
+export type EMaxAggregateOutputType = Prisma.EMaxAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateEArgs\`
  */
 export type AggregateEArgs = Prisma.AggregateEArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.EMinAggregateInputType\`
+ */
+export type EMinAggregateInputType = Prisma.EMinAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.EMaxAggregateInputType\`
+ */
+export type EMaxAggregateInputType = Prisma.EMaxAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ESelect\`

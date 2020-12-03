@@ -1148,9 +1148,11 @@ new PrismaClient({
             args: args
               ? {
                   ...args,
-                  select: { count: true },
+                  select: { count: { select: { _all: true } } },
                 }
-              : undefined,
+              : {
+                  select: { count: { select: { _all: true } } },
+                },
             dataPath: ['count'],
           })
         }
@@ -1167,7 +1169,7 @@ new PrismaClient({
               }
               // `count` doesn't have a sub-selection
               if (key === 'count') {
-                acc.select[key] = value
+                acc.select[key] = { select: { _all: value } }
               } else {
                 acc.select[key] = { select: value }
               }
@@ -1382,6 +1384,10 @@ export class PrismaClientFetcher {
   unpack(document, data, path, rootField) {
     if (data.data) {
       data = data.data
+    }
+    // to lift up _all in count
+    if (rootField.startsWith('aggregate') && data[rootField].count) {
+      data[rootField].count = data[rootField].count._all
     }
     const getPath: any[] = []
     if (rootField) {

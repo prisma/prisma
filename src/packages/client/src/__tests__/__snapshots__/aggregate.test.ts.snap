@@ -19,7 +19,14 @@ query {
       }
     }
   ) {
-    count
+    count {
+      id
+      name
+      email
+      age
+      personaId
+      _all
+    }
     avg {
       age
     }
@@ -52,7 +59,6 @@ type aggregateUser {
   cursor?: UserWhereUniqueInput
   take?: Int
   skip?: Int
-  distinct?: List<UserDistinctFieldEnum>
 }
 
 

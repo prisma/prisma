@@ -67,7 +67,14 @@ describe('aggregate', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         aggregateUser(take: 10) {
-          count
+          count {
+            id
+            name
+            email
+            age
+            personaId
+            _all
+          }
         }
       }
     `)

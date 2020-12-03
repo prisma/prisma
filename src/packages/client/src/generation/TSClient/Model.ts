@@ -28,6 +28,7 @@ import { OutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
 import { TAB_SIZE } from './constants'
 import { PayloadType } from './Payload'
+import { klona } from 'klona'
 
 export class Model implements Generatable {
   protected outputType?: OutputType
@@ -97,7 +98,25 @@ export class Model implements Generatable {
         }"`,
       )
     }
-    const aggregateTypes = [aggregateType]
+
+    const aggregateTypeClone = klona(aggregateType)
+    const countFieldIndex = aggregateTypeClone.fields.findIndex(
+      (f) => f.name === 'count',
+    )
+
+    aggregateTypeClone.fields[countFieldIndex] = {
+      name: 'count',
+      args: [],
+      isRequired: false,
+      isNullable: true,
+      outputType: {
+        isList: false,
+        location: 'scalar',
+        type: 'Int',
+      },
+    }
+
+    const aggregateTypes = [aggregateTypeClone]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
@@ -189,14 +208,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
   [P in keyof T]: P extends 'count' ? number : ${
-    aggregateTypes.length > 1
-      ? `${getAggregateScalarGetName(model.name)}<T[P]>`
-      : 'never'
+    avgType ? `${getAggregateScalarGetName(model.name)}<T[P]>` : 'never'
   }
 }
 
 ${
-  aggregateTypes.length > 1
+  avgType
     ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
   [P in keyof T]: P extends keyof ${getAvgAggregateName(
     model.name,

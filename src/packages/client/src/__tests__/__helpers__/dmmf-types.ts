@@ -2437,191 +2437,6 @@ const dmmf: DMMF.Document = {
       ]
     },
     "outputObjectTypes": {
-      "model": [
-        {
-          "name": "Post",
-          "fields": [
-            {
-              "name": "id",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "author",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "User",
-                "namespace": "model",
-                "location": "outputObjectTypes",
-                "isList": false
-              }
-            },
-            {
-              "name": "authorId",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "title",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "String",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "published",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Boolean",
-                "location": "scalar",
-                "isList": false
-              }
-            }
-          ]
-        },
-        {
-          "name": "User",
-          "fields": [
-            {
-              "name": "id",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "email",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "String",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "posts",
-              "args": [
-                {
-                  "name": "where",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostWhereInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "orderBy",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostOrderByInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": true
-                    },
-                    {
-                      "type": "PostOrderByInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "cursor",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostWhereUniqueInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "take",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "Int",
-                      "location": "scalar",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "skip",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "Int",
-                      "location": "scalar",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "distinct",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostDistinctFieldEnum",
-                      "namespace": "prisma",
-                      "location": "enumTypes",
-                      "isList": true
-                    }
-                  ]
-                }
-              ],
-              "isRequired": false,
-              "isNullable": true,
-              "outputType": {
-                "type": "Post",
-                "namespace": "model",
-                "location": "outputObjectTypes",
-                "isList": true
-              }
-            }
-          ]
-        }
-      ],
       "prisma": [
         {
           "name": "Query",
@@ -2704,7 +2519,7 @@ const dmmf: DMMF.Document = {
                   "isNullable": false,
                   "inputTypes": [
                     {
-                      "type": "PostDistinctFieldEnum",
+                      "type": "PostScalarFieldEnum",
                       "namespace": "prisma",
                       "location": "enumTypes",
                       "isList": true
@@ -2799,7 +2614,7 @@ const dmmf: DMMF.Document = {
                   "isNullable": false,
                   "inputTypes": [
                     {
-                      "type": "PostDistinctFieldEnum",
+                      "type": "PostScalarFieldEnum",
                       "namespace": "prisma",
                       "location": "enumTypes",
                       "isList": true
@@ -2885,19 +2700,6 @@ const dmmf: DMMF.Document = {
                       "type": "Int",
                       "location": "scalar",
                       "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "distinct",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostDistinctFieldEnum",
-                      "namespace": "prisma",
-                      "location": "enumTypes",
-                      "isList": true
                     }
                   ]
                 }
@@ -3015,7 +2817,7 @@ const dmmf: DMMF.Document = {
                   "isNullable": false,
                   "inputTypes": [
                     {
-                      "type": "UserDistinctFieldEnum",
+                      "type": "UserScalarFieldEnum",
                       "namespace": "prisma",
                       "location": "enumTypes",
                       "isList": true
@@ -3110,7 +2912,7 @@ const dmmf: DMMF.Document = {
                   "isNullable": false,
                   "inputTypes": [
                     {
-                      "type": "UserDistinctFieldEnum",
+                      "type": "UserScalarFieldEnum",
                       "namespace": "prisma",
                       "location": "enumTypes",
                       "isList": true
@@ -3196,19 +2998,6 @@ const dmmf: DMMF.Document = {
                       "type": "Int",
                       "location": "scalar",
                       "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "distinct",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "UserDistinctFieldEnum",
-                      "namespace": "prisma",
-                      "location": "enumTypes",
-                      "isList": true
                     }
                   ]
                 }
@@ -3749,11 +3538,12 @@ const dmmf: DMMF.Document = {
             {
               "name": "count",
               "args": [],
-              "isRequired": true,
-              "isNullable": false,
+              "isRequired": false,
+              "isNullable": true,
               "outputType": {
-                "type": "Int",
-                "location": "scalar",
+                "type": "PostCountAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
                 "isList": false
               }
             },
@@ -3813,11 +3603,12 @@ const dmmf: DMMF.Document = {
             {
               "name": "count",
               "args": [],
-              "isRequired": true,
-              "isNullable": false,
+              "isRequired": false,
+              "isNullable": true,
               "outputType": {
-                "type": "Int",
-                "location": "scalar",
+                "type": "UserCountAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
                 "isList": false
               }
             },
@@ -3876,6 +3667,66 @@ const dmmf: DMMF.Document = {
           "fields": [
             {
               "name": "count",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "PostCountAggregateOutputType",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "authorId",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "_all",
               "args": [],
               "isRequired": true,
               "isNullable": false,
@@ -3965,6 +3816,28 @@ const dmmf: DMMF.Document = {
                 "location": "scalar",
                 "isList": false
               }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Boolean",
+                "location": "scalar",
+                "isList": false
+              }
             }
           ]
         },
@@ -3984,6 +3857,66 @@ const dmmf: DMMF.Document = {
             },
             {
               "name": "authorId",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Boolean",
+                "location": "scalar",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "UserCountAggregateOutputType",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "_all",
               "args": [],
               "isRequired": true,
               "isNullable": false,
@@ -4040,6 +3973,17 @@ const dmmf: DMMF.Document = {
                 "location": "scalar",
                 "isList": false
               }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
             }
           ]
         },
@@ -4056,6 +4000,202 @@ const dmmf: DMMF.Document = {
                 "location": "scalar",
                 "isList": false
               }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            }
+          ]
+        }
+      ],
+      "model": [
+        {
+          "name": "Post",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "author",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "User",
+                "namespace": "model",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "authorId",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Boolean",
+                "location": "scalar",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "User",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "posts",
+              "args": [
+                {
+                  "name": "where",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostWhereInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "orderBy",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "cursor",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostWhereUniqueInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "take",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "skip",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "distinct",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": true
+                    }
+                  ]
+                }
+              ],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Post",
+                "namespace": "model",
+                "location": "outputObjectTypes",
+                "isList": true
+              }
             }
           ]
         }
@@ -4064,7 +4204,7 @@ const dmmf: DMMF.Document = {
     "enumTypes": {
       "prisma": [
         {
-          "name": "PostDistinctFieldEnum",
+          "name": "PostScalarFieldEnum",
           "values": [
             "id",
             "authorId",
@@ -4073,7 +4213,7 @@ const dmmf: DMMF.Document = {
           ]
         },
         {
-          "name": "UserDistinctFieldEnum",
+          "name": "UserScalarFieldEnum",
           "values": [
             "id",
             "email"
