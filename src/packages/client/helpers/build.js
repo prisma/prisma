@@ -43,6 +43,7 @@ async function main() {
 
   await Promise.all([
     copyFile('./scripts/backup-index.js', 'index.js'),
+    copyFile('./scripts/backup-index-browser.js', 'index-browser.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
   ])
 
