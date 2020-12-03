@@ -76,7 +76,7 @@ describe('sqlite', () => {
               └─ 20201231000000_init/
                 └─ migration.sql
                   
-                  All migrations have been successfully applied.
+            All migrations have been successfully applied.
           `)
 
     // Second time should do nothing (already applied)

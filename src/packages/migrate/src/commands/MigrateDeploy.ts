@@ -126,7 +126,7 @@ ${chalk.bold('Options')}
         `${chalk.yellow(
           'WARNING The following migrations have been modified since they were applied:',
         )}
-        ${editedMigrationNames.join('\n')}`,
+${editedMigrationNames.join('\n')}`,
       )
     }
 
@@ -148,7 +148,7 @@ ${chalk.bold('Options')}
         }),
       )}
       
-      ${chalk.greenBright('All migrations have been successfully applied.')}`
+${chalk.greenBright('All migrations have been successfully applied.')}`
     }
   }
 
