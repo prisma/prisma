@@ -36,9 +36,10 @@ export class MigrateDev implements Command {
     return new MigrateDev()
   }
 
-  private static help = format(`${
-    process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-  }Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
+  private static help = format(`
+${
+  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+}Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -57,17 +58,17 @@ ${chalk.bold('Options')}
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Only create a migration without applying it
-  --skip-generate   Skip generate
+  --skip-generate   Skip generating artifacts (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
+
+  Create a new migration and apply it
+  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
   )} prisma migrate dev --schema=./schema.prisma --early-access-feature
-
-  Create a new migration and apply it
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Create a migration without applying it
   ${chalk.dim('$')} prisma migrate dev --create-only --early-access-feature
@@ -124,12 +125,13 @@ ${chalk.bold('Examples')}
       ),
     )
 
+    console.info() // empty line
+
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
-      console.info()
       console.info(wasDbCreated)
     }
 
@@ -187,9 +189,8 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
       if (hasModifiedMigrations) {
         // migration(s) that were modified since they were applied to the db.
         console.info(
-          `The following migration(s) were modified after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
-            '\n- ',
-          )}\n`,
+          `The following migration(s) were modified after they were applied:
+- ${diagnoseResult.editedMigrationNames.join('\n- ')}\n`,
         )
 
         if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
@@ -231,6 +232,11 @@ ${diagnoseResult.drift.error.message}`,
             isResetNeededAfterCreate = true
           } else {
             // we could try to fix the drift in the future
+            console.info() // empty line
+            console.info(
+              'Drift detected: Your database schema is not in sync with your migration history.',
+            )
+            console.info() // empty line
             isResetNeeded = true
           }
         }
@@ -243,7 +249,7 @@ ${diagnoseResult.drift.error.message}`,
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
-              `The following unapplied migration(s) have been applied:\n
+              `The following unapplied migration(s) have been applied:
 - ${migrationIdsFromDatabaseIsBehind.join('\n- ')}\n`,
             )
           }
@@ -270,8 +276,9 @@ ${diagnoseResult.drift.error.message}`,
         }
 
         const confirmedReset = await this.confirmReset(dbInfo)
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
           // For snapshot test, because exit() is mocked
@@ -309,6 +316,7 @@ ${diagnoseResult.drift.error.message}`,
       evaluateDataLossResult.warnings,
       args['--force'],
     )
+    console.info() // empty line
     if (userCancelled) {
       migrate.stop()
       return `Migration cancelled.`
@@ -320,6 +328,8 @@ ${diagnoseResult.drift.error.message}`,
       args['--create-only']
     ) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
+      console.info() // empty line
+
       if (getMigrationNameResult.userCancelled) {
         migrate.stop()
         return getMigrationNameResult.userCancelled
@@ -348,26 +358,34 @@ ${diagnoseResult.drift.error.message}`,
     }
 
     if (isResetNeededAfterCreate) {
+      console.info(
+        `The following migration was created from new schema changes:\n\n${chalk(
+          printFilesFromMigrationIds(
+            'migrations',
+            [createMigrationResult.generatedMigrationName!],
+            {
+              'migration.sql': '',
+            },
+          ),
+        )}`,
+      )
+      console.info() // empty line
+
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
           throw new EnvNonInteractiveError()
         }
 
+        console.info(
+          'Drift detected: Your database schema is not in sync with your migration history.',
+        )
+        console.info() // empty line
+
         const confirmedReset = await this.confirmReset(dbInfo)
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info(
-            `The following migration was created from new schema changes:\n\n${chalk(
-              printFilesFromMigrationIds(
-                'migrations',
-                [createMigrationResult.generatedMigrationName!],
-                {
-                  'migration.sql': '',
-                },
-              ),
-            )}`,
-          )
-          console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
           // For snapshot test, because exit() is mocked
@@ -439,16 +457,6 @@ ${diagnoseResult.drift.error.message}`,
       message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
         'All data will be lost',
       )}.\nDo you want to continue?`,
-    })
-
-    return confirmation.value
-  }
-
-  private async confirmDbPushUsed(): Promise<boolean> {
-    const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
-      message: `Did you use ${chalk.green('prisma db push')}?`,
     })
 
     return confirmation.value

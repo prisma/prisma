@@ -30,7 +30,7 @@ export class MigrateStatus implements Command {
   }
 
   private static help = format(`
-  Check the status of your database migrations in staging/production
+Check the status of your database migrations
 
   ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -264,7 +264,7 @@ You have 2 options
         getCommandWithExecutor(
           `prisma migrate resolve --applied "${migrationId}" --early-access-feature`,
         ),
-      )} to create a new migration matching the drift.`
+      )} to create a new migration matching the change.`
     } else {
       console.info() // empty line
       return `Database schema is up to date!`
