@@ -14,7 +14,7 @@ import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { UserFacingErrorWithMeta } from '../types'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
@@ -114,6 +114,13 @@ ${chalk.bold('Examples')}
     console.info(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    const dbInfo = await getDbInfo(schemaPath)
+    console.info(
+      chalk.dim(
+        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
       ),
     )
 
@@ -262,9 +269,7 @@ ${diagnoseResult.drift.error.message}`,
           throw new EnvNonInteractiveError()
         }
 
-        const confirmedReset = await this.confirmReset(
-          await migrate.getDbInfo(),
-        )
+        const confirmedReset = await this.confirmReset(dbInfo)
         if (!confirmedReset) {
           console.info() // empty line
           console.info('Reset cancelled.')
@@ -349,9 +354,7 @@ ${diagnoseResult.drift.error.message}`,
           throw new EnvNonInteractiveError()
         }
 
-        const confirmedReset = await this.confirmReset(
-          await migrate.getDbInfo(),
-        )
+        const confirmedReset = await this.confirmReset(dbInfo)
         if (!confirmedReset) {
           console.info(
             `The following migration was created from new schema changes:\n\n${chalk(
