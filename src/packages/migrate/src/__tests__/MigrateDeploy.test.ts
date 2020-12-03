@@ -110,7 +110,7 @@ describe('sqlite', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
             P3005
 
-            The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
+            The database schema for \`dev.db\` is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
 
           `)
 
