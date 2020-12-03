@@ -1201,9 +1201,10 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           )
           this.lastPanic = err
         } else {
+          const platform = this.platform ?? await this.getPlatform()
           err = new PrismaClientUnknownRequestError(
             getErrorMessageWithLink({
-              platform: this.platform,
+              platform,
               title: getMessage(this.lastErrorLog),
               version: this.clientVersion,
             }),

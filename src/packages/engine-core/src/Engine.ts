@@ -96,7 +96,7 @@ export class PrismaClientInitializationError extends Error {
 
 export interface ErrorWithLinkInput {
   version: string
-  platform: string
+  platform?: string
   title: string
   description?: string
 }
