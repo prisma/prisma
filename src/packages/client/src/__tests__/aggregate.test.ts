@@ -57,7 +57,11 @@ describe('aggregate', () => {
       select: {
         take: 10,
         select: {
-          count: true,
+          count: {
+            select: {
+              _all: true,
+            },
+          },
         },
       },
       rootTypeName: 'query',
@@ -68,11 +72,6 @@ describe('aggregate', () => {
       query {
         aggregateUser(take: 10) {
           count {
-            id
-            name
-            email
-            age
-            personaId
             _all
           }
         }
