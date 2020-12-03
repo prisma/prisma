@@ -2,26 +2,19 @@ import {
   arg,
   Command,
   format,
-  getCommandWithExecutor,
   getSchemaPath,
   getSchemaDir,
   HelpError,
   isError,
   isCi,
-  uriToCredentials,
-  getConfig,
   dropDatabase,
   link,
 } from '@prisma/sdk'
 import path from 'path'
-import fs from 'fs'
 import execa from 'execa'
 import chalk from 'chalk'
 import prompt from 'prompts'
-import {
-  getDbinfoFromCredentials,
-  getDbLocation,
-} from '../utils/ensureDatabaseExists'
+import { getDbInfo } from '../utils/ensureDatabaseExists'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
 
@@ -100,11 +93,13 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const datamodel = fs.readFileSync(schemaPath, 'utf-8')
-    const config = await getConfig({ datamodel })
-    const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+    const dbInfo = await getDbInfo(schemaPath)
+    console.info(
+      chalk.dim(
+        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
+      ),
+    )
+
     const schemaDir = (await getSchemaDir(schemaPath))!
 
     console.info() // empty line
@@ -118,25 +113,27 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbType} ${schemaWord} name "${dbName}" to drop it.\nLocation: "${getDbLocation(
-          credentials,
-        )}".\n${chalk.red('All data will be lost')}.`,
+        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${
+          dbInfo.dbName
+        }" to drop it.\nLocation: "${dbInfo.dbLocation}".\n${chalk.red(
+          'All data will be lost',
+        )}.`,
       })
       console.info() // empty line
 
       if (!confirmation.value) {
         console.info('Drop cancelled.')
         process.exit(0)
-      } else if (confirmation.value !== dbName) {
+      } else if (confirmation.value !== dbInfo.dbName) {
         throw Error(
-          `The ${schemaWord} name entered "${confirmation.value}" doesn't match "${dbName}".`,
+          `The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`,
         )
       }
     }
 
     let result: execa.ExecaReturnValue<string> | undefined = undefined
     try {
-      result = await dropDatabase(activeDatasource.url.value, schemaDir)
+      result = await dropDatabase(dbInfo.url, schemaDir)
     } catch (e) {
       let json
       try {
@@ -162,11 +159,11 @@ ${chalk.bold('Examples')}
       result.exitCode === 0 &&
       result.stderr.includes('The database was successfully dropped')
     ) {
-      return `${
-        process.platform === 'win32' ? '' : '🚀  '
-      }The ${dbType} ${schemaWord} "${dbName}" from "${getDbLocation(
-        credentials,
-      )}" was successfully dropped.\n`
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${
+        dbInfo.dbType
+      } ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${
+        dbInfo.dbLocation
+      }" was successfully dropped.\n`
     } else {
       // We should not arrive here normally
       throw Error(
@@ -179,7 +176,6 @@ ${chalk.bold('Examples')}
     }
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbDrop.help}`)
