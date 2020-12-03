@@ -73,6 +73,7 @@ describe('generator', () => {
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
     expect(fs.existsSync(photonDir)).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index-browser.js'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'runtime'))).toBe(true)
     generator.stop()
