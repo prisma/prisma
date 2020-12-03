@@ -27,7 +27,7 @@ test('client-version-error', async () => {
         cursor?: UserWhereUniqueInput
         take?: Int
         skip?: Int
-        distinct?: List<UserDistinctFieldEnum>
+        distinct?: List<UserScalarFieldEnum>
       }
 
 
