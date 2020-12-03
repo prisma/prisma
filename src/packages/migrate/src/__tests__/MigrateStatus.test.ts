@@ -43,9 +43,11 @@ describe('sqlite', () => {
       `P1003: SQLite database file doesn't exist`,
     )
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/empty.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/empty.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -70,6 +72,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -101,6 +104,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -125,6 +129,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -152,6 +157,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -177,6 +183,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       No migration found in prisma/migrations
@@ -197,6 +204,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       No migration found in prisma/migrations
@@ -216,9 +224,11 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-upgrade
           `)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -230,9 +240,11 @@ describe('sqlite', () => {
       `P1003: SQLite database file doesn't exist`,
     )
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -247,6 +259,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations

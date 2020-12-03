@@ -9,7 +9,10 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
+import {
+  ensureCanConnectToDatabase,
+  getDbInfo,
+} from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
   EarlyAcessFlagError,
@@ -102,6 +105,13 @@ ${chalk.bold('Examples')}
     console.info(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    const dbInfo = await getDbInfo(schemaPath)
+    console.info(
+      chalk.dim(
+        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
       ),
     )
 
