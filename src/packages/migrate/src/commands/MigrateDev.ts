@@ -236,15 +236,8 @@ ${diagnoseResult.drift.error.message}`,
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
-              `The following unapplied migration(s) have been applied:\n\n${chalk(
-                printFilesFromMigrationIds(
-                  'migrations',
-                  migrationIdsFromDatabaseIsBehind,
-                  {
-                    'migration.sql': '',
-                  },
-                ),
-              )}`,
+              `The following unapplied migration(s) have been applied:\n
+- ${migrationIdsFromDatabaseIsBehind.join('\n- ')}\n`,
             )
           }
         } else if (
