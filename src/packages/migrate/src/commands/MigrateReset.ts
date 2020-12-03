@@ -19,7 +19,10 @@ import {
 import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
+import {
+  ensureCanConnectToDatabase,
+  getDbInfo,
+} from '../utils/ensureDatabaseExists'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -95,6 +98,13 @@ ${chalk.bold('Examples')}
     console.info(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    const dbInfo = await getDbInfo(schemaPath)
+    console.info(
+      chalk.dim(
+        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
       ),
     )
 

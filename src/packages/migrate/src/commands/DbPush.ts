@@ -13,7 +13,7 @@ import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
 import {
@@ -104,6 +104,13 @@ ${chalk.bold('Examples')}
     console.info(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    const dbInfo = await getDbInfo(schemaPath)
+    console.info(
+      chalk.dim(
+        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
       ),
     )
 

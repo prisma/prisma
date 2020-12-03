@@ -12,6 +12,31 @@ import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 
+export async function getDbInfo(
+  schemaPath?: string,
+): Promise<{
+  name: string
+  dbLocation: string
+  schemaWord: string
+  dbType: string
+  dbName: string
+  url: string
+}> {
+  const datamodel = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel })
+  const activeDatasource = config.datasources[0]
+
+  const credentials = uriToCredentials(activeDatasource.url.value)
+  const dbLocation = getDbLocation(credentials)
+  const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
+  return {
+    name: activeDatasource.name,
+    dbLocation,
+    ...dbinfoFromCredentials,
+    url: activeDatasource.url.value,
+  }
+}
+
 export async function ensureCanConnectToDatabase(
   schemaPath?: string,
 ): Promise<Boolean | Error> {
