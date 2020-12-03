@@ -6,7 +6,7 @@ import stripAnsi from 'strip-ansi'
 describe('debug', () => {
   test('* works as expected', () => {
     const debug = Debug('my-namespace')
-    const logs = []
+    const logs: string[][] = []
     debug.log = (...args) => {
       logs.push(args.map(stripAnsi))
     }
