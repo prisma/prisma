@@ -69,58 +69,23 @@ describe('reset', () => {
   //   ).toMatchInlineSnapshot(``)
   // })
 
-  it('with missing db (prompt)', async () => {
+  it('with missing db', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    prompt.inject(['y']) // simulate user yes input
-
     const result = MigrateReset.new().parse(['--early-access-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).rejects.toMatchInlineSnapshot(
+      `P1003: SQLite database file doesn't exist`,
+    )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-
-      Database reset successful
-
-      The following migration(s) have been applied:
-
-      migrations/
-        └─ 20201231000000_init/
-          └─ migration.sql
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
-
-  // it('with missing db (force)', async () => {
-  //   ctx.fixture('reset')
-  //   ctx.fs.remove('prisma/dev.db')
-
-  //   const result = MigrateReset.new().parse([
-  //     '--early-access-feature',
-  //     '--force',
-  //   ])
-  //   await expect(result).resolves.toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-  //     .toMatchInlineSnapshot(`
-  //     Prisma schema loaded from prisma/schema.prisma
-
-  //     Database reset successful
-
-  //     The following migration(s) have been applied:
-
-  //     migrations/
-  //       └─ 20201231000000_init/
-  //         └─ migration.sql
-  //   `)
-  //   expect(
-  //     ctx.mocked['console.error'].mock.calls.join('\n'),
-  //   ).toMatchInlineSnapshot(``)
-  // })
 
   it('without the migrations directory should fail (prompt)', async () => {
     ctx.fixture('reset')
