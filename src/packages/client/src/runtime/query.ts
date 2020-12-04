@@ -1001,7 +1001,6 @@ export function selectionToFields(
       !name.startsWith('aggregate') &&
       field.name !== 'count' // TODO: Find a cleaner solution
     ) {
-      console.log('yo')
       acc.push(
         new Field({
           name,
@@ -1173,15 +1172,15 @@ export function selectionToFields(
       }
     }
     // either use select or default selection, but not both at the same time
+    const defaultSelection = isRelation
+      ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
+      : null
 
-    let select
+    let select = defaultSelection
     if (value) {
       if (value.select) {
         select = value.select
       } else if (value.include) {
-        const defaultSelection = isRelation
-          ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
-          : null
         select = deepExtend(defaultSelection, value.include)
         /**
          * special case for group by:
@@ -1201,11 +1200,8 @@ export function selectionToFields(
       ) {
         select = byToSelect(value.by)
       }
-    } else {
-      select = isRelation
-        ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
-        : null
     }
+
     const children =
       select !== false && isRelation
         ? selectionToFields(dmmf, select, field, [...path, name])
