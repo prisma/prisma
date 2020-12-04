@@ -17,6 +17,7 @@ import prompt from 'prompts'
 import { getDbInfo } from '../utils/ensureDatabaseExists'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -93,13 +94,9 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    await printDatasource(schemaPath)
 
+    const dbInfo = await getDbInfo(schemaPath)
     const schemaDir = (await getSchemaDir(schemaPath))!
 
     console.info() // empty line
@@ -110,6 +107,7 @@ ${chalk.bold('Examples')}
         throw new DbNeedsForceError('drop')
       }
 
+      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',

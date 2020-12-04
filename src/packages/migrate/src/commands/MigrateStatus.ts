@@ -9,10 +9,7 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import {
-  ensureCanConnectToDatabase,
-  getDbInfo,
-} from '../utils/ensureDatabaseExists'
+import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
   EarlyAcessFlagError,
@@ -21,6 +18,7 @@ import {
 import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('migrate:status')
 
@@ -101,12 +99,7 @@ Check the status of your database migrations
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    await printDatasource(schemaPath)
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 

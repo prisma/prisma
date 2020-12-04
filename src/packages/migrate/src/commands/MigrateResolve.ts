@@ -9,10 +9,7 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import {
-  ensureCanConnectToDatabase,
-  getDbInfo,
-} from '../utils/ensureDatabaseExists'
+import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
   EarlyAcessFlagError,
@@ -20,6 +17,7 @@ import {
 } from '../utils/flagErrors'
 import { NoSchemaFoundError } from '../utils/errors'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
     return new MigrateResolve()
@@ -108,12 +106,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    await printDatasource(schemaPath)
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
