@@ -74,7 +74,7 @@ Prisma.PrismaClientValidationError = ${notSupportOnBrowser(
   'PrismaClientValidationError',
   browser,
 )}
-Prisma.Decimal = ${notSupportOnBrowser('Decimal', browser)}
+Prisma.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
