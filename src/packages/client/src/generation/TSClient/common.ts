@@ -221,6 +221,28 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
  */
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
+
+
+/**
+ * Used by group by
+ */
+export type GetScalarType<T, O> = O extends object ? {
+  [P in keyof T]: P extends keyof O
+    ? O[P]
+    : never
+} : never
+
+/**
+ * Convert tuple to union
+ */
+type _TupleToUnion<T> = T extends (infer E)[] ? E : never
+type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+
+/**
+ * Like \`Pick\`, but with an array
+ */
+type PickArray<T, K extends Array<keyof T>> = Pick<T, TupleToUnion<K>>
+
 ${
   !hideFetcher
     ? `class PrismaClientFetcher {

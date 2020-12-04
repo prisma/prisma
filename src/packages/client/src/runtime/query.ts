@@ -16,6 +16,7 @@ import {
   getOutputTypeName,
   getSuggestion,
   inputTypeToJson,
+  isGroupByOutputName,
   stringifyGraphQLType,
   stringifyInputType,
   unionBy,
@@ -1000,6 +1001,7 @@ export function selectionToFields(
       !name.startsWith('aggregate') &&
       field.name !== 'count' // TODO: Find a cleaner solution
     ) {
+      console.log('yo')
       acc.push(
         new Field({
           name,
@@ -1171,16 +1173,38 @@ export function selectionToFields(
       }
     }
     // either use select or default selection, but not both at the same time
-    const defaultSelection = isRelation
-      ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
-      : null
-    let select = defaultSelection
+
+    let select
     if (value) {
       if (value.select) {
         select = value.select
       } else if (value.include) {
+        const defaultSelection = isRelation
+          ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
+          : null
         select = deepExtend(defaultSelection, value.include)
+        /**
+         * special case for group by:
+         * The "by" is an array of fields like ["email", "name"]
+         * We turn that into a select statement of that form:
+         * {
+         *   "email": true,
+         *   "name": true,
+         * }
+         */
+      } else if (
+        value.by &&
+        Array.isArray(value.by) &&
+        field.outputType.namespace === 'prisma' &&
+        field.outputType.location === 'outputObjectTypes' &&
+        isGroupByOutputName((field.outputType.type as DMMF.OutputType).name)
+      ) {
+        select = byToSelect(value.by)
       }
+    } else {
+      select = isRelation
+        ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
+        : null
     }
     const children =
       select !== false && isRelation
@@ -1193,8 +1217,18 @@ export function selectionToFields(
   }, [] as Field[])
 }
 
+function byToSelect(by: string[]): Record<string, true> {
+  const obj = Object.create(null)
+  for (const b of by) {
+    obj[b] = true
+  }
+  return obj
+}
+
 function getDefaultSelection(outputType: DMMF.OutputType) {
-  return outputType.fields.reduce((acc, f) => {
+  const acc = Object.create(null)
+
+  for (const f of outputType.fields) {
     if (
       f.outputType.location === 'scalar' ||
       f.outputType.location === 'enumTypes'
@@ -1209,9 +1243,9 @@ function getDefaultSelection(outputType: DMMF.OutputType) {
         }
       }
     }
+  }
 
-    return acc
-  }, {})
+  return acc
 }
 
 function getInvalidTypeArg(

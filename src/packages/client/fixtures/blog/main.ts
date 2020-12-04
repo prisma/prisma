@@ -1,13 +1,23 @@
 process.env.DEBUG = 'prisma-client'
-import { PrismaClient, FindFirstPostArgs, sql } from './@prisma/client'
+
+import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient()
 
 async function main() {
-  const count = await prisma.user.count({
-    // count: true,
+  const res = await prisma.user.groupBy({
+    by: ['age', 'email'],
+    avg: {
+      age: true,
+    },
+    // count: {
+    //   _all: true,
+    // },
   })
-  console.log(count)
+
+  // res.count._all
+
+  console.log(res)
 
   prisma.$disconnect()
 }

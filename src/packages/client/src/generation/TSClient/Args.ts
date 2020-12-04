@@ -22,7 +22,11 @@ export class ArgsType implements Generatable {
     const plural = pluralize(name)
 
     for (const arg of args) {
-      if (action && topLevelArgsJsDocs[action][arg.name]) {
+      if (
+        action &&
+        topLevelArgsJsDocs[action] &&
+        topLevelArgsJsDocs[action][arg.name]
+      ) {
         const comment = topLevelArgsJsDocs[action][arg.name](singular, plural)
         arg.comment = comment
       }
