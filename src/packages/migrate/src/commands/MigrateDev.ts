@@ -14,7 +14,7 @@ import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { UserFacingErrorWithMeta } from '../types'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
@@ -28,6 +28,7 @@ import {
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('migrate:dev')
 
@@ -118,12 +119,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    printDatasource(schemaPath)
 
     console.info() // empty line
 

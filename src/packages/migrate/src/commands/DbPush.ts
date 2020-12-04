@@ -13,7 +13,7 @@ import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
 import {
@@ -22,6 +22,7 @@ import {
   NoSchemaFoundError,
 } from '../utils/errors'
 import { isOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -108,12 +109,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    printDatasource(schemaPath)
 
     const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
     if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
