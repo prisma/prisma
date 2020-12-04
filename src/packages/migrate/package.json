@@ -10,7 +10,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.13.0-24.6f6fff09f8dd2efd1fb37eb6076903a52ccb3115",
+    "@prisma/engines-version": "2.13.0-25.280f94a3bb6e79c64e03725bb880d2fa0637d9d0",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/charm": "1.0.2",
