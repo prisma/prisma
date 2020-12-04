@@ -231,7 +231,6 @@ importers:
       ts-jest: 26.4.4_jest@26.6.3+typescript@4.1.2
       ts-loader: 8.0.11_typescript@4.1.2
       ts-node: 9.0.0_typescript@4.1.2
-      ts-toolbelt: 8.0.7
       typescript: 4.1.2
     specifiers:
       '@prisma/debug': 'workspace:*'
@@ -302,7 +301,6 @@ importers:
       ts-jest: 26.4.4
       ts-loader: 8.0.11
       ts-node: 9.0.0
-      ts-toolbelt: ^8.0.7
       typescript: 4.1.2
   packages/debug:
     dependencies:
@@ -8644,10 +8642,6 @@ packages:
       typescript: '>=2.7'
     resolution:
       integrity: sha512-/TqB4SnererCDR/vb4S/QvSZvzQMJN8daAslg7MeaiHvD8rDZsSfXmNeNumyZZzMned72Xoq/isQljYSt8Ynfg==
-  /ts-toolbelt/8.0.7:
-    dev: true
-    resolution:
-      integrity: sha512-KICHyKxc5Nu34kyoODrEe2+zvuQQaubTJz7pnC5RQ19TH/Jged1xv+h8LBrouaSD310m75oAljYs59LNHkLDkQ==
   /tslib/1.14.1:
     dev: true
     resolution:
