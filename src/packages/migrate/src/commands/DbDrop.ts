@@ -107,6 +107,7 @@ ${chalk.bold('Examples')}
         throw new DbNeedsForceError('drop')
       }
 
+      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
