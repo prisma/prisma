@@ -63,7 +63,7 @@ describe('sqlite', () => {
             The failed migration(s) can be marked as rolled back or applied:
                   
             - If you rolled back the migration(s) manually:
-            prisma migrate resolve --rolledback "20201231000000_failed" --early-access-feature
+            prisma migrate resolve --rolled-back "20201231000000_failed" --early-access-feature
 
             - If you fixed the database manually (hotfix):
             prisma migrate resolve --applied "20201231000000_failed" --early-access-feature
