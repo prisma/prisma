@@ -434,19 +434,3 @@ it('listMigrationDirectories - schema-only-sqlite', async () => {
 
   migrate.stop()
 })
-
-it('listMigrationDirectories - initialized-sqlite', async () => {
-  ctx.fixture('initialized-sqlite')
-  const schemaPath = (await getSchemaPath())!
-  const migrate = new Migrate(schemaPath)
-  const result = migrate.engine.listMigrationDirectories({
-    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-  })
-  await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrations: Array [],
-          }
-        `)
-
-  migrate.stop()
-})

@@ -24,10 +24,6 @@ exports[`sqlite existing-db-warnings 3`] = `Array []`;
 
 exports[`sqlite existing-db-warnings 4`] = `Array []`;
 
-exports[`sqlite initialized-sqlite 3`] = `Array []`;
-
-exports[`sqlite initialized-sqlite 4`] = `Array []`;
-
 exports[`sqlite old-migrate 3`] = `Array []`;
 
 exports[`sqlite old-migrate 4`] = `Array []`;
