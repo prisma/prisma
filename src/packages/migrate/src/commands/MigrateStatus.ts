@@ -99,7 +99,7 @@ Check the status of your database migrations
       ),
     )
 
-    printDatasource(schemaPath)
+    await printDatasource(schemaPath)
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 

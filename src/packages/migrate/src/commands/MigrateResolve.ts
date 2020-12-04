@@ -106,7 +106,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    printDatasource(schemaPath)
+    await printDatasource(schemaPath)
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 

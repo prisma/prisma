@@ -94,7 +94,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    printDatasource(schemaPath)
+    await printDatasource(schemaPath)
 
     const dbInfo = await getDbInfo(schemaPath)
     const schemaDir = (await getSchemaDir(schemaPath))!

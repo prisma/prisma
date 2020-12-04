@@ -14,7 +14,7 @@ import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { UserFacingErrorWithMeta } from '../types'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
@@ -119,7 +119,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    printDatasource(schemaPath)
+    await printDatasource(schemaPath)
 
     console.info() // empty line
 
@@ -271,6 +271,7 @@ ${diagnoseResult.drift.error.message}`,
           throw new EnvNonInteractiveError()
         }
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 
@@ -378,6 +379,7 @@ ${diagnoseResult.drift.error.message}`,
         )
         console.info() // empty line
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 

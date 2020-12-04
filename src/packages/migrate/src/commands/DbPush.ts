@@ -109,7 +109,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    printDatasource(schemaPath)
+    await printDatasource(schemaPath)
 
     const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
     if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
