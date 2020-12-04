@@ -47,7 +47,7 @@ ${chalk.bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
-  --skip-generate   Skip generate
+  --skip-generate   Skip generating artifacts (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
 
