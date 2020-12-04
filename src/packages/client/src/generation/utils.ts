@@ -28,6 +28,10 @@ export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
 
+export function getGroupByName(modelName: string): string {
+  return `${capitalize(modelName)}GroupByOutputType`
+}
+
 export function getAvgAggregateName(modelName: string): string {
   return `${capitalize(modelName)}AvgAggregateOutputType`
 }
@@ -44,8 +48,20 @@ export function getMaxAggregateName(modelName: string): string {
   return `${capitalize(modelName)}MaxAggregateOutputType`
 }
 
+export function getCountAggregateName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateOutputType`
+}
+
 export function getAggregateInputType(aggregateOutputType: string): string {
   return aggregateOutputType.replace(/OutputType$/, 'InputType')
+}
+
+export function getGroupByArgsName(modelName: string): string {
+  return `GroupBy${capitalize(modelName)}Args`
+}
+
+export function getGroupByPayloadName(modelName: string): string {
+  return `Get${capitalize(modelName)}GroupByPayload`
 }
 
 export function getAggregateArgsName(modelName: string): string {
@@ -113,6 +129,8 @@ export function getModelArgName(
       return `${modelName}CreateArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
+    case DMMF.ModelAction.groupBy:
+      return `${modelName}GroupByArgs`
   }
 }
 

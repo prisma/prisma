@@ -6,7 +6,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native"]
-  previewFeatures = ["uncheckedScalarInputs"]
+  previewFeatures = ["uncheckedScalarInputs", "groupBy"]
 }
 
 model User {

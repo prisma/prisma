@@ -177,6 +177,8 @@ const ${lowerCase(mapping.model)} = await ${method}({
   }
 })`
   }
+
+  return ''
 }
 
 export function getMethodJSDoc(
@@ -234,6 +236,10 @@ export const topLevelArgsJsDocs = {
   },
   delete: {
     where: (singular, plural): string => `Filter which ${singular} to delete.`,
+  },
+  aggregate: {
+    where: (singular, plural): string =>
+      `Filter which ${singular} to group by.`,
   },
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
