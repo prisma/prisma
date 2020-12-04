@@ -45,6 +45,17 @@ ${chalk.bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
+
+${chalk.bold('Examples')}
+
+  Deploy your migrations
+  ${chalk.dim('$')} prisma migrate deploy --early-access-feature
+
+  Specify a schema
+  ${chalk.dim(
+    '$',
+  )} prisma migrate deploy --schema=./schema.prisma --early-access-feature
+
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
