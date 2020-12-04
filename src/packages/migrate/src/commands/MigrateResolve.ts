@@ -42,7 +42,7 @@ ${chalk.bold('Options')}
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
      --applied   Mark a migration as applied
-  --rolledback   Mark a migration as rolled back
+  --rolled-back   Mark a migration as rolled back
 
 ${chalk.bold('Examples')}
 
@@ -54,12 +54,12 @@ ${chalk.bold('Examples')}
   Mark a migration as rolled back
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolledback 20201231000000_add_users_table --early-access-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --early-access-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolledback 20201231000000_add_users_table --schema=./schema.prisma --early-access-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma --early-access-feature
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -69,7 +69,7 @@ ${chalk.bold('Examples')}
         '--help': Boolean,
         '-h': '--help',
         '--applied': String,
-        '--rolledback': String,
+        '--rolled-back': String,
         '--experimental': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
@@ -111,9 +111,9 @@ ${chalk.bold('Examples')}
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // if both are not defined
-    if (!args['--applied'] && !args['--rolledback']) {
+    if (!args['--applied'] && !args['--rolled-back']) {
       throw new Error(
-        `--applied or --rolledback must be part of the command like:
+        `--applied or --rolled-back must be part of the command like:
 ${chalk.bold.green(
   getCommandWithExecutor(
     'prisma migrate resolve --applied 20201231000000_example --early-access-feature',
@@ -121,14 +121,14 @@ ${chalk.bold.green(
 )}
 ${chalk.bold.green(
   getCommandWithExecutor(
-    'prisma migrate resolve --rolledback 20201231000000_example --early-access-feature',
+    'prisma migrate resolve --rolled-back 20201231000000_example --early-access-feature',
   ),
 )}`,
       )
     }
     // if both are defined
-    else if (args['--applied'] && args['--rolledback']) {
-      throw new Error('Pass either --applied or --rolledback, not both.')
+    else if (args['--applied'] && args['--rolled-back']) {
+      throw new Error('Pass either --applied or --rolled-back, not both.')
     }
 
     if (args['--applied']) {
@@ -157,13 +157,13 @@ ${chalk.bold.green(
       return `Migration ${args['--applied']} marked as applied.`
     } else {
       if (
-        typeof args['--rolledback'] !== 'string' ||
-        args['--rolledback'].length === 0
+        typeof args['--rolled-back'] !== 'string' ||
+        args['--rolled-back'].length === 0
       ) {
         throw new Error(
-          `--rolledback value must be a string like ${chalk.bold.green(
+          `--rolled-back value must be a string like ${chalk.bold.green(
             getCommandWithExecutor(
-              'prisma migrate resolve --rolledback 20201231000000_example --early-access-feature',
+              'prisma migrate resolve --rolled-back 20201231000000_example --early-access-feature',
             ),
           )}`,
         )
@@ -174,11 +174,11 @@ ${chalk.bold.green(
       const migrate = new Migrate(schemaPath)
 
       await migrate.markMigrationRolledBack({
-        migrationId: args['--rolledback'],
+        migrationId: args['--rolled-back'],
       })
       migrate.stop()
 
-      return `Migration ${args['--rolledback']} marked as rolled back.`
+      return `Migration ${args['--rolled-back']} marked as rolled back.`
     }
   }
 

@@ -191,7 +191,7 @@ https://pris.ly/d/migrate-baseline`
       //         - This is the **recovering from a partially failed migration** case.
       //         - Look at `drift.DriftDetected.rollback`. If present: display the rollback script
       //         - Inform the user that they can "close the case" and mark the failed migration as fixed by calling `prisma migrate resolve`.
-      //             - `prisma migrate resolve --rolledback <migration-name>` if the migration was rolled back
+      //             - `prisma migrate resolve --rolled-back <migration-name>` if the migration was rolled back
       //             - `prisma migrate resolve --applied <migration-name>` if the migration was rolled forward (and completed successfully)
       const failedMigrations = diagnoseResult.failedMigrationNames
 
@@ -219,7 +219,7 @@ ${chalk.grey(diagnoseResult.drift.rollback)}`)
 - If you rolled back the migration(s) manually:
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --rolledback "${failedMigrations[0]}" --early-access-feature`,
+    `prisma migrate resolve --rolled-back "${failedMigrations[0]}" --early-access-feature`,
   ),
 )}
 

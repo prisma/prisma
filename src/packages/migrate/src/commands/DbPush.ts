@@ -5,23 +5,18 @@ import {
   HelpError,
   isError,
   getSchemaPath,
-  getCommandWithExecutor,
   link,
-  isCi,
 } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
 import {
   DbPushIgnoreWarningsWithForceError,
-  DbPushWithOldMigrateError,
   NoSchemaFoundError,
 } from '../utils/errors'
-import { isOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
@@ -54,7 +49,6 @@ ${chalk.bold('Options')}
              --schema   Custom path to your Prisma schema
           -f, --force   Ignore data loss warnings
       --skip-generate   Skip generating artifacts (e.g. Prisma Client)
-  --ignore-migrations   Ignore migrations files warning
 
 ${chalk.bold('Examples')}
 
@@ -78,7 +72,6 @@ ${chalk.bold('Examples')}
         '--force': Boolean,
         '-f': '--force',
         '--skip-generate': Boolean,
-        '--ignore-migrations': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -110,32 +103,6 @@ ${chalk.bold('Examples')}
     )
 
     await printDatasource(schemaPath)
-
-    const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-    if (!args['--ignore-migrations'] && isOldMigrate(migrationDirPath)) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw new DbPushWithOldMigrateError()
-      }
-
-      const confirmation = await prompt({
-        type: 'confirm',
-        name: 'value',
-        message: `${chalk.yellow(
-          'Warning',
-        )}: Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
-Do you want to continue?`,
-      })
-
-      if (!confirmation.value) {
-        console.info() // empty line
-        console.info('Push cancelled.')
-        process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
-      }
-    }
 
     const migrate = new Migrate(schemaPath)
 
