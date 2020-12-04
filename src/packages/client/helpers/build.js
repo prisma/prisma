@@ -38,6 +38,10 @@ async function main() {
       'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
       false,
     ),
+    await run(
+      'esbuild src/runtime/index-browser.ts --outdir=runtime-browser --bundle --target=chrome58,firefox57,safari11,edge16',
+      false,
+    ),
     run('rollup -c'),
   ])
 
@@ -52,6 +56,12 @@ async function main() {
   file = file.replace(/^export\s+=\s+.*/gm, '')
   file = file.replace('namespace Decimal {', 'declare namespace Decimal {')
   await writeFile('./runtime/index.d.ts', file)
+
+  // this is needed to remove "export = " statements
+  let browserFile = await readFile('./runtime/index-browser.d.ts', 'utf-8')
+  browserFile = browserFile.replace(/^export\s+=\s+.*/gm, '')
+  browserFile = browserFile.replace('namespace Decimal {', 'declare namespace Decimal {')
+  await writeFile('./runtime/index-browser.d.ts', browserFile)
 
   const after = Date.now()
   console.log(

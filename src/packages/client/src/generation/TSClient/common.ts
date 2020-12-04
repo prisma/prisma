@@ -14,7 +14,11 @@ export const commonCodeJS = ({
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
   browser
-    ? ''
+    ? `
+const {
+  Decimal
+} = require('${runtimePath}/index-browser')
+`
     : `
 const {
   PrismaClientKnownRequestError,
