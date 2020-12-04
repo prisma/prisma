@@ -1,1 +1,1 @@
-export { default as Decimal } from 'decimal.js'
+export { Decimal } from 'decimal.js'
