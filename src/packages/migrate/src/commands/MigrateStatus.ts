@@ -112,7 +112,14 @@ Check the status of your database migrations
 
     const migrate = new Migrate(schemaPath)
 
-    await ensureCanConnectToDatabase(schemaPath)
+    try {
+      await ensureCanConnectToDatabase(schemaPath)
+    } catch (e) {
+      console.info() // empty line
+      return chalk.red(`Database connection error:
+
+${e.message}`)
+    }
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.

@@ -39,14 +39,17 @@ describe('sqlite', () => {
       '--schema=./prisma/empty.prisma',
       '--early-access-feature',
     ])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(`
+            Database connection error:
+
+            P1003: SQLite database file doesn't exist
+          `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -227,22 +230,6 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-    `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-  })
-
-  it('initialized-sqlite', async () => {
-    ctx.fixture('initialized-sqlite')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
