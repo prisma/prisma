@@ -425,6 +425,28 @@ type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> &
 
 
 
+/**
+ * Used by group by
+ */
+export type GetScalarType<T, O> = O extends object ? {
+  [P in keyof T]: P extends keyof O
+    ? O[P]
+    : never
+} : never
+
+/**
+ * Convert tuple to union
+ */
+type _TupleToUnion<T> = T extends (infer E)[] ? E : never
+type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+
+/**
+ * Like \`Pick\`, but with an array
+ */
+type PickArray<T, K extends Array<keyof T>> = Pick<T, TupleToUnion<K>>
+
+
+
 
 
 /**
@@ -1041,6 +1063,28 @@ export namespace Prisma {
    */
   type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
+
+
+  /**
+   * Used by group by
+   */
+  export type GetScalarType<T, O> = O extends object ? {
+    [P in keyof T]: P extends keyof O
+      ? O[P]
+      : never
+  } : never
+
+  /**
+   * Convert tuple to union
+   */
+  type _TupleToUnion<T> = T extends (infer E)[] ? E : never
+  type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+
+  /**
+   * Like \`Pick\`, but with an array
+   */
+  type PickArray<T, K extends Array<keyof T>> = Pick<T, TupleToUnion<K>>
+
   class PrismaClientFetcher {
     private readonly prisma;
     private readonly debug;
@@ -1219,6 +1263,16 @@ export namespace Prisma {
     authorId: number
   }
 
+  export type PostCountAggregateOutputType = {
+    id: number
+    createdAt: number | null
+    title: number | null
+    content: number | null
+    published: number | null
+    authorId: number
+    _all: number
+  }
+
 
   export type PostAvgAggregateInputType = {
     id?: true
@@ -1248,6 +1302,16 @@ export namespace Prisma {
     authorId?: true
   }
 
+  export type PostCountAggregateInputType = {
+    id?: true
+    createdAt?: true
+    title?: true
+    content?: true
+    published?: true
+    authorId?: true
+    _all?: true
+  }
+
   export type AggregatePostArgs = {
     where?: PostWhereInput
     orderBy?: Enumerable<PostOrderByInput>
@@ -1268,8 +1332,10 @@ export namespace Prisma {
   export type GetPostAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof PostAvgAggregateOutputType ? PostAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type PostSelect = {
     id?: boolean
@@ -1476,6 +1542,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -1795,6 +1863,24 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type UserCountAggregateOutputType = {
+    id: number
+    email: number | null
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type UserAvgAggregateInputType = {
     id?: true
@@ -1846,6 +1932,24 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type UserCountAggregateInputType = {
+    id?: true
+    email?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateUserArgs = {
     where?: UserWhereInput
     orderBy?: Enumerable<UserOrderByInput>
@@ -1866,8 +1970,10 @@ export namespace Prisma {
   export type GetUserAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof UserAvgAggregateOutputType ? UserAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type UserSelect = {
     id?: boolean
@@ -2082,6 +2188,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -2399,6 +2507,23 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type MCountAggregateOutputType = {
+    id: number
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type MAvgAggregateInputType = {
     id?: true
@@ -2448,6 +2573,23 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type MCountAggregateInputType = {
+    id?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateMArgs = {
     where?: MWhereInput
     orderBy?: Enumerable<MOrderByInput>
@@ -2468,8 +2610,10 @@ export namespace Prisma {
   export type GetMAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof MAvgAggregateOutputType ? MAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type MSelect = {
     id?: boolean
@@ -2683,6 +2827,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -3000,6 +3146,23 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type NCountAggregateOutputType = {
+    id: number
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type NAvgAggregateInputType = {
     id?: true
@@ -3049,6 +3212,23 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type NCountAggregateInputType = {
+    id?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateNArgs = {
     where?: NWhereInput
     orderBy?: Enumerable<NOrderByInput>
@@ -3069,8 +3249,10 @@ export namespace Prisma {
   export type GetNAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof NAvgAggregateOutputType ? NAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type NSelect = {
     id?: boolean
@@ -3284,6 +3466,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -3601,6 +3785,23 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type OneOptionalCountAggregateOutputType = {
+    id: number
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type OneOptionalAvgAggregateInputType = {
     id?: true
@@ -3650,6 +3851,23 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type OneOptionalCountAggregateInputType = {
+    id?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateOneOptionalArgs = {
     where?: OneOptionalWhereInput
     orderBy?: Enumerable<OneOptionalOrderByInput>
@@ -3670,8 +3888,10 @@ export namespace Prisma {
   export type GetOneOptionalAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof OneOptionalAvgAggregateOutputType ? OneOptionalAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type OneOptionalSelect = {
     id?: boolean
@@ -3885,6 +4105,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -4206,6 +4428,24 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type ManyRequiredCountAggregateOutputType = {
+    id: number
+    oneOptionalId: number | null
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type ManyRequiredAvgAggregateInputType = {
     id?: true
@@ -4259,6 +4499,24 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type ManyRequiredCountAggregateInputType = {
+    id?: true
+    oneOptionalId?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateManyRequiredArgs = {
     where?: ManyRequiredWhereInput
     orderBy?: Enumerable<ManyRequiredOrderByInput>
@@ -4279,8 +4537,10 @@ export namespace Prisma {
   export type GetManyRequiredAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof ManyRequiredAvgAggregateOutputType ? ManyRequiredAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type ManyRequiredSelect = {
     id?: boolean
@@ -4495,6 +4755,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -4816,6 +5078,24 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type OptionalSide1CountAggregateOutputType = {
+    id: number
+    optionalSide2Id: number | null
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type OptionalSide1AvgAggregateInputType = {
     id?: true
@@ -4869,6 +5149,24 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type OptionalSide1CountAggregateInputType = {
+    id?: true
+    optionalSide2Id?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateOptionalSide1Args = {
     where?: OptionalSide1WhereInput
     orderBy?: Enumerable<OptionalSide1OrderByInput>
@@ -4889,8 +5187,10 @@ export namespace Prisma {
   export type GetOptionalSide1AggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof OptionalSide1AvgAggregateOutputType ? OptionalSide1AvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type OptionalSide1Select = {
     id?: boolean
@@ -5105,6 +5405,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -5422,6 +5724,23 @@ export namespace Prisma {
     optionalBoolean: boolean | null
   }
 
+  export type OptionalSide2CountAggregateOutputType = {
+    id: number
+    int: number
+    optionalInt: number | null
+    float: number
+    optionalFloat: number | null
+    string: number | null
+    optionalString: number | null
+    json: number | null
+    optionalJson: number | null
+    enum: number | null
+    optionalEnum: number | null
+    boolean: number | null
+    optionalBoolean: number | null
+    _all: number
+  }
+
 
   export type OptionalSide2AvgAggregateInputType = {
     id?: true
@@ -5471,6 +5790,23 @@ export namespace Prisma {
     optionalBoolean?: true
   }
 
+  export type OptionalSide2CountAggregateInputType = {
+    id?: true
+    int?: true
+    optionalInt?: true
+    float?: true
+    optionalFloat?: true
+    string?: true
+    optionalString?: true
+    json?: true
+    optionalJson?: true
+    enum?: true
+    optionalEnum?: true
+    boolean?: true
+    optionalBoolean?: true
+    _all?: true
+  }
+
   export type AggregateOptionalSide2Args = {
     where?: OptionalSide2WhereInput
     orderBy?: Enumerable<OptionalSide2OrderByInput>
@@ -5491,8 +5827,10 @@ export namespace Prisma {
   export type GetOptionalSide2AggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof OptionalSide2AvgAggregateOutputType ? OptionalSide2AvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type OptionalSide2Select = {
     id?: boolean
@@ -5706,6 +6044,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -6029,6 +6369,22 @@ export namespace Prisma {
     inc_bInt: BigInt
   }
 
+  export type ACountAggregateOutputType = {
+    id: number | null
+    email: number | null
+    name: number | null
+    int: number
+    sInt: number
+    bInt: number
+    serial: number
+    sSerial: number
+    bSerial: number
+    inc_int: number
+    inc_sInt: number
+    inc_bInt: number
+    _all: number
+  }
+
 
   export type AAvgAggregateInputType = {
     int?: true
@@ -6084,6 +6440,22 @@ export namespace Prisma {
     inc_bInt?: true
   }
 
+  export type ACountAggregateInputType = {
+    id?: true
+    email?: true
+    name?: true
+    int?: true
+    sInt?: true
+    bInt?: true
+    serial?: true
+    sSerial?: true
+    bSerial?: true
+    inc_int?: true
+    inc_sInt?: true
+    inc_bInt?: true
+    _all?: true
+  }
+
   export type AggregateAArgs = {
     where?: AWhereInput
     orderBy?: Enumerable<AOrderByInput>
@@ -6104,8 +6476,10 @@ export namespace Prisma {
   export type GetAAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof AAvgAggregateOutputType ? AAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type ASelect = {
     id?: boolean
@@ -6308,6 +6682,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -6574,6 +6950,15 @@ export namespace Prisma {
     numFloat: Decimal
   }
 
+  export type BCountAggregateOutputType = {
+    id: number | null
+    float: number
+    dFloat: number
+    decFloat: number
+    numFloat: number
+    _all: number
+  }
+
 
   export type BAvgAggregateInputType = {
     float?: true
@@ -6605,6 +6990,15 @@ export namespace Prisma {
     numFloat?: true
   }
 
+  export type BCountAggregateInputType = {
+    id?: true
+    float?: true
+    dFloat?: true
+    decFloat?: true
+    numFloat?: true
+    _all?: true
+  }
+
   export type AggregateBArgs = {
     where?: BWhereInput
     orderBy?: Enumerable<BOrderByInput>
@@ -6625,8 +7019,10 @@ export namespace Prisma {
   export type GetBAggregateScalarType<T extends any> = {
     [P in keyof T]: P extends keyof BAvgAggregateOutputType ? BAvgAggregateOutputType[P] : never
   }
+
     
-    
+
+
 
   export type BSelect = {
     id?: boolean
@@ -6822,6 +7218,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -7076,6 +7474,17 @@ export namespace Prisma {
     uuid: string | null
   }
 
+  export type CCountAggregateOutputType = {
+    id: number | null
+    char: number | null
+    vChar: number | null
+    text: number | null
+    bit: number | null
+    vBit: number | null
+    uuid: number | null
+    _all: number
+  }
+
 
   export type CMinAggregateInputType = {
     id?: true
@@ -7097,6 +7506,17 @@ export namespace Prisma {
     uuid?: true
   }
 
+  export type CCountAggregateInputType = {
+    id?: true
+    char?: true
+    vChar?: true
+    text?: true
+    bit?: true
+    vBit?: true
+    uuid?: true
+    _all?: true
+  }
+
   export type AggregateCArgs = {
     where?: CWhereInput
     orderBy?: Enumerable<COrderByInput>
@@ -7113,8 +7533,10 @@ export namespace Prisma {
   }
 
 
+
     
-    
+
+
 
   export type CSelect = {
     id?: boolean
@@ -7312,6 +7734,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -7564,6 +7988,16 @@ export namespace Prisma {
     jsonb: JsonValue | null
   }
 
+  export type DCountAggregateOutputType = {
+    id: number | null
+    bool: number | null
+    byteA: number | null
+    xml: number | null
+    json: number | null
+    jsonb: number | null
+    _all: number
+  }
+
 
   export type DMinAggregateInputType = {
     id?: true
@@ -7583,6 +8017,16 @@ export namespace Prisma {
     jsonb?: true
   }
 
+  export type DCountAggregateInputType = {
+    id?: true
+    bool?: true
+    byteA?: true
+    xml?: true
+    json?: true
+    jsonb?: true
+    _all?: true
+  }
+
   export type AggregateDArgs = {
     where?: DWhereInput
     orderBy?: Enumerable<DOrderByInput>
@@ -7599,8 +8043,10 @@ export namespace Prisma {
   }
 
 
+
     
-    
+
+
 
   export type DSelect = {
     id?: boolean
@@ -7797,6 +8243,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -8045,6 +8493,14 @@ export namespace Prisma {
     ts: Date | null
   }
 
+  export type ECountAggregateOutputType = {
+    id: number | null
+    date: number | null
+    time: number | null
+    ts: number | null
+    _all: number
+  }
+
 
   export type EMinAggregateInputType = {
     id?: true
@@ -8058,6 +8514,14 @@ export namespace Prisma {
     date?: true
     time?: true
     ts?: true
+  }
+
+  export type ECountAggregateInputType = {
+    id?: true
+    date?: true
+    time?: true
+    ts?: true
+    _all?: true
   }
 
   export type AggregateEArgs = {
@@ -8076,8 +8540,10 @@ export namespace Prisma {
   }
 
 
+
     
-    
+
+
 
   export type ESelect = {
     id?: boolean
@@ -8272,6 +8738,8 @@ export namespace Prisma {
      * Count
      */
     count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
+
+  
 
     /**
      * Aggregate
@@ -11650,6 +12118,11 @@ export type PostMinAggregateOutputType = Prisma.PostMinAggregateOutputType
 export type PostMaxAggregateOutputType = Prisma.PostMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.PostCountAggregateOutputType\`
+ */
+export type PostCountAggregateOutputType = Prisma.PostCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregatePostArgs\`
  */
 export type AggregatePostArgs = Prisma.AggregatePostArgs
@@ -11673,6 +12146,11 @@ export type PostMinAggregateInputType = Prisma.PostMinAggregateInputType
  * @deprecated Renamed to \`Prisma.PostMaxAggregateInputType\`
  */
 export type PostMaxAggregateInputType = Prisma.PostMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.PostCountAggregateInputType\`
+ */
+export type PostCountAggregateInputType = Prisma.PostCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.PostSelect\`
@@ -11755,6 +12233,11 @@ export type UserMinAggregateOutputType = Prisma.UserMinAggregateOutputType
 export type UserMaxAggregateOutputType = Prisma.UserMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.UserCountAggregateOutputType\`
+ */
+export type UserCountAggregateOutputType = Prisma.UserCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateUserArgs\`
  */
 export type AggregateUserArgs = Prisma.AggregateUserArgs
@@ -11778,6 +12261,11 @@ export type UserMinAggregateInputType = Prisma.UserMinAggregateInputType
  * @deprecated Renamed to \`Prisma.UserMaxAggregateInputType\`
  */
 export type UserMaxAggregateInputType = Prisma.UserMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.UserCountAggregateInputType\`
+ */
+export type UserCountAggregateInputType = Prisma.UserCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.UserSelect\`
@@ -11860,6 +12348,11 @@ export type MMinAggregateOutputType = Prisma.MMinAggregateOutputType
 export type MMaxAggregateOutputType = Prisma.MMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.MCountAggregateOutputType\`
+ */
+export type MCountAggregateOutputType = Prisma.MCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateMArgs\`
  */
 export type AggregateMArgs = Prisma.AggregateMArgs
@@ -11883,6 +12376,11 @@ export type MMinAggregateInputType = Prisma.MMinAggregateInputType
  * @deprecated Renamed to \`Prisma.MMaxAggregateInputType\`
  */
 export type MMaxAggregateInputType = Prisma.MMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.MCountAggregateInputType\`
+ */
+export type MCountAggregateInputType = Prisma.MCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.MSelect\`
@@ -11965,6 +12463,11 @@ export type NMinAggregateOutputType = Prisma.NMinAggregateOutputType
 export type NMaxAggregateOutputType = Prisma.NMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.NCountAggregateOutputType\`
+ */
+export type NCountAggregateOutputType = Prisma.NCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateNArgs\`
  */
 export type AggregateNArgs = Prisma.AggregateNArgs
@@ -11988,6 +12491,11 @@ export type NMinAggregateInputType = Prisma.NMinAggregateInputType
  * @deprecated Renamed to \`Prisma.NMaxAggregateInputType\`
  */
 export type NMaxAggregateInputType = Prisma.NMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.NCountAggregateInputType\`
+ */
+export type NCountAggregateInputType = Prisma.NCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.NSelect\`
@@ -12070,6 +12578,11 @@ export type OneOptionalMinAggregateOutputType = Prisma.OneOptionalMinAggregateOu
 export type OneOptionalMaxAggregateOutputType = Prisma.OneOptionalMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.OneOptionalCountAggregateOutputType\`
+ */
+export type OneOptionalCountAggregateOutputType = Prisma.OneOptionalCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateOneOptionalArgs\`
  */
 export type AggregateOneOptionalArgs = Prisma.AggregateOneOptionalArgs
@@ -12093,6 +12606,11 @@ export type OneOptionalMinAggregateInputType = Prisma.OneOptionalMinAggregateInp
  * @deprecated Renamed to \`Prisma.OneOptionalMaxAggregateInputType\`
  */
 export type OneOptionalMaxAggregateInputType = Prisma.OneOptionalMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.OneOptionalCountAggregateInputType\`
+ */
+export type OneOptionalCountAggregateInputType = Prisma.OneOptionalCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalSelect\`
@@ -12175,6 +12693,11 @@ export type ManyRequiredMinAggregateOutputType = Prisma.ManyRequiredMinAggregate
 export type ManyRequiredMaxAggregateOutputType = Prisma.ManyRequiredMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.ManyRequiredCountAggregateOutputType\`
+ */
+export type ManyRequiredCountAggregateOutputType = Prisma.ManyRequiredCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateManyRequiredArgs\`
  */
 export type AggregateManyRequiredArgs = Prisma.AggregateManyRequiredArgs
@@ -12198,6 +12721,11 @@ export type ManyRequiredMinAggregateInputType = Prisma.ManyRequiredMinAggregateI
  * @deprecated Renamed to \`Prisma.ManyRequiredMaxAggregateInputType\`
  */
 export type ManyRequiredMaxAggregateInputType = Prisma.ManyRequiredMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.ManyRequiredCountAggregateInputType\`
+ */
+export type ManyRequiredCountAggregateInputType = Prisma.ManyRequiredCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ManyRequiredSelect\`
@@ -12280,6 +12808,11 @@ export type OptionalSide1MinAggregateOutputType = Prisma.OptionalSide1MinAggrega
 export type OptionalSide1MaxAggregateOutputType = Prisma.OptionalSide1MaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.OptionalSide1CountAggregateOutputType\`
+ */
+export type OptionalSide1CountAggregateOutputType = Prisma.OptionalSide1CountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide1Args\`
  */
 export type AggregateOptionalSide1Args = Prisma.AggregateOptionalSide1Args
@@ -12303,6 +12836,11 @@ export type OptionalSide1MinAggregateInputType = Prisma.OptionalSide1MinAggregat
  * @deprecated Renamed to \`Prisma.OptionalSide1MaxAggregateInputType\`
  */
 export type OptionalSide1MaxAggregateInputType = Prisma.OptionalSide1MaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.OptionalSide1CountAggregateInputType\`
+ */
+export type OptionalSide1CountAggregateInputType = Prisma.OptionalSide1CountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1Select\`
@@ -12385,6 +12923,11 @@ export type OptionalSide2MinAggregateOutputType = Prisma.OptionalSide2MinAggrega
 export type OptionalSide2MaxAggregateOutputType = Prisma.OptionalSide2MaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.OptionalSide2CountAggregateOutputType\`
+ */
+export type OptionalSide2CountAggregateOutputType = Prisma.OptionalSide2CountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateOptionalSide2Args\`
  */
 export type AggregateOptionalSide2Args = Prisma.AggregateOptionalSide2Args
@@ -12408,6 +12951,11 @@ export type OptionalSide2MinAggregateInputType = Prisma.OptionalSide2MinAggregat
  * @deprecated Renamed to \`Prisma.OptionalSide2MaxAggregateInputType\`
  */
 export type OptionalSide2MaxAggregateInputType = Prisma.OptionalSide2MaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.OptionalSide2CountAggregateInputType\`
+ */
+export type OptionalSide2CountAggregateInputType = Prisma.OptionalSide2CountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide2Select\`
@@ -12490,6 +13038,11 @@ export type AMinAggregateOutputType = Prisma.AMinAggregateOutputType
 export type AMaxAggregateOutputType = Prisma.AMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.ACountAggregateOutputType\`
+ */
+export type ACountAggregateOutputType = Prisma.ACountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateAArgs\`
  */
 export type AggregateAArgs = Prisma.AggregateAArgs
@@ -12513,6 +13066,11 @@ export type AMinAggregateInputType = Prisma.AMinAggregateInputType
  * @deprecated Renamed to \`Prisma.AMaxAggregateInputType\`
  */
 export type AMaxAggregateInputType = Prisma.AMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.ACountAggregateInputType\`
+ */
+export type ACountAggregateInputType = Prisma.ACountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ASelect\`
@@ -12590,6 +13148,11 @@ export type BMinAggregateOutputType = Prisma.BMinAggregateOutputType
 export type BMaxAggregateOutputType = Prisma.BMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.BCountAggregateOutputType\`
+ */
+export type BCountAggregateOutputType = Prisma.BCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateBArgs\`
  */
 export type AggregateBArgs = Prisma.AggregateBArgs
@@ -12613,6 +13176,11 @@ export type BMinAggregateInputType = Prisma.BMinAggregateInputType
  * @deprecated Renamed to \`Prisma.BMaxAggregateInputType\`
  */
 export type BMaxAggregateInputType = Prisma.BMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.BCountAggregateInputType\`
+ */
+export type BCountAggregateInputType = Prisma.BCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.BSelect\`
@@ -12680,6 +13248,11 @@ export type CMinAggregateOutputType = Prisma.CMinAggregateOutputType
 export type CMaxAggregateOutputType = Prisma.CMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.CCountAggregateOutputType\`
+ */
+export type CCountAggregateOutputType = Prisma.CCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateCArgs\`
  */
 export type AggregateCArgs = Prisma.AggregateCArgs
@@ -12693,6 +13266,11 @@ export type CMinAggregateInputType = Prisma.CMinAggregateInputType
  * @deprecated Renamed to \`Prisma.CMaxAggregateInputType\`
  */
 export type CMaxAggregateInputType = Prisma.CMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.CCountAggregateInputType\`
+ */
+export type CCountAggregateInputType = Prisma.CCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.CSelect\`
@@ -12760,6 +13338,11 @@ export type DMinAggregateOutputType = Prisma.DMinAggregateOutputType
 export type DMaxAggregateOutputType = Prisma.DMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.DCountAggregateOutputType\`
+ */
+export type DCountAggregateOutputType = Prisma.DCountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateDArgs\`
  */
 export type AggregateDArgs = Prisma.AggregateDArgs
@@ -12773,6 +13356,11 @@ export type DMinAggregateInputType = Prisma.DMinAggregateInputType
  * @deprecated Renamed to \`Prisma.DMaxAggregateInputType\`
  */
 export type DMaxAggregateInputType = Prisma.DMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.DCountAggregateInputType\`
+ */
+export type DCountAggregateInputType = Prisma.DCountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.DSelect\`
@@ -12840,6 +13428,11 @@ export type EMinAggregateOutputType = Prisma.EMinAggregateOutputType
 export type EMaxAggregateOutputType = Prisma.EMaxAggregateOutputType
 
 /**
+ * @deprecated Renamed to \`Prisma.ECountAggregateOutputType\`
+ */
+export type ECountAggregateOutputType = Prisma.ECountAggregateOutputType
+
+/**
  * @deprecated Renamed to \`Prisma.AggregateEArgs\`
  */
 export type AggregateEArgs = Prisma.AggregateEArgs
@@ -12853,6 +13446,11 @@ export type EMinAggregateInputType = Prisma.EMinAggregateInputType
  * @deprecated Renamed to \`Prisma.EMaxAggregateInputType\`
  */
 export type EMaxAggregateInputType = Prisma.EMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.ECountAggregateInputType\`
+ */
+export type ECountAggregateInputType = Prisma.ECountAggregateInputType
 
 /**
  * @deprecated Renamed to \`Prisma.ESelect\`

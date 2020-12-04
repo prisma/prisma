@@ -284,6 +284,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -1541,6 +1542,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserGroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "UserWhereUniqueInput",
                     },
                   ],
@@ -1911,6 +2000,93 @@ Object {
             },
           ],
           "name": "AggregateUser",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "email",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserCountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserSumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "UserGroupByOutputType",
         },
         Object {
           "fields": Array [
@@ -2402,6 +2578,7 @@ Object {
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "findOne": "findOnePost",
+        "groupBy": "groupByPost",
         "model": "Post",
         "updateMany": "updateManyPost",
         "updateOne": "updateOnePost",
@@ -2415,6 +2592,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -2428,6 +2606,7 @@ Object {
         "findFirst": "findFirstUser1",
         "findMany": "findManyUser1",
         "findOne": "findOneUser1",
+        "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
         "updateOne": "updateOneUser1",
@@ -2441,6 +2620,7 @@ Object {
         "findFirst": "findFirstUser2",
         "findMany": "findManyUser2",
         "findOne": "findOneUser2",
+        "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
         "updateOne": "updateOneUser2",
@@ -6496,6 +6676,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "PostScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "PostScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByPost",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostGroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "PostWhereUniqueInput",
                     },
                   ],
@@ -6784,6 +7052,94 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AggregateUser",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserGroupByOutputType",
               },
             },
             Object {
@@ -7092,6 +7448,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser1",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1GroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereUniqueInput",
                     },
                   ],
@@ -7380,6 +7824,94 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AggregateUser2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser2",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2GroupByOutputType",
               },
             },
             Object {
@@ -8391,6 +8923,115 @@ Object {
               "args": Array [],
               "isNullable": true,
               "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "authorId",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "title",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "published",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostCountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostSumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "PostGroupByOutputType",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
               "name": "count",
               "outputType": Object {
                 "isList": false,
@@ -8449,6 +9090,93 @@ Object {
             },
           ],
           "name": "AggregateUser",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "email",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserCountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserSumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "UserGroupByOutputType",
         },
         Object {
           "fields": Array [
@@ -8521,6 +9249,115 @@ Object {
               "args": Array [],
               "isNullable": true,
               "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "firstName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "lastName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "isAdmin",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1CountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1AvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1SumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1MinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1MaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "User1GroupByOutputType",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
               "name": "count",
               "outputType": Object {
                 "isList": false,
@@ -8579,6 +9416,115 @@ Object {
             },
           ],
           "name": "AggregateUser2",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "firstName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "lastName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "isAdmin",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2CountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2AvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2SumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2MinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2MaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "User2GroupByOutputType",
         },
         Object {
           "fields": Array [
@@ -9662,6 +10608,7 @@ Object {
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "findOne": "findOnePost",
+        "groupBy": "groupByPost",
         "model": "Post",
         "updateMany": "updateManyPost",
         "updateOne": "updateOnePost",
@@ -9675,6 +10622,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -9688,6 +10636,7 @@ Object {
         "findFirst": "findFirstUser1",
         "findMany": "findManyUser1",
         "findOne": "findOneUser1",
+        "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
         "updateOne": "updateOneUser1",
@@ -9701,6 +10650,7 @@ Object {
         "findFirst": "findFirstUser2",
         "findMany": "findManyUser2",
         "findOne": "findOneUser2",
+        "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
         "updateOne": "updateOneUser2",
@@ -13756,6 +14706,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "PostScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "PostScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByPost",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostGroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "PostWhereUniqueInput",
                     },
                   ],
@@ -14044,6 +15082,94 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AggregateUser",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserGroupByOutputType",
               },
             },
             Object {
@@ -14352,6 +15478,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser1",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1GroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereUniqueInput",
                     },
                   ],
@@ -14640,6 +15854,94 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AggregateUser2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByUser2",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2GroupByOutputType",
               },
             },
             Object {
@@ -15651,6 +16953,115 @@ Object {
               "args": Array [],
               "isNullable": true,
               "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "authorId",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "title",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "published",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostCountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostSumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "PostMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "PostGroupByOutputType",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
               "name": "count",
               "outputType": Object {
                 "isList": false,
@@ -15709,6 +17120,93 @@ Object {
             },
           ],
           "name": "AggregateUser",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "email",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserCountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserSumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "UserMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "UserGroupByOutputType",
         },
         Object {
           "fields": Array [
@@ -15781,6 +17279,115 @@ Object {
               "args": Array [],
               "isNullable": true,
               "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "firstName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "lastName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "isAdmin",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1CountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1AvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1SumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1MinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User1MaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "User1GroupByOutputType",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
               "name": "count",
               "outputType": Object {
                 "isList": false,
@@ -15839,6 +17446,115 @@ Object {
             },
           ],
           "name": "AggregateUser2",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "firstName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "lastName",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "isAdmin",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Boolean",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2CountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2AvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2SumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2MinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "User2MaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "User2GroupByOutputType",
         },
         Object {
           "fields": Array [
@@ -16578,11 +18294,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `76865164`;
+exports[`getDMMF big schema 1`] = `89414228`;
 
-exports[`getDMMF chinook introspected schema 1`] = `473584`;
+exports[`getDMMF chinook introspected schema 1`] = `505402`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `473584`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `505402`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -16716,6 +18432,7 @@ Object {
         "findFirst": "findFirstA",
         "findMany": "findManyA",
         "findOne": "findOneA",
+        "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
         "updateOne": "updateOneA",
@@ -17953,6 +19670,94 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "by",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "groupByA",
+              "outputType": Object {
+                "isList": true,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AGroupByOutputType",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "AWhereUniqueInput",
                     },
                   ],
@@ -18323,6 +20128,93 @@ Object {
             },
           ],
           "name": "AggregateA",
+        },
+        Object {
+          "fields": Array [
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "id",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Int",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "name",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "String",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "count",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ACountAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "avg",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AAvgAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "sum",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "ASumAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "min",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMinAggregateOutputType",
+              },
+            },
+            Object {
+              "args": Array [],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "max",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "prisma",
+                "type": "AMaxAggregateOutputType",
+              },
+            },
+          ],
+          "name": "AGroupByOutputType",
         },
         Object {
           "fields": Array [

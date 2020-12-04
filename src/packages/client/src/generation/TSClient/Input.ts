@@ -14,13 +14,18 @@ export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
+    protected readonly noEnumerable = false,
   ) {}
   public toTS(): string {
     const { field } = this
 
     const optionalStr = field.isRequired ? '' : '?'
     const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
-    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter)
+    const fieldType = stringifyInputTypes(
+      field.inputTypes,
+      this.prefixFilter,
+      this.noEnumerable,
+    )
 
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
@@ -29,6 +34,7 @@ export class InputField implements Generatable {
 function stringifyInputType(
   t: DMMF.SchemaArgInputType,
   prefixFilter: boolean,
+  noEnumerable = false, // used for group by, there we need an Array<> for "by"
 ): string {
   let type =
     typeof t.type === 'string'
@@ -43,10 +49,11 @@ function stringifyInputType(
   }
 
   if (t.isList) {
+    const keyword = noEnumerable ? 'Array' : 'Enumerable'
     if (Array.isArray(type)) {
-      return type.map((t) => `Enumerable<${t}>`).join(' | ')
+      return type.map((t) => `${keyword}<${t}>`).join(' | ')
     } else {
-      return `Enumerable<${type}>`
+      return `${keyword}<${type}>`
     }
   }
 
@@ -72,6 +79,7 @@ function stringifyInputType(
 function stringifyInputTypes(
   inputTypes: DMMF.SchemaArgInputType[],
   prefixFilter: boolean,
+  noEnumerable = false,
 ): string {
   const pairMap: Record<string, number> = Object.create(null)
 
@@ -107,7 +115,11 @@ function stringifyInputTypes(
 
   const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>(
     (acc, curr) => {
-      const currentStringified = stringifyInputType(curr, prefixFilter)
+      const currentStringified = stringifyInputType(
+        curr,
+        prefixFilter,
+        noEnumerable,
+      )
       if (acc.length > 0) {
         return `XOR<${currentStringified}, ${acc}>`
       }
@@ -118,7 +130,7 @@ function stringifyInputTypes(
   )
 
   const stringifiedNonInputTypes = nonInputObjectTypes
-    .map((type) => stringifyInputType(type, prefixFilter))
+    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable))
     .join(' | ')
 
   if (stringifiedNonInputTypes.length === 0) {

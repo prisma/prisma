@@ -2437,6 +2437,191 @@ const dmmf: DMMF.Document = {
       ]
     },
     "outputObjectTypes": {
+      "model": [
+        {
+          "name": "Post",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "author",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "User",
+                "namespace": "model",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "authorId",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Boolean",
+                "location": "scalar",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "User",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "posts",
+              "args": [
+                {
+                  "name": "where",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostWhereInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "orderBy",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "cursor",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostWhereUniqueInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "take",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "skip",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "distinct",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": true
+                    }
+                  ]
+                }
+              ],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Post",
+                "namespace": "model",
+                "location": "outputObjectTypes",
+                "isList": true
+              }
+            }
+          ]
+        }
+      ],
       "prisma": [
         {
           "name": "Query",
@@ -2711,6 +2896,94 @@ const dmmf: DMMF.Document = {
                 "namespace": "prisma",
                 "location": "outputObjectTypes",
                 "isList": false
+              }
+            },
+            {
+              "name": "groupByPost",
+              "args": [
+                {
+                  "name": "where",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostWhereInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "orderBy",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "PostOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "by",
+                  "isRequired": true,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "PostScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "PostScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "take",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "skip",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                }
+              ],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "PostGroupByOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": true
               }
             },
             {
@@ -3009,6 +3282,94 @@ const dmmf: DMMF.Document = {
                 "namespace": "prisma",
                 "location": "outputObjectTypes",
                 "isList": false
+              }
+            },
+            {
+              "name": "groupByUser",
+              "args": [
+                {
+                  "name": "where",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "UserWhereInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "orderBy",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "UserOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "UserOrderByInput",
+                      "namespace": "prisma",
+                      "location": "inputObjectTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "by",
+                  "isRequired": true,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "UserScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": true
+                    },
+                    {
+                      "type": "UserScalarFieldEnum",
+                      "namespace": "prisma",
+                      "location": "enumTypes",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "take",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                },
+                {
+                  "name": "skip",
+                  "isRequired": false,
+                  "isNullable": false,
+                  "inputTypes": [
+                    {
+                      "type": "Int",
+                      "location": "scalar",
+                      "isList": false
+                    }
+                  ]
+                }
+              ],
+              "isRequired": true,
+              "isNullable": false,
+              "outputType": {
+                "type": "UserGroupByOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": true
               }
             },
             {
@@ -3598,8 +3959,204 @@ const dmmf: DMMF.Document = {
           ]
         },
         {
+          "name": "PostGroupByOutputType",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "authorId",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "title",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "published",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Boolean",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "count",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "PostCountAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "avg",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "PostAvgAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "sum",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "PostSumAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "min",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "PostMinAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "max",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "PostMaxAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
           "name": "AggregateUser",
           "fields": [
+            {
+              "name": "count",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "UserCountAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "avg",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "UserAvgAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "sum",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "UserSumAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "min",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "UserMinAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            },
+            {
+              "name": "max",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "UserMaxAggregateOutputType",
+                "namespace": "prisma",
+                "location": "outputObjectTypes",
+                "isList": false
+              }
+            }
+          ]
+        },
+        {
+          "name": "UserGroupByOutputType",
+          "fields": [
+            {
+              "name": "id",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "Int",
+                "location": "scalar",
+                "isList": false
+              }
+            },
+            {
+              "name": "email",
+              "args": [],
+              "isRequired": false,
+              "isNullable": true,
+              "outputType": {
+                "type": "String",
+                "location": "scalar",
+                "isList": false
+              }
+            },
             {
               "name": "count",
               "args": [],
@@ -4014,191 +4571,6 @@ const dmmf: DMMF.Document = {
             }
           ]
         }
-      ],
-      "model": [
-        {
-          "name": "Post",
-          "fields": [
-            {
-              "name": "id",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "author",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "User",
-                "namespace": "model",
-                "location": "outputObjectTypes",
-                "isList": false
-              }
-            },
-            {
-              "name": "authorId",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "title",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "String",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "published",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Boolean",
-                "location": "scalar",
-                "isList": false
-              }
-            }
-          ]
-        },
-        {
-          "name": "User",
-          "fields": [
-            {
-              "name": "id",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "Int",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "email",
-              "args": [],
-              "isRequired": true,
-              "isNullable": false,
-              "outputType": {
-                "type": "String",
-                "location": "scalar",
-                "isList": false
-              }
-            },
-            {
-              "name": "posts",
-              "args": [
-                {
-                  "name": "where",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostWhereInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "orderBy",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostOrderByInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": true
-                    },
-                    {
-                      "type": "PostOrderByInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "cursor",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostWhereUniqueInput",
-                      "namespace": "prisma",
-                      "location": "inputObjectTypes",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "take",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "Int",
-                      "location": "scalar",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "skip",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "Int",
-                      "location": "scalar",
-                      "isList": false
-                    }
-                  ]
-                },
-                {
-                  "name": "distinct",
-                  "isRequired": false,
-                  "isNullable": false,
-                  "inputTypes": [
-                    {
-                      "type": "PostScalarFieldEnum",
-                      "namespace": "prisma",
-                      "location": "enumTypes",
-                      "isList": true
-                    }
-                  ]
-                }
-              ],
-              "isRequired": false,
-              "isNullable": true,
-              "outputType": {
-                "type": "Post",
-                "namespace": "model",
-                "location": "outputObjectTypes",
-                "isList": true
-              }
-            }
-          ]
-        }
       ]
     },
     "enumTypes": {
@@ -4250,7 +4622,8 @@ const dmmf: DMMF.Document = {
         "deleteMany": "deleteManyPost",
         "updateMany": "updateManyPost",
         "upsert": "upsertOnePost",
-        "aggregate": "aggregatePost"
+        "aggregate": "aggregatePost",
+        "groupBy": "groupByPost"
       },
       {
         "model": "User",
@@ -4264,7 +4637,8 @@ const dmmf: DMMF.Document = {
         "deleteMany": "deleteManyUser",
         "updateMany": "updateManyUser",
         "upsert": "upsertOneUser",
-        "aggregate": "aggregateUser"
+        "aggregate": "aggregateUser",
+        "groupBy": "groupByUser"
       }
     ],
     "otherOperations": {

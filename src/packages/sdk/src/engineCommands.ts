@@ -105,6 +105,14 @@ export async function getDMMF({
         )
     }
 
+    if (!enableExperimental?.includes('groupBy')) {
+      if (!enableExperimental) {
+        enableExperimental = []
+      }
+
+      enableExperimental.push('groupBy')
+    }
+
     const experimentalFlags =
       enableExperimental &&
       Array.isArray(enableExperimental) &&

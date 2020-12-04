@@ -41,6 +41,7 @@ function getMappings(
       updateMany: mapping.updateMany,
       upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
       aggregate: mapping.aggregate,
+      groupBy: mapping.groupBy,
     }))
 
   return {
