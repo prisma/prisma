@@ -228,7 +228,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/invalid-url.prisma
-      Datasource "my_db": PostgreSQL database "mydb" at "doesnotexist:5432"
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

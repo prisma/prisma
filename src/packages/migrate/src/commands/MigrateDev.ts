@@ -28,6 +28,7 @@ import {
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('migrate:dev')
 
@@ -118,12 +119,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    await printDatasource(schemaPath)
 
     console.info() // empty line
 
@@ -275,6 +271,7 @@ ${diagnoseResult.drift.error.message}`,
           throw new EnvNonInteractiveError()
         }
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 
@@ -382,6 +379,7 @@ ${diagnoseResult.drift.error.message}`,
         )
         console.info() // empty line
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 
@@ -451,12 +449,17 @@ ${diagnoseResult.drift.error.message}`,
     dbName,
     dbLocation,
   }): Promise<boolean> {
+    const mssqlMessage = `We need to reset the database. ${chalk.red(
+      'All data will be lost',
+    )}.\nDo you want to continue?`
+    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
+      'All data will be lost',
+    )}.\nDo you want to continue?`
+
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
-        'All data will be lost',
-      )}.\nDo you want to continue?`,
+      message: dbType ? message : mssqlMessage,
     })
 
     return confirmation.value

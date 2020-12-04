@@ -758,7 +758,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
 
 
@@ -784,7 +784,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
 
 
@@ -806,7 +806,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
 
 
@@ -873,13 +873,13 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
 
 
 
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
       The following unapplied migration(s) have been applied:
       - 20201231000000_first
@@ -904,7 +904,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate" at "localhost:5432"
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
 
 

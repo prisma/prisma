@@ -21,6 +21,7 @@ export async function getDbInfo(
   dbType: string
   dbName: string
   url: string
+  schema?: string
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
@@ -34,6 +35,7 @@ export async function getDbInfo(
     dbLocation,
     ...dbinfoFromCredentials,
     url: activeDatasource.url.value,
+    schema: credentials.schema,
   }
 }
 

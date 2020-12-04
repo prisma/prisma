@@ -10,13 +10,14 @@ import {
 import path from 'path'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
 import { PreviewFlagError } from '../utils/flagErrors'
 import {
   DbPushIgnoreWarningsWithForceError,
   NoSchemaFoundError,
 } from '../utils/errors'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -101,12 +102,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const dbInfo = await getDbInfo(schemaPath)
-    console.info(
-      chalk.dim(
-        `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" at "${dbInfo.dbLocation}"`,
-      ),
-    )
+    await printDatasource(schemaPath)
 
     const migrate = new Migrate(schemaPath)
 
