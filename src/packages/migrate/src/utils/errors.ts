@@ -35,18 +35,6 @@ ${link('https://pris.ly/d/migrate-baseline')}`,
   }
 }
 
-export class DbPushWithOldMigrateError extends Error {
-  constructor() {
-    super(`Using db push alongside migrate will interfere with migrations.
-    The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running "prisma migrate deploy".
-    Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
-      getCommandWithExecutor(
-        'prisma db push --preview-feature --ignore-migrations',
-      ),
-    )}`)
-  }
-}
-
 export class DbPushIgnoreWarningsWithForceError extends Error {
   constructor() {
     super(
