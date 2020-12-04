@@ -149,8 +149,9 @@ ${e.message}`)
       console.info(`No migration found in prisma/migrations\n`)
     }
 
+    let unappliedMigrations: string[] = []
     if (diagnoseResult.history?.diagnostic === 'databaseIsBehind') {
-      const unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
+      unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
       console.info(
         `Following migration${
           unappliedMigrations.length > 1 ? 's' : ''
@@ -166,6 +167,20 @@ To apply migrations in production run ${chalk.bold.greenBright(
           ),
         )}.`,
       )
+    } else if (diagnoseResult.history?.diagnostic === 'historiesDiverge') {
+      return `Your local migration history and the migrations table from your database are different:
+
+The last common migration is: ${diagnoseResult.history.lastCommonMigrationName}
+
+The migration${
+        diagnoseResult.history.unappliedMigrationNames.length > 1 ? 's' : ''
+      } have not yet been applied:
+${diagnoseResult.history.unappliedMigrationNames.join('\n')}
+
+The migration${
+        diagnoseResult.history.unpersistedMigrationNames.length > 1 ? 's' : ''
+      } from the database are not found locally in prisma/migrations:
+${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`
     }
 
     if (!diagnoseResult.hasMigrationsTable) {
@@ -241,8 +256,7 @@ Read more about how to resolve migration issues in a production database:
 https://pris.ly/d/migrate-resolve`
     } else if (
       diagnoseResult.drift?.diagnostic === 'driftDetected' &&
-      (diagnoseResult.history?.diagnostic === 'databaseIsBehind' ||
-        diagnoseResult.history?.diagnostic === 'historiesDiverge')
+      diagnoseResult.history?.diagnostic === 'databaseIsBehind'
     ) {
       //         - Display the rollback script as an account of the contents of the drift.
       //         - Inform the user about scenarios
@@ -274,7 +288,12 @@ You have 2 options
       )} to create a new migration matching the change.`
     } else {
       console.info() // empty line
-      return `Database schema is up to date!`
+      if (unappliedMigrations.length > 0) {
+        // state is not up to date
+        return ``
+      } else {
+        return `Database schema is up to date!`
+      }
     }
   }
 
