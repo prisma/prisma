@@ -26,7 +26,16 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-Resolve issues with database migrations (baseline, failed migration, hotfix) in staging/production
+Resolve issues with database migrations in deployment databases: 
+- recover from failed migrations
+- baseline databases when starting to use Prisma Migrate on existing databases
+- reconcile hotfixes done manually on databases with your migration history
+
+Run "prisma migrate status" to identify if you need to use resolve.
+
+Read more about resolving migration history issues: ${link(
+    'https://pris.ly/d/migrate-resolve',
+  )}
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `Prisma's migration functionality is currently in Preview (${link(
@@ -45,17 +54,17 @@ ${chalk.bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
-     --applied   Mark a migration as applied
-  --rolled-back   Mark a migration as rolled back
+     --applied   Record a specific migration as applied
+ --rolled-back   Record a specific migration as rolled back
 
 ${chalk.bold('Examples')}
 
-  Mark a migration as applied
+  Update migrations table, recording a specific migration as applied 
   ${chalk.dim(
     '$',
   )} prisma migrate resolve --applied 20201231000000_add_users_table --preview-feature
 
-  Mark a migration as rolled back
+  Update migrations table, recording a specific migration as rolled back
   ${chalk.dim(
     '$',
   )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --preview-feature

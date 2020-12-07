@@ -2,7 +2,9 @@ node_modules
 dist
 build
 runtime
-browser-runtime
+runtime-browser
+runtime-browser-dist
+
 download
 generator
 cli

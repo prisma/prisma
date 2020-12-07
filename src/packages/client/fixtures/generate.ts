@@ -10,9 +10,6 @@ async function main() {
       '--skip-transpile': Boolean,
       '--built-runtime': Boolean,
     },
-    {
-      argv: [path.join(__dirname, './blog'), '--skip-transpile'],
-    },
   )
 
   const projectDir = args._[0]

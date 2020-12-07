@@ -42,7 +42,7 @@ export class MigrateDev implements Command {
   private static help = format(`
 ${
   process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-}Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
+}Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `Prisma's migration functionality is currently in Preview (${link(
@@ -62,12 +62,13 @@ ${chalk.bold('Options')}
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
-    --create-only   Only create a migration without applying it
-  --skip-generate   Skip generating artifacts (e.g. Prisma Client)
+    --create-only   Create a new migration but do not apply it
+                    The migration will be empty if there are no changes in Prisma schema
+  --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
 
-  Create a new migration and apply it
+  Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
   ${chalk.dim('$')} prisma migrate dev --preview-feature
 
   Specify a schema

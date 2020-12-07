@@ -64,6 +64,7 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
+    "@prisma/fetch-engine": "2.12.1",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
@@ -119,7 +120,7 @@
     "ws": "7.4.1"
   },
   "scripts": {
-    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate && jest tests__/introspect && jest studio --maxConcurrency=1",
+    "test:commands": "./fixtures/test.sh && jest dotenv format doctor generate init introspect studio --maxConcurrency=1",
     "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
@@ -136,7 +137,7 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.13.0-27.dfc9594ba25725d1eb319314b9cb6a229aa43573"
+    "@prisma/engines": "2.13.0-29.105222cbd680701f59e805a5d1366464ce12ed85"
   },
   "lint-staged": {
     "*.ts": [

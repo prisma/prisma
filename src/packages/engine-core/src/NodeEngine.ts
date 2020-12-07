@@ -9,6 +9,7 @@ import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
 import pRetry from 'p-retry'
+import { URL } from 'url'
 import path from 'path'
 import { promisify } from 'util'
 import byline from './byline'
@@ -1201,9 +1202,10 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           )
           this.lastPanic = err
         } else {
+          const platform = this.platform ?? await this.getPlatform()
           err = new PrismaClientUnknownRequestError(
             getErrorMessageWithLink({
-              platform: this.platform,
+              platform,
               title: getMessage(this.lastErrorLog),
               version: this.clientVersion,
             }),

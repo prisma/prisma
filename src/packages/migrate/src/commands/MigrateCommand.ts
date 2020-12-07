@@ -17,9 +17,7 @@ export class MigrateCommand implements Command {
   }
 
   private static help = format(`
-${
-  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-}Migrate your database with confidence
+Update the database schema with migrations
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `Prisma's migration functionality is currently in Preview (${link(
@@ -36,15 +34,15 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Commands for development')}
 
-         dev   Create migrations from your Prisma schema, apply them to the database,
-               generate artifacts (Prisma Client)
-       reset   Reset your database and apply all migrations
+         dev   Create a migration from changes in Prisma schema, apply it to the database
+               trigger generators (e.g. Prisma Client)
+       reset   Reset your database and apply all migrations, all data will be lost
 
-${chalk.bold('Commands for staging/production')}
+${chalk.bold('Commands for production/staging')}
 
-      deploy   Apply migrations to update the database schema
+      deploy   Apply pending migrations to the database 
       status   Check the status of your database migrations
-     resolve   Resolve issues with database migrations (baseline, failed migration, hotfix)
+     resolve   Resolve issues with database migrations, i.e. baseline, failed migration, hotfix
 
 ${chalk.bold('Options')}
 
@@ -53,16 +51,16 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Examples')}
 
-  Automatically create a migration and apply it if there is a schema change
+  Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
   ${chalk.dim('$')} prisma migrate dev --preview-feature
 
-  Reset your database
+  Reset your database and apply all migrations
   ${chalk.dim('$')} prisma migrate reset --preview-feature
 
-  Deploy the migrations to your database
+  Apply pending migrations to the database in production/staging
   ${chalk.dim('$')} prisma migrate deploy --preview-feature
 
-  Check the status of your database migrations
+  Check the status of migrations in the production/staging database
   ${chalk.dim('$')} prisma migrate status --preview-feature
 
   Specify a schema
