@@ -37,7 +37,7 @@
     "lint-staged": "10.5.3",
     "prettier": "2.2.1",
     "ts-jest": "26.4.4",
-    "ts-node": "9.1.0",
+    "ts-node": "9.1.1",
     "typescript": "4.1.2"
   },
   "lint-staged": {
