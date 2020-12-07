@@ -39,7 +39,7 @@ async function main() {
       false,
     ),
     await run(
-      'esbuild src/runtime/index-browser.ts --outdir=runtime --bundle --target=chrome58,firefox57,safari11,edge16',
+      'esbuild src/runtime/index-browser.ts --format=cjs --outdir=runtime --bundle --target=chrome58,firefox57,safari11,edge16',
       false,
     ),
     run('rollup -c'),
