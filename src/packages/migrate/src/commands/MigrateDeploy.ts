@@ -29,7 +29,7 @@ export class MigrateDeploy implements Command {
   }
 
   private static help = format(`
-Apply migrations to update the database schema in staging/production
+Apply pending migrations to update the database schema in production/staging
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -49,7 +49,7 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Examples')}
 
-  Deploy your migrations
+  Deploy your pending migrations to your production/staging database
   ${chalk.dim('$')} prisma migrate deploy --early-access-feature
 
   Specify a schema
