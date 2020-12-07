@@ -24,7 +24,7 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-Resolve issues with database migrations (baseline, failed migration, hotfix) in staging/production
+Resolve issues with database migrations (baseline, failed migration, hotfix) in production/staging
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -41,17 +41,17 @@ ${chalk.bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
-     --applied   Mark a migration as applied
-  --rolled-back   Mark a migration as rolled back
+     --applied   Record a specific migration as applied
+ --rolled-back   Record a specific migration as rolled back
 
 ${chalk.bold('Examples')}
 
-  Mark a migration as applied
+  Update migrations table, recording a specific migration as applied 
   ${chalk.dim(
     '$',
   )} prisma migrate resolve --applied 20201231000000_add_users_table --early-access-feature
 
-  Mark a migration as rolled back
+  Update migrations table, recording a specific migration as rolled back
   ${chalk.dim(
     '$',
   )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --early-access-feature
