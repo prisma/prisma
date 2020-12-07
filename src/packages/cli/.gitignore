@@ -26,3 +26,5 @@ test
 write-test
 prisma-cli*.tgz
 pnpm-lock.yaml
+
+/src/__tests__/version-test-engines
