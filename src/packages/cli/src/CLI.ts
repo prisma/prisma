@@ -32,6 +32,7 @@ export class CLI implements Command {
       '-v': '--version',
       '--json': Boolean, // for -v
       '--experimental': Boolean,
+      '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
@@ -120,7 +121,7 @@ export class CLI implements Command {
             generate   Generate artifacts (e.g. Prisma Client)
               studio   Open Prisma Studio
               format   Format your schema
-             migrate   Migrate your database ${chalk.dim('(Early Access)')}
+             migrate   Migrate your database ${chalk.dim('(Preview)')}
                   db   Manage your database schema and lifecycle ${chalk.dim(
                     '(Preview)',
                   )}
@@ -128,7 +129,6 @@ export class CLI implements Command {
     ${chalk.bold('Flags')}
 
          --preview-feature   Run Preview Prisma commands
-    --early-access-feature   Run Early Access Prisma commands
 
     ${chalk.bold('Examples')}
 
@@ -144,8 +144,8 @@ export class CLI implements Command {
       Browse your data
       ${chalk.dim('$')} prisma studio
 
-      Create and apply a migration for your database
-      ${chalk.dim('$')} prisma migrate dev --early-access-feature
+      Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
+      ${chalk.dim('$')} prisma migrate dev --preview-feature
   
       Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview-feature
