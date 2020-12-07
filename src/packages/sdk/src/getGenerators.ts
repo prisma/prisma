@@ -35,6 +35,10 @@ import { printConfigWarnings } from './utils/printConfigWarnings'
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
+type BinaryPathsOverride = {
+  [P in EngineType]?: string
+}
+
 export type GetGeneratorOptions = {
   schemaPath: string
   providerAliases?: ProviderAliases
@@ -44,6 +48,7 @@ export type GetGeneratorOptions = {
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
+  binaryPathsOverride?: BinaryPathsOverride
 }
 
 /**
@@ -62,6 +67,7 @@ export async function getGenerators({
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
   skipDownload,
+  binaryPathsOverride,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(
@@ -74,10 +80,10 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  let prismaPath: string | undefined = undefined
+  let prismaPath: string | undefined = binaryPathsOverride?.queryEngine
 
   // overwrite query engine if the version is provided
-  if (version) {
+  if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
     // for pkg we need to make an exception
     if (!potentialPath.startsWith('/snapshot/')) {
@@ -239,70 +245,14 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       }
     }
 
-    // eval so that ncc doesn't interfere
-
-    const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(
-      null,
-    )
-
-    // make sure, that at least the current platform is being fetched
-    for (const currentVersion in neededVersions) {
-      // ensure binaryTargets are set correctly
-      const neededVersion = neededVersions[currentVersion]
-      if (neededVersion.binaryTargets.length === 0) {
-        neededVersion.binaryTargets.push(platform)
-        if (neededVersion.binaryTargets.length === 0) {
-          neededVersion.binaryTargets = [platform]
-        }
-      }
-
-      if (
-        process.env.NETLIFY &&
-        !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')
-      ) {
-        neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
-      }
-
-      // download
-      let binaryTargetBaseDir = eval(`require('path').join(__dirname, '..')`)
-
-      if (version !== currentVersion) {
-        binaryTargetBaseDir = path.join(
-          binaryTargetBaseDir,
-          `./engines/${currentVersion}/`,
-        )
-        await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
-      }
-
-      const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce(
-        (acc, curr) => {
-          acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
-          return acc
-        },
-        Object.create(null),
-      )
-
-      const downloadParams: DownloadOptions = {
-        binaries: binariesConfig,
-        binaryTargets: neededVersion.binaryTargets,
-        showProgress:
-          typeof printDownloadProgress === 'boolean'
-            ? printDownloadProgress
-            : true,
-        version:
-          currentVersion && currentVersion !== 'latest'
-            ? currentVersion
-            : enginesVersion,
-        skipDownload,
-      }
-
-      const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths = mapKeys(
-        binaryPathsWithEngineType,
-        binaryTypeToEngineType,
-      )
-      binaryPathsByVersion[currentVersion] = binaryPaths
-    }
+    const binaryPathsByVersion = await getBinaryPathsByVersion({
+      neededVersions,
+      platform,
+      version,
+      printDownloadProgress,
+      skipDownload,
+      binaryPathsOverride,
+    })
 
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
@@ -346,6 +296,108 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     runningGenerators.forEach((g) => g.stop())
     throw e
   }
+}
+
+type GetBinaryPathsByVersionInput = {
+  neededVersions: Record<string, any>
+  platform: string
+  version?: string
+  printDownloadProgress?: boolean
+  skipDownload?: boolean
+  binaryPathsOverride?: BinaryPathsOverride
+}
+
+async function getBinaryPathsByVersion({
+  neededVersions,
+  platform,
+  version,
+  printDownloadProgress,
+  skipDownload,
+  binaryPathsOverride,
+}: GetBinaryPathsByVersionInput): Promise<Record<string, BinaryPaths>> {
+  const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
+
+  // make sure, that at least the current platform is being fetched
+  for (const currentVersion in neededVersions) {
+    // ensure binaryTargets are set correctly
+    const neededVersion = neededVersions[currentVersion]
+    if (neededVersion.binaryTargets.length === 0) {
+      neededVersion.binaryTargets.push(platform)
+      if (neededVersion.binaryTargets.length === 0) {
+        neededVersion.binaryTargets = [platform]
+      }
+    }
+
+    if (
+      process.env.NETLIFY &&
+      !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')
+    ) {
+      neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
+    }
+
+    // download
+    let binaryTargetBaseDir = eval(`require('path').join(__dirname, '..')`)
+
+    if (version !== currentVersion) {
+      binaryTargetBaseDir = path.join(
+        binaryTargetBaseDir,
+        `./engines/${currentVersion}/`,
+      )
+      await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
+    }
+
+    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce(
+      (acc, curr) => {
+        // only download the binary, of not already covered by the `binaryPathsOverride`
+        if (!binaryPathsOverride?.[curr]) {
+          acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
+        }
+        return acc
+      },
+      Object.create(null),
+    )
+
+    binaryPathsByVersion[currentVersion] = {}
+
+    if (Object.values(binariesConfig).length > 0) {
+      const downloadParams: DownloadOptions = {
+        binaries: binariesConfig,
+        binaryTargets: neededVersion.binaryTargets,
+        showProgress:
+          typeof printDownloadProgress === 'boolean'
+            ? printDownloadProgress
+            : true,
+        version:
+          currentVersion && currentVersion !== 'latest'
+            ? currentVersion
+            : enginesVersion,
+        skipDownload,
+      }
+
+      const binaryPathsWithEngineType = await download(downloadParams)
+      const binaryPaths = mapKeys(
+        binaryPathsWithEngineType,
+        binaryTypeToEngineType,
+      )
+      binaryPathsByVersion[currentVersion] = binaryPaths
+    }
+
+    if (binaryPathsOverride) {
+      const overrideBinaries = Object.keys(binaryPathsOverride)
+      const binariesCoveredByOverride = neededVersion.engines.filter((e) =>
+        overrideBinaries.includes(e),
+      )
+      if (binariesCoveredByOverride.length > 0) {
+        for (const bin of binariesCoveredByOverride) {
+          binaryPathsByVersion[currentVersion][bin] = {
+            [platform]: binaryPathsOverride[bin],
+          }
+        }
+      }
+    }
+  }
+
+  return binaryPathsByVersion
 }
 
 /**
