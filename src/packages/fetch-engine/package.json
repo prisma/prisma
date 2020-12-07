@@ -16,7 +16,7 @@
     "@typescript-eslint/parser": "4.9.0",
     "del": "6.0.0",
     "eslint": "7.15.0",
-    "eslint-config-prettier": "6.15.0",
+    "eslint-config-prettier": "7.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
     "eslint-plugin-prettier": "3.2.0",

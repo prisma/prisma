@@ -5,7 +5,7 @@ devDependencies:
   arg: 5.0.0
   chalk: 4.1.0
   eslint: 7.15.0
-  eslint-config-prettier: 6.15.0_eslint@7.15.0
+  eslint-config-prettier: 7.0.0_eslint@7.15.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.15.0
   eslint-plugin-jest: 24.1.3_eslint@7.15.0+typescript@4.1.2
   eslint-plugin-prettier: 3.2.0_eslint@7.15.0
@@ -532,16 +532,15 @@ packages:
       node: '>=0.8.0'
     resolution:
       integrity: sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
-  /eslint-config-prettier/6.15.0_eslint@7.15.0:
+  /eslint-config-prettier/7.0.0_eslint@7.15.0:
     dependencies:
       eslint: 7.15.0
-      get-stdin: 6.0.0
     dev: true
     hasBin: true
     peerDependencies:
-      eslint: '>=3.14.1'
+      eslint: '>=7.0.0'
     resolution:
-      integrity: sha512-a1+kOYLR8wMGustcgAjdydMsQ2A/2ipRPwRKUmfYaSxc9ZPcrku080Ctl6zrZzZNs/U82MjSv+qKREkoq3bJaw==
+      integrity: sha512-8Y8lGLVPPZdaNA7JXqnvETVC7IiVRgAP6afQu9gOQRn90YY3otMNh+x7Vr2vMePQntF+5erdSUBqSzCmU/AxaQ==
   /eslint-plugin-eslint-comments/3.2.0_eslint@7.15.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -808,12 +807,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
-  /get-stdin/6.0.0:
-    dev: true
-    engines:
-      node: '>=4'
-    resolution:
-      integrity: sha512-jp4tHawyV7+fkkSKyvjuLZswblUtz+SQKzSWnBbii16BuZksJlU1wuBYXY75r+duh/llF1ur6oNwi+2ZzjKZ7g==
   /get-stream/5.2.0:
     dependencies:
       pump: 3.0.0
@@ -1526,7 +1519,7 @@ specifiers:
   arg: 5.0.0
   chalk: 4.1.0
   eslint: 7.15.0
-  eslint-config-prettier: 6.15.0
+  eslint-config-prettier: 7.0.0
   eslint-plugin-eslint-comments: 3.2.0
   eslint-plugin-jest: 24.1.3
   eslint-plugin-prettier: 3.2.0
