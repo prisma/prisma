@@ -2,6 +2,9 @@ import path from 'path'
 import { getGenerators } from '../../getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
+import { resolveBinary } from '../../resolveBinary'
+import { getEnginesPath } from '@prisma/engines'
+import { getPlatform } from '@prisma/get-platform'
 
 jest.setTimeout(20000)
 
@@ -89,6 +92,37 @@ describe('getGenerators', () => {
         "provider": "predefined-generator",
       }
     `)
+
+    generators.forEach((g) => g.stop())
+  })
+
+  test('inject engines', async () => {
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
+    }
+
+    const migrationEngine = await resolveBinary('migration-engine')
+    const queryEngine = await resolveBinary('query-engine')
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
+      providerAliases: aliases,
+      binaryPathsOverride: {
+        queryEngine,
+      },
+    })
+
+    const options = generators.map((g) => g.options?.binaryPaths)
+
+    const platform = await getPlatform()
+
+    // we override queryEngine, so its paths should be equal to the one of the generator
+    expect(options[0]?.queryEngine?.[platform]).toBe(queryEngine)
+    // we did not override the migrationEngine, so their paths should not be equal
+    expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
 
     generators.forEach((g) => g.stop())
   })
