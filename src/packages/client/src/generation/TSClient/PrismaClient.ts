@@ -235,12 +235,13 @@ export type PrismaAction =
   | 'executeRaw'
   | 'queryRaw'
   | 'aggregate'
+  | 'count'
 
 /**
  * These options are being passed in to the middleware as "params"
  */
 export type MiddlewareParams = {
-  model?: string
+  model?: ModelName
   action: PrismaAction
   args: any
   dataPath: string[]
