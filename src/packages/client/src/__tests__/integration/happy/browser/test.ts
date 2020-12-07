@@ -5,5 +5,5 @@ test('browser-build', async () => {
 
   const { Decimal } = require('./node_modules/@prisma/client/index-browser.js')
   const decimal = new Decimal(0.11)
-  expect(JSON.stringify(decimal)).toEqual("0.11")
+  expect(decimal.toString()).toEqual('0.11')
 })
