@@ -32,7 +32,7 @@ ${chalk.bold('Usage')}
 ${chalk.bold('Commands for development')}
 
          dev   Create a migration from changes in Prisma schema, apply it to the database
-               generate artifacts (e.g. Prisma Client)
+               trigger generators (e.g. Prisma Client)
        reset   Reset your database and apply all migrations, all data will be lost
 
 ${chalk.bold('Commands for production/staging')}
@@ -48,7 +48,7 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Examples')}
 
-  Create a migration from changes in Prisma schema, apply it to the database, generate artifacts (e.g. Prisma Client)
+  Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
   ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Reset your database and apply all migrations
