@@ -6,6 +6,7 @@ import {
   getDMMF,
   getSchemaPath,
   HelpError,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -65,7 +66,7 @@ export class Format implements Command {
       )
     }
 
-    console.log(
+    logger.log(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),

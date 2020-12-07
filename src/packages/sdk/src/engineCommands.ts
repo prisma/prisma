@@ -6,6 +6,7 @@ import fs from 'fs'
 import { promisify } from 'util'
 import Debug from '@prisma/debug'
 import { resolveBinary } from './resolveBinary'
+import { logger } from '.'
 const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
@@ -85,7 +86,7 @@ export async function getDMMF({
           const removeMessage = removedFeatureFlagMap[f]
           if (removeMessage) {
             if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-              console.log(removeMessage)
+              logger.log(removeMessage)
             }
             return false
           }

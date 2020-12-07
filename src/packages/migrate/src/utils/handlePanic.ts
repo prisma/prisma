@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { RustPanic, sendPanic, link, isCi } from '@prisma/sdk'
+import { RustPanic, sendPanic, link, isCi, logger } from '@prisma/sdk'
 import prompt from 'prompts'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 
@@ -21,7 +21,7 @@ async function panicDialog(error, cliVersion, binaryVersion) {
     .slice(0, Math.max(20, process.stdout.rows))
     .join('\n')
 
-  console.log(`${chalk.red('Oops, an unexpected error occured!')}
+  logger.log(`${chalk.red('Oops, an unexpected error occured!')}
 ${chalk.red(errorMessage)}
 
 ${chalk.bold('Please help us improve Prisma by submitting an error report.')}
@@ -57,19 +57,19 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
   if (response.value) {
     let reportId: number | void
     try {
-      console.log('Submitting...')
+      logger.log('Submitting...')
       reportId = await sendPanic(error, cliVersion, binaryVersion)
     } catch (error) {
-      console.log(reportFailedMessage)
+      logger.log(reportFailedMessage)
     }
 
     if (reportId) {
-      console.log(
+      logger.log(
         `\n${chalk.bold(
           `We successfully received the error report id: ${reportId}`,
         )}`,
       )
-      console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
+      logger.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
     }
   }
   await wouldYouLikeToCreateANewIssue({

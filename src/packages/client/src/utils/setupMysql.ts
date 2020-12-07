@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { createDatabase, uriToCredentials } from '@prisma/sdk'
+import { createDatabase, logger, uriToCredentials } from '@prisma/sdk'
 import mariadb from 'mariadb'
 
 export type SetupParams = {
@@ -13,7 +13,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
   const { dirname } = options
   const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
 
-  await createDatabase(connectionString).catch((e) => console.error(e))
+  await createDatabase(connectionString).catch((e) => logger.error(e))
 
   const credentials = uriToCredentials(connectionString)
   const db = await mariadb.createConnection({

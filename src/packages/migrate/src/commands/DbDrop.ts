@@ -5,6 +5,7 @@ import {
   getSchemaPath,
   getSchemaDir,
   HelpError,
+  logger,
   isError,
   isCi,
   dropDatabase,
@@ -137,7 +138,7 @@ ${chalk.bold('Examples')}
       try {
         json = JSON.parse(e.stdout)
       } catch (e) {
-        console.error(
+        logger.error(
           `Could not parse database drop engine response: ${e.stdout.slice(
             0,
             200,

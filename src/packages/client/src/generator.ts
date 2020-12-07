@@ -4,6 +4,7 @@ import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
 import { enginesVersion } from '@prisma/engines-version'
 import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
+import { logger } from '@prisma/sdk'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
@@ -23,8 +24,8 @@ generatorHandler({
   },
   async onGenerate(options) {
     if (debugEnabled) {
-      console.log('__dirname', __dirname)
-      console.log(eval(`__dirname`)) // tslint:disable-line
+      logger.log('__dirname', __dirname)
+      logger.log(eval(`__dirname`)) // tslint:disable-line
     }
 
     return generateClient({

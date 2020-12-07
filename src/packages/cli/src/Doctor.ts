@@ -10,6 +10,7 @@ import {
   format,
   HelpError,
   canConnectToDatabase,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -76,7 +77,7 @@ export class Doctor implements Command {
       )
     }
 
-    console.log(
+    logger.log(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
@@ -86,7 +87,7 @@ export class Doctor implements Command {
     const localDmmf = await getDMMF({ datamodel: schema })
     const config = await getConfig({ datamodel: schema })
 
-    console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
+    logger.info(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
     const connectionString = config.datasources[0].url
     const canConnect = await canConnectToDatabase(

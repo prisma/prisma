@@ -7,6 +7,7 @@ import {
   link,
   drawBox,
   getCommandWithExecutor,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -74,7 +75,7 @@ export class Introspect implements Command {
 
     const log = (...messages): void => {
       if (!args['--print']) {
-        console.log(...messages)
+        logger.log(...messages)
       }
     }
 
@@ -106,7 +107,7 @@ export class Introspect implements Command {
         )
       }
 
-      console.error(`\n${renamedMessages.join('\n')}\n`)
+      logger.error(`\n${renamedMessages.join('\n')}\n`)
       process.exit(1)
     }
 
@@ -114,7 +115,7 @@ export class Introspect implements Command {
     let schemaPath = await getSchemaPath(args['--schema'])
 
     if (schemaPath) {
-      console.log(
+      logger.log(
         chalk.dim(
           `Prisma schema loaded from ${path.relative(
             process.cwd(),
@@ -206,7 +207,7 @@ Then you can run ${chalk.green(
         }
       } else if (e.code === 'P1012') {
         // Schema Parsing Error
-        console.log() // empty line
+        logger.log() // empty line
         throw new Error(`${chalk.red(
           `${e.code} Introspection failed as your current Prisma schema file is invalid`,
         )}\n
@@ -327,14 +328,14 @@ Learn more about the upgrade process in the docs:\n${link(
       : ''
 
     if (args['--print']) {
-      console.log(introspectionSchema)
+      logger.log(introspectionSchema)
       introspectionSchemaVersion &&
-        console.log(
+        logger.log(
           `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
           prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
         )
       if (introspectionWarningsMessage.trim().length > 0) {
-        console.error(introspectionWarningsMessage)
+        logger.error(introspectionWarningsMessage)
       }
     } else {
       schemaPath = schemaPath || 'schema.prisma'

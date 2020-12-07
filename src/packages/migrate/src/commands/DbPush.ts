@@ -6,6 +6,7 @@ import {
   isError,
   getSchemaPath,
   link,
+  logger,
 } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
@@ -127,21 +128,21 @@ ${chalk.bold('Examples')}
       for (const item of migration.unexecutable) {
         messages.push(`${chalk(`  • ${item}`)}`)
       }
-      console.log() // empty line
+      logger.log() // empty line
       throw new Error(`${messages.join('\n')}\n`)
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
-      console.log(
+      logger.log(
         chalk.bold.yellow(
           `\n⚠️  There might be data loss when applying the changes:\n`,
         ),
       )
 
       for (const warning of migration.warnings) {
-        console.log(chalk(`  • ${warning}`))
+        logger.log(chalk(`  • ${warning}`))
       }
-      console.log() // empty line
+      logger.log() // empty line
 
       if (!args['--force']) {
         throw new DbPushIgnoreWarningsWithForceError()

@@ -42,7 +42,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
 import { clientVersion } from './utils/clientVersion'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { tryLoadEnvs } from '@prisma/sdk'
+import { logger, tryLoadEnvs } from '@prisma/sdk'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
@@ -997,11 +997,7 @@ new PrismaClient({
             modelName,
           }) => {
             if (actionName === 'findOne') {
-              console.warn(
-                `${chalk.yellow(
-                  'warn(prisma) ',
-                )} findOne is deprecated. Please use findUnique instead.`,
-              )
+              logger.warn(`findOne is deprecated. Please use findUnique instead.`)
             }
             dataPath = dataPath ?? []
 

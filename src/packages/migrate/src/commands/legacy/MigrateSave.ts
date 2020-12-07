@@ -8,6 +8,7 @@ import {
   getSchemaPath,
   HelpError,
   isError,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -148,20 +149,20 @@ export class MigrateSave implements Command {
       for (const item of migration.unexecutableMigrations) {
         messages.push(`${chalk(`  • ${item.description}`)}`)
       }
-      console.log() // empty line
+      logger.log() // empty line
       throw new Error(`${messages.join('\n')}\n`)
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
-      console.log(
+      logger.log(
         chalk.bold(
           `\n\n⚠️  There might be data loss when applying the migration:\n`,
         ),
       )
       for (const warning of migration.warnings) {
-        console.log(chalk(`  • ${warning.description}`))
+        logger.log(chalk(`  • ${warning.description}`))
       }
-      console.log() // empty line
+      logger.log() // empty line
     }
 
     if (preview) {

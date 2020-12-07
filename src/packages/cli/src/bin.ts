@@ -13,7 +13,7 @@ import {
   getEnvPaths,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-
+import { logger } from '@prisma/sdk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
@@ -39,7 +39,7 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 }
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
-  console.log(
+  logger.log(
     chalk.yellow('deprecated') +
       `  The ${chalk.redBright(
         'prisma2',
@@ -73,7 +73,7 @@ if (process.argv.length > 2) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
+    envData && envData.message && logger.log(envData.message)
   } catch (e) {
     handleIndividualError(e)
   }
@@ -194,13 +194,13 @@ async function main(): Promise<number> {
   const result = await cli.parse(process.argv.slice(2))
 
   if (result instanceof HelpError) {
-    console.error(result.message)
+    logger.error(result.message)
     return 1
   } else if (isError(result)) {
-    console.error(result)
+    logger.error(result)
     return 1
   }
-  console.log(result)
+  logger.log(result)
 
   try {
     // SHA256 identifier for the project based on the Prisma schema path
@@ -295,9 +295,9 @@ function handleIndividualError(error): void {
     handlePanic(error, packageJson.version, enginesVersion)
       .catch((e) => {
         if (debugLib.enabled('prisma')) {
-          console.error(chalk.redBright.bold('Error: ') + e.stack)
+          logger.error(e.stack)
         } else {
-          console.error(chalk.redBright.bold('Error: ') + e.message)
+          logger.error(e.message)
         }
       })
       .finally(() => {
@@ -305,9 +305,9 @@ function handleIndividualError(error): void {
       })
   } else {
     if (debugLib.enabled('prisma')) {
-      console.error(chalk.redBright.bold('Error: ') + error.stack)
+      logger.error(error.stack)
     } else {
-      console.error(chalk.redBright.bold('Error: ') + error.message)
+      logger.error(error.message)
     }
     process.exit(1)
   }

@@ -8,7 +8,7 @@ const debugStderr = Debug('MigrateEngine:stderr')
 const debugStdin = Debug('MigrateEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
-import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
+import { RustPanic, ErrorArea, resolveBinary, logger } from '@prisma/sdk'
 
 export interface MigrateEngineOptions {
   projectDir: string
@@ -189,7 +189,7 @@ export class MigrateEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(
+      logger.error(
         `Could not parse migration engine response: ${response.slice(0, 200)}`,
       )
     }
@@ -199,13 +199,13 @@ export class MigrateEngine {
         if (result.is_panic) {
           throw new Error(`Response ${JSON.stringify(result.message)}`)
         } else if (result.message) {
-          console.error(`Response ${JSON.stringify(result.message)}`)
+          logger.error(`Response ${JSON.stringify(result.message)}`)
         } else {
-          console.error(`Response ${JSON.stringify(result)}`)
+          logger.error(`Response ${JSON.stringify(result)}`)
         }
       }
       if (!this.listeners[result.id]) {
-        console.error(`Got result for unknown id ${result.id}`)
+        logger.error(`Got result for unknown id ${result.id}`)
       }
       if (this.listeners[result.id]) {
         this.listeners[result.id](result)
@@ -253,7 +253,7 @@ export class MigrateEngine {
         })
 
         this.child.on('error', (err) => {
-          console.error('[migration-engine] error: %s', err)
+          logger.error('[migration-engine] error: %s', err)
           reject(err)
           this.rejectAll(err)
         })

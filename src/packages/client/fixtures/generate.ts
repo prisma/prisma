@@ -3,6 +3,7 @@ import { generateInFolder } from '../src/utils/generateInFolder'
 import arg from 'arg'
 import chalk from 'chalk'
 import path from 'path'
+import { logger } from '@prisma/sdk'
 
 async function main() {
   const args = arg(
@@ -42,7 +43,7 @@ async function main() {
     useBuiltRuntime: args['--built-runtime'],
   })
 
-  console.log(
+  logger.log(
     `Generated Prisma Client ${chalk.underline(
       useLocalRuntime ? 'with' : 'without',
     )} local runtime in ${time.toFixed(3)}ms`,

@@ -2,6 +2,8 @@
 // and the last invocation doesn't get lost (tail behavior of debounce)
 // mostly designed for watch mode, where it's fine if something fails, we just try catch it
 
+import { logger } from "@prisma/sdk"
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function simpleDebounce<T extends Function>(fn: T): T {
   let executing = false
@@ -13,9 +15,9 @@ export function simpleDebounce<T extends Function>(fn: T): T {
       return null as any
     }
     executing = true
-    await fn(...args).catch((e) => console.error(e))
+    await fn(...args).catch((e) => logger.error(e))
     if (pendingExecution) {
-      await fn(...args).catch((e) => console.error(e))
+      await fn(...args).catch((e) => logger.error(e))
       pendingExecution = null
     }
     executing = false

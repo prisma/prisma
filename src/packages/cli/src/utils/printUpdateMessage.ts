@@ -1,4 +1,4 @@
-import { drawBox, isCurrentBinInstalledGlobally } from '@prisma/sdk'
+import { drawBox, logger, isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Check } from 'checkpoint-client'
 
@@ -8,7 +8,7 @@ export function printUpdateMessage(checkResult: {
   status: 'ok'
   data: Check.Response
 }): void {
-  console.error(
+  logger.log(
     drawBox({
       height: 4,
       width: 59,

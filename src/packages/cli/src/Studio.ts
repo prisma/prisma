@@ -7,6 +7,7 @@ import {
   getSchemaPath,
   HelpError,
   isError,
+  logger,
   ProviderAliases,
 } from '@prisma/sdk'
 import StudioServer from '@prisma/studio-server'
@@ -85,11 +86,7 @@ export class Studio implements Command {
     }
 
     if (args['--experimental']) {
-      console.warn(
-        `${chalk.yellow(
-          'warn',
-        )} --experimental is no longer required for this command as Studio is now Generally Available.`,
-      )
+      logger.warn(`--experimental is no longer required for this command as Studio is now Generally Available.`)
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -106,7 +103,7 @@ export class Studio implements Command {
       )
     }
 
-    console.log(
+    logger.log(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),

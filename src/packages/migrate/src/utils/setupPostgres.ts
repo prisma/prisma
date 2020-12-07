@@ -1,4 +1,4 @@
-import { createDatabase, uriToCredentials, credentialsToUri } from '@prisma/sdk'
+import { createDatabase, uriToCredentials, credentialsToUri, logger } from '@prisma/sdk'
 import { Client } from 'pg'
 
 export type SetupParams = {
@@ -11,7 +11,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   // const { dirname } = options
   // const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
 
-  await createDatabase(connectionString).catch((e) => console.error(e))
+  await createDatabase(connectionString).catch((e) => logger.error(e))
 
   const db = new Client({
     connectionString: connectionString,

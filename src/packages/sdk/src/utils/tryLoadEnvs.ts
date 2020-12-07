@@ -3,6 +3,7 @@ import debugLib from 'debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
+import { logger } from '..'
 import { dotenvExpand } from '../dotenvExpand'
 const debug = debugLib('tryLoadEnv')
 
@@ -46,7 +47,7 @@ export function tryLoadEnvs(
 
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
-    return console.error(
+    return logger.error(
       chalk.redBright.bold('Schema Env Error: ') +
         schemaEnvInfo.dotenvResult.error,
     )
@@ -115,7 +116,7 @@ Env vars from ${chalk.underline(
           relativeEnvPath,
         )} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
       `
-        console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
+        logger.warn(message)
       }
     }
   }

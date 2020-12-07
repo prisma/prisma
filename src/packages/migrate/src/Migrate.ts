@@ -9,6 +9,7 @@ import {
   maskSchema,
   uriToCredentials,
   getConfig,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { spawn } from 'child_process'
@@ -176,7 +177,7 @@ export class Migrate {
               generator.manifest?.version !== version &&
               generator.options?.generator.provider === 'prisma-client-js'
             ) {
-              console.error(
+              logger.error(
                 `${chalk.bold(
                   `@prisma/client@${generator.manifest?.version}`,
                 )} is not compatible with ${chalk.bold(
@@ -479,21 +480,21 @@ export class Migrate {
     // TODO better printing of params
     const nameStr = name ? ` --name ${chalk.bold(name)}` : ''
     const previewStr = preview ? ` --preview` : ''
-    console.log(`📼  migrate save${nameStr}${previewStr}`)
+    logger.log(`📼  migrate save${nameStr}${previewStr}`)
     if (lastMigration) {
       const wording = preview
         ? `Potential datamodel changes:`
         : 'Local datamodel Changes:'
-      console.log(chalk.bold(`\n${wording}\n`))
+      logger.log(chalk.bold(`\n${wording}\n`))
     } else {
-      console.log(brightGreen.bold('\nNew datamodel:\n'))
+      logger.log(brightGreen.bold('\nNew datamodel:\n'))
     }
     if (lastMigration) {
-      console.log(
+      logger.log(
         printDatamodelDiff(lastMigration.datamodel, maskSchema(datamodel)),
       )
     } else {
-      console.log(highlightDatamodel(maskSchema(datamodel)))
+      logger.log(highlightDatamodel(maskSchema(datamodel)))
     }
 
     lockFile.localMigrations.push(migrationId)
@@ -578,7 +579,7 @@ export class Migrate {
 
     for (let i = 0; i < n; i++) {
       const lastApplied = localMigrations[lastAppliedIndex]
-      console.log(`Rolling back migration ${blue(lastApplied.id)}`)
+      logger.log(`Rolling back migration ${blue(lastApplied.id)}`)
 
       const result = await this.engine.unapplyMigration({
         sourceConfig: datamodel,
@@ -623,7 +624,7 @@ export class Migrate {
 
     if (!short) {
       const previewStr = preview ? ` --preview` : ''
-      console.log(
+      logger.log(
         `${
           process.platform === 'win32' ? '' : '🏋️‍  '
         }migrate up${previewStr}\n`,
@@ -639,21 +640,21 @@ export class Migrate {
 
       if (lastUnappliedMigration.datamodel.length < 10000) {
         if (lastAppliedMigration) {
-          console.log(chalk.bold('Changes to be applied:') + '\n')
-          console.log(
+          logger.log(chalk.bold('Changes to be applied:') + '\n')
+          logger.log(
             printDatamodelDiff(
               lastAppliedMigration.datamodel,
               lastUnappliedMigration.datamodel,
             ),
           )
         } else {
-          console.log(
+          logger.log(
             brightGreen.bold('Datamodel that will initialize the db:\n'),
           )
-          console.log(highlightDatamodel(lastUnappliedMigration.datamodel))
+          logger.log(highlightDatamodel(lastUnappliedMigration.datamodel))
         }
       }
-      console.log(`\nChecking the datasource for potential data loss...`)
+      logger.log(`\nChecking the datasource for potential data loss...`)
     }
 
     const firstMigrationToApplyIndex = localMigrations.indexOf(
@@ -674,11 +675,11 @@ export class Migrate {
           await exit()
         }
       }
-      console.log(chalk.bold(`\n\n⚠️  There will be data loss:\n`))
+      logger.log(chalk.bold(`\n\n⚠️  There will be data loss:\n`))
       for (const warning of warnings) {
-        console.log(`  • ${warning.description}`)
+        logger.log(`  • ${warning.description}`)
       }
-      console.log() // empty line before prompt
+      logger.log() // empty line before prompt
       if (!autoApprove && !onWarnings) {
         const response = await prompt({
           type: 'confirm',
@@ -690,7 +691,7 @@ export class Migrate {
           await exit()
         }
       } else {
-        console.log(
+        logger.log(
           `As ${chalk.bold(
             '--auto-approve',
           )} is provided, the destructive changes are accepted.\n`,
@@ -767,10 +768,10 @@ export class Migrate {
           },
         })
         child.on('error', (e) => {
-          console.error(e)
+          logger.error(e)
         })
         child.stderr.on('data', (d) => {
-          console.log(`stderr ${d.toString()}`)
+          logger.log(`stderr ${d.toString()}`)
         })
         progressRenderer.showLogs(path.basename(after), child.stdout)
         await new Promise<void>((r) => {
@@ -786,9 +787,9 @@ export class Migrate {
     progressRenderer.done()
 
     if (verbose) {
-      console.log(chalk.bold(`\nSQL Commands:\n`))
-      console.log(highlightMigrationsSQL(migrationsWithDbSteps))
-      console.log('\n')
+      logger.log(chalk.bold(`\nSQL Commands:\n`))
+      logger.log(highlightMigrationsSQL(migrationsWithDbSteps))
+      logger.log('\n')
     }
 
     return `\n${

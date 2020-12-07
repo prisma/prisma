@@ -32,6 +32,7 @@ import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { engineVersions } from './getAllVersions'
 import { enginesVersion } from '@prisma/engines'
 import { printConfigWarnings } from './utils/printConfigWarnings'
+import { logger } from '.'
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
@@ -511,7 +512,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
 
       if (!resolvedBinaryTargets.includes(platform)) {
         if (generator) {
-          console.log(`${chalk.yellow(
+          logger.log(`${chalk.yellow(
             'Warning:',
           )} Your current platform \`${chalk.bold(
             platform,
@@ -535,7 +536,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     )}`,
     )}\n`)
         } else {
-          console.log(
+          logger.log(
             `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
               binaryTargets,
             )} don't include your local platform ${platform}, which you can also point to with \`native\`.

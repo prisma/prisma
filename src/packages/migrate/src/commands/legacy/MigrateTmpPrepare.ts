@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { Command, format, getSchemaPath, HelpError } from '@prisma/sdk'
+import { Command, format, getSchemaPath, HelpError, logger } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../../Migrate'
@@ -61,7 +61,7 @@ export class MigrateTmpPrepare implements Command {
 
     migrate.stop()
 
-    console.log('Done executing tmp prepare')
+    logger.log('Done executing tmp prepare')
     process.exit(0)
 
     return ''

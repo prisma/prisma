@@ -1,10 +1,10 @@
 #!/usr/bin/env ts-node
 
 process.on('uncaughtException', (e) => {
-  console.log(e)
+  logger.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
-  console.log(String(e), String(promise))
+  logger.log(String(e), String(promise))
 })
 
 process.env.NODE_NO_WARNINGS = '1'
@@ -14,7 +14,7 @@ process.env.NODE_NO_WARNINGS = '1'
  */
 import chalk from 'chalk'
 import debugLib from 'debug'
-import { HelpError, isError } from '@prisma/sdk'
+import { HelpError, isError, logger } from '@prisma/sdk'
 import { MigrateCommand } from './commands/legacy/MigrateCommand'
 import { MigrateDown } from './commands/legacy/MigrateDown'
 import { MigrateSave } from './commands/legacy/MigrateSave'
@@ -38,13 +38,13 @@ async function main(): Promise<number> {
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
   if (result instanceof HelpError) {
-    console.error(result)
+    logger.error(result)
     return 1
   } else if (isError(result)) {
-    console.error(result)
+    logger.error(result)
     return 1
   }
-  console.log(result)
+  logger.log(result)
 
   return 0
 }
@@ -66,9 +66,9 @@ main()
       handlePanic(error, packageJson.version, packageJson.prisma.version)
         .catch((e) => {
           if (debugLib.enabled('migrate')) {
-            console.error(chalk.redBright.bold('Error: ') + e.stack)
+            logger.error(e.stack)
           } else {
-            console.error(chalk.redBright.bold('Error: ') + e.message)
+            logger.error(e.message)
           }
         })
         .finally(() => {
@@ -76,9 +76,9 @@ main()
         })
     } else {
       if (debugLib.enabled('migrate')) {
-        console.error(chalk.redBright.bold('Error: ') + error.stack)
+        logger.error(error.stack)
       } else {
-        console.error(chalk.redBright.bold('Error: ') + error.message)
+        logger.error(error.message)
       }
       process.exit(1)
     }

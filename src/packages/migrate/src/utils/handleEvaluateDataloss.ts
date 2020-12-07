@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import prompt from 'prompts'
-import { getCommandWithExecutor, isCi } from '@prisma/sdk'
+import { isCi, logger } from '@prisma/sdk'
+
 import { MigrationFeedback } from '../types'
 import { EnvNonInteractiveError } from './errors'
 
@@ -26,13 +27,13 @@ export async function handleWarnings(
   force = false,
 ): Promise<boolean | void> {
   if (warnings && warnings.length > 0) {
-    console.log(
+    logger.log(
       chalk.bold(
         `\n⚠️  There will be data loss when applying the migration:\n`,
       ),
     )
     for (const warning of warnings) {
-      console.log(chalk(`  • ${warning.message}`))
+      logger.log(chalk(`  • ${warning.message}`))
     }
     console.info() // empty line
 

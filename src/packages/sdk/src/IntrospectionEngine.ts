@@ -1,3 +1,4 @@
+import { logger } from '.';
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import Debug from '@prisma/debug'
@@ -233,7 +234,7 @@ export class IntrospectionEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(
+      logger.error(
         `Could not parse introspection engine response: ${response.slice(
           0,
           200,
@@ -243,17 +244,17 @@ export class IntrospectionEngine {
     if (result) {
       if (result.backtrace) {
         // if there is a backtrace on the result, it's probably an error
-        console.log(result)
+        logger.log(result)
       }
       if (!result.id) {
-        console.error(
+        logger.error(
           `Response ${JSON.stringify(
             result,
           )} doesn't have an id and I can't handle that (yet)`,
         )
       }
       if (!this.listeners[result.id]) {
-        console.error(`Got result for unknown id ${result.id}`)
+        logger.error(`Got result for unknown id ${result.id}`)
       }
       if (this.listeners[result.id]) {
         this.listeners[result.id](result)
@@ -285,14 +286,14 @@ export class IntrospectionEngine {
           this.isRunning = true
 
           this.child.on('error', (err) => {
-            console.error('[introspection-engine] error: %s', err)
+            logger.error('[introspection-engine] error: %s', err)
             this.child?.kill()
             this.rejectAll(err)
             reject(err)
           })
 
           this.child.stdin?.on('error', (err) => {
-            console.error(err)
+            logger.error(err)
             this.child?.kill()
           })
 

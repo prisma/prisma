@@ -6,6 +6,7 @@ import path from 'path'
 import fs from 'fs'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 import Debug from '@prisma/debug'
+import { logger } from '.'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
@@ -45,7 +46,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     checkYarnVersion()
 
     if (debugEnabled) {
-      console.log({ prismaClientDir })
+      logger.log({ prismaClientDir })
     }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
@@ -143,8 +144,7 @@ function checkYarnVersion() {
         const currentYarnVersion = `${major}.${minor}.${patch}`
         const minYarnVersion = '1.19.2'
         if (semverLt(currentYarnVersion, minYarnVersion)) {
-          console.error(
-            `${chalk.yellow('warning')} Your ${chalk.bold(
+          logger.warn( `Your ${chalk.bold(
               'yarn',
             )} has version ${currentYarnVersion}, which is outdated. Please update it to ${chalk.bold(
               minYarnVersion,

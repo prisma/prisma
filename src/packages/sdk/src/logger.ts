@@ -1,9 +1,9 @@
 import chalk from "chalk";
 
 export const tags = {
-  error: chalk.red('error'),
-  warn: chalk.yellow('warn'),
-  info: chalk.blue('info'),
+  error: chalk.red('error(prisma)'),
+  warn: chalk.yellow('warn(prisma)'),
+  info: chalk.blue('info(prisma)'),
 }
 
 export function log(...data: any[]) {

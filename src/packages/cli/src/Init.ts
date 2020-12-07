@@ -5,6 +5,7 @@ import {
   HelpError,
   uriToCredentials,
   getCommandWithExecutor,
+  logger,
 } from '@prisma/sdk'
 import { isError } from 'util'
 import fs from 'fs'
@@ -80,7 +81,7 @@ export class Init implements Command {
     const prismaFolder = path.join(outputDir, 'prisma')
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
-      console.log(
+      logger.log(
         printError(`File ${chalk.bold(
           'schema.prisma',
         )} already exists in your project.
@@ -91,7 +92,7 @@ export class Init implements Command {
     }
 
     if (fs.existsSync(prismaFolder)) {
-      console.log(
+      logger.log(
         printError(`A folder called ${chalk.bold(
           'prisma',
         )} already exists in your project.
@@ -102,7 +103,7 @@ export class Init implements Command {
     }
 
     if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
-      console.log(
+      logger.log(
         printError(`File ${chalk.bold(
           'prisma/schema.prisma',
         )} already exists in your project.

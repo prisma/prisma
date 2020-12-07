@@ -3,13 +3,13 @@
 process.env.NODE_NO_WARNINGS = '1'
 
 process.on('uncaughtException', (e) => {
-  console.log(e)
+  logger.log(e)
 })
 process.on('unhandledRejection', (e, promise) => {
-  console.log(String(e), String(promise))
+  logger.log(String(e), String(promise))
 })
 
-import { HelpError, isError, tryLoadEnvs, arg, getEnvPaths } from '@prisma/sdk'
+import { HelpError, isError, tryLoadEnvs, arg, getEnvPaths, logger } from '@prisma/sdk'
 
 // Parse CLI arguments
 const args = arg(
@@ -30,9 +30,9 @@ if (process.argv.length > 2) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
+    envData && envData.message && logger.log(envData.message)
   } catch (e) {
-    console.log(e)
+    logger.log(e)
   }
 }
 
@@ -73,13 +73,13 @@ async function main(): Promise<number> {
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
   if (result instanceof HelpError) {
-    console.error(result)
+    logger.error(result)
     return 1
   } else if (isError(result)) {
-    console.error(result)
+    logger.error(result)
     return 1
   }
-  console.log(result)
+  logger.log(result)
 
   return 0
 }
@@ -101,9 +101,9 @@ main()
       handlePanic(error, packageJson.version, enginesVersion)
         .catch((e) => {
           if (debugLib.enabled('migrate')) {
-            console.error(chalk.redBright.bold('Error: ') + e.stack)
+            logger.error(chalk.redBright.bold('Error: ') + e.stack)
           } else {
-            console.error(chalk.redBright.bold('Error: ') + e.message)
+            logger.error(chalk.redBright.bold('Error: ') + e.message)
           }
         })
         .finally(() => {
@@ -111,9 +111,9 @@ main()
         })
     } else {
       if (debugLib.enabled('migrate')) {
-        console.error(chalk.redBright.bold('Error: ') + error.stack)
+        logger.error(chalk.redBright.bold('Error: ') + error.stack)
       } else {
-        console.error(chalk.redBright.bold('Error: ') + error.message)
+        logger.error(chalk.redBright.bold('Error: ') + error.message)
       }
       process.exit(1)
     }
