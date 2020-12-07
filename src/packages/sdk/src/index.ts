@@ -2,7 +2,7 @@ export { pick } from './pick'
 
 export { keyBy } from './keyBy'
 
-export { resolveBinary } from './resolveBinary'
+export { resolveBinary, EngineType, engineEnvVarMap } from './resolveBinary'
 
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 
