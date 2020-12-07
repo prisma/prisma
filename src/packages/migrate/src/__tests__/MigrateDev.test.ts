@@ -212,7 +212,7 @@ describe('sqlite', () => {
   it('draft migration and apply (prompt)', async () => {
     ctx.fixture('schema-only-sqlite')
 
-    prompt.inject(['some-Draft'])
+    prompt.inject(['some-Draft', 'y'])
 
     const draftResult = MigrateDev.new().parse([
       '--create-only',
@@ -247,6 +247,7 @@ describe('sqlite', () => {
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
       The following unapplied migration(s) have been applied:
       - 20201231000000_some_draft
@@ -296,6 +297,9 @@ describe('sqlite', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
+
+    prompt.inject(['y'])
+
     const draftResult = MigrateDev.new().parse([
       '--create-only',
       '--name=first',
@@ -329,6 +333,7 @@ describe('sqlite', () => {
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
       The following unapplied migration(s) have been applied:
       - 20201231000000_first
@@ -645,11 +650,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -688,10 +693,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                  ⚠️  There will be data loss when applying the migration:
+                                    ⚠️  There will be data loss when applying the migration:
 
-                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-            `)
+                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -713,10 +718,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                  ⚠️  There will be data loss when applying the migration:
+                                    ⚠️  There will be data loss when applying the migration:
 
-                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-            `)
+                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 })
@@ -848,6 +853,8 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(7000)
 
+    prompt.inject(['y'])
+
     const draftResult = MigrateDev.new().parse([
       '--create-only',
       '--name=first',
@@ -878,6 +885,7 @@ describe('postgresql', () => {
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
+
 
       The following unapplied migration(s) have been applied:
       - 20201231000000_first
