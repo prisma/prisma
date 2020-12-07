@@ -14,7 +14,11 @@ export const commonCodeJS = ({
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
   browser
-    ? ''
+    ? `
+const {
+  Decimal
+} = require('${runtimePath}/index-browser')
+`
     : `
 const {
   PrismaClientKnownRequestError,
@@ -70,7 +74,7 @@ Prisma.PrismaClientValidationError = ${notSupportOnBrowser(
   'PrismaClientValidationError',
   browser,
 )}
-Prisma.Decimal = ${notSupportOnBrowser('Decimal', browser)}
+Prisma.Decimal = Decimal
 
 /**
  * Re-export of sql-template-tag
@@ -83,9 +87,9 @@ Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 `
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
-    return `() => {throw new Error(
-  \`${fnc} is unable to be run in the browser.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+    return `() => {
+  throw new Error(\`${fnc} is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
   return fnc
 }

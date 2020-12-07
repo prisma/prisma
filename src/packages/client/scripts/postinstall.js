@@ -148,12 +148,19 @@ async function ensureEmptyDotPrisma() {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
     await makeDir(dotPrismaClientDir)
     const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultIndexBrowserJSPath = path.join(dotPrismaClientDir, 'index-browser.js')
     const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
 
     if (!fs.existsSync(defaultIndexJsPath)) {
       await copyFile(
         path.join(__dirname, 'default-index.js'),
         defaultIndexJsPath,
+      )
+    }
+    if (!fs.existsSync(defaultIndexBrowserJSPath)) {
+      await copyFile(
+        path.join(__dirname, 'default-index-browser.js'),
+        defaultIndexBrowserJSPath,
       )
     }
 
