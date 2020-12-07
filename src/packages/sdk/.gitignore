@@ -13,3 +13,4 @@ failed-*
 /debug.js
 /debug.js.map
 pnpm-lock.yaml
+/engines

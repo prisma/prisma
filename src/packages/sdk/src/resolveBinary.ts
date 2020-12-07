@@ -16,7 +16,7 @@ export type EngineType =
   | 'introspection-engine'
   | 'prisma-fmt'
 
-const engineEnvVarMap = {
+export const engineEnvVarMap = {
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',

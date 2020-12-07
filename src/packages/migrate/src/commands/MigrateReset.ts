@@ -28,7 +28,7 @@ export class MigrateReset implements Command {
   }
 
   private static help = format(`
-Reset your database and apply all migrations
+Reset your database and apply all migrations, all data will be lost
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -49,7 +49,7 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Examples')}
 
-  Reset your database, structure and data will be lost
+  Reset your database and apply all migrations, all data will be lost
   ${chalk.dim('$')} prisma migrate reset --early-access-feature
 
   Specify a schema
