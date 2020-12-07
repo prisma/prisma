@@ -119,7 +119,7 @@
     "ws": "7.4.1"
   },
   "scripts": {
-    "test:commands": "./fixtures/test.sh && jest dotenv- format doctor generate && jest tests__/introspect && jest studio --maxConcurrency=1",
+    "test:commands": "./fixtures/test.sh && jest dotenv format doctor generate init introspect studio --maxConcurrency=1",
     "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
