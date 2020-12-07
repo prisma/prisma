@@ -18,7 +18,7 @@
     "eslint-plugin-prettier": "3.2.0",
     "execa": "4.1.0",
     "globby": "11.0.1",
-    "husky": "4.3.0",
+    "husky": "4.3.5",
     "p-map": "4.0.0",
     "staged-git-files": "1.2.0",
     "ts-node": "9.1.0",
