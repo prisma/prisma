@@ -220,7 +220,11 @@ ${failedMigrationError.message}`,
           throw new Error(
             `A migration failed when applied to the shadow database:
 
-${diagnoseResult.drift.error.error_code}
+${
+  diagnoseResult.drift.error.error_code
+    ? diagnoseResult.drift.error.error_code
+    : ''
+}
 ${diagnoseResult.drift.error.message}`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
