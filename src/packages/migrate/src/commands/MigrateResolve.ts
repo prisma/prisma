@@ -6,14 +6,16 @@ import {
   HelpError,
   isError,
   getCommandWithExecutor,
+  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
-  EarlyAcessFlagError,
+  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
+  EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
 import { NoSchemaFoundError } from '../utils/errors'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -27,15 +29,17 @@ export class MigrateResolve implements Command {
 Resolve issues with database migrations (baseline, failed migration, hotfix) in staging/production
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in Early Access.",
+    `Prisma's migration functionality is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).`,
   )}
 ${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
   
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate resolve [options] --early-access-feature
+  ${chalk.dim('$')} prisma migrate resolve [options] --preview-feature
   
 ${chalk.bold('Options')}
 
@@ -49,17 +53,17 @@ ${chalk.bold('Examples')}
   Mark a migration as applied
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --applied 20201231000000_add_users_table --early-access-feature
+  )} prisma migrate resolve --applied 20201231000000_add_users_table --preview-feature
 
   Mark a migration as rolled back
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --early-access-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --preview-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma --early-access-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma --preview-feature
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -71,6 +75,7 @@ ${chalk.bold('Examples')}
         '--applied': String,
         '--rolled-back': String,
         '--experimental': Boolean,
+        '--preview-feature': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -90,8 +95,12 @@ ${chalk.bold('Examples')}
       throw new ExperimentalFlagWithNewMigrateError()
     }
 
-    if (!args['--early-access-feature']) {
-      throw new EarlyAcessFlagError()
+    if (args['--early-access-feature']) {
+      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+    }
+
+    if (!args['--preview-feature']) {
+      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -116,12 +125,12 @@ ${chalk.bold('Examples')}
         `--applied or --rolled-back must be part of the command like:
 ${chalk.bold.green(
   getCommandWithExecutor(
-    'prisma migrate resolve --applied 20201231000000_example --early-access-feature',
+    'prisma migrate resolve --applied 20201231000000_example --preview-feature',
   ),
 )}
 ${chalk.bold.green(
   getCommandWithExecutor(
-    'prisma migrate resolve --rolled-back 20201231000000_example --early-access-feature',
+    'prisma migrate resolve --rolled-back 20201231000000_example --preview-feature',
   ),
 )}`,
       )
@@ -139,7 +148,7 @@ ${chalk.bold.green(
         throw new Error(
           `--applied value must be a string like ${chalk.bold.green(
             getCommandWithExecutor(
-              'prisma migrate resolve --applied 20201231000000_example --early-access-feature',
+              'prisma migrate resolve --applied 20201231000000_example --preview-feature',
             ),
           )}`,
         )
@@ -163,7 +172,7 @@ ${chalk.bold.green(
         throw new Error(
           `--rolled-back value must be a string like ${chalk.bold.green(
             getCommandWithExecutor(
-              'prisma migrate resolve --rolled-back 20201231000000_example --early-access-feature',
+              'prisma migrate resolve --rolled-back 20201231000000_example --preview-feature',
             ),
           )}`,
         )

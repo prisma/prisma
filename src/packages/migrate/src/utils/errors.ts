@@ -50,7 +50,7 @@ export class MigrateNeedsForceError extends Error {
     super(
       `Use the --force flag to use the ${subcommand} command in an unnattended environment like ${chalk.bold.greenBright(
         getCommandWithExecutor(
-          `prisma migrate ${subcommand} --force --early-access-feature`,
+          `prisma migrate ${subcommand} --force --preview-feature`,
         ),
       )}`,
     )

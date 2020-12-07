@@ -6,14 +6,16 @@ import {
   HelpError,
   isError,
   getCommandWithExecutor,
+  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import {
-  EarlyAcessFlagError,
+  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
+  EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
@@ -32,15 +34,17 @@ export class MigrateDeploy implements Command {
 Apply migrations to update the database schema in staging/production
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in Early Access.",
+    `Prisma's migration functionality is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).`,
   )}
 ${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate deploy [options] --early-access-feature
+  ${chalk.dim('$')} prisma migrate deploy [options] --preview-feature
 
 ${chalk.bold('Options')}
 
@@ -50,12 +54,12 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Deploy your migrations
-  ${chalk.dim('$')} prisma migrate deploy --early-access-feature
+  ${chalk.dim('$')} prisma migrate deploy --preview-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate deploy --schema=./schema.prisma --early-access-feature
+  )} prisma migrate deploy --schema=./schema.prisma --preview-feature
 
 `)
 
@@ -66,6 +70,7 @@ ${chalk.bold('Examples')}
         '--help': Boolean,
         '-h': '--help',
         '--experimental': Boolean,
+        '--preview-feature': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -85,8 +90,12 @@ ${chalk.bold('Examples')}
       throw new ExperimentalFlagWithNewMigrateError()
     }
 
-    if (!args['--early-access-feature']) {
-      throw new EarlyAcessFlagError()
+    if (args['--early-access-feature']) {
+      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+    }
+
+    if (!args['--preview-feature']) {
+      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

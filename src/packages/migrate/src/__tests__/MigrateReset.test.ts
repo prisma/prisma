@@ -7,23 +7,40 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-describe('reset', () => {
+describe('common', () => {
   it('if no schema file should fail', async () => {
     ctx.fixture('empty')
-
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
+  it('should fail if experimental flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateReset.new().parse(['--experimental'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Prisma Migrate was Experimental and is now in Preview.
+            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+          `)
+  })
+  it('should fail if early access flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateReset.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Prisma Migrate was in Early Access and is now in Preview.
+            Replace the --experimental flag with --preview-feature.
+          `)
+  })
+})
 
+describe('reset', () => {
   it('should work (prompt)', async () => {
     ctx.fixture('reset')
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -48,7 +65,7 @@ describe('reset', () => {
   //   ctx.fixture('reset')
 
   //   const result = MigrateReset.new().parse([
-  //     '--early-access-feature',
+  //     '--preview-feature',
   //     '--force',
   //   ])
   //   await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -73,7 +90,7 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
       `P1003: SQLite database file doesn't exist`,
     )
@@ -93,7 +110,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -114,7 +131,7 @@ describe('reset', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -131,7 +148,7 @@ describe('reset', () => {
 
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse(['--early-access-feature'])
+    const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
       `We detected that your environment is non-interactive. Running this command in not supported in this context.`,
     )
