@@ -7,7 +7,7 @@ import { removeISODate } from '../util'
 describe('debug', () => {
   test('env vars work as expected', () => {
     const debug = Debug('my-namespace')
-    const logs = []
+    const logs: string[][] = []
     debug.log = (...args) => {
       logs.push(args.map(stripAnsi))
     }

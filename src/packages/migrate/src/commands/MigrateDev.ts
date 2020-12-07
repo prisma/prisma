@@ -14,11 +14,12 @@ import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { UserFacingErrorWithMeta } from '../types'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
+import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -26,7 +27,8 @@ import {
   handleWarnings,
 } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
-import { isOldMigrate } from '../utils/detectOldMigrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('migrate:dev')
 
@@ -35,9 +37,10 @@ export class MigrateDev implements Command {
     return new MigrateDev()
   }
 
-  private static help = format(`${
-    process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-  }Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
+  private static help = format(`
+${
+  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+}Create migrations from your Prisma schema, apply them to the database, generate artifacts (Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -56,18 +59,17 @@ ${chalk.bold('Options')}
          --schema   Custom path to your Prisma schema
        -n, --name   Name the migration
     --create-only   Only create a migration without applying it
-      -f, --force   Skip the data loss confirmation prompt
-  --skip-generate   Skip generate
+  --skip-generate   Skip generating artifacts (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
+
+  Create a new migration and apply it
+  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
   )} prisma migrate dev --schema=./schema.prisma --early-access-feature
-
-  Create a new migration and apply it
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature
 
   Create a migration without applying it
   ${chalk.dim('$')} prisma migrate dev --create-only --early-access-feature
@@ -79,8 +81,8 @@ ${chalk.bold('Examples')}
       '-h': '--help',
       '--name': String,
       '-n': '--name',
-      '--force': Boolean,
-      '-f': '--force',
+      // '--force': Boolean,
+      // '-f': '--force',
       '--create-only': Boolean,
       '--schema': String,
       '--skip-generate': Boolean,
@@ -108,39 +110,24 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    } else {
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
-
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-  Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
+      throw new NoSchemaFoundError()
     }
+
+    console.info(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
+
+    await printDatasource(schemaPath)
+
+    console.info() // empty line
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
-      console.info()
       console.info(wasDbCreated)
     }
 
@@ -166,8 +153,7 @@ ${chalk.bold('Examples')}
           } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature' +
-      (args['--force'] ? ' --force' : ''),
+    'prisma migrate dev --early-access-feature',
   )} again.`,
 )}
 
@@ -181,10 +167,10 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
     }
 
     const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
-    const hasEditedMigrations = diagnoseResult.editedMigrationNames.length > 0
+    const hasModifiedMigrations = diagnoseResult.editedMigrationNames.length > 0
 
-    // if failed migration(s) or edited migration(s) print and got to reset
-    if (hasFailedMigrations || hasEditedMigrations) {
+    // if failed migration(s) or modified migration(s) print and got to reset
+    if (hasFailedMigrations || hasModifiedMigrations) {
       isResetNeeded = true
 
       if (hasFailedMigrations) {
@@ -196,12 +182,11 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
         )
       }
 
-      if (hasEditedMigrations) {
-        // migration(s) that were edited since they were applied to the db.
+      if (hasModifiedMigrations) {
+        // migration(s) that were modified since they were applied to the db.
         console.info(
-          `The following migration(s) were edited after they were applied:\n- ${diagnoseResult.editedMigrationNames.join(
-            '\n- ',
-          )}\n`,
+          `The following migration(s) were modified after they were applied:
+- ${diagnoseResult.editedMigrationNames.join('\n- ')}\n`,
         )
 
         if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
@@ -217,8 +202,7 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
               } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature' +
-      (args['--force'] ? ' --force' : ''),
+    'prisma migrate dev --early-access-feature',
   )} again.`,
 )}
   
@@ -236,7 +220,11 @@ ${failedMigrationError.message}`,
           throw new Error(
             `A migration failed when applied to the shadow database:
 
-${diagnoseResult.drift.error.error_code}
+${
+  diagnoseResult.drift.error.error_code
+    ? diagnoseResult.drift.error.error_code
+    : ''
+}
 ${diagnoseResult.drift.error.message}`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
@@ -244,6 +232,11 @@ ${diagnoseResult.drift.error.message}`,
             isResetNeededAfterCreate = true
           } else {
             // we could try to fix the drift in the future
+            console.info() // empty line
+            console.info(
+              'Drift detected: Your database schema is not in sync with your migration history.',
+            )
+            console.info() // empty line
             isResetNeeded = true
           }
         }
@@ -256,15 +249,8 @@ ${diagnoseResult.drift.error.message}`,
           // Inform user about applied migrations now
           if (migrationIdsFromDatabaseIsBehind.length > 0) {
             console.info(
-              `The following unapplied migration(s) have been applied:\n\n${chalk(
-                printFilesFromMigrationIds(
-                  'migrations',
-                  migrationIdsFromDatabaseIsBehind,
-                  {
-                    'migration.sql': '',
-                  },
-                ),
-              )}`,
+              `The following unapplied migration(s) have been applied:
+- ${migrationIdsFromDatabaseIsBehind.join('\n- ')}\n`,
             )
           }
         } else if (
@@ -286,20 +272,14 @@ ${diagnoseResult.drift.error.message}`,
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new EnvNonInteractiveError()
         }
 
-        const confirmedReset = await this.confirmReset(
-          await migrate.getDbInfo(),
-        )
+        const dbInfo = await getDbInfo(schemaPath)
+        const confirmedReset = await this.confirmReset(dbInfo)
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
           // For snapshot test, because exit() is mocked
@@ -337,6 +317,7 @@ ${diagnoseResult.drift.error.message}`,
       evaluateDataLossResult.warnings,
       args['--force'],
     )
+    console.info() // empty line
     if (userCancelled) {
       migrate.stop()
       return `Migration cancelled.`
@@ -348,6 +329,8 @@ ${diagnoseResult.drift.error.message}`,
       args['--create-only']
     ) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
+      console.info() // empty line
+
       if (getMigrationNameResult.userCancelled) {
         migrate.stop()
         return getMigrationNameResult.userCancelled
@@ -376,34 +359,35 @@ ${diagnoseResult.drift.error.message}`,
     }
 
     if (isResetNeededAfterCreate) {
+      console.info(
+        `The following migration was created from new schema changes:\n\n${chalk(
+          printFilesFromMigrationIds(
+            'migrations',
+            [createMigrationResult.generatedMigrationName!],
+            {
+              'migration.sql': '',
+            },
+          ),
+        )}`,
+      )
+      console.info() // empty line
+
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw Error(
-            `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma migrate dev --force --early-access-feature',
-              ),
-            )}`,
-          )
+          throw new EnvNonInteractiveError()
         }
 
-        const confirmedReset = await this.confirmReset(
-          await migrate.getDbInfo(),
+        console.info(
+          'Drift detected: Your database schema is not in sync with your migration history.',
         )
+        console.info() // empty line
+
+        const dbInfo = await getDbInfo(schemaPath)
+        const confirmedReset = await this.confirmReset(dbInfo)
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info(
-            `The following migration was created from new schema changes:\n\n${chalk(
-              printFilesFromMigrationIds(
-                'migrations',
-                [createMigrationResult.generatedMigrationName!],
-                {
-                  'migration.sql': '',
-                },
-              ),
-            )}`,
-          )
-          console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
           // For snapshot test, because exit() is mocked
@@ -469,22 +453,17 @@ ${diagnoseResult.drift.error.message}`,
     dbName,
     dbLocation,
   }): Promise<boolean> {
+    const mssqlMessage = `We need to reset the database. ${chalk.red(
+      'All data will be lost',
+    )}.\nDo you want to continue?`
+    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
+      'All data will be lost',
+    )}.\nDo you want to continue?`
+
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
-        'All data will be lost',
-      )}.\nDo you want to continue?`,
-    })
-
-    return confirmation.value
-  }
-
-  private async confirmDbPushUsed(): Promise<boolean> {
-    const confirmation = await prompt({
-      type: 'confirm',
-      name: 'value',
-      message: `Did you use ${chalk.green('prisma db push')}?`,
+      message: dbType ? message : mssqlMessage,
     })
 
     return confirmation.value

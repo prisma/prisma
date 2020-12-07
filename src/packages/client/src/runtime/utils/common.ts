@@ -284,7 +284,7 @@ export function stringifyInputType(
   }
 }
 
-function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
+export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   if (typeof arg === 'string') {
     return false
   }
@@ -452,4 +452,8 @@ export function capitalize(str: string): string {
  */
 export function lowerCase(name: string): string {
   return name.substring(0, 1).toLowerCase() + name.substring(1)
+}
+
+export function isGroupByOutputName(type: string): boolean {
+  return type.endsWith('GroupByOutputType')
 }

@@ -174,7 +174,7 @@ it('applyMigrations - should fail on existing brownfield db', async () => {
   await expect(result).rejects.toMatchInlineSnapshot(`
           P3005
 
-          The database schema for \`dev.db\` is not empty. Please follow the to-be-written instructions on how to set up migrate with an existing database, or use an empty database.
+          The database schema for \`dev.db\` is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
 
         `)
   migrate.stop()
@@ -421,22 +421,6 @@ it('listMigrationDirectories - existing-db-1-migration', async () => {
 
 it('listMigrationDirectories - schema-only-sqlite', async () => {
   ctx.fixture('schema-only-sqlite')
-  const schemaPath = (await getSchemaPath())!
-  const migrate = new Migrate(schemaPath)
-  const result = migrate.engine.listMigrationDirectories({
-    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-  })
-  await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrations: Array [],
-          }
-        `)
-
-  migrate.stop()
-})
-
-it('listMigrationDirectories - initialized-sqlite', async () => {
-  ctx.fixture('initialized-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
   const result = migrate.engine.listMigrationDirectories({

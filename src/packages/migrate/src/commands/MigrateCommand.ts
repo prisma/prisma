@@ -15,9 +15,10 @@ export class MigrateCommand implements Command {
     return new MigrateCommand(cmds)
   }
 
-  private static help = format(`${
-    process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-  }Migrate your database with confidence
+  private static help = format(`
+${
+  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+}Migrate your database with confidence
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -39,6 +40,7 @@ ${chalk.bold('Commands for development')}
 ${chalk.bold('Commands for staging/production')}
 
       deploy   Apply migrations to update the database schema
+      status   Check the status of your database migrations
      resolve   Resolve issues with database migrations (baseline, failed migration, hotfix)
 
 ${chalk.bold('Options')}
@@ -47,11 +49,6 @@ ${chalk.bold('Options')}
     --schema   Custom path to your Prisma schema
 
 ${chalk.bold('Examples')}
-
-  Specify a schema
-  ${chalk.dim(
-    '$',
-  )} prisma migrate dev --schema=./schema.prisma --early-access-feature
 
   Automatically create a migration and apply it if there is a schema change
   ${chalk.dim('$')} prisma migrate dev --early-access-feature
@@ -62,10 +59,14 @@ ${chalk.bold('Examples')}
   Deploy the migrations to your database
   ${chalk.dim('$')} prisma migrate deploy --early-access-feature
 
-  Mark a migration as applied
+  Check the status of your database migrations
+  ${chalk.dim('$')} prisma migrate status --early-access-feature
+
+  Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --applied 20201231000000_add_users_table --early-access-feature
+  )} prisma migrate status --schema=./schema.prisma --early-access-feature
+
 `)
 
   private constructor(private readonly cmds: Commands) {}
@@ -90,10 +91,9 @@ ${chalk.bold('Examples')}
     }
 
     if (['up', 'save', 'down'].includes(args._[0])) {
-      // TODO docs
       throw new Error(
-        `The current command "${args._[0]}" doesn't exist on the latest version of Prisma Migrate.
-You can find the documentation for how to upgrade here: TODO`,
+        `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
+Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
       )
     }
 

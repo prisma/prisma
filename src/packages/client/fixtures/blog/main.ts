@@ -1,16 +1,24 @@
-import { PrismaClient, FindFirstPostArgs, sql } from './@prisma/client'
+process.env.DEBUG = 'prisma-client'
 
-const prisma = new PrismaClient({
-  errorFormat: 'pretty',
-  __internal: {
-    useUds: true,
-  },
-} as any)
+import { PrismaClient } from './@prisma/client'
+
+const prisma = new PrismaClient()
 
 async function main() {
-  const args: FindFirstPostArgs = {}
-  const x = await prisma.$queryRaw(sql`SELECT 1`)
-  console.log(x)
+  const res = await prisma.user.groupBy({
+    by: ['age', 'email'],
+    avg: {
+      age: true,
+    },
+    // count: {
+    //   _all: true,
+    // },
+  })
+
+  // res.count._all
+
+  console.log(res)
+
   prisma.$disconnect()
 }
 

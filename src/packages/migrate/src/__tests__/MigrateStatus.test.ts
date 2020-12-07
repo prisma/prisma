@@ -39,13 +39,18 @@ describe('sqlite', () => {
       '--schema=./prisma/empty.prisma',
       '--early-access-feature',
     ])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(`
+            Database connection error:
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/empty.prisma`)
+            P1003: SQLite database file doesn't exist
+          `)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/empty.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -58,17 +63,19 @@ describe('sqlite', () => {
             The failed migration(s) can be marked as rolled back or applied:
                   
             - If you rolled back the migration(s) manually:
-            prisma migrate resolve --rolledback "20201231000000_failed" --early-access-feature
+            prisma migrate resolve --rolled-back "20201231000000_failed" --early-access-feature
 
             - If you fixed the database manually (hotfix):
             prisma migrate resolve --applied "20201231000000_failed" --early-access-feature
 
-            Read more in our docs: https://pris.ly/migrate-resolve
+            Read more about how to resolve migration issues in a production database:
+            https://pris.ly/d/migrate-resolve
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -92,11 +99,15 @@ describe('sqlite', () => {
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_":
             prisma migrate resolve --applied "20201231000000_" --early-access-feature
+
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -106,8 +117,6 @@ describe('sqlite', () => {
 
       To apply migrations in development run prisma migrate dev --early-access-feature.
       To apply migrations in production run prisma migrate deploy --early-access-feature.
-
-      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -123,6 +132,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -142,11 +152,15 @@ describe('sqlite', () => {
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_init":
             prisma migrate resolve --applied "20201231000000_init" --early-access-feature
+
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations
@@ -156,8 +170,6 @@ describe('sqlite', () => {
 
       To apply migrations in development run prisma migrate dev --early-access-feature.
       To apply migrations in production run prisma migrate deploy --early-access-feature.
-
-      Read more in our docs: https://pris.ly/migrate-deploy
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -166,13 +178,15 @@ describe('sqlite', () => {
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Check init flow with introspect + SQL schema dump (TODO docs)`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
+          `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       No migration found in prisma/migrations
@@ -185,13 +199,15 @@ describe('sqlite', () => {
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `Check init flow with introspect + SQL schema dump (TODO docs)`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Read more about how to baseline an existing production database:
+            https://pris.ly/d/migrate-baseline
+          `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       No migration found in prisma/migrations
@@ -205,27 +221,17 @@ describe('sqlite', () => {
     ctx.fixture('old-migrate')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-            Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.
+            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
+
+            Read more about how to upgrade to the new version of Migrate:
+            https://pris.ly/d/migrate-upgrade
           `)
 
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-  })
-
-  it('initialized-sqlite', async () => {
-    ctx.fixture('initialized-sqlite')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
-
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
@@ -240,6 +246,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       Status
       1 migration found in prisma/migrations

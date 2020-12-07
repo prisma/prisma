@@ -19,15 +19,20 @@ import {
   getAggregateGetName,
   getAggregateScalarGetName,
   getAggregateInputType,
+  getGroupByArgsName,
+  getGroupByName,
+  getCountAggregateName,
+  getGroupByPayloadName,
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
 import { ExportCollector, getMethodJSDoc } from './helpers'
 import { InputType } from './Input'
-import { OutputField, OutputType } from './Output'
+import { ModelOutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
 import { TAB_SIZE } from './constants'
 import { PayloadType } from './Payload'
+import { klona } from 'klona'
 
 export class Model implements Generatable {
   protected outputType?: OutputType
@@ -71,7 +76,7 @@ export class Model implements Generatable {
             this.collector,
           ),
         )
-      } else {
+      } else if (action !== 'groupBy') {
         argsTypes.push(
           new ArgsType(
             field.args,
@@ -87,9 +92,65 @@ export class Model implements Generatable {
 
     return argsTypes
   }
+  private getGroupByTypes() {
+    const { model, mapping } = this
+
+    const groupByType = this.dmmf.outputTypeMap[getGroupByName(model.name)]
+    if (!groupByType) {
+      throw new Error(`Could not get group by type for model ${model.name}`)
+    }
+
+    const groupByRootField = this.dmmf.rootFieldMap[mapping!.groupBy!]
+    if (!groupByRootField) {
+      throw new Error(
+        `Could not find groupBy root field for model ${model.name}. Mapping: ${mapping?.groupBy}`,
+      )
+    }
+
+    const groupByArgsName = getGroupByArgsName(model.name)
+
+    return `
+    
+    
+export type ${groupByArgsName} = {
+${indent(
+  groupByRootField.args
+    .map((arg) => new InputField(arg, false, arg.name === 'by').toTS())
+    .concat(
+      groupByType.fields
+        .filter((f) => f.outputType.location === 'outputObjectTypes')
+        .map((f) => {
+          if (f.outputType.location === 'outputObjectTypes') {
+            return `${f.name}?: ${getAggregateInputType(
+              (f.outputType.type as DMMF.OutputType).name,
+            )}`
+          }
+
+          // to make TS happy, but can't happen, as we filter for outputObjectTypes
+          return ''
+        }),
+    )
+    .join('\n'),
+  TAB_SIZE,
+)}
+}
+
+${new OutputType(this.dmmf, groupByType).toTS()}
+
+type ${getGroupByPayloadName(
+      model.name,
+    )}<T extends ${groupByArgsName}> = Promise<
+  PickArray<${groupByType.name}, T['by']> & {
+    [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
+      groupByType.name
+    }[P]>
+  }
+>
+    `
+  }
   private getAggregationTypes() {
     const { model, mapping } = this
-    const aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
+    let aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
     if (!aggregateType) {
       throw new Error(
         `Could not get aggregate type "${getAggregateName(model.name)}" for "${
@@ -97,12 +158,38 @@ export class Model implements Generatable {
         }"`,
       )
     }
+    aggregateType = klona(aggregateType)
+
+    const aggregateRootField = this.dmmf.rootFieldMap[mapping!.aggregate!]
+    if (!aggregateRootField) {
+      throw new Error(
+        `Could not find aggregate root field for model ${model.name}. Mapping: ${mapping?.aggregate}`,
+      )
+    }
+
+    const countFieldIndex = aggregateType.fields.findIndex(
+      (f) => f.name === 'count',
+    )
+
+    aggregateType.fields[countFieldIndex] = {
+      name: 'count',
+      args: [],
+      isRequired: false,
+      isNullable: true,
+      outputType: {
+        isList: false,
+        location: 'scalar',
+        type: 'Int',
+      },
+    }
+
     const aggregateTypes = [aggregateType]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
     const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
     const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
+    const countType = this.dmmf.outputTypeMap[getCountAggregateName(model.name)]
 
     if (avgType) {
       aggregateTypes.push(avgType)
@@ -116,12 +203,8 @@ export class Model implements Generatable {
     if (maxType) {
       aggregateTypes.push(maxType)
     }
-
-    const aggregateRootField = this.dmmf.rootFieldMap[mapping!.aggregate!]
-    if (!aggregateRootField) {
-      throw new Error(
-        `Could not find aggregate root field for model ${model.name}. Mapping: ${mapping?.aggregate}`,
-      )
+    if (countType) {
+      aggregateTypes.push(countType)
     }
 
     for (const aggregateType of aggregateTypes) {
@@ -189,14 +272,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
   [P in keyof T]: P extends 'count' ? number : ${
-    aggregateTypes.length > 1
-      ? `${getAggregateScalarGetName(model.name)}<T[P]>`
-      : 'never'
+    avgType ? `${getAggregateScalarGetName(model.name)}<T[P]>` : 'never'
   }
 }
 
 ${
-  aggregateTypes.length > 1
+  avgType
     ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
   [P in keyof T]: P extends keyof ${getAvgAggregateName(
     model.name,
@@ -204,7 +285,7 @@ ${
 }`
     : ''
 }
-    
+
     `
   }
   public toTSWithoutNamespace(): string {
@@ -217,7 +298,7 @@ export type ${model.name} = {
 ${indent(
   model.fields
     .filter((f) => f.kind !== 'object')
-    .map((field) => new OutputField(this.dmmf, field, true).toTS())
+    .map((field) => new ModelOutputField(this.dmmf, field, true).toTS())
     .join('\n'),
   TAB_SIZE,
 )}
@@ -232,6 +313,9 @@ ${indent(
     }
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
+    const groupByEnabled = (this.generator?.previewFeatures ?? []).includes(
+      'groupBy',
+    )
 
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
@@ -257,6 +341,8 @@ ${indent(
  */
 
 ${this.getAggregationTypes()}
+
+${groupByEnabled ? this.getGroupByTypes() : ''}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -301,8 +387,14 @@ export class ModelDelegate implements Generatable {
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
-        key !== 'model' && key !== 'plural' && key !== 'aggregate' && value,
+        key !== 'model' &&
+        key !== 'plural' &&
+        key !== 'aggregate' &&
+        key !== 'groupBy' &&
+        value,
     )
+    const previewFeatures = this.generator?.previewFeatures ?? []
+    const groupByEnabled = previewFeatures.includes('groupBy')
 
     // TODO: The following code needs to be split up and is a mess
     return `\
@@ -332,6 +424,19 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
     name,
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'>): Promise<number>
+
+  ${
+    groupByEnabled
+      ? `/**
+   * Group By
+   */
+  groupBy<T extends ${getGroupByArgsName(
+    name,
+  )}>(args: Subset<T, ${getGroupByArgsName(
+          name,
+        )}>): Promise<${getGroupByPayloadName(name)}<T>>`
+      : ``
+  }
 
   /**
    * Aggregate

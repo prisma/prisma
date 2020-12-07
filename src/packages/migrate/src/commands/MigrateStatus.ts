@@ -15,8 +15,10 @@ import {
   EarlyAcessFlagError,
   ExperimentalFlagWithNewMigrateError,
 } from '../utils/flagErrors'
+import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
-import { isOldMigrate } from '../utils/detectOldMigrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { printDatasource } from '../utils/printDatasource'
 
 const debug = Debug('migrate:status')
 
@@ -26,7 +28,7 @@ export class MigrateStatus implements Command {
   }
 
   private static help = format(`
-  Check the status of your database migrations in staging/production
+Check the status of your database migrations
 
   ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
@@ -87,27 +89,8 @@ export class MigrateStatus implements Command {
 
     const schemaPath = await getSchemaPath(args['--schema'])
 
-    if (schemaPath) {
-      const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-      if (isOldMigrate(migrationDirPath)) {
-        // Maybe add link to docs?
-        throw Error(
-          `The migrations folder contains migrations files from an older version of Prisma Migrate which is not compatible.
-Delete the current migrations folder to continue and read the documentation for how to upgrade / baseline.`,
-        )
-      }
-    }
-
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     console.info(
@@ -116,14 +99,25 @@ Delete the current migrations folder to continue and read the documentation for 
       ),
     )
 
+    await printDatasource(schemaPath)
+
+    throwUpgradeErrorIfOldMigrate(schemaPath)
+
     const migrate = new Migrate(schemaPath)
 
-    await ensureCanConnectToDatabase(schemaPath)
+    try {
+      await ensureCanConnectToDatabase(schemaPath)
+    } catch (e) {
+      console.info() // empty line
+      return chalk.red(`Database connection error:
+
+${e.message}`)
+    }
 
     // This is a *read-only* command (modulo shadow database).
     // - ↩️ **RPC**: ****`diagnoseMigrationHistory`, then four cases based on the response.
     //     4. Otherwise, there is no problem migrate is aware of. We could still display:
-    //         - Edited since applied only relevant when using dev, they are ignored for deploy
+    //         - Modified since applied only relevant when using dev, they are ignored for deploy
     //         - Pending migrations (those in the migrations folder that haven't been applied yet)
     //         - If there are no pending migrations, tell the user everything looks OK and up to date.
 
@@ -163,9 +157,7 @@ To apply migrations in production run ${chalk.bold.greenBright(
           getCommandWithExecutor(
             `prisma migrate deploy --early-access-feature`,
           ),
-        )}.
-
-Read more in our docs: https://pris.ly/migrate-deploy`,
+        )}.`,
       )
     }
 
@@ -180,10 +172,7 @@ Read more in our docs: https://pris.ly/migrate-deploy`,
       //                 - Suggest calling `prisma migrate resolve --applied <migration-name>`
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
-        // TODO
-        throw Error(
-          'Check init flow with introspect + SQL schema dump (TODO docs)',
-        )
+        throw new HowToBaselineError()
       } else {
         const migrationId = listMigrationDirectoriesResult.migrations.shift() as string
         return `The current database is not managed by Prisma Migrate.
@@ -193,13 +182,16 @@ ${chalk.bold.greenBright(
   getCommandWithExecutor(
     `prisma migrate resolve --applied "${migrationId}" --early-access-feature`,
   ),
-)}`
+)}
+
+Read more about how to baseline an existing production database:
+https://pris.ly/d/migrate-baseline`
       }
     } else if (diagnoseResult.failedMigrationNames.length > 0) {
       //         - This is the **recovering from a partially failed migration** case.
       //         - Look at `drift.DriftDetected.rollback`. If present: display the rollback script
       //         - Inform the user that they can "close the case" and mark the failed migration as fixed by calling `prisma migrate resolve`.
-      //             - `prisma migrate resolve --rolledback <migration-name>` if the migration was rolled back
+      //             - `prisma migrate resolve --rolled-back <migration-name>` if the migration was rolled back
       //             - `prisma migrate resolve --applied <migration-name>` if the migration was rolled forward (and completed successfully)
       const failedMigrations = diagnoseResult.failedMigrationNames
 
@@ -227,7 +219,7 @@ ${chalk.grey(diagnoseResult.drift.rollback)}`)
 - If you rolled back the migration(s) manually:
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --rolledback "${failedMigrations[0]}" --early-access-feature`,
+    `prisma migrate resolve --rolled-back "${failedMigrations[0]}" --early-access-feature`,
   ),
 )}
 
@@ -238,7 +230,8 @@ ${chalk.bold.greenBright(
   ),
 )}
 
-Read more in our docs: https://pris.ly/migrate-resolve`
+Read more about how to resolve migration issues in a production database:
+https://pris.ly/d/migrate-resolve`
     } else if (
       diagnoseResult.drift?.diagnostic === 'driftDetected' &&
       (diagnoseResult.history?.diagnostic === 'databaseIsBehind' ||
@@ -271,7 +264,7 @@ You have 2 options
         getCommandWithExecutor(
           `prisma migrate resolve --applied "${migrationId}" --early-access-feature`,
         ),
-      )} to create a new migration matching the drift.`
+      )} to create a new migration matching the change.`
     } else {
       console.info() // empty line
       return `Database schema is up to date!`

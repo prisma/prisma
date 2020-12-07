@@ -11,7 +11,8 @@ const prisma = new PrismaClient()
 \`\`\`
 
 warn Prisma 2.12.0 has breaking changes.
-You can update your code with npx @prisma/codemods update-2.12 ./
+You can update your code with
+\`npx @prisma/codemods update-2.12 ./\`
 Read more at https://pris.ly/2.12
 `;
 

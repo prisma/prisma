@@ -1,8 +1,8 @@
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { getCommandWithExecutor, isCi } from '@prisma/sdk'
-
 import { MigrationFeedback } from '../types'
+import { EnvNonInteractiveError } from './errors'
 
 export function handleUnexecutableSteps(
   unexecutableSteps: MigrationFeedback[],
@@ -28,7 +28,7 @@ export async function handleWarnings(
   if (warnings && warnings.length > 0) {
     console.log(
       chalk.bold(
-        `\n\n⚠️  There will be data loss when applying the migration:\n`,
+        `\n⚠️  There will be data loss when applying the migration:\n`,
       ),
     )
     for (const warning of warnings) {
@@ -39,13 +39,7 @@ export async function handleWarnings(
     if (!force) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw Error(
-          `Use the --force flag to use the migrate command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma migrate dev --force --early-access-feature',
-            ),
-          )}`,
-        )
+        throw new EnvNonInteractiveError()
       } else {
         const confirmation = await prompt({
           type: 'confirm',

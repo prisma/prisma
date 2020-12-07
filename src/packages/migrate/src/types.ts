@@ -192,7 +192,7 @@ export namespace EngineResults {
     history: HistoryDiagnostic | null
     /// The name of the migrations that failed to apply completely to the database.
     failedMigrationNames: string[]
-    /// The names of the migrations that were edited after they were applied to the database.
+    /// The names of the migrations that were modified after they were applied to the database.
     editedMigrationNames: string[]
     /// Whether the migrations table is present.
     hasMigrationsTable: boolean

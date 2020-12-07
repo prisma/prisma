@@ -12,7 +12,8 @@ const stat = promisify(fs.stat)
 const breakingChangesMessage = `${c
   .yellow()
   .bold('warn')} Prisma 2.12.0 has breaking changes.
-You can update your code with ${c.bold('npx @prisma/codemods update-2.12 ./')}
+You can update your code with
+${c.bold('`npx @prisma/codemods update-2.12 ./`')}
 Read more at https://pris.ly/2.12`
 
 async function main() {

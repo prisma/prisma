@@ -12,6 +12,33 @@ import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 
+export async function getDbInfo(
+  schemaPath?: string,
+): Promise<{
+  name: string
+  dbLocation: string
+  schemaWord: string
+  dbType: string
+  dbName: string
+  url: string
+  schema?: string
+}> {
+  const datamodel = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel })
+  const activeDatasource = config.datasources[0]
+
+  const credentials = uriToCredentials(activeDatasource.url.value)
+  const dbLocation = getDbLocation(credentials)
+  const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
+  return {
+    name: activeDatasource.name,
+    dbLocation,
+    ...dbinfoFromCredentials,
+    url: activeDatasource.url.value,
+    schema: credentials.schema,
+  }
+}
+
 export async function ensureCanConnectToDatabase(
   schemaPath?: string,
 ): Promise<Boolean | Error> {
@@ -21,10 +48,6 @@ export async function ensureCanConnectToDatabase(
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
-  }
-
-  if (activeDatasource.provider[0] === 'sqlserver') {
-    throw new Error(`sqlserver is not supported yet`)
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
@@ -53,10 +76,6 @@ export async function ensureDatabaseExists(
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
-  }
-
-  if (activeDatasource.provider[0] === 'sqlserver') {
-    throw new Error(`sqlserver can't be migrated yet`)
   }
 
   const isNativeTypesEnabled = config.generators.find(

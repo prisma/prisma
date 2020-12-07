@@ -240,6 +240,7 @@ const actionOperationMap = {
   executeRaw: 'mutation',
   queryRaw: 'mutation',
   aggregate: 'query',
+  groupBy: 'query',
 }
 
 const aggregateKeys = {
@@ -270,6 +271,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _middlewares: Middleware[] = []
     private _engineMiddlewares: EngineMiddleware[] = []
     private _clientVersion: string
+    private _previewFeatures: string[]
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
@@ -342,7 +344,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           cwd = config.dirname
         }
 
-        const previewFeatures = config.generator?.previewFeatures ?? []
+        this._previewFeatures = config.generator?.previewFeatures ?? []
 
         this._engineConfig = {
           cwd,
@@ -368,7 +370,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
-          enableExperimental: mapPreviewFeatures(previewFeatures),
+          enableExperimental: mapPreviewFeatures(this._previewFeatures),
         }
 
         debug({ clientVersion: config.clientVersion })
@@ -1113,10 +1115,11 @@ new PrismaClient({
       for (const mapping of this._dmmf.mappings.modelOperations) {
         const lowerCaseModel = lowerCase(mapping.model)
 
-        const denyList = {
+        const filteredActionsList = {
           model: true,
           plural: true,
           aggregate: true,
+          groupBy: true,
         }
 
         const newMapping = {
@@ -1126,7 +1129,7 @@ new PrismaClient({
 
         const delegate: any = Object.keys(newMapping).reduce(
           (acc, actionName) => {
-            if (!denyList[actionName]) {
+            if (!filteredActionsList[actionName]) {
               const operation = getOperation(actionName as any)
               acc[actionName] = (args) =>
                 clients[mapping.model]({
@@ -1148,9 +1151,11 @@ new PrismaClient({
             args: args
               ? {
                   ...args,
-                  select: { count: true },
+                  select: { count: { select: { _all: true } } },
                 }
-              : undefined,
+              : {
+                  select: { count: { select: { _all: true } } },
+                },
             dataPath: ['count'],
           })
         }
@@ -1161,13 +1166,14 @@ new PrismaClient({
            * For speed reasons we can go with "for in "
            */
           const select = Object.entries(args).reduce((acc, [key, value]) => {
+            // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
               }
               // `count` doesn't have a sub-selection
               if (key === 'count') {
-                acc.select[key] = value
+                acc.select[key] = { select: { _all: value } }
               } else {
                 acc.select[key] = { select: value }
               }
@@ -1181,6 +1187,44 @@ new PrismaClient({
             operation: 'query',
             actionName: 'aggregate', // actionName is just cosmetics 💅🏽
             rootField: mapping.aggregate,
+            args: select,
+            dataPath: [],
+          })
+        }
+
+        delegate.groupBy = (args) => {
+          if (!this._previewFeatures.includes('groupBy')) {
+            throw new Error(`To use "groupBy", please add "groupBy" to the previewFeatures attribute in the generator block:
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["groupBy"]
+  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+}
+`)
+          }
+          /**
+           * avg, count, sum, min, max need to go into select
+           * For speed reasons we can go with "for in "
+           */
+          const select = Object.entries(args).reduce((acc, [key, value]) => {
+            // if it is an aggregate like "avg", wrap it with "select"
+            if (aggregateKeys[key]) {
+              if (!acc.select) {
+                acc.select = {}
+              }
+
+              acc.select[key] = { select: value }
+              // otherwise leave it alone
+            } else {
+              acc[key] = value
+            }
+            return acc
+          }, {} as any)
+
+          return clients[mapping.model]({
+            operation: 'query',
+            actionName: 'groupBy', // actionName is just cosmetics 💅🏽
+            rootField: mapping.groupBy,
             args: select,
             dataPath: [],
           })
@@ -1382,6 +1426,10 @@ export class PrismaClientFetcher {
   unpack(document, data, path, rootField) {
     if (data.data) {
       data = data.data
+    }
+    // to lift up _all in count
+    if (rootField.startsWith('aggregate') && data[rootField].count) {
+      data[rootField].count = data[rootField].count._all
     }
     const getPath: any[] = []
     if (rootField) {
