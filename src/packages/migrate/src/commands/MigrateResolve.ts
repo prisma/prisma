@@ -6,6 +6,7 @@ import {
   HelpError,
   isError,
   getCommandWithExecutor,
+  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -24,7 +25,16 @@ export class MigrateResolve implements Command {
   }
 
   private static help = format(`
-Resolve issues with database migrations (baseline, failed migration, hotfix) in production/staging
+Resolve issues with database migrations in deployment databases: 
+- recover from failed migrations
+- baseline databases when starting to use Prisma Migrate on existing databases
+- reconcile hotfixes done manually on databases with your migration history
+
+Run "prisma migrate status" to identify if you need to use resolve.
+
+Read more about resolving migration history issues: ${link(
+    'https://pris.ly/d/migrate-resolve',
+  )}
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     "Prisma's migration functionality is currently in Early Access.",
