@@ -16,7 +16,7 @@ process.env.GITHUB_ACTIONS = '1'
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -26,8 +26,24 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.
-                  Please provide the --early-access-feature flag to use this command.
+            This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
+            Please provide the --preview-feature flag to use this command.
+          `)
+  })
+  it('should fail if experimental flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateStatus.new().parse(['--experimental'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Prisma Migrate was Experimental and is now in Preview.
+            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+          `)
+  })
+  it('should fail if early access flag', async () => {
+    ctx.fixture('empty')
+    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Prisma Migrate was in Early Access and is now in Preview.
+            Replace the --experimental flag with --preview-feature.
           `)
   })
 })
@@ -37,7 +53,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateStatus.new().parse([
       '--schema=./prisma/empty.prisma',
-      '--early-access-feature',
+      '--preview-feature',
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
             Database connection error:
@@ -58,15 +74,15 @@ describe('sqlite', () => {
   it('existing-db-1-failed-migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             The failed migration(s) can be marked as rolled back or applied:
                   
             - If you rolled back the migration(s) manually:
-            prisma migrate resolve --rolled-back "20201231000000_failed" --early-access-feature
+            prisma migrate resolve --rolled-back "20201231000000_failed" --preview-feature
 
             - If you fixed the database manually (hotfix):
-            prisma migrate resolve --applied "20201231000000_failed" --early-access-feature
+            prisma migrate resolve --applied "20201231000000_failed" --preview-feature
 
             Read more about how to resolve migration issues in a production database:
             https://pris.ly/d/migrate-resolve
@@ -83,7 +99,7 @@ describe('sqlite', () => {
       Following migration have failed:
       20201231000000_failed
 
-      During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run prisma migrate dev --early-access-feature.
+      During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run prisma migrate dev --preview-feature.
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -93,12 +109,12 @@ describe('sqlite', () => {
   it('baseline-sqlite', async () => {
     ctx.fixture('baseline-sqlite')
 
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             The current database is not managed by Prisma Migrate.
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_":
-            prisma migrate resolve --applied "20201231000000_" --early-access-feature
+            prisma migrate resolve --applied "20201231000000_" --preview-feature
 
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
@@ -115,8 +131,8 @@ describe('sqlite', () => {
       Following migration have not yet been applied:
       20201231000000_
 
-      To apply migrations in development run prisma migrate dev --early-access-feature.
-      To apply migrations in production run prisma migrate deploy --early-access-feature.
+      To apply migrations in development run prisma migrate dev --preview-feature.
+      To apply migrations in production run prisma migrate deploy --preview-feature.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -124,7 +140,7 @@ describe('sqlite', () => {
 
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Database schema is up to date!`,
     )
@@ -146,12 +162,12 @@ describe('sqlite', () => {
   it('existing-db-1-migration-conflict', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
             The current database is not managed by Prisma Migrate.
 
             If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "20201231000000_init":
-            prisma migrate resolve --applied "20201231000000_init" --early-access-feature
+            prisma migrate resolve --applied "20201231000000_init" --preview-feature
 
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
@@ -168,8 +184,8 @@ describe('sqlite', () => {
       Following migration have not yet been applied:
       20201231000000_init
 
-      To apply migrations in development run prisma migrate dev --early-access-feature.
-      To apply migrations in production run prisma migrate deploy --early-access-feature.
+      To apply migrations in development run prisma migrate dev --preview-feature.
+      To apply migrations in production run prisma migrate deploy --preview-feature.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -177,7 +193,7 @@ describe('sqlite', () => {
 
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
@@ -198,7 +214,7 @@ describe('sqlite', () => {
 
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
@@ -219,7 +235,7 @@ describe('sqlite', () => {
 
   it('old-migrate', async () => {
     ctx.fixture('old-migrate')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
 
@@ -238,7 +254,7 @@ describe('sqlite', () => {
 
   it('reset', async () => {
     ctx.fixture('reset')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
+    const result = MigrateStatus.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Database schema is up to date!`,
     )

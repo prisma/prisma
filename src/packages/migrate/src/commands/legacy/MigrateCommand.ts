@@ -91,6 +91,7 @@ export class MigrateCommand implements Command {
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
+      // TODO remove
       const nextFreePort = await getNextFreePort(process.cwd())
       if (typeof nextFreePort !== 'number') {
         const command = `prisma migrate ${argv.join(' ')}`
@@ -108,9 +109,26 @@ Please ${chalk.rgb(
         )}, then try ${chalk.greenBright.bold(command)} again`)
       }
 
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
-        : args._.slice(1)
+      let argsForCmd: string[]
+      if (args['--experimental']) {
+        argsForCmd = [
+          ...args._.slice(1),
+          `--experimental=${args['--experimental']}`,
+        ]
+      } else if (args['--preview-feature']) {
+        argsForCmd = argsForCmd = [
+          ...args._.slice(1),
+          `--preview-feature=${args['--preview-feature']}`,
+        ]
+      } else if (args['--early-access-feature']) {
+        argsForCmd = argsForCmd = [
+          ...args._.slice(1),
+          `--early-access-feature=${args['--early-access-feature']}`,
+        ]
+      } else {
+        argsForCmd = args._.slice(1)
+      }
+
       return cmd.parse(argsForCmd)
     }
 

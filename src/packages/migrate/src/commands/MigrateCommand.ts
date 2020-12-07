@@ -5,6 +5,7 @@ import {
   format,
   HelpError,
   isError,
+  link,
   unknownCommand,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -19,15 +20,17 @@ export class MigrateCommand implements Command {
 Update the database schema with migrations
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in Early Access.",
+    `Prisma's migration functionality is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).`,
   )}
 ${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
   
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate [command] [options] --early-access-feature
+  ${chalk.dim('$')} prisma migrate [command] [options] --preview-feature
 
 ${chalk.bold('Commands for development')}
 
@@ -49,21 +52,21 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature
+  ${chalk.dim('$')} prisma migrate dev --preview-feature
 
   Reset your database and apply all migrations
-  ${chalk.dim('$')} prisma migrate reset --early-access-feature
+  ${chalk.dim('$')} prisma migrate reset --preview-feature
 
   Apply pending migrations to the database in production/staging
-  ${chalk.dim('$')} prisma migrate deploy --early-access-feature
+  ${chalk.dim('$')} prisma migrate deploy --preview-feature
 
   Check the status of migrations in the production/staging database
-  ${chalk.dim('$')} prisma migrate status --early-access-feature
+  ${chalk.dim('$')} prisma migrate status --preview-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate status --schema=./schema.prisma --early-access-feature
+  )} prisma migrate status --schema=./schema.prisma --preview-feature
 
 `)
 
@@ -75,6 +78,7 @@ ${chalk.bold('Examples')}
       '--help': Boolean,
       '-h': '--help',
       '--experimental': Boolean,
+      '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
@@ -102,8 +106,8 @@ Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const argsForCmd = args['--early-access-feature']
-        ? [...args._.slice(1), `--early-access-feature`]
+      const argsForCmd = args['--preview-feature']
+        ? [...args._.slice(1), `--preview-feature`]
         : args._.slice(1)
       return cmd.parse(argsForCmd)
     }

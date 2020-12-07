@@ -7,6 +7,7 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
+  link,
 } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import chalk from 'chalk'
@@ -16,8 +17,9 @@ import { Migrate } from '../Migrate'
 import { UserFacingErrorWithMeta } from '../types'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
-  EarlyAcessFlagError,
+  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
+  EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
 import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
@@ -43,15 +45,17 @@ ${
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in Early Access.",
+    `Prisma's migration functionality is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).`,
   )}
 ${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --early-access-feature flag.',
+  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
   
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate dev [options] --early-access-feature
+  ${chalk.dim('$')} prisma migrate dev [options] --preview-feature
 
 ${chalk.bold('Options')}
 
@@ -65,15 +69,15 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
-  ${chalk.dim('$')} prisma migrate dev --early-access-feature
+  ${chalk.dim('$')} prisma migrate dev --preview-feature
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate dev --schema=./schema.prisma --early-access-feature
+  )} prisma migrate dev --schema=./schema.prisma --preview-feature
 
   Create a migration without applying it
-  ${chalk.dim('$')} prisma migrate dev --create-only --early-access-feature
+  ${chalk.dim('$')} prisma migrate dev --create-only --preview-feature
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -88,6 +92,7 @@ ${chalk.bold('Examples')}
       '--schema': String,
       '--skip-generate': Boolean,
       '--experimental': Boolean,
+      '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
@@ -104,8 +109,12 @@ ${chalk.bold('Examples')}
       throw new ExperimentalFlagWithNewMigrateError()
     }
 
-    if (!args['--early-access-feature']) {
-      throw new EarlyAcessFlagError()
+    if (args['--early-access-feature']) {
+      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+    }
+
+    if (!args['--preview-feature']) {
+      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -154,7 +163,7 @@ ${chalk.bold('Examples')}
           } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature',
+    'prisma migrate dev --preview-feature',
   )} again.`,
 )}
 
@@ -203,7 +212,7 @@ ${diagnoseResult.errorInUnappliedMigration.message}`)
               } failed when applied to the shadow database.
 ${chalk.green(
   `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --early-access-feature',
+    'prisma migrate dev --preview-feature',
   )} again.`,
 )}
   
@@ -355,7 +364,7 @@ ${diagnoseResult.drift.error.message}`,
       return `Prisma Migrate created the following migration without applying it ${printMigrationId(
         createMigrationResult.generatedMigrationName!,
       )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
-        getCommandWithExecutor('prisma migrate dev --early-access-feature'),
+        getCommandWithExecutor('prisma migrate dev --preview-feature'),
       )}.`
     }
 

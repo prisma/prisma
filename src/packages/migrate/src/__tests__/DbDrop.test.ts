@@ -13,7 +13,7 @@ describe('drop', () => {
     const result = DbDrop.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-                  Please provide the --preview-feature flag to use this command.
+            Please provide the --preview-feature flag to use this command.
           `)
   })
 
