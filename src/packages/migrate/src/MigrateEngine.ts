@@ -194,22 +194,23 @@ export class MigrateEngine {
       )
     }
     if (result) {
-      // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
-      if (!result.id) {
-        if (result.is_panic) {
-          throw new Error(`Response ${JSON.stringify(result.message)}`)
-        } else if (result.message) {
-          console.error(`Response ${JSON.stringify(result.message)}`)
-        } else {
-          console.error(`Response ${JSON.stringify(result)}`)
+      if (result.id) {
+        if (!this.listeners[result.id]) {
+          console.error(`Got result for unknown id ${result.id}`)
         }
-      }
-      if (!this.listeners[result.id]) {
-        console.error(`Got result for unknown id ${result.id}`)
-      }
-      if (this.listeners[result.id]) {
-        this.listeners[result.id](result)
-        delete this.listeners[result.id]
+        if (this.listeners[result.id]) {
+          this.listeners[result.id](result)
+          delete this.listeners[result.id]
+        }
+      } else {
+        // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
+        if (result.is_panic) {
+          throw new Error(`Response: ${result.message}`)
+        } else if (result.message) {
+          console.error(chalk.red(`Response: ${result.message}`))
+        } else {
+          console.error(chalk.red(`Response: ${JSON.stringify(result)}`))
+        }
       }
     }
   }
@@ -264,7 +265,11 @@ export class MigrateEngine {
           if (code !== 0 || messages.includes('panicking')) {
             let errorMessage =
               chalk.red.bold('Error in migration engine: ') + messages
-            if (this.lastError && code === 255) {
+            if (code === 250) {
+              // Not a panic
+              // It's a UserFacingError https://github.com/prisma/prisma-engines/pull/1446
+              errorMessage = chalk.red.bold('UserFacingError')
+            } else if (this.lastError && code === 255) {
               errorMessage = serializePanic(this.lastError)
               err = new RustPanic(
                 errorMessage,
