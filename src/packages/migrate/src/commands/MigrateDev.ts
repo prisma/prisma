@@ -40,9 +40,7 @@ export class MigrateDev implements Command {
   }
 
   private static help = format(`
-${
-  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-}Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
+Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `Prisma's migration functionality is currently in Preview (${link(
@@ -149,7 +147,7 @@ ${chalk.bold('Examples')}
     debug({ diagnoseResult })
 
     let isResetNeeded = false
-    let isResetNeededAfterCreate = false
+    const isResetNeededAfterCreate = false
     let migrationIdsFromDatabaseIsBehind: string[] = []
     let migrationIdsFromAfterReset: string[] = []
 
@@ -238,17 +236,13 @@ ${
 ${diagnoseResult.drift.error.message}`,
           )
         } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
-          if (diagnoseResult.hasMigrationsTable === false) {
-            isResetNeededAfterCreate = true
-          } else {
-            // we could try to fix the drift in the future
-            console.info() // empty line
-            console.info(
-              'Drift detected: Your database schema is not in sync with your migration history.',
-            )
-            console.info() // empty line
-            isResetNeeded = true
-          }
+          // we could try to fix the drift in the future
+          console.info() // empty line
+          console.info(
+            'Drift detected: Your database schema is not in sync with your migration history.',
+          )
+          console.info() // empty line
+          isResetNeeded = true
         }
       }
 
