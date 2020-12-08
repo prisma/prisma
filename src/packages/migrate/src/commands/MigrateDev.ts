@@ -143,8 +143,6 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    const dbInfo = await getDbInfo(schemaPath)
-
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
       optInToShadowDatabase: true,
     })
@@ -256,33 +254,6 @@ ${diagnoseResult.drift.error.message}`,
 
       if (diagnoseResult.history) {
         if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          // We want to force a reset in the baseline case when using migrate dev.
-          if (
-            diagnoseResult.drift?.diagnostic !== 'driftDetected' &&
-            diagnoseResult.history.unappliedMigrationNames.length > 0 &&
-            diagnoseResult.hasMigrationsTable === false
-          ) {
-            if (!args['--force']) {
-              // We use prompts.inject() for testing in our CI
-              if (
-                isCi() &&
-                Boolean((prompt as any)._injected?.length) === false
-              ) {
-                throw new EnvNonInteractiveError()
-              }
-
-              const confirmedReset = await this.confirmReset(dbInfo)
-              console.info() // empty line
-
-              if (!confirmedReset) {
-                console.info('Reset cancelled.')
-                process.exit(0)
-                // For snapshot test, because exit() is mocked
-                return ``
-              }
-            }
-          }
-
           const { appliedMigrationNames } = await migrate.applyMigrations()
           migrationIdsFromDatabaseIsBehind = appliedMigrationNames
           // Inform user about applied migrations now
@@ -314,6 +285,7 @@ ${diagnoseResult.drift.error.message}`,
           throw new EnvNonInteractiveError()
         }
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 
@@ -421,6 +393,7 @@ ${diagnoseResult.drift.error.message}`,
         )
         console.info() // empty line
 
+        const dbInfo = await getDbInfo(schemaPath)
         const confirmedReset = await this.confirmReset(dbInfo)
         console.info() // empty line
 
