@@ -80,6 +80,8 @@ exports[`sqlite first migration (prompt) 3`] = `Array []`;
 
 exports[`sqlite first migration (prompt) 4`] = `Array []`;
 
+exports[`sqlite provider array should fail 3`] = `Array []`;
+
 exports[`sqlite removed applied migration and unapplied empty draft 3`] = ``;
 
 exports[`sqlite removed applied migration and unapplied empty draft 4`] = ``;
