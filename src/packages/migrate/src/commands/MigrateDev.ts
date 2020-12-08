@@ -147,7 +147,7 @@ ${chalk.bold('Examples')}
     debug({ diagnoseResult })
 
     let isResetNeeded = false
-    let isResetNeededAfterCreate = false
+    const isResetNeededAfterCreate = false
     let migrationIdsFromDatabaseIsBehind: string[] = []
     let migrationIdsFromAfterReset: string[] = []
 
