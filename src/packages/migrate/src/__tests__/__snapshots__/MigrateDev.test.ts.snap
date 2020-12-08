@@ -88,6 +88,6 @@ exports[`sqlite transition-db-push-migrate (prompt reset no) 3`] = ``;
 
 exports[`sqlite transition-db-push-migrate (prompt reset no) 4`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt reset yes) 3`] = ``;
+exports[`sqlite transition-db-push-migrate 3`] = ``;
 
-exports[`sqlite transition-db-push-migrate (prompt reset yes) 4`] = ``;
+exports[`sqlite transition-db-push-migrate 4`] = ``;
