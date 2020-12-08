@@ -343,7 +343,7 @@ describe('sqlite', () => {
   it('transition-db-push-migrate (prompt reset yes)', async () => {
     ctx.fixture('transition-db-push-migrate')
 
-    prompt.inject(['y', 'first'])
+    prompt.inject(['first', 'y'])
 
     const result = MigrateDev.new().parse(['--preview-feature'])
 
@@ -356,9 +356,14 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
+      The following migration was created from new schema changes:
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
+
       Drift detected: Your database schema is not in sync with your migration history.
-
-
 
 
       The following migration(s) have been created and applied from new schema changes:
@@ -376,7 +381,7 @@ describe('sqlite', () => {
     ctx.fixture('transition-db-push-migrate')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
-    prompt.inject([new Error(), 'first'])
+    prompt.inject(['first', new Error()])
 
     const result = MigrateDev.new().parse(['--preview-feature'])
 
@@ -386,6 +391,13 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+
+      The following migration was created from new schema changes:
+
+      migrations/
+        └─ 20201231000000_first/
+          └─ migration.sql
 
       Drift detected: Your database schema is not in sync with your migration history.
 
@@ -434,7 +446,7 @@ describe('sqlite', () => {
     ctx.fixture('edited-and-draft')
     fs.remove('prisma/migrations/20201117144659_test')
 
-    prompt.inject(['mymigration'])
+    prompt.inject(['y'])
 
     const result = MigrateDev.new().parse(['--preview-feature'])
 
@@ -464,7 +476,7 @@ describe('sqlite', () => {
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_mymigration/
+        └─ 20201231000000_/
           └─ migration.sql
 
     `)
@@ -633,11 +645,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                          `)
+                                                                                                                                                                                                                                                                                                            `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -676,10 +688,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                    ⚠️  There will be data loss when applying the migration:
+                  ⚠️  There will be data loss when applying the migration:
 
-                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                        `)
+                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -701,10 +713,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                    ⚠️  There will be data loss when applying the migration:
+                  ⚠️  There will be data loss when applying the migration:
 
-                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                        `)
+                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 })
