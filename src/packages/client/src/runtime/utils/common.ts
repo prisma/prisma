@@ -457,3 +457,13 @@ export function lowerCase(name: string): string {
 export function isGroupByOutputName(type: string): boolean {
   return type.endsWith('GroupByOutputType')
 }
+
+export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
+  return (
+    typeof type === 'object' &&
+    type.name &&
+    typeof type.name === 'string' &&
+    type.values &&
+    Array.isArray(type.values)
+  )
+}

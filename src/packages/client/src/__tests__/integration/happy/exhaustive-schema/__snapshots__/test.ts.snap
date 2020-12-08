@@ -1338,6 +1338,42 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByPostArgs = {
+    where?: PostWhereInput
+    orderBy?: Enumerable<PostOrderByInput>
+    by: Array<PostScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: PostCountAggregateInputType
+    avg?: PostAvgAggregateInputType
+    sum?: PostSumAggregateInputType
+    min?: PostMinAggregateInputType
+    max?: PostMaxAggregateInputType
+  }
+
+
+  export type PostGroupByOutputType = {
+    id: number | null
+    createdAt: Date | null
+    title: string | null
+    content: string | null
+    published: boolean | null
+    authorId: number | null
+    count: PostCountAggregateOutputType | null
+    avg: PostAvgAggregateOutputType | null
+    sum: PostSumAggregateOutputType | null
+    min: PostMinAggregateOutputType | null
+    max: PostMaxAggregateOutputType | null
+  }
+
+  type GetPostGroupByPayload<T extends GroupByPostArgs> = Promise<
+    PickArray<PostGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof PostGroupByOutputType))]: GetScalarType<T[P], PostGroupByOutputType[P]>
+    }
+  >
+    
 
   export type PostSelect = {
     id?: boolean
@@ -1545,7 +1581,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByPostArgs>(args: Subset<T, GroupByPostArgs>): Promise<GetPostGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -1976,6 +2015,50 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByUserArgs = {
+    where?: UserWhereInput
+    orderBy?: Enumerable<UserOrderByInput>
+    by: Array<UserScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: UserCountAggregateInputType
+    avg?: UserAvgAggregateInputType
+    sum?: UserSumAggregateInputType
+    min?: UserMinAggregateInputType
+    max?: UserMaxAggregateInputType
+  }
+
+
+  export type UserGroupByOutputType = {
+    id: number | null
+    email: string | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: UserCountAggregateOutputType | null
+    avg: UserAvgAggregateOutputType | null
+    sum: UserSumAggregateOutputType | null
+    min: UserMinAggregateOutputType | null
+    max: UserMaxAggregateOutputType | null
+  }
+
+  type GetUserGroupByPayload<T extends GroupByUserArgs> = Promise<
+    PickArray<UserGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof UserGroupByOutputType))]: GetScalarType<T[P], UserGroupByOutputType[P]>
+    }
+  >
+    
 
   export type UserSelect = {
     id?: boolean
@@ -2191,7 +2274,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByUserArgs>(args: Subset<T, GroupByUserArgs>): Promise<GetUserGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -2616,6 +2702,49 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByMArgs = {
+    where?: MWhereInput
+    orderBy?: Enumerable<MOrderByInput>
+    by: Array<MScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: MCountAggregateInputType
+    avg?: MAvgAggregateInputType
+    sum?: MSumAggregateInputType
+    min?: MMinAggregateInputType
+    max?: MMaxAggregateInputType
+  }
+
+
+  export type MGroupByOutputType = {
+    id: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: MCountAggregateOutputType | null
+    avg: MAvgAggregateOutputType | null
+    sum: MSumAggregateOutputType | null
+    min: MMinAggregateOutputType | null
+    max: MMaxAggregateOutputType | null
+  }
+
+  type GetMGroupByPayload<T extends GroupByMArgs> = Promise<
+    PickArray<MGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof MGroupByOutputType))]: GetScalarType<T[P], MGroupByOutputType[P]>
+    }
+  >
+    
 
   export type MSelect = {
     id?: boolean
@@ -2830,7 +2959,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByMArgs>(args: Subset<T, GroupByMArgs>): Promise<GetMGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -3255,6 +3387,49 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByNArgs = {
+    where?: NWhereInput
+    orderBy?: Enumerable<NOrderByInput>
+    by: Array<NScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: NCountAggregateInputType
+    avg?: NAvgAggregateInputType
+    sum?: NSumAggregateInputType
+    min?: NMinAggregateInputType
+    max?: NMaxAggregateInputType
+  }
+
+
+  export type NGroupByOutputType = {
+    id: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: NCountAggregateOutputType | null
+    avg: NAvgAggregateOutputType | null
+    sum: NSumAggregateOutputType | null
+    min: NMinAggregateOutputType | null
+    max: NMaxAggregateOutputType | null
+  }
+
+  type GetNGroupByPayload<T extends GroupByNArgs> = Promise<
+    PickArray<NGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof NGroupByOutputType))]: GetScalarType<T[P], NGroupByOutputType[P]>
+    }
+  >
+    
 
   export type NSelect = {
     id?: boolean
@@ -3469,7 +3644,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByNArgs>(args: Subset<T, GroupByNArgs>): Promise<GetNGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -3894,6 +4072,49 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByOneOptionalArgs = {
+    where?: OneOptionalWhereInput
+    orderBy?: Enumerable<OneOptionalOrderByInput>
+    by: Array<OneOptionalScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: OneOptionalCountAggregateInputType
+    avg?: OneOptionalAvgAggregateInputType
+    sum?: OneOptionalSumAggregateInputType
+    min?: OneOptionalMinAggregateInputType
+    max?: OneOptionalMaxAggregateInputType
+  }
+
+
+  export type OneOptionalGroupByOutputType = {
+    id: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: OneOptionalCountAggregateOutputType | null
+    avg: OneOptionalAvgAggregateOutputType | null
+    sum: OneOptionalSumAggregateOutputType | null
+    min: OneOptionalMinAggregateOutputType | null
+    max: OneOptionalMaxAggregateOutputType | null
+  }
+
+  type GetOneOptionalGroupByPayload<T extends GroupByOneOptionalArgs> = Promise<
+    PickArray<OneOptionalGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
+    }
+  >
+    
 
   export type OneOptionalSelect = {
     id?: boolean
@@ -4108,7 +4329,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByOneOptionalArgs>(args: Subset<T, GroupByOneOptionalArgs>): Promise<GetOneOptionalGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -4543,6 +4767,50 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByManyRequiredArgs = {
+    where?: ManyRequiredWhereInput
+    orderBy?: Enumerable<ManyRequiredOrderByInput>
+    by: Array<ManyRequiredScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: ManyRequiredCountAggregateInputType
+    avg?: ManyRequiredAvgAggregateInputType
+    sum?: ManyRequiredSumAggregateInputType
+    min?: ManyRequiredMinAggregateInputType
+    max?: ManyRequiredMaxAggregateInputType
+  }
+
+
+  export type ManyRequiredGroupByOutputType = {
+    id: number | null
+    oneOptionalId: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: ManyRequiredCountAggregateOutputType | null
+    avg: ManyRequiredAvgAggregateOutputType | null
+    sum: ManyRequiredSumAggregateOutputType | null
+    min: ManyRequiredMinAggregateOutputType | null
+    max: ManyRequiredMaxAggregateOutputType | null
+  }
+
+  type GetManyRequiredGroupByPayload<T extends GroupByManyRequiredArgs> = Promise<
+    PickArray<ManyRequiredGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
+    }
+  >
+    
 
   export type ManyRequiredSelect = {
     id?: boolean
@@ -4758,7 +5026,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByManyRequiredArgs>(args: Subset<T, GroupByManyRequiredArgs>): Promise<GetManyRequiredGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -5193,6 +5464,50 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByOptionalSide1Args = {
+    where?: OptionalSide1WhereInput
+    orderBy?: Enumerable<OptionalSide1OrderByInput>
+    by: Array<OptionalSide1ScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: OptionalSide1CountAggregateInputType
+    avg?: OptionalSide1AvgAggregateInputType
+    sum?: OptionalSide1SumAggregateInputType
+    min?: OptionalSide1MinAggregateInputType
+    max?: OptionalSide1MaxAggregateInputType
+  }
+
+
+  export type OptionalSide1GroupByOutputType = {
+    id: number | null
+    optionalSide2Id: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: OptionalSide1CountAggregateOutputType | null
+    avg: OptionalSide1AvgAggregateOutputType | null
+    sum: OptionalSide1SumAggregateOutputType | null
+    min: OptionalSide1MinAggregateOutputType | null
+    max: OptionalSide1MaxAggregateOutputType | null
+  }
+
+  type GetOptionalSide1GroupByPayload<T extends GroupByOptionalSide1Args> = Promise<
+    PickArray<OptionalSide1GroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
+    }
+  >
+    
 
   export type OptionalSide1Select = {
     id?: boolean
@@ -5408,7 +5723,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByOptionalSide1Args>(args: Subset<T, GroupByOptionalSide1Args>): Promise<GetOptionalSide1GroupByPayload<T>>
 
     /**
      * Aggregate
@@ -5833,6 +6151,49 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByOptionalSide2Args = {
+    where?: OptionalSide2WhereInput
+    orderBy?: Enumerable<OptionalSide2OrderByInput>
+    by: Array<OptionalSide2ScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: OptionalSide2CountAggregateInputType
+    avg?: OptionalSide2AvgAggregateInputType
+    sum?: OptionalSide2SumAggregateInputType
+    min?: OptionalSide2MinAggregateInputType
+    max?: OptionalSide2MaxAggregateInputType
+  }
+
+
+  export type OptionalSide2GroupByOutputType = {
+    id: number | null
+    int: number | null
+    optionalInt: number | null
+    float: number | null
+    optionalFloat: number | null
+    string: string | null
+    optionalString: string | null
+    json: JsonValue | null
+    optionalJson: JsonValue | null
+    enum: ABeautifulEnum | null
+    optionalEnum: ABeautifulEnum | null
+    boolean: boolean | null
+    optionalBoolean: boolean | null
+    count: OptionalSide2CountAggregateOutputType | null
+    avg: OptionalSide2AvgAggregateOutputType | null
+    sum: OptionalSide2SumAggregateOutputType | null
+    min: OptionalSide2MinAggregateOutputType | null
+    max: OptionalSide2MaxAggregateOutputType | null
+  }
+
+  type GetOptionalSide2GroupByPayload<T extends GroupByOptionalSide2Args> = Promise<
+    PickArray<OptionalSide2GroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
+    }
+  >
+    
 
   export type OptionalSide2Select = {
     id?: boolean
@@ -6047,7 +6408,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByOptionalSide2Args>(args: Subset<T, GroupByOptionalSide2Args>): Promise<GetOptionalSide2GroupByPayload<T>>
 
     /**
      * Aggregate
@@ -6482,6 +6846,48 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByAArgs = {
+    where?: AWhereInput
+    orderBy?: Enumerable<AOrderByInput>
+    by: Array<AScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: ACountAggregateInputType
+    avg?: AAvgAggregateInputType
+    sum?: ASumAggregateInputType
+    min?: AMinAggregateInputType
+    max?: AMaxAggregateInputType
+  }
+
+
+  export type AGroupByOutputType = {
+    id: string | null
+    email: string | null
+    name: string | null
+    int: number | null
+    sInt: number | null
+    bInt: BigInt | null
+    serial: number | null
+    sSerial: number | null
+    bSerial: number | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: BigInt | null
+    count: ACountAggregateOutputType | null
+    avg: AAvgAggregateOutputType | null
+    sum: ASumAggregateOutputType | null
+    min: AMinAggregateOutputType | null
+    max: AMaxAggregateOutputType | null
+  }
+
+  type GetAGroupByPayload<T extends GroupByAArgs> = Promise<
+    PickArray<AGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof AGroupByOutputType))]: GetScalarType<T[P], AGroupByOutputType[P]>
+    }
+  >
+    
 
   export type ASelect = {
     id?: boolean
@@ -6685,7 +7091,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByAArgs>(args: Subset<T, GroupByAArgs>): Promise<GetAGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -7025,6 +7434,41 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByBArgs = {
+    where?: BWhereInput
+    orderBy?: Enumerable<BOrderByInput>
+    by: Array<BScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: BCountAggregateInputType
+    avg?: BAvgAggregateInputType
+    sum?: BSumAggregateInputType
+    min?: BMinAggregateInputType
+    max?: BMaxAggregateInputType
+  }
+
+
+  export type BGroupByOutputType = {
+    id: string | null
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
+    count: BCountAggregateOutputType | null
+    avg: BAvgAggregateOutputType | null
+    sum: BSumAggregateOutputType | null
+    min: BMinAggregateOutputType | null
+    max: BMaxAggregateOutputType | null
+  }
+
+  type GetBGroupByPayload<T extends GroupByBArgs> = Promise<
+    PickArray<BGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof BGroupByOutputType))]: GetScalarType<T[P], BGroupByOutputType[P]>
+    }
+  >
+    
 
   export type BSelect = {
     id?: boolean
@@ -7221,7 +7665,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByBArgs>(args: Subset<T, GroupByBArgs>): Promise<GetBGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -7539,6 +7986,39 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByCArgs = {
+    where?: CWhereInput
+    orderBy?: Enumerable<COrderByInput>
+    by: Array<CScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: CCountAggregateInputType
+    min?: CMinAggregateInputType
+    max?: CMaxAggregateInputType
+  }
+
+
+  export type CGroupByOutputType = {
+    id: string | null
+    char: string | null
+    vChar: string | null
+    text: string | null
+    bit: string | null
+    vBit: string | null
+    uuid: string | null
+    count: CCountAggregateOutputType | null
+    min: CMinAggregateOutputType | null
+    max: CMaxAggregateOutputType | null
+  }
+
+  type GetCGroupByPayload<T extends GroupByCArgs> = Promise<
+    PickArray<CGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof CGroupByOutputType))]: GetScalarType<T[P], CGroupByOutputType[P]>
+    }
+  >
+    
 
   export type CSelect = {
     id?: boolean
@@ -7737,7 +8217,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByCArgs>(args: Subset<T, GroupByCArgs>): Promise<GetCGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -8049,6 +8532,38 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByDArgs = {
+    where?: DWhereInput
+    orderBy?: Enumerable<DOrderByInput>
+    by: Array<DScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: DCountAggregateInputType
+    min?: DMinAggregateInputType
+    max?: DMaxAggregateInputType
+  }
+
+
+  export type DGroupByOutputType = {
+    id: string | null
+    bool: boolean | null
+    byteA: Buffer | null
+    xml: string | null
+    json: JsonValue | null
+    jsonb: JsonValue | null
+    count: DCountAggregateOutputType | null
+    min: DMinAggregateOutputType | null
+    max: DMaxAggregateOutputType | null
+  }
+
+  type GetDGroupByPayload<T extends GroupByDArgs> = Promise<
+    PickArray<DGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof DGroupByOutputType))]: GetScalarType<T[P], DGroupByOutputType[P]>
+    }
+  >
+    
 
   export type DSelect = {
     id?: boolean
@@ -8246,7 +8761,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByDArgs>(args: Subset<T, GroupByDArgs>): Promise<GetDGroupByPayload<T>>
 
     /**
      * Aggregate
@@ -8546,6 +9064,36 @@ export namespace Prisma {
     
 
 
+    
+    
+  export type GroupByEArgs = {
+    where?: EWhereInput
+    orderBy?: Enumerable<EOrderByInput>
+    by: Array<EScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: ECountAggregateInputType
+    min?: EMinAggregateInputType
+    max?: EMaxAggregateInputType
+  }
+
+
+  export type EGroupByOutputType = {
+    id: string | null
+    date: Date | null
+    time: Date | null
+    ts: Date | null
+    count: ECountAggregateOutputType | null
+    min: EMinAggregateOutputType | null
+    max: EMaxAggregateOutputType | null
+  }
+
+  type GetEGroupByPayload<T extends GroupByEArgs> = Promise<
+    PickArray<EGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof EGroupByOutputType))]: GetScalarType<T[P], EGroupByOutputType[P]>
+    }
+  >
+    
 
   export type ESelect = {
     id?: boolean
@@ -8741,7 +9289,10 @@ export namespace Prisma {
      */
     count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
 
-  
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByEArgs>(args: Subset<T, GroupByEArgs>): Promise<GetEGroupByPayload<T>>
 
     /**
      * Aggregate
