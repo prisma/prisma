@@ -256,6 +256,8 @@ it('markMigrationRolledBack - should fail - existing-db-1-migration', async () =
   })
 
   await expect(resultMarkRolledBacked).rejects.toMatchInlineSnapshot(`
+          P3012
+
           Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
 
         `)
@@ -319,6 +321,8 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   })
 
   await expect(resultMarkApplied).rejects.toMatchInlineSnapshot(`
+          P3008
+
           The migration \`20201231000000_draft_123\` is already recorded as applied in the database.
 
         `)
