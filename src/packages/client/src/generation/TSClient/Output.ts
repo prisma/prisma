@@ -4,6 +4,7 @@ import { DMMFClass } from '../../runtime/dmmf'
 import { BaseField, DMMF } from '../../runtime/dmmf-types'
 import {
   GraphQLScalarToJSTypeTable,
+  isSchemaEnum,
   needsNamespace,
 } from '../../runtime/utils/common'
 import { ExportCollector } from './helpers'
@@ -47,7 +48,9 @@ export class OutputField implements Generatable {
     if (field.outputType.location === 'scalar') {
       fieldType = GraphQLScalarToJSTypeTable[field.outputType.type as string]
     } else if (field.outputType.location === 'enumTypes') {
-      fieldType = field.outputType.type.toString()
+      if (isSchemaEnum(field.outputType.type)) {
+        fieldType = field.outputType.type.name
+      }
     } else {
       fieldType = (field.outputType.type as DMMF.OutputType).name
     }
