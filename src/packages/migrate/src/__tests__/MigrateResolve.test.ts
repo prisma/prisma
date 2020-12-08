@@ -107,6 +107,8 @@ describe('sqlite', () => {
       '--applied=20201014154943_init',
     ])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            P3008
+
             The migration \`20201231000000_init\` is already recorded as applied in the database.
 
           `)
@@ -120,6 +122,8 @@ describe('sqlite', () => {
       '20201014154943_init',
     ])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            P3008
+
             The migration \`20201231000000_init\` is already recorded as applied in the database.
 
           `)
@@ -155,6 +159,8 @@ describe('sqlite', () => {
       '--rolled-back=does_not_exist',
     ])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            P3011
+
             Migration \`does_not_exist\` cannot be rolled back because it was never applied to the database.
 
           `)
@@ -168,6 +174,8 @@ describe('sqlite', () => {
       '20201014154943_init',
     ])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            P3012
+
             Migration \`20201231000000_init\` cannot be rolled back because it is not in a failed state.
 
           `)
