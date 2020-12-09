@@ -21,11 +21,11 @@
     "scripts"
   ],
   "devDependencies": {
-    "@types/jest": "26.0.16",
+    "@types/jest": "26.0.18",
     "@types/node": "12.19.8",
     "@types/tar": "4.0.4",
-    "@typescript-eslint/eslint-plugin": "4.9.0",
-    "@typescript-eslint/parser": "4.9.0",
+    "@typescript-eslint/eslint-plugin": "4.9.1",
+    "@typescript-eslint/parser": "4.9.1",
     "eslint": "7.15.0",
     "eslint-config-prettier": "7.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
