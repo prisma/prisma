@@ -1,6 +1,6 @@
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { getModelArgName, unique } from '../utils'
+import { getAggregateArgsName, getModelArgName, unique } from '../utils'
 
 export function getMethodJSDocBody(
   action: DMMF.ModelAction | 'findOne',
@@ -176,6 +176,43 @@ const ${lowerCase(mapping.model)} = await ${method}({
     // ... the filter for the ${singular} we want to update
   }
 })`
+    case DMMF.ModelAction.count:
+      return `Count the number of ${plural}.
+@param {${getModelArgName(
+        model.name,
+        action,
+      )}} args - Arguments to filter ${plural} to count.
+@example
+// Count the number of ${plural}
+const count = await ${method}({
+  where: {
+    // ... the filter for the ${plural} we want to count
+  }
+})`
+    case DMMF.ModelAction.aggregate:
+      return `Allows you to perform aggregations operations on a ${singular}.
+      @param {${getModelArgName(
+        model.name,
+        action,
+      )}} args - Select which aggregations you would like to apply and on what fields.
+      @example
+      // Ordered by age ascending
+      // Where email contains prisma.io
+      // Limited to the 10 users
+      const aggregations = await prisma.user.aggregate({
+        avg: {
+          age: true,
+        },
+        where: {
+          email: {
+            contains: "prisma.io",
+          },
+        },
+        orderBy: {
+          age: "asc",
+        },
+        take: 10,
+      })`
   }
 
   return ''
@@ -188,7 +225,28 @@ export function getMethodJSDoc(
 ): string {
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
-
+export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
+  if (actionName === 'count') return ''
+  if (actionName === 'aggregate')
+    return `<T extends ${getAggregateArgsName(name)}>`
+  return `<T extends ${getModelArgName(name, actionName)}>`
+}
+export function getArgs(name: string, actionName: DMMF.ModelAction) {
+  if (actionName === 'count')
+    return `args?: Omit<${getModelArgName(
+      name,
+      DMMF.ModelAction.findMany,
+    )}, 'select' | 'include'>`
+  if (actionName === 'aggregate')
+    return `args: Subset<T, ${getAggregateArgsName(name)}>`
+  return `args${
+    actionName === DMMF.ModelAction.findMany ||
+    actionName === DMMF.ModelAction.findFirst ||
+    actionName === DMMF.ModelAction.deleteMany
+      ? '?'
+      : ''
+  }: Subset<T, ${getModelArgName(name, actionName)}>`
+}
 export function wrapComment(str: string): string {
   return `/**\n${str
     .split('\n')
@@ -206,6 +264,15 @@ export const topLevelArgsJsDocs = {
   },
   findFirst: {
     where: (singular, plural): string => `Filter, which ${singular} to fetch.`,
+    orderBy: (singular, plural): string =>
+      `Determine the order of ${plural} to fetch.`,
+    cursor: (singular, plural): string =>
+      `Sets the position for searching for ${plural}.`,
+    take: (singular, plural): string =>
+      `The number of ${plural} to search. If negative number, it will take ${plural} before the \`cursor\`.`,
+    skip: (singular, plural): string => `Skip the first \`n\` ${plural}.`,
+    distinct: (singular, plural): string =>
+      `Filter by unique combinations of ${plural}.`,
   },
   findMany: {
     where: (singular, plural): string => `Filter, which ${plural} to fetch.`,
@@ -240,6 +307,23 @@ export const topLevelArgsJsDocs = {
   aggregate: {
     where: (singular, plural): string =>
       `Filter which ${singular} to group by.`,
+  },
+  count: {},
+  updateMany: {
+    data: (singular, plural) => `The data used to update ${plural}.`,
+    where: (singular, plural) => `Filter which ${plural} to update`,
+  },
+  deleteMany: {
+    where: (singular, plural) => `Filter which ${plural} to aggregate`,
+    orderBy: (singular, plural) => ``,
+    cursor: (singular, plural) => ``,
+    take: (singular, plural) => ``,
+    skip: (singular, plural) => ``,
+    distinct: (singular, plural) => ``,
+    avg: (singular, plural) => ``,
+    sum: (singular, plural) => ``,
+    min: (singular, plural) => ``,
+    max: (singular, plural) => ``,
   },
 }
 /* eslint-enable @typescript-eslint/no-unused-vars */
