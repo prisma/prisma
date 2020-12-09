@@ -39,7 +39,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
-    "execa": "^4.0.2",
+    "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
