@@ -58,7 +58,7 @@
     "cli-cursor": "3.1.0",
     "dashify": "2.0.0",
     "diff": "4.0.2",
-    "execa": "^4.0.0",
+    "execa": "^5.0.0",
     "figures": "^3.2.0",
     "git-user-email": "^0.2.2",
     "git-user-name": "^2.0.0",
