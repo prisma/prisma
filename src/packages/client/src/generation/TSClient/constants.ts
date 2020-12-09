@@ -61,7 +61,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `Filter, which ${singular} to fetch.`,
     },
   },
@@ -80,7 +80,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `Filter, which ${singular} to fetch.`,
     },
   },
@@ -99,16 +99,16 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `Filter, which ${singular} to fetch.`,
-      orderBy: (singular, plural): string =>
+      orderBy: (singular, plural) =>
         `Determine the order of ${plural} to fetch.`,
-      cursor: (singular, plural): string =>
+      cursor: (singular, plural) =>
         `Sets the position for searching for ${plural}.`,
-      take: (singular, plural): string =>
+      take: (singular, plural) =>
         `The number of ${plural} to search. If negative number, it will take ${plural} before the \`cursor\`.`,
-      skip: (singular, plural): string => `Skip the first \`n\` ${plural}.`,
-      distinct: (singular, plural): string =>
+      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
+      distinct: (singular, plural) =>
         `Filter by unique combinations of ${plural}.`,
     },
   },
@@ -138,13 +138,13 @@ ${onlySelect}
 `
     },
     fields: {
-      where: (singular, plural): string => `Filter, which ${plural} to fetch.`,
-      orderBy: (singular, plural): string =>
+      where: (singular, plural) => `Filter, which ${plural} to fetch.`,
+      orderBy: (singular, plural) =>
         `Determine the order of the ${plural} to fetch.`,
-      skip: (singular, plural): string => `Skip the first \`n\` ${plural}.`,
-      cursor: (singular, plural): string =>
+      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
+      cursor: (singular, plural) =>
         `Sets the position for listing ${plural}.`,
-      take: (singular, plural): string =>
+      take: (singular, plural) =>
         `The number of ${plural} to fetch. If negative number, it will take ${plural} before the \`cursor\`.`,
     },
   },
@@ -167,9 +167,9 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })
 `,
     fields: {
-      data: (singular, plural): string =>
+      data: (singular, plural) =>
         `The data needed to update a ${singular}.`,
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `Choose, which ${singular} to update.`,
     },
   },
@@ -194,11 +194,11 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `The filter to search for the ${singular} to update in case it exists.`,
-      create: (singular, plural): string =>
+      create: (singular, plural) =>
         `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
-      update: (singular, plural): string =>
+      update: (singular, plural) =>
         `In case the ${singular} was found with the provided \`where\` argument, update it with this data.`,
     },
   },
@@ -218,7 +218,7 @@ const ${ctx.singular} = await ${ctx.method}({
 })
 `,
     fields: {
-      where: (singular, plural): string =>
+      where: (singular, plural) =>
         `Filter which ${singular} to delete.`,
     },
   },
@@ -248,8 +248,19 @@ const aggregations = await prisma.user.aggregate({
   take: 10,
 })`,
     fields: {
-      where: (singular, plural): string =>
-        `Filter which ${singular} to group by.`,
+      where: (singular, plural) =>
+        `Filter which ${singular} to aggregate.`,
+      orderBy: (singular, plural) =>
+        `Determine the order of ${plural} to aggregate.`,
+      cursor: (singular, plural) =>
+        `Sets the start position`,
+      take: (singular, plural) =>
+        `The number of ${plural} to aggregate. If negative number, it will take ${plural} before the \`cursor\`.`,
+      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
+      count: (singular, plural) => ``,
+      avg: (singular, plural) => ``,
+      sum: (singular, plural) => ``,
+      min: (singular, plural) => ``,
     },
   },
   count: {
@@ -307,16 +318,7 @@ const { count } = await ${ctx.method}({
 })
 `,
     fields: {
-      where: (singular, plural) => `Filter which ${plural} to aggregate`,
-      orderBy: (singular, plural) => ``,
-      cursor: (singular, plural) => ``,
-      take: (singular, plural) => ``,
-      skip: (singular, plural) => ``,
-      distinct: (singular, plural) => ``,
-      avg: (singular, plural) => ``,
-      sum: (singular, plural) => ``,
-      min: (singular, plural) => ``,
-      max: (singular, plural) => ``,
+      where: (singular, plural) => `Filter which ${plural} to delete`,
     },
   },
 }

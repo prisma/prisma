@@ -1316,12 +1316,24 @@ export namespace Prisma {
 
   export type AggregatePostArgs = {
     /**
-     * Filter which Post to group by.
+     * Filter which Post to aggregate.
     **/
     where?: PostWhereInput
+    /**
+     * Determine the order of Posts to aggregate.
+    **/
     orderBy?: Enumerable<PostOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: PostWhereUniqueInput
+    /**
+     * The number of Posts to aggregate. If negative number, it will take Posts before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` Posts.
+    **/
     skip?: number
     count?: true
     avg?: PostAvgAggregateInputType
@@ -1592,9 +1604,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByPostArgs>(args: Subset<T, GroupByPostArgs>): Promise<GetPostGroupByPayload<T>>
 
     /**
@@ -2038,12 +2051,24 @@ export namespace Prisma {
 
   export type AggregateUserArgs = {
     /**
-     * Filter which User to group by.
+     * Filter which User to aggregate.
     **/
     where?: UserWhereInput
+    /**
+     * Determine the order of Users to aggregate.
+    **/
     orderBy?: Enumerable<UserOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: UserWhereUniqueInput
+    /**
+     * The number of Users to aggregate. If negative number, it will take Users before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` Users.
+    **/
     skip?: number
     count?: true
     avg?: UserAvgAggregateInputType
@@ -2330,9 +2355,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByUserArgs>(args: Subset<T, GroupByUserArgs>): Promise<GetUserGroupByPayload<T>>
 
     /**
@@ -2770,12 +2796,24 @@ export namespace Prisma {
 
   export type AggregateMArgs = {
     /**
-     * Filter which M to group by.
+     * Filter which M to aggregate.
     **/
     where?: MWhereInput
+    /**
+     * Determine the order of MS to aggregate.
+    **/
     orderBy?: Enumerable<MOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: MWhereUniqueInput
+    /**
+     * The number of MS to aggregate. If negative number, it will take MS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` MS.
+    **/
     skip?: number
     count?: true
     avg?: MAvgAggregateInputType
@@ -3060,9 +3098,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByMArgs>(args: Subset<T, GroupByMArgs>): Promise<GetMGroupByPayload<T>>
 
     /**
@@ -3500,12 +3539,24 @@ export namespace Prisma {
 
   export type AggregateNArgs = {
     /**
-     * Filter which N to group by.
+     * Filter which N to aggregate.
     **/
     where?: NWhereInput
+    /**
+     * Determine the order of NS to aggregate.
+    **/
     orderBy?: Enumerable<NOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: NWhereUniqueInput
+    /**
+     * The number of NS to aggregate. If negative number, it will take NS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` NS.
+    **/
     skip?: number
     count?: true
     avg?: NAvgAggregateInputType
@@ -3790,9 +3841,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByNArgs>(args: Subset<T, GroupByNArgs>): Promise<GetNGroupByPayload<T>>
 
     /**
@@ -4230,12 +4282,24 @@ export namespace Prisma {
 
   export type AggregateOneOptionalArgs = {
     /**
-     * Filter which OneOptional to group by.
+     * Filter which OneOptional to aggregate.
     **/
     where?: OneOptionalWhereInput
+    /**
+     * Determine the order of OneOptionals to aggregate.
+    **/
     orderBy?: Enumerable<OneOptionalOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: OneOptionalWhereUniqueInput
+    /**
+     * The number of OneOptionals to aggregate. If negative number, it will take OneOptionals before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` OneOptionals.
+    **/
     skip?: number
     count?: true
     avg?: OneOptionalAvgAggregateInputType
@@ -4520,9 +4584,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByOneOptionalArgs>(args: Subset<T, GroupByOneOptionalArgs>): Promise<GetOneOptionalGroupByPayload<T>>
 
     /**
@@ -4970,12 +5035,24 @@ export namespace Prisma {
 
   export type AggregateManyRequiredArgs = {
     /**
-     * Filter which ManyRequired to group by.
+     * Filter which ManyRequired to aggregate.
     **/
     where?: ManyRequiredWhereInput
+    /**
+     * Determine the order of ManyRequireds to aggregate.
+    **/
     orderBy?: Enumerable<ManyRequiredOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: ManyRequiredWhereUniqueInput
+    /**
+     * The number of ManyRequireds to aggregate. If negative number, it will take ManyRequireds before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` ManyRequireds.
+    **/
     skip?: number
     count?: true
     avg?: ManyRequiredAvgAggregateInputType
@@ -5262,9 +5339,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByManyRequiredArgs>(args: Subset<T, GroupByManyRequiredArgs>): Promise<GetManyRequiredGroupByPayload<T>>
 
     /**
@@ -5712,12 +5790,24 @@ export namespace Prisma {
 
   export type AggregateOptionalSide1Args = {
     /**
-     * Filter which OptionalSide1 to group by.
+     * Filter which OptionalSide1 to aggregate.
     **/
     where?: OptionalSide1WhereInput
+    /**
+     * Determine the order of OptionalSide1s to aggregate.
+    **/
     orderBy?: Enumerable<OptionalSide1OrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: OptionalSide1WhereUniqueInput
+    /**
+     * The number of OptionalSide1s to aggregate. If negative number, it will take OptionalSide1s before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` OptionalSide1s.
+    **/
     skip?: number
     count?: true
     avg?: OptionalSide1AvgAggregateInputType
@@ -6004,9 +6094,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByOptionalSide1Args>(args: Subset<T, GroupByOptionalSide1Args>): Promise<GetOptionalSide1GroupByPayload<T>>
 
     /**
@@ -6444,12 +6535,24 @@ export namespace Prisma {
 
   export type AggregateOptionalSide2Args = {
     /**
-     * Filter which OptionalSide2 to group by.
+     * Filter which OptionalSide2 to aggregate.
     **/
     where?: OptionalSide2WhereInput
+    /**
+     * Determine the order of OptionalSide2s to aggregate.
+    **/
     orderBy?: Enumerable<OptionalSide2OrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: OptionalSide2WhereUniqueInput
+    /**
+     * The number of OptionalSide2s to aggregate. If negative number, it will take OptionalSide2s before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` OptionalSide2s.
+    **/
     skip?: number
     count?: true
     avg?: OptionalSide2AvgAggregateInputType
@@ -6734,9 +6837,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByOptionalSide2Args>(args: Subset<T, GroupByOptionalSide2Args>): Promise<GetOptionalSide2GroupByPayload<T>>
 
     /**
@@ -7184,12 +7288,24 @@ export namespace Prisma {
 
   export type AggregateAArgs = {
     /**
-     * Filter which A to group by.
+     * Filter which A to aggregate.
     **/
     where?: AWhereInput
+    /**
+     * Determine the order of AS to aggregate.
+    **/
     orderBy?: Enumerable<AOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: AWhereUniqueInput
+    /**
+     * The number of AS to aggregate. If negative number, it will take AS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` AS.
+    **/
     skip?: number
     count?: true
     avg?: AAvgAggregateInputType
@@ -7462,9 +7578,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByAArgs>(args: Subset<T, GroupByAArgs>): Promise<GetAGroupByPayload<T>>
 
     /**
@@ -7817,12 +7934,24 @@ export namespace Prisma {
 
   export type AggregateBArgs = {
     /**
-     * Filter which B to group by.
+     * Filter which B to aggregate.
     **/
     where?: BWhereInput
+    /**
+     * Determine the order of BS to aggregate.
+    **/
     orderBy?: Enumerable<BOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: BWhereUniqueInput
+    /**
+     * The number of BS to aggregate. If negative number, it will take BS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` BS.
+    **/
     skip?: number
     count?: true
     avg?: BAvgAggregateInputType
@@ -8081,9 +8210,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByBArgs>(args: Subset<T, GroupByBArgs>): Promise<GetBGroupByPayload<T>>
 
     /**
@@ -8418,12 +8548,24 @@ export namespace Prisma {
 
   export type AggregateCArgs = {
     /**
-     * Filter which C to group by.
+     * Filter which C to aggregate.
     **/
     where?: CWhereInput
+    /**
+     * Determine the order of CS to aggregate.
+    **/
     orderBy?: Enumerable<COrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: CWhereUniqueInput
+    /**
+     * The number of CS to aggregate. If negative number, it will take CS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` CS.
+    **/
     skip?: number
     count?: true
     min?: CMinAggregateInputType
@@ -8678,9 +8820,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByCArgs>(args: Subset<T, GroupByCArgs>): Promise<GetCGroupByPayload<T>>
 
     /**
@@ -9009,12 +9152,24 @@ export namespace Prisma {
 
   export type AggregateDArgs = {
     /**
-     * Filter which D to group by.
+     * Filter which D to aggregate.
     **/
     where?: DWhereInput
+    /**
+     * Determine the order of DS to aggregate.
+    **/
     orderBy?: Enumerable<DOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: DWhereUniqueInput
+    /**
+     * The number of DS to aggregate. If negative number, it will take DS before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` DS.
+    **/
     skip?: number
     count?: true
     min?: DMinAggregateInputType
@@ -9267,9 +9422,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByDArgs>(args: Subset<T, GroupByDArgs>): Promise<GetDGroupByPayload<T>>
 
     /**
@@ -9586,12 +9742,24 @@ export namespace Prisma {
 
   export type AggregateEArgs = {
     /**
-     * Filter which E to group by.
+     * Filter which E to aggregate.
     **/
     where?: EWhereInput
+    /**
+     * Determine the order of ES to aggregate.
+    **/
     orderBy?: Enumerable<EOrderByInput>
+    /**
+     * Sets the start position
+    **/
     cursor?: EWhereUniqueInput
+    /**
+     * The number of ES to aggregate. If negative number, it will take ES before the \`cursor\`.
+    **/
     take?: number
+    /**
+     * Skip the first \`n\` ES.
+    **/
     skip?: number
     count?: true
     min?: EMinAggregateInputType
@@ -9840,9 +10008,10 @@ export namespace Prisma {
   **/
     count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
 
+    
     /**
-     * Group By
-     */
+   * Group By
+  **/
     groupBy<T extends GroupByEArgs>(args: Subset<T, GroupByEArgs>): Promise<GetEGroupByPayload<T>>
 
     /**
