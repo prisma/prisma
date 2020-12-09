@@ -1315,6 +1315,9 @@ export namespace Prisma {
   }
 
   export type AggregatePostArgs = {
+    /**
+     * Filter which Post to group by.
+    **/
     where?: PostWhereInput
     orderBy?: Enumerable<PostOrderByInput>
     cursor?: PostWhereUniqueInput
@@ -1596,25 +1599,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a Post.
-   *       @param {AggregatePostArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregatePostArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregatePostArgs>(args: Subset<T, AggregatePostArgs>): Promise<GetPostAggregateType<T>>
   }
@@ -2034,6 +2037,9 @@ export namespace Prisma {
   }
 
   export type AggregateUserArgs = {
+    /**
+     * Filter which User to group by.
+    **/
     where?: UserWhereInput
     orderBy?: Enumerable<UserOrderByInput>
     cursor?: UserWhereUniqueInput
@@ -2331,25 +2337,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a User.
-   *       @param {AggregateUserArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateUserArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateUserArgs>(args: Subset<T, AggregateUserArgs>): Promise<GetUserAggregateType<T>>
   }
@@ -2763,6 +2769,9 @@ export namespace Prisma {
   }
 
   export type AggregateMArgs = {
+    /**
+     * Filter which M to group by.
+    **/
     where?: MWhereInput
     orderBy?: Enumerable<MOrderByInput>
     cursor?: MWhereUniqueInput
@@ -3058,25 +3067,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a M.
-   *       @param {AggregateMArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateMArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateMArgs>(args: Subset<T, AggregateMArgs>): Promise<GetMAggregateType<T>>
   }
@@ -3490,6 +3499,9 @@ export namespace Prisma {
   }
 
   export type AggregateNArgs = {
+    /**
+     * Filter which N to group by.
+    **/
     where?: NWhereInput
     orderBy?: Enumerable<NOrderByInput>
     cursor?: NWhereUniqueInput
@@ -3785,25 +3797,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a N.
-   *       @param {AggregateNArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateNArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateNArgs>(args: Subset<T, AggregateNArgs>): Promise<GetNAggregateType<T>>
   }
@@ -4217,6 +4229,9 @@ export namespace Prisma {
   }
 
   export type AggregateOneOptionalArgs = {
+    /**
+     * Filter which OneOptional to group by.
+    **/
     where?: OneOptionalWhereInput
     orderBy?: Enumerable<OneOptionalOrderByInput>
     cursor?: OneOptionalWhereUniqueInput
@@ -4512,25 +4527,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a OneOptional.
-   *       @param {AggregateOneOptionalArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateOneOptionalArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateOneOptionalArgs>(args: Subset<T, AggregateOneOptionalArgs>): Promise<GetOneOptionalAggregateType<T>>
   }
@@ -4954,6 +4969,9 @@ export namespace Prisma {
   }
 
   export type AggregateManyRequiredArgs = {
+    /**
+     * Filter which ManyRequired to group by.
+    **/
     where?: ManyRequiredWhereInput
     orderBy?: Enumerable<ManyRequiredOrderByInput>
     cursor?: ManyRequiredWhereUniqueInput
@@ -5251,25 +5269,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a ManyRequired.
-   *       @param {AggregateManyRequiredArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateManyRequiredArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateManyRequiredArgs>(args: Subset<T, AggregateManyRequiredArgs>): Promise<GetManyRequiredAggregateType<T>>
   }
@@ -5693,6 +5711,9 @@ export namespace Prisma {
   }
 
   export type AggregateOptionalSide1Args = {
+    /**
+     * Filter which OptionalSide1 to group by.
+    **/
     where?: OptionalSide1WhereInput
     orderBy?: Enumerable<OptionalSide1OrderByInput>
     cursor?: OptionalSide1WhereUniqueInput
@@ -5990,25 +6011,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a OptionalSide1.
-   *       @param {AggregateOptionalSide1Args} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateOptionalSide1Args} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateOptionalSide1Args>(args: Subset<T, AggregateOptionalSide1Args>): Promise<GetOptionalSide1AggregateType<T>>
   }
@@ -6422,6 +6443,9 @@ export namespace Prisma {
   }
 
   export type AggregateOptionalSide2Args = {
+    /**
+     * Filter which OptionalSide2 to group by.
+    **/
     where?: OptionalSide2WhereInput
     orderBy?: Enumerable<OptionalSide2OrderByInput>
     cursor?: OptionalSide2WhereUniqueInput
@@ -6717,25 +6741,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a OptionalSide2.
-   *       @param {AggregateOptionalSide2Args} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateOptionalSide2Args} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateOptionalSide2Args>(args: Subset<T, AggregateOptionalSide2Args>): Promise<GetOptionalSide2AggregateType<T>>
   }
@@ -7159,6 +7183,9 @@ export namespace Prisma {
   }
 
   export type AggregateAArgs = {
+    /**
+     * Filter which A to group by.
+    **/
     where?: AWhereInput
     orderBy?: Enumerable<AOrderByInput>
     cursor?: AWhereUniqueInput
@@ -7442,25 +7469,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a A.
-   *       @param {AggregateAArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateAArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateAArgs>(args: Subset<T, AggregateAArgs>): Promise<GetAAggregateType<T>>
   }
@@ -7789,6 +7816,9 @@ export namespace Prisma {
   }
 
   export type AggregateBArgs = {
+    /**
+     * Filter which B to group by.
+    **/
     where?: BWhereInput
     orderBy?: Enumerable<BOrderByInput>
     cursor?: BWhereUniqueInput
@@ -8058,25 +8088,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a B.
-   *       @param {AggregateBArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateBArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateBArgs>(args: Subset<T, AggregateBArgs>): Promise<GetBAggregateType<T>>
   }
@@ -8387,6 +8417,9 @@ export namespace Prisma {
   }
 
   export type AggregateCArgs = {
+    /**
+     * Filter which C to group by.
+    **/
     where?: CWhereInput
     orderBy?: Enumerable<COrderByInput>
     cursor?: CWhereUniqueInput
@@ -8652,25 +8685,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a C.
-   *       @param {AggregateCArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateCArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateCArgs>(args: Subset<T, AggregateCArgs>): Promise<GetCAggregateType<T>>
   }
@@ -8975,6 +9008,9 @@ export namespace Prisma {
   }
 
   export type AggregateDArgs = {
+    /**
+     * Filter which D to group by.
+    **/
     where?: DWhereInput
     orderBy?: Enumerable<DOrderByInput>
     cursor?: DWhereUniqueInput
@@ -9238,25 +9274,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a D.
-   *       @param {AggregateDArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateDArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateDArgs>(args: Subset<T, AggregateDArgs>): Promise<GetDAggregateType<T>>
   }
@@ -9549,6 +9585,9 @@ export namespace Prisma {
   }
 
   export type AggregateEArgs = {
+    /**
+     * Filter which E to group by.
+    **/
     where?: EWhereInput
     orderBy?: Enumerable<EOrderByInput>
     cursor?: EWhereUniqueInput
@@ -9808,25 +9847,25 @@ export namespace Prisma {
 
     /**
    * Allows you to perform aggregations operations on a E.
-   *       @param {AggregateEArgs} args - Select which aggregations you would like to apply and on what fields.
-   *       @example
-   *       // Ordered by age ascending
-   *       // Where email contains prisma.io
-   *       // Limited to the 10 users
-   *       const aggregations = await prisma.user.aggregate({
-   *         avg: {
-   *           age: true,
-   *         },
-   *         where: {
-   *           email: {
-   *             contains: "prisma.io",
-   *           },
-   *         },
-   *         orderBy: {
-   *           age: "asc",
-   *         },
-   *         take: 10,
-   *       })
+   * @param {AggregateEArgs} args - Select which aggregations you would like to apply and on what fields.
+   * @example
+   * // Ordered by age ascending
+   * // Where email contains prisma.io
+   * // Limited to the 10 users
+   * const aggregations = await prisma.user.aggregate({
+   *   avg: {
+   *     age: true,
+   *   },
+   *   where: {
+   *     email: {
+   *       contains: "prisma.io",
+   *     },
+   *   },
+   *   orderBy: {
+   *     age: "asc",
+   *   },
+   *   take: 10,
+   * })
   **/
     aggregate<T extends AggregateEArgs>(args: Subset<T, AggregateEArgs>): Promise<GetEAggregateType<T>>
   }

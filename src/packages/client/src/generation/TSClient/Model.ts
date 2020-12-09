@@ -26,7 +26,7 @@ import {
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
-import { ExportCollector, getArgs, getGenericMethod, getMethodJSDoc } from './helpers'
+import { ExportCollector, getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc } from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
@@ -252,7 +252,10 @@ ${
 export type ${aggregateArgsName} = {
 ${indent(
   aggregateRootField.args
-    .map((arg) => new InputField(arg).toTS())
+    .map((arg) => {
+      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.aggregate, arg)
+      return new InputField(arg).toTS()
+    })
     .concat(
       aggregateType.fields.map((f) => {
         if (f.name === 'count') {
