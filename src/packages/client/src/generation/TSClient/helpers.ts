@@ -2,7 +2,7 @@ import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
 import pluralize from 'pluralize'
-import { JSDocMethodBodies, JSDocMethodBodyCtx, JsDocsArgs } from './constants'
+import { JSDocs, JSDocMethodBodyCtx } from './constants'
 
 export function getMethodJSDocBody(
   action: DMMF.ModelAction | 'findOne',
@@ -18,7 +18,7 @@ export function getMethodJSDocBody(
     mapping, 
     model
   }
-  const jsdoc = JSDocMethodBodies[action](ctx)
+  const jsdoc = JSDocs[action]?.body(ctx)
   
   return jsdoc ? jsdoc : ''
 }
@@ -60,10 +60,10 @@ export function wrapComment(str: string): string {
 }
 export function getArgFieldJSDoc(model?: DMMF.Model,  action?: DMMF.ModelAction,field?: DMMF.SchemaArg): string | undefined{
   if(!field || !action || !model) return
-  if(JsDocsArgs[action] && JsDocsArgs[action][field.name]){
+  if(JSDocs[action] && JSDocs[action]?.fields[field.name]){
     const singular = model.name
     const plural = pluralize(model.name)
-    const comment = JsDocsArgs[action][field.name](singular, plural)
+    const comment = JSDocs[action]?.fields[field.name](singular, plural)
     return comment as string
   }
 }
