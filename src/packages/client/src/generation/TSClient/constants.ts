@@ -22,7 +22,7 @@ type JSDocsType = {
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
-    body: (ctx) => ``,
+    body: (ctx) => `Group By`,
     fields: {}
   },
   create: {

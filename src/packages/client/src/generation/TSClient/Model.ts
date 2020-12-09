@@ -115,7 +115,10 @@ export class Model implements Generatable {
 export type ${groupByArgsName} = {
 ${indent(
   groupByRootField.args
-    .map((arg) => new InputField(arg, false, arg.name === 'by').toTS())
+    .map((arg) => {
+      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.groupBy, arg)
+      return new InputField(arg, false, arg.name === 'by').toTS()
+    })
     .concat(
       groupByType.fields
         .filter((f) => f.outputType.location === 'outputObjectTypes')
@@ -420,9 +423,8 @@ ${actionName}${getGenericMethod(name, actionName)}(
 
   ${
     groupByEnabled
-      ? `/**
-   * Group By
-   */
+      ? `  
+  ${getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model)}
   groupBy<T extends ${getGroupByArgsName(
     name,
   )}>(args: Subset<T, ${getGroupByArgsName(
