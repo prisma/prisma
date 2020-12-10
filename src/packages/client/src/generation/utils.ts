@@ -229,8 +229,11 @@ export function getSelectReturnType({
   hideCondition = false,
   isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: SelectReturnTypeOptions): string {
-  if(actionName === 'count') return `Promise<number>`
-  if(actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
+  if (actionName === 'count') {
+    return `Promise<number>`
+  }
+  if (actionName === 'aggregate')
+    return `Promise<${getAggregateGetName(name)}<T>>`
 
   const isList = actionName === DMMF.ModelAction.findMany
 
