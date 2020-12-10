@@ -3,7 +3,7 @@ import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
@@ -35,7 +35,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 
-const debug = debugLib('engine')
+const debug = Debug('engine')
 const exists = promisify(fs.exists)
 
 export interface DatasourceOverwrite {
@@ -252,7 +252,7 @@ You may have to run ${chalk.greenBright(
       void this.getPlatform()
     }
     if (this.enableDebugLogs) {
-      debugLib.enable('*')
+      Debug.enable('*')
     }
     engines.push(this)
     this.checkForTooManyEngines()

@@ -17,10 +17,9 @@ import chalk from 'chalk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
-// do this before facebook's yoga
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 
-const debug = debugLib('prisma')
+const debug = Debug('prisma')
 process.on('uncaughtException', (e) => {
   debug(e)
 })
@@ -95,12 +94,6 @@ import {
   DbDrop,
   DbCommand,
   handlePanic,
-  // Legacy
-  MigrateCommandLegacy,
-  MigrateSave,
-  MigrateUpLegacy,
-  MigrateDown,
-  MigrateTmpPrepare,
 } from '@prisma/migrate'
 
 import { CLI } from './CLI'
@@ -145,11 +138,6 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      'migrate-legacy': MigrateCommandLegacy.new({
-        save: MigrateSave.new(),
-        up: MigrateUpLegacy.new(),
-        down: MigrateDown.new(),
-      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -162,7 +150,6 @@ async function main(): Promise<number> {
         push: DbPush.new(),
         drop: DbDrop.new(),
       }),
-      'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
       studio: Studio.new(aliases),
@@ -177,7 +164,6 @@ async function main(): Promise<number> {
       'version',
       'init',
       'migrate',
-      'migrate-legacy',
       'db',
       'tmp-prepare',
       'introspect',
@@ -294,7 +280,7 @@ function handleIndividualError(error): void {
   if (error.rustStack) {
     handlePanic(error, packageJson.version, enginesVersion)
       .catch((e) => {
-        if (debugLib.enabled('prisma')) {
+        if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)
         } else {
           console.error(chalk.redBright.bold('Error: ') + e.message)
@@ -304,7 +290,7 @@ function handleIndividualError(error): void {
         process.exit(1)
       })
   } else {
-    if (debugLib.enabled('prisma')) {
+    if (Debug.enabled('prisma')) {
       console.error(chalk.redBright.bold('Error: ') + error.stack)
     } else {
       console.error(chalk.redBright.bold('Error: ') + error.message)
