@@ -40,7 +40,7 @@ if (process.argv.length > 2) {
  * Dependencies
  */
 import chalk from 'chalk'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateDev } from './commands/MigrateDev'
@@ -100,7 +100,7 @@ main()
     if (error.rustStack) {
       handlePanic(error, packageJson.version, enginesVersion)
         .catch((e) => {
-          if (debugLib.enabled('migrate')) {
+          if (Debug.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)
           } else {
             console.error(chalk.redBright.bold('Error: ') + e.message)
@@ -110,7 +110,7 @@ main()
           process.exit(1)
         })
     } else {
-      if (debugLib.enabled('migrate')) {
+      if (Debug.enabled('migrate')) {
         console.error(chalk.redBright.bold('Error: ') + error.stack)
       } else {
         console.error(chalk.redBright.bold('Error: ') + error.message)

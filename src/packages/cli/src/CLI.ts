@@ -48,9 +48,6 @@ export class CLI implements Command {
 
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
-      // if (args['--experimental']) {
-      //   return CLI.experimentalHelp
-      // }
       return CLI.help
     }
 
@@ -150,53 +147,4 @@ export class CLI implements Command {
       Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview-feature
   `)
-
-  // private static experimentalHelp = format(`
-  //   ${
-  //     process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
-  //   }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-  //   'https://prisma.io',
-  // )})
-
-  //   ${chalk.bold('Usage')}
-
-  //     ${chalk.dim('$')} prisma [command]
-
-  //   ${chalk.bold('Commands')}
-
-  //               init   Setup Prisma for your app
-  //         introspect   Get the datamodel of your database
-  //           generate   Generate artifacts (e.g. Prisma Client)
-  //             studio   Open Prisma Studio
-  //             format   Format your schema
-  //                 db   Manage your database schema and lifecycle ${chalk.dim(
-  //                   '(Preview)',
-  //                 )}
-  //            migrate   Migrate your database ${chalk.dim('(Early Access)')}
-
-  //   ${chalk.bold('Flags')}
-
-  //        --preview-feature   Run Preview Prisma commands
-  //   --early-access-feature   Run Early Access Prisma commands
-
-  //   ${chalk.bold('Examples')}
-
-  //     Setup a new Prisma project
-  //     ${chalk.dim('$')} prisma init
-
-  //     Introspect an existing database
-  //     ${chalk.dim('$')} prisma introspect
-
-  //     Generate artifacts (e.g. Prisma Client)
-  //     ${chalk.dim('$')} prisma generate
-
-  //     Browse your data
-  //     ${chalk.dim('$')} prisma studio
-
-  //     Push the Prisma schema state to the database
-  //     ${chalk.dim('$')} prisma db push --preview-feature
-
-  //     Create a migration for your database
-  //     ${chalk.dim('$')} prisma migrate dev --early-access-feature
-  // `)
 }
