@@ -16,7 +16,6 @@
   },
   "include": ["src/runtime"],
   "exclude": [
-    "archive",
     "dist",
     "build",
     "cli",

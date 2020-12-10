@@ -1,4 +1,4 @@
-const Debug = require('debug')
+const Debug = require('@prisma/debug')
 const path = require('path')
 const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')

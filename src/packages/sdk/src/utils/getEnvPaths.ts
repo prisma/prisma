@@ -1,11 +1,11 @@
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import findUp from 'find-up'
 import path from 'path'
 import fs from 'fs'
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
-const debug = debugLib('loadEnv')
+const debug = Debug('loadEnv')
 /**
  *  1. Search in project root
  *  1. Schema
