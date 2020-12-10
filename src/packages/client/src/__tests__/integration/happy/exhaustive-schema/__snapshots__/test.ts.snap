@@ -1328,7 +1328,7 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
-     * The number of Posts to aggregate. If negative number, it will take Posts before the \`cursor\`.
+     * Take \`n\` Posts from the position of the cursor (cursor included). If negative number, it will take Posts before the \`cursor\`.
     **/
     take?: number
     /**
@@ -1743,7 +1743,7 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
-     * The number of Posts to search. If negative number, it will take Posts before the \`cursor\`.
+     * Take \`n\` Posts from the position of the cursor (cursor included). If negative number, it will take Posts before the \`cursor\`.
     **/
     take?: number
     /**
@@ -1782,7 +1782,7 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
-     * The number of Posts to fetch. If negative number, it will take Posts before the \`cursor\`.
+     * Take \`n\` Posts from the position of the cursor (cursor included). If negative number, it will take Posts before the \`cursor\`.
     **/
     take?: number
     /**
@@ -2078,7 +2078,7 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
-     * The number of Users to aggregate. If negative number, it will take Users before the \`cursor\`.
+     * Take \`n\` Users from the position of the cursor (cursor included). If negative number, it will take Users before the \`cursor\`.
     **/
     take?: number
     /**
@@ -2509,7 +2509,7 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
-     * The number of Users to search. If negative number, it will take Users before the \`cursor\`.
+     * Take \`n\` Users from the position of the cursor (cursor included). If negative number, it will take Users before the \`cursor\`.
     **/
     take?: number
     /**
@@ -2548,7 +2548,7 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
-     * The number of Users to fetch. If negative number, it will take Users before the \`cursor\`.
+     * Take \`n\` Users from the position of the cursor (cursor included). If negative number, it will take Users before the \`cursor\`.
     **/
     take?: number
     /**
@@ -2838,7 +2838,7 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
-     * The number of MS to aggregate. If negative number, it will take MS before the \`cursor\`.
+     * Take \`n\` MS from the position of the cursor (cursor included). If negative number, it will take MS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -3267,7 +3267,7 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
-     * The number of MS to search. If negative number, it will take MS before the \`cursor\`.
+     * Take \`n\` MS from the position of the cursor (cursor included). If negative number, it will take MS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -3306,7 +3306,7 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
-     * The number of MS to fetch. If negative number, it will take MS before the \`cursor\`.
+     * Take \`n\` MS from the position of the cursor (cursor included). If negative number, it will take MS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -3596,7 +3596,7 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
-     * The number of NS to aggregate. If negative number, it will take NS before the \`cursor\`.
+     * Take \`n\` NS from the position of the cursor (cursor included). If negative number, it will take NS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -4025,7 +4025,7 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
-     * The number of NS to search. If negative number, it will take NS before the \`cursor\`.
+     * Take \`n\` NS from the position of the cursor (cursor included). If negative number, it will take NS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -4064,7 +4064,7 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
-     * The number of NS to fetch. If negative number, it will take NS before the \`cursor\`.
+     * Take \`n\` NS from the position of the cursor (cursor included). If negative number, it will take NS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -4354,7 +4354,7 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
-     * The number of OneOptionals to aggregate. If negative number, it will take OneOptionals before the \`cursor\`.
+     * Take \`n\` OneOptionals from the position of the cursor (cursor included). If negative number, it will take OneOptionals before the \`cursor\`.
     **/
     take?: number
     /**
@@ -4783,7 +4783,7 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
-     * The number of OneOptionals to search. If negative number, it will take OneOptionals before the \`cursor\`.
+     * Take \`n\` OneOptionals from the position of the cursor (cursor included). If negative number, it will take OneOptionals before the \`cursor\`.
     **/
     take?: number
     /**
@@ -4822,7 +4822,7 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
-     * The number of OneOptionals to fetch. If negative number, it will take OneOptionals before the \`cursor\`.
+     * Take \`n\` OneOptionals from the position of the cursor (cursor included). If negative number, it will take OneOptionals before the \`cursor\`.
     **/
     take?: number
     /**
@@ -5122,7 +5122,7 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
-     * The number of ManyRequireds to aggregate. If negative number, it will take ManyRequireds before the \`cursor\`.
+     * Take \`n\` ManyRequireds from the position of the cursor (cursor included). If negative number, it will take ManyRequireds before the \`cursor\`.
     **/
     take?: number
     /**
@@ -5553,7 +5553,7 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
-     * The number of ManyRequireds to search. If negative number, it will take ManyRequireds before the \`cursor\`.
+     * Take \`n\` ManyRequireds from the position of the cursor (cursor included). If negative number, it will take ManyRequireds before the \`cursor\`.
     **/
     take?: number
     /**
@@ -5592,7 +5592,7 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
-     * The number of ManyRequireds to fetch. If negative number, it will take ManyRequireds before the \`cursor\`.
+     * Take \`n\` ManyRequireds from the position of the cursor (cursor included). If negative number, it will take ManyRequireds before the \`cursor\`.
     **/
     take?: number
     /**
@@ -5892,7 +5892,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
-     * The number of OptionalSide1s to aggregate. If negative number, it will take OptionalSide1s before the \`cursor\`.
+     * Take \`n\` OptionalSide1s from the position of the cursor (cursor included). If negative number, it will take OptionalSide1s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -6323,7 +6323,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
-     * The number of OptionalSide1s to search. If negative number, it will take OptionalSide1s before the \`cursor\`.
+     * Take \`n\` OptionalSide1s from the position of the cursor (cursor included). If negative number, it will take OptionalSide1s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -6362,7 +6362,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
-     * The number of OptionalSide1s to fetch. If negative number, it will take OptionalSide1s before the \`cursor\`.
+     * Take \`n\` OptionalSide1s from the position of the cursor (cursor included). If negative number, it will take OptionalSide1s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -6652,7 +6652,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
-     * The number of OptionalSide2s to aggregate. If negative number, it will take OptionalSide2s before the \`cursor\`.
+     * Take \`n\` OptionalSide2s from the position of the cursor (cursor included). If negative number, it will take OptionalSide2s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -7081,7 +7081,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
-     * The number of OptionalSide2s to search. If negative number, it will take OptionalSide2s before the \`cursor\`.
+     * Take \`n\` OptionalSide2s from the position of the cursor (cursor included). If negative number, it will take OptionalSide2s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -7120,7 +7120,7 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
-     * The number of OptionalSide2s to fetch. If negative number, it will take OptionalSide2s before the \`cursor\`.
+     * Take \`n\` OptionalSide2s from the position of the cursor (cursor included). If negative number, it will take OptionalSide2s before the \`cursor\`.
     **/
     take?: number
     /**
@@ -7420,7 +7420,7 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
-     * The number of AS to aggregate. If negative number, it will take AS before the \`cursor\`.
+     * Take \`n\` AS from the position of the cursor (cursor included). If negative number, it will take AS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -7828,7 +7828,7 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
-     * The number of AS to search. If negative number, it will take AS before the \`cursor\`.
+     * Take \`n\` AS from the position of the cursor (cursor included). If negative number, it will take AS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -7863,7 +7863,7 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
-     * The number of AS to fetch. If negative number, it will take AS before the \`cursor\`.
+     * Take \`n\` AS from the position of the cursor (cursor included). If negative number, it will take AS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -8081,7 +8081,7 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
-     * The number of BS to aggregate. If negative number, it will take BS before the \`cursor\`.
+     * Take \`n\` BS from the position of the cursor (cursor included). If negative number, it will take BS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -8475,7 +8475,7 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
-     * The number of BS to search. If negative number, it will take BS before the \`cursor\`.
+     * Take \`n\` BS from the position of the cursor (cursor included). If negative number, it will take BS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -8510,7 +8510,7 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
-     * The number of BS to fetch. If negative number, it will take BS before the \`cursor\`.
+     * Take \`n\` BS from the position of the cursor (cursor included). If negative number, it will take BS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -8710,7 +8710,7 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
-     * The number of CS to aggregate. If negative number, it will take CS before the \`cursor\`.
+     * Take \`n\` CS from the position of the cursor (cursor included). If negative number, it will take CS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9094,7 +9094,7 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
-     * The number of CS to search. If negative number, it will take CS before the \`cursor\`.
+     * Take \`n\` CS from the position of the cursor (cursor included). If negative number, it will take CS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9129,7 +9129,7 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
-     * The number of CS to fetch. If negative number, it will take CS before the \`cursor\`.
+     * Take \`n\` CS from the position of the cursor (cursor included). If negative number, it will take CS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9323,7 +9323,7 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
-     * The number of DS to aggregate. If negative number, it will take DS before the \`cursor\`.
+     * Take \`n\` DS from the position of the cursor (cursor included). If negative number, it will take DS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9705,7 +9705,7 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
-     * The number of DS to search. If negative number, it will take DS before the \`cursor\`.
+     * Take \`n\` DS from the position of the cursor (cursor included). If negative number, it will take DS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9740,7 +9740,7 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
-     * The number of DS to fetch. If negative number, it will take DS before the \`cursor\`.
+     * Take \`n\` DS from the position of the cursor (cursor included). If negative number, it will take DS before the \`cursor\`.
     **/
     take?: number
     /**
@@ -9922,7 +9922,7 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
-     * The number of ES to aggregate. If negative number, it will take ES before the \`cursor\`.
+     * Take \`n\` ES from the position of the cursor (cursor included). If negative number, it will take ES before the \`cursor\`.
     **/
     take?: number
     /**
@@ -10300,7 +10300,7 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
-     * The number of ES to search. If negative number, it will take ES before the \`cursor\`.
+     * Take \`n\` ES from the position of the cursor (cursor included). If negative number, it will take ES before the \`cursor\`.
     **/
     take?: number
     /**
@@ -10335,7 +10335,7 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
-     * The number of ES to fetch. If negative number, it will take ES before the \`cursor\`.
+     * Take \`n\` ES from the position of the cursor (cursor included). If negative number, it will take ES before the \`cursor\`.
     **/
     take?: number
     /**

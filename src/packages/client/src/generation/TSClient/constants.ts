@@ -23,7 +23,7 @@ type JSDocsType = {
 export const JSDocs: JSDocsType = {
   groupBy: {
     body: (ctx) => `Group By`,
-    fields: {}
+    fields: {},
   },
   create: {
     body: (ctx) => `Create a ${ctx.singular}.
@@ -44,15 +44,15 @@ const ${ctx.singular} = await ${ctx.method}({
     },
   },
   findOne: {
-    body: (ctx) => 
-`Find zero or one ${ctx.singular} that matches the filter.
+    body: (ctx) =>
+      `Find zero or one ${ctx.singular} that matches the filter.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to find a ${ctx.singular}
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to find a ${ctx.singular}
 @deprecated This will be deprecated please use ${`prisma.${lowerCase(
-  ctx.mapping.model,
-)}.findUnique`}
+        ctx.mapping.model,
+      )}.findUnique`}
 @example
 // Get one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -61,17 +61,16 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) =>
-        `Filter, which ${singular} to fetch.`,
+      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
     },
   },
   findUnique: {
-    body: (ctx) => 
-`Find zero or one ${ctx.singular} that matches the filter.
+    body: (ctx) =>
+      `Find zero or one ${ctx.singular} that matches the filter.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to find a ${ctx.singular}
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -80,17 +79,16 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) =>
-        `Filter, which ${singular} to fetch.`,
+      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
     },
   },
   findFirst: {
-    body: (ctx) => 
-`Find the first ${ctx.singular} that matches the filter.
+    body: (ctx) =>
+      `Find the first ${ctx.singular} that matches the filter.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to find a ${ctx.singular}
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -99,14 +97,13 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) =>
-        `Filter, which ${singular} to fetch.`,
+      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
       orderBy: (singular, plural) =>
         `Determine the order of ${plural} to fetch.`,
       cursor: (singular, plural) =>
         `Sets the position for searching for ${plural}.`,
       take: (singular, plural) =>
-        `The number of ${plural} to search. If negative number, it will take ${plural} before the \`cursor\`.`,
+        `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
       distinct: (singular, plural) =>
         `Filter by unique combinations of ${plural}.`,
@@ -117,17 +114,17 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
       const onlySelect = ctx.firstScalar
         ? `\n// Only select the \`${ctx.firstScalar.name}\`
 const ${lowerCase(ctx.mapping.model)}With${capitalize(
-          ctx.firstScalar.name,
-        )}Only = await ${ctx.method}({ select: { ${
-          ctx.firstScalar.name
-        }: true } })`
-      : ''
+            ctx.firstScalar.name,
+          )}Only = await ${ctx.method}({ select: { ${
+            ctx.firstScalar.name
+          }: true } })`
+        : ''
 
       return `Find zero or more ${ctx.plural} that matches the filter.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}=} args - Arguments to filter and select certain fields only.
+        ctx.model.name,
+        ctx.action,
+      )}=} args - Arguments to filter and select certain fields only.
 @example
 // Get all ${ctx.plural}
 const ${ctx.mapping.plural} = await ${ctx.method}()
@@ -142,19 +139,18 @@ ${onlySelect}
       orderBy: (singular, plural) =>
         `Determine the order of the ${plural} to fetch.`,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-      cursor: (singular, plural) =>
-        `Sets the position for listing ${plural}.`,
+      cursor: (singular, plural) => `Sets the position for listing ${plural}.`,
       take: (singular, plural) =>
-        `The number of ${plural} to fetch. If negative number, it will take ${plural} before the \`cursor\`.`,
+        `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
     },
   },
   update: {
-    body: (ctx) => 
-`Update one ${ctx.singular}.
+    body: (ctx) =>
+      `Update one ${ctx.singular}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to update one ${ctx.singular}.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to update one ${ctx.singular}.
 @example
 // Update one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -167,19 +163,17 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })
 `,
     fields: {
-      data: (singular, plural) =>
-        `The data needed to update a ${singular}.`,
-      where: (singular, plural) =>
-        `Choose, which ${singular} to update.`,
+      data: (singular, plural) => `The data needed to update a ${singular}.`,
+      where: (singular, plural) => `Choose, which ${singular} to update.`,
     },
   },
   upsert: {
-    body: (ctx) => 
-`Create or update one ${ctx.singular}.
+    body: (ctx) =>
+      `Create or update one ${ctx.singular}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to update or create a ${ctx.singular}.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to update or create a ${ctx.singular}.
 @example
 // Update or create a ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -203,12 +197,12 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     },
   },
   delete: {
-    body: (ctx) => 
-`Delete a ${ctx.singular}.
+    body: (ctx) =>
+      `Delete a ${ctx.singular}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to delete one ${ctx.singular}.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to delete one ${ctx.singular}.
 @example
 // Delete one ${ctx.singular}
 const ${ctx.singular} = await ${ctx.method}({
@@ -218,17 +212,16 @@ const ${ctx.singular} = await ${ctx.method}({
 })
 `,
     fields: {
-      where: (singular, plural) =>
-        `Filter which ${singular} to delete.`,
+      where: (singular, plural) => `Filter which ${singular} to delete.`,
     },
   },
   aggregate: {
-    body: (ctx) => 
-`Allows you to perform aggregations operations on a ${ctx.singular}.
+    body: (ctx) =>
+      `Allows you to perform aggregations operations on a ${ctx.singular}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Select which aggregations you would like to apply and on what fields.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Select which aggregations you would like to apply and on what fields.
 @example
 // Ordered by age ascending
 // Where email contains prisma.io
@@ -248,29 +241,29 @@ const aggregations = await prisma.user.aggregate({
   take: 10,
 })`,
     fields: {
-      where: (singular, plural) =>
-        `Filter which ${singular} to aggregate.`,
+      where: (singular, plural) => `Filter which ${singular} to aggregate.`,
       orderBy: (singular, plural) =>
         `Determine the order of ${plural} to aggregate.`,
-      cursor: (singular, plural) =>
-        `Sets the start position`,
+      cursor: (singular, plural) => `Sets the start position`,
       take: (singular, plural) =>
-        `The number of ${plural} to aggregate. If negative number, it will take ${plural} before the \`cursor\`.`,
+      `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
       count: (singular, plural) => `Count returned ${plural}`,
       avg: (singular, plural) => `Select which fields to average`,
       sum: (singular, plural) => `Select which fields to sum`,
-      min: (singular, plural) => `Select which fields to find the minimum value`,
-      max: (singular, plural) => `Select which fields to find the maximum value`,
+      min: (singular, plural) =>
+        `Select which fields to find the minimum value`,
+      max: (singular, plural) =>
+        `Select which fields to find the maximum value`,
     },
   },
   count: {
-    body: (ctx) => 
-`Count the number of ${ctx.plural}.
+    body: (ctx) =>
+      `Count the number of ${ctx.plural}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to filter ${ctx.plural} to count.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to filter ${ctx.plural} to count.
 @example
 // Count the number of ${ctx.plural}
 const count = await ${ctx.method}({
@@ -281,12 +274,12 @@ const count = await ${ctx.method}({
     fields: {},
   },
   updateMany: {
-    body: (ctx) => 
-`Update zero or more ${ctx.plural}.
+    body: (ctx) =>
+      `Update zero or more ${ctx.plural}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to update one or more rows.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to update one or more rows.
 @example
 // Update many ${ctx.plural}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -304,12 +297,12 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     },
   },
   deleteMany: {
-    body: (ctx) => 
-`Delete zero or more ${ctx.plural}.
+    body: (ctx) =>
+      `Delete zero or more ${ctx.plural}.
 @param {${getModelArgName(
-  ctx.model.name,
-  ctx.action,
-)}} args - Arguments to filter ${ctx.plural} to delete.
+        ctx.model.name,
+        ctx.action,
+      )}} args - Arguments to filter ${ctx.plural} to delete.
 @example
 // Delete a few ${ctx.plural}
 const { count } = await ${ctx.method}({
