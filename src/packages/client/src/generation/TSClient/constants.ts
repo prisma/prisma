@@ -257,10 +257,11 @@ const aggregations = await prisma.user.aggregate({
       take: (singular, plural) =>
         `The number of ${plural} to aggregate. If negative number, it will take ${plural} before the \`cursor\`.`,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-      count: (singular, plural) => ``,
-      avg: (singular, plural) => ``,
-      sum: (singular, plural) => ``,
-      min: (singular, plural) => ``,
+      count: (singular, plural) => `Count returned ${plural}`,
+      avg: (singular, plural) => `Select which fields to average`,
+      sum: (singular, plural) => `Select which fields to sum`,
+      min: (singular, plural) => `Select which fields to find the minimum value`,
+      max: (singular, plural) => `Select which fields to find the maximum value`,
     },
   },
   count: {

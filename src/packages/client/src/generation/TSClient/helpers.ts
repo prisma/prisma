@@ -58,12 +58,13 @@ export function wrapComment(str: string): string {
     .map((l) => ' * ' + l)
     .join('\n')}\n**/`
 }
-export function getArgFieldJSDoc(model?: DMMF.Model,  action?: DMMF.ModelAction,field?: DMMF.SchemaArg): string | undefined{
+export function getArgFieldJSDoc(model?: DMMF.Model,  action?: DMMF.ModelAction,field?: DMMF.SchemaArg | string): string | undefined{
   if(!field || !action || !model) return
-  if(JSDocs[action] && JSDocs[action]?.fields[field.name]){
+  const fieldName = typeof field === "string" ? field : field.name;
+  if(JSDocs[action] && JSDocs[action]?.fields[fieldName]){
     const singular = model.name
     const plural = pluralize(model.name)
-    const comment = JSDocs[action]?.fields[field.name](singular, plural)
+    const comment = JSDocs[action]?.fields[fieldName](singular, plural)
     return comment as string
   }
 }

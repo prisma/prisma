@@ -1335,10 +1335,25 @@ export namespace Prisma {
      * Skip the first \`n\` Posts.
     **/
     skip?: number
+    /**
+     * Count returned Posts
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: PostAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: PostSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: PostMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: PostMaxAggregateInputType
   }
 
@@ -2070,10 +2085,25 @@ export namespace Prisma {
      * Skip the first \`n\` Users.
     **/
     skip?: number
+    /**
+     * Count returned Users
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: UserAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: UserSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: UserMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: UserMaxAggregateInputType
   }
 
@@ -2815,10 +2845,25 @@ export namespace Prisma {
      * Skip the first \`n\` MS.
     **/
     skip?: number
+    /**
+     * Count returned MS
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: MAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: MSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: MMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: MMaxAggregateInputType
   }
 
@@ -3558,10 +3603,25 @@ export namespace Prisma {
      * Skip the first \`n\` NS.
     **/
     skip?: number
+    /**
+     * Count returned NS
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: NAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: NSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: NMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: NMaxAggregateInputType
   }
 
@@ -4301,10 +4361,25 @@ export namespace Prisma {
      * Skip the first \`n\` OneOptionals.
     **/
     skip?: number
+    /**
+     * Count returned OneOptionals
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: OneOptionalAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: OneOptionalSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: OneOptionalMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: OneOptionalMaxAggregateInputType
   }
 
@@ -5054,10 +5129,25 @@ export namespace Prisma {
      * Skip the first \`n\` ManyRequireds.
     **/
     skip?: number
+    /**
+     * Count returned ManyRequireds
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: ManyRequiredAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: ManyRequiredSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: ManyRequiredMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: ManyRequiredMaxAggregateInputType
   }
 
@@ -5809,10 +5899,25 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide1s.
     **/
     skip?: number
+    /**
+     * Count returned OptionalSide1s
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: OptionalSide1AvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: OptionalSide1SumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: OptionalSide1MinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: OptionalSide1MaxAggregateInputType
   }
 
@@ -6554,10 +6659,25 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide2s.
     **/
     skip?: number
+    /**
+     * Count returned OptionalSide2s
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: OptionalSide2AvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: OptionalSide2SumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: OptionalSide2MinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: OptionalSide2MaxAggregateInputType
   }
 
@@ -7307,10 +7427,25 @@ export namespace Prisma {
      * Skip the first \`n\` AS.
     **/
     skip?: number
+    /**
+     * Count returned AS
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: AAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: ASumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: AMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: AMaxAggregateInputType
   }
 
@@ -7953,10 +8088,25 @@ export namespace Prisma {
      * Skip the first \`n\` BS.
     **/
     skip?: number
+    /**
+     * Count returned BS
+    **/
     count?: true
+    /**
+     * Select which fields to average
+    **/
     avg?: BAvgAggregateInputType
+    /**
+     * Select which fields to sum
+    **/
     sum?: BSumAggregateInputType
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: BMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: BMaxAggregateInputType
   }
 
@@ -8567,8 +8717,17 @@ export namespace Prisma {
      * Skip the first \`n\` CS.
     **/
     skip?: number
+    /**
+     * Count returned CS
+    **/
     count?: true
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: CMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: CMaxAggregateInputType
   }
 
@@ -9171,8 +9330,17 @@ export namespace Prisma {
      * Skip the first \`n\` DS.
     **/
     skip?: number
+    /**
+     * Count returned DS
+    **/
     count?: true
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: DMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: DMaxAggregateInputType
   }
 
@@ -9761,8 +9929,17 @@ export namespace Prisma {
      * Skip the first \`n\` ES.
     **/
     skip?: number
+    /**
+     * Count returned ES
+    **/
     count?: true
+    /**
+     * Select which fields to find the minimum value
+    **/
     min?: EMinAggregateInputType
+    /**
+     * Select which fields to find the maximum value
+    **/
     max?: EMaxAggregateInputType
   }
 
