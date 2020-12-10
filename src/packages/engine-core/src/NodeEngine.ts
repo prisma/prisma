@@ -1157,9 +1157,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     }
   }
 
-  private handleRequestError = async (
+  private handleRequestError = (
     error: Error & { code?: string },
-    graceful: boolean = false,
+    graceful = false,
   ) => {
     debug({ error })
     // A currentRequestPromise is only being canceled by the sendPanic function
