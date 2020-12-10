@@ -37,7 +37,7 @@ export function getBacktraceFromLog(log: RustLog): string | null {
     if (log.fields?.message) {
       let str = log.fields?.message
       if (log.fields?.file) {
-        str += `in ${log.fields.file}`
+        str += ` in ${log.fields.file}`
         if (log.fields?.line) {
           str += `:${log.fields.line}`
         }
@@ -71,9 +71,7 @@ export function getBacktraceFromRustError(err: RustError): string {
 
 export function isRustLog(e: any): e is RustLog {
   return (
-    typeof e.timestamp === 'string' &&
-    typeof e.level === 'string' &&
-    typeof e.target === 'string'
+    e.timestamp && typeof e.level === 'string' && typeof e.target === 'string'
   )
 }
 

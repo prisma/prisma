@@ -702,7 +702,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                 this.logEmitter.emit(log.level, log)
                 this.lastLog = log
               } else {
-                this.setError(json)
+                this.setError(log)
               }
             } else {
               this.setError(json)
@@ -719,39 +719,44 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
           this.undici?.close()
           this.exitCode = code
-          if (
-            !this.queryEngineKilled &&
-            this.queryEngineStarted &&
-            this.restartCount < 5
-          ) {
-            void pRetry(
-              async (attempt) => {
-                debug(`Restart attempt ${attempt}. Waiting for backoff`)
-                if (this.backoffPromise) {
-                  await this.backoffPromise
-                }
-                debug(`Restart attempt ${attempt}. Backoff done`)
-                this.restartCount++
-                //  TODO: look into this
-                const wait =
-                  Math.random() * 2 * Math.pow(Math.E, this.restartCount)
-                this.startPromise = undefined
-                this.backoffPromise = new Promise((r) => setTimeout(r, wait))
-                return this.start()
-              },
-              {
-                retries: 4,
-                randomize: true, // full jitter
-                minTimeout: 1000,
-                maxTimeout: 60 * 1000,
-                factor: Math.E,
-                onFailedAttempt: (e) => {
-                  debug(e)
-                },
-              },
-            )
-            return
-          }
+          // don't remove
+          // TODO: re-enable after more connection testing
+          // if (
+          //   !this.queryEngineKilled &&
+          //   this.queryEngineStarted &&
+          //   !this.lastPanic &&
+          //   this.restartCount < 5
+          // ) {
+          //   void pRetry(
+          //     async (attempt) => {
+          //       debug(`Restart attempt ${attempt}. Waiting for backoff`)
+          //       if (this.backoffPromise) {
+          //         await this.backoffPromise
+          //       }
+          //       debug(`Restart attempt ${attempt}. Backoff done`)
+          //       this.restartCount++
+          //       //  TODO: look into this
+          //       const wait =
+          //         Math.random() * 2 * Math.pow(Math.E, this.restartCount)
+          //       this.startPromise = undefined
+          //       this.backoffPromise = new Promise((r) => setTimeout(r, wait))
+          //       // console.log('startin')
+          //       this.backoffPromise = new Promise((r) => setTimeout(r, 200))
+          //       // return this.start()
+          //     },
+          //     {
+          //       retries: 4,
+          //       randomize: true, // full jitter
+          //       minTimeout: 1000,
+          //       maxTimeout: 60 * 1000,
+          //       factor: Math.E,
+          //       onFailedAttempt: (e) => {
+          //         debug(e)
+          //       },
+          //     },
+          //   )
+          //   return
+          // }
           if (code !== 0 && this.engineStartDeferred) {
             let err
             if (code !== null) {
@@ -1113,58 +1118,53 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       })
   }
 
+  /**
+   * If we have request errors like "ECONNRESET", we need to get the error from a
+   * different place, not the request itself. This different place can either be
+   * this.lastRustError or this.lastErrorLog
+   */
+  private throwAsyncErrorIfExists() {
+    if (this.lastRustError) {
+      const err = new PrismaClientRustPanicError(
+        getErrorMessageWithLink({
+          platform: this.platform,
+          title: getMessage(this.lastRustError),
+          version: this.clientVersion,
+        }),
+        this.clientVersion,
+      )
+      if (this.lastRustError.is_panic) {
+        this.lastPanic = err
+      }
+      throw err
+    }
+
+    if (this.lastErrorLog && this.lastErrorLog.level === 'error') {
+      const err = new PrismaClientUnknownRequestError(
+        getErrorMessageWithLink({
+          platform: this.platform,
+          title: getMessage(this.lastErrorLog),
+          version: this.clientVersion,
+        }),
+        this.clientVersion,
+      )
+
+      if (this.lastErrorLog?.fields?.message === 'PANIC') {
+        this.lastPanic = err
+      }
+
+      throw err
+    }
+  }
+
   private handleRequestError = async (
     error: Error & { code?: string },
-    graceful: boolean,
-    numTry = 0,
+    graceful: boolean = false,
   ) => {
     debug({ error })
-    console.debug({ error })
-    let err
     // A currentRequestPromise is only being canceled by the sendPanic function
-    if (this.currentRequestPromise.isCanceled && this.lastRustError) {
-      // TODO: Replace these errors with known or unknown request errors
-      if (this.lastRustError.is_panic) {
-        err = new PrismaClientRustPanicError(
-          getErrorMessageWithLink({
-            platform: this.platform,
-            title: getMessage(this.lastRustError),
-            version: this.clientVersion,
-          }),
-          this.clientVersion,
-        )
-        this.lastPanic = err
-      } else {
-        err = new PrismaClientUnknownRequestError(
-          getErrorMessageWithLink({
-            platform: this.platform,
-            title: getMessage(this.lastRustError),
-            version: this.clientVersion,
-          }),
-          this.clientVersion,
-        )
-      }
-    } else if (this.currentRequestPromise.isCanceled && this.lastErrorLog) {
-      if (this.lastErrorLog?.fields?.message === 'PANIC') {
-        err = new PrismaClientRustPanicError(
-          getErrorMessageWithLink({
-            platform: this.platform,
-            title: getMessage(this.lastErrorLog),
-            version: this.clientVersion,
-          }),
-          this.clientVersion,
-        )
-        this.lastPanic = err
-      } else {
-        err = new PrismaClientUnknownRequestError(
-          getErrorMessageWithLink({
-            platform: this.platform,
-            title: getMessage(this.lastErrorLog),
-            version: this.clientVersion,
-          }),
-          this.clientVersion,
-        )
-      }
+    if (this.currentRequestPromise.isCanceled) {
+      this.throwAsyncErrorIfExists()
     } else if (
       // matching on all relevant error codes from
       // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
@@ -1193,87 +1193,19 @@ We recommend using the \`wtfnode\` package to debug open handles.`,
 Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
       }
 
-      if (this.lastRustError) {
-        if (this.lastRustError.is_panic) {
-          err = new PrismaClientRustPanicError(
-            getErrorMessageWithLink({
-              platform: this.platform,
-              title: getMessage(this.lastRustError),
-              version: this.clientVersion,
-            }),
-            this.clientVersion,
-          )
-          this.lastPanic = err
-        } else {
-          err = new PrismaClientUnknownRequestError(
-            getErrorMessageWithLink({
-              platform: this.platform,
-              title: getMessage(this.lastRustError),
-              version: this.clientVersion,
-            }),
-            this.clientVersion,
-          )
-        }
-      } else if (this.lastErrorLog) {
-        console.log('lastErrorLog', this.lastErrorLog)
-        console.log('lastLog', this.lastLog)
-        console.log('lastError', this.lastRustError)
-        if (this.lastErrorLog?.fields?.message === 'PANIC') {
-          err = new PrismaClientRustPanicError(
-            getErrorMessageWithLink({
-              platform: this.platform,
-              title: getMessage(this.lastErrorLog),
-              version: this.clientVersion,
-            }),
-            this.clientVersion,
-          )
-          this.lastPanic = err
-        } else {
-          const platform = this.platform ?? (await this.getPlatform())
-          err = new PrismaClientUnknownRequestError(
-            getErrorMessageWithLink({
-              platform,
-              title: getMessage(this.lastErrorLog),
-              version: this.clientVersion,
-            }),
-            this.clientVersion,
-          )
-        }
-      }
-      if (!err) {
-        // wait a bit so we get some logs
-        await new Promise((r) => setTimeout(r, 500))
-        let lastLog = this.getLastLog()
-        if (!lastLog) {
-          lastLog = this.getLastLog()
-        }
-        const logs = lastLog || this.stderrLogs || this.stdoutLogs
-        const title = lastLog ?? error.message
-        let description =
-          error.stack + '\nExit code: ' + this.exitCode + '\n' + logs
-        description =
-          `signalCode: ${this.child?.signalCode} | exitCode: ${this.child?.exitCode} | killed: ${this.child?.killed}\n` +
-          description
-        err = new PrismaClientUnknownRequestError(
-          getErrorMessageWithLink({
-            platform: this.platform,
-            title,
-            version: this.clientVersion,
-            description,
-          }),
-          this.clientVersion,
-        )
-        debug(err.message)
-        if (graceful) {
-          return false
-        }
-      }
+      this.throwAsyncErrorIfExists()
+
+      // for (let i = 0; i < 15; i++) {
+      //   await new Promise((r) => setTimeout(r, 50))
+      //   this.throwAsyncErrorIfExists()
+      // }
     }
 
-    if (err) {
-      throw err
+    if (!graceful) {
+      throw error
     }
-    throw error
+
+    return false
   }
 
   private getLastLog(): string | null {
