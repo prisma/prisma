@@ -1,5 +1,0 @@
-dependencies:
-  '@prisma/debug': 'link:../debug'
-lockfileVersion: 5.2
-specifiers:
-  '@prisma/debug': 'workspace:*'

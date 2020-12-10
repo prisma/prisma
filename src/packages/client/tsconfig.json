@@ -13,7 +13,6 @@
     "incremental": true
   },
   "exclude": [
-    "archive",
     "dist",
     "build",
     "cli",

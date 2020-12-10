@@ -17,10 +17,9 @@ import chalk from 'chalk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
-// do this before facebook's yoga
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 
-const debug = debugLib('prisma')
+const debug = Debug('prisma')
 process.on('uncaughtException', (e) => {
   debug(e)
 })
@@ -294,7 +293,7 @@ function handleIndividualError(error): void {
   if (error.rustStack) {
     handlePanic(error, packageJson.version, enginesVersion)
       .catch((e) => {
-        if (debugLib.enabled('prisma')) {
+        if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)
         } else {
           console.error(chalk.redBright.bold('Error: ') + e.message)
@@ -304,7 +303,7 @@ function handleIndividualError(error): void {
         process.exit(1)
       })
   } else {
-    if (debugLib.enabled('prisma')) {
+    if (Debug.enabled('prisma')) {
       console.error(chalk.redBright.bold('Error: ') + error.stack)
     } else {
       console.error(chalk.redBright.bold('Error: ') + error.message)

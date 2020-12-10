@@ -3,7 +3,7 @@ import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
@@ -28,7 +28,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 
-const debug = debugLib('engine')
+const debug = Debug('engine')
 const exists = promisify(fs.exists)
 
 export interface DatasourceOverwrite {
@@ -224,10 +224,10 @@ export class NodeEngine {
 
     this.logEmitter.on('error', (log: RustLog | Error) => {
       if (this.enableDebugLogs) {
-        debugLib('engine:log')(log)
+        Debug('engine:log')(log)
       }
       if (log instanceof Error) {
-        debugLib('engine:error')(log)
+        Debug('engine:error')(log)
       } else {
         this.lastErrorLog = log
         if (log.fields.message === 'PANIC') {
@@ -259,7 +259,7 @@ You may have to run ${chalk.greenBright(
       void this.getPlatform()
     }
     if (this.enableDebugLogs) {
-      debugLib.enable('*')
+      Debug.enable('*')
     }
     engines.push(this)
     this.checkForTooManyEngines()
@@ -1202,7 +1202,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           )
           this.lastPanic = err
         } else {
-          const platform = this.platform ?? await this.getPlatform()
+          const platform = this.platform ?? (await this.getPlatform())
           err = new PrismaClientUnknownRequestError(
             getErrorMessageWithLink({
               platform,

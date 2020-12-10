@@ -1,10 +1,10 @@
 import chalk from 'chalk'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { dotenvExpand } from '../dotenvExpand'
-const debug = debugLib('tryLoadEnv')
+const debug = Debug('tryLoadEnv')
 
 type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined

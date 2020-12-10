@@ -7,7 +7,6 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/engines-version": "2.14.0-4.c76d35de8e5a35fcdb4fcf59b428a6dd4df0dd23",
-    "@types/fs-extra": "9.0.4",
     "@types/jest": "26.0.18",
     "@types/node": "12.19.8",
     "@types/node-fetch": "2.5.7",
@@ -40,7 +39,6 @@
     "node-fetch": "^2.6.0",
     "p-filter": "^2.1.0",
     "p-map": "^4.0.0",
-    "p-queue": "^6.4.0",
     "p-retry": "^4.2.0",
     "progress": "^2.0.3",
     "rimraf": "^3.0.2",
