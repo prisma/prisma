@@ -15,14 +15,21 @@ import { promisify } from 'util'
 import byline from './byline'
 import {
   getErrorMessageWithLink,
-  getMessage,
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
+  PrismaClientRustError,
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
   RequestError,
 } from './Engine'
-import { convertLog, RustError, RustLog } from './log'
+import {
+  convertLog,
+  isRustError,
+  isRustLog,
+  RustError,
+  RustLog,
+  getMessage,
+} from './log'
 import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
@@ -117,7 +124,7 @@ export class NodeEngine {
   private engineEndpoint?: string
   private lastLog?: RustLog
   private lastErrorLog?: RustLog
-  private lastError?: RustError
+  private lastRustError?: RustError
   private useUds = false
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
@@ -222,20 +229,6 @@ export class NodeEngine {
       this.port = Number(url.port)
     }
 
-    this.logEmitter.on('error', (log: RustLog | Error) => {
-      if (this.enableDebugLogs) {
-        debugLib('engine:log')(log)
-      }
-      if (log instanceof Error) {
-        debugLib('engine:error')(log)
-      } else {
-        this.lastErrorLog = log
-        if (log.fields.message === 'PANIC') {
-          this.handlePanic(log)
-        }
-      }
-    })
-
     if (this.platform) {
       if (
         !knownPlatforms.includes(this.platform as Platform) &&
@@ -263,6 +256,36 @@ You may have to run ${chalk.greenBright(
     }
     engines.push(this)
     this.checkForTooManyEngines()
+  }
+
+  private setError(err: Error | RustLog | RustError) {
+    if (isRustError(err)) {
+      this.lastRustError = err
+      this.logEmitter.emit(
+        'error',
+        new PrismaClientRustError({
+          clientVersion: this.clientVersion,
+          error: err,
+        }),
+      )
+      if (err.is_panic) {
+        this.handlePanic()
+      }
+    } else if (isRustLog(err) && err.level === 'error') {
+      this.lastErrorLog = err
+      this.logEmitter.emit(
+        'error',
+        new PrismaClientRustError({
+          clientVersion: this.clientVersion,
+          log: err,
+        }),
+      )
+      if (err.fields?.message === 'PANIC') {
+        this.handlePanic()
+      }
+    } else {
+      this.logEmitter.emit('error', err)
+    }
   }
 
   private checkForTooManyEngines() {
@@ -331,13 +354,13 @@ You may have to run ${chalk.greenBright(
     return queryEnginePath
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private handlePanic(log: RustLog): void {
+  private handlePanic(): void {
     this.child?.kill()
     if (this.currentRequestPromise) {
       this.currentRequestPromise.cancel()
     }
   }
+
   private async resolvePrismaPath(): Promise<{
     prismaPath: string
     searchedLocations: string[]
@@ -568,7 +591,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.queryEngineStarted = false
 
         // reset last panic
-        this.lastError = undefined
+        this.lastRustError = undefined
         this.lastErrorLog = undefined
         this.lastPanic = undefined
         this.queryEngineKilled = false
@@ -622,10 +645,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             const json = JSON.parse(data)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
-              this.lastError = json
+              this.setError(json)
               if (this.engineStartDeferred) {
                 const err = new PrismaClientInitializationError(
-                  this.lastError.message,
+                  json.message,
                   this.clientVersion,
                 )
                 this.engineStartDeferred.reject(err)
@@ -650,7 +673,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.engineStartDeferred &&
               json.level === 'INFO' &&
               json.target === 'query_engine::server' &&
-              json.fields?.message.startsWith('Started http server')
+              json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
                 this.undici = new Undici(
@@ -669,12 +692,20 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.engineStartDeferred = undefined
               this.queryEngineStarted = true
             }
+
+            // only emit logs, if they're in the from of a log
+            // they could also be a RustError, which has is_panic
+            // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               const log = convertLog(json)
-              this.logEmitter.emit(log.level, log)
-              this.lastLog = log
+              if (log.level !== 'error') {
+                this.logEmitter.emit(log.level, log)
+                this.lastLog = log
+              } else {
+                this.setError(json)
+              }
             } else {
-              this.lastError = json
+              this.setError(json)
             }
           } catch (e) {
             debug(e, data)
@@ -747,15 +778,11 @@ Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
           if (!this.child) {
             return
           }
-          if (this.lastError) {
-            return
-          }
-          if (this.lastErrorLog) {
-            this.lastErrorLog.target = 'exit'
+          if (this.lastRustError) {
             return
           }
           if (code === 126) {
-            this.lastErrorLog = {
+            this.setError({
               timestamp: new Date(),
               target: 'exit',
               level: 'error',
@@ -763,28 +790,16 @@ Make sure that the engine binary at ${prismaPath} is not corrupt.\n` +
                 message: `Couldn't start query engine as it's not executable on this operating system.
 You very likely have the wrong "binaryTarget" defined in the schema.prisma file.`,
               },
-            }
-          } else {
-            this.lastErrorLog = {
-              target: 'exit',
-              timestamp: new Date(),
-              level: 'error',
-              fields: {
-                message:
-                  (this.stderrLogs || '') +
-                  (this.stdoutLogs || '') +
-                  `\nExit code: ${code}`,
-              },
-            }
+            })
           }
         })
 
         this.child.on('error', (err): void => {
-          this.lastError = {
+          this.setError({
             message: err.message,
             backtrace: 'Could not start query engine',
             is_panic: false,
-          }
+          })
           reject(err)
         })
 
@@ -818,14 +833,14 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
               }),
               this.clientVersion,
             )
-            this.logEmitter.emit('error', error)
+            this.setError(error)
           }
         })
 
-        if (this.lastError) {
+        if (this.lastRustError) {
           return reject(
             new PrismaClientInitializationError(
-              getMessage(this.lastError),
+              getMessage(this.lastRustError),
               this.clientVersion,
             ),
           )
@@ -970,11 +985,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   async version() {
     const prismaPath = await this.getPrismaPath()
 
-    const result = await execa(prismaPath, ['--version'], {
-      env: {
-        ...process.env,
-      },
-    })
+    const result = await execa(prismaPath, ['--version'])
 
     return result.stdout
   }
@@ -1001,38 +1012,48 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       headers,
     )
 
-    return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        if (data.errors) {
-          if (data.errors.length === 1) {
-            throw this.graphQLToJSError(data.errors[0])
+    return (
+      this.currentRequestPromise
+        .then(({ data, headers }) => {
+          if (data.errors) {
+            if (data.errors.length === 1) {
+              throw this.graphQLToJSError(data.errors[0])
+            }
+            // this case should not happen, as the query engine only returns one error
+            throw new Error(JSON.stringify(data.errors))
           }
-          // this case should not happen, as the query engine only returns one error
-          throw new Error(JSON.stringify(data.errors))
-        }
 
-        // Rust engine returns time in microseconds and we want it in miliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
+          // Rust engine returns time in microseconds and we want it in miliseconds
+          const elapsed = parseInt(headers['x-elapsed']) / 1000
 
-        // reset restart count after successful request
-        if (this.restartCount > 0) {
-          this.restartCount = 0
-        }
-
-        return { data, elapsed }
-      })
-
-      .catch(async (e) => {
-        const isError = await this.handleRequestError(e, numTry < 3)
-        if (!isError) {
-          // retry
-          if (numTry < 3) {
-            await new Promise((r) => setTimeout(r, Math.random() * 1000))
-            return this.request(query, headers, numTry + 1)
+          // reset restart count after successful request
+          if (this.restartCount > 0) {
+            this.restartCount = 0
           }
-        }
-        throw isError
-      })
+
+          return { data, elapsed }
+        })
+
+        // errors in here are non-graphql errors, but something like
+        // SocketError: other side closed
+        // We now need to check in this.lastRustError and this.lastRustLog
+        // if there is anything we can use as an error
+        // this.lastRustError and this.lastRustLog come from the following sources:
+        // - stderr
+        // - stdout
+        // - on('exit')
+        .catch(async (e) => {
+          const isError = await this.handleRequestError(e, numTry < 3)
+          if (!isError) {
+            // retry
+            if (numTry < 3) {
+              await new Promise((r) => setTimeout(r, Math.random() * 1000))
+              return this.request(query, headers, numTry + 1)
+            }
+          }
+          throw isError
+        })
+    )
   }
 
   async requestBatch<T>(
@@ -1095,16 +1116,19 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   private handleRequestError = async (
     error: Error & { code?: string },
     graceful: boolean,
+    numTry = 0,
   ) => {
     debug({ error })
+    console.debug({ error })
     let err
-    if (this.currentRequestPromise.isCanceled && this.lastError) {
+    // A currentRequestPromise is only being canceled by the sendPanic function
+    if (this.currentRequestPromise.isCanceled && this.lastRustError) {
       // TODO: Replace these errors with known or unknown request errors
-      if (this.lastError.is_panic) {
+      if (this.lastRustError.is_panic) {
         err = new PrismaClientRustPanicError(
           getErrorMessageWithLink({
             platform: this.platform,
-            title: getMessage(this.lastError),
+            title: getMessage(this.lastRustError),
             version: this.clientVersion,
           }),
           this.clientVersion,
@@ -1114,7 +1138,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         err = new PrismaClientUnknownRequestError(
           getErrorMessageWithLink({
             platform: this.platform,
-            title: getMessage(this.lastError),
+            title: getMessage(this.lastRustError),
             version: this.clientVersion,
           }),
           this.clientVersion,
@@ -1169,12 +1193,12 @@ We recommend using the \`wtfnode\` package to debug open handles.`,
 Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
       }
 
-      if (this.lastError) {
-        if (this.lastError.is_panic) {
+      if (this.lastRustError) {
+        if (this.lastRustError.is_panic) {
           err = new PrismaClientRustPanicError(
             getErrorMessageWithLink({
               platform: this.platform,
-              title: getMessage(this.lastError),
+              title: getMessage(this.lastRustError),
               version: this.clientVersion,
             }),
             this.clientVersion,
@@ -1184,13 +1208,16 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           err = new PrismaClientUnknownRequestError(
             getErrorMessageWithLink({
               platform: this.platform,
-              title: getMessage(this.lastError),
+              title: getMessage(this.lastRustError),
               version: this.clientVersion,
             }),
             this.clientVersion,
           )
         }
       } else if (this.lastErrorLog) {
+        console.log('lastErrorLog', this.lastErrorLog)
+        console.log('lastLog', this.lastLog)
+        console.log('lastError', this.lastRustError)
         if (this.lastErrorLog?.fields?.message === 'PANIC') {
           err = new PrismaClientRustPanicError(
             getErrorMessageWithLink({
@@ -1202,7 +1229,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
           )
           this.lastPanic = err
         } else {
-          const platform = this.platform ?? await this.getPlatform()
+          const platform = this.platform ?? (await this.getPlatform())
           err = new PrismaClientUnknownRequestError(
             getErrorMessageWithLink({
               platform,
@@ -1215,9 +1242,9 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       }
       if (!err) {
         // wait a bit so we get some logs
+        await new Promise((r) => setTimeout(r, 500))
         let lastLog = this.getLastLog()
         if (!lastLog) {
-          await new Promise((r) => setTimeout(r, 500))
           lastLog = this.getLastLog()
         }
         const logs = lastLog || this.stderrLogs || this.stdoutLogs

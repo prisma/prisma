@@ -1,11 +1,5 @@
 export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
 
-// export interface RustLog {
-//   msg: string
-//   level: LogLevel
-//   ts: string
-//   application: string
-// }
 export interface RawRustLog {
   timestamp: string
   level: LogLevel
@@ -24,6 +18,63 @@ export interface RustError {
   is_panic: boolean
   message: string
   backtrace: string
+}
+
+export function getMessage(log: string | RustLog | RustError | any): string {
+  if (typeof log === 'string') {
+    return log
+  } else if (isRustError(log)) {
+    return getBacktraceFromRustError(log)
+  } else if (isRustLog(log)) {
+    return getBacktraceFromLog(log)
+  }
+
+  return JSON.stringify(log)
+}
+
+export function getBacktraceFromLog(log: RustLog): string | null {
+  if (log.level === 'error') {
+    if (log.fields?.message) {
+      let str = log.fields?.message
+      if (log.fields?.file) {
+        str += `in ${log.fields.file}`
+        if (log.fields?.line) {
+          str += `:${log.fields.line}`
+        }
+        if (log.fields?.column) {
+          str += `:${log.fields.column}`
+        }
+      }
+      if (log.fields?.reason) {
+        str += `\n${log.fields?.reason}`
+      }
+      return str
+    }
+  }
+
+  return null
+}
+
+export function getBacktraceFromRustError(err: RustError): string {
+  let str = ''
+  if (err.is_panic) {
+    str += `PANIC`
+  }
+  if (err.backtrace) {
+    str += ` in ${err.backtrace}`
+  }
+  if (err.message) {
+    str += `\n${err.message}`
+  }
+  return str
+}
+
+export function isRustLog(e: any): e is RustLog {
+  return (
+    typeof e.timestamp === 'string' &&
+    typeof e.level === 'string' &&
+    typeof e.target === 'string'
+  )
 }
 
 export function isRustError(e: any): e is RustError {

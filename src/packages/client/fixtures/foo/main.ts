@@ -2,9 +2,7 @@ process.env.DEBUG = 'prisma-client'
 
 import { PrismaClient } from './@prisma/client'
 
-const prisma = new PrismaClient({
-  log: ['query'],
-})
+const prisma = new PrismaClient()
 
 async function main() {
   const res = await prisma.user.groupBy({
@@ -12,7 +10,6 @@ async function main() {
     avg: {
       age: true,
     },
-
     // count: {
     //   _all: true,
     // },

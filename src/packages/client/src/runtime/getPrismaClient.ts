@@ -1405,6 +1405,7 @@ export class PrismaClientFetcher {
           this.prisma._clientVersion,
         )
       } else if (e instanceof PrismaClientRustPanicError) {
+        console.log(e)
         throw new PrismaClientRustPanicError(
           message,
           this.prisma._clientVersion,
