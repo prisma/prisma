@@ -94,12 +94,6 @@ import {
   DbDrop,
   DbCommand,
   handlePanic,
-  // Legacy
-  MigrateCommandLegacy,
-  MigrateSave,
-  MigrateUpLegacy,
-  MigrateDown,
-  MigrateTmpPrepare,
 } from '@prisma/migrate'
 
 import { CLI } from './CLI'
@@ -144,11 +138,6 @@ async function main(): Promise<number> {
   const cli = CLI.new(
     {
       init: Init.new(),
-      'migrate-legacy': MigrateCommandLegacy.new({
-        save: MigrateSave.new(),
-        up: MigrateUpLegacy.new(),
-        down: MigrateDown.new(),
-      }),
       migrate: MigrateCommand.new({
         dev: MigrateDev.new(),
         status: MigrateStatus.new(),
@@ -161,7 +150,6 @@ async function main(): Promise<number> {
         push: DbPush.new(),
         drop: DbDrop.new(),
       }),
-      'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
       studio: Studio.new(aliases),
@@ -176,7 +164,6 @@ async function main(): Promise<number> {
       'version',
       'init',
       'migrate',
-      'migrate-legacy',
       'db',
       'tmp-prepare',
       'introspect',

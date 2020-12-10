@@ -13,11 +13,3 @@ export { default as byline } from './utils/byline'
 export { handlePanic } from './utils/handlePanic'
 
 export * from './types'
-
-// Legacy
-export { generateInThread } from './generateInThread'
-export { MigrateCommand as MigrateCommandLegacy } from './commands/legacy/MigrateCommand'
-export { MigrateSave } from './commands/legacy/MigrateSave'
-export { MigrateUp as MigrateUpLegacy } from './commands/legacy/MigrateUp'
-export { MigrateDown } from './commands/legacy/MigrateDown'
-export { MigrateTmpPrepare } from './commands/legacy/MigrateTmpPrepare'
