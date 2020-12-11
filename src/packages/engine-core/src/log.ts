@@ -76,7 +76,7 @@ export function isRustLog(e: any): e is RustLog {
 export function isRustErrorLog(e: any): e is RustLog {
   return (
     isRustLog(e) &&
-    (e.level === 'error' || e.fields?.message.includes('fatal error'))
+    (e.level === 'error' || e.fields?.message?.includes('fatal error'))
   )
 }
 

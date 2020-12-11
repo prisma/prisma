@@ -25,7 +25,6 @@ import {
 import {
   convertLog,
   isRustError,
-  isRustLog,
   RustError,
   RustLog,
   getMessage,
@@ -42,6 +41,10 @@ const exists = promisify(fs.exists)
 export interface DatasourceOverwrite {
   name: string
   url: string
+}
+
+const logger = (...args) => {
+  //
 }
 
 export interface EngineConfig {
@@ -104,7 +107,7 @@ export type StopDeferred = {
 const engines: NodeEngine[] = []
 const socketPaths: string[] = []
 
-const MAX_RESTARTS = 1
+const MAX_STARTS = 2
 const MAX_REQUEST_RETRIES = 2
 
 export class NodeEngine {
@@ -121,12 +124,9 @@ export class NodeEngine {
   private clientVersion?: string
   private lastPanic?: Error
   private globalKillSignalReceived?: string
-  private restartCount = 0
-  private backoffPromise?: Promise<any>
-  private queryEngineStarted = false
+  private startCount = 0
   private enableExperimental: string[] = []
   private engineEndpoint?: string
-  private lastLog?: RustLog
   private lastErrorLog?: RustLog
   private lastRustError?: RustError
   private useUds = false
@@ -529,10 +529,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   /**
    * Starts the engine, returns the url that it runs on
    */
-  async start(): Promise<void> {
+  async start(restart = false): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    if (!this.startPromise) {
-      this.startPromise = this.internalStart()
+    if (!this.startPromise || restart) {
+      this.startCount++
+      this.startPromise = this.internalStart(restart)
     }
     return this.startPromise
   }
@@ -571,7 +572,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
   }
 
-  private internalStart(): Promise<void> {
+  private internalStart(restart: boolean): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
@@ -592,12 +593,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         if (this.child?.connected || (this.child && !this.child?.killed)) {
           debug(`There is a child that still runs and we want to start again`)
         }
-        this.queryEngineStarted = false
 
         // reset last panic
         this.lastRustError = undefined
         this.lastErrorLog = undefined
         this.lastPanic = undefined
+        logger('startin & resettin')
         this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
 
@@ -650,7 +651,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.setError(json)
-              console.log({ json })
+              logger({ json })
               if (this.engineStartDeferred) {
                 const err = new PrismaClientInitializationError(
                   json.message,
@@ -695,7 +696,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
-              this.queryEngineStarted = true
             }
 
             // only emit logs, if they're in the from of a log
@@ -705,12 +705,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
-              console.log({ log })
+              logger(this.startCount, { log })
               if (logIsRustErrorLog) {
                 this.setError(log)
               } else {
                 this.logEmitter.emit(log.level, log)
-                this.lastLog = log
               }
             } else {
               this.setError(json)
@@ -721,50 +720,35 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         })
 
         this.child.on('exit', (code): void => {
+          logger('removing startPromise')
+          this.startPromise = undefined
           if (this.engineStopDeferred) {
             this.engineStopDeferred.resolve(code)
             return
           }
           this.undici?.close()
           this.exitCode = code
-          // don't remove
-          // TODO: re-enable after more connection testing
-          if (
-            !this.queryEngineKilled &&
-            this.queryEngineStarted &&
-            !this.lastPanic &&
-            this.restartCount < 5
-          ) {
-            void pRetry(
-              async (attempt) => {
-                debug(`Restart attempt ${attempt}. Waiting for backoff`)
-                if (this.backoffPromise) {
-                  await this.backoffPromise
-                }
-                debug(`Restart attempt ${attempt}. Backoff done`)
-                this.restartCount++
-                //  TODO: look into this
-                const wait =
-                  Math.random() * 2 * Math.pow(Math.E, this.restartCount)
-                this.startPromise = undefined
-                this.backoffPromise = new Promise((r) => setTimeout(r, wait))
-                console.log('startin')
-                this.backoffPromise = new Promise((r) => setTimeout(r, 200))
-                return this.start()
-              },
-              {
-                retries: 4,
-                randomize: true, // full jitter
-                minTimeout: 1000,
-                maxTimeout: 60 * 1000,
-                factor: Math.E,
-                onFailedAttempt: (e) => {
-                  debug(e)
-                },
-              },
-            )
-            return
-          }
+          // TODO: remove comment
+          // if (
+          //   !this.queryEngineKilled &&
+          //   this.queryEngineStarted &&
+          //   !this.lastPanic &&
+          //   this.restartCount < MAX_RESTARTS
+          // ) {
+          //   this.startPromise = undefined
+          //   void (async () => {
+          //     log('going to start')
+          //     await new Promise((r) => setTimeout(r, 50))
+          //     log('currentRequestErrored', this.currentRequestErrored)
+          //     if (!this.currentRequestErrored) {
+          //       log('startin')
+          //       await new Promise((r) => setTimeout(r, 500))
+          //     }
+          //     this.restartCount++
+          //     this.start()
+          //   })()
+          //   return
+          // }
 
           if (code !== 0 && this.engineStartDeferred) {
             let err
@@ -1014,7 +998,9 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (this.stopPromise) {
       await this.stopPromise
     }
-    await this.start()
+    logger('req - go')
+    await this.start(numTry > 1)
+    logger('req - started')
 
     if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
@@ -1028,47 +1014,42 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       headers,
     )
 
-    return (
-      this.currentRequestPromise
-        .then(({ data, headers }) => {
-          if (data.errors) {
-            if (data.errors.length === 1) {
-              throw this.graphQLToJSError(data.errors[0])
-            }
-            // this case should not happen, as the query engine only returns one error
-            throw new Error(JSON.stringify(data.errors))
-          }
+    logger('req - gogo')
 
-          // Rust engine returns time in microseconds and we want it in miliseconds
-          const elapsed = parseInt(headers['x-elapsed']) / 1000
+    try {
+      const { data, headers } = await this.currentRequestPromise
+      logger('req - res')
+      if (data.errors) {
+        if (data.errors.length === 1) {
+          throw this.graphQLToJSError(data.errors[0])
+        }
+        // this case should not happen, as the query engine only returns one error
+        throw new Error(JSON.stringify(data.errors))
+      }
 
-          // reset restart count after successful request
-          if (this.restartCount > 0) {
-            this.restartCount = 0
-          }
+      // Rust engine returns time in microseconds and we want it in miliseconds
+      const elapsed = parseInt(headers['x-elapsed']) / 1000
 
-          return { data, elapsed }
-        })
+      // reset restart count after successful request
+      if (this.startCount > 0) {
+        this.startCount = 0
+      }
 
-        // errors in here are non-graphql errors, but something like
-        // SocketError: other side closed
-        // We now need to check in this.lastRustError and this.lastRustLog
-        // if there is anything we can use as an error
-        // this.lastRustError and this.lastRustLog come from the following sources:
-        // - stderr
-        // - stdout
-        // - on('exit')
-        .catch(async (e) => {
-          await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
+      // this.lastErrorLog = undefined
+      // this.lastRustError = undefined
+      // this.lastPanic = undefined
 
-          // retry
-          if (numTry <= MAX_REQUEST_RETRIES) {
-            console.log('trying a retry now')
-            await new Promise((r) => setTimeout(r, Math.random() * 1000))
-            return this.request(query, headers, numTry + 1)
-          }
-        })
-    )
+      this.currentRequestPromise = undefined
+      return { data, elapsed } as any
+    } catch (e) {
+      logger('req - e', e)
+      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
+      // retry
+      if (numTry <= MAX_REQUEST_RETRIES) {
+        logger('trying a retry now')
+        return this.request(query, headers, numTry + 1)
+      }
+    }
   }
 
   async requestBatch<T>(
@@ -1118,8 +1099,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         const isError = await this.handleRequestError(e, numTry < 3)
         if (!isError) {
           // retry
-          if (numTry < 3) {
-            await new Promise((r) => setTimeout(r, Math.random() * 1000))
+          if (numTry <= MAX_REQUEST_RETRIES) {
             return this.requestBatch(queries, transaction, numTry + 1)
           }
         }
@@ -1129,7 +1109,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   }
 
   private get hasMaxRestarts() {
-    return this.restartCount >= MAX_RESTARTS
+    return this.startCount >= MAX_STARTS
   }
 
   /**
@@ -1138,6 +1118,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
    * this.lastRustError or this.lastErrorLog
    */
   private throwAsyncErrorIfExists() {
+    logger('throwAsyncErrorIfExists', this.startCount, this.hasMaxRestarts)
     if (this.lastRustError) {
       const err = new PrismaClientRustPanicError(
         getErrorMessageWithLink({
@@ -1211,18 +1192,18 @@ We recommend using the \`wtfnode\` package to debug open handles.`,
         )
       }
 
-      if (this.hasMaxRestarts) {
+      this.throwAsyncErrorIfExists()
+
+      if (this.startCount > MAX_STARTS) {
+        // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
+        // to get an error first
+        // for (let i = 0; i < 15; i++) {
+        //   await new Promise((r) => setTimeout(r, 50))
+        //   this.throwAsyncErrorIfExists()
+        // }
         throw new Error(`Query engine is trying to restart, but can't.
 Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
       }
-
-      this.throwAsyncErrorIfExists()
-
-      // worst case, try for 1500ms to get an error, maybe stderr or stdout is stuck
-      // for (let i = 0; i < 15; i++) {
-      //   await new Promise((r) => setTimeout(r, 50))
-      //   this.throwAsyncErrorIfExists()
-      // }
     }
 
     if (!graceful) {

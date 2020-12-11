@@ -33,3 +33,15 @@ test('missing-relation', async () => {
 
   prisma.$disconnect()
 })
+
+// async function main() {
+//   const PrismaClient = await getTestClient()
+//   const prisma = new PrismaClient()
+//   await prisma.post.findMany({
+//     include: {
+//       author: true,
+//     },
+//   })
+// }
+
+// main().catch((e) => console.error(e))
