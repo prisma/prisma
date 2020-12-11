@@ -1,8 +1,8 @@
-import { MigrateCommand } from '../commands/MigrateCommand'
-import { MigrateDev } from '../commands/MigrateDev'
+import { DbCommand } from '../commands/DbCommand'
+import { DbPush } from '../commands/DbPush'
 
 it('no params should return help', async () => {
-  const commandInstance = MigrateCommand.new({})
+  const commandInstance = DbCommand.new({})
   let spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
@@ -15,7 +15,7 @@ it('no params should return help', async () => {
 })
 
 it('wrong flag', async () => {
-  const commandInstance = MigrateCommand.new({})
+  const commandInstance = DbCommand.new({})
   let spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
@@ -26,7 +26,7 @@ it('wrong flag', async () => {
 })
 
 it('help flag', async () => {
-  const commandInstance = MigrateCommand.new({})
+  const commandInstance = DbCommand.new({})
   let spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
@@ -38,14 +38,14 @@ it('help flag', async () => {
 
 it('unknown command', async () => {
   await expect(
-    MigrateCommand.new({}).parse(['doesnotexist']),
+    DbCommand.new({}).parse(['doesnotexist']),
   ).resolves.toThrowError()
 })
 
 it('dev with --preview-feature flag', async () => {
   await expect(
-    MigrateCommand.new({
-      dev: MigrateDev.new(),
+    DbCommand.new({
+      dev: DbPush.new(),
     }).parse(['dev', '--preview-feature']),
   ).rejects.toMatchInlineSnapshot(`
           Could not find a schema.prisma file that is required for this command.
@@ -55,8 +55,8 @@ it('dev with --preview-feature flag', async () => {
 
 it('dev without --preview-feature flag', async () => {
   await expect(
-    MigrateCommand.new({
-      dev: MigrateDev.new(),
+    DbCommand.new({
+      dev: DbPush.new(),
     }).parse(['dev']),
   ).rejects.toMatchInlineSnapshot(`
           This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
@@ -66,7 +66,7 @@ it('dev without --preview-feature flag', async () => {
 
 describe('legacy', () => {
   it('experimental flag', async () => {
-    await expect(MigrateCommand.new({}).parse(['--experimental'])).rejects
+    await expect(DbCommand.new({}).parse(['--experimental'])).rejects
       .toMatchInlineSnapshot(`
             Prisma Migrate was Experimental and is now in Preview.
             WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
@@ -74,7 +74,7 @@ describe('legacy', () => {
   })
 
   it('up command', async () => {
-    await expect(MigrateCommand.new({}).parse(['up'])).rejects
+    await expect(DbCommand.new({}).parse(['up'])).rejects
       .toMatchInlineSnapshot(`
             The current command "up" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
@@ -82,7 +82,7 @@ describe('legacy', () => {
   })
 
   it('down command', async () => {
-    await expect(MigrateCommand.new({}).parse(['down'])).rejects
+    await expect(DbCommand.new({}).parse(['down'])).rejects
       .toMatchInlineSnapshot(`
             The current command "down" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
@@ -90,7 +90,7 @@ describe('legacy', () => {
   })
 
   it('save command', async () => {
-    await expect(MigrateCommand.new({}).parse(['save'])).rejects
+    await expect(DbCommand.new({}).parse(['save'])).rejects
       .toMatchInlineSnapshot(`
             The current command "save" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade

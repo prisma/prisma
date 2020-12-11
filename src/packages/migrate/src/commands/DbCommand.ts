@@ -57,12 +57,16 @@ ${chalk.bold('Examples')}
 
   /* eslint-disable-next-line @typescript-eslint/require-await */
   public async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--preview-feature': Boolean,
-      '--telemetry-information': String,
-    })
+    const args = arg(
+      argv,
+      {
+        '--help': Boolean,
+        '-h': '--help',
+        '--preview-feature': Boolean,
+        '--telemetry-information': String,
+      },
+      false,
+    )
 
     if (isError(args)) {
       return this.help(args.message)

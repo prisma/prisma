@@ -74,17 +74,25 @@ ${chalk.bold('Examples')}
 
   /* eslint-disable-next-line @typescript-eslint/require-await */
   public async parse(argv: string[]): Promise<string | Error> {
-    const args = arg(argv, {
-      '--help': Boolean,
-      '-h': '--help',
-      '--experimental': Boolean,
-      '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
-      '--telemetry-information': String,
-    })
+    const args = arg(
+      argv,
+      {
+        '--help': Boolean,
+        '-h': '--help',
+        '--experimental': Boolean,
+        '--preview-feature': Boolean,
+        '--early-access-feature': Boolean,
+        '--telemetry-information': String,
+      },
+      false,
+    )
 
     if (isError(args)) {
       return this.help(args.message)
+    }
+
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
     }
 
     // display help for help flag or no subcommand
@@ -97,10 +105,6 @@ ${chalk.bold('Examples')}
         `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
 Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
       )
-    }
-
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
     }
 
     // check if we have that subcommand
