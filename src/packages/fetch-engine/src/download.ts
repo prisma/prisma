@@ -398,6 +398,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
+
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   const {
     version,

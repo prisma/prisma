@@ -176,6 +176,9 @@ export async function getPlatform(): Promise<Platform> {
   if (platform === 'netbsd') {
     return 'netbsd'
   }
+  if (platform === 'linux' && distro === 'arm') {
+    return `linux-arm-openssl-${libssl}` as Platform
+  }
 
   if (platform === 'linux' && distro === 'nixos') {
     return 'linux-nixos'

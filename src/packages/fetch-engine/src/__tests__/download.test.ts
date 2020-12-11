@@ -14,9 +14,9 @@ import stripAnsi from 'strip-ansi'
 
 const CURRENT_BINARIES_HASH = enginesVersion
 // From npx @prisma/cli@2.6.2 -v
-const FIXED_BINARIES_HASH = '6a8054bb549e4cc23f157b0010cb2e95cb2637fb'
+const FIXED_BINARIES_HASH = '60c1d1e9396bf462eda7b97f8f65523bf65c9f5f'
 
-jest.setTimeout(40000)
+jest.setTimeout(50000)
 
 describe('download', () => {
   beforeEach(async () => {
@@ -99,6 +99,8 @@ describe('download', () => {
         'darwin',
         'debian-openssl-1.0.x',
         'debian-openssl-1.1.x',
+        'linux-arm-openssl-1.0.x',
+        'linux-arm-openssl-1.1.x',
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
@@ -220,6 +222,8 @@ describe('download', () => {
         'darwin',
         'debian-openssl-1.0.x',
         'debian-openssl-1.1.x',
+        'linux-arm-openssl-1.0.x',
+        'linux-arm-openssl-1.1.x',
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
@@ -362,6 +366,8 @@ describe('download', () => {
         'darwin',
         'debian-openssl-1.0.x',
         'debian-openssl-1.1.x',
+        'linux-arm-openssl-1.0.x',
+        'linux-arm-openssl-1.1.x',
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
@@ -387,6 +393,7 @@ describe('download', () => {
         'darwin',
         'debian-openssl-1.0.x',
         'debian-openssl-1.1.x',
+        'linux-arm-openssl-1.1.x',
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
         'windows',
