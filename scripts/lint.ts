@@ -27,14 +27,16 @@ async function main() {
   }
 
   if (packages.length === 0) {
-    console.log(chalk.blueBright('Nothing to lint ') + chalk.bold.greenBright(`✔️`))
+    console.log(
+      chalk.blueBright('Nothing to lint ') + chalk.bold.greenBright(`✔️`),
+    )
   }
 
   const results = await pMap(
     packages,
     (pkg) => lintPackage(pkg, args['--staged']),
     {
-      concurrency: os.cpus().length,
+      concurrency: 1, //os.cpus().length,
     },
   )
 
@@ -74,7 +76,7 @@ async function lintPackage(
   try {
     const lint = process.env.CI ? 'lint-ci' : 'lint'
     const command = `pnpm run ${stagedOnly ? 'precommit' : lint}`
-    console.log(`${pkg}: running`, command)
+    console.log(`${pkg}: running ${command}`)
     await execa.command(command, {
       cwd: path.join(__dirname, `../src/packages/${pkg}`),
       stdio: 'pipe',
@@ -88,6 +90,7 @@ async function lintPackage(
   } catch (e) {
     console.log()
     printPkg(e.stdout, pkg)
+    printPkg(e.stderr, pkg)
     return false
   }
 }

@@ -674,7 +674,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           const data = String(msg)
           try {
             const json = JSON.parse(data)
-            debug('stdout', json)
+            debug('stdout', getMessage(json))
             if (
               this.engineStartDeferred &&
               json.level === 'INFO' &&

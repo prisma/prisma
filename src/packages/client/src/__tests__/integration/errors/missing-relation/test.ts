@@ -34,6 +34,8 @@ test('missing-relation', async () => {
   prisma.$disconnect()
 })
 
+// Please don't remove, this is used to debug this test
+
 // async function main() {
 //   const PrismaClient = await getTestClient()
 //   const prisma = new PrismaClient()

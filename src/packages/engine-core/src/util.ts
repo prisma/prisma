@@ -40,7 +40,7 @@ export function link(url: string): string {
 export function getGithubIssueUrl({
   title,
   user = 'prisma',
-  repo = 'prisma-client-js',
+  repo = 'prisma',
   template = 'bug_report.md',
   body,
 }: {

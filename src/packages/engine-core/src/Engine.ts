@@ -124,7 +124,8 @@ export function getErrorMessageWithLink({
   title,
   description,
 }: ErrorWithLinkInput) {
-  const logs = normalizeLogs(stripAnsi(getLogs()))
+  const gotLogs = getLogs()
+  const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
     : ''
