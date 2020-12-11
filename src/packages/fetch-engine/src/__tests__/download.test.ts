@@ -412,7 +412,7 @@ describe('download', () => {
     // value on Mac: 1440
     // value on GH Actions: ~5812
     const took = after - before
-    expect(took).toBeLessThan(10000)
+    expect(took).toBeLessThan(11000)
     const before2 = Date.now()
     await download({
       binaries: {
@@ -425,6 +425,7 @@ describe('download', () => {
         'darwin',
         'debian-openssl-1.0.x',
         'debian-openssl-1.1.x',
+        'linux-arm-openssl-1.0.x',
         'linux-arm-openssl-1.1.x',
         'rhel-openssl-1.0.x',
         'rhel-openssl-1.1.x',
