@@ -12,6 +12,9 @@ export interface JSDocMethodBodyCtx {
   action: DMMF.ModelAction | 'findOne'
   mapping: DMMF.ModelMapping
 }
+const Docs = {
+  pagination: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}`
+}
 type JSDocsType = {
   [action in DMMF.ModelAction | 'findOne']: {
     body: (ctx: JSDocMethodBodyCtx) => string
@@ -22,7 +25,9 @@ type JSDocsType = {
 }
 const JSDocFields = {
   take: (singular, plural) =>
-    `Take \`±n\` ${plural} from the position of the cursor.`,
+`${Docs.pagination}
+
+Take \`±n\` ${plural} from the position of the cursor.`,
 }
 export const JSDocs: JSDocsType = {
   groupBy: {

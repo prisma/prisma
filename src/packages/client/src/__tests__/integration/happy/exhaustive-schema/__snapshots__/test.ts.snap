@@ -1328,6 +1328,8 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Posts from the position of the cursor.
     **/
     take?: number
@@ -1743,6 +1745,8 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Posts from the position of the cursor.
     **/
     take?: number
@@ -1782,6 +1786,8 @@ export namespace Prisma {
     **/
     cursor?: PostWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Posts from the position of the cursor.
     **/
     take?: number
@@ -2078,6 +2084,8 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Users from the position of the cursor.
     **/
     take?: number
@@ -2509,6 +2517,8 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Users from the position of the cursor.
     **/
     take?: number
@@ -2548,6 +2558,8 @@ export namespace Prisma {
     **/
     cursor?: UserWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` Users from the position of the cursor.
     **/
     take?: number
@@ -2838,6 +2850,8 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` MS from the position of the cursor.
     **/
     take?: number
@@ -3267,6 +3281,8 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` MS from the position of the cursor.
     **/
     take?: number
@@ -3306,6 +3322,8 @@ export namespace Prisma {
     **/
     cursor?: MWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` MS from the position of the cursor.
     **/
     take?: number
@@ -3596,6 +3614,8 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` NS from the position of the cursor.
     **/
     take?: number
@@ -4025,6 +4045,8 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` NS from the position of the cursor.
     **/
     take?: number
@@ -4064,6 +4086,8 @@ export namespace Prisma {
     **/
     cursor?: NWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` NS from the position of the cursor.
     **/
     take?: number
@@ -4354,6 +4378,8 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OneOptionals from the position of the cursor.
     **/
     take?: number
@@ -4783,6 +4809,8 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OneOptionals from the position of the cursor.
     **/
     take?: number
@@ -4822,6 +4850,8 @@ export namespace Prisma {
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OneOptionals from the position of the cursor.
     **/
     take?: number
@@ -5122,6 +5152,8 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ManyRequireds from the position of the cursor.
     **/
     take?: number
@@ -5553,6 +5585,8 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ManyRequireds from the position of the cursor.
     **/
     take?: number
@@ -5592,6 +5626,8 @@ export namespace Prisma {
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ManyRequireds from the position of the cursor.
     **/
     take?: number
@@ -5892,6 +5928,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide1s from the position of the cursor.
     **/
     take?: number
@@ -6323,6 +6361,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide1s from the position of the cursor.
     **/
     take?: number
@@ -6362,6 +6402,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide1s from the position of the cursor.
     **/
     take?: number
@@ -6652,6 +6694,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide2s from the position of the cursor.
     **/
     take?: number
@@ -7081,6 +7125,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide2s from the position of the cursor.
     **/
     take?: number
@@ -7120,6 +7166,8 @@ export namespace Prisma {
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` OptionalSide2s from the position of the cursor.
     **/
     take?: number
@@ -7420,6 +7468,8 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` AS from the position of the cursor.
     **/
     take?: number
@@ -7828,6 +7878,8 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` AS from the position of the cursor.
     **/
     take?: number
@@ -7863,6 +7915,8 @@ export namespace Prisma {
     **/
     cursor?: AWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` AS from the position of the cursor.
     **/
     take?: number
@@ -8081,6 +8135,8 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` BS from the position of the cursor.
     **/
     take?: number
@@ -8475,6 +8531,8 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` BS from the position of the cursor.
     **/
     take?: number
@@ -8510,6 +8568,8 @@ export namespace Prisma {
     **/
     cursor?: BWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` BS from the position of the cursor.
     **/
     take?: number
@@ -8710,6 +8770,8 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` CS from the position of the cursor.
     **/
     take?: number
@@ -9094,6 +9156,8 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` CS from the position of the cursor.
     **/
     take?: number
@@ -9129,6 +9193,8 @@ export namespace Prisma {
     **/
     cursor?: CWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` CS from the position of the cursor.
     **/
     take?: number
@@ -9323,6 +9389,8 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` DS from the position of the cursor.
     **/
     take?: number
@@ -9705,6 +9773,8 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` DS from the position of the cursor.
     **/
     take?: number
@@ -9740,6 +9810,8 @@ export namespace Prisma {
     **/
     cursor?: DWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` DS from the position of the cursor.
     **/
     take?: number
@@ -9922,6 +9994,8 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ES from the position of the cursor.
     **/
     take?: number
@@ -10300,6 +10374,8 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ES from the position of the cursor.
     **/
     take?: number
@@ -10335,6 +10411,8 @@ export namespace Prisma {
     **/
     cursor?: EWhereUniqueInput
     /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     *     
      * Take \`±n\` ES from the position of the cursor.
     **/
     take?: number
