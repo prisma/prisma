@@ -130,7 +130,7 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.14.0-8.69d24397da64a3401c85f9d8d0ce20e102937255"
+    "@prisma/engines": "2.14.0-9.c42aef09a60ae4c651b634ba638bdf1211df39f1"
   },
   "lint-staged": {
     "*.ts": [
