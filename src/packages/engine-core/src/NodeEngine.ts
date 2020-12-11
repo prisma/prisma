@@ -51,6 +51,7 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
+  useUds?: boolean;
 
   clientVersion?: string
   enableExperimental?: string[]
@@ -167,9 +168,10 @@ export class NodeEngine {
     enableDebugLogs,
     enableEngineDebugMode,
     dirname,
+    useUds,
   }: EngineConfig) {
     this.dirname = dirname
-    this.useUds = process.platform !== 'win32'
+    this.useUds = useUds === undefined ? process.platform !== 'win32' : useUds;
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
