@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('missing-relation', async () => {
+test.skip('missing-relation', async () => {
   expect.assertions(1)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
