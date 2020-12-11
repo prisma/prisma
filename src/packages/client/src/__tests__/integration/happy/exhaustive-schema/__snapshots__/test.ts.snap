@@ -1320,41 +1320,57 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * Determine the order of Posts to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Posts to fetch..
     **/
     orderBy?: Enumerable<PostOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Posts from the position of the cursor.
+     * 
+     * Take \`±n\` Posts from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Posts.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Posts..
     **/
     skip?: number
     /**
-     * Count returned Posts
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Posts.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: PostAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: PostSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: PostMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: PostMaxAggregateInputType
   }
@@ -1737,25 +1753,33 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * Determine the order of Posts to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Posts to fetch..
     **/
     orderBy?: Enumerable<PostOrderByInput>
     /**
-     * Sets the position for searching for Posts.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Posts..
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Posts from the position of the cursor.
+     * 
+     * Take \`±n\` Posts from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Posts.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Posts..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of Posts.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of Posts..
     **/
     distinct?: Enumerable<PostScalarFieldEnum>
   }
@@ -1778,21 +1802,27 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * Determine the order of the Posts to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Posts to fetch..
     **/
     orderBy?: Enumerable<PostOrderByInput>
     /**
-     * Sets the position for listing Posts.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Posts..
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Posts from the position of the cursor.
+     * 
+     * Take \`±n\` Posts from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Posts.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Posts..
     **/
     skip?: number
     distinct?: Enumerable<PostScalarFieldEnum>
@@ -2076,41 +2106,57 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * Determine the order of Users to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Users to fetch..
     **/
     orderBy?: Enumerable<UserOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Users from the position of the cursor.
+     * 
+     * Take \`±n\` Users from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Users.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Users..
     **/
     skip?: number
     /**
-     * Count returned Users
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Users.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: UserAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: UserSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: UserMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: UserMaxAggregateInputType
   }
@@ -2509,25 +2555,33 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * Determine the order of Users to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Users to fetch..
     **/
     orderBy?: Enumerable<UserOrderByInput>
     /**
-     * Sets the position for searching for Users.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Users..
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Users from the position of the cursor.
+     * 
+     * Take \`±n\` Users from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Users.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Users..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of Users.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of Users..
     **/
     distinct?: Enumerable<UserScalarFieldEnum>
   }
@@ -2550,21 +2604,27 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * Determine the order of the Users to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of Users to fetch..
     **/
     orderBy?: Enumerable<UserOrderByInput>
     /**
-     * Sets the position for listing Users.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Users..
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` Users from the position of the cursor.
+     * 
+     * Take \`±n\` Users from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` Users.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Users..
     **/
     skip?: number
     distinct?: Enumerable<UserScalarFieldEnum>
@@ -2842,41 +2902,57 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * Determine the order of MS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of MS to fetch..
     **/
     orderBy?: Enumerable<MOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` MS from the position of the cursor.
+     * 
+     * Take \`±n\` MS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` MS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` MS..
     **/
     skip?: number
     /**
-     * Count returned MS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MS.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: MAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: MSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: MMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: MMaxAggregateInputType
   }
@@ -3273,25 +3349,33 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * Determine the order of MS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of MS to fetch..
     **/
     orderBy?: Enumerable<MOrderByInput>
     /**
-     * Sets the position for searching for MS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MS..
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` MS from the position of the cursor.
+     * 
+     * Take \`±n\` MS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` MS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` MS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of MS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of MS..
     **/
     distinct?: Enumerable<MScalarFieldEnum>
   }
@@ -3314,21 +3398,27 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * Determine the order of the MS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of MS to fetch..
     **/
     orderBy?: Enumerable<MOrderByInput>
     /**
-     * Sets the position for listing MS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MS..
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` MS from the position of the cursor.
+     * 
+     * Take \`±n\` MS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` MS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` MS..
     **/
     skip?: number
     distinct?: Enumerable<MScalarFieldEnum>
@@ -3606,41 +3696,57 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * Determine the order of NS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of NS to fetch..
     **/
     orderBy?: Enumerable<NOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` NS from the position of the cursor.
+     * 
+     * Take \`±n\` NS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` NS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` NS..
     **/
     skip?: number
     /**
-     * Count returned NS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NS.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: NAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: NSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: NMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: NMaxAggregateInputType
   }
@@ -4037,25 +4143,33 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * Determine the order of NS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of NS to fetch..
     **/
     orderBy?: Enumerable<NOrderByInput>
     /**
-     * Sets the position for searching for NS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NS..
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` NS from the position of the cursor.
+     * 
+     * Take \`±n\` NS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` NS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` NS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of NS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of NS..
     **/
     distinct?: Enumerable<NScalarFieldEnum>
   }
@@ -4078,21 +4192,27 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * Determine the order of the NS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of NS to fetch..
     **/
     orderBy?: Enumerable<NOrderByInput>
     /**
-     * Sets the position for listing NS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NS..
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` NS from the position of the cursor.
+     * 
+     * Take \`±n\` NS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` NS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` NS..
     **/
     skip?: number
     distinct?: Enumerable<NScalarFieldEnum>
@@ -4370,41 +4490,57 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * Determine the order of OneOptionals to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OneOptionals to fetch..
     **/
     orderBy?: Enumerable<OneOptionalOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
+     * Take \`±n\` OneOptionals from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OneOptionals.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OneOptionals..
     **/
     skip?: number
     /**
-     * Count returned OneOptionals
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OneOptionals.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: OneOptionalAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: OneOptionalSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: OneOptionalMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: OneOptionalMaxAggregateInputType
   }
@@ -4801,25 +4937,33 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * Determine the order of OneOptionals to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OneOptionals to fetch..
     **/
     orderBy?: Enumerable<OneOptionalOrderByInput>
     /**
-     * Sets the position for searching for OneOptionals.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OneOptionals..
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
+     * Take \`±n\` OneOptionals from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OneOptionals.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OneOptionals..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of OneOptionals.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of OneOptionals..
     **/
     distinct?: Enumerable<OneOptionalScalarFieldEnum>
   }
@@ -4842,21 +4986,27 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * Determine the order of the OneOptionals to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OneOptionals to fetch..
     **/
     orderBy?: Enumerable<OneOptionalOrderByInput>
     /**
-     * Sets the position for listing OneOptionals.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OneOptionals..
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
+     * Take \`±n\` OneOptionals from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OneOptionals.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OneOptionals..
     **/
     skip?: number
     distinct?: Enumerable<OneOptionalScalarFieldEnum>
@@ -5144,41 +5294,57 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * Determine the order of ManyRequireds to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ManyRequireds to fetch..
     **/
     orderBy?: Enumerable<ManyRequiredOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
+     * Take \`±n\` ManyRequireds from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ManyRequireds.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ManyRequireds..
     **/
     skip?: number
     /**
-     * Count returned ManyRequireds
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ManyRequireds.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: ManyRequiredAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: ManyRequiredSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: ManyRequiredMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: ManyRequiredMaxAggregateInputType
   }
@@ -5577,25 +5743,33 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * Determine the order of ManyRequireds to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ManyRequireds to fetch..
     **/
     orderBy?: Enumerable<ManyRequiredOrderByInput>
     /**
-     * Sets the position for searching for ManyRequireds.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ManyRequireds..
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
+     * Take \`±n\` ManyRequireds from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ManyRequireds.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ManyRequireds..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of ManyRequireds.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of ManyRequireds..
     **/
     distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
@@ -5618,21 +5792,27 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * Determine the order of the ManyRequireds to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ManyRequireds to fetch..
     **/
     orderBy?: Enumerable<ManyRequiredOrderByInput>
     /**
-     * Sets the position for listing ManyRequireds.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ManyRequireds..
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
+     * Take \`±n\` ManyRequireds from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ManyRequireds.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ManyRequireds..
     **/
     skip?: number
     distinct?: Enumerable<ManyRequiredScalarFieldEnum>
@@ -5920,41 +6100,57 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * Determine the order of OptionalSide1s to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide1s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide1OrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide1s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide1s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide1s..
     **/
     skip?: number
     /**
-     * Count returned OptionalSide1s
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OptionalSide1s.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: OptionalSide1AvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: OptionalSide1SumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: OptionalSide1MinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: OptionalSide1MaxAggregateInputType
   }
@@ -6353,25 +6549,33 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * Determine the order of OptionalSide1s to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide1s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide1OrderByInput>
     /**
-     * Sets the position for searching for OptionalSide1s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OptionalSide1s..
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide1s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide1s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide1s..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of OptionalSide1s.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of OptionalSide1s..
     **/
     distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
   }
@@ -6394,21 +6598,27 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * Determine the order of the OptionalSide1s to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide1s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide1OrderByInput>
     /**
-     * Sets the position for listing OptionalSide1s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OptionalSide1s..
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide1s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide1s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide1s..
     **/
     skip?: number
     distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
@@ -6686,41 +6896,57 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * Determine the order of OptionalSide2s to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide2s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide2OrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide2s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide2s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide2s..
     **/
     skip?: number
     /**
-     * Count returned OptionalSide2s
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OptionalSide2s.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: OptionalSide2AvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: OptionalSide2SumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: OptionalSide2MinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: OptionalSide2MaxAggregateInputType
   }
@@ -7117,25 +7343,33 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * Determine the order of OptionalSide2s to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide2s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide2OrderByInput>
     /**
-     * Sets the position for searching for OptionalSide2s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OptionalSide2s..
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide2s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide2s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide2s..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of OptionalSide2s.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of OptionalSide2s..
     **/
     distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
   }
@@ -7158,21 +7392,27 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * Determine the order of the OptionalSide2s to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of OptionalSide2s to fetch..
     **/
     orderBy?: Enumerable<OptionalSide2OrderByInput>
     /**
-     * Sets the position for listing OptionalSide2s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OptionalSide2s..
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
+     * Take \`±n\` OptionalSide2s from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` OptionalSide2s.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide2s..
     **/
     skip?: number
     distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
@@ -7460,41 +7700,57 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * Determine the order of AS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of AS to fetch..
     **/
     orderBy?: Enumerable<AOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` AS from the position of the cursor.
+     * 
+     * Take \`±n\` AS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` AS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` AS..
     **/
     skip?: number
     /**
-     * Count returned AS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AS.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: AAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: ASumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: AMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: AMaxAggregateInputType
   }
@@ -7870,25 +8126,33 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * Determine the order of AS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of AS to fetch..
     **/
     orderBy?: Enumerable<AOrderByInput>
     /**
-     * Sets the position for searching for AS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AS..
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` AS from the position of the cursor.
+     * 
+     * Take \`±n\` AS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` AS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` AS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of AS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of AS..
     **/
     distinct?: Enumerable<AScalarFieldEnum>
   }
@@ -7907,21 +8171,27 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * Determine the order of the AS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of AS to fetch..
     **/
     orderBy?: Enumerable<AOrderByInput>
     /**
-     * Sets the position for listing AS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AS..
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` AS from the position of the cursor.
+     * 
+     * Take \`±n\` AS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` AS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` AS..
     **/
     skip?: number
     distinct?: Enumerable<AScalarFieldEnum>
@@ -8127,41 +8397,57 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * Determine the order of BS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of BS to fetch..
     **/
     orderBy?: Enumerable<BOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` BS from the position of the cursor.
+     * 
+     * Take \`±n\` BS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` BS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` BS..
     **/
     skip?: number
     /**
-     * Count returned BS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BS.
     **/
     count?: true
     /**
-     * Select which fields to average
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average.
     **/
     avg?: BAvgAggregateInputType
     /**
-     * Select which fields to sum
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum.
     **/
     sum?: BSumAggregateInputType
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: BMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: BMaxAggregateInputType
   }
@@ -8523,25 +8809,33 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * Determine the order of BS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of BS to fetch..
     **/
     orderBy?: Enumerable<BOrderByInput>
     /**
-     * Sets the position for searching for BS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BS..
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` BS from the position of the cursor.
+     * 
+     * Take \`±n\` BS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` BS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` BS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of BS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of BS..
     **/
     distinct?: Enumerable<BScalarFieldEnum>
   }
@@ -8560,21 +8854,27 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * Determine the order of the BS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of BS to fetch..
     **/
     orderBy?: Enumerable<BOrderByInput>
     /**
-     * Sets the position for listing BS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BS..
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` BS from the position of the cursor.
+     * 
+     * Take \`±n\` BS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` BS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` BS..
     **/
     skip?: number
     distinct?: Enumerable<BScalarFieldEnum>
@@ -8762,33 +9062,45 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * Determine the order of CS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of CS to fetch..
     **/
     orderBy?: Enumerable<COrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` CS from the position of the cursor.
+     * 
+     * Take \`±n\` CS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` CS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` CS..
     **/
     skip?: number
     /**
-     * Count returned CS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned CS.
     **/
     count?: true
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: CMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: CMaxAggregateInputType
   }
@@ -9148,25 +9460,33 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * Determine the order of CS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of CS to fetch..
     **/
     orderBy?: Enumerable<COrderByInput>
     /**
-     * Sets the position for searching for CS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CS..
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` CS from the position of the cursor.
+     * 
+     * Take \`±n\` CS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` CS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` CS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of CS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of CS..
     **/
     distinct?: Enumerable<CScalarFieldEnum>
   }
@@ -9185,21 +9505,27 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * Determine the order of the CS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of CS to fetch..
     **/
     orderBy?: Enumerable<COrderByInput>
     /**
-     * Sets the position for listing CS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing CS..
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` CS from the position of the cursor.
+     * 
+     * Take \`±n\` CS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` CS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` CS..
     **/
     skip?: number
     distinct?: Enumerable<CScalarFieldEnum>
@@ -9381,33 +9707,45 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * Determine the order of DS to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of DS to fetch..
     **/
     orderBy?: Enumerable<DOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` DS from the position of the cursor.
+     * 
+     * Take \`±n\` DS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` DS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` DS..
     **/
     skip?: number
     /**
-     * Count returned DS
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DS.
     **/
     count?: true
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: DMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: DMaxAggregateInputType
   }
@@ -9765,25 +10103,33 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * Determine the order of DS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of DS to fetch..
     **/
     orderBy?: Enumerable<DOrderByInput>
     /**
-     * Sets the position for searching for DS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DS..
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` DS from the position of the cursor.
+     * 
+     * Take \`±n\` DS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` DS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` DS..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of DS.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of DS..
     **/
     distinct?: Enumerable<DScalarFieldEnum>
   }
@@ -9802,21 +10148,27 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * Determine the order of the DS to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of DS to fetch..
     **/
     orderBy?: Enumerable<DOrderByInput>
     /**
-     * Sets the position for listing DS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DS..
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` DS from the position of the cursor.
+     * 
+     * Take \`±n\` DS from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` DS.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` DS..
     **/
     skip?: number
     distinct?: Enumerable<DScalarFieldEnum>
@@ -9986,33 +10338,45 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * Determine the order of ES to aggregate.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ES to fetch..
     **/
     orderBy?: Enumerable<EOrderByInput>
     /**
-     * Sets the start position
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position.
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ES from the position of the cursor.
+     * 
+     * Take \`±n\` ES from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ES.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ES..
     **/
     skip?: number
     /**
-     * Count returned ES
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ES.
     **/
     count?: true
     /**
-     * Select which fields to find the minimum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value.
     **/
     min?: EMinAggregateInputType
     /**
-     * Select which fields to find the maximum value
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value.
     **/
     max?: EMaxAggregateInputType
   }
@@ -10366,25 +10730,33 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * Determine the order of ES to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ES to fetch..
     **/
     orderBy?: Enumerable<EOrderByInput>
     /**
-     * Sets the position for searching for ES.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ES..
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ES from the position of the cursor.
+     * 
+     * Take \`±n\` ES from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ES.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ES..
     **/
     skip?: number
     /**
-     * Filter by unique combinations of ES.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * 
+     * Filter by unique combinations of ES..
     **/
     distinct?: Enumerable<EScalarFieldEnum>
   }
@@ -10403,21 +10775,27 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * Determine the order of the ES to fetch.
+     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * 
+     * Determine the order of ES to fetch..
     **/
     orderBy?: Enumerable<EOrderByInput>
     /**
-     * Sets the position for listing ES.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ES..
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     *     
-     * Take \`±n\` ES from the position of the cursor.
+     * 
+     * Take \`±n\` ES from the position of the cursor..
     **/
     take?: number
     /**
-     * Skip the first \`n\` ES.
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ES..
     **/
     skip?: number
     distinct?: Enumerable<EScalarFieldEnum>

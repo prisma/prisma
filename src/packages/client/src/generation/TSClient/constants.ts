@@ -13,7 +13,11 @@ export interface JSDocMethodBodyCtx {
   mapping: DMMF.ModelMapping
 }
 const Docs = {
-  pagination: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}`
+  cursor: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}`,
+  pagination: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}`,
+  aggregations: `{@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}`,
+  distinct: `@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs`,
+  sorting: `@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs`,
 }
 type JSDocsType = {
   [action in DMMF.ModelAction | 'findOne']: {
@@ -23,11 +27,39 @@ type JSDocsType = {
     }
   }
 }
+function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
+  return `${Docs[docs]}
+
+${comment}.`
+}
 const JSDocFields = {
   take: (singular, plural) =>
-`${Docs.pagination}
-
-Take \`±n\` ${plural} from the position of the cursor.`,
+    addLinkToDocs(
+      `Take \`±n\` ${plural} from the position of the cursor.`,
+      'pagination',
+    ),
+  skip: (singular, plural) =>
+    addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
+  count: (singular, plural) =>
+    addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
+  avg: (singular, plural) =>
+    addLinkToDocs(`Select which fields to average`, 'aggregations'),
+  sum: (singular, plural) =>
+    addLinkToDocs(`Select which fields to sum`, 'aggregations'),
+  min: (singular, plural) =>
+    addLinkToDocs(
+      `Select which fields to find the minimum value`,
+      'aggregations',
+    ),
+  max: (singular, plural) =>
+    addLinkToDocs(
+      `Select which fields to find the maximum value`,
+      'aggregations',
+    ),
+  distinct: (singular, plural) =>
+    addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
+  orderBy: (singular, plural) =>
+    addLinkToDocs(`Determine the order of ${plural} to fetch.`, 'sorting'),
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
@@ -107,14 +139,15 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })`,
     fields: {
       where: (singular, plural) => `Filter, which ${singular} to fetch.`,
-      orderBy: (singular, plural) =>
-        `Determine the order of ${plural} to fetch.`,
+      orderBy: JSDocFields.orderBy,
       cursor: (singular, plural) =>
-        `Sets the position for searching for ${plural}.`,
+        addLinkToDocs(
+          `Sets the position for searching for ${plural}.`,
+          'cursor',
+        ),
       take: JSDocFields.take,
-      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-      distinct: (singular, plural) =>
-        `Filter by unique combinations of ${plural}.`,
+      skip: JSDocFields.skip,
+      distinct: JSDocFields.distinct,
     },
   },
   findMany: {
@@ -144,10 +177,10 @@ ${onlySelect}
     },
     fields: {
       where: (singular, plural) => `Filter, which ${plural} to fetch.`,
-      orderBy: (singular, plural) =>
-        `Determine the order of the ${plural} to fetch.`,
-      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-      cursor: (singular, plural) => `Sets the position for listing ${plural}.`,
+      orderBy: JSDocFields.orderBy,
+      skip: JSDocFields.skip,
+      cursor: (singular, plural) =>
+        addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
       take: JSDocFields.take,
     },
   },
@@ -249,18 +282,16 @@ const aggregations = await prisma.user.aggregate({
 })`,
     fields: {
       where: (singular, plural) => `Filter which ${singular} to aggregate.`,
-      orderBy: (singular, plural) =>
-        `Determine the order of ${plural} to aggregate.`,
-      cursor: (singular, plural) => `Sets the start position`,
+      orderBy: JSDocFields.orderBy,
+      cursor: (singular, plural) =>
+        addLinkToDocs(`Sets the start position`, 'cursor'),
       take: JSDocFields.take,
-      skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
-      count: (singular, plural) => `Count returned ${plural}`,
-      avg: (singular, plural) => `Select which fields to average`,
-      sum: (singular, plural) => `Select which fields to sum`,
-      min: (singular, plural) =>
-        `Select which fields to find the minimum value`,
-      max: (singular, plural) =>
-        `Select which fields to find the maximum value`,
+      skip: JSDocFields.skip,
+      count: JSDocFields.count,
+      avg: JSDocFields.avg,
+      sum: JSDocFields.sum,
+      min: JSDocFields.min,
+      max: JSDocFields.max,
     },
   },
   count: {
