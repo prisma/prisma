@@ -33,23 +33,21 @@ export function getMessage(log: string | RustLog | RustError | any): string {
 }
 
 export function getBacktraceFromLog(log: RustLog): string | null {
-  if (log.level === 'error') {
-    if (log.fields?.message) {
-      let str = log.fields?.message
-      if (log.fields?.file) {
-        str += ` in ${log.fields.file}`
-        if (log.fields?.line) {
-          str += `:${log.fields.line}`
-        }
-        if (log.fields?.column) {
-          str += `:${log.fields.column}`
-        }
+  if (log.fields?.message) {
+    let str = log.fields?.message
+    if (log.fields?.file) {
+      str += ` in ${log.fields.file}`
+      if (log.fields?.line) {
+        str += `:${log.fields.line}`
       }
-      if (log.fields?.reason) {
-        str += `\n${log.fields?.reason}`
+      if (log.fields?.column) {
+        str += `:${log.fields.column}`
       }
-      return str
     }
+    if (log.fields?.reason) {
+      str += `\n${log.fields?.reason}`
+    }
+    return str
   }
 
   return null
@@ -72,6 +70,13 @@ export function getBacktraceFromRustError(err: RustError): string {
 export function isRustLog(e: any): e is RustLog {
   return (
     e.timestamp && typeof e.level === 'string' && typeof e.target === 'string'
+  )
+}
+
+export function isRustErrorLog(e: any): e is RustLog {
+  return (
+    isRustLog(e) &&
+    (e.level === 'error' || e.fields?.message.includes('fatal error'))
   )
 }
 
