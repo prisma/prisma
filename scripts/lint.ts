@@ -36,7 +36,7 @@ async function main() {
     packages,
     (pkg) => lintPackage(pkg, args['--staged']),
     {
-      concurrency: 1, //os.cpus().length,
+      concurrency: args['--staged'] ? 1 : os.cpus().length,
     },
   )
 
