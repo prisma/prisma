@@ -30,7 +30,7 @@ type JSDocsType = {
 function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
   return `${Docs[docs]}
 
-${comment}.`
+${comment}`
 }
 const JSDocFields = {
   take: (singular, plural) =>
