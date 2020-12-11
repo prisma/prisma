@@ -25,7 +25,7 @@ function removePlatforms(str) {
 
 function normalizeGithubLinks(str) {
   return str.replace(
-    /https:\/\/github.com\/prisma\/prisma-client-js\/issues\/\S+/,
+    /https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/\S+/,
     'TEST_GITHUB_LINK',
   )
 }

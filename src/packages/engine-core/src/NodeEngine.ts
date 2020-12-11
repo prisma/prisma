@@ -531,7 +531,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
    */
   async start(restart = false): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    if (!this.startPromise || restart) {
+    if (!this.startPromise) {
+      // if (!this.startPromise || restart) {
       this.startCount++
       this.startPromise = this.internalStart(restart)
     }
@@ -728,29 +729,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
           this.undici?.close()
           this.exitCode = code
-          // TODO: remove comment
-          // if (
-          //   !this.queryEngineKilled &&
-          //   this.queryEngineStarted &&
-          //   !this.lastPanic &&
-          //   this.restartCount < MAX_RESTARTS
-          // ) {
-          //   this.startPromise = undefined
-          //   void (async () => {
-          //     log('going to start')
-          //     await new Promise((r) => setTimeout(r, 50))
-          //     log('currentRequestErrored', this.currentRequestErrored)
-          //     if (!this.currentRequestErrored) {
-          //       log('startin')
-          //       await new Promise((r) => setTimeout(r, 500))
-          //     }
-          //     this.restartCount++
-          //     this.start()
-          //   })()
-          //   return
-          // }
 
-          if (code !== 0 && this.engineStartDeferred) {
+          // don't error in restarts
+          if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
             let err
             let msg = this.stderrLogs
             if (this.lastRustError) {
@@ -1197,10 +1178,10 @@ We recommend using the \`wtfnode\` package to debug open handles.`,
       if (this.startCount > MAX_STARTS) {
         // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
         // to get an error first
-        // for (let i = 0; i < 15; i++) {
-        //   await new Promise((r) => setTimeout(r, 50))
-        //   this.throwAsyncErrorIfExists()
-        // }
+        for (let i = 0; i < 5; i++) {
+          await new Promise((r) => setTimeout(r, 50))
+          this.throwAsyncErrorIfExists()
+        }
         throw new Error(`Query engine is trying to restart, but can't.
 Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
       }
