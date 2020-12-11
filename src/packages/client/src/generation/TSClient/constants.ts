@@ -20,6 +20,10 @@ type JSDocsType = {
     }
   }
 }
+const JSDocFields = {
+  take: (singular, plural) =>
+    `Take \`±n\` ${plural} from the position of the cursor.`,
+}
 export const JSDocs: JSDocsType = {
   groupBy: {
     body: (ctx) => `Group By`,
@@ -102,8 +106,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         `Determine the order of ${plural} to fetch.`,
       cursor: (singular, plural) =>
         `Sets the position for searching for ${plural}.`,
-      take: (singular, plural) =>
-        `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
+      take: JSDocFields.take,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
       distinct: (singular, plural) =>
         `Filter by unique combinations of ${plural}.`,
@@ -140,8 +143,7 @@ ${onlySelect}
         `Determine the order of the ${plural} to fetch.`,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
       cursor: (singular, plural) => `Sets the position for listing ${plural}.`,
-      take: (singular, plural) =>
-        `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
+      take: JSDocFields.take,
     },
   },
   update: {
@@ -245,8 +247,7 @@ const aggregations = await prisma.user.aggregate({
       orderBy: (singular, plural) =>
         `Determine the order of ${plural} to aggregate.`,
       cursor: (singular, plural) => `Sets the start position`,
-      take: (singular, plural) =>
-      `Take \`n\` ${plural} from the position of the cursor (cursor included). If negative number, it will take ${plural} before the \`cursor\`.`,
+      take: JSDocFields.take,
       skip: (singular, plural) => `Skip the first \`n\` ${plural}.`,
       count: (singular, plural) => `Count returned ${plural}`,
       avg: (singular, plural) => `Select which fields to average`,
