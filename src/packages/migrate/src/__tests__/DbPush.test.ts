@@ -17,7 +17,7 @@ describe('push', () => {
           `)
   })
 
-  it('if no schema file should fail', async () => {
+  it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
     const result = DbPush.new().parse(['--preview-feature'])
