@@ -186,7 +186,7 @@ describe('sqlite', () => {
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
     const result = MigrateStatus.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(`
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
           `)
@@ -205,7 +205,7 @@ describe('sqlite', () => {
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
     const result = MigrateStatus.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
+    await expect(result).resolves.toMatchInlineSnapshot(`
             Read more about how to baseline an existing production database:
             https://pris.ly/d/migrate-baseline
           `)

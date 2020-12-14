@@ -194,7 +194,7 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`
       //                 - Suggest calling `prisma migrate resolve --applied <migration-name>`
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
-        throw new HowToBaselineError()
+        return new HowToBaselineError().message
       } else {
         const migrationId = listMigrationDirectoriesResult.migrations.shift() as string
         return `The current database is not managed by Prisma Migrate.
