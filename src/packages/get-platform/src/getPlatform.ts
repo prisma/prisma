@@ -1,15 +1,29 @@
-import os from 'os'
-import fs from 'fs'
-import { promisify } from 'util'
 import { exec } from 'child_process'
+import fs from 'fs'
+import os from 'os'
+import { promisify } from 'util'
 import { Platform } from './platforms'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 
+// https://www.geeksforgeeks.org/node-js-process-arch-property/
+export type Arch =
+  | 'x32'
+  | 'x64'
+  | 'arm'
+  | 'arm64'
+  | 's390'
+  | 's390x'
+  | 'mipsel'
+  | 'ia32'
+  | 'mips'
+  | 'ppc'
+  | 'ppc64'
 export type GetOSResult = {
   platform: NodeJS.Platform
   libssl?: string
+  arch: Arch
   distro?:
     | 'rhel'
     | 'debian'
@@ -22,7 +36,7 @@ export type GetOSResult = {
 
 export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
-
+  const arch = process.arch as Arch
   if (platform === 'freebsd') {
     const version = await gracefulExec(`freebsd-version`)
     if (version && version.trim().length > 0) {
@@ -32,6 +46,7 @@ export async function getos(): Promise<GetOSResult> {
         return {
           platform: 'freebsd',
           distro: `freebsd${match[1]}` as GetOSResult['distro'],
+          arch,
         }
       }
     }
@@ -40,6 +55,7 @@ export async function getos(): Promise<GetOSResult> {
   if (platform !== 'linux') {
     return {
       platform,
+      arch,
     }
   }
 
@@ -47,6 +63,7 @@ export async function getos(): Promise<GetOSResult> {
     platform: 'linux',
     libssl: await getOpenSSLVersion(),
     distro: await resolveDistro(),
+    arch,
   }
 }
 
@@ -155,7 +172,7 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, libssl, distro } = await getos()
+  const { platform, libssl, distro, arch } = await getos()
 
   if (platform === 'darwin') {
     return 'darwin'
@@ -176,7 +193,7 @@ export async function getPlatform(): Promise<Platform> {
   if (platform === 'netbsd') {
     return 'netbsd'
   }
-  if (platform === 'linux' && distro === 'arm') {
+  if (platform === 'linux' && arch === 'arm64') {
     return `linux-arm-openssl-${libssl}` as Platform
   }
 
