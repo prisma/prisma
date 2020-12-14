@@ -13,7 +13,6 @@ import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 export interface MigrateEngineOptions {
   projectDir: string
   schemaPath: string
-  binaryPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
 }
@@ -37,7 +36,6 @@ let messageId = 1
 
 /* tslint:disable */
 export class MigrateEngine {
-  private binaryPath?: string
   private projectDir: string
   private debug: boolean
   private child?: ChildProcess
@@ -123,54 +121,15 @@ export class MigrateEngine {
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
-
   public schemaPush(
     args: EngineArgs.SchemaPush,
   ): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
-  public applyMigration(
-    args: EngineArgs.ApplyMigration,
-  ): Promise<EngineResults.ApplyMigration> {
-    return this.runCommand(this.getRPCPayload('applyMigration', args))
-  }
-  public unapplyMigration(
-    args: EngineArgs.UnapplyMigration,
-  ): Promise<EngineResults.UnapplyMigration> {
-    return this.runCommand(this.getRPCPayload('unapplyMigration', args))
-  }
-  public calculateDatamodel(
-    args: EngineArgs.CalculateDatamodel,
-  ): Promise<EngineResults.CalculateDatamodel> {
-    return this.runCommand(this.getRPCPayload('calculateDatamodel', args))
-  }
-  public calculateDatabaseSteps(
-    args: EngineArgs.CalculateDatabaseSteps,
-  ): Promise<EngineResults.ApplyMigration> {
-    return this.runCommand(this.getRPCPayload('calculateDatabaseSteps', args))
-  }
-  public inferMigrationSteps(
-    args: EngineArgs.InferMigrationSteps,
-  ): Promise<EngineResults.InferMigrationSteps> {
-    return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
-  }
-  // Helper function, oftentimes we just want the applied migrations
-  public async listAppliedMigrations(
-    args: EngineArgs.ListMigrations,
-  ): Promise<EngineResults.ListMigrations> {
-    const migrations = await this.runCommand(
-      this.getRPCPayload('listMigrations', args),
-    )
-    return migrations.filter((m) => m.status === 'MigrationSuccess')
-  }
-  public migrationProgess(
-    args: EngineArgs.MigrationProgress,
-  ): Promise<EngineResults.MigrationProgress> {
-    return this.runCommand(this.getRPCPayload('migrationProgress', args))
-  }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
+
   /* eslint-enable @typescript-eslint/no-unsafe-return */
   private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {

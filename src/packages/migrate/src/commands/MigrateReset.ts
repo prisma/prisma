@@ -2,7 +2,6 @@ import {
   arg,
   Command,
   format,
-  getCommandWithExecutor,
   getSchemaPath,
   HelpError,
   isError,
