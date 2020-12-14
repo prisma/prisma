@@ -133,12 +133,12 @@ ${e.message}`)
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
       optInToShadowDatabase: false,
     })
-    debug({ diagnoseResult })
+    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
     migrate.stop()
 
-    console.info(`\nStatus`)
+    console.log() // empty line
 
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
