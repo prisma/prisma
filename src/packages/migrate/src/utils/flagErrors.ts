@@ -49,7 +49,7 @@ export class EarlyAccessFeatureFlagWithNewMigrateError extends Error {
   constructor() {
     super(
       `Prisma Migrate was in Early Access and is now in Preview.
-Replace the ${chalk.red('--experimental')} flag with ${chalk.green(
+Replace the ${chalk.red('--early-access-feature')} flag with ${chalk.green(
         '--preview-feature',
       )}.`,
     )

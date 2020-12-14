@@ -17,7 +17,7 @@ describe('drop', () => {
           `)
   })
 
-  it('if no schema file should fail', async () => {
+  it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
     const result = DbDrop.new().parse(['--preview-feature'])

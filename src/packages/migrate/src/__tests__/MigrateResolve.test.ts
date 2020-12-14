@@ -38,7 +38,7 @@ describe('common', () => {
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --experimental flag with --preview-feature.
+            Replace the --early-access-feature flag with --preview-feature.
           `)
   })
   it('should fail if no --applied or --rolled-back', async () => {
