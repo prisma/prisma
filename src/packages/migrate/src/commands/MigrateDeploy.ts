@@ -126,8 +126,7 @@ ${chalk.bold('Examples')}
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
       optInToShadowDatabase: false,
     })
-    debug({ diagnoseResult })
-
+    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 

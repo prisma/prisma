@@ -146,7 +146,7 @@ ${chalk.bold('Examples')}
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
       optInToShadowDatabase: true,
     })
-    debug({ diagnoseResult })
+    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
 
     let isResetNeeded = false
     let isResetNeededAfterCreate = false
