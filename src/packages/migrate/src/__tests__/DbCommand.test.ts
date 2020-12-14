@@ -63,37 +63,3 @@ it('dev without --preview-feature flag', async () => {
           Please provide the --preview-feature flag to use this command.
         `)
 })
-
-describe('legacy', () => {
-  it('experimental flag', async () => {
-    await expect(DbCommand.new({}).parse(['--experimental'])).rejects
-      .toMatchInlineSnapshot(`
-            Prisma Migrate was Experimental and is now in Preview.
-            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
-          `)
-  })
-
-  it('up command', async () => {
-    await expect(DbCommand.new({}).parse(['up'])).rejects
-      .toMatchInlineSnapshot(`
-            The current command "up" doesn't exist in the new version of Prisma Migrate.
-            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
-          `)
-  })
-
-  it('down command', async () => {
-    await expect(DbCommand.new({}).parse(['down'])).rejects
-      .toMatchInlineSnapshot(`
-            The current command "down" doesn't exist in the new version of Prisma Migrate.
-            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
-          `)
-  })
-
-  it('save command', async () => {
-    await expect(DbCommand.new({}).parse(['save'])).rejects
-      .toMatchInlineSnapshot(`
-            The current command "save" doesn't exist in the new version of Prisma Migrate.
-            Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
-          `)
-  })
-})
