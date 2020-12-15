@@ -8,9 +8,23 @@
   "rebaseWhen": "conflicted",
   "packageRules": [
     {
-      "groupName": "renovate-meta",
+      "groupName": "devDependencies (non-major)",
       "automerge": "true",
-      "updateTypes": ["lockFileMaintenance", "pin"]
+      "depTypeList": ["devDependencies"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": [
+        "before 9am on Monday",
+        "before 9am on Wednesday"
+      ]
+    },
+    {
+      "groupName": "dependencies (non-major)",
+      "depTypeList": ["dependencies"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": [
+        "before 9am on Monday",
+        "before 9am on Wednesday"
+      ]
     },
     {
       "groupName": "definitelyTyped",
@@ -33,35 +47,8 @@
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
-      "updateTypes": ["patch", "minor"]
-    },
-    {
-      "groupName": "devDependencies (non-major)",
-      "automerge": "true",
-      "depTypeList": ["devDependencies"],
-      "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "@prisma/studio",
-        "@prisma/studio-server",
-        "checkpoint-client"
-      ],
       "updateTypes": ["patch", "minor"],
-      "schedule": [
-        "before 9am on Monday",
-        "before 9am on Wednesday"
-      ]
-    },
-    {
-      "groupName": "dependencies (non-major)",
-      "depTypeList": ["dependencies"],
-      "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "checkpoint-client"
-      ],
-      "updateTypes": ["patch", "minor"],
-      "schedule": ["on monday and wednesday"]
+      "reviewers": ["@Weakky"]
     }
   ]
 }
