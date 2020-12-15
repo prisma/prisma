@@ -107,8 +107,8 @@ export type StopDeferred = {
 const engines: NodeEngine[] = []
 const socketPaths: string[] = []
 
-const MAX_STARTS = 2
-const MAX_REQUEST_RETRIES = 2
+const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
+const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 export class NodeEngine {
   private logEmitter: EventEmitter
@@ -529,12 +529,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   /**
    * Starts the engine, returns the url that it runs on
    */
-  async start(restart = false): Promise<void> {
+  async start(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (!this.startPromise) {
-      // if (!this.startPromise || restart) {
       this.startCount++
-      this.startPromise = this.internalStart(restart)
+      this.startPromise = this.internalStart()
     }
     return this.startPromise
   }
@@ -573,7 +572,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
   }
 
-  private internalStart(restart: boolean): Promise<void> {
+  private internalStart(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       await new Promise((r) => process.nextTick(r))
@@ -980,7 +979,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       await this.stopPromise
     }
     logger('req - go')
-    await this.start(numTry > 1)
+    await this.start()
     logger('req - started')
 
     if (!this.child && !this.engineEndpoint) {
@@ -1015,10 +1014,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       if (this.startCount > 0) {
         this.startCount = 0
       }
-
-      // this.lastErrorLog = undefined
-      // this.lastRustError = undefined
-      // this.lastPanic = undefined
 
       this.currentRequestPromise = undefined
       return { data, elapsed } as any

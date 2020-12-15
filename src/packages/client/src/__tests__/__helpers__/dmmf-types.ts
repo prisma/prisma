@@ -5,4198 +5,187 @@ const dmmf: DMMF.Document = {
     enums: [],
     models: [
       {
-        name: 'Post',
-        isEmbedded: false,
         dbName: null,
         fields: [
           {
-            name: 'id',
-            kind: 'scalar',
-            isList: false,
-            isRequired: true,
-            isUnique: false,
-            isId: true,
-            isReadOnly: false,
-            type: 'Int',
-            hasDefaultValue: true,
             default: {
-              name: 'autoincrement',
               args: [],
+              name: 'autoincrement',
             },
-            isGenerated: false,
-            isUpdatedAt: false,
-          },
-          {
-            name: 'author',
-            kind: 'object',
-            isList: false,
-            isRequired: true,
-            isUnique: false,
-            isId: false,
-            isReadOnly: false,
-            type: 'User',
-            hasDefaultValue: false,
-            relationName: 'PostToUser',
-            relationFromFields: ['authorId'],
-            relationToFields: ['id'],
-            relationOnDelete: 'NONE',
-            isGenerated: false,
-            isUpdatedAt: false,
-          },
-          {
-            name: 'authorId',
-            kind: 'scalar',
-            isList: false,
-            isRequired: true,
-            isUnique: false,
-            isId: false,
-            isReadOnly: true,
-            type: 'Int',
-            hasDefaultValue: false,
-            isGenerated: false,
-            isUpdatedAt: false,
-          },
-          {
-            name: 'title',
-            kind: 'scalar',
-            isList: false,
-            isRequired: true,
-            isUnique: false,
-            isId: false,
-            isReadOnly: false,
-            type: 'String',
-            hasDefaultValue: false,
-            isGenerated: false,
-            isUpdatedAt: false,
-          },
-          {
-            name: 'published',
-            kind: 'scalar',
-            isList: false,
-            isRequired: true,
-            isUnique: false,
-            isId: false,
-            isReadOnly: false,
-            type: 'Boolean',
             hasDefaultValue: true,
-            default: false,
             isGenerated: false,
+            isId: true,
+            isList: false,
+            isReadOnly: false,
+            isRequired: true,
+            isUnique: false,
             isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'id',
+            type: 'Int',
+          },
+          {
+            hasDefaultValue: false,
+            isGenerated: false,
+            isId: false,
+            isList: false,
+            isReadOnly: false,
+            isRequired: true,
+            isUnique: false,
+            isUpdatedAt: false,
+            kind: 'object',
+            name: 'author',
+            relationFromFields: ['authorId'],
+            relationName: 'PostToUser',
+            relationOnDelete: 'NONE',
+            relationToFields: ['id'],
+            type: 'User',
+          },
+          {
+            hasDefaultValue: false,
+            isGenerated: false,
+            isId: false,
+            isList: false,
+            isReadOnly: true,
+            isRequired: true,
+            isUnique: false,
+            isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'authorId',
+            type: 'Int',
+          },
+          {
+            hasDefaultValue: false,
+            isGenerated: false,
+            isId: false,
+            isList: false,
+            isReadOnly: false,
+            isRequired: true,
+            isUnique: false,
+            isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'title',
+            type: 'String',
+          },
+          {
+            default: false,
+            hasDefaultValue: true,
+            isGenerated: false,
+            isId: false,
+            isList: false,
+            isReadOnly: false,
+            isRequired: true,
+            isUnique: false,
+            isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'published',
+            type: 'Boolean',
           },
         ],
-        isGenerated: false,
         idFields: [],
+        isEmbedded: false,
+        isGenerated: false,
+        name: 'Post',
         uniqueFields: [],
         uniqueIndexes: [],
       },
       {
-        name: 'User',
-        isEmbedded: false,
         dbName: null,
         fields: [
           {
-            name: 'id',
-            kind: 'scalar',
+            default: {
+              args: [],
+              name: 'autoincrement',
+            },
+            hasDefaultValue: true,
+            isGenerated: false,
+            isId: true,
             isList: false,
+            isReadOnly: false,
             isRequired: true,
             isUnique: false,
-            isId: true,
-            isReadOnly: false,
-            type: 'Int',
-            hasDefaultValue: true,
-            default: {
-              name: 'autoincrement',
-              args: [],
-            },
-            isGenerated: false,
             isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'id',
+            type: 'Int',
           },
           {
-            name: 'email',
-            kind: 'scalar',
+            hasDefaultValue: false,
+            isGenerated: false,
+            isId: false,
             isList: false,
+            isReadOnly: false,
             isRequired: true,
             isUnique: true,
-            isId: false,
-            isReadOnly: false,
-            type: 'String',
-            hasDefaultValue: false,
-            isGenerated: false,
             isUpdatedAt: false,
+            kind: 'scalar',
+            name: 'email',
+            type: 'String',
           },
           {
-            name: 'posts',
-            kind: 'object',
+            hasDefaultValue: false,
+            isGenerated: false,
+            isId: false,
             isList: true,
+            isReadOnly: false,
             isRequired: false,
             isUnique: false,
-            isId: false,
-            isReadOnly: false,
-            type: 'Post',
-            hasDefaultValue: false,
-            relationName: 'PostToUser',
-            relationFromFields: [],
-            relationToFields: [],
-            relationOnDelete: 'NONE',
-            isGenerated: false,
             isUpdatedAt: false,
+            kind: 'object',
+            name: 'posts',
+            relationFromFields: [],
+            relationName: 'PostToUser',
+            relationOnDelete: 'NONE',
+            relationToFields: [],
+            type: 'Post',
           },
         ],
-        isGenerated: false,
         idFields: [],
+        isEmbedded: false,
+        isGenerated: false,
+        name: 'User',
         uniqueFields: [],
         uniqueIndexes: [],
       },
     ],
   },
+  mappings: {
+    modelOperations: [
+      {
+        aggregate: 'aggregatePost',
+        create: 'createOnePost',
+        delete: 'deleteOnePost',
+        deleteMany: 'deleteManyPost',
+        findFirst: 'findFirstPost',
+        findMany: 'findManyPost',
+        findUnique: 'findOnePost',
+        model: 'Post',
+        plural: 'posts',
+        update: 'updateOnePost',
+        updateMany: 'updateManyPost',
+        upsert: 'upsertOnePost',
+      },
+      {
+        aggregate: 'aggregateUser',
+        create: 'createOneUser',
+        delete: 'deleteOneUser',
+        deleteMany: 'deleteManyUser',
+        findFirst: 'findFirstUser',
+        findMany: 'findManyUser',
+        findUnique: 'findOneUser',
+        model: 'User',
+        plural: 'users',
+        update: 'updateOneUser',
+        updateMany: 'updateManyUser',
+        upsert: 'upsertOneUser',
+      },
+    ],
+    otherOperations: {
+      read: [],
+      write: ['executeRaw', 'queryRaw'],
+    },
+  },
   schema: {
-    inputObjectTypes: {
-      prisma: [
-        {
-          name: 'PostWhereInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'AND',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'OR',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'NOT',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'IntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'author',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserRelationFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'authorId',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'IntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'StringFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'BoolFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostOrderByInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 0,
-          },
-          fields: [
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'authorId',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostWhereUniqueInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserWhereInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'AND',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'OR',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'NOT',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'IntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'StringFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'posts',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostListRelationFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserOrderByInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 0,
-          },
-          fields: [
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'SortOrder',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserWhereUniqueInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostCreateInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'title',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'author',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateOneWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'BoolFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'author',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserUpdateOneRequiredWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateManyMutationInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'BoolFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserCreateInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'email',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'posts',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateManyWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserUpdateInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'posts',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateManyWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserUpdateManyMutationInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'IntFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'in',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'notIn',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'lt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'lte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedIntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserRelationFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'is',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'isNot',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'StringFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'in',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'notIn',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'lt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'lte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'contains',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'startsWith',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'endsWith',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'mode',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'QueryMode',
-                  namespace: 'prisma',
-                  location: 'enumTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedStringFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'BoolFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedBoolFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostListRelationFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'every',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'some',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'none',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserCreateOneWithoutPostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'create',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'connect',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'connectOrCreate',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateOrConnectWithoutpostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'StringFieldUpdateOperationsInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              name: 'set',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'BoolFieldUpdateOperationsInput',
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              name: 'set',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserUpdateOneRequiredWithoutPostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'create',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'connect',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'update',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserUpdateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'upsert',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserUpsertWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'connectOrCreate',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateOrConnectWithoutpostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostCreateManyWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'create',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'connect',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'connectOrCreate',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateOrConnectWithoutauthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostCreateOrConnectWithoutauthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateManyWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'create',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'connect',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'set',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'disconnect',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'delete',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'update',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'updateMany',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateManyWithWhereWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostUpdateManyWithWhereWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'deleteMany',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'upsert',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'connectOrCreate',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateOrConnectWithoutauthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostCreateOrConnectWithoutauthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'NestedIntFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'in',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'notIn',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'lt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'lte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedIntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'NestedStringFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'in',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'notIn',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'lt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'lte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gt',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'gte',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'contains',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'startsWith',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'endsWith',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedStringFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'NestedBoolFilter',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'equals',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'not',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'NestedBoolFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserCreateWithoutPostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'email',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserCreateOrConnectWithoutpostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'where',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'create',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserUpdateWithoutPostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'email',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'UserUpsertWithoutPostsInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'update',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserUpdateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'create',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'UserCreateWithoutPostsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostCreateWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'title',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostCreateOrConnectWithoutauthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'where',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'create',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'where',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'data',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateManyWithWhereWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'where',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'data',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateManyMutationInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostScalarWhereInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'AND',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'OR',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'NOT',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'PostScalarWhereInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: true,
-                },
-              ],
-            },
-            {
-              name: 'id',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'IntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'authorId',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'IntFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Int',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'StringFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'BoolFilter',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'where',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostWhereUniqueInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'update',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostUpdateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'create',
-              isRequired: true,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'PostCreateWithoutAuthorInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-        {
-          name: 'PostUpdateWithoutAuthorInput',
-          constraints: {
-            maxNumFields: null,
-            minNumFields: null,
-          },
-          fields: [
-            {
-              name: 'title',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'String',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'StringFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-            {
-              name: 'published',
-              isRequired: false,
-              isNullable: false,
-              inputTypes: [
-                {
-                  type: 'Boolean',
-                  location: 'scalar',
-                  isList: false,
-                },
-                {
-                  type: 'BoolFieldUpdateOperationsInput',
-                  namespace: 'prisma',
-                  location: 'inputObjectTypes',
-                  isList: false,
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    outputObjectTypes: {
-      model: [
-        {
-          name: 'Post',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'author',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'title',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'published',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Boolean',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'User',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'email',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'posts',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'distinct',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostScalarFieldEnum',
-                      namespace: 'prisma',
-                      location: 'enumTypes',
-                      isList: true,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: true,
-              },
-            },
-          ],
-        },
-      ],
-      prisma: [
-        {
-          name: 'Query',
-          fields: [
-            {
-              name: 'findFirstPost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'distinct',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostScalarFieldEnum',
-                      namespace: 'prisma',
-                      location: 'enumTypes',
-                      isList: true,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'findManyPost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'distinct',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostScalarFieldEnum',
-                      namespace: 'prisma',
-                      location: 'enumTypes',
-                      isList: true,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: true,
-              },
-            },
-            {
-              name: 'aggregatePost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'PostOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'AggregatePost',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'findOnePost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'findFirstUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'distinct',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserScalarFieldEnum',
-                      namespace: 'prisma',
-                      location: 'enumTypes',
-                      isList: true,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'findManyUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'distinct',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserScalarFieldEnum',
-                      namespace: 'prisma',
-                      location: 'enumTypes',
-                      isList: true,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: true,
-              },
-            },
-            {
-              name: 'aggregateUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'orderBy',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: true,
-                    },
-                    {
-                      type: 'UserOrderByInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'cursor',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'take',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'skip',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Int',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'AggregateUser',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'findOneUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'Mutation',
-          fields: [
-            {
-              name: 'createOnePost',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostCreateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'deleteOnePost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'updateOnePost',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostUpdateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'upsertOnePost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'create',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostCreateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'update',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostUpdateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Post',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'updateManyPost',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostUpdateManyMutationInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'BatchPayload',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'deleteManyPost',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'PostWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'BatchPayload',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'createOneUser',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserCreateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'deleteOneUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'updateOneUser',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserUpdateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'upsertOneUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereUniqueInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'create',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserCreateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'update',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserUpdateInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'User',
-                namespace: 'model',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'updateManyUser',
-              args: [
-                {
-                  name: 'data',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserUpdateManyMutationInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'BatchPayload',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'deleteManyUser',
-              args: [
-                {
-                  name: 'where',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'UserWhereInput',
-                      namespace: 'prisma',
-                      location: 'inputObjectTypes',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'BatchPayload',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'executeRaw',
-              args: [
-                {
-                  name: 'query',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'String',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'parameters',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Json',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Json',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'queryRaw',
-              args: [
-                {
-                  name: 'query',
-                  isRequired: true,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'String',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-                {
-                  name: 'parameters',
-                  isRequired: false,
-                  isNullable: false,
-                  inputTypes: [
-                    {
-                      type: 'Json',
-                      location: 'scalar',
-                      isList: false,
-                    },
-                  ],
-                },
-              ],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Json',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'AggregatePost',
-          fields: [
-            {
-              name: 'count',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'PostCountAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'avg',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'PostAvgAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'sum',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'PostSumAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'min',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'PostMinAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'max',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'PostMaxAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'AggregateUser',
-          fields: [
-            {
-              name: 'count',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'UserCountAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'avg',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'UserAvgAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'sum',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'UserSumAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'min',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'UserMinAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-            {
-              name: 'max',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'UserMaxAggregateOutputType',
-                namespace: 'prisma',
-                location: 'outputObjectTypes',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'BatchPayload',
-          fields: [
-            {
-              name: 'count',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'PostCountAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'title',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'published',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: '_all',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'PostAvgAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Float',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Float',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'PostSumAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'PostMinAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'title',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'published',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Boolean',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'PostMaxAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'authorId',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'title',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'published',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Boolean',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'UserCountAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'email',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: '_all',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'UserAvgAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Float',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'UserSumAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'UserMinAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'email',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-        {
-          name: 'UserMaxAggregateOutputType',
-          fields: [
-            {
-              name: 'id',
-              args: [],
-              isRequired: true,
-              isNullable: false,
-              outputType: {
-                type: 'Int',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-            {
-              name: 'email',
-              args: [],
-              isRequired: false,
-              isNullable: true,
-              outputType: {
-                type: 'String',
-                location: 'scalar',
-                isList: false,
-              },
-            },
-          ],
-        },
-      ],
-    },
     enumTypes: {
       prisma: [
         {
@@ -4217,41 +206,4052 @@ const dmmf: DMMF.Document = {
         },
       ],
     },
-  },
-  mappings: {
-    modelOperations: [
-      {
-        model: 'Post',
-        plural: 'posts',
-        findUnique: 'findOnePost',
-        findFirst: 'findFirstPost',
-        findMany: 'findManyPost',
-        create: 'createOnePost',
-        delete: 'deleteOnePost',
-        update: 'updateOnePost',
-        deleteMany: 'deleteManyPost',
-        updateMany: 'updateManyPost',
-        upsert: 'upsertOnePost',
-        aggregate: 'aggregatePost',
-      },
-      {
-        model: 'User',
-        plural: 'users',
-        findUnique: 'findOneUser',
-        findFirst: 'findFirstUser',
-        findMany: 'findManyUser',
-        create: 'createOneUser',
-        delete: 'deleteOneUser',
-        update: 'updateOneUser',
-        deleteMany: 'deleteManyUser',
-        updateMany: 'updateManyUser',
-        upsert: 'upsertOneUser',
-        aggregate: 'aggregateUser',
-      },
-    ],
-    otherOperations: {
-      read: [],
-      write: ['executeRaw', 'queryRaw'],
+    inputObjectTypes: {
+      prisma: [
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'AND',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'OR',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'NOT',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserRelationFilter',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'author',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostWhereInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostOrderByInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+          ],
+          name: 'PostWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'AND',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'OR',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'NOT',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostListRelationFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'posts',
+            },
+          ],
+          name: 'UserWhereInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserOrderByInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateOneWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'author',
+            },
+          ],
+          name: 'PostCreateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserUpdateOneRequiredWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'author',
+            },
+          ],
+          name: 'PostUpdateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostUpdateManyMutationInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'email',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateManyWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'posts',
+            },
+          ],
+          name: 'UserCreateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateManyWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'posts',
+            },
+          ],
+          name: 'UserUpdateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserUpdateManyMutationInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'IntFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'is',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'isNot',
+            },
+          ],
+          name: 'UserRelationFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'contains',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'startsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'endsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'QueryMode',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'mode',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'StringFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'BoolFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'every',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'some',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'none',
+            },
+          ],
+          name: 'PostListRelationFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'create',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connect',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateOrConnectWithoutpostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connectOrCreate',
+            },
+          ],
+          name: 'UserCreateOneWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'set',
+            },
+          ],
+          name: 'StringFieldUpdateOperationsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'set',
+            },
+          ],
+          name: 'BoolFieldUpdateOperationsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'create',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connect',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserUpdateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'update',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserUpsertWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'upsert',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateOrConnectWithoutpostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connectOrCreate',
+            },
+          ],
+          name: 'UserUpdateOneRequiredWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'create',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connect',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateOrConnectWithoutauthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateOrConnectWithoutauthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connectOrCreate',
+            },
+          ],
+          name: 'PostCreateManyWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'create',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connect',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'set',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'disconnect',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'delete',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'update',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateManyWithWhereWithoutAuthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateManyWithWhereWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'updateMany',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'deleteMany',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'upsert',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateOrConnectWithoutauthorInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateOrConnectWithoutauthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'connectOrCreate',
+            },
+          ],
+          name: 'PostUpdateManyWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'NestedIntFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'contains',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'startsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'endsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'NestedStringFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'NestedBoolFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'email',
+            },
+          ],
+          name: 'UserCreateWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'where',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'create',
+            },
+          ],
+          name: 'UserCreateOrConnectWithoutpostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserUpdateWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserUpdateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'update',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'create',
+            },
+          ],
+          name: 'UserUpsertWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostCreateWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'where',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'create',
+            },
+          ],
+          name: 'PostCreateOrConnectWithoutauthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'where',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'data',
+            },
+          ],
+          name: 'PostUpdateWithWhereUniqueWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'where',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateManyMutationInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'data',
+            },
+          ],
+          name: 'PostUpdateManyWithWhereWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'AND',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'OR',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'NOT',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostScalarWhereInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostWhereUniqueInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'where',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostUpdateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'update',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateWithoutAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'create',
+            },
+          ],
+          name: 'PostUpsertWithWhereUniqueWithoutAuthorInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolFieldUpdateOperationsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostUpdateWithoutAuthorInput',
+        },
+      ],
+    },
+    outputObjectTypes: {
+      model: [
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'author',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'title',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'published',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Boolean',
+              },
+            },
+          ],
+          name: 'Post',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'email',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'distinct',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'posts',
+              outputType: {
+                isList: true,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+          ],
+          name: 'User',
+        },
+      ],
+      prisma: [
+        {
+          fields: [
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'distinct',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'findFirstPost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'distinct',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'findManyPost',
+              outputType: {
+                isList: true,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'aggregatePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'AggregatePost',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'findOnePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'UserScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'distinct',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'findFirstUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'UserScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'distinct',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'findManyUser',
+              outputType: {
+                isList: true,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'cursor',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'aggregateUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'AggregateUser',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'findOneUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+          ],
+          name: 'Query',
+        },
+        {
+          fields: [
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostCreateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'createOnePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'deleteOnePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostUpdateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'updateOnePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostCreateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'create',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostUpdateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'update',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'upsertOnePost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostUpdateManyMutationInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'updateManyPost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'BatchPayload',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'deleteManyPost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'BatchPayload',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserCreateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'createOneUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'deleteOneUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserUpdateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+              ],
+              isNullable: true,
+              isRequired: false,
+              name: 'updateOneUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereUniqueInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserCreateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'create',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserUpdateInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'update',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'upsertOneUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'model',
+                type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserUpdateManyMutationInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'updateManyUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'BatchPayload',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'deleteManyUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'BatchPayload',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'String',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'query',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Json',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'parameters',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'executeRaw',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Json',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'String',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'query',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Json',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'parameters',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'queryRaw',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Json',
+              },
+            },
+          ],
+          name: 'Mutation',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMaxAggregateOutputType',
+              },
+            },
+          ],
+          name: 'AggregatePost',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMaxAggregateOutputType',
+              },
+            },
+          ],
+          name: 'AggregateUser',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'count',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'BatchPayload',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'title',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'published',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: '_all',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'PostCountAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Float',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Float',
+              },
+            },
+          ],
+          name: 'PostAvgAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'PostSumAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'title',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'published',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Boolean',
+              },
+            },
+          ],
+          name: 'PostMinAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'title',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'published',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Boolean',
+              },
+            },
+          ],
+          name: 'PostMaxAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'email',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: '_all',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'UserCountAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Float',
+              },
+            },
+          ],
+          name: 'UserAvgAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'UserSumAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'email',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+          ],
+          name: 'UserMinAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              isRequired: true,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              isRequired: false,
+              name: 'email',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+          ],
+          name: 'UserMaxAggregateOutputType',
+        },
+      ],
     },
   },
 }

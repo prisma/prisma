@@ -199,6 +199,7 @@ importers:
       rimraf: 3.0.2
       rollup: 2.34.2
       rollup-plugin-dts: 1.4.14_rollup@2.34.2+typescript@4.1.2
+      sort-keys: 4.1.0
       source-map-support: 0.5.19
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
@@ -256,6 +257,7 @@ importers:
       rimraf: 3.0.2
       rollup: 2.34.2
       rollup-plugin-dts: 1.4.14
+      sort-keys: ^4.1.0
       source-map-support: 0.5.19
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
@@ -4646,6 +4648,12 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-/2UGPSgmtqwo1ktx8NDHjuPwZWmHhO+gj0f93EkhLB5RgW9RZevWYYlIkS6zePc6U2WpOdQYIwHe9YC4DWEBVg==
+  /is-plain-obj/2.1.0:
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==
   /is-plain-object/2.0.4:
     dependencies:
       isobject: 3.0.1
@@ -7270,6 +7278,14 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha512-FtyOnWN/wCHTVXOMwvSv26d+ko5vWlIDD6zoUJ7LW8vh+ZBC8QdljveRP+crNrtBwioEUWy/4dMtbBjA4ioNlg==
+  /sort-keys/4.1.0:
+    dependencies:
+      is-plain-obj: 2.1.0
+    dev: true
+    engines:
+      node: '>=8'
+    resolution:
+      integrity: sha512-/sRdxzkkPFUYiCrTr/2t+104nDc9AgDmEpeVYuvOWYQe3Djk1GWO6lVw3Vx2jfh1SsR0eehhd1nvFYlzt5e99w==
   /source-map-resolve/0.5.3:
     dependencies:
       atob: 2.1.2
