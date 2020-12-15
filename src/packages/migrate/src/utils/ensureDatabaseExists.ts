@@ -189,7 +189,7 @@ export function getDbinfoFromCredentials(
   credentials,
 ): {
   dbName: string
-  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite' | 'MSSQL'
+  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
   schemaWord: 'database'
 } {
   const dbName = credentials.database
@@ -205,8 +205,8 @@ export function getDbinfoFromCredentials(
     case 'sqlite':
       dbType = `SQLite`
       break
-    case 'mssql':
-      dbType = `MSSQL`
+    case 'sqlserver':
+      dbType = `SQL Server`
       break
   }
 

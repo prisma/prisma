@@ -23,6 +23,8 @@ const uris = [
   'mysql://root@/db?socket=/private/tmp/mysql.sock',
   'mongodb://mongodb0.example.com:27017/admin',
   'mongodb://myDBReader:D1fficultP%40ssw0rd@mongodb0.example.com:27017/admin',
+  'sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT;schema=mySchema',
+  'sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT',
 ]
 
 for (const uri of uris) {

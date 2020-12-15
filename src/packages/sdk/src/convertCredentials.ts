@@ -2,12 +2,17 @@ import { DatabaseCredentials } from './types'
 import URL from 'url-parse'
 import { ConnectorType } from '@prisma/generator-helper'
 import path from 'path'
+import { JdbcString } from '@pimeys/connection-string'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
   if (credentials.type === 'mongo') {
     return credentials.uri!
+  } else if (credentials.type === 'sqlserver') {
+    // editing the connectionString is not yet supported
+    return credentials.uri!
   }
+
   const url = new URL(type + '//', true)
 
   if (credentials.host) {
@@ -77,60 +82,84 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
 export function uriToCredentials(
   connectionString: string,
 ): DatabaseCredentials {
-  const uri = new URL(connectionString, true)
-  const type = protocolToDatabaseType(uri.protocol)
+  if (connectionString.startsWith('sqlserver')) {
+    const j = new JdbcString(connectionString)
 
-  // needed, as the URL implementation adds empty strings
-  const exists = (str): boolean => str && str.length > 0
+    let extraFields = {}
+    if (j.get('encrypt')) {
+      extraFields['encrypt'] = j.get('encrypt')
+    }
+    if (j.get('trustservercertificate')) {
+      extraFields['trustservercertificate'] = j.get('trustservercertificate')
+    }
 
-  if (type === 'mongo') {
+    return {
+      type: 'sqlserver',
+      host: j.server_name(),
+      user: j.get('user'),
+      port: j.port(),
+      password: j.get('password'),
+      database: j.get('database'),
+      schema: j.get('schema') || 'dbo',
+      uri: connectionString,
+      extraFields,
+    }
+  } else {
+    const uri = new URL(connectionString, true)
+    const type = protocolToDatabaseType(uri.protocol)
+
+    // needed, as the URL implementation adds empty strings
+    const exists = (str): boolean => str && str.length > 0
+
+    if (type === 'mongo') {
+      return {
+        type,
+        uri: connectionString, // todo: set authsource as database if not provided explicitly
+      }
+    }
+
+    const { schema, socket, host, ...extraFields } = uri.query
+
+    let database: string | undefined = undefined
+    let defaultSchema: string | undefined = undefined
+
+    if (type === 'sqlite' && uri.pathname) {
+      if (uri.pathname.startsWith('file:')) {
+        database = uri.pathname.slice(5)
+      }
+      if (uri.pathname.startsWith('sqlite:')) {
+        database = uri.pathname.slice(7)
+      } else {
+        database = path.basename(uri.pathname)
+      }
+    } else if (uri.pathname.length > 1) {
+      database = uri.pathname.slice(1)
+
+      if (type === 'postgresql' && !database) {
+        // use postgres as default, it's 99% accurate
+        // could also be template1 for example in rare cases
+        database = 'postgres'
+      }
+    }
+
+    if (type === 'postgresql' && !schema) {
+      // default to public schema
+      defaultSchema = 'public'
+    }
+
     return {
       type,
-      uri: connectionString, // todo: set authsource as database if not provided explicitly
+      host: exists(uri.hostname) ? uri.hostname : undefined,
+      user: exists(uri.username) ? uri.username : undefined,
+      port: exists(uri.port) ? Number(uri.port) : undefined,
+      password: exists(uri.password) ? uri.password : undefined,
+      database,
+      schema: schema || defaultSchema,
+      uri: connectionString,
+      ssl: Boolean(uri.query.sslmode),
+      socket: socket || host,
+      extraFields,
     }
-  }
-
-  const { schema, socket, host, ...extraFields } = uri.query
-
-  let database: string | undefined = undefined
-  let defaultSchema: string | undefined = undefined
-
-  if (type === 'sqlite' && uri.pathname) {
-    if (uri.pathname.startsWith('file:')) {
-      database = uri.pathname.slice(5)
-    }
-    if (uri.pathname.startsWith('sqlite:')) {
-      database = uri.pathname.slice(7)
-    } else {
-      database = path.basename(uri.pathname)
-    }
-  } else if (uri.pathname.length > 1) {
-    database = uri.pathname.slice(1)
-
-    if (type === 'postgresql' && !database) {
-      // use postgres as default, it's 99% accurate
-      // could also be template1 for example in rare cases
-      database = 'postgres'
-    }
-  }
-
-  if (type === 'postgresql' && !schema) {
-    // default to public schema
-    defaultSchema = 'public'
-  }
-
-  return {
-    type,
-    host: exists(uri.hostname) ? uri.hostname : undefined,
-    user: exists(uri.username) ? uri.username : undefined,
-    port: exists(uri.port) ? Number(uri.port) : undefined,
-    password: exists(uri.password) ? uri.password : undefined,
-    database,
-    schema: schema || defaultSchema,
-    uri: connectionString,
-    ssl: Boolean(uri.query.sslmode),
-    socket: socket || host,
-    extraFields,
   }
 }
 

@@ -39,6 +39,7 @@
     "typescript": "4.1.2"
   },
   "dependencies": {
+    "@pimeys/connection-string": "^0.1.10",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "2.14.0-13.c886126266835939ff6d37a1f4901481e40ddd63",

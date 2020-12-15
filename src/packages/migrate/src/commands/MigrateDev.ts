@@ -463,17 +463,12 @@ ${diagnoseResult.drift.error.message}`,
     dbName,
     dbLocation,
   }): Promise<boolean> {
-    const mssqlMessage = `We need to reset the database. ${chalk.red(
-      'All data will be lost',
-    )}.\nDo you want to continue?`
-    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
-      'All data will be lost',
-    )}.\nDo you want to continue?`
-
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType ? message : mssqlMessage,
+      message: `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
+        'All data will be lost',
+      )}.\nDo you want to continue?`,
     })
 
     return confirmation.value
