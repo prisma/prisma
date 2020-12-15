@@ -186,7 +186,7 @@ async function main() {
 
   const like = await prisma.like.findUnique({
     where: {
-      userId_postId: {
+      Like_userId_postId_unique: {
         postId: '',
         userId: '',
       },
@@ -198,7 +198,7 @@ async function main() {
 
   const like2 = await prisma.like.upsert({
     where: {
-      userId_postId: {
+      Like_userId_postId_unique: {
         userId: '',
         postId: '',
       },

@@ -17,6 +17,15 @@ model Post {
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
 }
+model Account {
+  id                 Int       @id @default(autoincrement())
+  providerId         String
+  providerAccountId  String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@unique([providerId, providerAccountId], name: "Account.providerId_providerAccountId_unique")
+}
 
 model User {
   id              Int             @id @default(autoincrement())

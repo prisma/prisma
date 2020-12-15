@@ -81,6 +81,14 @@ exports.Prisma.PostScalarFieldEnum = makeEnum({
   authorId: 'authorId'
 });
 
+exports.Prisma.AccountScalarFieldEnum = makeEnum({
+  id: 'id',
+  providerId: 'providerId',
+  providerAccountId: 'providerAccountId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+});
+
 exports.Prisma.UserScalarFieldEnum = makeEnum({
   id: 'id',
   email: 'email',
@@ -262,6 +270,7 @@ exports.ABeautifulEnum = makeEnum({
 
 exports.Prisma.ModelName = makeEnum({
   Post: 'Post',
+  Account: 'Account',
   User: 'User',
   M: 'M',
   N: 'N',
@@ -461,6 +470,18 @@ export type Post = {
   content: string | null
   published: boolean
   authorId: number
+}
+
+/**
+ * Model Account
+ */
+
+export type Account = {
+  id: number
+  providerId: string
+  providerAccountId: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 /**
@@ -820,6 +841,16 @@ export class PrismaClient<
   get post(): Prisma.PostDelegate;
 
   /**
+   * \`prisma.account\`: Exposes CRUD operations for the **Account** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more Accounts
+    * const accounts = await prisma.account.findMany()
+    * \`\`\`
+    */
+  get account(): Prisma.AccountDelegate;
+
+  /**
    * \`prisma.user\`: Exposes CRUD operations for the **User** model.
     * Example usage:
     * \`\`\`ts
@@ -1098,6 +1129,7 @@ export namespace Prisma {
 
   export const ModelName: {
     Post: 'Post',
+    Account: 'Account',
     User: 'User',
     M: 'M',
     N: 'N',
@@ -1837,6 +1869,568 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: PostInclude | null
+  }
+
+
+
+  /**
+   * Model Account
+   */
+
+
+  export type AggregateAccount = {
+    count: number | null
+    avg: AccountAvgAggregateOutputType | null
+    sum: AccountSumAggregateOutputType | null
+    min: AccountMinAggregateOutputType | null
+    max: AccountMaxAggregateOutputType | null
+  }
+
+  export type AccountAvgAggregateOutputType = {
+    id: number
+  }
+
+  export type AccountSumAggregateOutputType = {
+    id: number
+  }
+
+  export type AccountMinAggregateOutputType = {
+    id: number
+    providerId: string | null
+    providerAccountId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccountMaxAggregateOutputType = {
+    id: number
+    providerId: string | null
+    providerAccountId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type AccountCountAggregateOutputType = {
+    id: number
+    providerId: number | null
+    providerAccountId: number | null
+    createdAt: number | null
+    updatedAt: number | null
+    _all: number
+  }
+
+
+  export type AccountAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type AccountSumAggregateInputType = {
+    id?: true
+  }
+
+  export type AccountMinAggregateInputType = {
+    id?: true
+    providerId?: true
+    providerAccountId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AccountMaxAggregateInputType = {
+    id?: true
+    providerId?: true
+    providerAccountId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type AccountCountAggregateInputType = {
+    id?: true
+    providerId?: true
+    providerAccountId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type AggregateAccountArgs = {
+    where?: AccountWhereInput
+    orderBy?: Enumerable<AccountOrderByInput>
+    cursor?: AccountWhereUniqueInput
+    take?: number
+    skip?: number
+    count?: true
+    avg?: AccountAvgAggregateInputType
+    sum?: AccountSumAggregateInputType
+    min?: AccountMinAggregateInputType
+    max?: AccountMaxAggregateInputType
+  }
+
+  export type GetAccountAggregateType<T extends AggregateAccountArgs> = {
+    [P in keyof T]: P extends 'count' ? number : GetAccountAggregateScalarType<T[P]>
+  }
+
+  export type GetAccountAggregateScalarType<T extends any> = {
+    [P in keyof T]: P extends keyof AccountAvgAggregateOutputType ? AccountAvgAggregateOutputType[P] : never
+  }
+
+    
+
+
+    
+    
+  export type GroupByAccountArgs = {
+    where?: AccountWhereInput
+    orderBy?: Enumerable<AccountOrderByInput>
+    by: Array<AccountScalarFieldEnum>
+    take?: number
+    skip?: number
+    count?: AccountCountAggregateInputType
+    avg?: AccountAvgAggregateInputType
+    sum?: AccountSumAggregateInputType
+    min?: AccountMinAggregateInputType
+    max?: AccountMaxAggregateInputType
+  }
+
+
+  export type AccountGroupByOutputType = {
+    id: number | null
+    providerId: string | null
+    providerAccountId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    count: AccountCountAggregateOutputType | null
+    avg: AccountAvgAggregateOutputType | null
+    sum: AccountSumAggregateOutputType | null
+    min: AccountMinAggregateOutputType | null
+    max: AccountMaxAggregateOutputType | null
+  }
+
+  type GetAccountGroupByPayload<T extends GroupByAccountArgs> = Promise<
+    PickArray<AccountGroupByOutputType, T['by']> & {
+      [P in ((keyof T) & (keyof AccountGroupByOutputType))]: GetScalarType<T[P], AccountGroupByOutputType[P]>
+    }
+  >
+    
+
+  export type AccountSelect = {
+    id?: boolean
+    providerId?: boolean
+    providerAccountId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type AccountGetPayload<
+    S extends boolean | null | undefined | AccountArgs,
+    U = keyof S
+      > = S extends true
+        ? Account
+    : S extends undefined
+    ? never
+    : S extends AccountArgs | FindManyAccountArgs
+    ?'include' extends U
+    ? Account 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof Account ?Account [P]
+  : 
+     never
+  } 
+    : Account
+  : Account
+
+
+  export interface AccountDelegate {
+    /**
+     * Find zero or one Account that matches the filter.
+     * @param {FindUniqueAccountArgs} args - Arguments to find a Account
+     * @example
+     * // Get one Account
+     * const account = await prisma.account.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUnique<T extends FindUniqueAccountArgs>(
+      args: Subset<T, FindUniqueAccountArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account | null>, Prisma__AccountClient<AccountGetPayload<T> | null>>
+    /**
+     * Find the first Account that matches the filter.
+     * @param {FindFirstAccountArgs} args - Arguments to find a Account
+     * @example
+     * // Get one Account
+     * const account = await prisma.account.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirst<T extends FindFirstAccountArgs>(
+      args?: Subset<T, FindFirstAccountArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account | null>, Prisma__AccountClient<AccountGetPayload<T> | null>>
+    /**
+     * Find zero or more Accounts that matches the filter.
+     * @param {FindManyAccountArgs=} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Accounts
+     * const accounts = await prisma.account.findMany()
+     * 
+     * // Get first 10 Accounts
+     * const accounts = await prisma.account.findMany({ take: 10 })
+     * 
+     * // Only select the \`id\`
+     * const accountWithIdOnly = await prisma.account.findMany({ select: { id: true } })
+     * 
+    **/
+    findMany<T extends FindManyAccountArgs>(
+      args?: Subset<T, FindManyAccountArgs>
+    ): CheckSelect<T, Promise<Array<Account>>, Promise<Array<AccountGetPayload<T>>>>
+    /**
+     * Create a Account.
+     * @param {AccountCreateArgs} args - Arguments to create a Account.
+     * @example
+     * // Create one Account
+     * const Account = await prisma.account.create({
+     *   data: {
+     *     // ... data to create a Account
+     *   }
+     * })
+     * 
+    **/
+    create<T extends AccountCreateArgs>(
+      args: Subset<T, AccountCreateArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account>, Prisma__AccountClient<AccountGetPayload<T>>>
+    /**
+     * Delete a Account.
+     * @param {AccountDeleteArgs} args - Arguments to delete one Account.
+     * @example
+     * // Delete one Account
+     * const Account = await prisma.account.delete({
+     *   where: {
+     *     // ... filter to delete one Account
+     *   }
+     * })
+     * 
+    **/
+    delete<T extends AccountDeleteArgs>(
+      args: Subset<T, AccountDeleteArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account>, Prisma__AccountClient<AccountGetPayload<T>>>
+    /**
+     * Update one Account.
+     * @param {AccountUpdateArgs} args - Arguments to update one Account.
+     * @example
+     * // Update one Account
+     * const account = await prisma.account.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+    **/
+    update<T extends AccountUpdateArgs>(
+      args: Subset<T, AccountUpdateArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account>, Prisma__AccountClient<AccountGetPayload<T>>>
+    /**
+     * Delete zero or more Accounts.
+     * @param {AccountDeleteManyArgs} args - Arguments to filter Accounts to delete.
+     * @example
+     * // Delete a few Accounts
+     * const { count } = await prisma.account.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+    **/
+    deleteMany<T extends AccountDeleteManyArgs>(
+      args?: Subset<T, AccountDeleteManyArgs>
+    ): Promise<BatchPayload>
+    /**
+     * Update zero or more Accounts.
+     * @param {AccountUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Accounts
+     * const account = await prisma.account.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+    **/
+    updateMany<T extends AccountUpdateManyArgs>(
+      args: Subset<T, AccountUpdateManyArgs>
+    ): Promise<BatchPayload>
+    /**
+     * Create or update one Account.
+     * @param {AccountUpsertArgs} args - Arguments to update or create a Account.
+     * @example
+     * // Update or create a Account
+     * const account = await prisma.account.upsert({
+     *   create: {
+     *     // ... data to create a Account
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Account we want to update
+     *   }
+     * })
+    **/
+    upsert<T extends AccountUpsertArgs>(
+      args: Subset<T, AccountUpsertArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account>, Prisma__AccountClient<AccountGetPayload<T>>>
+    /**
+     * Find zero or one Account that matches the filter.
+     * @param {FindUniqueAccountArgs} args - Arguments to find a Account
+     * @deprecated This will be deprecated please use prisma.account.findUnique
+     * @example
+     * // Get one Account
+     * const account = await prisma.account.findOne({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findOne<T extends FindUniqueAccountArgs>(
+      args: Subset<T, FindUniqueAccountArgs>
+    ): CheckSelect<T, Prisma__AccountClient<Account | null>, Prisma__AccountClient<AccountGetPayload<T> | null>>
+    /**
+     * Count
+     */
+    count(args?: Omit<FindManyAccountArgs, 'select' | 'include'>): Promise<number>
+
+    /**
+     * Group By
+     */
+    groupBy<T extends GroupByAccountArgs>(args: Subset<T, GroupByAccountArgs>): Promise<GetAccountGroupByPayload<T>>
+
+    /**
+     * Aggregate
+     */
+    aggregate<T extends AggregateAccountArgs>(args: Subset<T, AggregateAccountArgs>): Promise<GetAccountAggregateType<T>>
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Account.
+   * Why is this prefixed with \`Prisma__\`?
+   * Because we want to prevent naming conflicts as mentioned in 
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export class Prisma__AccountClient<T> implements Promise<T> {
+    private readonly _dmmf;
+    private readonly _fetcher;
+    private readonly _queryType;
+    private readonly _rootField;
+    private readonly _clientMethod;
+    private readonly _args;
+    private readonly _dataPath;
+    private readonly _errorFormat;
+    private readonly _measurePerformance?;
+    private _isList;
+    private _callsite;
+    private _requestPromise?;
+    constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+    readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+
+    private get _document();
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+  }
+
+  // Custom InputTypes
+
+  /**
+   * Account findUnique
+   */
+  export type FindUniqueAccountArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * Filter, which Account to fetch.
+    **/
+    where: AccountWhereUniqueInput
+  }
+
+
+  /**
+   * Account findFirst
+   */
+  export type FindFirstAccountArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * Filter, which Account to fetch.
+    **/
+    where?: AccountWhereInput
+    orderBy?: Enumerable<AccountOrderByInput>
+    cursor?: AccountWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<AccountScalarFieldEnum>
+  }
+
+
+  /**
+   * Account findMany
+   */
+  export type FindManyAccountArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * Filter, which Accounts to fetch.
+    **/
+    where?: AccountWhereInput
+    /**
+     * Determine the order of the Accounts to fetch.
+    **/
+    orderBy?: Enumerable<AccountOrderByInput>
+    /**
+     * Sets the position for listing Accounts.
+    **/
+    cursor?: AccountWhereUniqueInput
+    /**
+     * The number of Accounts to fetch. If negative number, it will take Accounts before the \`cursor\`.
+    **/
+    take?: number
+    /**
+     * Skip the first \`n\` Accounts.
+    **/
+    skip?: number
+    distinct?: Enumerable<AccountScalarFieldEnum>
+  }
+
+
+  /**
+   * Account create
+   */
+  export type AccountCreateArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * The data needed to create a Account.
+    **/
+    data: XOR<AccountUncheckedCreateInput, AccountCreateInput>
+  }
+
+
+  /**
+   * Account update
+   */
+  export type AccountUpdateArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * The data needed to update a Account.
+    **/
+    data: XOR<AccountUncheckedUpdateInput, AccountUpdateInput>
+    /**
+     * Choose, which Account to update.
+    **/
+    where: AccountWhereUniqueInput
+  }
+
+
+  /**
+   * Account updateMany
+   */
+  export type AccountUpdateManyArgs = {
+    data: XOR<AccountUncheckedUpdateManyInput, AccountUpdateManyMutationInput>
+    where?: AccountWhereInput
+  }
+
+
+  /**
+   * Account upsert
+   */
+  export type AccountUpsertArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * The filter to search for the Account to update in case it exists.
+    **/
+    where: AccountWhereUniqueInput
+    /**
+     * In case the Account found by the \`where\` argument doesn't exist, create a new Account with this data.
+    **/
+    create: XOR<AccountUncheckedCreateInput, AccountCreateInput>
+    /**
+     * In case the Account was found with the provided \`where\` argument, update it with this data.
+    **/
+    update: XOR<AccountUncheckedUpdateInput, AccountUpdateInput>
+  }
+
+
+  /**
+   * Account delete
+   */
+  export type AccountDeleteArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
+    /**
+     * Filter which Account to delete.
+    **/
+    where: AccountWhereUniqueInput
+  }
+
+
+  /**
+   * Account deleteMany
+   */
+  export type AccountDeleteManyArgs = {
+    where?: AccountWhereInput
+  }
+
+
+  /**
+   * Account without action
+   */
+  export type AccountArgs = {
+    /**
+     * Select specific fields to fetch from the Account
+    **/
+    select?: AccountSelect | null
   }
 
 
@@ -9535,6 +10129,17 @@ export namespace Prisma {
   export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
 
 
+  export const AccountScalarFieldEnum: {
+    id: 'id',
+    providerId: 'providerId',
+    providerAccountId: 'providerAccountId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
   export const UserScalarFieldEnum: {
     id: 'id',
     email: 'email',
@@ -9780,6 +10385,30 @@ export namespace Prisma {
 
   export type PostWhereUniqueInput = {
     id?: number
+  }
+
+  export type AccountWhereInput = {
+    AND?: Enumerable<AccountWhereInput>
+    OR?: Enumerable<AccountWhereInput>
+    NOT?: Enumerable<AccountWhereInput>
+    id?: IntFilter | number
+    providerId?: StringFilter | string
+    providerAccountId?: StringFilter | string
+    createdAt?: DateTimeFilter | Date | string
+    updatedAt?: DateTimeFilter | Date | string
+  }
+
+  export type AccountOrderByInput = {
+    id?: SortOrder
+    providerId?: SortOrder
+    providerAccountId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type AccountWhereUniqueInput = {
+    id?: number
+    Account_providerId_providerAccountId_unique?: Account_providerId_providerAccountId_uniqueCompoundUniqueInput
   }
 
   export type UserWhereInput = {
@@ -10251,6 +10880,51 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
     authorId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type AccountCreateInput = {
+    providerId: string
+    providerAccountId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccountUncheckedCreateInput = {
+    id?: number
+    providerId: string
+    providerAccountId: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccountUpdateInput = {
+    providerId?: StringFieldUpdateOperationsInput | string
+    providerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    providerId?: StringFieldUpdateOperationsInput | string
+    providerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountUpdateManyMutationInput = {
+    providerId?: StringFieldUpdateOperationsInput | string
+    providerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    providerId?: StringFieldUpdateOperationsInput | string
+    providerAccountId?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateInput = {
@@ -11290,6 +11964,11 @@ export namespace Prisma {
   export type UserRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
+  }
+
+  export type Account_providerId_providerAccountId_uniqueCompoundUniqueInput = {
+    providerId: string
+    providerAccountId: string
   }
 
   export type IntNullableFilter = {
@@ -12571,6 +13250,11 @@ export namespace Prisma {
 export type PostScalarFieldEnum = Prisma.PostScalarFieldEnum
 
 /**
+ * @deprecated Renamed to \`Prisma.AccountScalarFieldEnum\`
+ */
+export type AccountScalarFieldEnum = Prisma.AccountScalarFieldEnum
+
+/**
  * @deprecated Renamed to \`Prisma.UserScalarFieldEnum\`
  */
 export type UserScalarFieldEnum = Prisma.UserScalarFieldEnum
@@ -12759,6 +13443,116 @@ export type PostDeleteArgs = Prisma.PostDeleteArgs
  * @deprecated Renamed to \`Prisma.PostDeleteManyArgs\`
  */
 export type PostDeleteManyArgs = Prisma.PostDeleteManyArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AggregateAccount\`
+ */
+export type AggregateAccount = Prisma.AggregateAccount
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountAvgAggregateOutputType\`
+ */
+export type AccountAvgAggregateOutputType = Prisma.AccountAvgAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountSumAggregateOutputType\`
+ */
+export type AccountSumAggregateOutputType = Prisma.AccountSumAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountMinAggregateOutputType\`
+ */
+export type AccountMinAggregateOutputType = Prisma.AccountMinAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountMaxAggregateOutputType\`
+ */
+export type AccountMaxAggregateOutputType = Prisma.AccountMaxAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountCountAggregateOutputType\`
+ */
+export type AccountCountAggregateOutputType = Prisma.AccountCountAggregateOutputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AggregateAccountArgs\`
+ */
+export type AggregateAccountArgs = Prisma.AggregateAccountArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountAvgAggregateInputType\`
+ */
+export type AccountAvgAggregateInputType = Prisma.AccountAvgAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountSumAggregateInputType\`
+ */
+export type AccountSumAggregateInputType = Prisma.AccountSumAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountMinAggregateInputType\`
+ */
+export type AccountMinAggregateInputType = Prisma.AccountMinAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountMaxAggregateInputType\`
+ */
+export type AccountMaxAggregateInputType = Prisma.AccountMaxAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountCountAggregateInputType\`
+ */
+export type AccountCountAggregateInputType = Prisma.AccountCountAggregateInputType
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountSelect\`
+ */
+export type AccountSelect = Prisma.AccountSelect
+
+/**
+ * @deprecated Renamed to \`Prisma.FindUniqueAccountArgs\`
+ */
+export type FindUniqueAccountArgs = Prisma.FindUniqueAccountArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.FindFirstAccountArgs\`
+ */
+export type FindFirstAccountArgs = Prisma.FindFirstAccountArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.FindManyAccountArgs\`
+ */
+export type FindManyAccountArgs = Prisma.FindManyAccountArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountCreateArgs\`
+ */
+export type AccountCreateArgs = Prisma.AccountCreateArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUpdateArgs\`
+ */
+export type AccountUpdateArgs = Prisma.AccountUpdateArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUpdateManyArgs\`
+ */
+export type AccountUpdateManyArgs = Prisma.AccountUpdateManyArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUpsertArgs\`
+ */
+export type AccountUpsertArgs = Prisma.AccountUpsertArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountDeleteArgs\`
+ */
+export type AccountDeleteArgs = Prisma.AccountDeleteArgs
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountDeleteManyArgs\`
+ */
+export type AccountDeleteManyArgs = Prisma.AccountDeleteManyArgs
 
 /**
  * @deprecated Renamed to \`Prisma.AggregateUser\`
@@ -14071,6 +14865,21 @@ export type PostOrderByInput = Prisma.PostOrderByInput
 export type PostWhereUniqueInput = Prisma.PostWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.AccountWhereInput\`
+ */
+export type AccountWhereInput = Prisma.AccountWhereInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountOrderByInput\`
+ */
+export type AccountOrderByInput = Prisma.AccountOrderByInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountWhereUniqueInput\`
+ */
+export type AccountWhereUniqueInput = Prisma.AccountWhereUniqueInput
+
+/**
  * @deprecated Renamed to \`Prisma.UserWhereInput\`
  */
 export type UserWhereInput = Prisma.UserWhereInput
@@ -14279,6 +15088,36 @@ export type PostUpdateManyMutationInput = Prisma.PostUpdateManyMutationInput
  * @deprecated Renamed to \`Prisma.PostUncheckedUpdateManyInput\`
  */
 export type PostUncheckedUpdateManyInput = Prisma.PostUncheckedUpdateManyInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountCreateInput\`
+ */
+export type AccountCreateInput = Prisma.AccountCreateInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUncheckedCreateInput\`
+ */
+export type AccountUncheckedCreateInput = Prisma.AccountUncheckedCreateInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUpdateInput\`
+ */
+export type AccountUpdateInput = Prisma.AccountUpdateInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUncheckedUpdateInput\`
+ */
+export type AccountUncheckedUpdateInput = Prisma.AccountUncheckedUpdateInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUpdateManyMutationInput\`
+ */
+export type AccountUpdateManyMutationInput = Prisma.AccountUpdateManyMutationInput
+
+/**
+ * @deprecated Renamed to \`Prisma.AccountUncheckedUpdateManyInput\`
+ */
+export type AccountUncheckedUpdateManyInput = Prisma.AccountUncheckedUpdateManyInput
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateInput\`
@@ -14669,6 +15508,11 @@ export type BoolFilter = Prisma.BoolFilter
  * @deprecated Renamed to \`Prisma.UserRelationFilter\`
  */
 export type UserRelationFilter = Prisma.UserRelationFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.Account_providerId_providerAccountId_uniqueCompoundUniqueInput\`
+ */
+export type Account_providerId_providerAccountId_uniqueCompoundUniqueInput = Prisma.Account_providerId_providerAccountId_uniqueCompoundUniqueInput
 
 /**
  * @deprecated Renamed to \`Prisma.IntNullableFilter\`

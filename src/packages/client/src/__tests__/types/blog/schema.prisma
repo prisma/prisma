@@ -51,5 +51,5 @@ model Like {
   postId String
   post   Post   @relation(fields: [postId], references: [id])
 
-  @@unique([userId, postId])
+  @@unique([userId, postId], name: "Like.userId_postId_unique")
 }
