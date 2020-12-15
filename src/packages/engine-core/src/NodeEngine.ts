@@ -71,6 +71,8 @@ const knownPlatforms: Platform[] = [
   'darwin',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
+  'linux-arm-openssl-1.0.x',
+  'linux-arm-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
   'linux-musl',

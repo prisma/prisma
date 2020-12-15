@@ -75,7 +75,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (['arm', 'nixos'].includes(os.distro)) {
+  if (['nixos'].includes(os.distro)) {
     console.error(
       `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
         os.distro
@@ -398,6 +398,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
+
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   const {
     version,
