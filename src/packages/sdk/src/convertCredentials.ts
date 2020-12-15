@@ -85,7 +85,7 @@ export function uriToCredentials(
   if (connectionString.startsWith('sqlserver')) {
     const j = new JdbcString(connectionString)
 
-    let extraFields = {}
+    const extraFields = {}
     if (j.get('encrypt')) {
       extraFields['encrypt'] = j.get('encrypt')
     }
