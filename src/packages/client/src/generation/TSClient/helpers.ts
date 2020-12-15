@@ -251,6 +251,35 @@ export function escapeJson(str: string): string {
     .replace(/\\t/g, '\\\\t')
 }
 
+/**
+ * Replaces `.` with `_`
+ * Useful in cases where a `type`/`field` name contains a `.` 
+ */
+export function replacePeriods(value: string): string {
+  return value.replace(/\./g, '_')
+}
+
+/**
+ * Removes dangling periods for type/field names 
+ * @example
+ * - "Account.providerId_providerAccountId_unique" 
+ * + "Account_providerId_providerAccountId_unique"
+ */
+export function cleanInputTypeNames(inputType: DMMF.InputType) {
+  const type = { ...inputType }
+  type.name = replacePeriods(type.name)
+  type.fields = inputType.fields.map((arg) => {
+    arg.name = replacePeriods(arg.name)
+    arg.inputTypes = arg.inputTypes.map((it) => {
+      if (it.type && it.type['name']) {
+        it.type['name'] = replacePeriods(it.type['name'])
+      }
+      return it
+    })
+    return arg
+  })
+  return type
+}
 export class ExportCollector {
   symbols: string[] = []
   addSymbol(symbol: string) {

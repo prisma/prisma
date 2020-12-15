@@ -1,14 +1,14 @@
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
+  argIsInputType,
   GraphQLScalarToJSTypeTable,
   JSOutputTypeToInputType,
-  argIsInputType,
 } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'
 import { Generatable } from './Generatable'
-import { ExportCollector, wrapComment } from './helpers'
+import { cleanInputTypeNames, ExportCollector, replacePeriods, wrapComment } from './helpers'
 
 export class InputField implements Generatable {
   constructor(
@@ -145,10 +145,13 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
+  protected readonly type: DMMF.InputType
   constructor(
-    protected readonly type: DMMF.InputType,
+    protected readonly inputType: DMMF.InputType,
     protected readonly collector?: ExportCollector,
-  ) {}
+  ) {
+    this.type = cleanInputTypeNames(inputType)
+  }
   public toTS(): string {
     const { type } = this
     this.collector?.addSymbol(type.name)
