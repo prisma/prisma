@@ -144,5 +144,10 @@
       "eslint",
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "@prisma/sdk": "2.13.0"
+    }
   }
 }
