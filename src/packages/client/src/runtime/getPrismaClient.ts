@@ -1,49 +1,55 @@
-import { DMMFClass } from './dmmf'
-import { DMMF } from './dmmf-types'
-import path from 'path'
+import Debug from '@prisma/debug'
 import {
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientInitializationError,
-  PrismaClientRustPanicError,
-} from '.'
-import {
-  NodeEngine,
-  EngineConfig,
   DatasourceOverwrite,
+  EngineConfig,
+  NodeEngine,
 } from '@prisma/engine-core/dist/NodeEngine'
 import {
-  Document,
-  makeDocument,
-  unpack,
-  transformDocument,
-  Args,
-} from './query'
-import Debug from '@prisma/debug'
-const debug = Debug('prisma-client')
-import fs from 'fs'
-import chalk from 'chalk'
-import * as sqlTemplateTag from 'sql-template-tag'
-import {
-  GeneratorConfig,
   DataSource,
+  GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
+import { tryLoadEnvs } from '@prisma/sdk'
+import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
+import { AsyncResource } from 'async_hooks'
+import chalk from 'chalk'
+import fs from 'fs'
+import path from 'path'
+import * as sqlTemplateTag from 'sql-template-tag'
+import stripAnsi from 'strip-ansi'
+import {
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+} from '.'
+import { Dataloader } from './Dataloader'
+import { DMMFClass } from './dmmf'
+import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import { lowerCase, getOutputTypeName } from './utils/common'
-import { deepSet } from './utils/deep-set'
-import { Dataloader } from './Dataloader'
-import { printStack } from './utils/printStack'
-import stripAnsi from 'strip-ansi'
-import { printJsonWithErrors } from './utils/printJsonErrors'
-import { ConnectorType } from './utils/printDatasources'
-import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
-import { serializeRawParameters } from './utils/serializeRawParameters'
-import { AsyncResource } from 'async_hooks'
+import {
+  Args,
+  Document,
+  makeDocument,
+  transformDocument,
+  unpack,
+} from './query'
 import { clientVersion } from './utils/clientVersion'
+import { getOutputTypeName, lowerCase } from './utils/common'
+import { deepSet } from './utils/deep-set'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { tryLoadEnvs } from '@prisma/sdk'
+import { ConnectorType } from './utils/printDatasources'
+import { printJsonWithErrors } from './utils/printJsonErrors'
+import { printStack } from './utils/printStack'
+import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+const debug = Debug('prisma-client')
+
+function isReadonlyArray(
+  arg: ReadonlyArray<any> | any,
+): arg is ReadonlyArray<any> {
+  return Array.isArray(arg)
+}
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -372,7 +378,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(this._previewFeatures),
-          useUds: internal.useUds
+          useUds: internal.useUds,
         }
 
         debug({ clientVersion: config.clientVersion })
@@ -521,13 +527,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-      } else if (Array.isArray(stringOrTemplateStringsArray)) {
+      } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql': {
             const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray as any,
+              stringOrTemplateStringsArray,
               ...values,
             )
 
@@ -541,7 +547,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
           case 'postgresql': {
             const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray as any,
+              stringOrTemplateStringsArray,
               ...values,
             )
 
@@ -554,7 +560,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'sqlserver': {
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray as any)
+            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
             parameters = {
               values: serializeRawParameters(values),
               __prismaRawParamaters__: true,
@@ -636,7 +642,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      */
     private async $queryRawInternal(
       stringOrTemplateStringsArray:
-        | string
+        | ReadonlyArray<string>
         | TemplateStringsArray
         | sqlTemplateTag.Sql,
       ...values: any[]
@@ -653,13 +659,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-      } else if (Array.isArray(stringOrTemplateStringsArray)) {
+      } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
         switch (activeProvider) {
           case 'sqlite':
           case 'mysql': {
             const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray as any,
+              stringOrTemplateStringsArray,
               ...values,
             )
 
