@@ -138,32 +138,24 @@ export class NodeEngine {
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
   private dirname?: string
-  exitCode: number
+  private cwd: string
+  private datamodelPath: string
+  private prismaPath?: string
+  private stderrLogs = ''
+  private currentRequestPromise?: any
+  private platformPromise: Promise<Platform>
+  private platform?: Platform | string
+  private generator?: GeneratorConfig
+  private incorrectlyPinnedBinaryTarget?: string
+  private datasources?: DatasourceOverwrite[]
+  private startPromise?: Promise<any>
+  private engineStartDeferred?: Deferred
+  private engineStopDeferred?: StopDeferred
+  private undici: Undici
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
-  queryEngineKilled = false
-  managementApiEnabled = false
-  datamodelJson?: string
-  cwd: string
-  datamodelPath: string
-  prismaPath?: string
-  url: string
-  ready = false
-  stderrLogs = ''
-  stdoutLogs = ''
-  currentRequestPromise?: any
-  cwdPromise: Promise<string>
-  platformPromise: Promise<Platform>
-  platform?: Platform | string
-  generator?: GeneratorConfig
-  incorrectlyPinnedBinaryTarget?: string
-  datasources?: DatasourceOverwrite[]
-  startPromise?: Promise<any>
-  engineStartDeferred?: Deferred
-  engineStopDeferred?: StopDeferred
-  undici: Undici
   constructor({
     cwd,
     datamodelPath,
@@ -603,7 +595,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.lastErrorLog = undefined
         this.lastPanic = undefined
         logger('startin & resettin')
-        this.queryEngineKilled = false
         this.globalKillSignalReceived = undefined
 
         if (this.useUds) {
@@ -731,7 +722,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             return
           }
           this.undici?.close()
-          this.exitCode = code
 
           // don't error in restarts
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
@@ -848,8 +838,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
           throw err
         }
 
-        this.url = `http://localhost:${this.port}`
-
         // don't wait for this
         void (async () => {
           const engineVersion = await this.version()
@@ -901,7 +889,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       stopChildPromise = new Promise((resolve, reject) => {
         this.engineStopDeferred = { resolve, reject }
       })
-      this.queryEngineKilled = true
       this.undici?.close()
       this.child?.kill()
       this.child = undefined
@@ -917,7 +904,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
   kill(signal: string): void {
     this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
-    this.queryEngineKilled = true
     this.child?.kill()
     this.undici?.close()
   }
