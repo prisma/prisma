@@ -7,6 +7,7 @@ import {
 import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
+import { ConnectorType } from '@prisma/generator-helper'
 
 export interface RequestError {
   error: string
@@ -82,7 +83,7 @@ export class PrismaClientRustError extends Error {
   constructor({ clientVersion, log, error }: PrismaClientRustErrorArgs) {
     if (log) {
       const backtrace = getBacktraceFromLog(log)
-      super(backtrace)
+      super(backtrace ?? 'Unkown error')
     } else if (error) {
       const backtrace = getBacktraceFromRustError(error)
       super(backtrace)
@@ -113,6 +114,9 @@ export class PrismaClientInitializationError extends Error {
 
 export interface ErrorWithLinkInput {
   version: string
+  engineVersion?: string
+  database?: ConnectorType
+  query: string
   platform?: string
   title: string
   description?: string
@@ -123,8 +127,11 @@ export function getErrorMessageWithLink({
   platform,
   title,
   description,
+  engineVersion,
+  database,
+  query,
 }: ErrorWithLinkInput) {
-  const gotLogs = getLogs()
+  const gotLogs = getLogs(7000 - query.length)
   const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
@@ -138,13 +145,31 @@ export function getErrorMessageWithLink({
 | Node            | ${process.version?.padEnd(19)}| 
 | OS              | ${platform?.padEnd(19)}|
 | Prisma Client   | ${version?.padEnd(19)}|
+| Query Engine    | ${engineVersion?.padEnd(19)}|
+| Database        | ${database?.padEnd(19)}|
 
 ${moreInfo}
+
+## Query
+\`\`\`
+${query}
+\`\`\`
 
 ## Logs
 \`\`\`
 ${logs}
-\`\`\``,
+\`\`\`
+
+## Client Snippet
+\`\`\`ts
+// PLEASE FILL YOUR CODE SNIPPET HERE
+\`\`\`
+
+## Schema
+\`\`\`prisma
+// PLEASE ADD YOUR SCHEMA HERE IF POSSIBLE
+\`\`\`
+`,
   )
 
   const url = getGithubIssueUrl({ title, body })
@@ -155,6 +180,8 @@ This is a non-recoverable error which probably happens when the Prisma Query Eng
 ${link(url)}
 
 If you want the Prisma team to look into it, please open the link above 🙏
+To increase the chance of success, please post your schema and a snippet of
+how you used Prisma Client in the issue. 
 `
 }
 
