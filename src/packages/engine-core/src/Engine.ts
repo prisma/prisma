@@ -74,7 +74,7 @@ export type PrismaClientRustErrorArgs = {
 
 /**
  * A generic Prisma Client Rust error.
- * This error is being exposed via the `prisma.on('error')` interface
+ * This error is being exposed via the `prisma.$on('error')` interface
  */
 export class PrismaClientRustError extends Error {
   clientVersion: string
