@@ -45,9 +45,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
 
-function isReadonlyArray(
-  arg: ReadonlyArray<any> | any,
-): arg is ReadonlyArray<any> {
+function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
 
