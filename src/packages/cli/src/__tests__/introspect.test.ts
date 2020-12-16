@@ -184,7 +184,7 @@ it('should succeed and keep changes to valid schema and output warnings', async 
       bio    String?
       id     Int         @id @default(autoincrement())
       userId Int         @unique
-      User   AwesomeUser @relation(fields: [userId], references: [id])
+      user   AwesomeUser @relation(fields: [userId], references: [id])
 
       @@map("Profile")
     }
@@ -210,14 +210,14 @@ it('should succeed and keep changes to valid schema and output warnings when usi
   expect(ctx.mocked['console.error'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
 
-                                                                *** WARNING ***
+                                                                    *** WARNING ***
 
-                                                                These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                - Model "AwesomeNewPost"
-                                                                - Model "AwesomeProfile"
-                                                                - Model "AwesomeUser"
+                                                                    These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                    - Model "AwesomeNewPost"
+                                                                    - Model "AwesomeProfile"
+                                                                    - Model "AwesomeUser"
 
-                                `)
+                                  `)
 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
     originalSchema,
