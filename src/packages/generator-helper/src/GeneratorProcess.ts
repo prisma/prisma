@@ -3,7 +3,7 @@ import { spawn } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
-import Debug from '@prisma/debug'
+import Debug from 'debug'
 
 const debug = Debug('GeneratorProcess')
 

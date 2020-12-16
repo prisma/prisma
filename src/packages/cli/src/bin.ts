@@ -17,7 +17,7 @@ import chalk from 'chalk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
-import Debug from '@prisma/debug'
+import Debug from 'debug'
 
 const debug = Debug('prisma')
 process.on('uncaughtException', (e) => {

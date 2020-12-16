@@ -1,4 +1,4 @@
-import Debug from '@prisma/debug'
+import Debug from 'debug'
 import findUp from 'find-up'
 import path from 'path'
 import fs from 'fs'
