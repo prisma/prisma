@@ -6,8 +6,8 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/jest": "26.0.18",
-    "@types/node": "12.19.8",
+    "@types/jest": "26.0.19",
+    "@types/node": "12.19.9",
     "@typescript-eslint/eslint-plugin": "4.9.1",
     "@typescript-eslint/parser": "4.9.1",
     "eslint": "7.15.0",

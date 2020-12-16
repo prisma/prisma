@@ -62,6 +62,7 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
+  useUds?: boolean
 
   clientVersion?: string
   enableExperimental?: string[]
@@ -82,6 +83,8 @@ const knownPlatforms: Platform[] = [
   'darwin',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
+  'linux-arm-openssl-1.0.x',
+  'linux-arm-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
   'linux-musl',
@@ -178,9 +181,10 @@ export class NodeEngine {
     enableDebugLogs,
     enableEngineDebugMode,
     dirname,
+    useUds,
   }: EngineConfig) {
     this.dirname = dirname
-    this.useUds = process.platform !== 'win32'
+    this.useUds = useUds === undefined ? process.platform !== 'win32' : useUds
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false

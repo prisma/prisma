@@ -5,6 +5,8 @@ export type Platform =
   | 'debian-openssl-1.1.x'
   | 'rhel-openssl-1.0.x'
   | 'rhel-openssl-1.1.x'
+  | 'linux-arm-openssl-1.1.x'
+  | 'linux-arm-openssl-1.0.x'
   | 'linux-musl'
   | 'linux-nixos'
   | 'windows'
@@ -20,6 +22,8 @@ export const platforms: Array<Platform> = [
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',
   'rhel-openssl-1.1.x',
+  'linux-arm-openssl-1.1.x',
+  'linux-arm-openssl-1.0.x',
   'linux-musl',
   'linux-nixos',
   'windows',

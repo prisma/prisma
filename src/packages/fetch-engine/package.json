@@ -6,9 +6,9 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/engines-version": "2.14.0-9.c42aef09a60ae4c651b634ba638bdf1211df39f1",
-    "@types/jest": "26.0.18",
-    "@types/node": "12.19.8",
+    "@prisma/engines-version": "2.14.0-13.c886126266835939ff6d37a1f4901481e40ddd63",
+    "@types/jest": "26.0.19",
+    "@types/node": "12.19.9",
     "@types/node-fetch": "2.5.7",
     "@types/progress": "2.0.3",
     "@typescript-eslint/eslint-plugin": "4.9.1",

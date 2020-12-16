@@ -87,6 +87,10 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
+    }
+
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
       return this.help()
@@ -97,10 +101,6 @@ ${chalk.bold('Examples')}
         `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
 Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
       )
-    }
-
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
     }
 
     // check if we have that subcommand
