@@ -19,17 +19,16 @@ test('restart', async () => {
     db._engine.child.kill()
     await new Promise((r) => setTimeout(r, 200))
   }
-  let err
-  try {
-    await db.user.findMany()
-  } catch (e) {
-    err = e
-  }
-  expect(
-    err.message.includes(
-      'Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.',
-    ),
-  ).toBeTruthy()
+  const result2 = await db.user.findMany()
+  expect(result2).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        email: a@a.de,
+        id: 576eddf9-2434-421f-9a86-58bede16fd95,
+        name: Alice,
+      },
+    ]
+  `)
 
   db.$disconnect()
 })

@@ -1,27 +1,12 @@
 import {
   RustLog,
-  //  PanicLogFields,
   RustError,
-  isRustError,
+  getBacktraceFromLog,
+  getBacktraceFromRustError,
 } from './log'
 import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
-
-export function getMessage(log: string | RustLog | RustError | any): string {
-  if (typeof log === 'string') {
-    return log
-  } else if (isRustError(log)) {
-    return log.message
-  } else if (log.fields && log.fields.message) {
-    if (log.fields.reason) {
-      return `${log.fields.message}: ${log.fields.reason}`
-    }
-    return log.fields.message
-  } else {
-    return JSON.stringify(log)
-  }
-}
 
 export interface RequestError {
   error: string
@@ -81,6 +66,38 @@ export class PrismaClientRustPanicError extends Error {
   }
 }
 
+export type PrismaClientRustErrorArgs = {
+  clientVersion: string
+  log?: RustLog
+  error?: RustError
+}
+
+/**
+ * A generic Prisma Client Rust error.
+ * This error is being exposed via the `prisma.$on('error')` interface
+ */
+export class PrismaClientRustError extends Error {
+  clientVersion: string
+
+  constructor({ clientVersion, log, error }: PrismaClientRustErrorArgs) {
+    if (log) {
+      const backtrace = getBacktraceFromLog(log)
+      super(backtrace)
+    } else if (error) {
+      const backtrace = getBacktraceFromRustError(error)
+      super(backtrace)
+    } else {
+      // this should never happen
+      super(`Unknown error`)
+    }
+
+    this.clientVersion = clientVersion
+  }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientRustPanicError'
+  }
+}
+
 export class PrismaClientInitializationError extends Error {
   clientVersion: string
 
@@ -107,7 +124,8 @@ export function getErrorMessageWithLink({
   title,
   description,
 }: ErrorWithLinkInput) {
-  const logs = normalizeLogs(stripAnsi(getLogs()))
+  const gotLogs = getLogs()
+  const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
     : ''
