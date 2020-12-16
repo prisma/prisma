@@ -28,5 +28,10 @@
     "hooks": {
       "pre-commit": "ts-node scripts/lint.ts --staged"
     }
+  },
+  "pnpm": {
+    "overrides": {
+      "@prisma/sdk": "2.13.0"
+    }
   }
 }

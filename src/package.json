@@ -39,5 +39,10 @@
     "all": "ts-node scripts/ci/all.ts",
     "status": "ts-node scripts/ci/publish.ts --status",
     "pull": "ts-node scripts/ci/publish.ts --pull"
+  },
+  "pnpm": {
+    "overrides": {
+      "@prisma/sdk": "2.13.0"
+    }
   }
 }
