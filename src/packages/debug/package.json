@@ -1,6 +1,6 @@
 {
   "name": "@prisma/debug",
-  "version": "2.11.0-dev.20",
+  "version": "2.14.0-test.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -36,7 +36,7 @@
     "dist"
   ],
   "dependencies": {
-    "debug": "^4.1.1"
+    "debug": "4.3.2"
   },
   "lint-staged": {
     "*.ts": [
