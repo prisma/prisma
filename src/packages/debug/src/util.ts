@@ -10,6 +10,6 @@ export function removeISODate(str: string): string {
 export function sanitizeTestLogs(str: string): string {
   return stripAnsi(str)
     .split('\n')
-    .map((l) => removeISODate(l.trimStart().replace(/\+\d+ms$/, '')))
+    .map((l) => removeISODate(l.replace(/\+\d+ms$/, '')).trim())
     .join('\n')
 }
