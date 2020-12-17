@@ -26,7 +26,7 @@ import {
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
-import { ExportCollector, getMethodJSDoc } from './helpers'
+import { ExportCollector, getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
@@ -76,7 +76,7 @@ export class Model implements Generatable {
             this.collector,
           ),
         )
-      } else if (action !== 'groupBy') {
+      } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(
           new ArgsType(
             field.args,
@@ -115,7 +115,10 @@ export class Model implements Generatable {
 export type ${groupByArgsName} = {
 ${indent(
   groupByRootField.args
-    .map((arg) => new InputField(arg, false, arg.name === 'by').toTS())
+    .map((arg) => {
+      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.groupBy, arg)
+      return new InputField(arg, false, arg.name === 'by').toTS()
+    })
     .concat(
       groupByType.fields
         .filter((f) => f.outputType.location === 'outputObjectTypes')
@@ -252,15 +255,23 @@ ${
 export type ${aggregateArgsName} = {
 ${indent(
   aggregateRootField.args
-    .map((arg) => new InputField(arg).toTS())
+    .map((arg) => {
+      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.aggregate, arg)
+      return new InputField(arg).toTS()
+    })
     .concat(
       aggregateType.fields.map((f) => {
+        let data = ''
+        const comment = getArgFieldJSDoc(model, DMMF.ModelAction.aggregate, f.name)
+        data += comment ? wrapComment(comment) + '\n' : ''
         if (f.name === 'count') {
-          return `${f.name}?: true`
-        }
-        return `${f.name}?: ${getAggregateInputType(
-          (f.outputType.type as DMMF.OutputType).name,
-        )}`
+          data +=`${f.name}?: true`
+        } else {
+          data +=`${f.name}?: ${getAggregateInputType(
+            (f.outputType.type as DMMF.OutputType).name,
+          )}`
+        } 
+        return data
       }),
     )
     .join('\n'),
@@ -395,8 +406,6 @@ export class ModelDelegate implements Generatable {
     )
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
-
-    // TODO: The following code needs to be split up and is a mess
     return `\
 export interface ${name}Delegate {
 ${indent(
@@ -404,22 +413,14 @@ ${indent(
     .map(
       ([actionName]: [any, any]): string =>
         `${getMethodJSDoc(actionName, mapping, model)}
-${actionName}<T extends ${getModelArgName(name, actionName)}>(
-  args${
-    actionName === DMMF.ModelAction.findMany ||
-    actionName === DMMF.ModelAction.findFirst ||
-    actionName === DMMF.ModelAction.deleteMany
-      ? '?'
-      : ''
-  }: Subset<T, ${getModelArgName(name, actionName)}>
+${actionName}${getGenericMethod(name, actionName)}(
+  ${getArgs(name, actionName)}
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n'),
   TAB_SIZE,
 )}
-  /**
-   * Count
-   */
+  ${getMethodJSDoc(DMMF.ModelAction.count, mapping, model)}
   count(args?: Omit<${getModelArgName(
     name,
     DMMF.ModelAction.findMany,
@@ -427,9 +428,8 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
 
   ${
     groupByEnabled
-      ? `/**
-   * Group By
-   */
+      ? `  
+  ${getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model)}
   groupBy<T extends ${getGroupByArgsName(
     name,
   )}>(args: Subset<T, ${getGroupByArgsName(
@@ -438,9 +438,7 @@ ${actionName}<T extends ${getModelArgName(name, actionName)}>(
       : ``
   }
 
-  /**
-   * Aggregate
-   */
+  ${getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model)}
   aggregate<T extends ${getAggregateArgsName(
     name,
   )}>(args: Subset<T, ${getAggregateArgsName(
