@@ -17,17 +17,17 @@ describe('debug', () => {
     expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(`
       "[
         [
-          \\"  my-namespace Does it even log?\\"
+          \\" my-namespace Does it even log?\\"
         ],
         [
-          \\"  my-namespace I dont know\\"
+          \\" my-namespace I dont know\\"
         ]
       ]"
     `)
 
     expect(sanitizeTestLogs(getLogs())).toMatchInlineSnapshot(`
-      "my-namespace Does it even log?  
-      my-namespace I dont know  "
+      " my-namespace Does it even log?
+       my-namespace I dont know"
     `)
   })
 })
