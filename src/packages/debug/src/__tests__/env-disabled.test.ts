@@ -2,6 +2,7 @@ process.env.DEBUG = ''
 
 import Debug, { getLogs } from '..'
 import stripAnsi from 'strip-ansi'
+import { sanitizeTestLogs } from '../util'
 
 describe('debug', () => {
   test('* works as expected', () => {
@@ -15,14 +16,9 @@ describe('debug', () => {
 
     expect(logs).toMatchInlineSnapshot(`Array []`)
 
-    expect(
-      stripAnsi(getLogs())
-        .split('\n')
-        .map((l) => l.slice(25))
-        .join('\n'),
-    ).toMatchInlineSnapshot(`
-      "my-namespace Does it even log?
-      my-namespace I dont know"
+    expect(sanitizeTestLogs(getLogs())).toMatchInlineSnapshot(`
+      "my-namespace Does it even log?  
+      my-namespace I dont know  "
     `)
   })
 })
