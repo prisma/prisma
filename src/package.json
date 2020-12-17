@@ -39,10 +39,5 @@
     "all": "ts-node scripts/ci/all.ts",
     "status": "ts-node scripts/ci/publish.ts --status",
     "pull": "ts-node scripts/ci/publish.ts --pull"
-  },
-  "pnpm": {
-    "overrides": {
-      "@prisma/debug": "2.14.0-test.1"
-    }
   }
 }
