@@ -8,6 +8,7 @@ import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
 import { ConnectorType } from '@prisma/generator-helper'
+import { maskQuery } from './maskQuery'
 
 export interface RequestError {
   error: string
@@ -131,7 +132,7 @@ export function getErrorMessageWithLink({
   database,
   query,
 }: ErrorWithLinkInput) {
-  const gotLogs = getLogs(7000 - query.length)
+  const gotLogs = getLogs(6000 - query.length)
   const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
@@ -152,7 +153,7 @@ ${moreInfo}
 
 ## Query
 \`\`\`
-${query}
+${query ? maskQuery(query) : ''}
 \`\`\`
 
 ## Logs
