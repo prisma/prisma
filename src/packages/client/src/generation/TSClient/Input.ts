@@ -1,9 +1,9 @@
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
+  argIsInputType,
   GraphQLScalarToJSTypeTable,
   JSOutputTypeToInputType,
-  argIsInputType,
 } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'

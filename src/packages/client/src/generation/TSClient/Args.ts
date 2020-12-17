@@ -1,8 +1,7 @@
 import indent from 'indent-string'
 import { Generatable } from './Generatable'
 import { DMMF } from '../../runtime/dmmf-types'
-import { ExportCollector, topLevelArgsJsDocs } from './helpers'
-import pluralize from 'pluralize'
+import { ExportCollector, getArgFieldJSDoc } from './helpers'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { InputField } from './Input'
 import { TAB_SIZE } from './constants'
@@ -18,18 +17,8 @@ export class ArgsType implements Generatable {
     const { action, args } = this
     const { name } = this.model
 
-    const singular = name
-    const plural = pluralize(name)
-
     for (const arg of args) {
-      if (
-        action &&
-        topLevelArgsJsDocs[action] &&
-        topLevelArgsJsDocs[action][arg.name]
-      ) {
-        const comment = topLevelArgsJsDocs[action][arg.name](singular, plural)
-        arg.comment = comment
-      }
+      arg.comment = getArgFieldJSDoc(this.model, action, arg)
     }
 
     const selectName = getSelectName(name)

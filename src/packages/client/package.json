@@ -60,7 +60,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.14.0-13.c886126266835939ff6d37a1f4901481e40ddd63",
+    "@prisma/engines": "2.14.0-16.c033861e8ed093701af214a25e2bb3e03edacf7c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
@@ -104,8 +104,8 @@
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
     "rollup": "2.34.2",
-    "rollup-plugin-dts": "1.4.14",
-    "sort-keys": "^4.1.0",
+    "rollup-plugin-dts": "2.0.1",
+    "sort-keys": "4.1.0",
     "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
@@ -124,7 +124,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.14.0-13.c886126266835939ff6d37a1f4901481e40ddd63"
+    "@prisma/engines-version": "2.14.0-16.c033861e8ed093701af214a25e2bb3e03edacf7c"
   },
   "lint-staged": {
     "*.ts": [
