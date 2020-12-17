@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
