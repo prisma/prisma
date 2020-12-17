@@ -36,7 +36,8 @@
     "dist"
   ],
   "dependencies": {
-    "debug": "4.3.2"
+    "debug": "4.3.2",
+    "ms": "^2.1.3"
   },
   "lint-staged": {
     "*.ts": [
