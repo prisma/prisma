@@ -1008,12 +1008,6 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
         if (e instanceof PrismaClientKnownRequestError) {
           throw e
         }
-        // same for prepared statement errors
-        // tested in https://github.com/prisma/e2e-tests/tree/dev/databases/docker-pgbouncer
-        const pgBouncerRegex = /message: \"prepared statement \\\"s[0-9]\\\" already exists"/
-        if (pgBouncerRegex.test(e.message)) {
-          throw e
-        }
       }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
