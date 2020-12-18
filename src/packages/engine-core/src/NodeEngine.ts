@@ -43,6 +43,7 @@ export interface DatasourceOverwrite {
   url: string
 }
 
+// eslint-disable-next-line
 const logger = (...args) => {
   // console.log(chalk.red.bold('logger '), ...args)
 }
@@ -1003,11 +1004,16 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     } catch (e) {
       logger('req - e', e)
       if (typeof e === 'object' && e.requestError) {
+        // eslint-disable-next-line no-ex-assign
         e = e.requestError
         // throw request errors directly
         if (e instanceof PrismaClientKnownRequestError) {
           throw e
         }
+      }
+
+      if (e instanceof PrismaClientUnknownRequestError) {
+        this.logEmitter.emit('error', e)
       }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
