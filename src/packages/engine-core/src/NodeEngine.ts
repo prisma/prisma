@@ -44,7 +44,7 @@ export interface DatasourceOverwrite {
 }
 
 const logger = (...args) => {
-  //
+  // console.log(chalk.red.bold('logger '), ...args)
 }
 
 export interface EngineConfig {
@@ -646,7 +646,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             if (typeof json.is_panic !== 'undefined') {
               debug(json)
               this.setError(json)
-              logger({ json })
               if (this.engineStartDeferred) {
                 const err = new PrismaClientInitializationError(
                   json.message,
@@ -700,7 +699,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
-              logger(this.startCount, { log })
               if (logIsRustErrorLog) {
                 this.setError(log)
               } else {
@@ -968,9 +966,7 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
     if (this.stopPromise) {
       await this.stopPromise
     }
-    logger('req - go')
     await this.start()
-    logger('req - started')
 
     if (!this.child && !this.engineEndpoint) {
       throw new PrismaClientUnknownRequestError(
@@ -984,17 +980,14 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       headers,
     )
 
-    logger('req - gogo')
-
     try {
       const { data, headers } = await this.currentRequestPromise
-      logger('req - res')
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.graphQLToJSError(data.errors[0])
+          throw { requestError: this.graphQLToJSError(data.errors[0]) }
         }
         // this case should not happen, as the query engine only returns one error
-        throw new Error(JSON.stringify(data.errors))
+        throw { requestError: new Error(JSON.stringify(data.errors)) }
       }
 
       // Rust engine returns time in microseconds and we want it in miliseconds
@@ -1009,6 +1002,20 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       return { data, elapsed } as any
     } catch (e) {
       logger('req - e', e)
+      if (typeof e === 'object' && e.requestError) {
+        e = e.requestError
+        // throw request errors directly
+        if (e instanceof PrismaClientKnownRequestError) {
+          throw e
+        }
+        // same for prepared statement errors
+        // tested in https://github.com/prisma/e2e-tests/tree/dev/databases/docker-pgbouncer
+        const pgBouncerRegex = /message: \"prepared statement \\\"s[0-9]\\\" already exists"/
+        if (pgBouncerRegex.test(e.message)) {
+          throw e
+        }
+      }
+
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
