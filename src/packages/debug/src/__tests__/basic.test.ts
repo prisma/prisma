@@ -24,7 +24,6 @@ describe('debug', () => {
   test('should log if its enabled', () => {
     const debug = Debug('a-namespace')
     Debug.enable('a-namespace')
-    const oldConsoleError = console.error
     const logs: string[] = []
     debug.log = (...args) => {
       logs.push(stripAnsi(args[0]).trimStart())
@@ -45,7 +44,5 @@ describe('debug', () => {
       a-namespace Does it even log?
       a-namespace I dont know"
     `)
-
-    console.error = oldConsoleError
   })
 })
