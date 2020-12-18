@@ -985,10 +985,13 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
       const { data, headers } = await this.currentRequestPromise
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw { requestError: this.graphQLToJSError(data.errors[0]) }
+          throw this.graphQLToJSError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
-        throw { requestError: new Error(JSON.stringify(data.errors)) }
+        throw new PrismaClientUnknownRequestError(
+          JSON.stringify(data.errors),
+          this.clientVersion,
+        )
       }
 
       // Rust engine returns time in microseconds and we want it in miliseconds
@@ -1001,22 +1004,13 @@ ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErr
 
       this.currentRequestPromise = undefined
       return { data, elapsed } as any
-    } catch (e) {
-      logger('req - e', e)
-      if (typeof e === 'object' && e.requestError) {
-        // eslint-disable-next-line no-ex-assign
-        e = e.requestError
-        // throw request errors directly
-        if (e instanceof PrismaClientKnownRequestError) {
-          throw e
-        }
+    } catch (error) {
+      logger('req - e', error)
+      if (error instanceof PrismaClientKnownRequestError) {
+        throw error
       }
 
-      if (e instanceof PrismaClientUnknownRequestError) {
-        this.logEmitter.emit('error', e)
-      }
-
-      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
+      await this.handleRequestError(error, numTry <= MAX_REQUEST_RETRIES)
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
         logger('trying a retry now')

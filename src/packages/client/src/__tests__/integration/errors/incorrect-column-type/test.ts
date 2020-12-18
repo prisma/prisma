@@ -12,17 +12,20 @@ test('incorrect-column-type', async () => {
     ],
   })
 
-  await expect(prisma.user.findMany()).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
+  try {
+    await prisma.user.findMany()
+  } catch (e) {
+    expect(e).toMatchInlineSnapshot(`
 
-          Invalid \`expect(prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:15:28
+      Invalid \`prisma.user.findMany()\` invocation in
+      /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:16:23
 
-            12   ],
-            13 })
-            14 
-          → 15 await expect(prisma.user.findMany()).reject
-            Attempted to serialize scalar '123' with incompatible type 'String'
-        `)
+        13 })
+        14 
+        15 try {
+      → 16   await prisma.user.findMany(
+        Attempted to serialize scalar '123' with incompatible type 'String'
+    `)
+  }
   prisma.$disconnect()
 })
