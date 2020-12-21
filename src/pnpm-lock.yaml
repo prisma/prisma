@@ -778,7 +778,7 @@ importers:
       prettier: 2.1.2
       replace-string: ^3.1.0
       sqlite-async: ^1.1.1
-      sqlite3: 5.0.0
+      sqlite3: '5.0'
       string-hash: ^1.1.3
       strip-ansi: 6.0.0
       tempy: ^1.0.0
@@ -3032,7 +3032,7 @@ packages:
       integrity: sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==
   /debug/3.2.7:
     dependencies:
-      ms: 2.1.2
+      ms: 2.1.3
     dev: true
     resolution:
       integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==
@@ -4414,6 +4414,10 @@ packages:
   /ini/1.3.5:
     resolution:
       integrity: sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
+  /ini/1.3.8:
+    dev: true
+    resolution:
+      integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==
   /into-stream/5.1.1:
     dependencies:
       from2: 2.3.0
@@ -6545,7 +6549,7 @@ packages:
   /rc/1.2.8:
     dependencies:
       deep-extend: 0.6.0
-      ini: 1.3.5
+      ini: 1.3.8
       minimist: 1.2.5
       strip-json-comments: 2.0.1
     dev: true
