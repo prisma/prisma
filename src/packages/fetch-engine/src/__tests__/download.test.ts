@@ -16,7 +16,7 @@ const CURRENT_BINARIES_HASH = enginesVersion
 // From npx @prisma/cli@2.6.2 -v
 const FIXED_BINARIES_HASH = '60c1d1e9396bf462eda7b97f8f65523bf65c9f5f'
 
-jest.setTimeout(50000)
+jest.setTimeout(60000)
 
 describe('download', () => {
   beforeEach(async () => {

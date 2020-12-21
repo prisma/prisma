@@ -2740,7 +2740,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "AuthorIdTitleCompoundUniqueInput",
+                  "type": "PostAuthorIdTitleCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -3144,7 +3144,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "FirstNameLastNameCompoundUniqueInput",
+                  "type": "User1FirstNameLastNameCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -3365,7 +3365,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "FirstNameLastNameIsAdminCompoundUniqueInput",
+                  "type": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -4487,7 +4487,7 @@ Object {
               "name": "title",
             },
           ],
-          "name": "AuthorIdTitleCompoundUniqueInput",
+          "name": "PostAuthorIdTitleCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -4568,7 +4568,7 @@ Object {
               "name": "lastName",
             },
           ],
-          "name": "FirstNameLastNameCompoundUniqueInput",
+          "name": "User1FirstNameLastNameCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -4613,7 +4613,7 @@ Object {
               "name": "isAdmin",
             },
           ],
-          "name": "FirstNameLastNameIsAdminCompoundUniqueInput",
+          "name": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -10000,7 +10000,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "AuthorIdTitleCompoundUniqueInput",
+                  "type": "PostAuthorIdTitleCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -10404,7 +10404,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "FirstNameLastNameCompoundUniqueInput",
+                  "type": "User1FirstNameLastNameCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -10625,7 +10625,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "FirstNameLastNameIsAdminCompoundUniqueInput",
+                  "type": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
                 },
               ],
               "isNullable": false,
@@ -11747,7 +11747,7 @@ Object {
               "name": "title",
             },
           ],
-          "name": "AuthorIdTitleCompoundUniqueInput",
+          "name": "PostAuthorIdTitleCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -11828,7 +11828,7 @@ Object {
               "name": "lastName",
             },
           ],
-          "name": "FirstNameLastNameCompoundUniqueInput",
+          "name": "User1FirstNameLastNameCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -11873,7 +11873,7 @@ Object {
               "name": "isAdmin",
             },
           ],
-          "name": "FirstNameLastNameIsAdminCompoundUniqueInput",
+          "name": "User2FirstNameLastNameIsAdminCompoundUniqueInput",
         },
         Object {
           "constraints": Object {
@@ -16580,9 +16580,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `76865164`;
 
-exports[`getDMMF chinook introspected schema 1`] = `473584`;
+exports[`getDMMF chinook introspected schema 1`] = `473612`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `473584`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `473612`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
