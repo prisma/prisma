@@ -209,6 +209,7 @@ export interface GetPrismaClientOptions {
   clientVersion?: string
   engineVersion?: string
   datasourceNames: string[]
+  activeProvider: string
 }
 
 export type Action =
@@ -372,7 +373,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(this._previewFeatures),
-          useUds: internal.useUds
+          useUds: internal.useUds,
+          activeProvider: config.activeProvider,
         }
 
         debug({ clientVersion: config.clientVersion })

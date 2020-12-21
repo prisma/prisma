@@ -73,6 +73,7 @@ export interface EngineConfig {
   clientVersion?: string
   enableExperimental?: string[]
   engineEndpoint?: string
+  activeProvider?: string
 }
 
 type GetConfigResult = {
@@ -162,6 +163,7 @@ export class NodeEngine {
   private lastQuery?: string
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
+  private activeProvider?: string
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -184,6 +186,7 @@ export class NodeEngine {
     enableEngineDebugMode,
     dirname,
     useUds,
+    activeProvider,
   }: EngineConfig) {
     this.dirname = dirname
     this.useUds = useUds === undefined ? process.platform !== 'win32' : useUds
@@ -202,6 +205,7 @@ export class NodeEngine {
     this.clientVersion = clientVersion
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
+    this.activeProvider = activeProvider
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -849,8 +853,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             const engineVersion = await this.version(true)
             debug(`Client Version: ${this.clientVersion}`)
             debug(`Engine Version: ${engineVersion}`)
-            const activeProvider = await this.getActiveProvider()
-            debug(`Active provider: ${activeProvider}`)
+            debug(`Active provider: ${this.activeProvider}`)
           } catch (e) {
             debug(e)
           }
@@ -948,12 +951,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       this.getConfigPromise = this._getConfig()
     }
     return this.getConfigPromise
-  }
-
-  async getActiveProvider(): Promise<ConnectorType> {
-    const config = await this.getConfig()
-    this.lastActiveProvider = config.datasources[0].activeProvider
-    return this.lastActiveProvider
   }
 
   async _getConfig(): Promise<GetConfigResult> {
