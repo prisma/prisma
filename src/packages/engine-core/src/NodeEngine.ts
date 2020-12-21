@@ -852,7 +852,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             const activeProvider = await this.getActiveProvider()
             debug(`Active provider: ${activeProvider}`)
           } catch (e) {
-            console.error(e)
+            debug(e)
           }
         })()
 
