@@ -18,7 +18,7 @@ export async function getLatestTag(): Promise<any> {
 
   // remove the "integration/" part
   branch = branch.replace(/^integration\//, '')
-  console.log({ branch }, 'after replace')
+  // console.log({ branch }, 'after replace')
 
   // first try to get the branch as it is
   // if it doesn't have an equivalent in the engines repo
