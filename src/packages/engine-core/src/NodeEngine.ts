@@ -1014,7 +1014,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(
           JSON.stringify(data.errors),
-          this.clientVersion,
+          this.clientVersion!,
         )
       }
 
