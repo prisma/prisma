@@ -46,7 +46,7 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=my-root-pw
+      - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma

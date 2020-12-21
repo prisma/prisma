@@ -63,6 +63,7 @@ export async function getTestClient(
       schemaDir,
       outputDir,
     ),
+    activeProvider: config.datasources[0].activeProvider,
   }
 
   return getPrismaClient(options)
