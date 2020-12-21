@@ -845,11 +845,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         // don't wait for this
         void (async () => {
-          const engineVersion = await this.version(true)
-          debug(`Client Version: ${this.clientVersion}`)
-          debug(`Engine Version: ${engineVersion}`)
-          const activeProvider = await this.getActiveProvider()
-          debug(`Active provider: ${activeProvider}`)
+          try {
+            const engineVersion = await this.version(true)
+            debug(`Client Version: ${this.clientVersion}`)
+            debug(`Engine Version: ${engineVersion}`)
+            const activeProvider = await this.getActiveProvider()
+            debug(`Active provider: ${activeProvider}`)
+          } catch (e) {
+            console.error(e)
+          }
         })()
 
         this.stopPromise = undefined
