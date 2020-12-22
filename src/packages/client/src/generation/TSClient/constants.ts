@@ -42,16 +42,14 @@ const JSDocFields = {
     addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
   count: (singular, plural) =>
     addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
-  avg: (singular, plural) =>
-    addLinkToDocs(`Select which fields to average`, 'aggregations'),
-  sum: (singular, plural) =>
-    addLinkToDocs(`Select which fields to sum`, 'aggregations'),
-  min: (singular, plural) =>
+  avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
+  sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
+  min: () =>
     addLinkToDocs(
       `Select which fields to find the minimum value`,
       'aggregations',
     ),
-  max: (singular, plural) =>
+  max: () =>
     addLinkToDocs(
       `Select which fields to find the maximum value`,
       'aggregations',
@@ -63,7 +61,7 @@ const JSDocFields = {
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
-    body: (ctx) => `Group By`,
+    body: () => `Group By`,
     fields: {},
   },
   create: {
@@ -81,7 +79,7 @@ const ${ctx.singular} = await ${ctx.method}({
 })
 `,
     fields: {
-      data: (singular, plural) => `The data needed to create a ${singular}.`,
+      data: (singular) => `The data needed to create a ${singular}.`,
     },
   },
   findOne: {
@@ -102,7 +100,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
+      where: (singular) => `Filter, which ${singular} to fetch.`,
     },
   },
   findUnique: {
@@ -120,7 +118,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
+      where: (singular) => `Filter, which ${singular} to fetch.`,
     },
   },
   findFirst: {
@@ -138,7 +136,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) => `Filter, which ${singular} to fetch.`,
+      where: (singular) => `Filter, which ${singular} to fetch.`,
       orderBy: JSDocFields.orderBy,
       cursor: (singular, plural) =>
         addLinkToDocs(
@@ -203,8 +201,8 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })
 `,
     fields: {
-      data: (singular, plural) => `The data needed to update a ${singular}.`,
-      where: (singular, plural) => `Choose, which ${singular} to update.`,
+      data: (singular) => `The data needed to update a ${singular}.`,
+      where: (singular) => `Choose, which ${singular} to update.`,
     },
   },
   upsert: {
@@ -228,11 +226,11 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular, plural) =>
+      where: (singular) =>
         `The filter to search for the ${singular} to update in case it exists.`,
-      create: (singular, plural) =>
+      create: (singular) =>
         `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
-      update: (singular, plural) =>
+      update: (singular) =>
         `In case the ${singular} was found with the provided \`where\` argument, update it with this data.`,
     },
   },
@@ -252,7 +250,7 @@ const ${ctx.singular} = await ${ctx.method}({
 })
 `,
     fields: {
-      where: (singular, plural) => `Filter which ${singular} to delete.`,
+      where: (singular) => `Filter which ${singular} to delete.`,
     },
   },
   aggregate: {
@@ -281,10 +279,9 @@ const aggregations = await prisma.user.aggregate({
   take: 10,
 })`,
     fields: {
-      where: (singular, plural) => `Filter which ${singular} to aggregate.`,
+      where: (singular) => `Filter which ${singular} to aggregate.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular, plural) =>
-        addLinkToDocs(`Sets the start position`, 'cursor'),
+      cursor: () => addLinkToDocs(`Sets the start position`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       count: JSDocFields.count,
