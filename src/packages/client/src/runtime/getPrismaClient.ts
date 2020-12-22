@@ -36,7 +36,6 @@ import { Dataloader } from './Dataloader'
 import { printStack } from './utils/printStack'
 import stripAnsi from 'strip-ansi'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import { ConnectorType } from './utils/printDatasources'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { AsyncResource } from 'async_hooks'
@@ -276,7 +275,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _clientVersion: string
     private _previewFeatures: string[]
     private _activeProvider: string
-    private _transactionId: number = 1
+    private _transactionId = 1
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
