@@ -136,6 +136,7 @@ export interface InternalRequestParams extends MiddlewareParams {
   clientMethod: string
   callsite?: string
   headers?: Record<string, string>
+  transactionId?: number
 }
 
 export type HookPoint = 'all' | 'engine'
@@ -275,6 +276,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _clientVersion: string
     private _previewFeatures: string[]
     private _activeProvider: string
+    private _transactionId: number = 1
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
@@ -502,6 +504,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      */
     private $executeRawInternal(
       runInTransaction: boolean,
+      transactionId: number | null,
       stringOrTemplateStringsArray:
         | ReadonlyArray<string>
         | string
@@ -596,6 +599,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         action: 'executeRaw',
         callsite: this._getCallsite(),
         runInTransaction,
+        transactionId: transactionId ?? undefined,
       })
     }
 
@@ -609,10 +613,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const doRequest = (runInTransaction = false) => {
+      const doRequest = (runInTransaction = false, transactionId?: number) => {
         try {
           const promise = this.$executeRawInternal(
             runInTransaction,
+            transactionId ?? null,
             stringOrTemplateStringsArray,
             ...values,
           )
@@ -627,8 +632,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         then(onfulfilled, onrejected) {
           return doRequest().then(onfulfilled, onrejected)
         },
-        requestTransaction() {
-          return doRequest(true)
+        requestTransaction(transactionId: number) {
+          return doRequest(true, transactionId)
         },
         catch(onrejected) {
           return doRequest().catch(onrejected)
@@ -651,6 +656,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      */
     private $queryRawInternal(
       runInTransaction: boolean,
+      transactionId: number | null,
       stringOrTemplateStringsArray:
         | string
         | TemplateStringsArray
@@ -745,6 +751,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         action: 'queryRaw',
         callsite: this._getCallsite(),
         runInTransaction,
+        transactionId: transactionId ?? undefined,
       })
     }
 
@@ -755,10 +762,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       stringOrTemplateStringsArray,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const doRequest = (runInTransaction = false) => {
+      const doRequest = (runInTransaction = false, transactionId?: number) => {
         try {
           const promise = this.$queryRawInternal(
             runInTransaction,
+            transactionId ?? null,
             stringOrTemplateStringsArray,
             ...values,
           )
@@ -773,8 +781,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         then(onfulfilled, onrejected) {
           return doRequest().then(onfulfilled, onrejected)
         },
-        requestTransaction() {
-          return doRequest(true)
+        requestTransaction(transactionId: number) {
+          return doRequest(true, transactionId)
         },
         catch(onrejected) {
           return doRequest().catch(onrejected)
@@ -817,6 +825,10 @@ new PrismaClient({
       })
     }
 
+    private getTransactionId() {
+      return this._transactionId++
+    }
+
     private async $transactionInternal(promises: Array<any>): Promise<any> {
       for (const p of promises) {
         if (!p) {
@@ -835,10 +847,13 @@ new PrismaClient({
           )
         }
       }
+
+      const transactionId = this.getTransactionId()
+
       return Promise.all(
         promises.map((p) => {
           if (p.requestTransaction) {
-            return p.requestTransaction()
+            return p.requestTransaction(transactionId)
           } else {
           }
           return p
@@ -924,6 +939,7 @@ new PrismaClient({
       action,
       model,
       headers,
+      transactionId,
     }: InternalRequestParams) {
       if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
@@ -1009,6 +1025,7 @@ new PrismaClient({
         engineHook: this._engineMiddlewares[0],
         runInTransaction,
         headers,
+        transactionId,
       })
     }
 
@@ -1063,7 +1080,7 @@ new PrismaClient({
 
                 return requestPromise.then(onfulfilled, onrejected)
               },
-              requestTransaction: () => {
+              requestTransaction: (transactionId: number) => {
                 if (!requestPromise) {
                   requestPromise = this._request({
                     args,
@@ -1073,6 +1090,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: true,
+                    transactionId,
                   })
                 }
 
@@ -1280,6 +1298,7 @@ export class PrismaClientFetcher {
   dataloader: Dataloader<{
     document: Document
     runInTransaction?: boolean
+    transactionId?: number
     headers?: Record<string, string>
   }>
 
@@ -1299,6 +1318,9 @@ export class PrismaClientFetcher {
       },
       batchBy: (request) => {
         if (request.runInTransaction) {
+          if (request.transactionId) {
+            return `transaction-batch-${request.transactionId}`
+          }
           return 'transaction-batch'
         }
 
@@ -1342,6 +1364,7 @@ export class PrismaClientFetcher {
     engineHook,
     args,
     headers,
+    transactionId,
   }: {
     document: Document
     dataPath: string[]
@@ -1355,6 +1378,7 @@ export class PrismaClientFetcher {
     engineHook?: EngineMiddleware
     args: any
     headers?: Record<string, string>
+    transactionId?: number
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -1389,6 +1413,7 @@ export class PrismaClientFetcher {
           document,
           runInTransaction,
           headers,
+          transactionId,
         })
         data = result.data
         elapsed = result.elapsed

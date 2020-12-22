@@ -29,22 +29,12 @@ async function main() {
 
   // const rawQuery = prisma.$queryRaw`SELECT * FROM "public"."User"`
   // console.log(rawQuery)
-  const updateUsers = prisma.user.updateMany({
-    where: {
-      name: 'A',
-    },
-    data: {
-      name: 'B',
-    },
-  })
-
-  const res = await prisma.$transaction([
-    // rawQuery,
-    updateUsers,
-    prisma.$queryRaw`SELECT * FROM "public"."User"`,
-    prisma.$queryRaw`SELECT * FROM "public"."Post"`,
-    // prisma.user.findFirst(),
-    // prisma.post.findFirst(),
+  const res = await Promise.all([
+    prisma.$transaction([
+      prisma.$queryRaw`SELECT * FROM "public"."User"`,
+      prisma.$queryRaw`SELECT * FROM "public"."Post"`,
+    ]),
+    prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
   ])
 
   console.log(res)

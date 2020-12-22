@@ -24,46 +24,46 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "User",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "Post",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
+          Array [
+            Object {
+              duration: 0,
+              params: [],
+              query: BEGIN,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "User",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "Post",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: COMMIT,
+              target: quaint::connector::metrics,
+            },
+          ]
+      `)
 
     expect(res).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
-          email: a@a.de,
-          id: 576eddf9-2434-421f-9a86-58bede16fd95,
-          name: Alice,
-        },
-      ],
-      Array [],
-    ]
-  `)
+          Array [
+            Array [
+              Object {
+                email: a@a.de,
+                id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                name: Alice,
+              },
+            ],
+            Array [],
+          ]
+      `)
   })
 
   test('queryRaw & updateMany 1', async () => {
@@ -98,55 +98,55 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "User",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["A"],
-        query: SELECT \`dev\`.\`User\`.\`id\` FROM \`dev\`.\`User\` WHERE \`dev\`.\`User\`.\`name\` = ?,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "Post",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
+          Array [
+            Object {
+              duration: 0,
+              params: [],
+              query: BEGIN,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "User",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["A"],
+              query: SELECT \`dev\`.\`User\`.\`id\` FROM \`dev\`.\`User\` WHERE \`dev\`.\`User\`.\`name\` = ?,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "Post",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: COMMIT,
+              target: quaint::connector::metrics,
+            },
+          ]
+      `)
 
     expect(res).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
-          email: a@a.de,
-          id: 576eddf9-2434-421f-9a86-58bede16fd95,
-          name: Alice,
-        },
-      ],
-      Object {
-        count: 0,
-      },
-      Array [],
-    ]
-  `)
+          Array [
+            Array [
+              Object {
+                email: a@a.de,
+                id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                name: Alice,
+              },
+            ],
+            Object {
+              count: 0,
+            },
+            Array [],
+          ]
+      `)
   })
 
   test('queryRaw & updateMany 2', async () => {
@@ -181,55 +181,55 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["A"],
-        query: SELECT \`dev\`.\`User\`.\`id\` FROM \`dev\`.\`User\` WHERE \`dev\`.\`User\`.\`name\` = ?,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "User",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "Post",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
+          Array [
+            Object {
+              duration: 0,
+              params: [],
+              query: BEGIN,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["A"],
+              query: SELECT \`dev\`.\`User\`.\`id\` FROM \`dev\`.\`User\` WHERE \`dev\`.\`User\`.\`name\` = ?,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "User",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "Post",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: COMMIT,
+              target: quaint::connector::metrics,
+            },
+          ]
+      `)
 
     expect(res).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        count: 0,
-      },
-      Array [
-        Object {
-          email: a@a.de,
-          id: 576eddf9-2434-421f-9a86-58bede16fd95,
-          name: Alice,
-        },
-      ],
-      Array [],
-    ]
-  `)
+          Array [
+            Object {
+              count: 0,
+            },
+            Array [
+              Object {
+                email: a@a.de,
+                id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                name: Alice,
+              },
+            ],
+            Array [],
+          ]
+      `)
   })
 
   test('executeRaw', async () => {
@@ -254,43 +254,43 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub1","THIS_DOES_NOT_EXIT1"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub2","THIS_DOES_NOT_EXIT2"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
+          Array [
+            Object {
+              duration: 0,
+              params: [],
+              query: BEGIN,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["blub1","THIS_DOES_NOT_EXIT1"],
+              query: UPDATE User SET name = ? WHERE id = ?;,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["blub2","THIS_DOES_NOT_EXIT2"],
+              query: UPDATE User SET name = ? WHERE id = ?;,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: COMMIT,
+              target: quaint::connector::metrics,
+            },
+          ]
+      `)
 
     expect(res).toMatchInlineSnapshot(`
-    Array [
-      0,
-      0,
-    ]
-  `)
+          Array [
+            0,
+            0,
+          ]
+      `)
   })
 
-  test('queryRaw & executeRaw', async () => {
+  test('queryRaw & executeRaw in separate transactions', async () => {
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
@@ -305,69 +305,90 @@ describe('transaction', () => {
       queries.push(q)
     })
 
-    const res = await prisma.$transaction([
-      prisma.$queryRaw`SELECT * FROM "Post"`,
-      prisma.$executeRaw`UPDATE User SET name = ${'blub1'} WHERE id = ${'THIS_DOES_NOT_EXIT1'};`,
-      prisma.$queryRaw`SELECT * FROM "User"`,
-      prisma.$executeRaw`UPDATE User SET name = ${'blub2'} WHERE id = ${'THIS_DOES_NOT_EXIT2'};`,
+    const res = await Promise.all([
+      prisma.$transaction([
+        prisma.$queryRaw`SELECT * FROM "User"`,
+        prisma.$queryRaw`SELECT * FROM "Post"`,
+      ]),
+      prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
     ])
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "Post",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub1","THIS_DOES_NOT_EXIT1"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "User",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub2","THIS_DOES_NOT_EXIT2"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
-
-    expect(res).toMatchInlineSnapshot(`
-    Array [
-      Array [],
-      0,
       Array [
         Object {
-          email: a@a.de,
-          id: 576eddf9-2434-421f-9a86-58bede16fd95,
-          name: Alice,
+          duration: 0,
+          params: [],
+          query: BEGIN,
+          target: quaint::connector::metrics,
         },
-      ],
-      0,
-    ]
-  `)
+        Object {
+          duration: 0,
+          params: [],
+          query: SELECT * FROM "User",
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [],
+          query: SELECT * FROM "Post",
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [],
+          query: COMMIT,
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [],
+          query: BEGIN,
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [1,0],
+          query: SELECT \`dev\`.\`User\`.\`id\`, \`dev\`.\`User\`.\`email\`, \`dev\`.\`User\`.\`name\` FROM \`dev\`.\`User\` WHERE 1=1 LIMIT ? OFFSET ?,
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [1,0],
+          query: SELECT \`dev\`.\`Post\`.\`id\`, \`dev\`.\`Post\`.\`createdAt\`, \`dev\`.\`Post\`.\`updatedAt\`, \`dev\`.\`Post\`.\`published\`, \`dev\`.\`Post\`.\`title\`, \`dev\`.\`Post\`.\`content\`, \`dev\`.\`Post\`.\`authorId\` FROM \`dev\`.\`Post\` WHERE 1=1 LIMIT ? OFFSET ?,
+          target: quaint::connector::metrics,
+        },
+        Object {
+          duration: 0,
+          params: [],
+          query: COMMIT,
+          target: quaint::connector::metrics,
+        },
+      ]
+    `)
+
+    expect(res).toMatchInlineSnapshot(`
+      Array [
+        Array [
+          Array [
+            Object {
+              email: a@a.de,
+              id: 576eddf9-2434-421f-9a86-58bede16fd95,
+              name: Alice,
+            },
+          ],
+          Array [],
+        ],
+        Array [
+          Object {
+            email: a@a.de,
+            id: 576eddf9-2434-421f-9a86-58bede16fd95,
+            name: Alice,
+          },
+          null,
+        ],
+      ]
+    `)
   })
 
   // TODO: Enable this test, once query engine allows it
@@ -406,60 +427,60 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        duration: 0,
-        params: [],
-        query: BEGIN,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "Post",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub1","THIS_DOES_NOT_EXIT1"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: SELECT * FROM "User",
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: ["blub2","THIS_DOES_NOT_EXIT2"],
-        query: UPDATE User SET name = ? WHERE id = ?;,
-        target: quaint::connector::metrics,
-      },
-      Object {
-        duration: 0,
-        params: [],
-        query: COMMIT,
-        target: quaint::connector::metrics,
-      },
-    ]
-  `)
+          Array [
+            Object {
+              duration: 0,
+              params: [],
+              query: BEGIN,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "Post",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["blub1","THIS_DOES_NOT_EXIT1"],
+              query: UPDATE User SET name = ? WHERE id = ?;,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: SELECT * FROM "User",
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: ["blub2","THIS_DOES_NOT_EXIT2"],
+              query: UPDATE User SET name = ? WHERE id = ?;,
+              target: quaint::connector::metrics,
+            },
+            Object {
+              duration: 0,
+              params: [],
+              query: COMMIT,
+              target: quaint::connector::metrics,
+            },
+          ]
+      `)
 
     expect(res).toMatchInlineSnapshot(`
-    Array [
-      Array [],
-      0,
-      Array [
-        Object {
-          email: a@a.de,
-          id: 576eddf9-2434-421f-9a86-58bede16fd95,
-          name: Alice,
-        },
-      ],
-      0,
-    ]
-  `)
+          Array [
+            Array [],
+            0,
+            Array [
+              Object {
+                email: a@a.de,
+                id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                name: Alice,
+              },
+            ],
+            0,
+          ]
+      `)
   })
 })
 
