@@ -32,9 +32,12 @@ async function main() {
   const res = await Promise.all([
     prisma.$transaction([
       prisma.$queryRaw`SELECT * FROM "public"."User"`,
-      prisma.$queryRaw`SELECT * FROM "public"."Post"`,
+      prisma.user.findFirst(),
+      prisma.user.findFirst(),
     ]),
-    prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
+    // prisma.$queryRaw`SELECT * FROM "public"."Post"`,
+    // ]),
+    // prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
   ])
 
   console.log(res)

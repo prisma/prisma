@@ -27,6 +27,7 @@ import * as sqlTemplateTag from 'sql-template-tag'
 import {
   GeneratorConfig,
   DataSource,
+  ConnectorType,
 } from '@prisma/generator-helper/dist/types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -411,13 +412,14 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         this._bootstrapClient()
+        this._getActiveProvider()
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
       }
     }
     get [Symbol.toStringTag]() {
-      return 'NewPrismaClient'
+      return 'PrismaClient'
     }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
@@ -495,6 +497,15 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
+      }
+    }
+
+    private async _getActiveProvider(): Promise<void> {
+      try {
+        const configResult = await this._engine.getConfig()
+        this._activeProvider = configResult.datasources[0].activeProvider
+      } catch (e) {
+        console.error(e)
       }
     }
 
