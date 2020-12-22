@@ -199,6 +199,9 @@ export class NodeEngine {
     this.generator = generator
     this.datasources = datasources
     this.logEmitter = new EventEmitter()
+    this.logEmitter.on('error', () => {
+      // to prevent unhandled error events
+    })
     this.showColors = showColors ?? false
     this.logLevel = logLevel
     this.logQueries = logQueries ?? false
@@ -1115,7 +1118,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * different place, not the request itself. This different place can either be
    * this.lastRustError or this.lastErrorLog
    */
-  private throwAsyncErrorIfExists() {
+  private throwAsyncErrorIfExists(forceThrow = false) {
     logger('throwAsyncErrorIfExists', this.startCount, this.hasMaxRestarts)
     if (this.lastRustError) {
       const err = new PrismaClientRustPanicError(
@@ -1125,7 +1128,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       if (this.lastRustError.is_panic) {
         this.lastPanic = err
       }
-      if (this.hasMaxRestarts) {
+      if (this.hasMaxRestarts || forceThrow) {
         throw err
       }
     }
@@ -1140,7 +1143,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         this.lastPanic = err
       }
 
-      if (this.hasMaxRestarts) {
+      if (this.hasMaxRestarts || forceThrow) {
         throw err
       }
     }
@@ -1166,6 +1169,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     if (this.startPromise) {
       await this.startPromise
     }
+
+    this.throwAsyncErrorIfExists()
+
     // A currentRequestPromise is only being canceled by the sendPanic function
     if (this.currentRequestPromise.isCanceled) {
       this.throwAsyncErrorIfExists()
@@ -1200,7 +1206,7 @@ We recommend using the \`wtfnode\` package to debug open handles.`,
         // to get an error first
         for (let i = 0; i < 5; i++) {
           await new Promise((r) => setTimeout(r, 50))
-          this.throwAsyncErrorIfExists()
+          this.throwAsyncErrorIfExists(true)
         }
         throw new Error(`Query engine is trying to restart, but can't.
 Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
@@ -1208,6 +1214,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
     }
 
     if (!graceful) {
+      this.throwAsyncErrorIfExists(true)
       throw error
     }
 
