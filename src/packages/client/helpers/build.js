@@ -51,18 +51,6 @@ async function main() {
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
   ])
 
-  // this is needed to remove "export = " statements
-  let file = await readFile('./runtime/index.d.ts', 'utf-8')
-  file = file.replace(/^export\s+=\s+.*/gm, '')
-  file = file.replace('namespace Decimal {', 'declare namespace Decimal {')
-  await writeFile('./runtime/index.d.ts', file)
-
-  // this is needed to remove "export = " statements
-  let browserFile = await readFile('./runtime/index-browser.d.ts', 'utf-8')
-  browserFile = browserFile.replace(/^export\s+=\s+.*/gm, '')
-  browserFile = browserFile.replace('namespace Decimal {', 'declare namespace Decimal {')
-  await writeFile('./runtime/index-browser.d.ts', browserFile)
-
   const after = Date.now()
   console.log(
     chalk.blueBright(

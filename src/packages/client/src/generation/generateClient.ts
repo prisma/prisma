@@ -51,6 +51,7 @@ export interface GenerateClientOptions {
   copyRuntime?: boolean
   engineVersion: string
   clientVersion: string
+  activeProvider: string
 }
 
 export interface BuildClientResult {
@@ -72,6 +73,7 @@ export async function buildClient({
   engineVersion,
   clientVersion,
   projectRoot,
+  activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
 
@@ -92,6 +94,7 @@ export async function buildClient({
     clientVersion,
     engineVersion,
     projectRoot: projectRoot!,
+    activeProvider,
   })
 
   const fileMap = {
@@ -143,6 +146,7 @@ export async function generateClient({
   copyRuntime,
   clientVersion,
   engineVersion,
+  activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
 
@@ -171,6 +175,7 @@ export async function generateClient({
     clientVersion,
     engineVersion,
     projectRoot,
+    activeProvider,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)

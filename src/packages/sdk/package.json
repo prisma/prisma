@@ -22,7 +22,7 @@
   ],
   "devDependencies": {
     "@types/jest": "26.0.19",
-    "@types/node": "12.19.9",
+    "@types/node": "12.19.11",
     "@types/tar": "4.0.4",
     "@typescript-eslint/eslint-plugin": "4.10.0",
     "@typescript-eslint/parser": "4.10.0",
@@ -41,7 +41,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.14.0-14.89e8d3132416be34203077ff70fdc0abb7ff9747",
+    "@prisma/engines": "2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",

@@ -32,7 +32,7 @@ export function getMessage(log: string | RustLog | RustError | any): string {
   return JSON.stringify(log)
 }
 
-export function getBacktraceFromLog(log: RustLog): string | null {
+export function getBacktraceFromLog(log: RustLog): string {
   if (log.fields?.message) {
     let str = log.fields?.message
     if (log.fields?.file) {
@@ -50,7 +50,7 @@ export function getBacktraceFromLog(log: RustLog): string | null {
     return str
   }
 
-  return null
+  return 'Unknown error'
 }
 
 export function getBacktraceFromRustError(err: RustError): string {

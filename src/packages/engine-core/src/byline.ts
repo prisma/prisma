@@ -53,7 +53,7 @@ export function createLineStream(readStream, options) {
 
 module.exports.LineStream = LineStream
 
-function LineStream(options) {
+function LineStream(this, options) {
   stream.Transform.call(this, options)
   options = options || {}
 
@@ -65,7 +65,7 @@ function LineStream(options) {
   this._lastChunkEndedWithCR = false
 
   // take the source's encoding if we don't have one
-  this.on('pipe', function (src) {
+  this.on('pipe', function (this, src) {
     if (!this.encoding) {
       // but we can't do this for old-style streams
       if (src instanceof stream.Readable) {

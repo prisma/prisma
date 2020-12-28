@@ -31,6 +31,7 @@ export interface TSClientOptions {
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaDir: string
   outputDir: string
+  activeProvider: string
 }
 
 export class TSClient implements Generatable {
@@ -65,6 +66,7 @@ export class TSClient implements Generatable {
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: this.options.datasources.map((d) => d.name),
+      activeProvider: this.options.activeProvider,
     }
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)

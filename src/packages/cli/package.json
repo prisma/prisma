@@ -69,8 +69,8 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.331.0",
-    "@prisma/studio-server": "0.331.0",
+    "@prisma/studio": "0.332.0",
+    "@prisma/studio-server": "0.332.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.19",
     "@types/ws": "7.4.0",
@@ -130,7 +130,7 @@
   },
   "dependencies": {
     "@prisma/bar": "^0.0.1",
-    "@prisma/engines": "2.14.0-14.89e8d3132416be34203077ff70fdc0abb7ff9747"
+    "@prisma/engines": "2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c"
   },
   "lint-staged": {
     "*.ts": [

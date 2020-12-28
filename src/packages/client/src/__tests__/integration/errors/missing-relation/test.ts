@@ -28,6 +28,8 @@ test('missing-relation', async () => {
           TEST_GITHUB_LINK
 
           If you want the Prisma team to look into it, please open the link above 🙏
+          To increase the chance of success, please post your schema and a snippet of
+          how you used Prisma Client in the issue. 
 
         `)
 
