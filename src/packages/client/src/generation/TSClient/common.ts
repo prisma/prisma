@@ -217,6 +217,15 @@ export type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
 
+/**
+ * Subset + Intersection
+ * @desc From \`T\` pick properties that exist in \`U\` and intersect \`K\`
+ */
+export type SubsetIntersection<T, U, K> = {
+  [key in keyof T]: key extends keyof U ? T[key] : never
+} &
+  K
+
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
 /**
@@ -226,6 +235,60 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+
+/**
+ * From ts-toolbelt
+ */
+
+export type Union = any
+export type IntersectOf<U extends Union> = (
+  U extends unknown ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never
+
+/**
+A [[Boolean]]
+*/
+export type Boolean = True | False
+
+// /**
+// 1
+// */
+export type True = 1
+
+/**
+0
+*/
+export type False = 0
+
+export type Not<B extends Boolean> = {
+  0: 1
+  1: 0
+}[B]
+
+export type Extends<A1 extends any, A2 extends any> = [A1] extends [never]
+  ? 0 // anything \`never\` is false
+  : A1 extends A2
+  ? 1
+  : 0
+
+export type Has<U extends Union, U1 extends Union> = Not<
+  Extends<Exclude<U1, U>, U1>
+>
+
+export type Or<B1 extends Boolean, B2 extends Boolean> = {
+  0: {
+    0: 0
+    1: 1
+  }
+  1: {
+    0: 1
+    1: 1
+  }
+}[B1][B2]
+
+export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
 /**
  * Used by group by
@@ -241,6 +304,7 @@ export type GetScalarType<T, O> = O extends object ? {
  */
 type _TupleToUnion<T> = T extends (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
  * Like \`Pick\`, but with an array

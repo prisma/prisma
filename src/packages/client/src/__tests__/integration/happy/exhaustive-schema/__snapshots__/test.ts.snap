@@ -416,6 +416,15 @@ export type Subset<T, U> = {
   [key in keyof T]: key extends keyof U ? T[key] : never;
 };
 
+/**
+ * Subset + Intersection
+ * @desc From \`T\` pick properties that exist in \`U\` and intersect \`K\`
+ */
+export type SubsetIntersection<T, U, K> = {
+  [key in keyof T]: key extends keyof U ? T[key] : never
+} &
+  K
+
 type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
 /**
@@ -425,6 +434,60 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+
+/**
+ * From ts-toolbelt
+ */
+
+export type Union = any
+export type IntersectOf<U extends Union> = (
+  U extends unknown ? (k: U) => void : never
+) extends (k: infer I) => void
+  ? I
+  : never
+
+/**
+A [[Boolean]]
+*/
+export type Boolean = True | False
+
+// /**
+// 1
+// */
+export type True = 1
+
+/**
+0
+*/
+export type False = 0
+
+export type Not<B extends Boolean> = {
+  0: 1
+  1: 0
+}[B]
+
+export type Extends<A1 extends any, A2 extends any> = [A1] extends [never]
+  ? 0 // anything \`never\` is false
+  : A1 extends A2
+  ? 1
+  : 0
+
+export type Has<U extends Union, U1 extends Union> = Not<
+  Extends<Exclude<U1, U>, U1>
+>
+
+export type Or<B1 extends Boolean, B2 extends Boolean> = {
+  0: {
+    0: 0
+    1: 1
+  }
+  1: {
+    0: 1
+    1: 1
+  }
+}[B1][B2]
+
+export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
 /**
  * Used by group by
@@ -440,6 +503,7 @@ export type GetScalarType<T, O> = O extends object ? {
  */
 type _TupleToUnion<T> = T extends (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
  * Like \`Pick\`, but with an array
@@ -1056,6 +1120,15 @@ export namespace Prisma {
     [key in keyof T]: key extends keyof U ? T[key] : never;
   };
 
+  /**
+   * Subset + Intersection
+   * @desc From \`T\` pick properties that exist in \`U\` and intersect \`K\`
+   */
+  export type SubsetIntersection<T, U, K> = {
+    [key in keyof T]: key extends keyof U ? T[key] : never
+  } &
+    K
+
   type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 
   /**
@@ -1065,6 +1138,60 @@ export namespace Prisma {
   type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+
+  /**
+   * From ts-toolbelt
+   */
+
+  export type Union = any
+  export type IntersectOf<U extends Union> = (
+    U extends unknown ? (k: U) => void : never
+  ) extends (k: infer I) => void
+    ? I
+    : never
+
+  /**
+  A [[Boolean]]
+  */
+  export type Boolean = True | False
+
+  // /**
+  // 1
+  // */
+  export type True = 1
+
+  /**
+  0
+  */
+  export type False = 0
+
+  export type Not<B extends Boolean> = {
+    0: 1
+    1: 0
+  }[B]
+
+  export type Extends<A1 extends any, A2 extends any> = [A1] extends [never]
+    ? 0 // anything \`never\` is false
+    : A1 extends A2
+    ? 1
+    : 0
+
+  export type Has<U extends Union, U1 extends Union> = Not<
+    Extends<Exclude<U1, U>, U1>
+  >
+
+  export type Or<B1 extends Boolean, B2 extends Boolean> = {
+    0: {
+      0: 0
+      1: 1
+    }
+    1: {
+      0: 1
+      1: 1
+    }
+  }[B1][B2]
+
+  export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
   /**
    * Used by group by
@@ -1080,6 +1207,7 @@ export namespace Prisma {
    */
   type _TupleToUnion<T> = T extends (infer E)[] ? E : never
   type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
+  type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
   /**
    * Like \`Pick\`, but with an array
@@ -1477,6 +1605,7 @@ export namespace Prisma {
     findUnique<T extends FindUniquePostArgs>(
       args: Subset<T, FindUniquePostArgs>
     ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
+
     /**
      * Find the first Post that matches the filter.
      * @param {FindFirstPostArgs} args - Arguments to find a Post
@@ -1491,6 +1620,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstPostArgs>(
       args?: Subset<T, FindFirstPostArgs>
     ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
+
     /**
      * Find zero or more Posts that matches the filter.
      * @param {FindManyPostArgs=} args - Arguments to filter and select certain fields only.
@@ -1508,6 +1638,7 @@ export namespace Prisma {
     findMany<T extends FindManyPostArgs>(
       args?: Subset<T, FindManyPostArgs>
     ): CheckSelect<T, Promise<Array<Post>>, Promise<Array<PostGetPayload<T>>>>
+
     /**
      * Create a Post.
      * @param {PostCreateArgs} args - Arguments to create a Post.
@@ -1523,6 +1654,7 @@ export namespace Prisma {
     create<T extends PostCreateArgs>(
       args: Subset<T, PostCreateArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
     /**
      * Delete a Post.
      * @param {PostDeleteArgs} args - Arguments to delete one Post.
@@ -1538,6 +1670,7 @@ export namespace Prisma {
     delete<T extends PostDeleteArgs>(
       args: Subset<T, PostDeleteArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
     /**
      * Update one Post.
      * @param {PostUpdateArgs} args - Arguments to update one Post.
@@ -1556,6 +1689,7 @@ export namespace Prisma {
     update<T extends PostUpdateArgs>(
       args: Subset<T, PostUpdateArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
     /**
      * Delete zero or more Posts.
      * @param {PostDeleteManyArgs} args - Arguments to filter Posts to delete.
@@ -1571,6 +1705,7 @@ export namespace Prisma {
     deleteMany<T extends PostDeleteManyArgs>(
       args?: Subset<T, PostDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Posts.
      * @param {PostUpdateManyArgs} args - Arguments to update one or more rows.
@@ -1589,6 +1724,7 @@ export namespace Prisma {
     updateMany<T extends PostUpdateManyArgs>(
       args: Subset<T, PostUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one Post.
      * @param {PostUpsertArgs} args - Arguments to update or create a Post.
@@ -1609,6 +1745,7 @@ export namespace Prisma {
     upsert<T extends PostUpsertArgs>(
       args: Subset<T, PostUpsertArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
     /**
      * Find zero or one Post that matches the filter.
      * @param {FindUniquePostArgs} args - Arguments to find a Post
@@ -1624,48 +1761,107 @@ export namespace Prisma {
     findOne<T extends FindUniquePostArgs>(
       args: Subset<T, FindUniquePostArgs>
     ): CheckSelect<T, Prisma__PostClient<Post | null>, Prisma__PostClient<PostGetPayload<T> | null>>
+
     /**
-   * Count the number of Posts.
-   * @param {FindManyPostArgs} args - Arguments to filter Posts to count.
-   * @example
-   * // Count the number of Posts
-   * const count = await prisma.post.count({
-   *   where: {
-   *     // ... the filter for the Posts we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Posts.
+     * @param {FindManyPostArgs} args - Arguments to filter Posts to count.
+     * @example
+     * // Count the number of Posts
+     * const count = await prisma.post.count({
+     *   where: {
+     *     // ... the filter for the Posts we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByPostArgs>(args: Subset<T, GroupByPostArgs>): Promise<GetPostGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a Post.
+     * @param {AggregatePostArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregatePostArgs>(args: Subset<T, AggregatePostArgs>): Promise<GetPostAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a Post.
-   * @param {AggregatePostArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregatePostArgs>(args: Subset<T, AggregatePostArgs>): Promise<GetPostAggregateType<T>>
+     * Group by Post.
+     * @param {GroupByPostArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByPostArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByPostArgs['orderBy'] }
+        : { orderBy?: GroupByPostArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByPostArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetPostGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -2279,6 +2475,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueUserArgs>(
       args: Subset<T, FindUniqueUserArgs>
     ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
+
     /**
      * Find the first User that matches the filter.
      * @param {FindFirstUserArgs} args - Arguments to find a User
@@ -2293,6 +2490,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstUserArgs>(
       args?: Subset<T, FindFirstUserArgs>
     ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
+
     /**
      * Find zero or more Users that matches the filter.
      * @param {FindManyUserArgs=} args - Arguments to filter and select certain fields only.
@@ -2310,6 +2508,7 @@ export namespace Prisma {
     findMany<T extends FindManyUserArgs>(
       args?: Subset<T, FindManyUserArgs>
     ): CheckSelect<T, Promise<Array<User>>, Promise<Array<UserGetPayload<T>>>>
+
     /**
      * Create a User.
      * @param {UserCreateArgs} args - Arguments to create a User.
@@ -2325,6 +2524,7 @@ export namespace Prisma {
     create<T extends UserCreateArgs>(
       args: Subset<T, UserCreateArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
     /**
      * Delete a User.
      * @param {UserDeleteArgs} args - Arguments to delete one User.
@@ -2340,6 +2540,7 @@ export namespace Prisma {
     delete<T extends UserDeleteArgs>(
       args: Subset<T, UserDeleteArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
     /**
      * Update one User.
      * @param {UserUpdateArgs} args - Arguments to update one User.
@@ -2358,6 +2559,7 @@ export namespace Prisma {
     update<T extends UserUpdateArgs>(
       args: Subset<T, UserUpdateArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
     /**
      * Delete zero or more Users.
      * @param {UserDeleteManyArgs} args - Arguments to filter Users to delete.
@@ -2373,6 +2575,7 @@ export namespace Prisma {
     deleteMany<T extends UserDeleteManyArgs>(
       args?: Subset<T, UserDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Users.
      * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
@@ -2391,6 +2594,7 @@ export namespace Prisma {
     updateMany<T extends UserUpdateManyArgs>(
       args: Subset<T, UserUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one User.
      * @param {UserUpsertArgs} args - Arguments to update or create a User.
@@ -2411,6 +2615,7 @@ export namespace Prisma {
     upsert<T extends UserUpsertArgs>(
       args: Subset<T, UserUpsertArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
     /**
      * Find zero or one User that matches the filter.
      * @param {FindUniqueUserArgs} args - Arguments to find a User
@@ -2426,48 +2631,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueUserArgs>(
       args: Subset<T, FindUniqueUserArgs>
     ): CheckSelect<T, Prisma__UserClient<User | null>, Prisma__UserClient<UserGetPayload<T> | null>>
+
     /**
-   * Count the number of Users.
-   * @param {FindManyUserArgs} args - Arguments to filter Users to count.
-   * @example
-   * // Count the number of Users
-   * const count = await prisma.user.count({
-   *   where: {
-   *     // ... the filter for the Users we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Users.
+     * @param {FindManyUserArgs} args - Arguments to filter Users to count.
+     * @example
+     * // Count the number of Users
+     * const count = await prisma.user.count({
+     *   where: {
+     *     // ... the filter for the Users we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByUserArgs>(args: Subset<T, GroupByUserArgs>): Promise<GetUserGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a User.
+     * @param {AggregateUserArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateUserArgs>(args: Subset<T, AggregateUserArgs>): Promise<GetUserAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a User.
-   * @param {AggregateUserArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateUserArgs>(args: Subset<T, AggregateUserArgs>): Promise<GetUserAggregateType<T>>
+     * Group by User.
+     * @param {GroupByUserArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByUserArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByUserArgs['orderBy'] }
+        : { orderBy?: GroupByUserArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByUserArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetUserGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -3073,6 +3337,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueMArgs>(
       args: Subset<T, FindUniqueMArgs>
     ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
+
     /**
      * Find the first M that matches the filter.
      * @param {FindFirstMArgs} args - Arguments to find a M
@@ -3087,6 +3352,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstMArgs>(
       args?: Subset<T, FindFirstMArgs>
     ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
+
     /**
      * Find zero or more Ms that matches the filter.
      * @param {FindManyMArgs=} args - Arguments to filter and select certain fields only.
@@ -3104,6 +3370,7 @@ export namespace Prisma {
     findMany<T extends FindManyMArgs>(
       args?: Subset<T, FindManyMArgs>
     ): CheckSelect<T, Promise<Array<M>>, Promise<Array<MGetPayload<T>>>>
+
     /**
      * Create a M.
      * @param {MCreateArgs} args - Arguments to create a M.
@@ -3119,6 +3386,7 @@ export namespace Prisma {
     create<T extends MCreateArgs>(
       args: Subset<T, MCreateArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
     /**
      * Delete a M.
      * @param {MDeleteArgs} args - Arguments to delete one M.
@@ -3134,6 +3402,7 @@ export namespace Prisma {
     delete<T extends MDeleteArgs>(
       args: Subset<T, MDeleteArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
     /**
      * Update one M.
      * @param {MUpdateArgs} args - Arguments to update one M.
@@ -3152,6 +3421,7 @@ export namespace Prisma {
     update<T extends MUpdateArgs>(
       args: Subset<T, MUpdateArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
     /**
      * Delete zero or more Ms.
      * @param {MDeleteManyArgs} args - Arguments to filter Ms to delete.
@@ -3167,6 +3437,7 @@ export namespace Prisma {
     deleteMany<T extends MDeleteManyArgs>(
       args?: Subset<T, MDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Ms.
      * @param {MUpdateManyArgs} args - Arguments to update one or more rows.
@@ -3185,6 +3456,7 @@ export namespace Prisma {
     updateMany<T extends MUpdateManyArgs>(
       args: Subset<T, MUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one M.
      * @param {MUpsertArgs} args - Arguments to update or create a M.
@@ -3205,6 +3477,7 @@ export namespace Prisma {
     upsert<T extends MUpsertArgs>(
       args: Subset<T, MUpsertArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
     /**
      * Find zero or one M that matches the filter.
      * @param {FindUniqueMArgs} args - Arguments to find a M
@@ -3220,48 +3493,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueMArgs>(
       args: Subset<T, FindUniqueMArgs>
     ): CheckSelect<T, Prisma__MClient<M | null>, Prisma__MClient<MGetPayload<T> | null>>
+
     /**
-   * Count the number of Ms.
-   * @param {FindManyMArgs} args - Arguments to filter Ms to count.
-   * @example
-   * // Count the number of Ms
-   * const count = await prisma.m.count({
-   *   where: {
-   *     // ... the filter for the Ms we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Ms.
+     * @param {FindManyMArgs} args - Arguments to filter Ms to count.
+     * @example
+     * // Count the number of Ms
+     * const count = await prisma.m.count({
+     *   where: {
+     *     // ... the filter for the Ms we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByMArgs>(args: Subset<T, GroupByMArgs>): Promise<GetMGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a M.
+     * @param {AggregateMArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateMArgs>(args: Subset<T, AggregateMArgs>): Promise<GetMAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a M.
-   * @param {AggregateMArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateMArgs>(args: Subset<T, AggregateMArgs>): Promise<GetMAggregateType<T>>
+     * Group by M.
+     * @param {GroupByMArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByMArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByMArgs['orderBy'] }
+        : { orderBy?: GroupByMArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByMArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetMGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -3867,6 +4199,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueNArgs>(
       args: Subset<T, FindUniqueNArgs>
     ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
+
     /**
      * Find the first N that matches the filter.
      * @param {FindFirstNArgs} args - Arguments to find a N
@@ -3881,6 +4214,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstNArgs>(
       args?: Subset<T, FindFirstNArgs>
     ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
+
     /**
      * Find zero or more Ns that matches the filter.
      * @param {FindManyNArgs=} args - Arguments to filter and select certain fields only.
@@ -3898,6 +4232,7 @@ export namespace Prisma {
     findMany<T extends FindManyNArgs>(
       args?: Subset<T, FindManyNArgs>
     ): CheckSelect<T, Promise<Array<N>>, Promise<Array<NGetPayload<T>>>>
+
     /**
      * Create a N.
      * @param {NCreateArgs} args - Arguments to create a N.
@@ -3913,6 +4248,7 @@ export namespace Prisma {
     create<T extends NCreateArgs>(
       args: Subset<T, NCreateArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
     /**
      * Delete a N.
      * @param {NDeleteArgs} args - Arguments to delete one N.
@@ -3928,6 +4264,7 @@ export namespace Prisma {
     delete<T extends NDeleteArgs>(
       args: Subset<T, NDeleteArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
     /**
      * Update one N.
      * @param {NUpdateArgs} args - Arguments to update one N.
@@ -3946,6 +4283,7 @@ export namespace Prisma {
     update<T extends NUpdateArgs>(
       args: Subset<T, NUpdateArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
     /**
      * Delete zero or more Ns.
      * @param {NDeleteManyArgs} args - Arguments to filter Ns to delete.
@@ -3961,6 +4299,7 @@ export namespace Prisma {
     deleteMany<T extends NDeleteManyArgs>(
       args?: Subset<T, NDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Ns.
      * @param {NUpdateManyArgs} args - Arguments to update one or more rows.
@@ -3979,6 +4318,7 @@ export namespace Prisma {
     updateMany<T extends NUpdateManyArgs>(
       args: Subset<T, NUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one N.
      * @param {NUpsertArgs} args - Arguments to update or create a N.
@@ -3999,6 +4339,7 @@ export namespace Prisma {
     upsert<T extends NUpsertArgs>(
       args: Subset<T, NUpsertArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
     /**
      * Find zero or one N that matches the filter.
      * @param {FindUniqueNArgs} args - Arguments to find a N
@@ -4014,48 +4355,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueNArgs>(
       args: Subset<T, FindUniqueNArgs>
     ): CheckSelect<T, Prisma__NClient<N | null>, Prisma__NClient<NGetPayload<T> | null>>
+
     /**
-   * Count the number of Ns.
-   * @param {FindManyNArgs} args - Arguments to filter Ns to count.
-   * @example
-   * // Count the number of Ns
-   * const count = await prisma.n.count({
-   *   where: {
-   *     // ... the filter for the Ns we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Ns.
+     * @param {FindManyNArgs} args - Arguments to filter Ns to count.
+     * @example
+     * // Count the number of Ns
+     * const count = await prisma.n.count({
+     *   where: {
+     *     // ... the filter for the Ns we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByNArgs>(args: Subset<T, GroupByNArgs>): Promise<GetNGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a N.
+     * @param {AggregateNArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateNArgs>(args: Subset<T, AggregateNArgs>): Promise<GetNAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a N.
-   * @param {AggregateNArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateNArgs>(args: Subset<T, AggregateNArgs>): Promise<GetNAggregateType<T>>
+     * Group by N.
+     * @param {GroupByNArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByNArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByNArgs['orderBy'] }
+        : { orderBy?: GroupByNArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByNArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetNGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -4661,6 +5061,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueOneOptionalArgs>(
       args: Subset<T, FindUniqueOneOptionalArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
+
     /**
      * Find the first OneOptional that matches the filter.
      * @param {FindFirstOneOptionalArgs} args - Arguments to find a OneOptional
@@ -4675,6 +5076,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstOneOptionalArgs>(
       args?: Subset<T, FindFirstOneOptionalArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
+
     /**
      * Find zero or more OneOptionals that matches the filter.
      * @param {FindManyOneOptionalArgs=} args - Arguments to filter and select certain fields only.
@@ -4692,6 +5094,7 @@ export namespace Prisma {
     findMany<T extends FindManyOneOptionalArgs>(
       args?: Subset<T, FindManyOneOptionalArgs>
     ): CheckSelect<T, Promise<Array<OneOptional>>, Promise<Array<OneOptionalGetPayload<T>>>>
+
     /**
      * Create a OneOptional.
      * @param {OneOptionalCreateArgs} args - Arguments to create a OneOptional.
@@ -4707,6 +5110,7 @@ export namespace Prisma {
     create<T extends OneOptionalCreateArgs>(
       args: Subset<T, OneOptionalCreateArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
     /**
      * Delete a OneOptional.
      * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
@@ -4722,6 +5126,7 @@ export namespace Prisma {
     delete<T extends OneOptionalDeleteArgs>(
       args: Subset<T, OneOptionalDeleteArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
     /**
      * Update one OneOptional.
      * @param {OneOptionalUpdateArgs} args - Arguments to update one OneOptional.
@@ -4740,6 +5145,7 @@ export namespace Prisma {
     update<T extends OneOptionalUpdateArgs>(
       args: Subset<T, OneOptionalUpdateArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
     /**
      * Delete zero or more OneOptionals.
      * @param {OneOptionalDeleteManyArgs} args - Arguments to filter OneOptionals to delete.
@@ -4755,6 +5161,7 @@ export namespace Prisma {
     deleteMany<T extends OneOptionalDeleteManyArgs>(
       args?: Subset<T, OneOptionalDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more OneOptionals.
      * @param {OneOptionalUpdateManyArgs} args - Arguments to update one or more rows.
@@ -4773,6 +5180,7 @@ export namespace Prisma {
     updateMany<T extends OneOptionalUpdateManyArgs>(
       args: Subset<T, OneOptionalUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one OneOptional.
      * @param {OneOptionalUpsertArgs} args - Arguments to update or create a OneOptional.
@@ -4793,6 +5201,7 @@ export namespace Prisma {
     upsert<T extends OneOptionalUpsertArgs>(
       args: Subset<T, OneOptionalUpsertArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
     /**
      * Find zero or one OneOptional that matches the filter.
      * @param {FindUniqueOneOptionalArgs} args - Arguments to find a OneOptional
@@ -4808,48 +5217,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueOneOptionalArgs>(
       args: Subset<T, FindUniqueOneOptionalArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null>>
+
     /**
-   * Count the number of OneOptionals.
-   * @param {FindManyOneOptionalArgs} args - Arguments to filter OneOptionals to count.
-   * @example
-   * // Count the number of OneOptionals
-   * const count = await prisma.oneOptional.count({
-   *   where: {
-   *     // ... the filter for the OneOptionals we want to count
-   *   }
-   * })
-  **/
+     * Count the number of OneOptionals.
+     * @param {FindManyOneOptionalArgs} args - Arguments to filter OneOptionals to count.
+     * @example
+     * // Count the number of OneOptionals
+     * const count = await prisma.oneOptional.count({
+     *   where: {
+     *     // ... the filter for the OneOptionals we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByOneOptionalArgs>(args: Subset<T, GroupByOneOptionalArgs>): Promise<GetOneOptionalGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a OneOptional.
+     * @param {AggregateOneOptionalArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateOneOptionalArgs>(args: Subset<T, AggregateOneOptionalArgs>): Promise<GetOneOptionalAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a OneOptional.
-   * @param {AggregateOneOptionalArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateOneOptionalArgs>(args: Subset<T, AggregateOneOptionalArgs>): Promise<GetOneOptionalAggregateType<T>>
+     * Group by OneOptional.
+     * @param {GroupByOneOptionalArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByOneOptionalArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByOneOptionalArgs['orderBy'] }
+        : { orderBy?: GroupByOneOptionalArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByOneOptionalArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOneOptionalGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -5467,6 +5935,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueManyRequiredArgs>(
       args: Subset<T, FindUniqueManyRequiredArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
+
     /**
      * Find the first ManyRequired that matches the filter.
      * @param {FindFirstManyRequiredArgs} args - Arguments to find a ManyRequired
@@ -5481,6 +5950,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstManyRequiredArgs>(
       args?: Subset<T, FindFirstManyRequiredArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
+
     /**
      * Find zero or more ManyRequireds that matches the filter.
      * @param {FindManyManyRequiredArgs=} args - Arguments to filter and select certain fields only.
@@ -5498,6 +5968,7 @@ export namespace Prisma {
     findMany<T extends FindManyManyRequiredArgs>(
       args?: Subset<T, FindManyManyRequiredArgs>
     ): CheckSelect<T, Promise<Array<ManyRequired>>, Promise<Array<ManyRequiredGetPayload<T>>>>
+
     /**
      * Create a ManyRequired.
      * @param {ManyRequiredCreateArgs} args - Arguments to create a ManyRequired.
@@ -5513,6 +5984,7 @@ export namespace Prisma {
     create<T extends ManyRequiredCreateArgs>(
       args: Subset<T, ManyRequiredCreateArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
     /**
      * Delete a ManyRequired.
      * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
@@ -5528,6 +6000,7 @@ export namespace Prisma {
     delete<T extends ManyRequiredDeleteArgs>(
       args: Subset<T, ManyRequiredDeleteArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
     /**
      * Update one ManyRequired.
      * @param {ManyRequiredUpdateArgs} args - Arguments to update one ManyRequired.
@@ -5546,6 +6019,7 @@ export namespace Prisma {
     update<T extends ManyRequiredUpdateArgs>(
       args: Subset<T, ManyRequiredUpdateArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
     /**
      * Delete zero or more ManyRequireds.
      * @param {ManyRequiredDeleteManyArgs} args - Arguments to filter ManyRequireds to delete.
@@ -5561,6 +6035,7 @@ export namespace Prisma {
     deleteMany<T extends ManyRequiredDeleteManyArgs>(
       args?: Subset<T, ManyRequiredDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more ManyRequireds.
      * @param {ManyRequiredUpdateManyArgs} args - Arguments to update one or more rows.
@@ -5579,6 +6054,7 @@ export namespace Prisma {
     updateMany<T extends ManyRequiredUpdateManyArgs>(
       args: Subset<T, ManyRequiredUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one ManyRequired.
      * @param {ManyRequiredUpsertArgs} args - Arguments to update or create a ManyRequired.
@@ -5599,6 +6075,7 @@ export namespace Prisma {
     upsert<T extends ManyRequiredUpsertArgs>(
       args: Subset<T, ManyRequiredUpsertArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
     /**
      * Find zero or one ManyRequired that matches the filter.
      * @param {FindUniqueManyRequiredArgs} args - Arguments to find a ManyRequired
@@ -5614,48 +6091,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueManyRequiredArgs>(
       args: Subset<T, FindUniqueManyRequiredArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null>>
+
     /**
-   * Count the number of ManyRequireds.
-   * @param {FindManyManyRequiredArgs} args - Arguments to filter ManyRequireds to count.
-   * @example
-   * // Count the number of ManyRequireds
-   * const count = await prisma.manyRequired.count({
-   *   where: {
-   *     // ... the filter for the ManyRequireds we want to count
-   *   }
-   * })
-  **/
+     * Count the number of ManyRequireds.
+     * @param {FindManyManyRequiredArgs} args - Arguments to filter ManyRequireds to count.
+     * @example
+     * // Count the number of ManyRequireds
+     * const count = await prisma.manyRequired.count({
+     *   where: {
+     *     // ... the filter for the ManyRequireds we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByManyRequiredArgs>(args: Subset<T, GroupByManyRequiredArgs>): Promise<GetManyRequiredGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a ManyRequired.
+     * @param {AggregateManyRequiredArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateManyRequiredArgs>(args: Subset<T, AggregateManyRequiredArgs>): Promise<GetManyRequiredAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a ManyRequired.
-   * @param {AggregateManyRequiredArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateManyRequiredArgs>(args: Subset<T, AggregateManyRequiredArgs>): Promise<GetManyRequiredAggregateType<T>>
+     * Group by ManyRequired.
+     * @param {GroupByManyRequiredArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByManyRequiredArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByManyRequiredArgs['orderBy'] }
+        : { orderBy?: GroupByManyRequiredArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByManyRequiredArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetManyRequiredGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -6273,6 +6809,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueOptionalSide1Args>(
       args: Subset<T, FindUniqueOptionalSide1Args>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
+
     /**
      * Find the first OptionalSide1 that matches the filter.
      * @param {FindFirstOptionalSide1Args} args - Arguments to find a OptionalSide1
@@ -6287,6 +6824,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstOptionalSide1Args>(
       args?: Subset<T, FindFirstOptionalSide1Args>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
+
     /**
      * Find zero or more OptionalSide1s that matches the filter.
      * @param {FindManyOptionalSide1Args=} args - Arguments to filter and select certain fields only.
@@ -6304,6 +6842,7 @@ export namespace Prisma {
     findMany<T extends FindManyOptionalSide1Args>(
       args?: Subset<T, FindManyOptionalSide1Args>
     ): CheckSelect<T, Promise<Array<OptionalSide1>>, Promise<Array<OptionalSide1GetPayload<T>>>>
+
     /**
      * Create a OptionalSide1.
      * @param {OptionalSide1CreateArgs} args - Arguments to create a OptionalSide1.
@@ -6319,6 +6858,7 @@ export namespace Prisma {
     create<T extends OptionalSide1CreateArgs>(
       args: Subset<T, OptionalSide1CreateArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
     /**
      * Delete a OptionalSide1.
      * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
@@ -6334,6 +6874,7 @@ export namespace Prisma {
     delete<T extends OptionalSide1DeleteArgs>(
       args: Subset<T, OptionalSide1DeleteArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
     /**
      * Update one OptionalSide1.
      * @param {OptionalSide1UpdateArgs} args - Arguments to update one OptionalSide1.
@@ -6352,6 +6893,7 @@ export namespace Prisma {
     update<T extends OptionalSide1UpdateArgs>(
       args: Subset<T, OptionalSide1UpdateArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
     /**
      * Delete zero or more OptionalSide1s.
      * @param {OptionalSide1DeleteManyArgs} args - Arguments to filter OptionalSide1s to delete.
@@ -6367,6 +6909,7 @@ export namespace Prisma {
     deleteMany<T extends OptionalSide1DeleteManyArgs>(
       args?: Subset<T, OptionalSide1DeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more OptionalSide1s.
      * @param {OptionalSide1UpdateManyArgs} args - Arguments to update one or more rows.
@@ -6385,6 +6928,7 @@ export namespace Prisma {
     updateMany<T extends OptionalSide1UpdateManyArgs>(
       args: Subset<T, OptionalSide1UpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one OptionalSide1.
      * @param {OptionalSide1UpsertArgs} args - Arguments to update or create a OptionalSide1.
@@ -6405,6 +6949,7 @@ export namespace Prisma {
     upsert<T extends OptionalSide1UpsertArgs>(
       args: Subset<T, OptionalSide1UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
     /**
      * Find zero or one OptionalSide1 that matches the filter.
      * @param {FindUniqueOptionalSide1Args} args - Arguments to find a OptionalSide1
@@ -6420,48 +6965,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueOptionalSide1Args>(
       args: Subset<T, FindUniqueOptionalSide1Args>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null>>
+
     /**
-   * Count the number of OptionalSide1s.
-   * @param {FindManyOptionalSide1Args} args - Arguments to filter OptionalSide1s to count.
-   * @example
-   * // Count the number of OptionalSide1s
-   * const count = await prisma.optionalSide1.count({
-   *   where: {
-   *     // ... the filter for the OptionalSide1s we want to count
-   *   }
-   * })
-  **/
+     * Count the number of OptionalSide1s.
+     * @param {FindManyOptionalSide1Args} args - Arguments to filter OptionalSide1s to count.
+     * @example
+     * // Count the number of OptionalSide1s
+     * const count = await prisma.optionalSide1.count({
+     *   where: {
+     *     // ... the filter for the OptionalSide1s we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByOptionalSide1Args>(args: Subset<T, GroupByOptionalSide1Args>): Promise<GetOptionalSide1GroupByPayload<T>>
+     * Allows you to perform aggregations operations on a OptionalSide1.
+     * @param {AggregateOptionalSide1Args} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateOptionalSide1Args>(args: Subset<T, AggregateOptionalSide1Args>): Promise<GetOptionalSide1AggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a OptionalSide1.
-   * @param {AggregateOptionalSide1Args} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateOptionalSide1Args>(args: Subset<T, AggregateOptionalSide1Args>): Promise<GetOptionalSide1AggregateType<T>>
+     * Group by OptionalSide1.
+     * @param {GroupByOptionalSide1Args} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByOptionalSide1Args,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByOptionalSide1Args['orderBy'] }
+        : { orderBy?: GroupByOptionalSide1Args['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByOptionalSide1Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide1GroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -7067,6 +7671,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueOptionalSide2Args>(
       args: Subset<T, FindUniqueOptionalSide2Args>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
+
     /**
      * Find the first OptionalSide2 that matches the filter.
      * @param {FindFirstOptionalSide2Args} args - Arguments to find a OptionalSide2
@@ -7081,6 +7686,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstOptionalSide2Args>(
       args?: Subset<T, FindFirstOptionalSide2Args>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
+
     /**
      * Find zero or more OptionalSide2s that matches the filter.
      * @param {FindManyOptionalSide2Args=} args - Arguments to filter and select certain fields only.
@@ -7098,6 +7704,7 @@ export namespace Prisma {
     findMany<T extends FindManyOptionalSide2Args>(
       args?: Subset<T, FindManyOptionalSide2Args>
     ): CheckSelect<T, Promise<Array<OptionalSide2>>, Promise<Array<OptionalSide2GetPayload<T>>>>
+
     /**
      * Create a OptionalSide2.
      * @param {OptionalSide2CreateArgs} args - Arguments to create a OptionalSide2.
@@ -7113,6 +7720,7 @@ export namespace Prisma {
     create<T extends OptionalSide2CreateArgs>(
       args: Subset<T, OptionalSide2CreateArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
     /**
      * Delete a OptionalSide2.
      * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
@@ -7128,6 +7736,7 @@ export namespace Prisma {
     delete<T extends OptionalSide2DeleteArgs>(
       args: Subset<T, OptionalSide2DeleteArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
     /**
      * Update one OptionalSide2.
      * @param {OptionalSide2UpdateArgs} args - Arguments to update one OptionalSide2.
@@ -7146,6 +7755,7 @@ export namespace Prisma {
     update<T extends OptionalSide2UpdateArgs>(
       args: Subset<T, OptionalSide2UpdateArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
     /**
      * Delete zero or more OptionalSide2s.
      * @param {OptionalSide2DeleteManyArgs} args - Arguments to filter OptionalSide2s to delete.
@@ -7161,6 +7771,7 @@ export namespace Prisma {
     deleteMany<T extends OptionalSide2DeleteManyArgs>(
       args?: Subset<T, OptionalSide2DeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more OptionalSide2s.
      * @param {OptionalSide2UpdateManyArgs} args - Arguments to update one or more rows.
@@ -7179,6 +7790,7 @@ export namespace Prisma {
     updateMany<T extends OptionalSide2UpdateManyArgs>(
       args: Subset<T, OptionalSide2UpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one OptionalSide2.
      * @param {OptionalSide2UpsertArgs} args - Arguments to update or create a OptionalSide2.
@@ -7199,6 +7811,7 @@ export namespace Prisma {
     upsert<T extends OptionalSide2UpsertArgs>(
       args: Subset<T, OptionalSide2UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
     /**
      * Find zero or one OptionalSide2 that matches the filter.
      * @param {FindUniqueOptionalSide2Args} args - Arguments to find a OptionalSide2
@@ -7214,48 +7827,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueOptionalSide2Args>(
       args: Subset<T, FindUniqueOptionalSide2Args>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null>>
+
     /**
-   * Count the number of OptionalSide2s.
-   * @param {FindManyOptionalSide2Args} args - Arguments to filter OptionalSide2s to count.
-   * @example
-   * // Count the number of OptionalSide2s
-   * const count = await prisma.optionalSide2.count({
-   *   where: {
-   *     // ... the filter for the OptionalSide2s we want to count
-   *   }
-   * })
-  **/
+     * Count the number of OptionalSide2s.
+     * @param {FindManyOptionalSide2Args} args - Arguments to filter OptionalSide2s to count.
+     * @example
+     * // Count the number of OptionalSide2s
+     * const count = await prisma.optionalSide2.count({
+     *   where: {
+     *     // ... the filter for the OptionalSide2s we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByOptionalSide2Args>(args: Subset<T, GroupByOptionalSide2Args>): Promise<GetOptionalSide2GroupByPayload<T>>
+     * Allows you to perform aggregations operations on a OptionalSide2.
+     * @param {AggregateOptionalSide2Args} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateOptionalSide2Args>(args: Subset<T, AggregateOptionalSide2Args>): Promise<GetOptionalSide2AggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a OptionalSide2.
-   * @param {AggregateOptionalSide2Args} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateOptionalSide2Args>(args: Subset<T, AggregateOptionalSide2Args>): Promise<GetOptionalSide2AggregateType<T>>
+     * Group by OptionalSide2.
+     * @param {GroupByOptionalSide2Args} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByOptionalSide2Args,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByOptionalSide2Args['orderBy'] }
+        : { orderBy?: GroupByOptionalSide2Args['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByOptionalSide2Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide2GroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -7859,6 +8531,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueAArgs>(
       args: Subset<T, FindUniqueAArgs>
     ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
+
     /**
      * Find the first A that matches the filter.
      * @param {FindFirstAArgs} args - Arguments to find a A
@@ -7873,6 +8546,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstAArgs>(
       args?: Subset<T, FindFirstAArgs>
     ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
+
     /**
      * Find zero or more As that matches the filter.
      * @param {FindManyAArgs=} args - Arguments to filter and select certain fields only.
@@ -7890,6 +8564,7 @@ export namespace Prisma {
     findMany<T extends FindManyAArgs>(
       args?: Subset<T, FindManyAArgs>
     ): CheckSelect<T, Promise<Array<A>>, Promise<Array<AGetPayload<T>>>>
+
     /**
      * Create a A.
      * @param {ACreateArgs} args - Arguments to create a A.
@@ -7905,6 +8580,7 @@ export namespace Prisma {
     create<T extends ACreateArgs>(
       args: Subset<T, ACreateArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+
     /**
      * Delete a A.
      * @param {ADeleteArgs} args - Arguments to delete one A.
@@ -7920,6 +8596,7 @@ export namespace Prisma {
     delete<T extends ADeleteArgs>(
       args: Subset<T, ADeleteArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+
     /**
      * Update one A.
      * @param {AUpdateArgs} args - Arguments to update one A.
@@ -7938,6 +8615,7 @@ export namespace Prisma {
     update<T extends AUpdateArgs>(
       args: Subset<T, AUpdateArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+
     /**
      * Delete zero or more As.
      * @param {ADeleteManyArgs} args - Arguments to filter As to delete.
@@ -7953,6 +8631,7 @@ export namespace Prisma {
     deleteMany<T extends ADeleteManyArgs>(
       args?: Subset<T, ADeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more As.
      * @param {AUpdateManyArgs} args - Arguments to update one or more rows.
@@ -7971,6 +8650,7 @@ export namespace Prisma {
     updateMany<T extends AUpdateManyArgs>(
       args: Subset<T, AUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one A.
      * @param {AUpsertArgs} args - Arguments to update or create a A.
@@ -7991,6 +8671,7 @@ export namespace Prisma {
     upsert<T extends AUpsertArgs>(
       args: Subset<T, AUpsertArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+
     /**
      * Find zero or one A that matches the filter.
      * @param {FindUniqueAArgs} args - Arguments to find a A
@@ -8006,48 +8687,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueAArgs>(
       args: Subset<T, FindUniqueAArgs>
     ): CheckSelect<T, Prisma__AClient<A | null>, Prisma__AClient<AGetPayload<T> | null>>
+
     /**
-   * Count the number of As.
-   * @param {FindManyAArgs} args - Arguments to filter As to count.
-   * @example
-   * // Count the number of As
-   * const count = await prisma.a.count({
-   *   where: {
-   *     // ... the filter for the As we want to count
-   *   }
-   * })
-  **/
+     * Count the number of As.
+     * @param {FindManyAArgs} args - Arguments to filter As to count.
+     * @example
+     * // Count the number of As
+     * const count = await prisma.a.count({
+     *   where: {
+     *     // ... the filter for the As we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByAArgs>(args: Subset<T, GroupByAArgs>): Promise<GetAGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a A.
+     * @param {AggregateAArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateAArgs>(args: Subset<T, AggregateAArgs>): Promise<GetAAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a A.
-   * @param {AggregateAArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateAArgs>(args: Subset<T, AggregateAArgs>): Promise<GetAAggregateType<T>>
+     * Group by A.
+     * @param {GroupByAArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByAArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByAArgs['orderBy'] }
+        : { orderBy?: GroupByAArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByAArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetAGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -8542,6 +9282,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueBArgs>(
       args: Subset<T, FindUniqueBArgs>
     ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
+
     /**
      * Find the first B that matches the filter.
      * @param {FindFirstBArgs} args - Arguments to find a B
@@ -8556,6 +9297,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstBArgs>(
       args?: Subset<T, FindFirstBArgs>
     ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
+
     /**
      * Find zero or more Bs that matches the filter.
      * @param {FindManyBArgs=} args - Arguments to filter and select certain fields only.
@@ -8573,6 +9315,7 @@ export namespace Prisma {
     findMany<T extends FindManyBArgs>(
       args?: Subset<T, FindManyBArgs>
     ): CheckSelect<T, Promise<Array<B>>, Promise<Array<BGetPayload<T>>>>
+
     /**
      * Create a B.
      * @param {BCreateArgs} args - Arguments to create a B.
@@ -8588,6 +9331,7 @@ export namespace Prisma {
     create<T extends BCreateArgs>(
       args: Subset<T, BCreateArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+
     /**
      * Delete a B.
      * @param {BDeleteArgs} args - Arguments to delete one B.
@@ -8603,6 +9347,7 @@ export namespace Prisma {
     delete<T extends BDeleteArgs>(
       args: Subset<T, BDeleteArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+
     /**
      * Update one B.
      * @param {BUpdateArgs} args - Arguments to update one B.
@@ -8621,6 +9366,7 @@ export namespace Prisma {
     update<T extends BUpdateArgs>(
       args: Subset<T, BUpdateArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+
     /**
      * Delete zero or more Bs.
      * @param {BDeleteManyArgs} args - Arguments to filter Bs to delete.
@@ -8636,6 +9382,7 @@ export namespace Prisma {
     deleteMany<T extends BDeleteManyArgs>(
       args?: Subset<T, BDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Bs.
      * @param {BUpdateManyArgs} args - Arguments to update one or more rows.
@@ -8654,6 +9401,7 @@ export namespace Prisma {
     updateMany<T extends BUpdateManyArgs>(
       args: Subset<T, BUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one B.
      * @param {BUpsertArgs} args - Arguments to update or create a B.
@@ -8674,6 +9422,7 @@ export namespace Prisma {
     upsert<T extends BUpsertArgs>(
       args: Subset<T, BUpsertArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+
     /**
      * Find zero or one B that matches the filter.
      * @param {FindUniqueBArgs} args - Arguments to find a B
@@ -8689,48 +9438,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueBArgs>(
       args: Subset<T, FindUniqueBArgs>
     ): CheckSelect<T, Prisma__BClient<B | null>, Prisma__BClient<BGetPayload<T> | null>>
+
     /**
-   * Count the number of Bs.
-   * @param {FindManyBArgs} args - Arguments to filter Bs to count.
-   * @example
-   * // Count the number of Bs
-   * const count = await prisma.b.count({
-   *   where: {
-   *     // ... the filter for the Bs we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Bs.
+     * @param {FindManyBArgs} args - Arguments to filter Bs to count.
+     * @example
+     * // Count the number of Bs
+     * const count = await prisma.b.count({
+     *   where: {
+     *     // ... the filter for the Bs we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByBArgs>(args: Subset<T, GroupByBArgs>): Promise<GetBGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a B.
+     * @param {AggregateBArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateBArgs>(args: Subset<T, AggregateBArgs>): Promise<GetBAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a B.
-   * @param {AggregateBArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateBArgs>(args: Subset<T, AggregateBArgs>): Promise<GetBAggregateType<T>>
+     * Group by B.
+     * @param {GroupByBArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByBArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByBArgs['orderBy'] }
+        : { orderBy?: GroupByBArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByBArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetBGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -9193,6 +10001,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueCArgs>(
       args: Subset<T, FindUniqueCArgs>
     ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
+
     /**
      * Find the first C that matches the filter.
      * @param {FindFirstCArgs} args - Arguments to find a C
@@ -9207,6 +10016,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstCArgs>(
       args?: Subset<T, FindFirstCArgs>
     ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
+
     /**
      * Find zero or more Cs that matches the filter.
      * @param {FindManyCArgs=} args - Arguments to filter and select certain fields only.
@@ -9224,6 +10034,7 @@ export namespace Prisma {
     findMany<T extends FindManyCArgs>(
       args?: Subset<T, FindManyCArgs>
     ): CheckSelect<T, Promise<Array<C>>, Promise<Array<CGetPayload<T>>>>
+
     /**
      * Create a C.
      * @param {CCreateArgs} args - Arguments to create a C.
@@ -9239,6 +10050,7 @@ export namespace Prisma {
     create<T extends CCreateArgs>(
       args: Subset<T, CCreateArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
     /**
      * Delete a C.
      * @param {CDeleteArgs} args - Arguments to delete one C.
@@ -9254,6 +10066,7 @@ export namespace Prisma {
     delete<T extends CDeleteArgs>(
       args: Subset<T, CDeleteArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
     /**
      * Update one C.
      * @param {CUpdateArgs} args - Arguments to update one C.
@@ -9272,6 +10085,7 @@ export namespace Prisma {
     update<T extends CUpdateArgs>(
       args: Subset<T, CUpdateArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
     /**
      * Delete zero or more Cs.
      * @param {CDeleteManyArgs} args - Arguments to filter Cs to delete.
@@ -9287,6 +10101,7 @@ export namespace Prisma {
     deleteMany<T extends CDeleteManyArgs>(
       args?: Subset<T, CDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Cs.
      * @param {CUpdateManyArgs} args - Arguments to update one or more rows.
@@ -9305,6 +10120,7 @@ export namespace Prisma {
     updateMany<T extends CUpdateManyArgs>(
       args: Subset<T, CUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one C.
      * @param {CUpsertArgs} args - Arguments to update or create a C.
@@ -9325,6 +10141,7 @@ export namespace Prisma {
     upsert<T extends CUpsertArgs>(
       args: Subset<T, CUpsertArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
     /**
      * Find zero or one C that matches the filter.
      * @param {FindUniqueCArgs} args - Arguments to find a C
@@ -9340,48 +10157,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueCArgs>(
       args: Subset<T, FindUniqueCArgs>
     ): CheckSelect<T, Prisma__CClient<C | null>, Prisma__CClient<CGetPayload<T> | null>>
+
     /**
-   * Count the number of Cs.
-   * @param {FindManyCArgs} args - Arguments to filter Cs to count.
-   * @example
-   * // Count the number of Cs
-   * const count = await prisma.c.count({
-   *   where: {
-   *     // ... the filter for the Cs we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Cs.
+     * @param {FindManyCArgs} args - Arguments to filter Cs to count.
+     * @example
+     * // Count the number of Cs
+     * const count = await prisma.c.count({
+     *   where: {
+     *     // ... the filter for the Cs we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByCArgs>(args: Subset<T, GroupByCArgs>): Promise<GetCGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a C.
+     * @param {AggregateCArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateCArgs>(args: Subset<T, AggregateCArgs>): Promise<GetCAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a C.
-   * @param {AggregateCArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateCArgs>(args: Subset<T, AggregateCArgs>): Promise<GetCAggregateType<T>>
+     * Group by C.
+     * @param {GroupByCArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByCArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByCArgs['orderBy'] }
+        : { orderBy?: GroupByCArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByCArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetCGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -9836,6 +10712,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueDArgs>(
       args: Subset<T, FindUniqueDArgs>
     ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
+
     /**
      * Find the first D that matches the filter.
      * @param {FindFirstDArgs} args - Arguments to find a D
@@ -9850,6 +10727,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstDArgs>(
       args?: Subset<T, FindFirstDArgs>
     ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
+
     /**
      * Find zero or more Ds that matches the filter.
      * @param {FindManyDArgs=} args - Arguments to filter and select certain fields only.
@@ -9867,6 +10745,7 @@ export namespace Prisma {
     findMany<T extends FindManyDArgs>(
       args?: Subset<T, FindManyDArgs>
     ): CheckSelect<T, Promise<Array<D>>, Promise<Array<DGetPayload<T>>>>
+
     /**
      * Create a D.
      * @param {DCreateArgs} args - Arguments to create a D.
@@ -9882,6 +10761,7 @@ export namespace Prisma {
     create<T extends DCreateArgs>(
       args: Subset<T, DCreateArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
     /**
      * Delete a D.
      * @param {DDeleteArgs} args - Arguments to delete one D.
@@ -9897,6 +10777,7 @@ export namespace Prisma {
     delete<T extends DDeleteArgs>(
       args: Subset<T, DDeleteArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
     /**
      * Update one D.
      * @param {DUpdateArgs} args - Arguments to update one D.
@@ -9915,6 +10796,7 @@ export namespace Prisma {
     update<T extends DUpdateArgs>(
       args: Subset<T, DUpdateArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
     /**
      * Delete zero or more Ds.
      * @param {DDeleteManyArgs} args - Arguments to filter Ds to delete.
@@ -9930,6 +10812,7 @@ export namespace Prisma {
     deleteMany<T extends DDeleteManyArgs>(
       args?: Subset<T, DDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Ds.
      * @param {DUpdateManyArgs} args - Arguments to update one or more rows.
@@ -9948,6 +10831,7 @@ export namespace Prisma {
     updateMany<T extends DUpdateManyArgs>(
       args: Subset<T, DUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one D.
      * @param {DUpsertArgs} args - Arguments to update or create a D.
@@ -9968,6 +10852,7 @@ export namespace Prisma {
     upsert<T extends DUpsertArgs>(
       args: Subset<T, DUpsertArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
     /**
      * Find zero or one D that matches the filter.
      * @param {FindUniqueDArgs} args - Arguments to find a D
@@ -9983,48 +10868,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueDArgs>(
       args: Subset<T, FindUniqueDArgs>
     ): CheckSelect<T, Prisma__DClient<D | null>, Prisma__DClient<DGetPayload<T> | null>>
+
     /**
-   * Count the number of Ds.
-   * @param {FindManyDArgs} args - Arguments to filter Ds to count.
-   * @example
-   * // Count the number of Ds
-   * const count = await prisma.d.count({
-   *   where: {
-   *     // ... the filter for the Ds we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Ds.
+     * @param {FindManyDArgs} args - Arguments to filter Ds to count.
+     * @example
+     * // Count the number of Ds
+     * const count = await prisma.d.count({
+     *   where: {
+     *     // ... the filter for the Ds we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByDArgs>(args: Subset<T, GroupByDArgs>): Promise<GetDGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a D.
+     * @param {AggregateDArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateDArgs>(args: Subset<T, AggregateDArgs>): Promise<GetDAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a D.
-   * @param {AggregateDArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateDArgs>(args: Subset<T, AggregateDArgs>): Promise<GetDAggregateType<T>>
+     * Group by D.
+     * @param {GroupByDArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByDArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByDArgs['orderBy'] }
+        : { orderBy?: GroupByDArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByDArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetDGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**
@@ -10463,6 +11407,7 @@ export namespace Prisma {
     findUnique<T extends FindUniqueEArgs>(
       args: Subset<T, FindUniqueEArgs>
     ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
+
     /**
      * Find the first E that matches the filter.
      * @param {FindFirstEArgs} args - Arguments to find a E
@@ -10477,6 +11422,7 @@ export namespace Prisma {
     findFirst<T extends FindFirstEArgs>(
       args?: Subset<T, FindFirstEArgs>
     ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
+
     /**
      * Find zero or more Es that matches the filter.
      * @param {FindManyEArgs=} args - Arguments to filter and select certain fields only.
@@ -10494,6 +11440,7 @@ export namespace Prisma {
     findMany<T extends FindManyEArgs>(
       args?: Subset<T, FindManyEArgs>
     ): CheckSelect<T, Promise<Array<E>>, Promise<Array<EGetPayload<T>>>>
+
     /**
      * Create a E.
      * @param {ECreateArgs} args - Arguments to create a E.
@@ -10509,6 +11456,7 @@ export namespace Prisma {
     create<T extends ECreateArgs>(
       args: Subset<T, ECreateArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
     /**
      * Delete a E.
      * @param {EDeleteArgs} args - Arguments to delete one E.
@@ -10524,6 +11472,7 @@ export namespace Prisma {
     delete<T extends EDeleteArgs>(
       args: Subset<T, EDeleteArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
     /**
      * Update one E.
      * @param {EUpdateArgs} args - Arguments to update one E.
@@ -10542,6 +11491,7 @@ export namespace Prisma {
     update<T extends EUpdateArgs>(
       args: Subset<T, EUpdateArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
     /**
      * Delete zero or more Es.
      * @param {EDeleteManyArgs} args - Arguments to filter Es to delete.
@@ -10557,6 +11507,7 @@ export namespace Prisma {
     deleteMany<T extends EDeleteManyArgs>(
       args?: Subset<T, EDeleteManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Update zero or more Es.
      * @param {EUpdateManyArgs} args - Arguments to update one or more rows.
@@ -10575,6 +11526,7 @@ export namespace Prisma {
     updateMany<T extends EUpdateManyArgs>(
       args: Subset<T, EUpdateManyArgs>
     ): Promise<BatchPayload>
+
     /**
      * Create or update one E.
      * @param {EUpsertArgs} args - Arguments to update or create a E.
@@ -10595,6 +11547,7 @@ export namespace Prisma {
     upsert<T extends EUpsertArgs>(
       args: Subset<T, EUpsertArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
     /**
      * Find zero or one E that matches the filter.
      * @param {FindUniqueEArgs} args - Arguments to find a E
@@ -10610,48 +11563,107 @@ export namespace Prisma {
     findOne<T extends FindUniqueEArgs>(
       args: Subset<T, FindUniqueEArgs>
     ): CheckSelect<T, Prisma__EClient<E | null>, Prisma__EClient<EGetPayload<T> | null>>
+
     /**
-   * Count the number of Es.
-   * @param {FindManyEArgs} args - Arguments to filter Es to count.
-   * @example
-   * // Count the number of Es
-   * const count = await prisma.e.count({
-   *   where: {
-   *     // ... the filter for the Es we want to count
-   *   }
-   * })
-  **/
+     * Count the number of Es.
+     * @param {FindManyEArgs} args - Arguments to filter Es to count.
+     * @example
+     * // Count the number of Es
+     * const count = await prisma.e.count({
+     *   where: {
+     *     // ... the filter for the Es we want to count
+     *   }
+     * })
+    **/
     count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
 
-    
     /**
-   * Group By
-  **/
-    groupBy<T extends GroupByEArgs>(args: Subset<T, GroupByEArgs>): Promise<GetEGroupByPayload<T>>
+     * Allows you to perform aggregations operations on a E.
+     * @param {AggregateEArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AggregateEArgs>(args: Subset<T, AggregateEArgs>): Promise<GetEAggregateType<T>>
 
     /**
-   * Allows you to perform aggregations operations on a E.
-   * @param {AggregateEArgs} args - Select which aggregations you would like to apply and on what fields.
-   * @example
-   * // Ordered by age ascending
-   * // Where email contains prisma.io
-   * // Limited to the 10 users
-   * const aggregations = await prisma.user.aggregate({
-   *   avg: {
-   *     age: true,
-   *   },
-   *   where: {
-   *     email: {
-   *       contains: "prisma.io",
-   *     },
-   *   },
-   *   orderBy: {
-   *     age: "asc",
-   *   },
-   *   take: 10,
-   * })
-  **/
-    aggregate<T extends AggregateEArgs>(args: Subset<T, AggregateEArgs>): Promise<GetEAggregateType<T>>
+     * Group by E.
+     * @param {GroupByEArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GroupByEArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GroupByEArgs['orderBy'] }
+        : { orderBy?: GroupByEArgs['orderBy'] },
+      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      InputErrors extends 'take' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "take", you also need to provide "orderBy"']
+        : 'skip' extends Keys<T>
+        ? 'orderBy' extends Keys<T>
+          ? ByValid extends True
+            ? {}
+            : {
+                [P in OrderFields]: P extends ByFields
+                  ? never
+                  : [
+                      Error,
+                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                    ]
+              }[OrderFields]
+          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+        : ByValid extends True ? {} : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : [
+                Error,
+                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+              ]
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GroupByEArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetEGroupByPayload<T>> : Promise<InputErrors>
   }
 
   /**

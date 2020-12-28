@@ -12,13 +12,18 @@ async function main() {
     },
   })
 
-  const { avg, count, max, min, name, sum } = await prisma.user.groupBy({
+  const x = await prisma.user.groupBy({
     by: ['name'],
     where: {
       age: {
         gt: -1,
       },
     },
+    orderBy: [
+      {
+        name: 'desc',
+      },
+    ],
     skip: 0,
     take: 10000,
     avg: {
@@ -38,6 +43,8 @@ async function main() {
       age: true,
     },
   })
+
+  const { avg, count, max, sum, min, name } = x
 
   avg.age
   count._all
