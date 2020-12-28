@@ -14,6 +14,7 @@ module.exports = {
     'index.d.ts',
     'index.js',
     'index.test-d.ts',
+    '__tests__/types/*/test.ts',
     'stack.js',
     'runner.js',
     'node_modules/',
