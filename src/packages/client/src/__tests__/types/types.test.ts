@@ -5,6 +5,8 @@ import rimraf from 'rimraf'
 import { promisify } from 'util'
 import { getPackedPackage } from '@prisma/sdk'
 import { compileFile } from '../../utils/compileFile'
+import tsd from 'tsd'
+import formatter from 'tsd/dist/lib/formatter'
 const del = promisify(rimraf)
 
 jest.setTimeout(50000)
@@ -29,15 +31,29 @@ describe('valid types', () => {
       transpile: true,
       packageSource,
     })
-    const filePath = path.join(dir, 'index.ts')
+    const indexPath = path.join(dir, 'test.ts')
+    const tsdTestPath = path.join(dir, 'index.test-d.ts')
+
+    if (fs.existsSync(tsdTestPath)) {
+      await runTsd(dir)
+    }
 
     if (testName.startsWith('unhappy')) {
-      await expect(compileFile(filePath)).rejects.toThrow()
+      await expect(compileFile(indexPath)).rejects.toThrow()
     } else {
-      await expect(compileFile(filePath)).resolves.not.toThrow()
+      await expect(compileFile(indexPath)).resolves.not.toThrow()
     }
   })
 })
+
+async function runTsd(dir: string) {
+  const diagnostics = await tsd({
+    cwd: dir,
+  })
+  if (diagnostics && diagnostics.length > 0) {
+    throw new Error(formatter(diagnostics))
+  }
+}
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
