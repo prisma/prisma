@@ -170,8 +170,6 @@ describe('handlePanic', () => {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
 
-          console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue in the migrate repo with    your \`schema.prisma\` and the prisma command you tried to use 🙏:    https://github.com/prisma/migrate/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:24:11)
-
         ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
 
         ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
