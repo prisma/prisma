@@ -1800,7 +1800,20 @@ export namespace Prisma {
     aggregate<T extends AggregatePostArgs>(args: Subset<T, AggregatePostArgs>): Promise<GetPostAggregateType<T>>
 
     /**
-     * Group By
+     * Group by Post.
+     * @param {GroupByPostArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByPostArgs,
@@ -2657,7 +2670,20 @@ export namespace Prisma {
     aggregate<T extends AggregateUserArgs>(args: Subset<T, AggregateUserArgs>): Promise<GetUserAggregateType<T>>
 
     /**
-     * Group By
+     * Group by User.
+     * @param {GroupByUserArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByUserArgs,
@@ -3506,7 +3532,20 @@ export namespace Prisma {
     aggregate<T extends AggregateMArgs>(args: Subset<T, AggregateMArgs>): Promise<GetMAggregateType<T>>
 
     /**
-     * Group By
+     * Group by M.
+     * @param {GroupByMArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByMArgs,
@@ -4355,7 +4394,20 @@ export namespace Prisma {
     aggregate<T extends AggregateNArgs>(args: Subset<T, AggregateNArgs>): Promise<GetNAggregateType<T>>
 
     /**
-     * Group By
+     * Group by N.
+     * @param {GroupByNArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByNArgs,
@@ -5204,7 +5256,20 @@ export namespace Prisma {
     aggregate<T extends AggregateOneOptionalArgs>(args: Subset<T, AggregateOneOptionalArgs>): Promise<GetOneOptionalAggregateType<T>>
 
     /**
-     * Group By
+     * Group by OneOptional.
+     * @param {GroupByOneOptionalArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByOneOptionalArgs,
@@ -6065,7 +6130,20 @@ export namespace Prisma {
     aggregate<T extends AggregateManyRequiredArgs>(args: Subset<T, AggregateManyRequiredArgs>): Promise<GetManyRequiredAggregateType<T>>
 
     /**
-     * Group By
+     * Group by ManyRequired.
+     * @param {GroupByManyRequiredArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByManyRequiredArgs,
@@ -6926,7 +7004,20 @@ export namespace Prisma {
     aggregate<T extends AggregateOptionalSide1Args>(args: Subset<T, AggregateOptionalSide1Args>): Promise<GetOptionalSide1AggregateType<T>>
 
     /**
-     * Group By
+     * Group by OptionalSide1.
+     * @param {GroupByOptionalSide1Args} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByOptionalSide1Args,
@@ -7775,7 +7866,20 @@ export namespace Prisma {
     aggregate<T extends AggregateOptionalSide2Args>(args: Subset<T, AggregateOptionalSide2Args>): Promise<GetOptionalSide2AggregateType<T>>
 
     /**
-     * Group By
+     * Group by OptionalSide2.
+     * @param {GroupByOptionalSide2Args} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByOptionalSide2Args,
@@ -8622,7 +8726,20 @@ export namespace Prisma {
     aggregate<T extends AggregateAArgs>(args: Subset<T, AggregateAArgs>): Promise<GetAAggregateType<T>>
 
     /**
-     * Group By
+     * Group by A.
+     * @param {GroupByAArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByAArgs,
@@ -9360,7 +9477,20 @@ export namespace Prisma {
     aggregate<T extends AggregateBArgs>(args: Subset<T, AggregateBArgs>): Promise<GetBAggregateType<T>>
 
     /**
-     * Group By
+     * Group by B.
+     * @param {GroupByBArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByBArgs,
@@ -10066,7 +10196,20 @@ export namespace Prisma {
     aggregate<T extends AggregateCArgs>(args: Subset<T, AggregateCArgs>): Promise<GetCAggregateType<T>>
 
     /**
-     * Group By
+     * Group by C.
+     * @param {GroupByCArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByCArgs,
@@ -10764,7 +10907,20 @@ export namespace Prisma {
     aggregate<T extends AggregateDArgs>(args: Subset<T, AggregateDArgs>): Promise<GetDAggregateType<T>>
 
     /**
-     * Group By
+     * Group by D.
+     * @param {GroupByDArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByDArgs,
@@ -11446,7 +11602,20 @@ export namespace Prisma {
     aggregate<T extends AggregateEArgs>(args: Subset<T, AggregateEArgs>): Promise<GetEAggregateType<T>>
 
     /**
-     * Group By
+     * Group by E.
+     * @param {GroupByEArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   count: {
+     *     _all: true
+     *   },
+     * })
+     * 
     **/
     groupBy<
       T extends GroupByEArgs,

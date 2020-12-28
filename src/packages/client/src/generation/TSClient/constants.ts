@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { getModelArgName } from '../utils'
+import { getGroupByArgsName, getModelArgName } from '../utils'
 
 export const TAB_SIZE = 2
 export interface JSDocMethodBodyCtx {
@@ -61,7 +61,20 @@ const JSDocFields = {
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
-    body: () => `Group By`,
+    body: (ctx) => `Group by ${ctx.singular}.
+@param {${getGroupByArgsName(ctx.model.name)}} args - Group by arguments.
+@example
+// Group by city, order by createdAt, get count
+const result = await prisma.user.groupBy({
+  by: ['city', 'createdAt'],
+  orderBy: {
+    createdAt: true
+  },
+  count: {
+    _all: true
+  },
+})
+`,
     fields: {},
   },
   create: {
