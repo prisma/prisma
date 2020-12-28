@@ -9,7 +9,7 @@ import tsd from 'tsd'
 import formatter from 'tsd/dist/lib/formatter'
 const del = promisify(rimraf)
 
-jest.setTimeout(50000)
+jest.setTimeout(70000)
 
 let packageSource: string
 beforeAll(async () => {
