@@ -18,7 +18,7 @@ beforeAll(async () => {
 
 describe('valid types', () => {
   const subDirs = getSubDirs(__dirname)
-  test.each(subDirs)('%s', async (dir) => {
+  test.concurrent.each(subDirs)('%s', async (dir) => {
     const testName = path.basename(dir)
 
     const nodeModules = path.join(dir, 'node_modules')
