@@ -197,8 +197,7 @@ export namespace DMMF {
     delete = 'delete',
     deleteMany = 'deleteMany',
     groupBy = 'groupBy',
-    count= 'count',
-    aggregate= 'aggregate'
-
+    count = 'count',
+    aggregate = 'aggregate',
   }
 }
