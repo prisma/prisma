@@ -8,7 +8,7 @@
   "devDependencies": {
     "@prisma/engines-version": "2.14.0-22.85cf7930a5fc63cd99fa483153fd33cb35d49cfa",
     "@types/jest": "26.0.19",
-    "@types/node": "12.19.9",
+    "@types/node": "12.19.11",
     "@types/node-fetch": "2.5.7",
     "@types/progress": "2.0.3",
     "@typescript-eslint/eslint-plugin": "4.9.1",
