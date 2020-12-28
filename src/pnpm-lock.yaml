@@ -4,7 +4,7 @@ importers:
       '@sindresorhus/slugify': 1.1.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/redis': 2.8.28
       arg: 5.0.0
       batching-toposort: 1.2.0
@@ -25,7 +25,7 @@ importers:
       '@sindresorhus/slugify': 1.1.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/redis': 2.8.28
       arg: 5.0.0
       batching-toposort: 1.2.0
@@ -163,7 +163,7 @@ importers:
       '@types/debug': 4.1.5
       '@types/jest': 26.0.19
       '@types/js-levenshtein': 1.1.0
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/pg': 7.14.7
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
@@ -221,7 +221,7 @@ importers:
       '@types/debug': 4.1.5
       '@types/jest': 26.0.19
       '@types/js-levenshtein': 1.1.0
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/pg': 7.14.7
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
@@ -272,7 +272,7 @@ importers:
       ms: 2.1.3
     devDependencies:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
       eslint: 7.15.0
@@ -288,7 +288,7 @@ importers:
       typescript: 4.1.2
     specifiers:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
       debug: 4.3.2
@@ -320,7 +320,7 @@ importers:
       undici: 2.2.1
     devDependencies:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
       abort-controller: 3.0.0
@@ -341,7 +341,7 @@ importers:
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
       abort-controller: 3.0.0
@@ -386,7 +386,7 @@ importers:
     devDependencies:
       '@prisma/engines-version': 2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/node-fetch': 2.5.7
       '@types/progress': 2.0.3
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
@@ -408,7 +408,7 @@ importers:
       '@prisma/engines-version': 2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/node-fetch': 2.5.7
       '@types/progress': 2.0.3
       '@typescript-eslint/eslint-plugin': 4.9.1
@@ -448,7 +448,7 @@ importers:
       cross-spawn: 7.0.3
     devDependencies:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
       eslint: 7.15.0
@@ -466,7 +466,7 @@ importers:
       '@prisma/debug': 'workspace:*'
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
       chalk: ^4.0.0
@@ -487,7 +487,7 @@ importers:
       '@prisma/debug': 'link:../debug'
     devDependencies:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
       eslint: 7.15.0
@@ -503,7 +503,7 @@ importers:
     specifiers:
       '@prisma/debug': 'workspace:*'
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
       eslint: 7.15.0
@@ -536,7 +536,7 @@ importers:
       '@prisma/sdk': 'link:../sdk'
       '@types/diff': 4.0.2
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/pg': 7.14.7
       '@types/prompts': 2.0.9
       '@types/sqlite3': 3.1.6
@@ -571,7 +571,7 @@ importers:
       '@sindresorhus/slugify': ^1.1.0
       '@types/diff': 4.0.2
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/pg': 7.14.7
       '@types/prompts': 2.0.9
       '@types/sqlite3': 3.1.6
@@ -645,7 +645,7 @@ importers:
       url-parse: 1.4.7
     devDependencies:
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/tar': 4.0.4
       '@typescript-eslint/eslint-plugin': 4.9.1_5897ef4c8a6133b7b28695ca449212ad
       '@typescript-eslint/parser': 4.9.1_eslint@7.15.0+typescript@4.1.2
@@ -669,7 +669,7 @@ importers:
       '@prisma/get-platform': 'workspace:*'
       '@timsuchanek/copy': ^1.4.5
       '@types/jest': 26.0.19
-      '@types/node': 12.19.9
+      '@types/node': 12.19.11
       '@types/tar': 4.0.4
       '@typescript-eslint/eslint-plugin': 4.9.1
       '@typescript-eslint/parser': 4.9.1
@@ -1759,6 +1759,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-o2WVNf5UhWRkxlf6eq+jMZDu7kjgpgJfl4xVNlvryc95O/6F2ld8ztKX+qu+Rjyet93WAWm5LjeX9H5FGkODvw==
+  /@types/node/12.19.11:
+    dev: true
+    resolution:
+      integrity: sha512-bwVfNTFZOrGXyiQ6t4B9sZerMSShWNsGRw8tC5DY1qImUNczS9SjT4G6PnzjCnxsu5Ubj6xjL2lgwddkxtQl5w==
   /@types/node/12.19.3:
     dev: true
     resolution:
@@ -1770,10 +1774,6 @@ packages:
   /@types/node/12.19.8:
     resolution:
       integrity: sha512-D4k2kNi0URNBxIRCb1khTnkWNHv8KSL1owPmS/K5e5t8B2GzMReY7AsJIY1BnP5KdlgC4rj9jk2IkDMasIE7xg==
-  /@types/node/12.19.9:
-    dev: true
-    resolution:
-      integrity: sha512-yj0DOaQeUrk3nJ0bd3Y5PeDRJ6W0r+kilosLA+dzF3dola/o9hxhMSg2sFvVcA2UHS5JSOsZp4S0c1OEXc4m1Q==
   /@types/node/14.14.10:
     dev: true
     resolution:
