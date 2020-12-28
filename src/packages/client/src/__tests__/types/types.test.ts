@@ -9,7 +9,7 @@ import tsd from 'tsd'
 import formatter from 'tsd/dist/lib/formatter'
 const del = promisify(rimraf)
 
-jest.setTimeout(50000)
+jest.setTimeout(70000)
 
 let packageSource: string
 beforeAll(async () => {
@@ -18,7 +18,7 @@ beforeAll(async () => {
 
 describe('valid types', () => {
   const subDirs = getSubDirs(__dirname)
-  test.each(subDirs)('%s', async (dir) => {
+  test.concurrent.each(subDirs)('%s', async (dir) => {
     const testName = path.basename(dir)
 
     const nodeModules = path.join(dir, 'node_modules')
