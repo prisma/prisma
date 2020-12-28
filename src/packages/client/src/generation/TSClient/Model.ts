@@ -26,7 +26,14 @@ import {
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
-import { ExportCollector, getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
+import {
+  ExportCollector,
+  getArgFieldJSDoc,
+  getArgs,
+  getGenericMethod,
+  getMethodJSDoc,
+  wrapComment,
+} from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
 import { SchemaOutputType } from './SchemaOutput'
@@ -262,15 +269,19 @@ ${indent(
     .concat(
       aggregateType.fields.map((f) => {
         let data = ''
-        const comment = getArgFieldJSDoc(model, DMMF.ModelAction.aggregate, f.name)
+        const comment = getArgFieldJSDoc(
+          model,
+          DMMF.ModelAction.aggregate,
+          f.name,
+        )
         data += comment ? wrapComment(comment) + '\n' : ''
         if (f.name === 'count') {
-          data +=`${f.name}?: true`
+          data += `${f.name}?: true`
         } else {
-          data +=`${f.name}?: ${getAggregateInputType(
+          data += `${f.name}?: ${getAggregateInputType(
             (f.outputType.type as DMMF.OutputType).name,
           )}`
-        } 
+        }
         return data
       }),
     )
@@ -406,6 +417,7 @@ export class ModelDelegate implements Generatable {
     )
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
+    const groupByArgsName = getGroupByArgsName(name)
     return `\
 export interface ${name}Delegate {
 ${indent(
@@ -417,33 +429,80 @@ ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
 ): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
     )
-    .join('\n'),
+    .join('\n\n'),
   TAB_SIZE,
 )}
-  ${getMethodJSDoc(DMMF.ModelAction.count, mapping, model)}
+
+${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
   count(args?: Omit<${getModelArgName(
     name,
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'>): Promise<number>
 
-  ${
-    groupByEnabled
-      ? `  
-  ${getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model)}
-  groupBy<T extends ${getGroupByArgsName(
-    name,
-  )}>(args: Subset<T, ${getGroupByArgsName(
-          name,
-        )}>): Promise<${getGroupByPayloadName(name)}<T>>`
-      : ``
-  }
-
-  ${getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model)}
+${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(
     name,
   )}>(args: Subset<T, ${getAggregateArgsName(
       name,
     )}>): Promise<${getAggregateGetName(name)}<T>>
+
+${
+  groupByEnabled
+    ? `${indent(
+        getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model),
+        TAB_SIZE,
+      )}
+  groupBy<
+    T extends ${groupByArgsName},
+    HasSelectOrTake extends Or<
+      Extends<'skip', Keys<T>>,
+      Extends<'take', Keys<T>>
+    >,
+    OrderByArg extends True extends HasSelectOrTake
+      ? { orderBy: ${groupByArgsName}['orderBy'] }
+      : { orderBy?: ${groupByArgsName}['orderBy'] },
+    OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+    ByFields extends TupleToUnion<T['by']>,
+    ByValid extends Has<ByFields, OrderFields>,
+    InputErrors extends 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : [
+                    Error,
+                    \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
+                  ]
+            }[OrderFields]
+        : [Error, 'If you provide "take", you also need to provide "orderBy"']
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : [
+                    Error,
+                    \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
+                  ]
+            }[OrderFields]
+        : [Error, 'If you provide "skip", you also need to provide "orderBy"']
+      : ByValid extends True ? {} : {
+        [P in OrderFields]: P extends ByFields
+          ? never
+          : [
+              Error,
+              \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
+            ]
+      }[OrderFields]
+  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<${getGroupByPayloadName(
+        name,
+      )}<T>> : Promise<InputErrors>`
+    : ``
+}
 }
 
 /**
