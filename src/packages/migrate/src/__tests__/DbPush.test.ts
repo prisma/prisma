@@ -52,7 +52,7 @@ describe('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The database is already in sync with the Prisma schema.
+      🚀  Your database is now in sync with your schema. Done in XXms
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -68,7 +68,7 @@ describe('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The database is already in sync with the Prisma schema.
+      🚀  Your database is now in sync with your schema. Done in XXms
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -105,11 +105,11 @@ describe('push', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                    ⚠️  There might be data loss when applying the changes:
+                                          ⚠️  There might be data loss when applying the changes:
 
-                                      • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+                                            • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
-                        `)
+                            `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -124,7 +124,7 @@ describe('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The database is already in sync with the Prisma schema.
+      🚀  Your database is now in sync with your schema. Done in XXms
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -140,7 +140,7 @@ describe('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The database is already in sync with the Prisma schema.
+      🚀  Your database is now in sync with your schema. Done in XXms
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
