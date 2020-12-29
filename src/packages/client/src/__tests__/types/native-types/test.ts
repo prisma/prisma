@@ -16,10 +16,22 @@ async function main() {
     inc_int: number
     inc_sInt: number
     inc_bInt: BigInt
-  } = await prisma.a.findFirst()
+  } = await prisma.a.findFirst({
+    where: {
+      inc_bInt: 123,
+    },
+  })
   const b = await prisma.b.findFirst({
     where: {
       decFloat: new Prisma.Decimal('1.23'),
+      OR: [
+        {
+          decFloat: '1.23',
+        },
+        {
+          decFloat: 1.23,
+        },
+      ],
     },
   })
   const c = await prisma.c.findFirst()

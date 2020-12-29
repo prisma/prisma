@@ -12477,13 +12477,13 @@ export namespace Prisma {
     name?: StringNullableFilter | string | null
     int?: IntFilter | number
     sInt?: IntFilter | number
-    bInt?: BigIntFilter | BigInt
+    bInt?: BigIntFilter | BigInt | number
     serial?: IntFilter | number
     sSerial?: IntFilter | number
     bSerial?: IntFilter | number
     inc_int?: IntFilter | number
     inc_sInt?: IntFilter | number
-    inc_bInt?: BigIntFilter | BigInt
+    inc_bInt?: BigIntFilter | BigInt | number
   }
 
   export type AOrderByInput = {
@@ -12513,8 +12513,8 @@ export namespace Prisma {
     id?: StringFilter | string
     float?: FloatFilter | number
     dFloat?: FloatFilter | number
-    decFloat?: DecimalFilter | Decimal
-    numFloat?: DecimalFilter | Decimal
+    decFloat?: DecimalFilter | Decimal | number | string
+    numFloat?: DecimalFilter | Decimal | number | string
   }
 
   export type BOrderByInput = {
@@ -13341,13 +13341,13 @@ export namespace Prisma {
     name?: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: BigInt | number
     serial?: number
     sSerial?: number
     bSerial?: number
     inc_int?: number
     inc_sInt?: number
-    inc_bInt?: BigInt
+    inc_bInt?: BigInt | number
   }
 
   export type AUncheckedCreateInput = {
@@ -13356,13 +13356,13 @@ export namespace Prisma {
     name?: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: BigInt | number
     serial?: number
     sSerial?: number
     bSerial?: number
     inc_int?: number
     inc_sInt?: number
-    inc_bInt?: BigInt
+    inc_bInt?: BigInt | number
   }
 
   export type AUpdateInput = {
@@ -13371,13 +13371,13 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
     serial?: IntFieldUpdateOperationsInput | number
     sSerial?: IntFieldUpdateOperationsInput | number
     bSerial?: IntFieldUpdateOperationsInput | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
   export type AUncheckedUpdateInput = {
@@ -13386,13 +13386,13 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
     serial?: IntFieldUpdateOperationsInput | number
     sSerial?: IntFieldUpdateOperationsInput | number
     bSerial?: IntFieldUpdateOperationsInput | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
   export type AUpdateManyMutationInput = {
@@ -13401,13 +13401,13 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
     serial?: IntFieldUpdateOperationsInput | number
     sSerial?: IntFieldUpdateOperationsInput | number
     bSerial?: IntFieldUpdateOperationsInput | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
   export type AUncheckedUpdateManyInput = {
@@ -13416,61 +13416,61 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
     serial?: IntFieldUpdateOperationsInput | number
     sSerial?: IntFieldUpdateOperationsInput | number
     bSerial?: IntFieldUpdateOperationsInput | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt
+    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
   export type BCreateInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    decFloat: Decimal | number | string
+    numFloat: Decimal | number | string
   }
 
   export type BUncheckedCreateInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    decFloat: Decimal | number | string
+    numFloat: Decimal | number | string
   }
 
   export type BUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type CCreateInput = {
@@ -13793,25 +13793,25 @@ export namespace Prisma {
   }
 
   export type BigIntFilter = {
-    equals?: BigInt
-    in?: Enumerable<BigInt>
-    notIn?: Enumerable<BigInt>
-    lt?: BigInt
-    lte?: BigInt
-    gt?: BigInt
-    gte?: BigInt
-    not?: NestedBigIntFilter | BigInt
+    equals?: BigInt | number
+    in?: Enumerable<BigInt> | Enumerable<number>
+    notIn?: Enumerable<BigInt> | Enumerable<number>
+    lt?: BigInt | number
+    lte?: BigInt | number
+    gt?: BigInt | number
+    gte?: BigInt | number
+    not?: NestedBigIntFilter | BigInt | number
   }
 
   export type DecimalFilter = {
-    equals?: Decimal
-    in?: Enumerable<Decimal>
-    notIn?: Enumerable<Decimal>
-    lt?: Decimal
-    lte?: Decimal
-    gt?: Decimal
-    gte?: Decimal
-    not?: NestedDecimalFilter | Decimal
+    equals?: Decimal | number | string
+    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | number | string
+    lte?: Decimal | number | string
+    gt?: Decimal | number | string
+    gte?: Decimal | number | string
+    not?: NestedDecimalFilter | Decimal | number | string
   }
 
   export type BytesFilter = {
@@ -14072,19 +14072,19 @@ export namespace Prisma {
   }
 
   export type BigIntFieldUpdateOperationsInput = {
-    set?: BigInt
-    increment?: BigInt
-    decrement?: BigInt
-    multiply?: BigInt
-    divide?: BigInt
+    set?: BigInt | number
+    increment?: BigInt | number
+    decrement?: BigInt | number
+    multiply?: BigInt | number
+    divide?: BigInt | number
   }
 
   export type DecimalFieldUpdateOperationsInput = {
-    set?: Decimal
-    increment?: Decimal
-    decrement?: Decimal
-    multiply?: Decimal
-    divide?: Decimal
+    set?: Decimal | number | string
+    increment?: Decimal | number | string
+    decrement?: Decimal | number | string
+    multiply?: Decimal | number | string
+    divide?: Decimal | number | string
   }
 
   export type BytesFieldUpdateOperationsInput = {
@@ -14199,25 +14199,25 @@ export namespace Prisma {
   }
 
   export type NestedBigIntFilter = {
-    equals?: BigInt
-    in?: Enumerable<BigInt>
-    notIn?: Enumerable<BigInt>
-    lt?: BigInt
-    lte?: BigInt
-    gt?: BigInt
-    gte?: BigInt
-    not?: NestedBigIntFilter | BigInt
+    equals?: BigInt | number
+    in?: Enumerable<BigInt> | Enumerable<number>
+    notIn?: Enumerable<BigInt> | Enumerable<number>
+    lt?: BigInt | number
+    lte?: BigInt | number
+    gt?: BigInt | number
+    gte?: BigInt | number
+    not?: NestedBigIntFilter | BigInt | number
   }
 
   export type NestedDecimalFilter = {
-    equals?: Decimal
-    in?: Enumerable<Decimal>
-    notIn?: Enumerable<Decimal>
-    lt?: Decimal
-    lte?: Decimal
-    gt?: Decimal
-    gte?: Decimal
-    not?: NestedDecimalFilter | Decimal
+    equals?: Decimal | number | string
+    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | number | string
+    lte?: Decimal | number | string
+    gt?: Decimal | number | string
+    gte?: Decimal | number | string
+    not?: NestedDecimalFilter | Decimal | number | string
   }
 
   export type NestedBytesFilter = {
