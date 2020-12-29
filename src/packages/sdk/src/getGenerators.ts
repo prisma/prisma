@@ -33,6 +33,9 @@ import { engineVersions } from './getAllVersions'
 import { enginesVersion } from '@prisma/engines'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
+import Debug from '@prisma/debug'
+const debug = Debug('getGenerators')
+
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
 type BinaryPathsOverride = {
@@ -285,6 +288,8 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             enableExperimental: experimentalFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
+          debug(generator.manifest.prettyName)
+          debug(options)
           generator.setOptions(options)
         }
       }
