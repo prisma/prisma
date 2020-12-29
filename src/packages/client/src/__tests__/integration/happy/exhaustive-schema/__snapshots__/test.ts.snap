@@ -13858,13 +13858,13 @@ export namespace Prisma {
   }
 
   export type PostCreateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, XOR<PostUncheckedCreateWithoutAuthorInput, Enumerable<PostCreateWithoutAuthorInput>>>
+    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
   }
 
   export type PostUncheckedCreateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, XOR<PostUncheckedCreateWithoutAuthorInput, Enumerable<PostCreateWithoutAuthorInput>>>
+    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
   }
@@ -13906,7 +13906,7 @@ export namespace Prisma {
   }
 
   export type PostUpdateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, XOR<PostUncheckedCreateWithoutAuthorInput, Enumerable<PostCreateWithoutAuthorInput>>>
+    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -13919,7 +13919,7 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, XOR<PostUncheckedCreateWithoutAuthorInput, Enumerable<PostCreateWithoutAuthorInput>>>
+    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -13932,13 +13932,13 @@ export namespace Prisma {
   }
 
   export type NCreateManyWithoutMInput = {
-    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, XOR<NUncheckedCreateWithoutMInput, Enumerable<NCreateWithoutMInput>>>
+    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
     connect?: Enumerable<NWhereUniqueInput>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
   }
 
   export type NUpdateManyWithoutMInput = {
-    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, XOR<NUncheckedCreateWithoutMInput, Enumerable<NCreateWithoutMInput>>>
+    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
     connect?: Enumerable<NWhereUniqueInput>
     set?: Enumerable<NWhereUniqueInput>
     disconnect?: Enumerable<NWhereUniqueInput>
@@ -13951,13 +13951,13 @@ export namespace Prisma {
   }
 
   export type MCreateManyWithoutNInput = {
-    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, XOR<MUncheckedCreateWithoutNInput, Enumerable<MCreateWithoutNInput>>>
+    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
     connect?: Enumerable<MWhereUniqueInput>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
   }
 
   export type MUpdateManyWithoutNInput = {
-    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, XOR<MUncheckedCreateWithoutNInput, Enumerable<MCreateWithoutNInput>>>
+    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
     connect?: Enumerable<MWhereUniqueInput>
     set?: Enumerable<MWhereUniqueInput>
     disconnect?: Enumerable<MWhereUniqueInput>
@@ -13970,19 +13970,19 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, XOR<ManyRequiredUncheckedCreateWithoutOneInput, Enumerable<ManyRequiredCreateWithoutOneInput>>>
+    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
   }
 
   export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, XOR<ManyRequiredUncheckedCreateWithoutOneInput, Enumerable<ManyRequiredCreateWithoutOneInput>>>
+    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
   }
 
   export type ManyRequiredUpdateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, XOR<ManyRequiredUncheckedCreateWithoutOneInput, Enumerable<ManyRequiredCreateWithoutOneInput>>>
+    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -13995,7 +13995,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, XOR<ManyRequiredUncheckedCreateWithoutOneInput, Enumerable<ManyRequiredCreateWithoutOneInput>>>
+    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
