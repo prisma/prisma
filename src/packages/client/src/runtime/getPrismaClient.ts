@@ -48,6 +48,8 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
 
+const ALTER_RE = new RegExp(/^alter/i)
+
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export type Datasource = {
@@ -527,7 +529,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       // TODO Clean up types
       let query = ''
       let parameters: any = undefined
-
       if (typeof stringOrTemplateStringsArray === 'string') {
         // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
         query = stringOrTemplateStringsArray
@@ -601,7 +602,14 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       } else {
         debug(`prisma.$executeRaw(${query})`)
       }
-
+      const params = parameters?.values || parameters
+      if(this._activeProvider === 'postgresql' && ALTER_RE.exec(query) && params.length > 2) {
+        // See https://github.com/prisma/prisma-client-js/issues/940 for more info
+        throw new Error(`Running ALTER with parameters is not supported
+Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+  await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+`)
+      }
       const args = { query, parameters }
 
       debug(`Prisma Client call:`)
