@@ -3,35 +3,33 @@ import { MigrateDev } from '../commands/MigrateDev'
 
 it('no params should return help', async () => {
   const commandInstance = MigrateCommand.new({})
-  let spy = jest
+  const spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
 
-  await expect(commandInstance.parse([])).resolves
-
+  await commandInstance.parse([])
   expect(spy).toHaveBeenCalledTimes(1)
-
   spy.mockRestore()
 })
 
 it('wrong flag', async () => {
   const commandInstance = MigrateCommand.new({})
-  let spy = jest
+  const spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
 
-  await expect(commandInstance.parse(['--something'])).resolves
+  await commandInstance.parse(['--something'])
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })
 
 it('help flag', async () => {
   const commandInstance = MigrateCommand.new({})
-  let spy = jest
+  const spy = jest
     .spyOn(commandInstance, 'help')
     .mockImplementation(() => 'Help Me')
 
-  await expect(commandInstance.parse(['--help'])).resolves
+  await commandInstance.parse(['--help'])
   expect(spy).toHaveBeenCalledTimes(1)
   spy.mockRestore()
 })

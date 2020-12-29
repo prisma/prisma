@@ -20,7 +20,7 @@ it('evaluateDataLoss - schema-only-sqlite', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = migrate.engine.evaluateDataLoss({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     prismaSchema: datamodel,
@@ -46,7 +46,7 @@ it('evaluateDataLoss - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = migrate.engine.evaluateDataLoss({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     prismaSchema: datamodel,
@@ -66,7 +66,7 @@ it('createMigration - existing-db-1-migration', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: 'my_migration',
@@ -86,7 +86,7 @@ it('createMigration draft - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: 'draft_123',
@@ -184,7 +184,7 @@ it('push', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = migrate.engine.schemaPush({
     force: false,
     schema: datamodel,
@@ -204,7 +204,7 @@ it('push should return executedSteps 0 with warning if dataloss detected', async
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
 
   const result = migrate.engine.schemaPush({
     force: false,
@@ -227,7 +227,7 @@ it('push force should accept dataloss', async () => {
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
 
   const result = migrate.engine.schemaPush({
     force: true,
@@ -269,7 +269,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = await migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: 'draft_123',
@@ -334,7 +334,7 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const result = await migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     migrationName: 'draft_123',
@@ -373,7 +373,7 @@ it('applyScript - existing-db-1-migration', async () => {
 
   await expect(result).resolves.toMatchInlineSnapshot(`Object {}`)
 
-  const datamodel = await migrate.getDatamodel()
+  const datamodel = migrate.getDatamodel()
   const pushResult = migrate.engine.schemaPush({
     force: false,
     schema: datamodel,
