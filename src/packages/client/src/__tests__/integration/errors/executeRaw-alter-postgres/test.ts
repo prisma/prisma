@@ -14,7 +14,7 @@ afterAll(() => {
 
 test('executeRaw-alter-postgres', async () => {
   const password = 'prisma'
-  // throw
+  // Should Throw
   try {
     await prisma.$executeRaw`ALTER USER prisma WITH PASSWORD '${password}'`
   } catch (err) {
@@ -23,6 +23,8 @@ test('executeRaw-alter-postgres', async () => {
       Running ALTER with parameters is not supported
       Please modify following to use it but note that this is vulnerable to SQL injection attacks:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
+      More Information: https://pris.ly/d/execute-raw
 
     `)
   }
@@ -35,6 +37,8 @@ test('executeRaw-alter-postgres', async () => {
       Please modify following to use it but note that this is vulnerable to SQL injection attacks:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
+      More Information: https://pris.ly/d/execute-raw
+
     `)
   }
   try {
@@ -46,10 +50,13 @@ test('executeRaw-alter-postgres', async () => {
       Please modify following to use it but note that this is vulnerable to SQL injection attacks:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
+      More Information: https://pris.ly/d/execute-raw
+
     `)
   }
 
-  // Works, maybe add a warning that this is unsafe?
+  // Should Work
+  // !Note maybe we should add a warning that this is unsafe?
   const result = await prisma.$executeRaw(
     `ALTER USER prisma WITH PASSWORD '${password}'`,
   )

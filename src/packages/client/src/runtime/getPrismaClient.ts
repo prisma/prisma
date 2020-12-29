@@ -608,6 +608,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         throw new Error(`Running ALTER with parameters is not supported
 Please modify following to use it but note that this is vulnerable to SQL injection attacks:
   await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
+More Information: https://pris.ly/d/execute-raw
 `)
       }
       const args = { query, parameters }
