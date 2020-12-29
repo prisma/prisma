@@ -6,7 +6,7 @@ import { getPlatform } from '@prisma/get-platform'
 export function getGithubIssueUrl({
   title,
   user = 'prisma',
-  repo = 'migrate',
+  repo = 'prisma',
   template = 'bug_report.md',
   body,
 }: {

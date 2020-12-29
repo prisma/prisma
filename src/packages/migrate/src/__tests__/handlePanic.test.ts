@@ -163,7 +163,7 @@ describe('handlePanic', () => {
 
         Please create an issue in the migrate repo with
         your \`schema.prisma\` and the prisma command you tried to use 🙏:
-        https://github.com/prisma/migrate/issues/new
+        https://github.com/prisma/prisma/issues/new
 
       `)
     } else {
