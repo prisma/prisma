@@ -10,21 +10,21 @@ const ctx = Context.new().add(consoleContext()).assemble()
 describe('common', () => {
   it('wrong flag', async () => {
     const commandInstance = MigrateReset.new()
-    let spy = jest
+    const spy = jest
       .spyOn(commandInstance, 'help')
       .mockImplementation(() => 'Help Me')
 
-    await expect(commandInstance.parse(['--something'])).resolves
+    await commandInstance.parse(['--something'])
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
   it('help flag', async () => {
     const commandInstance = MigrateReset.new()
-    let spy = jest
+    const spy = jest
       .spyOn(commandInstance, 'help')
       .mockImplementation(() => 'Help Me')
 
-    await expect(commandInstance.parse(['--help'])).resolves
+    await commandInstance.parse(['--help'])
     expect(spy).toHaveBeenCalledTimes(1)
     spy.mockRestore()
   })
