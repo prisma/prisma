@@ -23,6 +23,7 @@ test('executeRaw-alter-postgres', async () => {
       Running ALTER with parameters is not supported
       Please modify following to use it but note that this is vulnerable to SQL injection attacks:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
     `)
   }
   try {
@@ -31,10 +32,9 @@ test('executeRaw-alter-postgres', async () => {
     // String
     expect(err).toMatchInlineSnapshot(`
       Running ALTER with parameters is not supported
-      Please use the modify following to use it:
-        \`await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)\`
-      Note: This is vulnerable to SQL injection attacks
-              
+      Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
     `)
   }
   try {
@@ -43,10 +43,9 @@ test('executeRaw-alter-postgres', async () => {
     // Else
     expect(err).toMatchInlineSnapshot(`
       Running ALTER with parameters is not supported
-      Please use the modify following to use it:
-        \`await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)\`
-      Note: This is vulnerable to SQL injection attacks
-              
+      Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
     `)
   }
 
