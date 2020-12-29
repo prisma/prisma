@@ -16,6 +16,26 @@ process.env.GITHUB_ACTIONS = '1'
 process.env.MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {
+  it('wrong flag', async () => {
+    const commandInstance = MigrateDev.new()
+    const spy = jest
+      .spyOn(commandInstance, 'help')
+      .mockImplementation(() => 'Help Me')
+
+    await commandInstance.parse(['--something'])
+    expect(spy).toHaveBeenCalledTimes(1)
+    spy.mockRestore()
+  })
+  it('help flag', async () => {
+    const commandInstance = MigrateDev.new()
+    const spy = jest
+      .spyOn(commandInstance, 'help')
+      .mockImplementation(() => 'Help Me')
+
+    await commandInstance.parse(['--help'])
+    expect(spy).toHaveBeenCalledTimes(1)
+    spy.mockRestore()
+  })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
     const result = MigrateDev.new().parse(['--preview-feature'])
