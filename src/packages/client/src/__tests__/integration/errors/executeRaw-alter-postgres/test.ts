@@ -20,8 +20,10 @@ test('executeRaw-alter-postgres', async () => {
   } catch (err) {
     //isReadonlyArray
     expect(err).toMatchInlineSnapshot(`
-      Running ALTER with parameters is not supported
-      Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+      Running ALTER using prisma.$executeRaw\`<SQL>\` is not supported
+      Please use the following example but note that this could be vulnerable to SQL injection attacks
+
+      Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
@@ -33,8 +35,10 @@ test('executeRaw-alter-postgres', async () => {
   } catch (err) {
     // String
     expect(err).toMatchInlineSnapshot(`
-      Running ALTER with parameters is not supported
-      Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+      Running ALTER using prisma.$executeRaw(<SQL>, [...values]) is not supported
+      Please use the following example but note that this could be vulnerable to SQL injection attacks
+
+      Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
@@ -46,8 +50,10 @@ test('executeRaw-alter-postgres', async () => {
   } catch (err) {
     // Else
     expect(err).toMatchInlineSnapshot(`
-      Running ALTER with parameters is not supported
-      Please modify following to use it but note that this is vulnerable to SQL injection attacks:
+      Running ALTER using prisma.$executeRaw(sql\`<SQL>\`) is not supported
+      Please use the following example but note that this could be vulnerable to SQL injection attacks
+
+      Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
@@ -56,7 +62,6 @@ test('executeRaw-alter-postgres', async () => {
   }
 
   // Should Work
-  // !Note maybe we should add a warning that this is unsafe?
   const result = await prisma.$executeRaw(
     `ALTER USER prisma WITH PASSWORD '${password}'`,
   )
