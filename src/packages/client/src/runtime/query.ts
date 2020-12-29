@@ -1390,6 +1390,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
    * Stop on the first successful one
    */
   let maybeArg: Arg | null = null
+
   for (const inputType of arg.inputTypes) {
     maybeArg = tryInferArgs(key, value, arg, inputType)
     if (maybeArg?.collectErrors().length === 0) {
@@ -1534,8 +1535,8 @@ function tryInferArgs(
 
   const argInputType = inputType.type as DMMF.InputType
   const hasAtLeastOneError =
-    typeof argInputType.constraints.minNumFields === 'number' &&
-    argInputType.constraints.minNumFields > 0
+    typeof argInputType.constraints?.minNumFields === 'number' &&
+    argInputType.constraints?.minNumFields > 0
       ? Array.isArray(value) &&
         value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
       : false
@@ -1548,8 +1549,8 @@ function tryInferArgs(
     : undefined
   if (!err) {
     const hasOneOfError =
-      typeof argInputType.constraints.maxNumFields === 'number' &&
-      argInputType.constraints.maxNumFields < 2
+      typeof argInputType.constraints?.maxNumFields === 'number' &&
+      argInputType.constraints?.maxNumFields < 2
         ? Array.isArray(value) &&
           value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
         : false
