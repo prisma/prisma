@@ -108,7 +108,7 @@ There are two major workflows for "getting" a data model into your Prisma schema
 - Generate the data model from [introspecting](https://www.prisma.io/docs/concepts/components/introspection) a database
 - Manually writing the data model and mapping it to the database with [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 
-Once the data model is defined, you can [generate Prisma Client](h==https://www.prisma.io/docs/concepts/components/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields).
+Once the data model is defined, you can [generate Prisma Client](https://www.prisma.io/docs/concepts/components/prisma-client/generating-prisma-client) which will expose CRUD and more queries for the defined models. If you're using TypeScript, you'll get full type-safety for all queries (even when only retrieving the subsets of a model's fields).
 
 ---
 
