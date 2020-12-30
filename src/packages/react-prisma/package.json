@@ -22,7 +22,7 @@
     "ts-jest": "26.4.4",
     "typescript": "4.1.3",
     "react": "^17.0.0",
-    "@prisma/client": "*"
+    "@prisma/client": ">=2.0.0"
   },
   "scripts": {
     "build": "tsc -d",
