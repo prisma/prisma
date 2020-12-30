@@ -28,7 +28,7 @@
       "default": "./index.mjs"
     },
     "./runtime": {
-      "require": "./runtime/commonjs/index.js",
+      "require": "./runtime/index.js",
       "default": "./runtime/esm/index.mjs"
     }
   },
