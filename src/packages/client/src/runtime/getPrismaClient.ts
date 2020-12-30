@@ -43,7 +43,7 @@ import { printStack } from './utils/printStack'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
-const ALTER_RE = /^alter/i
+const ALTER_RE = /^(\s*alter\s)/i
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
