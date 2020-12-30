@@ -23,6 +23,6 @@ module.exports = {
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
   snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
-  testTimeout: 70000,
+  testTimeout: 80000,
   setupFiles: ['./helpers/jestSetup.js'],
 }
