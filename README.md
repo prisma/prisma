@@ -162,7 +162,7 @@ Learn more about the available operations in the [Prisma Client docs](https://ww
 
 ```ts
 // Run inside `async` function
-const allUsers = await prisma.user.findMany();
+const allUsers = await prisma.user.findMany()
 ```
 
 ##### Include the `posts` relation on each returned `User` object
