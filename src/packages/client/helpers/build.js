@@ -43,7 +43,7 @@ async function main() {
 
   await Promise.all([
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime/commonjs --bundle --platform=node --target=node10',
+      'esbuild src/runtime/index.ts --outdir=runtime/ --bundle --platform=node --target=node10',
       false,
     ),
     await run(

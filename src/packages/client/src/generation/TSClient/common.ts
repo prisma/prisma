@@ -34,7 +34,7 @@ const {
   join,
   raw,
   Decimal
-} = require('${runtimePath}/commonjs')
+} = require('${runtimePath}')
 
 const path = require('path')
 const debug = debugLib('prisma-client')
