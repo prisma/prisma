@@ -64,8 +64,8 @@
     },
     {
       "groupName": "react-prisma",
-      "includePaths": [
-        "src/packages/react-prisma"
+      "paths": [
+        "src/packages/react-prisma/**"
       ],
       "rangeStrategy": "replace",
       "schedule": [
