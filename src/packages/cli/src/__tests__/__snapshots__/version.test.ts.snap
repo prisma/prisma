@@ -2,22 +2,22 @@
 
 exports[`version basic version 1`] = `
 @prisma/cli          : 2.11.0-dev.20
-@prisma/client       : 2.11.0-dev.20
+@prisma/client       : 2.13.1
 Current platform     : TEST_PLATFORM
-Query Engine         : query-engine dfc9594ba25725d1eb319314b9cb6a229aa43573 
-Migration Engine     : migration-engine-cli dfc9594ba25725d1eb319314b9cb6a229aa43573 
-Introspection Engine : introspection-core dfc9594ba25725d1eb319314b9cb6a229aa43573 
-Format Binary        : prisma-fmt dfc9594ba25725d1eb319314b9cb6a229aa43573 
-Studio               : 0.327.0
+Query Engine         : query-engine 59cf08bf47e90cb37532900059f3328b4328237c 
+Migration Engine     : migration-engine-cli 59cf08bf47e90cb37532900059f3328b4328237c 
+Introspection Engine : introspection-core 59cf08bf47e90cb37532900059f3328b4328237c 
+Format Binary        : prisma-fmt 59cf08bf47e90cb37532900059f3328b4328237c 
+Studio               : 0.332.0
 `;
 
 exports[`version version with custom binaries 1`] = `
 @prisma/cli          : 2.11.0-dev.20
-@prisma/client       : 2.11.0-dev.20
+@prisma/client       : 2.13.1
 Current platform     : TEST_PLATFORM
 Query Engine         : query-engine 58369335532e47bdcec77a2f1e7c1fb83a463918 
 Migration Engine     : migration-engine-cli 58369335532e47bdcec77a2f1e7c1fb83a463918 
 Introspection Engine : introspection-core 58369335532e47bdcec77a2f1e7c1fb83a463918 
 Format Binary        : prisma-fmt 58369335532e47bdcec77a2f1e7c1fb83a463918 
-Studio               : 0.327.0
+Studio               : 0.332.0
 `;
