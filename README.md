@@ -181,11 +181,11 @@ const allUsers = await prisma.user.findMany({
 const filteredPosts = await prisma.post.findMany({
   where: {
     OR: [
-      { title: { contains: "prisma" } },
-      { content: { contains: "prisma" } },
+      { title: { contains: 'prisma' } },
+      { content: { contains: 'prisma' } },
     ],
   },
-});
+})
 ```
 
 ##### Create a new `User` and a new `Post` record in the same query
@@ -194,13 +194,13 @@ const filteredPosts = await prisma.post.findMany({
 // Run inside `async` function
 const user = await prisma.user.create({
   data: {
-    name: "Alice",
-    email: "alice@prisma.io",
+    name: 'Alice',
+    email: 'alice@prisma.io',
     posts: {
-      create: { title: "Join us for Prisma Day 2021" },
+      create: { title: 'Join us for Prisma Day 2021' },
     },
   },
-});
+})
 ```
 
 ##### Update an existing `Post` record
@@ -210,7 +210,7 @@ const user = await prisma.user.create({
 const post = await prisma.post.update({
   where: { id: 42 },
   data: { published: true },
-});
+})
 ```
 
 #### Usage with TypeScript
