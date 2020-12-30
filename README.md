@@ -143,7 +143,7 @@ You can import and instantiate Prisma Client as follows:
 ```ts
 import { PrismaClient } from "@prisma/client"
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 ```
 
 or
