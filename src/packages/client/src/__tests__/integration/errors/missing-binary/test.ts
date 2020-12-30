@@ -34,13 +34,13 @@ test('missing-binary', async () => {
 
             Query engine binary for current platform "TEST_PLATFORM" could not be found.
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
+          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime/commonjs/query-engine-TEST_PLATFORM")
 
           Searched Locations:
 
-            /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/.prisma/client
+            /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime/commonjs
             /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client/runtime
-            /client/src/__tests__/integration/errors/missing-binary/node_modules/@prisma/client
             /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
             /client/src/__tests__/integration/errors/missing-binary
             /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
