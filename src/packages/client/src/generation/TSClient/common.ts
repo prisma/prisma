@@ -34,7 +34,7 @@ const {
   join,
   raw,
   Decimal
-} = require('${runtimePath}')
+} = require('${runtimePath}/commonjs')
 
 const path = require('path')
 const debug = debugLib('prisma-client')
@@ -346,7 +346,7 @@ import {
   raw,
   Sql,
   Decimal,
-} from '${runtimePath}'
+} from '${runtimePath}/esm'
 import path from 'path'
 import { fileURLToPath } from 'url';
 const debug = debugLib('prisma-client')
