@@ -9,6 +9,13 @@ const copyFile = promisify(fs.copyFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
+const breakingChangesMessage = `${c
+  .yellow()
+  .bold('warn')} Prisma 2.12.0 has breaking changes.
+You can update your code with
+${c.bold('`npx @prisma/codemods update-2.12 ./`')}
+Read more at https://pris.ly/2.12`
+
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
@@ -109,6 +116,7 @@ if (!process.env.SKIP_GENERATE) {
     } else {
       console.error(e)
     }
+    console.log(breakingChangesMessage)
     process.exit(0)
   })
 }
@@ -140,6 +148,10 @@ async function ensureEmptyDotPrisma() {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
     await makeDir(dotPrismaClientDir)
     const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultIndexBrowserJSPath = path.join(
+      dotPrismaClientDir,
+      'index-browser.js',
+    )
     const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
     const defaultIndexMJsPath = path.join(dotPrismaClientDir, 'index.mjs')
 
@@ -147,6 +159,12 @@ async function ensureEmptyDotPrisma() {
       await copyFile(
         path.join(__dirname, 'default-index.js'),
         defaultIndexJsPath,
+      )
+    }
+    if (!fs.existsSync(defaultIndexBrowserJSPath)) {
+      await copyFile(
+        path.join(__dirname, 'default-index-browser.js'),
+        defaultIndexBrowserJSPath,
       )
     }
 
@@ -316,8 +334,6 @@ function parsePackageManagerName(userAgent) {
 }
 
 // prettier-ignore
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING'
-// prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
 // prettier-ignore
 const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
@@ -327,7 +343,6 @@ const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POS
 // expose for testing
 
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__EMPTY_STRING
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
 exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR
 exports.getPostInstallTrigger = getPostInstallTrigger

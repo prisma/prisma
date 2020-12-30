@@ -1,4 +1,4 @@
-const Debug = require('debug')
+const Debug = require('@prisma/debug')
 const path = require('path')
 const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')
@@ -58,7 +58,11 @@ export function main() {
   debug(`Node Version: ${nodeMajorVersion}`)
   if (nodeMajorVersion < 10) {
     console.error(
-      drawBox({ str: `Prisma only supports Node.js >= 10`, verticalPadding: 1, horizontalPadding: 3 }),
+      drawBox({
+        str: `Prisma only supports Node.js >= 10`,
+        verticalPadding: 1,
+        horizontalPadding: 3,
+      }),
     )
     process.exit(1)
   }

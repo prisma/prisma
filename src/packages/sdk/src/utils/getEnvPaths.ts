@@ -1,11 +1,11 @@
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import findUp from 'find-up'
 import path from 'path'
 import fs from 'fs'
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
-const debug = debugLib('loadEnv')
+const debug = Debug('loadEnv')
 /**
  *  1. Search in project root
  *  1. Schema
@@ -35,7 +35,6 @@ export function getEnvPaths(
   return { rootEnvPath, schemaEnvPath }
 }
 
-
 function readSchemaPathFromPkgJson(): string | null {
   try {
     return getSchemaPathFromPackageJsonSync(process.cwd())
@@ -44,12 +43,14 @@ function readSchemaPathFromPkgJson(): string | null {
   }
 }
 
-function getProjectRootEnvPath(opts: findUp.Options | undefined): string | null {
+function getProjectRootEnvPath(
+  opts: findUp.Options | undefined,
+): string | null {
   const pkgJsonPath = findUp.sync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {
       try {
-        let pkg = require(pkgPath)
+        const pkg = require(pkgPath)
         if (pkg['name'] !== '.prisma/client') {
           return pkgPath
         }

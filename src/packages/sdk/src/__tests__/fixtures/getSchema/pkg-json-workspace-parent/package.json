@@ -1,6 +1,8 @@
 {
   "name": "pkg-json-workspace-parent",
-  "workspaces": ["packages/*"],
+  "workspaces": [
+    "packages/*"
+  ],
   "private": true,
   "prisma": {
     "schema": "./db/prisma.schema"

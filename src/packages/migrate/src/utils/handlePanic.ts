@@ -7,16 +7,12 @@ export async function handlePanic(
   error: RustPanic,
   cliVersion: string,
   binaryVersion: string,
-): Promise<boolean> {
-  return new Promise(async function (resolve, reject) {
-    if (isCi()) {
-      return reject(error)
-    }
+): Promise<void> {
+  if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+    throw error
+  }
 
-    await panicDialog(error, cliVersion, binaryVersion)
-
-    return resolve()
-  })
+  await panicDialog(error, cliVersion, binaryVersion)
 }
 
 async function panicDialog(error, cliVersion, binaryVersion) {

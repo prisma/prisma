@@ -10,6 +10,15 @@ const config = [
       }),
     ],
   },
+  {
+    input: './runtime-dist/index-browser.d.ts',
+    output: [{ file: 'runtime/index-browser.d.ts', format: 'es' }],
+    plugins: [
+      dts({
+        respectExternal: true,
+      }),
+    ],
+  },
 ]
 
 export default config

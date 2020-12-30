@@ -1,7 +1,7 @@
 import { blog } from '../fixtures/blog'
-import { DMMFClass } from '../runtime'
-import { makeDocument, getField, unpack } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass } from '../runtime'
+import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf
 
@@ -13,7 +13,7 @@ beforeAll(async () => {
 })
 
 describe('getField', () => {
-  test('blog findOneUser', async () => {
+  test('blog findOneUser', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -42,7 +42,7 @@ describe('getField', () => {
 })
 
 describe('unpack', () => {
-  test('findOnePost', async () => {
+  test('findOnePost', () => {
     const document = makeDocument({
       dmmf,
       select: {},
@@ -82,7 +82,7 @@ describe('unpack', () => {
     `)
   })
 
-  test('findManyPost', async () => {
+  test('findManyPost', () => {
     const document = makeDocument({
       dmmf,
       select: {},
@@ -155,7 +155,7 @@ describe('unpack', () => {
     `)
   })
 
-  test('findOneUser', async () => {
+  test('findOneUser', () => {
     const document = makeDocument({
       dmmf,
       select: {

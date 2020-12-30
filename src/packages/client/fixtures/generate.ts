@@ -2,12 +2,15 @@ import fs from 'fs'
 import { generateInFolder } from '../src/utils/generateInFolder'
 import arg from 'arg'
 import chalk from 'chalk'
+import path from 'path'
 
 async function main() {
-  const args = arg({
-    '--skip-transpile': Boolean,
-    '--built-runtime': Boolean,
-  })
+  const args = arg(
+    {
+      '--skip-transpile': Boolean,
+      '--built-runtime': Boolean,
+    },
+  )
 
   const projectDir = args._[0]
 

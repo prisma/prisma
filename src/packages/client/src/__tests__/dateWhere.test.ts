@@ -1,4 +1,3 @@
-import stripAnsi from 'strip-ansi'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
 

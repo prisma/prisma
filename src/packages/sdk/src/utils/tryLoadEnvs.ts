@@ -1,10 +1,10 @@
 import chalk from 'chalk'
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { dotenvExpand } from '../dotenvExpand'
-const debug = debugLib('tryLoadEnv')
+const debug = Debug('tryLoadEnv')
 
 type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
@@ -20,7 +20,10 @@ export function tryLoadEnvs(
   {
     rootEnvPath,
     schemaEnvPath,
-  }: { rootEnvPath: string | null | undefined; schemaEnvPath: string | null | undefined },
+  }: {
+    rootEnvPath: string | null | undefined
+    schemaEnvPath: string | null | undefined
+  },
   opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
     conflictCheck: 'none',
   },
@@ -31,7 +34,7 @@ export function tryLoadEnvs(
     checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
   }
   // Only load the schema .env if it is not the same as root
-  let schemaEnvInfo: LoadEnvResult | null = null;
+  let schemaEnvInfo: LoadEnvResult | null = null
   if (!pathsEqual(rootEnvInfo?.path, schemaEnvPath)) {
     schemaEnvInfo = loadEnv(schemaEnvPath)
   }
@@ -45,7 +48,7 @@ export function tryLoadEnvs(
   if (schemaEnvInfo?.dotenvResult.error) {
     return console.error(
       chalk.redBright.bold('Schema Env Error: ') +
-      schemaEnvInfo.dotenvResult.error,
+        schemaEnvInfo.dotenvResult.error,
     )
   }
   const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(
@@ -66,7 +69,7 @@ export function tryLoadEnvs(
 function checkForConflicts(
   rootEnvInfo: LoadEnvResult | null,
   envPath: string | null | undefined,
-  type: 'warn' | 'error'
+  type: 'warn' | 'error',
 ) {
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
   const areNotTheSame = !pathsEqual(rootEnvInfo?.path, envPath)
@@ -80,20 +83,39 @@ function checkForConflicts(
     }
     if (conflicts.length > 0) {
       // const message = `You are trying to load env variables which are already present in your project root .env
-      const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path!)
+      const relativeRootEnvPath = path.relative(
+        process.cwd(),
+        rootEnvInfo!.path,
+      )
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
-        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
+        const message = `There is a conflict between env var${
+          conflicts.length > 1 ? 's' : ''
+        } in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(
+          relativeEnvPath,
+        )}
 Conflicting env vars:
 ${conflicts.map((conflict) => `  ${chalk.bold(conflict)}`).join('\n')}
 
-We suggest to move the contents of ${chalk.underline(relativeEnvPath)} to ${chalk.underline(relativeRootEnvPath)} to consolidate your env vars.\n`
+We suggest to move the contents of ${chalk.underline(
+          relativeEnvPath,
+        )} to ${chalk.underline(
+          relativeRootEnvPath,
+        )} to consolidate your env vars.\n`
         throw new Error(message)
       } else if (type === 'warn') {
-        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts.map(c => chalk.bold(c)).join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
-Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
+        const message = `Conflict for env var${
+          conflicts.length > 1 ? 's' : ''
+        } ${conflicts
+          .map((c) => chalk.bold(c))
+          .join(', ')} in ${chalk.underline(
+          relativeRootEnvPath,
+        )} and ${chalk.underline(relativeEnvPath)}
+Env vars from ${chalk.underline(
+          relativeEnvPath,
+        )} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
       `
-        console.warn(`${chalk.yellow('warn(prisma)')} ${message}`);
+        console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
       }
     }
   }
@@ -107,8 +129,12 @@ export function loadEnv(
     return {
       dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),
       message: chalk.dim(
-        `Environment variables loaded from ${path.resolve(envPath)}`,
+        `Environment variables loaded from ${path.relative(
+          process.cwd(),
+          envPath,
+        )}`,
       ),
+
       path: envPath,
     }
   } else {

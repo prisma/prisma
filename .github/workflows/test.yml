@@ -33,6 +33,48 @@ jobs:
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
 
   #
+  # Linting
+  #
+  lint:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run lint
+        working-directory: ./
+
+  #
   # CLI-INTEGRATION-1
   #
   cli-integration-1:
@@ -402,7 +444,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 5
+    timeout-minutes: 7
     runs-on: ubuntu-latest
 
     strategy:
@@ -410,6 +452,17 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
+
+    services:
+      postgres:
+        image: postgres:9
+        env:
+          POSTGRES_DB: tests
+          POSTGRES_USER: prisma
+          POSTGRES_PASSWORD: prisma
+        ports:
+          - 5432/tcp
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
       - uses: actions/checkout@v2
@@ -446,6 +499,8 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
+          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests-migrate
 
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}

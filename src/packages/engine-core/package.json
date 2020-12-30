@@ -6,62 +6,54 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@types/jest": "26.0.15",
-    "@types/node": "12.19.4",
-    "@typescript-eslint/eslint-plugin": "4.7.0",
-    "@typescript-eslint/parser": "4.7.0",
-    "del-cli": "3.0.1",
-    "eslint": "7.13.0",
-    "eslint-config-prettier": "6.15.0",
+    "@types/jest": "26.0.19",
+    "@types/node": "12.19.11",
+    "@typescript-eslint/eslint-plugin": "4.10.0",
+    "@typescript-eslint/parser": "4.10.0",
+    "abort-controller": "3.0.0",
+    "eslint": "7.15.0",
+    "eslint-config-prettier": "7.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
-    "eslint-plugin-prettier": "3.1.4",
-    "husky": "4.3.0",
+    "eslint-plugin-prettier": "3.3.0",
     "jest": "26.6.3",
-    "lint-staged": "10.5.1",
-    "prettier": "2.1.2",
+    "lint-staged": "10.5.3",
+    "prettier": "2.2.1",
     "strip-ansi": "6.0.0",
     "ts-jest": "26.4.4",
-    "typescript": "4.0.5"
+    "typescript": "4.1.3"
   },
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
-    "test": "jest"
+    "lint": "eslint --cache --fix --ext .ts .",
+    "lint-ci": "eslint --ext .ts .",
+    "test": "jest",
+    "precommit": "lint-staged"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.11.0-11.-query-engine-second-coming-of-reserved-words5f311a3c26309b4d6cd89438cb1527011ba02057",
+    "@prisma/engines": "2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
-    "cross-fetch": "^3.0.4",
-    "execa": "^4.0.2",
+    "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "indent-string": "^4.0.0",
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "2.1.1"
+    "undici": "2.2.1"
   },
   "files": [
     "!**/__tests__",
     "dist"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.{js,ts}": [
-      "eslint"
+    "*.ts": [
+      "eslint",
+      "prettier --write"
     ]
   }
 }

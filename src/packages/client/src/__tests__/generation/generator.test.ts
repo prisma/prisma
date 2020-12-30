@@ -1,4 +1,4 @@
-import { getGenerator, getPackedPackage, Generator } from '@prisma/sdk'
+import { getGenerator, getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { omit } from '../../omit'
@@ -73,6 +73,7 @@ describe('generator', () => {
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
     expect(fs.existsSync(photonDir)).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index-browser.js'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
     expect(fs.existsSync(path.join(photonDir, 'runtime'))).toBe(true)
     generator.stop()
@@ -113,32 +114,16 @@ describe('generator', () => {
         11 |   id Int @id
         12 | }
            | 
-        error: Error validating model "dmmf": The model name \`dmmf\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+        error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:14
            | 
         13 | 
-        14 | model dmmf {
+        14 | model return {
         15 |   id Int @id
         16 | }
            | 
-        error: Error validating model "OnlyOne": The model name \`OnlyOne\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:18
-           | 
-        17 | 
-        18 | model OnlyOne {
-        19 |   id Int @id
-        20 | }
-           | 
-        error: Error validating model "delete": The model name \`delete\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-          -->  schema.prisma:22
-           | 
-        21 | 
-        22 | model delete {
-        23 |   id Int @id
-        24 | }
-           | 
 
-        Validation Error Count: 4
+        Validation Error Count: 2
       `)
     }
   })

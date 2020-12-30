@@ -37,7 +37,7 @@ Note: Lines with + are required
 
 `;
 
-exports[`no args findMany 2`] = `
+exports[`no args findMany with filter 1`] = `
 
 Invalid \`prisma.user()\` invocation:
 

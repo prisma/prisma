@@ -22,7 +22,10 @@ const readFile = promisify(fs.readFile)
 /**
  * Returns an in-memory client for testing
  */
-export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
+export async function getTestClient(
+  schemaDir?: string,
+  printWarnings?: boolean,
+): Promise<any> {
   if (!schemaDir) {
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
@@ -54,12 +57,13 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     clientVersion: 'client-test-version',
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
-    datasourceNames: config.datasources.map(d => d.name),
+    datasourceNames: config.datasources.map((d) => d.name),
     sqliteDatasourceOverrides: extractSqliteSources(
       datamodel,
       schemaDir,
       outputDir,
     ),
+    activeProvider: config.datasources[0].activeProvider,
   }
 
   return getPrismaClient(options)

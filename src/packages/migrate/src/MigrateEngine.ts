@@ -13,7 +13,6 @@ import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 export interface MigrateEngineOptions {
   projectDir: string
   schemaPath: string
-  binaryPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
 }
@@ -37,7 +36,6 @@ let messageId = 1
 
 /* tslint:disable */
 export class MigrateEngine {
-  private binaryPath?: string
   private projectDir: string
   private debug: boolean
   private child?: ChildProcess
@@ -48,7 +46,12 @@ export class MigrateEngine {
   private lastError?: any
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
-  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
+  constructor({
+    projectDir,
+    debug = false,
+    schemaPath,
+    enabledPreviewFeatures,
+  }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
@@ -61,6 +64,60 @@ export class MigrateEngine {
     this.child!.kill()
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
+
+  // List migrations in migration directory.
+  public listMigrationDirectories(
+    args: EngineArgs.ListMigrationDirectoriesInput,
+  ): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.runCommand(this.getRPCPayload('listMigrationDirectories', args))
+  }
+  // Mark the specified migration as applied in the migrations table. There are two possible cases:
+  // - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
+  // - The migration is not in the table. We will create a new entry in the migrations table. The `started_at` and `finished_at` will be the same.
+  // - If it is already applied, we return a user-facing error.
+  public markMigrationApplied(
+    args: EngineArgs.MarkMigrationAppliedInput,
+  ): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationApplied', args))
+  }
+  // Mark an existing failed migration as rolled back in the migrations table. It will still be there, but ignored for all purposes except as audit trail.
+  public markMigrationRolledBack(
+    args: EngineArgs.MarkMigrationRolledBackInput,
+  ): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
+  }
+  // Apply a script without writing to the migrations table. This is currently used for correcting drift.
+  public applyScript(args: EngineArgs.ApplyScriptInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('applyScript', args))
+  }
+  public diagnoseMigrationHistory(
+    args: EngineArgs.DiagnoseMigrationHistoryInput,
+  ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+    return this.runCommand(this.getRPCPayload('diagnoseMigrationHistory', args))
+  }
+  public planMigration(
+    args: EngineArgs.PlanMigrationInput,
+  ): Promise<EngineResults.PlanMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('planMigration', args))
+  }
+  public evaluateDataLoss(
+    args: EngineArgs.EvaluateDataLossInput,
+  ): Promise<EngineResults.EvaluateDataLossOutput> {
+    return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
+  }
+  public createMigration(
+    args: EngineArgs.CreateMigrationInput,
+  ): Promise<EngineResults.CreateMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('createMigration', args))
+  }
+  public applyMigrations(
+    args: EngineArgs.ApplyMigrationsInput,
+  ): Promise<EngineResults.ApplyMigrationsOutput> {
+    return this.runCommand(this.getRPCPayload('applyMigrations', args))
+  }
+  public reset(): Promise<void> {
+    return this.runCommand(this.getRPCPayload('reset', undefined))
+  }
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
@@ -69,48 +126,10 @@ export class MigrateEngine {
   ): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
-  public applyMigration(
-    args: EngineArgs.ApplyMigration,
-  ): Promise<EngineResults.ApplyMigration> {
-    return this.runCommand(this.getRPCPayload('applyMigration', args))
-  }
-  public unapplyMigration(
-    args: EngineArgs.UnapplyMigration,
-  ): Promise<EngineResults.UnapplyMigration> {
-    return this.runCommand(this.getRPCPayload('unapplyMigration', args))
-  }
-  public calculateDatamodel(
-    args: EngineArgs.CalculateDatamodel,
-  ): Promise<EngineResults.CalculateDatamodel> {
-    return this.runCommand(this.getRPCPayload('calculateDatamodel', args))
-  }
-  public calculateDatabaseSteps(
-    args: EngineArgs.CalculateDatabaseSteps,
-  ): Promise<EngineResults.ApplyMigration> {
-    return this.runCommand(this.getRPCPayload('calculateDatabaseSteps', args))
-  }
-  public inferMigrationSteps(
-    args: EngineArgs.InferMigrationSteps,
-  ): Promise<EngineResults.InferMigrationSteps> {
-    return this.runCommand(this.getRPCPayload('inferMigrationSteps', args))
-  }
-  // Helper function, oftentimes we just want the applied migrations
-  public async listAppliedMigrations(
-    args: EngineArgs.ListMigrations,
-  ): Promise<EngineResults.ListMigrations> {
-    const migrations = await this.runCommand(
-      this.getRPCPayload('listMigrations', args),
-    )
-    return migrations.filter((m) => m.status === 'MigrationSuccess')
-  }
-  public migrationProgess(
-    args: EngineArgs.MigrationProgress,
-  ): Promise<EngineResults.MigrationProgress> {
-    return this.runCommand(this.getRPCPayload('migrationProgress', args))
-  }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
+
   /* eslint-enable @typescript-eslint/no-unsafe-return */
   private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
@@ -134,22 +153,23 @@ export class MigrateEngine {
       )
     }
     if (result) {
-      // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
-      if (!result.id) {
-        if (result.is_panic) {
-          throw new Error(`Response ${JSON.stringify(result.message)}`)
-        } else if (result.message) {
-          console.error(`Response ${JSON.stringify(result.message)}`)
-        } else {
-          console.error(`Response ${JSON.stringify(result)}`)
+      if (result.id) {
+        if (!this.listeners[result.id]) {
+          console.error(`Got result for unknown id ${result.id}`)
         }
-      }
-      if (!this.listeners[result.id]) {
-        console.error(`Got result for unknown id ${result.id}`)
-      }
-      if (this.listeners[result.id]) {
-        this.listeners[result.id](result)
-        delete this.listeners[result.id]
+        if (this.listeners[result.id]) {
+          this.listeners[result.id](result)
+          delete this.listeners[result.id]
+        }
+      } else {
+        // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
+        if (result.is_panic) {
+          throw new Error(`Response: ${result.message}`)
+        } else if (result.message) {
+          console.error(chalk.red(`Response: ${result.message}`))
+        } else {
+          console.error(chalk.red(`Response: ${JSON.stringify(result)}`))
+        }
       }
     }
   }
@@ -164,12 +184,22 @@ export class MigrateEngine {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
-        if (this.enabledPreviewFeatures && Array.isArray(this.enabledPreviewFeatures) && this.enabledPreviewFeatures.length > 0) {
-          args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
+        if (
+          this.enabledPreviewFeatures &&
+          Array.isArray(this.enabledPreviewFeatures) &&
+          this.enabledPreviewFeatures.length > 0
+        ) {
+          args.push(
+            ...[
+              '--enabled-preview-features',
+              this.enabledPreviewFeatures.join(','),
+            ],
+          )
         }
         this.child = spawn(binaryPath, args, {
           cwd: this.projectDir,
@@ -188,13 +218,17 @@ export class MigrateEngine {
           this.rejectAll(err)
         })
 
-        this.child.on('exit', (code, signal) => {
+        this.child.on('exit', (code) => {
           const messages = this.messages.join('\n')
           let err: RustPanic | Error | undefined
           if (code !== 0 || messages.includes('panicking')) {
             let errorMessage =
               chalk.red.bold('Error in migration engine: ') + messages
-            if (this.lastError && code === 255) {
+            if (code === 250) {
+              // Not a panic
+              // It's a UserFacingError https://github.com/prisma/prisma-engines/pull/1446
+              errorMessage = chalk.red.bold('UserFacingError')
+            } else if (this.lastError && code === 255) {
               errorMessage = serializePanic(this.lastError)
               err = new RustPanic(
                 errorMessage,
@@ -268,7 +302,8 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
-        if (response.result) {
+        // can be null, for reset RPC for example
+        if (response.result !== undefined) {
           resolve(response.result)
         } else {
           if (response.error) {
@@ -309,7 +344,8 @@ export class MigrateEngine {
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
+                    response.error.message
                   }\n\n${text}\n`,
                 ),
               )
@@ -370,7 +406,6 @@ Please put that file into a gist and post it in Slack.
       jsonrpc: '2.0',
       method,
       params: {
-        projectInfo: '',
         ...params,
       },
     }

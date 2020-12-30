@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`postgresql draft migration and apply (--name) 5`] = `Array []`;
+
+exports[`postgresql draft migration and apply (--name) 6`] = `Array []`;
+
+exports[`postgresql existingdb: first migration after init 3`] = `Array []`;
+
+exports[`postgresql existingdb: first migration after init 4`] = `Array []`;
+
+exports[`postgresql first migration after init - empty.prisma 3`] = `Array []`;
+
+exports[`postgresql first migration after init - empty.prisma 4`] = `Array []`;
+
+exports[`postgresql first migration after init 3`] = `Array []`;
+
+exports[`postgresql first migration after init 4`] = `Array []`;
+
+exports[`postgresql schema only (prompt yes) 2`] = `Array []`;
+
+exports[`postgresql schema only (prompt yes) 3`] = `Array []`;
+
+exports[`sqlite broken migration should fail 2`] = ``;
+
+exports[`sqlite broken migration should fail 3`] = ``;
+
+exports[`sqlite draft migration and apply (--name) 5`] = ``;
+
+exports[`sqlite draft migration and apply (--name) 6`] = ``;
+
+exports[`sqlite draft migration and apply (prompt) 5`] = ``;
+
+exports[`sqlite draft migration and apply (prompt) 6`] = ``;
+
+exports[`sqlite draft migration with empty schema (prompt) 4`] = ``;
+
+exports[`sqlite draft migration with empty schema (prompt) 5`] = ``;
+
+exports[`sqlite edited migration and unapplied empty draft 3`] = ``;
+
+exports[`sqlite edited migration and unapplied empty draft 4`] = ``;
+
+exports[`sqlite empty schema 3`] = `Array []`;
+
+exports[`sqlite empty schema 4`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration edit migration with broken sql 3`] = `Array []`;
+
+exports[`sqlite existing-db-1-migration edit migration with broken sql 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft + 1 schema change 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unapplied draft 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unexecutable schema change 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unexecutable schema change 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 warning from schema change (prompt no) 4`] = `Array []`;
+
+exports[`sqlite existingdb: 1 warning from schema change (prompt yes) 4`] = `Array []`;
+
+exports[`sqlite existingdb: has a failed migration 2`] = ``;
+
+exports[`sqlite existingdb: has a failed migration 3`] = ``;
+
+exports[`sqlite existingdb: has a failed migration 5`] = ``;
+
+exports[`sqlite existingdb: has a failed migration 6`] = ``;
+
+exports[`sqlite first migration (--name) 3`] = `Array []`;
+
+exports[`sqlite first migration (--name) 4`] = `Array []`;
+
+exports[`sqlite first migration (prompt) 3`] = `Array []`;
+
+exports[`sqlite first migration (prompt) 4`] = `Array []`;
+
+exports[`sqlite provider array should fail 3`] = `Array []`;
+
+exports[`sqlite removed applied migration and unapplied empty draft 3`] = ``;
+
+exports[`sqlite removed applied migration and unapplied empty draft 4`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt reset no) 3`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt reset no) 4`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt reset yes) 3`] = ``;
+
+exports[`sqlite transition-db-push-migrate (prompt reset yes) 4`] = ``;

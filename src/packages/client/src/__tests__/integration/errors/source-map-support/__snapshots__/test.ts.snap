@@ -2,7 +2,7 @@
 
 exports[`source-map-support 1`] = `
 
-Invalid \`prisma.user.findOne()\` invocation:
+Invalid \`prisma.user.findUnique()\` invocation:
 
 {
   where: {

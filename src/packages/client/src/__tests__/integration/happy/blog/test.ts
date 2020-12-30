@@ -1,13 +1,9 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-
 test('blog', async () => {
   await generateTestClient()
 
-  const {
-    PrismaClient,
-    Prisma,
-  } = require('./node_modules/@prisma/client')
+  const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
 
   const {
     prismaVersion,
@@ -36,7 +32,7 @@ test('blog', async () => {
   // Test connecting and disconnecting all the time
   await db.user.findMany()
   const posts = await db.user
-    .findOne({
+    .findUnique({
       where: {
         email: 'a@a.de',
       },
@@ -145,19 +141,18 @@ test('blog', async () => {
     })
   } catch (e) {
     validationError = e
-  } finally {
-    if (
-      !validationError ||
-      !(validationError instanceof PrismaClientValidationError)
-    ) {
-      throw new Error(`Validation error is incorrect`)
-    }
+  }
+  if (
+    !validationError ||
+    !(validationError instanceof PrismaClientValidationError)
+  ) {
+    throw new Error(`Validation error is incorrect`)
   }
 
   // Test known request error
   let knownRequestError
   try {
-    const result = await db.user.create({
+    await db.user.create({
       data: {
         email: 'a@a.de',
         name: 'Alice',
@@ -165,16 +160,15 @@ test('blog', async () => {
     })
   } catch (e) {
     knownRequestError = e
-  } finally {
-    if (
-      !knownRequestError ||
-      !(knownRequestError instanceof PrismaClientKnownRequestError)
-    ) {
-      throw new Error(`Known request error is incorrect`)
-    } else {
-      if (!knownRequestError.message.includes('.user.create()')) {
-        throw new Error(`Invalid error: ${knownRequestError.message}`)
-      }
+  }
+  if (
+    !knownRequestError ||
+    !(knownRequestError instanceof PrismaClientKnownRequestError)
+  ) {
+    throw new Error(`Known request error is incorrect`)
+  } else {
+    if (!knownRequestError.message.includes('.user.create()')) {
+      throw new Error(`Invalid error: ${knownRequestError.message}`)
     }
   }
 

@@ -57,6 +57,10 @@ export async function generateInFolder({
     ? path.join(projectDir, 'node_modules/@prisma/client')
     : path.join(projectDir, '@prisma/client')
 
+  // if (transpile && config.generators[0]?.output) {
+  //   outputDir = path.join(path.dirname(schemaPath), config.generators[0]?.output)
+  // }
+
   await del(outputDir)
 
   if (transpile) {
@@ -98,8 +102,7 @@ export async function generateInFolder({
       queryEngine: {
         [platform]: path.join(
           enginesPath,
-          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''
-          }`,
+          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
         ),
       },
     },
@@ -116,6 +119,7 @@ export async function generateInFolder({
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
+    activeProvider: 'sqlite',
   })
 
   const time = performance.now() - before

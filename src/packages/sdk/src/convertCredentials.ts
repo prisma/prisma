@@ -93,6 +93,8 @@ export function uriToCredentials(
   const { schema, socket, host, ...extraFields } = uri.query
 
   let database: string | undefined = undefined
+  let defaultSchema: string | undefined = undefined
+
   if (type === 'sqlite' && uri.pathname) {
     if (uri.pathname.startsWith('file:')) {
       database = uri.pathname.slice(5)
@@ -104,6 +106,17 @@ export function uriToCredentials(
     }
   } else if (uri.pathname.length > 1) {
     database = uri.pathname.slice(1)
+
+    if (type === 'postgresql' && !database) {
+      // use postgres as default, it's 99% accurate
+      // could also be template1 for example in rare cases
+      database = 'postgres'
+    }
+  }
+
+  if (type === 'postgresql' && !schema) {
+    // default to public schema
+    defaultSchema = 'public'
   }
 
   return {
@@ -113,10 +126,10 @@ export function uriToCredentials(
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
     database,
-    schema: uri.query.schema || undefined,
+    schema: schema || defaultSchema,
     uri: connectionString,
     ssl: Boolean(uri.query.sslmode),
-    socket: uri.query.socket || uri.query.host,
+    socket: socket || host,
     extraFields,
   }
 }

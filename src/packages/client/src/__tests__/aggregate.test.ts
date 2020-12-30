@@ -15,7 +15,7 @@ model Article {
   content String
   date    DateTime
   likedBy User[]
-  link    Link
+  link    Link?
 }
 
 model Link {
@@ -57,7 +57,11 @@ describe('aggregate', () => {
       select: {
         take: 10,
         select: {
-          count: true,
+          count: {
+            select: {
+              _all: true,
+            },
+          },
         },
       },
       rootTypeName: 'query',
@@ -67,7 +71,9 @@ describe('aggregate', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         aggregateUser(take: 10) {
-          count
+          count {
+            _all
+          }
         }
       }
     `)

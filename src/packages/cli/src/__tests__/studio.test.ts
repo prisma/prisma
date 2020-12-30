@@ -12,7 +12,7 @@ const STUDIO_TEST_PORT = 5678
 console.log = () => null
 
 const setupWS = (): Promise<WebSocket> => {
-  return new Promise(res => {
+  return new Promise((res) => {
     const ws = new WebSocket(`ws://127.0.0.1:${STUDIO_TEST_PORT}/`)
     ws.on('open', () => {
       ws.on('message', (data: string) => {
@@ -41,7 +41,7 @@ const setupWS = (): Promise<WebSocket> => {
 }
 
 const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
-  return new Promise(res => {
+  return new Promise((res) => {
     ws.on('message', (data: string) => {
       const message: any = JSON.parse(data)
 
@@ -103,8 +103,8 @@ afterEach(async () => {
 })
 
 it('launches client correctly', async () => {
-  await new Promise((res, rej) => {
-    http.get(`http://localhost:${STUDIO_TEST_PORT}`, response => {
+  await new Promise<void>((res, rej) => {
+    http.get(`http://localhost:${STUDIO_TEST_PORT}`, (response) => {
       try {
         expect(response.statusCode).toEqual(200)
         res()

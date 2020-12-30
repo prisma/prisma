@@ -62,7 +62,7 @@ mutation {
 }
 `;
 
-exports[`select validation Allow different iso strings 2 2`] = `
+exports[`select validation Allow different iso strings 3 1`] = `
 mutation {
   createOnePost(data: {
     title: "Some title"
@@ -250,7 +250,7 @@ Note: Lines with + are required
 
 `;
 
-exports[`select validation missing arg object 3`] = `
+exports[`select validation missing arg object colorless 1`] = `
 mutation {
   createOnePost() {
     id
@@ -265,7 +265,7 @@ mutation {
 }
 `;
 
-exports[`select validation missing arg object 4`] = `
+exports[`select validation missing arg object colorless 2`] = `
 
 Invalid \`prisma.createOnePost()\` invocation:
 
@@ -289,12 +289,12 @@ Note: Lines with + are required
 
 `;
 
-exports[`select validation missing arg object 5`] = `
+exports[`select validation missing arg object colorless 3`] = `
 Argument data is missing.
 
 `;
 
-exports[`select validation missing arg object 6`] = `
+exports[`select validation missing arg object colorless 4`] = `
 
 Invalid \`prisma.createOnePost()\` invocation:
 
@@ -421,7 +421,7 @@ Note: Lines with + are required, lines with ? are optional.
 
 `;
 
-exports[`select validation reject all undefined where for findOne 1`] = `
+exports[`select validation reject all undefined where for findUnique 1`] = `
 query {
   findOnePost(where: {
 
@@ -433,7 +433,7 @@ query {
 }
 `;
 
-exports[`select validation reject all undefined where for findOne 2`] = `
+exports[`select validation reject all undefined where for findUnique 2`] = `
 
 Invalid \`prisma.findOnePost()\` invocation:
 
@@ -456,7 +456,7 @@ Note: Lines with ? are optional.
 
 `;
 
-exports[`select validation reject empty where for findOne 1`] = `
+exports[`select validation reject empty where for findUnique 1`] = `
 query {
   findOnePost(where: {
 
@@ -468,7 +468,7 @@ query {
 }
 `;
 
-exports[`select validation reject empty where for findOne 2`] = `
+exports[`select validation reject empty where for findUnique 2`] = `
 
 Invalid \`prisma.findOnePost()\` invocation:
 

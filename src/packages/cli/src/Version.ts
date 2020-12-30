@@ -7,9 +7,11 @@ import {
   getSchemaPath,
   getVersion,
   resolveBinary,
+  EngineType,
   format,
   isError,
   HelpError,
+  engineEnvVarMap,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
@@ -41,7 +43,7 @@ export class Version implements Command {
 
   ${chalk.bold('Options')}
 
-    -h, --help     Displays this help message
+    -h, --help     Display this help message
         --json     Output JSON
 `)
 
@@ -65,26 +67,10 @@ export class Version implements Command {
 
     const platform = await getPlatform()
 
-    const introspectionEngine = await this.resolveEngine(
-      'introspection-engine',
-      'PRISMA_INTROSPECTION_ENGINE_BINARY',
-      platform,
-    )
-    const migrationEngine = await this.resolveEngine(
-      'migration-engine',
-      'PRISMA_MIGRATION_ENGINE_BINARY',
-      platform,
-    )
-    const queryEngine = await this.resolveEngine(
-      'query-engine',
-      'PRISMA_QUERY_ENGINE_BINARY',
-      platform,
-    )
-    const fmtBinary = await this.resolveEngine(
-      'prisma-fmt',
-      'PRISMA_FMT_BINARY',
-      platform,
-    )
+    const introspectionEngine = await this.resolveEngine('introspection-engine')
+    const migrationEngine = await this.resolveEngine('migration-engine')
+    const queryEngine = await this.resolveEngine('query-engine')
+    const fmtBinary = await this.resolveEngine('prisma-fmt')
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -143,19 +129,16 @@ export class Version implements Command {
     )}${resolved})`
   }
 
-  private async resolveEngine(
-    binaryName: string,
-    envVar: string,
-    platform: string, // eslint-disable-line @typescript-eslint/no-unused-vars
-  ): Promise<BinaryInfo> {
+  private async resolveEngine(binaryName: EngineType): Promise<BinaryInfo> {
+    const envVar = engineEnvVarMap[binaryName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv)
+      const version = await getVersion(pathFromEnv, binaryName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const binaryPath = await resolveBinary(binaryName as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    const version = await getVersion(binaryPath)
+    const binaryPath = await resolveBinary(binaryName)
+    const version = await getVersion(binaryPath, binaryName)
     return { path: binaryPath, version }
   }
 

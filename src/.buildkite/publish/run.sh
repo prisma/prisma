@@ -2,6 +2,11 @@
 
 set -ex
 
+npm i --silent -g pnpm@5.10.4 --unsafe-perm
+
+pnpm i --no-prefer-frozen-lockfile
+pnpm run lint
+
 cd src
 
 if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
@@ -12,7 +17,6 @@ fi
 node -v
 npm -v
 
-npm i --silent -g pnpm@5.10.4 --unsafe-perm
 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup

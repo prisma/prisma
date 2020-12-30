@@ -8,7 +8,6 @@ import Debug from '@prisma/debug'
 import makeDir from 'make-dir'
 import execa from 'execa'
 import pFilter from 'p-filter'
-import hasha from 'hasha'
 import tempDir from 'temp-dir'
 
 // Utils
@@ -76,9 +75,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (['arm', 'nixos'].includes(os.distro)) {
+  if (['nixos'].includes(os.distro)) {
     console.error(
-      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${os.distro
+      `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
+        os.distro
       }.`,
     )
   } else if (
@@ -94,15 +94,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // no need to do anything, if there are no binaries
   if (!options.binaries || Object.values(options.binaries).length === 0) {
     return {}
-  }
-
-  if (options.binaryTargets && Array.isArray(options.binaryTargets)) {
-    const unknownTargets = options.binaryTargets.filter(
-      (t) => !platforms.includes(t),
-    )
-    if (unknownTargets.length > 0) {
-      throw new Error(`Unknown binaryTargets ${unknownTargets.join(', ')}`)
-    }
   }
 
   // merge options
@@ -151,7 +142,17 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       options.version,
       options.failSilent,
     )
-    return !job.envVarPath && (options.ignoreCache || needsToBeDownloaded)
+    const isSupported = platforms.includes(job.binaryTarget as Platform)
+    const shouldDownload =
+      isSupported &&
+      !job.envVarPath &&
+      (options.ignoreCache || needsToBeDownloaded)
+    if (needsToBeDownloaded && !isSupported) {
+      throw new Error(
+        `Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`,
+      )
+    }
+    return shouldDownload
   })
 
   if (binariesToDownload.length > 0) {
@@ -263,9 +264,10 @@ async function binaryNeedsToBeDownloaded(
   version: string,
   failSilent: boolean,
 ): Promise<boolean> {
-  // 1. Check if file exists
-  const targetExists = await exists(job.targetFilePath)
+  const binaryPath = job.envVarPath ?? job.targetFilePath
 
+  // 1. Check if file exists
+  const targetExists = await exists(binaryPath)
   // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
   const cachedFile = await getCachedBinaryPath({
@@ -303,7 +305,7 @@ async function binaryNeedsToBeDownloaded(
 
   // 3. If same platform, always check --version
   if (job.binaryTarget === nativePlatform) {
-    const works = await checkVersionCommand(job.targetFilePath)
+    const works = await checkVersionCommand(binaryPath)
     return !works
   }
 
@@ -396,6 +398,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
+
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   const {
     version,

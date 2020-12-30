@@ -33,7 +33,7 @@ export class Studio implements Command {
 
     ${chalk.bold('Options')}
 
-      -h, --help        Displays this help message
+      -h, --help        Display this help message
       -p, --port        Port to start Studio on
       -b, --browser     Browser to open Studio in
 
@@ -120,11 +120,11 @@ export class Studio implements Command {
     const queryEnginePath =
       process.env.NODE_ENV === 'production'
         ? eval(
-          `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
-        )
+            `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
+          )
         : eval(
-          `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
-        )
+            `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
+          )
     const staticAssetDir =
       process.env.NODE_ENV === 'production'
         ? path.resolve(__dirname, './public')

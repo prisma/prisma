@@ -56,6 +56,7 @@ export const Context = {
           {
             cwd: c.fs.cwd(),
             stdio: 'pipe',
+            all: true
           },
         )
       }
@@ -77,7 +78,7 @@ type ContextContributorFactory<
   Settings,
   Context,
   NewContext
-  > = Settings extends {}
+> = Settings extends {}
   ? () => ContextContributor<Context, NewContext>
   : (settings: Settings) => ContextContributor<Context, NewContext>
 
@@ -113,21 +114,26 @@ export const consoleContext: ContextContributorFactory<
     mocked: {
       'console.error': jest.SpyInstance
       'console.log': jest.SpyInstance
+      'console.warn': jest.SpyInstance
     }
   }
 > = () => (ctx) => {
   beforeEach(() => {
     ctx.mocked['console.error'] = jest
       .spyOn(console, 'error')
-      .mockImplementation(() => { })
+      .mockImplementation(() => {})
     ctx.mocked['console.log'] = jest
       .spyOn(console, 'log')
+      .mockImplementation(() => { })
+    ctx.mocked['console.warn'] = jest
+      .spyOn(console, 'warn')
       .mockImplementation(() => { })
   })
 
   afterEach(() => {
     ctx.mocked['console.error'].mockRestore()
     ctx.mocked['console.log'].mockRestore()
+    ctx.mocked['console.warn'].mockRestore()
   })
 
   return null as any

@@ -13,13 +13,11 @@
     "incremental": true
   },
   "exclude": [
-    "archive",
     "dist",
     "build",
     "cli",
     "fixtures",
     "runtime",
-    "browser-runtime",
     "runtime-dist",
     "generator",
     "src/__tests__/generation/node_modules",

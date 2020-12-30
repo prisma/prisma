@@ -22,9 +22,6 @@ import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials
 import { printDatasources } from './prompt/utils/printDatasources'
 import { removeDatasource } from './utils/removeDatasource'
 
-/**
- * $ prisma introspect
- */
 export class Introspect implements Command {
   public static new(): Introspect {
     return new Introspect()
@@ -39,10 +36,10 @@ export class Introspect implements Command {
       ${chalk.dim('$')} prisma introspect
 
     Or specify a Prisma schema path
-      ${chalk.dim('$')} prisma introspect --schema=./schema.prisma'
+      ${chalk.dim('$')} prisma introspect --schema=./schema.prisma
 
     Instead of saving the result to the filesystem, you can also print it
-      ${chalk.dim('$')} prisma introspect --print'
+      ${chalk.dim('$')} prisma introspect --print
 
     ${chalk.bold('Flag')}
 
@@ -370,7 +367,6 @@ ${
     return ''
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(

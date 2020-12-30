@@ -20,6 +20,7 @@
   ],
   "type": "commonjs",
   "main": "index.js",
+  "browser": "index-browser.js",
   "types": "index.d.ts",
   "exports": {
     ".": {
@@ -34,7 +35,7 @@
   "module": "index.mjs",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10"
+    "node": ">=10.4"
   },
   "homepage": "https://github.com/prisma/prisma-client-js",
   "repository": {
@@ -52,11 +53,13 @@
     "build": "node helpers/build.js",
     "test": "jest",
     "format": "prettier --write .",
-    "lint": "eslint --fix --ext .js,.ts .",
+    "lint": "eslint --cache --fix --ext .ts .",
+    "lint-ci": "eslint --ext .ts .",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts && cp scripts/backup-index.mjs index.mjs",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run build",
+    "precommit": "lint-staged"
   },
   "files": [
     "runtime",
@@ -64,79 +67,67 @@
     "generator-build",
     "index.js",
     "index.d.ts",
-    "index.mjs"
+    "index.mjs",
+    "index-browser.js"
   ],
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.11.0-11.-query-engine-second-coming-of-reserved-words5f311a3c26309b4d6cd89438cb1527011ba02057",
-    "@prisma/fetch-engine": "workspace:*",
+    "@prisma/engines": "2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
-    "@types/fs-extra": "9.0.4",
-    "@types/jest": "26.0.15",
+    "@types/jest": "26.0.19",
     "@types/js-levenshtein": "1.1.0",
-    "@types/node": "12.19.4",
-    "@types/node-fetch": "2.5.7",
-    "@types/pg": "7.14.6",
-    "@typescript-eslint/eslint-plugin": "4.7.0",
-    "@typescript-eslint/parser": "4.7.0",
-    "arg": "4.1.3",
-    "benchmark": "2.1.4",
+    "@types/node": "12.19.11",
+    "@types/pg": "7.14.7",
+    "@typescript-eslint/eslint-plugin": "4.10.0",
+    "@typescript-eslint/parser": "4.10.0",
+    "arg": "5.0.0",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
-    "dotenv": "8.2.0",
-    "esbuild": "0.8.8",
+    "esbuild": "0.8.23",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.13.0",
-    "eslint-config-prettier": "6.15.0",
+    "eslint": "7.15.0",
+    "eslint-config-prettier": "7.0.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
-    "eslint-plugin-prettier": "3.1.4",
-    "execa": "4.1.0",
+    "eslint-plugin-prettier": "3.3.0",
+    "execa": "5.0.0",
     "flat-map-polyfill": "0.3.8",
     "fs-monkey": "1.0.1",
     "get-own-enumerable-property-symbols": "3.0.2",
-    "get-port": "5.1.1",
-    "husky": "4.3.0",
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
     "jest": "26.6.3",
-    "jest-diff": "26.6.2",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
-    "lint-staged": "10.5.1",
+    "lint-staged": "10.5.3",
     "make-dir": "3.1.0",
-    "mariadb": "2.5.1",
-    "mssql": "6.2.3",
-    "ncp": "^2.0.0",
-    "node-fetch": "2.6.1",
-    "packwatch": "2.0.0",
+    "mariadb": "2.5.2",
+    "mssql": "6.3.0",
     "pg": "8.5.1",
-    "pidtree": "0.5.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
-    "prettier": "2.1.2",
+    "prettier": "2.2.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.33.2",
-    "rollup-plugin-dts": "1.4.14",
-    "set-value": "3.0.2",
+    "rollup": "2.35.1",
+    "rollup-plugin-dts": "2.0.1",
+    "sort-keys": "4.1.0",
     "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
-    "stat-mode": "1.0.0",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "26.4.4",
-    "ts-loader": "8.0.11",
-    "ts-node": "9.0.0",
-    "typescript": "4.0.5"
+    "ts-node": "9.1.1",
+    "tsd": "0.14.0",
+    "typescript": "4.1.3"
   },
   "peerDependencies": {
     "@prisma/cli": "*"
@@ -146,21 +137,13 @@
       "optional": true
     }
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+  "dependencies": {
+    "@prisma/engines-version": "2.14.0-26.59cf08bf47e90cb37532900059f3328b4328237c"
   },
   "lint-staged": {
-    "*.{js,ts,css,json,md}": [
-      "prettier --write",
-      "git add"
-    ],
-    "*.{js,ts}": [
-      "eslint"
+    "*.ts": [
+      "eslint",
+      "prettier --write"
     ]
-  },
-  "dependencies": {
-    "@prisma/engines-version": "2.11.0-11.-query-engine-second-coming-of-reserved-words5f311a3c26309b4d6cd89438cb1527011ba02057"
   }
 }

@@ -14,7 +14,7 @@ test('sqlite-variable-limit', async () => {
     await uncompressFile(db)
   }
 
-  const result = await prisma.user.findMany({
+  await prisma.user.findMany({
     include: {
       posts: true,
     },
@@ -40,7 +40,7 @@ test('sqlite-variable-limit', async () => {
 // }
 
 async function uncompressFile(filename) {
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const decompress = zlib.createBrotliDecompress()
     const input = fs.createReadStream(filename + '.br')
     const output = fs.createWriteStream(filename)

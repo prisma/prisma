@@ -35,9 +35,13 @@ export async function tearDownPostgres(connectionString: string) {
     connectionString: connectionStringCopy,
   })
 
-  await db.connect()
-  await db.query(`
+  try {
+    await db.connect()
+    await db.query(`
     DROP DATABASE IF EXISTS "${credentials.database}";
   `)
+  } catch (e) {
+    console.error(e)
+  }
   await db.end()
 }

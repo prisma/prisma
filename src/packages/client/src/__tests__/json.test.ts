@@ -12,10 +12,11 @@ datasource db {
 }
 
 model User {
-  id    Int @id @default(autoincrement())
-  name  String
-  email String @unique
-  json  Json
+  id       Int @id @default(autoincrement())
+  name     String
+  email    String @unique
+  json     Json
+  jsonList Json[]
 }
 
 
@@ -34,7 +35,7 @@ beforeAll(async () => {
 })
 
 describe('json', () => {
-  test('should be able to create json', async () => {
+  test('should be able to create json', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -43,6 +44,7 @@ describe('json', () => {
           json: {
             hello: 'world',
           },
+          jsonList: [{ hello: 'world' }],
           name: 'Bob',
         },
       },
@@ -53,7 +55,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json', async () => {
+  test('should be able filter json', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -72,13 +74,13 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json null', async () => {
+  test('should be able filter json null', () => {
     const document = makeDocument({
       dmmf,
       select: {
         where: {
           json: {
-            equals: null
+            equals: null,
           },
         },
       },
@@ -89,13 +91,13 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json "null"', async () => {
+  test('should be able filter json "null"', () => {
     const document = makeDocument({
       dmmf,
       select: {
         where: {
           json: {
-            equals: "null"
+            equals: 'null',
           },
         },
       },
@@ -106,7 +108,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should error if equals is missing', async () => {
+  test('should error if equals is missing', () => {
     const document = makeDocument({
       dmmf,
       select: {
@@ -138,6 +140,7 @@ describe('json', () => {
     const transformedDocument = getTransformedDocument({
       data: {
         json: ['value1', 'value2'],
+        jsonList: ['value1', 'value2'],
       },
     })
 
@@ -146,12 +149,14 @@ describe('json', () => {
         updateOneUser(
           data: {
             json: "[\\"value1\\",\\"value2\\"]"
+            jsonList: ["\\"value1\\"","\\"value2\\""]
           }
         ) {
           id
           name
           email
           json
+          jsonList
         }
       }
     `)

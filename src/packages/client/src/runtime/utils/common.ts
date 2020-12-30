@@ -53,7 +53,7 @@ export const ScalarTypeTable = {
   Json: true,
   Bytes: true,
   Decimal: true,
-  BigInt: true
+  BigInt: true,
 }
 
 export function isScalar(str: string): boolean {
@@ -92,8 +92,8 @@ export const GraphQLScalarToJSTypeTable = {
   UUID: 'string',
   Json: 'JsonValue',
   Bytes: 'Buffer',
-  Decimal: 'Decimal',
-  BigInt: 'BigInt'
+  Decimal: ['Decimal', 'number', 'string'],
+  BigInt: ['BigInt', 'number'],
 }
 
 export const JSOutputTypeToInputType = {
@@ -240,7 +240,7 @@ export function getSuggestion(
 
 export function stringifyInputType(
   input: string | DMMF.InputType | DMMF.SchemaEnum,
-  greenKeys: boolean = false,
+  greenKeys = false,
 ): string {
   if (typeof input === 'string') {
     return input
@@ -255,20 +255,20 @@ export function stringifyInputType(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map((arg) => {
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'
-            }: ${chalk.white(
-              arg.inputTypes
-                .map((argType) => {
-                  return wrapWithList(argIsInputType(argType.type)
+          const str = `${greenKeys ? chalk.green(key) : key}${
+            arg.isRequired ? '' : '?'
+          }: ${chalk.white(
+            arg.inputTypes
+              .map((argType) => {
+                return wrapWithList(
+                  argIsInputType(argType.type)
                     ? argType.type.name
-                    :
-                    stringifyGraphQLType(argType.type),
-                    argType.isList,
-                  )
-                }
+                    : stringifyGraphQLType(argType.type),
+                  argType.isList,
                 )
-                .join(' | '),
-            )}`
+              })
+              .join(' | '),
+          )}`
           if (!arg.isRequired) {
             return chalk.dim(str)
           }
@@ -284,7 +284,7 @@ export function stringifyInputType(
   }
 }
 
-function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
+export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   if (typeof arg === 'string') {
     return false
   }
@@ -318,7 +318,7 @@ export function getOutputTypeName(
 export function inputTypeToJson(
   input: string | DMMF.InputType | DMMF.SchemaEnum,
   isRequired: boolean,
-  nameOnly: boolean = false,
+  nameOnly = false,
 ): string | object {
   if (typeof input === 'string') {
     if (input === 'Null') {
@@ -334,12 +334,15 @@ export function inputTypeToJson(
   // TS "Trick" :/
   const inputType: DMMF.InputType = input as DMMF.InputType
 
-
   // If the parent type is required and all fields are non-scalars,
   // it's very useful to show to the user, which options they actually have
   const showDeepType =
     isRequired &&
-    inputType.fields.every((arg) => arg.inputTypes[0].location === 'inputObjectTypes' || arg.inputTypes[1]?.location === 'inputObjectTypes')
+    inputType.fields.every(
+      (arg) =>
+        arg.inputTypes[0].location === 'inputObjectTypes' ||
+        arg.inputTypes[1]?.location === 'inputObjectTypes',
+    )
 
   if (nameOnly) {
     return getInputTypeName(input)
@@ -349,9 +352,15 @@ export function inputTypeToJson(
     let str = ''
 
     if (!showDeepType && !curr.isRequired) {
-      str = curr.inputTypes.map(argType => getInputTypeName(argType.type)).join(' | ')
+      str = curr.inputTypes
+        .map((argType) => getInputTypeName(argType.type))
+        .join(' | ')
     } else {
-      str = curr.inputTypes.map(argInputType => inputTypeToJson(argInputType.type, curr.isRequired, true)).join(' | ')
+      str = curr.inputTypes
+        .map((argInputType) =>
+          inputTypeToJson(argInputType.type, curr.isRequired, true),
+        )
+        .join(' | ')
     }
 
     acc[curr.name + (curr.isRequired ? '' : '?')] = str
@@ -443,4 +452,18 @@ export function capitalize(str: string): string {
  */
 export function lowerCase(name: string): string {
   return name.substring(0, 1).toLowerCase() + name.substring(1)
+}
+
+export function isGroupByOutputName(type: string): boolean {
+  return type.endsWith('GroupByOutputType')
+}
+
+export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
+  return (
+    typeof type === 'object' &&
+    type.name &&
+    typeof type.name === 'string' &&
+    type.values &&
+    Array.isArray(type.values)
+  )
 }

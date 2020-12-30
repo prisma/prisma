@@ -5,77 +5,81 @@ import {
   format,
   HelpError,
   isError,
+  link,
   unknownCommand,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { getNextFreePort } from '../utils/occupyPath'
+import { ExperimentalFlagWithNewMigrateError } from '../utils/flagErrors'
 
-/**
- * Migrate command
- */
 export class MigrateCommand implements Command {
   public static new(cmds: Commands): MigrateCommand {
     return new MigrateCommand(cmds)
   }
 
-  // static help template
   private static help = format(`
-    ${
-      process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-    }Migrate your database with confidence
+Update the database schema with migrations
 
-    ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    "Prisma's migration functionality is currently in an experimental state.",
+${chalk.bold.yellow('WARNING')} ${chalk.bold(
+    `Prisma's migration functionality is currently in Preview (${link(
+      'https://pris.ly/d/preview',
+    )}).`,
   )}
-    ${chalk.dim(
-      'When using any of the commands below you need to explicitly opt-in via the --experimental flag.',
-    )}
+${chalk.dim(
+  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
+)}
+  
+${chalk.bold('Usage')}
 
-    ${chalk.bold('Usage')}
+  ${chalk.dim('$')} prisma migrate [command] [options] --preview-feature
 
-      With an existing schema.prisma:
-      ${chalk.dim('$')} prisma migrate [command] [options] --experimental
+${chalk.bold('Commands for development')}
 
-      Or specify a schema:
-      ${chalk.dim(
-        '$',
-      )} prisma migrate [command] [options] --experimental --schema=./schema.prisma
+         dev   Create a migration from changes in Prisma schema, apply it to the database
+               trigger generators (e.g. Prisma Client)
+       reset   Reset your database and apply all migrations, all data will be lost
 
-    ${chalk.bold('Options')}
+${chalk.bold('Commands for production/staging')}
 
-      -h, --help   Display this help message
+      deploy   Apply pending migrations to the database 
+      status   Check the status of your database migrations
+     resolve   Resolve issues with database migrations, i.e. baseline, failed migration, hotfix
 
-    ${chalk.bold('Commands')}
+${chalk.bold('Options')}
 
-        save   Create a new migration
-          up   Migrate your database up
-        down   Migrate your database down
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
 
-    ${chalk.bold('Examples')}
+${chalk.bold('Examples')}
 
-      Create new migration
-      ${chalk.dim('$')} prisma migrate save --experimental
+  Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
+  ${chalk.dim('$')} prisma migrate dev --preview-feature
 
-      Migrate up to the latest datamodel
-      ${chalk.dim('$')} prisma migrate up --experimental
+  Reset your database and apply all migrations
+  ${chalk.dim('$')} prisma migrate reset --preview-feature
 
-      Preview the next migration without migrating
-      ${chalk.dim('$')} prisma migrate up --preview --experimental
+  Apply pending migrations to the database in production/staging
+  ${chalk.dim('$')} prisma migrate deploy --preview-feature
 
-      Rollback a migration
-      ${chalk.dim('$')} prisma migrate down 1 --experimental
+  Check the status of migrations in the production/staging database
+  ${chalk.dim('$')} prisma migrate status --preview-feature
 
-      Get more help on a migrate up
-      ${chalk.dim('$')} prisma migrate up -h --experimental
-  `)
+  Specify a schema
+  ${chalk.dim(
+    '$',
+  )} prisma migrate status --schema=./schema.prisma --preview-feature
+
+`)
+
   private constructor(private readonly cmds: Commands) {}
 
+  /* eslint-disable-next-line @typescript-eslint/require-await */
   public async parse(argv: string[]): Promise<string | Error> {
-    // parse the arguments according to the spec
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
       '--experimental': Boolean,
+      '--preview-feature': Boolean,
+      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -83,33 +87,27 @@ export class MigrateCommand implements Command {
       return this.help(args.message)
     }
 
+    if (args['--experimental']) {
+      throw new ExperimentalFlagWithNewMigrateError()
+    }
+
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
       return this.help()
     }
 
+    if (['up', 'save', 'down'].includes(args._[0])) {
+      throw new Error(
+        `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
+Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
+      )
+    }
+
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const nextFreePort = await getNextFreePort(process.cwd())
-      if (typeof nextFreePort !== 'number') {
-        const command = `prisma migrate ${argv.join(' ')}`
-        throw new Error(`Cannot run ${chalk.bold(
-          command,
-        )} because there is a ${chalk.bold(
-          'prisma dev',
-        )} command running in this directory.
-Please ${chalk.rgb(
-          228,
-          155,
-          15,
-        )(
-          `stop ${chalk.bold('prisma dev')} first`,
-        )}, then try ${chalk.greenBright.bold(command)} again`)
-      }
-
-      const argsForCmd = args['--experimental']
-        ? [...args._.slice(1), `--experimental=${args['--experimental']}`]
+      const argsForCmd = args['--preview-feature']
+        ? [...args._.slice(1), `--preview-feature`]
         : args._.slice(1)
       return cmd.parse(argsForCmd)
     }

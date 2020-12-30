@@ -1,4 +1,3 @@
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
   export interface Document {
@@ -63,7 +62,11 @@ export namespace DMMF {
   export type FieldKind = 'scalar' | 'object' | 'enum'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+  export type FieldLocation =
+    | 'scalar'
+    | 'inputObjectTypes'
+    | 'outputObjectTypes'
+    | 'enumTypes'
 
   export interface Field {
     kind: FieldKind
@@ -169,7 +172,7 @@ export namespace DMMF {
   export interface ModelMapping {
     model: string
     plural: string
-    findOne?: string | null
+    findUnique?: string | null
     findFirst?: string | null
     findMany?: string | null
     create?: string | null
@@ -179,10 +182,12 @@ export namespace DMMF {
     delete?: string | null
     deleteMany?: string | null
     aggregate?: string | null
+    groupBy?: string | null
+    count?: string | null
   }
 
   export enum ModelAction {
-    findOne = 'findOne',
+    findUnique = 'findUnique',
     findFirst = 'findFirst',
     findMany = 'findMany',
     create = 'create',
@@ -191,5 +196,8 @@ export namespace DMMF {
     upsert = 'upsert',
     delete = 'delete',
     deleteMany = 'deleteMany',
+    groupBy = 'groupBy',
+    count = 'count',
+    aggregate = 'aggregate',
   }
 }

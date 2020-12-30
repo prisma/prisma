@@ -2,27 +2,22 @@ import {
   arg,
   Command,
   format,
-  getCommandWithExecutor,
   getSchemaPath,
   getSchemaDir,
   HelpError,
   isError,
   isCi,
-  uriToCredentials,
-  getConfig,
   dropDatabase,
   link,
 } from '@prisma/sdk'
 import path from 'path'
-import fs from 'fs'
 import execa from 'execa'
 import chalk from 'chalk'
 import prompt from 'prompts'
-import {
-  getDbinfoFromCredentials,
-  getDbLocation,
-} from '../utils/ensureDatabaseExists'
-import { PreviewFlagError } from '../utils/experimental'
+import { getDbInfo } from '../utils/ensureDatabaseExists'
+import { PreviewFlagError } from '../utils/flagErrors'
+import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {
@@ -48,8 +43,9 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-   -h, --help      Displays this help message
-  -f, --force      Skip the confirmation prompt
+   -h, --help   Display this help message
+     --schema   Custom path to your Prisma schema
+  -f, --force   Skip the confirmation prompt
 
 ${chalk.bold('Examples')}
 
@@ -57,11 +53,11 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
   ${chalk.dim('$')} prisma db drop --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -89,15 +85,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     console.info(
@@ -106,46 +94,44 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const datamodel = fs.readFileSync(schemaPath, 'utf-8')
-    const config = await getConfig({ datamodel })
-    const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+    await printDatasource(schemaPath)
+
+    const dbInfo = await getDbInfo(schemaPath)
     const schemaDir = (await getSchemaDir(schemaPath))!
 
     console.info() // empty line
 
     if (!args['--force']) {
-      if (isCi()) {
-        throw Error(
-          `Use the --force flag to use the drop command in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor('prisma db drop --preview-feature --force'),
-          )}`,
-        )
+      // We use prompts.inject() for testing in our CI
+      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        throw new DbNeedsForceError('drop')
       }
 
+      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbType} ${schemaWord} name "${dbName}" to drop it.\nLocation: "${getDbLocation(
-          credentials,
-        )}".\n${chalk.red('All data will be lost')}.`,
+        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${
+          dbInfo.dbName
+        }" to drop it.\nLocation: "${dbInfo.dbLocation}".\n${chalk.red(
+          'All data will be lost',
+        )}.`,
       })
       console.info() // empty line
 
       if (!confirmation.value) {
         console.info('Drop cancelled.')
         process.exit(0)
-      } else if (confirmation.value !== dbName) {
+      } else if (confirmation.value !== dbInfo.dbName) {
         throw Error(
-          `The ${schemaWord} name entered "${confirmation.value}" doesn't match "${dbName}".`,
+          `The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`,
         )
       }
     }
 
     let result: execa.ExecaReturnValue<string> | undefined = undefined
     try {
-      result = await dropDatabase(activeDatasource.url.value, schemaDir)
+      result = await dropDatabase(dbInfo.url, schemaDir)
     } catch (e) {
       let json
       try {
@@ -167,14 +153,15 @@ ${chalk.bold('Examples')}
     }
 
     if (
-      result?.exitCode === 0 &&
+      result &&
+      result.exitCode === 0 &&
       result.stderr.includes('The database was successfully dropped')
     ) {
-      return `${
-        process.platform === 'win32' ? '' : '🚀  '
-      }The ${dbType} ${schemaWord} "${dbName}" from "${getDbLocation(
-        credentials,
-      )}" was successfully dropped.\n`
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${
+        dbInfo.dbType
+      } ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${
+        dbInfo.dbLocation
+      }" was successfully dropped.\n`
     } else {
       // We should not arrive here normally
       throw Error(
@@ -187,7 +174,6 @@ ${chalk.bold('Examples')}
     }
   }
 
-  // help message
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbDrop.help}`)

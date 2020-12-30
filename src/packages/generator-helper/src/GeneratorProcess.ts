@@ -3,7 +3,8 @@ import { spawn } from 'cross-spawn'
 import byline from './byline'
 import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
-import Debug from 'debug'
+import Debug from '@prisma/debug'
+
 const debug = Debug('GeneratorProcess')
 
 let globalMessageId = 1
@@ -29,7 +30,7 @@ export class GeneratorProcess {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
-  constructor(private executablePath: string, private isNode?: boolean) { }
+  constructor(private executablePath: string, private isNode?: boolean) {}
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -46,7 +47,7 @@ export class GeneratorProcess {
               ...process.env,
               PRISMA_GENERATOR_INVOCATION: 'true',
             },
-            execArgv: ['--max-old-space-size=8096']
+            execArgv: ['--max-old-space-size=8096'],
           })
         } else {
           this.child = spawn(this.executablePath, {
@@ -74,7 +75,8 @@ export class GeneratorProcess {
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${this.executablePath
+                `The executable at ${
+                  this.executablePath
                 } lacks the right chmod. Please use ${chalk.bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,

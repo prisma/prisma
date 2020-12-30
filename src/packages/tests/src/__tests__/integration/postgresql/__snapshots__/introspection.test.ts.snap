@@ -453,28 +453,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime exact: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime exact: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime gt: datamodel 1`] = `
 generator client {
@@ -488,28 +473,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime gt: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime gt: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime gte: datamodel 1`] = `
 generator client {
@@ -523,28 +493,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime gte: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime gte: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime lt: datamodel 1`] = `
 generator client {
@@ -558,28 +513,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime lt: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime lt: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
@@ -614,28 +554,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime lte: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime lte: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime not: datamodel 1`] = `
 generator client {
@@ -649,28 +574,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where datetime not: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where datetime not: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where decimal: datamodel 1`] = `
 generator client {
@@ -851,28 +761,13 @@ datasource postgresql {
 }
 
 model events {
-  id      Int          @id @default(autoincrement())
-  // This type is currently not supported.
-  // time timestamptz?
+  id   Int       @id @default(autoincrement())
+  time DateTime?
 }
 
 `;
 
-exports[`introspection: findMany where null: warnings 1`] = `
-Array [
-  Object {
-    affected: Array [
-      Object {
-        field: time,
-        model: events,
-        tpe: timestamptz,
-      },
-    ],
-    code: 3,
-    message: These fields were commented out because Prisma currently does not support their types.,
-  },
-]
-`;
+exports[`introspection: findMany where null: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where startsWith: datamodel 1`] = `
 generator client {
@@ -978,7 +873,7 @@ model users {
 
 exports[`introspection: findMany where unique: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne - check typeof Date is string for Json field: datamodel 1`] = `
+exports[`introspection: findUnique - check typeof Date is string for Json field: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -997,9 +892,9 @@ model posts {
 
 `;
 
-exports[`introspection: findOne - check typeof Date is string for Json field: warnings 1`] = `Array []`;
+exports[`introspection: findUnique - check typeof Date is string for Json field: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne - check typeof array for Json field with array: datamodel 1`] = `
+exports[`introspection: findUnique - check typeof array for Json field with array: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1018,9 +913,9 @@ model posts {
 
 `;
 
-exports[`introspection: findOne - check typeof array for Json field with array: warnings 1`] = `Array []`;
+exports[`introspection: findUnique - check typeof array for Json field with array: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne - check typeof js object is object for Json field: datamodel 1`] = `
+exports[`introspection: findUnique - check typeof js object is object for Json field: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1039,9 +934,9 @@ model posts {
 
 `;
 
-exports[`introspection: findOne - check typeof js object is object for Json field: warnings 1`] = `Array []`;
+exports[`introspection: findUnique - check typeof js object is object for Json field: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where PK with include: datamodel 1`] = `
+exports[`introspection: findUnique where PK with include: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1067,9 +962,9 @@ model users {
 
 `;
 
-exports[`introspection: findOne where PK with include: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK with include: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where PK with select: datamodel 1`] = `
+exports[`introspection: findUnique where PK with select: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1088,9 +983,9 @@ model teams {
 
 `;
 
-exports[`introspection: findOne where PK with select: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK with select: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where PK: datamodel 1`] = `
+exports[`introspection: findUnique where PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1108,9 +1003,9 @@ model teams {
 
 `;
 
-exports[`introspection: findOne where PK: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where PK: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where composite PK with foreign key: datamodel 1`] = `
+exports[`introspection: findUnique where composite PK with foreign key: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1138,9 +1033,9 @@ model b {
 
 `;
 
-exports[`introspection: findOne where composite PK with foreign key: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite PK with foreign key: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where composite PK: datamodel 1`] = `
+exports[`introspection: findUnique where composite PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1162,9 +1057,9 @@ model variables {
 
 `;
 
-exports[`introspection: findOne where composite PK: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite PK: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where composite unique: datamodel 1`] = `
+exports[`introspection: findUnique where composite unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1185,9 +1080,9 @@ model users {
 
 `;
 
-exports[`introspection: findOne where composite unique: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where composite unique: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where decimal - default value: datamodel 1`] = `
+exports[`introspection: findUnique where decimal - default value: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1205,9 +1100,9 @@ model exercises {
 
 `;
 
-exports[`introspection: findOne where decimal - default value: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where decimal - default value: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where decimal: datamodel 1`] = `
+exports[`introspection: findUnique where decimal: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1225,9 +1120,9 @@ model exercises {
 
 `;
 
-exports[`introspection: findOne where decimal: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where decimal: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where unique composite (PK is a composite): datamodel 1`] = `
+exports[`introspection: findUnique where unique composite (PK is a composite): datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1250,9 +1145,9 @@ model variables {
 
 `;
 
-exports[`introspection: findOne where unique composite (PK is a composite): warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique composite (PK is a composite): warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where unique composite: datamodel 1`] = `
+exports[`introspection: findUnique where unique composite: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1275,9 +1170,9 @@ model variables {
 
 `;
 
-exports[`introspection: findOne where unique composite: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique composite: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where unique with foreign key and unpack: datamodel 1`] = `
+exports[`introspection: findUnique where unique with foreign key and unpack: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1303,9 +1198,9 @@ model users {
 
 `;
 
-exports[`introspection: findOne where unique with foreign key and unpack: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique with foreign key and unpack: warnings 1`] = `Array []`;
 
-exports[`introspection: findOne where unique: datamodel 1`] = `
+exports[`introspection: findUnique where unique: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
   output = "***"
@@ -1323,7 +1218,7 @@ model users {
 
 `;
 
-exports[`introspection: findOne where unique: warnings 1`] = `Array []`;
+exports[`introspection: findUnique where unique: warnings 1`] = `Array []`;
 
 exports[`introspection: update where composite PK: datamodel 1`] = `
 generator client {

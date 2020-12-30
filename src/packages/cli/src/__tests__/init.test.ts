@@ -1,61 +1,76 @@
 import fs from 'fs'
 import { join } from 'path'
-import tempy from 'tempy'
-import { Init, defaultSchema, defaultEnv } from '../Init'
 import stripAnsi from 'strip-ansi'
+import { defaultEnv, defaultSchema } from '../Init'
+import { consoleContext, Context } from './__helpers__/context'
 
-describe('init', () => {
-  test('is schema and env written on disk replace', async () => {
-    const tmpDir = tempy.directory()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+const ctx = Context.new().add(consoleContext()).assemble()
 
-    const init = Init.new()
-    const result = stripAnsi(await init.parse([]))
+test('is schema and env written on disk replace', async () => {
+  const result = await ctx.cli('init')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-    expect(result).toMatchSnapshot()
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema())
 
-    const schema = fs.readFileSync(
-      join(tmpDir, 'prisma', 'schema.prisma'),
-      'utf-8',
-    )
-    expect(schema).toMatch(defaultSchema())
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatch(defaultEnv())
+})
 
-    const env = fs.readFileSync(join(tmpDir, 'prisma', '.env'), 'utf-8')
-    expect(env).toMatch(defaultEnv())
+test('works with url param', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--url', 'file:dev.db')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-    process.chdir(cwd)
-  })
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema('sqlite'))
 
-  test('works with url param', async () => {
-    const tmpDir = tempy.directory()
-    const cwd = process.cwd()
-    process.chdir(tmpDir)
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchInlineSnapshot(`
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-    const init = Init.new()
-    const result = stripAnsi(
-      await init.parse([
-        '--url',
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ]),
-    )
-    expect(result).toMatchSnapshot()
+    # Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    const schema = fs.readFileSync(
-      join(tmpDir, 'prisma', 'schema.prisma'),
-      'utf-8',
-    )
-    expect(schema).toMatch(defaultSchema())
+    DATABASE_URL="file:dev.db"
+  `)
+})
 
-    const env = fs.readFileSync(join(tmpDir, 'prisma', '.env'), 'utf-8')
-    expect(env).toMatch(
-      defaultEnv(
-        process.env.TEST_POSTGRES_URI ||
-          'postgres://prisma:prisma@localhost:5432/tests',
-      ),
-    )
+test('warns when DATABASE_URL present in .env ', async () => {
+  fs.writeFileSync(
+    join(ctx.tmpDir, '.env'),
+    `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
+  )
+  const result = await ctx.cli('init')
+  expect(stripAnsi(result.all!)).toMatchSnapshot()
 
-    process.chdir(cwd)
-  })
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema())
+
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatch(`DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
+})
+test('appends when .env present', async () => {
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
+  const result = await ctx.cli('init')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema())
+
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchSnapshot()
 })

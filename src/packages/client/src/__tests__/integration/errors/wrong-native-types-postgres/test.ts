@@ -3,6 +3,9 @@ import path from 'path'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 
+// We WANT to be able to do the async function without an await
+/* eslint-disable @typescript-eslint/require-await */
+
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-wrong-native-types-tests'
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
@@ -19,7 +22,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
 
   await prisma.a.deleteMany()
 
-  let data = {
+  const data = {
     email: 'a@a.de',
     name: 'Bob',
     int: '',
@@ -55,7 +58,7 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
 
   await prisma.b.deleteMany()
 
-  let data: any = {
+  const data: any = {
     float: '1.23',
     dFloat: '5.2',
     decFloat: 'hello',

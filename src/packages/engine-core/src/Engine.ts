@@ -1,27 +1,14 @@
 import {
   RustLog,
-  //  PanicLogFields,
   RustError,
-  isRustError,
+  getBacktraceFromLog,
+  getBacktraceFromRustError,
 } from './log'
 import { getLogs } from '@prisma/debug'
 import { getGithubIssueUrl, link } from './util'
 import stripAnsi from 'strip-ansi'
-
-export function getMessage(log: string | RustLog | RustError | any): string {
-  if (typeof log === 'string') {
-    return log
-  } else if (isRustError(log)) {
-    return log.message
-  } else if (log.fields && log.fields.message) {
-    if (log.fields.reason) {
-      return `${log.fields.message}: ${log.fields.reason}`
-    }
-    return log.fields.message
-  } else {
-    return JSON.stringify(log)
-  }
-}
+import { ConnectorType } from '@prisma/generator-helper'
+import { maskQuery } from './maskQuery'
 
 export interface RequestError {
   error: string
@@ -50,6 +37,9 @@ export class PrismaClientKnownRequestError extends Error {
     this.clientVersion = clientVersion
     this.meta = meta
   }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientKnownRequestError'
+  }
 }
 
 export class PrismaClientUnknownRequestError extends Error {
@@ -59,6 +49,9 @@ export class PrismaClientUnknownRequestError extends Error {
     super(message)
 
     this.clientVersion = clientVersion
+  }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientUnknownRequestError'
   }
 }
 
@@ -70,6 +63,41 @@ export class PrismaClientRustPanicError extends Error {
 
     this.clientVersion = clientVersion
   }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientRustPanicError'
+  }
+}
+
+export type PrismaClientRustErrorArgs = {
+  clientVersion: string
+  log?: RustLog
+  error?: RustError
+}
+
+/**
+ * A generic Prisma Client Rust error.
+ * This error is being exposed via the `prisma.$on('error')` interface
+ */
+export class PrismaClientRustError extends Error {
+  clientVersion: string
+
+  constructor({ clientVersion, log, error }: PrismaClientRustErrorArgs) {
+    if (log) {
+      const backtrace = getBacktraceFromLog(log)
+      super(backtrace ?? 'Unkown error')
+    } else if (error) {
+      const backtrace = getBacktraceFromRustError(error)
+      super(backtrace)
+    } else {
+      // this should never happen
+      super(`Unknown error`)
+    }
+
+    this.clientVersion = clientVersion
+  }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientRustPanicError'
+  }
 }
 
 export class PrismaClientInitializationError extends Error {
@@ -80,11 +108,17 @@ export class PrismaClientInitializationError extends Error {
 
     this.clientVersion = clientVersion
   }
+  get [Symbol.toStringTag]() {
+    return 'PrismaClientInitializationError'
+  }
 }
 
 export interface ErrorWithLinkInput {
   version: string
-  platform: string
+  engineVersion?: string
+  database?: ConnectorType
+  query: string
+  platform?: string
   title: string
   description?: string
 }
@@ -94,8 +128,12 @@ export function getErrorMessageWithLink({
   platform,
   title,
   description,
+  engineVersion,
+  database,
+  query,
 }: ErrorWithLinkInput) {
-  const logs = normalizeLogs(stripAnsi(getLogs()))
+  const gotLogs = getLogs(6000 - query.length)
+  const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
     : ''
@@ -108,13 +146,31 @@ export function getErrorMessageWithLink({
 | Node            | ${process.version?.padEnd(19)}| 
 | OS              | ${platform?.padEnd(19)}|
 | Prisma Client   | ${version?.padEnd(19)}|
+| Query Engine    | ${engineVersion?.padEnd(19)}|
+| Database        | ${database?.padEnd(19)}|
 
 ${moreInfo}
+
+## Query
+\`\`\`
+${query ? maskQuery(query) : ''}
+\`\`\`
 
 ## Logs
 \`\`\`
 ${logs}
-\`\`\``,
+\`\`\`
+
+## Client Snippet
+\`\`\`ts
+// PLEASE FILL YOUR CODE SNIPPET HERE
+\`\`\`
+
+## Schema
+\`\`\`prisma
+// PLEASE ADD YOUR SCHEMA HERE IF POSSIBLE
+\`\`\`
+`,
   )
 
   const url = getGithubIssueUrl({ title, body })
@@ -125,6 +181,8 @@ This is a non-recoverable error which probably happens when the Prisma Query Eng
 ${link(url)}
 
 If you want the Prisma team to look into it, please open the link above 🙏
+To increase the chance of success, please post your schema and a snippet of
+how you used Prisma Client in the issue. 
 `
 }
 

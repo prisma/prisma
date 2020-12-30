@@ -5,18 +5,19 @@ import {
   HelpError,
   isError,
   getSchemaPath,
-  getCommandWithExecutor,
   link,
-  isCi,
 } from '@prisma/sdk'
-import fs from 'fs'
 import path from 'path'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
-import { PreviewFlagError } from '../utils/experimental'
+import { PreviewFlagError } from '../utils/flagErrors'
+import {
+  DbPushIgnoreWarningsWithForceError,
+  NoSchemaFoundError,
+} from '../utils/errors'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -44,10 +45,10 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-           -h, --help   Displays this help message
+           -h, --help   Display this help message
+             --schema   Custom path to your Prisma schema
           -f, --force   Ignore data loss warnings
-      --skip-generate   Skip generate
-  --ignore-migrations   Ignore migrations files warning
+      --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
 
@@ -55,11 +56,11 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma'
+  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma
 
   Use --force to ignore data loss warnings
   ${chalk.dim('$')} prisma db push --preview-feature --force
-  `)
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(
@@ -71,7 +72,6 @@ ${chalk.bold('Examples')}
         '--force': Boolean,
         '-f': '--force',
         '--skip-generate': Boolean,
-        '--ignore-migrations': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -93,15 +93,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     console.info(
@@ -110,41 +102,16 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    const migrationDirPath = path.join(path.dirname(schemaPath), 'migrations')
-    const oldMigrateLockFilePath = path.join(migrationDirPath, 'migrate.lock')
-    if (!args['--ignore-migrations'] && fs.existsSync(oldMigrateLockFilePath)) {
-      if (isCi()) {
-        throw Error(
-          `Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
-Use the --ignore-migrations flag to ignore this message in an unnattended environment like ${chalk.bold.greenBright(
-            getCommandWithExecutor(
-              'prisma db push --preview-feature --ignore-migrations',
-            ),
-          )}`,
-        )
-      }
+    await printDatasource(schemaPath)
 
-      const confirmation = await prompt({
-        type: 'confirm',
-        name: 'value',
-        message: `${chalk.yellow(
-          'Warning',
-        )}: Using db push alongside migrate will interfere with migrations.
-The SQL in the README.md file of new migrations will not reflect the actual schema changes executed when running migrate up.
-Do you want to continue?`,
-      })
+    const migrate = new Migrate(schemaPath)
 
-      if (!confirmation.value) {
-        console.info() // empty line
-        console.info('Push cancelled.')
-        process.exit(0)
-      }
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
     }
-
-    const migrate = new Migrate(args['--schema'])
-
-    await ensureDatabaseExists('push', true, args['--schema'])
 
     const before = Date.now()
     const migration = await migrate.push({
@@ -177,15 +144,7 @@ Do you want to continue?`,
       console.log() // empty line
 
       if (!args['--force']) {
-        throw Error(
-          chalk.bold(
-            `Use the --force flag to ignore these warnings like ${chalk.bold.greenBright(
-              getCommandWithExecutor(
-                'prisma db push --preview-feature --force',
-              ),
-            )}`,
-          ),
-        )
+        throw new DbPushIgnoreWarningsWithForceError()
       }
     }
 

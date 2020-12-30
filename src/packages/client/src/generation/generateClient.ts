@@ -18,6 +18,7 @@ import { extractSqliteSources } from './extractSqliteSources'
 import { TSClient, TS, JS, MJS } from './TSClient'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import pkgUp from 'pkg-up'
+import { BrowserJS } from './TSClient/Generatable'
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -34,6 +35,7 @@ export class DenylistError extends Error {
 }
 
 export interface GenerateClientOptions {
+  projectRoot?: string
   datamodel: string
   datamodelPath: string
   browser?: boolean
@@ -49,6 +51,7 @@ export interface GenerateClientOptions {
   copyRuntime?: boolean
   engineVersion: string
   clientVersion: string
+  activeProvider: string
 }
 
 export interface BuildClientResult {
@@ -69,6 +72,8 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
+  projectRoot,
+  activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
 
@@ -88,12 +93,15 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
+    projectRoot: projectRoot!,
+    activeProvider,
   })
 
   const fileMap = {
     'index.d.ts': TS(client),
     'index.js': JS(client),
     'index.mjs': MJS(client),
+    'index-browser.js': BrowserJS(client),
   }
 
   return {
@@ -139,6 +147,7 @@ export async function generateClient({
   copyRuntime,
   clientVersion,
   engineVersion,
+  activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
 
@@ -148,6 +157,9 @@ export async function generateClient({
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir
+
+  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
+  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -163,11 +175,11 @@ export async function generateClient({
     binaryPaths,
     clientVersion,
     engineVersion,
+    projectRoot,
+    activeProvider,
   })
 
-  const denylistsErrors = validateDmmfAgainstDenylists(
-    prismaClientDmmf,
-  )
+  const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
     let message = `${chalk.redBright.bold(
@@ -280,11 +292,12 @@ export async function generateClient({
         types: 'index.d.ts',
         exports: {
           '.': {
-            require:  './index.js',
-            default: './index.mjs'
-          }
+            require: './index.js',
+            default: './index.mjs',
+          },
         },
         module: 'index.mjs',
+        browser: 'index-browser.js',
       },
       null,
       2,
@@ -309,6 +322,7 @@ export async function generateClient({
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
+  const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
     await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
@@ -318,9 +332,15 @@ export async function generateClient({
     await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
+  if (!fs.existsSync(proxyIndexBrowserJsPath)) {
+    await copyFile(
+      path.join(__dirname, '../../index-browser.js'),
+      proxyIndexBrowserJsPath,
+    )
+  }
+
   return { prismaClientDmmf, fileMap }
 }
-
 
 async function fileSize(name: string): Promise<number | null> {
   try {
@@ -340,8 +360,9 @@ function validateDmmfAgainstDenylists(
     // A copy of this list is also in prisma-engines. Any edit should be done in both places.
     // https://github.com/prisma/prisma-engines/blob/master/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
     models: [
-      // reserved GraphQL words
+      // Reserved Prisma keywords
       'PrismaClient',
+      'Prisma',
       // JavaScript keywords
       'break',
       'case',

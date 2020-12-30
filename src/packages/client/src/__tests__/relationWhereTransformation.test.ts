@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { chinook } from '../fixtures/chinook'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
 chalk.level = 0
 

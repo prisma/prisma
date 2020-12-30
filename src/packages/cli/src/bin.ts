@@ -17,10 +17,9 @@ import chalk from 'chalk'
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
 
-// do this before facebook's yoga
-import debugLib from 'debug'
+import Debug from '@prisma/debug'
 
-const debug = debugLib('prisma')
+const debug = Debug('prisma')
 process.on('uncaughtException', (e) => {
   debug(e)
 })
@@ -41,16 +40,16 @@ if (process[Symbol.for('ts-node.register.instance')]) {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-    `  The ${chalk.redBright(
-      'prisma2',
-    )} command is deprecated and has been renamed to ${chalk.greenBright(
-      'prisma',
-    )}.\nPlease execute ${chalk.bold.greenBright(
-      'prisma' +
-      (process.argv.length > 2
-        ? ' ' + process.argv.slice(2).join(' ')
-        : ''),
-    )} instead.\n`,
+      `  The ${chalk.redBright(
+        'prisma2',
+      )} command is deprecated and has been renamed to ${chalk.greenBright(
+        'prisma',
+      )}.\nPlease execute ${chalk.bold.greenBright(
+        'prisma' +
+          (process.argv.length > 2
+            ? ' ' + process.argv.slice(2).join(' ')
+            : ''),
+      )} instead.\n`,
   )
 }
 
@@ -71,9 +70,9 @@ const args = arg(
 // if the CLI is called without any command like `prisma` we can ignore .env loading
 if (process.argv.length > 2) {
   try {
-    const envPaths = getEnvPaths(args["--schema"])
+    const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && console.log(envData.message);
+    envData && envData.message && console.log(envData.message)
   } catch (e) {
     handleIndividualError(e)
   }
@@ -86,12 +85,13 @@ import * as checkpoint from 'checkpoint-client'
 import { isError, HelpError } from '@prisma/sdk'
 import {
   MigrateCommand,
-  MigrateSave,
-  MigrateUp,
-  MigrateDown,
-  MigrateTmpPrepare,
+  MigrateDev,
+  MigrateResolve,
+  MigrateStatus,
+  MigrateReset,
+  MigrateDeploy,
   DbPush,
-  // DbDrop,
+  DbDrop,
   DbCommand,
   handlePanic,
 } from '@prisma/migrate'
@@ -139,15 +139,17 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       migrate: MigrateCommand.new({
-        save: MigrateSave.new(),
-        up: MigrateUp.new(),
-        down: MigrateDown.new(),
+        dev: MigrateDev.new(),
+        status: MigrateStatus.new(),
+        resolve: MigrateResolve.new(),
+        reset: MigrateReset.new(),
+        deploy: MigrateDeploy.new(),
       }),
       db: DbCommand.new({
+        pull: Introspect.new(),
         push: DbPush.new(),
-        // drop: DbDrop.new(),
+        drop: DbDrop.new(),
       }),
-      'tmp-prepare': MigrateTmpPrepare.new(),
       introspect: Introspect.new(),
       dev: Dev.new(),
       studio: Studio.new(aliases),
@@ -263,7 +265,6 @@ if (require.main === module) {
       }
     })
     .catch((err) => {
-
       // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
       if (typeof err[Symbol.iterator] === 'function') {
         for (const individualError of err) {
@@ -279,7 +280,7 @@ function handleIndividualError(error): void {
   if (error.rustStack) {
     handlePanic(error, packageJson.version, enginesVersion)
       .catch((e) => {
-        if (debugLib.enabled('prisma')) {
+        if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)
         } else {
           console.error(chalk.redBright.bold('Error: ') + e.message)
@@ -289,7 +290,7 @@ function handleIndividualError(error): void {
         process.exit(1)
       })
   } else {
-    if (debugLib.enabled('prisma')) {
+    if (Debug.enabled('prisma')) {
       console.error(chalk.redBright.bold('Error: ') + error.stack)
     } else {
       console.error(chalk.redBright.bold('Error: ') + error.message)

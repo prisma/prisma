@@ -465,8 +465,6 @@ async function getAllVersions(
       await pMap(
         Object.values(packages).filter(p => p.name !== '@prisma/tests'),
         async (pkg) => {
-          console.log('getAllVersions')
-          console.log(pkg.name)
           if (pkg.name === '@prisma/tests') {
             return []
           }
@@ -771,7 +769,8 @@ async function tagEnginesRepo(dryRun = false) {
   /** Get version */
   const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
-  const engineVersion = pkg.prisma.version
+  // const engineVersion = pkg.prisma.version
+  const engineVersion = pkg.dependencies['@prisma/engines']?.split('.').slice(-1)[0]
   const packageVersion = pkg.version
 
   /** Tag */

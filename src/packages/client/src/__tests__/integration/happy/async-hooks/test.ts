@@ -5,7 +5,7 @@ test('async-hooks', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   let asyncId
-  prisma.$use(async (params, fetch) => {
+  prisma.$use((params, fetch) => {
     asyncId = executionAsyncId()
     return fetch(params)
   })

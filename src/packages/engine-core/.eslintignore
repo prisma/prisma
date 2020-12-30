@@ -1,4 +1,4 @@
 node_modules
 dist
 src/byline.ts
-src/__test__
+src/__tests__

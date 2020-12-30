@@ -28,6 +28,10 @@ export function getAggregateName(modelName: string): string {
   return `Aggregate${capitalize(modelName)}`
 }
 
+export function getGroupByName(modelName: string): string {
+  return `${capitalize(modelName)}GroupByOutputType`
+}
+
 export function getAvgAggregateName(modelName: string): string {
   return `${capitalize(modelName)}AvgAggregateOutputType`
 }
@@ -44,8 +48,20 @@ export function getMaxAggregateName(modelName: string): string {
   return `${capitalize(modelName)}MaxAggregateOutputType`
 }
 
+export function getCountAggregateName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateOutputType`
+}
+
 export function getAggregateInputType(aggregateOutputType: string): string {
   return aggregateOutputType.replace(/OutputType$/, 'InputType')
+}
+
+export function getGroupByArgsName(modelName: string): string {
+  return `GroupBy${capitalize(modelName)}Args`
+}
+
+export function getGroupByPayloadName(modelName: string): string {
+  return `Get${capitalize(modelName)}GroupByPayload`
 }
 
 export function getAggregateArgsName(modelName: string): string {
@@ -87,7 +103,7 @@ export function getArgName(name: string, isList: boolean): string {
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(
   modelName: string,
-  action?: DMMF.ModelAction,
+  action?: DMMF.ModelAction | 'findOne',
 ): string {
   if (!action) {
     return `${modelName}Args`
@@ -95,8 +111,10 @@ export function getModelArgName(
   switch (action) {
     case DMMF.ModelAction.findMany:
       return `FindMany${modelName}Args`
-    case DMMF.ModelAction.findOne:
-      return `FindOne${modelName}Args`
+    case DMMF.ModelAction.findUnique:
+      return `FindUnique${modelName}Args`
+    case 'findOne':
+      return `FindUnique${modelName}Args`
     case DMMF.ModelAction.findFirst:
       return `FindFirst${modelName}Args`
     case DMMF.ModelAction.upsert:
@@ -111,6 +129,12 @@ export function getModelArgName(
       return `${modelName}CreateArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
+    case DMMF.ModelAction.groupBy:
+      return `${modelName}GroupByArgs`
+    case DMMF.ModelAction.aggregate:
+      return getAggregateArgsName(modelName)
+    case DMMF.ModelAction.count:
+      return getModelArgName(modelName, DMMF.ModelAction.findMany)
   }
 }
 
@@ -119,7 +143,9 @@ export function getDefaultArgName(
   modelName: string,
   action: DMMF.ModelAction,
 ): string {
-  const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
+  const mapping = dmmf.mappings.modelOperations.find(
+    (m) => m.model === modelName,
+  )!
 
   const fieldName = mapping[action]
   const operation = getOperation(action)
@@ -131,7 +157,7 @@ export function getDefaultArgName(
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findOne
+    action === DMMF.ModelAction.findUnique
   ) {
     return 'query'
   }
@@ -183,7 +209,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: DMMF.ModelAction
+  actionName: DMMF.ModelAction | 'findOne'
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
@@ -203,6 +229,12 @@ export function getSelectReturnType({
   hideCondition = false,
   isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
 }: SelectReturnTypeOptions): string {
+  if (actionName === 'count') {
+    return `Promise<number>`
+  }
+  if (actionName === 'aggregate')
+    return `Promise<${getAggregateGetName(name)}<T>>`
+
   const isList = actionName === DMMF.ModelAction.findMany
 
   if (actionName === 'deleteMany' || actionName === 'updateMany') {
@@ -223,20 +255,32 @@ export function getSelectReturnType({
     )}<T>${listClose}${promiseClose}>`
   }
 
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
-    }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${(actionName === 'findOne' || actionName === 'findFirst') ? ' | null' : ''
-    }>>`
+  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
+    actionName === 'findUnique' ||
+    actionName === 'findOne' ||
+    actionName === 'findFirst'
+      ? ' | null'
+      : ''
+  }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
+    actionName === 'findUnique' ||
+    actionName === 'findOne' ||
+    actionName === 'findFirst'
+      ? ' | null'
+      : ''
+  }>>`
 }
 
 export function isQueryAction(
-  action: DMMF.ModelAction,
+  action: DMMF.ModelAction | 'findOne',
   operation: 'query' | 'mutation',
 ): boolean {
   if (!(action in DMMF.ModelAction)) {
     return false
   }
   const result =
-    action === DMMF.ModelAction.findOne || action === DMMF.ModelAction.findMany
+    action === DMMF.ModelAction.findUnique ||
+    action === DMMF.ModelAction.findMany ||
+    action === 'findOne'
   return operation === 'query' ? result : !result
 }
 
@@ -275,4 +319,26 @@ export function flatMap<T, U>(
   thisArg?: any,
 ): U[] {
   return flatten(array.map(callbackFn, thisArg))
+}
+
+/**
+ * Returns unique elements of array
+ * @param arr Array
+ */
+
+export function unique<T>(arr: T[]): T[] {
+  const { length } = arr
+  const result: T[] = []
+  const seen = new Set() // just a cache
+
+  loop: for (let i = 0; i < length; i++) {
+    const value = arr[i]
+    if (seen.has(value)) {
+      continue loop
+    }
+    seen.add(value)
+    result.push(value)
+  }
+
+  return result
 }

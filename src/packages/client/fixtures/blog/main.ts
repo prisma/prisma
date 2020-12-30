@@ -1,20 +1,28 @@
 import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
-  errorFormat: 'pretty',
-  __internal: {
-    useUds: true,
-  },
-} as any)
+  log: [
+    {
+      emit: 'event',
+      level: 'query',
+    },
+  ],
+})
 
 async function main() {
-  const x = await prisma.post.findFirst({
-    // where: {
-    //   // author: null
-    //   id: 'asd',
-    // },
+  prisma.$on('query', (q) => {
+    console.log({ q })
   })
-  console.log(x)
+
+  const res = await prisma.user.groupBy({
+    by: ['age', 'email'],
+    avg: {
+      age: true,
+    },
+  })
+
+  console.log(res)
+
   prisma.$disconnect()
 }
 

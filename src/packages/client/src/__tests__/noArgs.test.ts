@@ -1,6 +1,6 @@
 import { recommender } from '../fixtures/recommender'
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
 
 let dmmf
 describe('no args', () => {
@@ -39,7 +39,7 @@ describe('no args', () => {
       }
     `)
   })
-  test('findMany', () => {
+  test('findMany with filter', () => {
     const select = {
       where: {
         likedArticles: null,
