@@ -11,8 +11,8 @@ const config = [
     ],
   },
   {
-    input: './runtime-dist/index-browser.d.ts',
-    output: [{ file: 'runtime/index-browser.d.ts', format: 'es' }],
+    input: './runtime-dist/commonjs/index-browser.d.ts',
+    output: [{ file: 'runtime/commonjs/index-browser.d.ts', format: 'es' }],
     plugins: [
       dts({
         respectExternal: true,
