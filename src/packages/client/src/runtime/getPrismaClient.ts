@@ -43,11 +43,32 @@ import { printStack } from './utils/printStack'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
+const ALTER_RE = /^(\s*alter\s)/i
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
 
+function checkAlter(
+  query: string,
+  values: sqlTemplateTag.Value[],
+  invalidCall:
+    | 'prisma.$executeRaw`<SQL>`'
+    | 'prisma.$executeRaw(<SQL>, [...values])'
+    | 'prisma.$executeRaw(sql`<SQL>`)',
+) {
+  if (values.length > 0 && ALTER_RE.exec(query)) {
+    // See https://github.com/prisma/prisma-client-js/issues/940 for more info
+    throw new Error(`Running ALTER using ${invalidCall} is not supported
+Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
+
+Example:
+  await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+
+More Information: https://pris.ly/d/execute-raw
+`)
+  }
+}
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export type Datasource = {
@@ -527,7 +548,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       // TODO Clean up types
       let query = ''
       let parameters: any = undefined
-
       if (typeof stringOrTemplateStringsArray === 'string') {
         // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
         query = stringOrTemplateStringsArray
@@ -535,6 +555,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
+        checkAlter(query, values, 'prisma.$executeRaw(<SQL>, [...values])')
       } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
         switch (this._activeProvider) {
@@ -560,6 +581,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             )
 
             query = queryInstance.text
+            checkAlter(query, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -577,7 +599,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
         }
       } else {
-        // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
+        // If this was called as prisma.$executeRaw(sql`<SQL>`), use prepared statements from sql-template-tag
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql':
@@ -585,6 +607,11 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             break
           case 'postgresql':
             query = stringOrTemplateStringsArray.text
+            checkAlter(
+              query,
+              stringOrTemplateStringsArray.values,
+              'prisma.$executeRaw(sql`<SQL>`)',
+            )
             break
           case 'sqlserver':
             query = mssqlPreparedStatement(stringOrTemplateStringsArray.strings)
