@@ -31,4 +31,11 @@ ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), TAB_SIZE)}
 
 export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
   }
+  public toMJS(): string {
+    const { type } = this
+    return `const ${type.name} = makeEnum({
+${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), TAB_SIZE)}
+});
+export { ${type.name} }`
+  }
 }

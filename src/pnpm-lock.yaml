@@ -191,6 +191,7 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.2
       mssql: 6.3.0
+      ncp: 2.0.0
       pg: 8.5.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -250,6 +251,7 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.2
       mssql: 6.3.0
+      ncp: ^2.0.0
       pg: 8.5.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -6108,6 +6110,11 @@ packages:
     dev: true
     resolution:
       integrity: sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
+  /ncp/2.0.0:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha1-GVoh1sRuNh0vsSgbo4uR6d9727M=
   /needle/2.5.2:
     dependencies:
       debug: 3.2.7

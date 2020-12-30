@@ -41,7 +41,7 @@ export class TSClient implements Generatable {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFClass(klona(options.document))
   }
-  public toJS(): string {
+  private getClientConfig() {
     const {
       generator,
       sqliteDatasourceOverrides,
@@ -57,7 +57,6 @@ export class TSClient implements Generatable {
         envPaths.schemaEnvPath &&
         path.relative(outputDir, envPaths.schemaEnvPath),
     }
-
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
@@ -68,6 +67,12 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
     }
+
+    return config
+  }
+  public toJS(): string {
+    const { outputDir } = this.options
+
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
 
@@ -115,7 +120,7 @@ exports.Prisma.dmmf = JSON.parse(dmmfString)
  * Create the Client
  */
 
-const config = ${JSON.stringify(config, null, 2)}
+const config = ${JSON.stringify(this.getClientConfig(), null, 2)}
 config.document = dmmf
 config.dirname = dirname
 
@@ -335,5 +340,70 @@ exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 `
     return code
+  }
+
+  public toMJS(): string {
+    return `${commonCodeJS(this.options)}
+/**
+ * Build tool annotations
+ * In order to make \`ncc\` and \`node-file-trace\` happy.
+**/
+${
+  this.options.platforms
+    ? this.options.platforms
+        .map((p) => `path.join(__dirname, 'query-engine-${p}');`)
+        .join('\n')
+    : ''
+}
+/**
+ * Annotation for \`node-file-trace\`
+**/
+path.join(__dirname, 'schema.prisma');
+/**
+ * Enums
+ */
+// Based on
+// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+function makeEnum(x) { return x; }
+${new Enum(
+  {
+    name: 'ModelName',
+    values: this.dmmf.mappings.modelOperations.map((m) => m.model),
+  },
+  true,
+).toJS()}
+${this.dmmf.schema.enumTypes.prisma
+  .map((type) => new Enum(type, true).toMJS())
+  .join('\n\n')}
+${
+  this.dmmf.schema.enumTypes.model
+    ?.map((type) => new Enum(type, false).toMJS())
+    .join('\n\n') ?? ''
+}
+/**
+ * DMMF
+ */
+const dmmfString = ${JSON.stringify(this.dmmfString)}
+// We are parsing 2 times, as we want independent objects, because
+// DMMFClass introduces circular references in the dmmf object
+const dmmf = JSON.parse(dmmfString)
+export { dmmf }
+/**
+ * Create the Client
+ */
+const config = ${JSON.stringify(this.getClientConfig(), null, 2)}
+config.document = JSON.parse(dmmfString)
+config.dirname = __dirname
+/**
+ * Only for env conflict warning
+ * loading of env variable occurs in getPrismaClient
+ */
+const envPaths = {
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(__dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(__dirname, config.relativeEnvPaths.schemaEnvPath)
+}
+warnEnvConflicts(envPaths)
+const PrismaClient = getPrismaClient(config)
+export { PrismaClient }`
   }
 }

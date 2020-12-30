@@ -326,3 +326,51 @@ ${
 }
 `,
 })
+
+export const commonCodeMJS = ({
+  runtimePath,
+  clientVersion,
+  engineVersion,
+}: CommonCodeParams): string => `
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  warnEnvConflicts,
+  getPrismaClient,
+  sqltag as sql,
+  empty,
+  join,
+  raw,
+  Sql,
+  Decimal,
+} from '${runtimePath}'
+import path from 'path'
+import { fileURLToPath } from 'url';
+const debug = debugLib('prisma-client')
+/**
+ * Polyfill __dirname for esm modules
+ */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+/**
+ * Prisma Client JS version: ${clientVersion}
+ * Query Engine version: ${engineVersion}
+ */
+export const prismaVersion = {
+  client: "${clientVersion}",
+  engine: "${engineVersion}"
+}
+export { PrismaClientKnownRequestError }
+export { PrismaClientUnknownRequestError }
+export { PrismaClientRustPanicError }
+export { PrismaClientInitializationError }
+export { PrismaClientValidationError }
+export { Decimal }
+/**
+ * Re-export of sql-template-tag
+ */
+export { sql, empty, join, raw, Sql }
+`
