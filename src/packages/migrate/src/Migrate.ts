@@ -104,6 +104,12 @@ export class Migrate {
     })
   }
 
+  public devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
+    return this.engine.devDiagnostic({
+      migrationsDirectoryPath: this.migrationsDirectoryPath,
+    })
+  }
+
   public async markMigrationApplied({
     migrationId,
   }: {

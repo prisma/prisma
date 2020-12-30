@@ -65,6 +65,12 @@ export class MigrateEngine {
   }
   /* eslint-disable @typescript-eslint/no-unsafe-return */
 
+  // Runs dev diagnostic
+  public devDiagnostic(
+    args: EngineArgs.DevDiagnosticInput,
+  ): Promise<EngineResults.DevDiagnosticOutput> {
+    return this.runCommand(this.getRPCPayload('devDiagnostic', args))
+  }
   // List migrations in migration directory.
   public listMigrationDirectories(
     args: EngineArgs.ListMigrationDirectoriesInput,
