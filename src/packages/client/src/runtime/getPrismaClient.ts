@@ -60,7 +60,7 @@ function checkAlter(
   if (values.length > 0 && ALTER_RE.exec(query)) {
     // See https://github.com/prisma/prisma-client-js/issues/940 for more info
     throw new Error(`Running ALTER using ${invalidCall} is not supported
-Please use the following example but note that this could be vulnerable to SQL injection attacks
+Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
 Example:
   await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)

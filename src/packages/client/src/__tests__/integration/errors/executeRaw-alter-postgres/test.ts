@@ -21,7 +21,7 @@ test('executeRaw-alter-postgres', async () => {
     //isReadonlyArray
     expect(err).toMatchInlineSnapshot(`
       Running ALTER using prisma.$executeRaw\`<SQL>\` is not supported
-      Please use the following example but note that this could be vulnerable to SQL injection attacks
+      Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
@@ -36,7 +36,7 @@ test('executeRaw-alter-postgres', async () => {
     // String
     expect(err).toMatchInlineSnapshot(`
       Running ALTER using prisma.$executeRaw(<SQL>, [...values]) is not supported
-      Please use the following example but note that this could be vulnerable to SQL injection attacks
+      Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
@@ -51,7 +51,7 @@ test('executeRaw-alter-postgres', async () => {
     // Else
     expect(err).toMatchInlineSnapshot(`
       Running ALTER using prisma.$executeRaw(sql\`<SQL>\`) is not supported
-      Please use the following example but note that this could be vulnerable to SQL injection attacks
+      Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
         await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
