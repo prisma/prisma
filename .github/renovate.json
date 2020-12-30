@@ -61,6 +61,17 @@
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
       "reviewers": ["@Weakky"]
+    },
+    {
+      "groupName": "react-prisma",
+      "includePaths": [
+        "src/packages/react-prisma"
+      ],
+      "rangeStrategy": "replace",
+      "schedule": [
+        "before 9am on Monday"
+      ],
+      "reviewers": ["@timsuchanek"]
     }
   ]
 }
