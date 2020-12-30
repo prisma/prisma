@@ -171,7 +171,7 @@ const allUsers = await prisma.user.findMany();
 // Run inside `async` function
 const allUsers = await prisma.user.findMany({
   include: { posts: true },
-});
+})
 ```
 
 ##### Filter all `Post` records that contain `"prisma"`
