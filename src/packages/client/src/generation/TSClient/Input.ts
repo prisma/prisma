@@ -159,7 +159,11 @@ export class InputType implements Generatable {
 ${indent(
   fields
     .map((arg) =>
-      new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
+      new InputField(
+        arg /*, type.atLeastOne && !type.atMostOne*/,
+        undefined,
+        arg.name === 'OR',
+      ).toTS(),
     )
     .join('\n'),
   TAB_SIZE,

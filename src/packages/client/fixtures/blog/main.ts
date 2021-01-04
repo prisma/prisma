@@ -13,14 +13,17 @@ async function main() {
   prisma.$on('query', (q) => {
     console.log({ q })
   })
-
-  const res = await prisma.user.groupBy({
-    by: ['age', 'email'],
-    avg: {
-      age: true,
+  const res = await prisma.user.findMany({
+    select: {
+      likes: true
+    },
+    where: {
+      OR: {
+        name: { equals: null },
+      },
     },
   })
-
+  
   console.log(res)
 
   prisma.$disconnect()
