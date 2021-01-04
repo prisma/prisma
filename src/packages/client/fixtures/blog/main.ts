@@ -1,4 +1,4 @@
-import { PrismaClient } from './@prisma/client'
+import { Prisma, PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
   log: [
@@ -14,12 +14,64 @@ async function main() {
     console.log({ q })
   })
 
+  // await prisma.user.create({
+  //   data: {
+  //     email: 'a2@a.de',
+  //     age: 9,
+  //     name: 'bob',
+  //   },
+  // })
+
   const res = await prisma.user.groupBy({
     by: ['age', 'email'],
     avg: {
       age: true,
     },
+    having: {
+      AND: [
+        {
+          NOT: [
+            {
+              email: '',
+              name: {
+                // contains: '',
+                // avg: {}
+                min: {},
+              },
+              age: {
+                sum: {
+                  gt: 1,
+                },
+              },
+            },
+          ],
+        },
+      ],
+      age: {
+        gt: 1,
+        avg: {
+          gt: 5,
+        },
+      },
+    },
   })
+
+  type A = [1, 2, 3]
+  type B = {
+    a: 1
+  }
+  type C = 1
+  type D = ''
+
+  type IsObject<T extends any> = T extends Array<any>
+    ? 0
+    : T extends object
+    ? 1
+    : 0
+
+  type Ya = IsObject<D>
+
+  // res.AND.NOT.
 
   console.log(res)
 
