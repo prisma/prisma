@@ -235,17 +235,71 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+/**
+ * Is T a Record?
+ */
+type IsObject<T extends any> = T extends Array<any>
+? False
+: T extends Date
+? False
+: T extends Buffer
+? False
+: T extends BigInt
+? False
+: T extends object
+? True
+: False
+
+
+/**
+ * If it's T[], return T
+ */
+export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 
 /**
  * From ts-toolbelt
  */
 
 export type Union = any
+
+/** Helper Types for "Merge" **/
 export type IntersectOf<U extends Union> = (
   U extends unknown ? (k: U) => void : never
 ) extends (k: infer I) => void
   ? I
   : never
+
+export type Overwrite<O extends object, O1 extends object> = {
+    [K in keyof O]: K extends keyof O1 ? O1[K] : O[K];
+} & {};
+
+type _Merge<U extends object> = IntersectOf<Overwrite<U, {
+    [K in keyof U]-?: At<U, K>;
+}>>;
+
+type Key = string | number | symbol;
+type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
+type AtStrict<O extends object, K extends Key> = O[K & keyof O];
+type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
+export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+    1: AtStrict<O, K>;
+    0: AtLoose<O, K>;
+}[strict];
+
+export type ComputeRaw<A extends any> = A extends Function ? A : {
+  [K in keyof A]: A[K];
+} & {};
+
+export type OptionalFlat<O> = {
+  [K in keyof O]?: O[K];
+} & {};
+
+type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+
+export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
+/** End Helper Types for "Merge" **/
+
+export type Merge<U extends object> = ComputeRaw<_Merge<Strict<U>>>;
 
 /**
 A [[Boolean]]
@@ -290,14 +344,38 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+
+
 /**
  * Used by group by
  */
+
 export type GetScalarType<T, O> = O extends object ? {
   [P in keyof T]: P extends keyof O
     ? O[P]
     : never
 } : never
+
+type FieldPaths<
+  T,
+  U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+> = IsObject<T> extends True ? U : T
+
+type GetHavingFields<T> = {
+  [K in keyof T]: Or<
+    Or<Extends<'OR', K>, Extends<'AND', K>>,
+    Extends<'NOT', K>
+  > extends True
+    ? // infer is only needed to not hit TS limit
+      // based on the brilliant idea of Pierre-Antoine Mills
+      // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+      T[K] extends infer TK
+      ? GetHavingFields<UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never>
+      : never
+    : {} extends FieldPaths<T[K]>
+    ? never
+    : K
+}[keyof T]
 
 /**
  * Convert tuple to union

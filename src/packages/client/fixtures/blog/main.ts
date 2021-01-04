@@ -32,8 +32,11 @@ async function main() {
         {
           NOT: [
             {
+              email: '',
               name: {
-                contains: '',
+                // contains: '',
+                // avg: {}
+                min: {},
               },
               age: {
                 sum: {
@@ -43,17 +46,11 @@ async function main() {
             },
           ],
         },
-        {
-          name: '',
-        },
       ],
       age: {
         gt: 1,
         avg: {
           gt: 5,
-        },
-        not: {
-          not,
         },
       },
     },

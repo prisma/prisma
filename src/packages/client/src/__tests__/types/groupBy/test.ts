@@ -42,6 +42,9 @@ async function main() {
     sum: {
       age: true,
     },
+    having: {
+      name: '',
+    },
   })
 
   const { avg, count, max, sum, min, name } = x
@@ -53,6 +56,41 @@ async function main() {
   name
   sum.age
   min.age
+
+  const y = await prisma.user.groupBy({
+    by: ['name'],
+    having: {
+      name: '',
+      email: {
+        min: {
+          contains: '',
+        },
+      },
+    },
+  })
+
+  const z = await prisma.user.groupBy({
+    by: ['name'],
+    having: {
+      OR: [
+        {
+          AND: [
+            {
+              NOT: [
+                {
+                  email: {
+                    max: {
+                      contains: '',
+                    },
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  })
 }
 
 main().catch((e) => {
