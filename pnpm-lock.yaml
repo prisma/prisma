@@ -1,5 +1,5 @@
 devDependencies:
-  '@types/node': 14.14.16
+  '@types/node': 14.14.19
   '@typescript-eslint/eslint-plugin': 4.11.1_9c022763c2e3d67a193e8dc202e075a9
   '@typescript-eslint/parser': 4.11.1_eslint@7.16.0+typescript@4.1.3
   arg: 5.0.0
@@ -81,10 +81,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-3c+yGKvVP5Y9TYBEibGNR+kLtijnj7mYrXRg+WpFb2X9xm04g/DXYkfg4hmzJQosc9snFNUPkbYIhu+KAm6jJw==
-  /@types/node/14.14.16:
+  /@types/node/14.14.19:
     dev: true
     resolution:
-      integrity: sha512-naXYePhweTi+BMv11TgioE2/FXU4fSl29HAH1ffxVciNsH3rYXjNP2yM8wqmSm7jS20gM8TIklKiTen+1iVncw==
+      integrity: sha512-4nhBPStMK04rruRVtVc6cDqhu7S9GZai0fpXgPXrFpcPX6Xul8xnrjSdGB4KPBVYG/R5+fXWdCM8qBoiULWGPQ==
   /@types/parse-json/4.0.0:
     dev: true
     resolution:
@@ -1503,7 +1503,7 @@ packages:
     resolution:
       integrity: sha512-Ux4ygGWsu2c7isFWe8Yu1YluJmqVhxqK2cLXNQA5AcC3QfbGNpM7fu0Y8b/z16pXLnFxZYvWhd3fhBY9DLmC6Q==
 specifiers:
-  '@types/node': 14.14.16
+  '@types/node': 14.14.19
   '@typescript-eslint/eslint-plugin': 4.11.1
   '@typescript-eslint/parser': 4.11.1
   arg: 5.0.0
