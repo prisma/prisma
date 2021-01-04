@@ -1311,6 +1311,14 @@ generator client {
             } else {
               acc[key] = value
             }
+            if (key === 'by' && Array.isArray(value) && value.length > 0) {
+              if (!acc.select) {
+                acc.select = {}
+              }
+              for (const by of value) {
+                acc.select[by] = true
+              }
+            }
             return acc
           }, {} as any)
 
