@@ -990,6 +990,12 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
+      if (args?.where && args.where['OR'] && !Array.isArray(args.where['OR'])) {
+        throw new Error(
+          `Invalid OR argument expected an Array but received ${typeof args
+            .where['OR']}`,
+        )
+      }
       if (action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]

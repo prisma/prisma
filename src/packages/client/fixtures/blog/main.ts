@@ -15,15 +15,16 @@ async function main() {
   })
   const res = await prisma.user.findMany({
     select: {
-      likes: true
+      likes: true,
     },
     where: {
       OR: {
+        // @ts-ignore
         name: { equals: null },
       },
     },
   })
-  
+
   console.log(res)
 
   prisma.$disconnect()
