@@ -466,7 +466,10 @@ ${
     ByValid extends Has<ByFields, OrderFields>,
     HavingFields extends GetHavingFields<T['having']>,
     HavingValid extends Has<ByFields, HavingFields>,
-    InputErrors extends HavingValid extends False
+    ByEmpty extends T['by'] extends never[] ? True : False,
+    InputErrors extends ByEmpty extends True
+    ? \`Error: "by" must not be empty.\`
+    : HavingValid extends False
     ? {
         [P in HavingFields]: P extends ByFields
           ? never
