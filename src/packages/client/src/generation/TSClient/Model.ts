@@ -149,13 +149,13 @@ ${new OutputType(this.dmmf, groupByType).toTS()}
 
 type ${getGroupByPayloadName(
       model.name,
-    )}<T extends ${groupByArgsName}> = Promise<
+    )}<T extends ${groupByArgsName}> = Promise<Array<
   PickArray<${groupByType.name}, T['by']> & {
     [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
       groupByType.name
     }[P]>
   }
->
+>>
     `
   }
   private getAggregationTypes() {
@@ -506,9 +506,9 @@ ${
           ? never
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
-  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<${getGroupByPayloadName(
+  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
         name,
-      )}<T>>> : Promise<InputErrors>`
+      )}<T> : Promise<InputErrors>`
     : ``
 }
 }
