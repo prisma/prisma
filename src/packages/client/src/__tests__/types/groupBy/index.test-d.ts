@@ -30,6 +30,13 @@ const prisma = new PrismaClient({
     }),
   )
 
+  // empty by
+  expectError(
+    await prisma.user.groupBy({
+      by: [],
+    }),
+  )
+
   // orderBy missing, required by skip & take
   expectError(
     await prisma.user.groupBy({
