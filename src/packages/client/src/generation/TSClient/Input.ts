@@ -160,7 +160,7 @@ ${indent(
   fields
     .map((arg) =>
       new InputField(
-        arg /*, type.atLeastOne && !type.atMostOne*/,
+        arg,
         undefined,
         arg.name === 'OR',
       ).toTS(),

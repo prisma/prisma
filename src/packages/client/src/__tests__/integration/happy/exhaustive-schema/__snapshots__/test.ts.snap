@@ -12170,7 +12170,7 @@ export namespace Prisma {
 
   export type PostWhereInput = {
     AND?: Enumerable<PostWhereInput>
-    OR?: Enumerable<PostWhereInput>
+    OR?: Array<PostWhereInput>
     NOT?: Enumerable<PostWhereInput>
     id?: IntFilter | number
     createdAt?: DateTimeFilter | Date | string
@@ -12208,7 +12208,7 @@ export namespace Prisma {
 
   export type UserWhereInput = {
     AND?: Enumerable<UserWhereInput>
-    OR?: Enumerable<UserWhereInput>
+    OR?: Array<UserWhereInput>
     NOT?: Enumerable<UserWhereInput>
     id?: IntFilter | number
     email?: StringFilter | string
@@ -12271,7 +12271,7 @@ export namespace Prisma {
 
   export type MWhereInput = {
     AND?: Enumerable<MWhereInput>
-    OR?: Enumerable<MWhereInput>
+    OR?: Array<MWhereInput>
     NOT?: Enumerable<MWhereInput>
     id?: IntFilter | number
     n?: NListRelationFilter
@@ -12330,7 +12330,7 @@ export namespace Prisma {
 
   export type NWhereInput = {
     AND?: Enumerable<NWhereInput>
-    OR?: Enumerable<NWhereInput>
+    OR?: Array<NWhereInput>
     NOT?: Enumerable<NWhereInput>
     id?: IntFilter | number
     m?: MListRelationFilter
@@ -12389,7 +12389,7 @@ export namespace Prisma {
 
   export type OneOptionalWhereInput = {
     AND?: Enumerable<OneOptionalWhereInput>
-    OR?: Enumerable<OneOptionalWhereInput>
+    OR?: Array<OneOptionalWhereInput>
     NOT?: Enumerable<OneOptionalWhereInput>
     id?: IntFilter | number
     many?: ManyRequiredListRelationFilter
@@ -12448,7 +12448,7 @@ export namespace Prisma {
 
   export type ManyRequiredWhereInput = {
     AND?: Enumerable<ManyRequiredWhereInput>
-    OR?: Enumerable<ManyRequiredWhereInput>
+    OR?: Array<ManyRequiredWhereInput>
     NOT?: Enumerable<ManyRequiredWhereInput>
     id?: IntFilter | number
     one?: XOR<OneOptionalWhereInput, OneOptionalRelationFilter> | null
@@ -12510,7 +12510,7 @@ export namespace Prisma {
 
   export type OptionalSide1WhereInput = {
     AND?: Enumerable<OptionalSide1WhereInput>
-    OR?: Enumerable<OptionalSide1WhereInput>
+    OR?: Array<OptionalSide1WhereInput>
     NOT?: Enumerable<OptionalSide1WhereInput>
     id?: IntFilter | number
     opti?: XOR<OptionalSide2WhereInput, OptionalSide2RelationFilter> | null
@@ -12572,7 +12572,7 @@ export namespace Prisma {
 
   export type OptionalSide2WhereInput = {
     AND?: Enumerable<OptionalSide2WhereInput>
-    OR?: Enumerable<OptionalSide2WhereInput>
+    OR?: Array<OptionalSide2WhereInput>
     NOT?: Enumerable<OptionalSide2WhereInput>
     id?: IntFilter | number
     opti?: XOR<OptionalSide1WhereInput, OptionalSide1RelationFilter> | null
@@ -12631,7 +12631,7 @@ export namespace Prisma {
 
   export type AWhereInput = {
     AND?: Enumerable<AWhereInput>
-    OR?: Enumerable<AWhereInput>
+    OR?: Array<AWhereInput>
     NOT?: Enumerable<AWhereInput>
     id?: StringFilter | string
     email?: StringFilter | string
@@ -12687,7 +12687,7 @@ export namespace Prisma {
 
   export type BWhereInput = {
     AND?: Enumerable<BWhereInput>
-    OR?: Enumerable<BWhereInput>
+    OR?: Array<BWhereInput>
     NOT?: Enumerable<BWhereInput>
     id?: StringFilter | string
     float?: FloatFilter | number
@@ -12721,7 +12721,7 @@ export namespace Prisma {
 
   export type CWhereInput = {
     AND?: Enumerable<CWhereInput>
-    OR?: Enumerable<CWhereInput>
+    OR?: Array<CWhereInput>
     NOT?: Enumerable<CWhereInput>
     id?: StringFilter | string
     char?: StringFilter | string
@@ -12761,7 +12761,7 @@ export namespace Prisma {
 
   export type DWhereInput = {
     AND?: Enumerable<DWhereInput>
-    OR?: Enumerable<DWhereInput>
+    OR?: Array<DWhereInput>
     NOT?: Enumerable<DWhereInput>
     id?: StringFilter | string
     bool?: BoolFilter | boolean
@@ -12798,7 +12798,7 @@ export namespace Prisma {
 
   export type EWhereInput = {
     AND?: Enumerable<EWhereInput>
-    OR?: Enumerable<EWhereInput>
+    OR?: Array<EWhereInput>
     NOT?: Enumerable<EWhereInput>
     id?: StringFilter | string
     date?: DateTimeFilter | Date | string
@@ -14962,7 +14962,7 @@ export namespace Prisma {
 
   export type PostScalarWhereInput = {
     AND?: Enumerable<PostScalarWhereInput>
-    OR?: Enumerable<PostScalarWhereInput>
+    OR?: Array<PostScalarWhereInput>
     NOT?: Enumerable<PostScalarWhereInput>
     id?: IntFilter | number
     createdAt?: DateTimeFilter | Date | string
@@ -15026,7 +15026,7 @@ export namespace Prisma {
 
   export type NScalarWhereInput = {
     AND?: Enumerable<NScalarWhereInput>
-    OR?: Enumerable<NScalarWhereInput>
+    OR?: Array<NScalarWhereInput>
     NOT?: Enumerable<NScalarWhereInput>
     id?: IntFilter | number
     int?: IntFilter | number
@@ -15097,7 +15097,7 @@ export namespace Prisma {
 
   export type MScalarWhereInput = {
     AND?: Enumerable<MScalarWhereInput>
-    OR?: Enumerable<MScalarWhereInput>
+    OR?: Array<MScalarWhereInput>
     NOT?: Enumerable<MScalarWhereInput>
     id?: IntFilter | number
     int?: IntFilter | number
@@ -15168,7 +15168,7 @@ export namespace Prisma {
 
   export type ManyRequiredScalarWhereInput = {
     AND?: Enumerable<ManyRequiredScalarWhereInput>
-    OR?: Enumerable<ManyRequiredScalarWhereInput>
+    OR?: Array<ManyRequiredScalarWhereInput>
     NOT?: Enumerable<ManyRequiredScalarWhereInput>
     id?: IntFilter | number
     oneOptionalId?: IntNullableFilter | number | null
