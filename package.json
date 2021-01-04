@@ -11,7 +11,7 @@
     "@typescript-eslint/parser": "4.11.1",
     "arg": "5.0.0",
     "chalk": "4.1.0",
-    "eslint": "7.16.0",
+    "eslint": "7.17.0",
     "eslint-config-prettier": "7.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
