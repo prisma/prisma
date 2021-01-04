@@ -434,17 +434,71 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+/**
+ * Is T a Record?
+ */
+type IsObject<T extends any> = T extends Array<any>
+? False
+: T extends Date
+? False
+: T extends Buffer
+? False
+: T extends BigInt
+? False
+: T extends object
+? True
+: False
+
+
+/**
+ * If it's T[], return T
+ */
+export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 
 /**
  * From ts-toolbelt
  */
 
 export type Union = any
+
+/** Helper Types for "Merge" **/
 export type IntersectOf<U extends Union> = (
   U extends unknown ? (k: U) => void : never
 ) extends (k: infer I) => void
   ? I
   : never
+
+export type Overwrite<O extends object, O1 extends object> = {
+    [K in keyof O]: K extends keyof O1 ? O1[K] : O[K];
+} & {};
+
+type _Merge<U extends object> = IntersectOf<Overwrite<U, {
+    [K in keyof U]-?: At<U, K>;
+}>>;
+
+type Key = string | number | symbol;
+type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
+type AtStrict<O extends object, K extends Key> = O[K & keyof O];
+type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
+export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+    1: AtStrict<O, K>;
+    0: AtLoose<O, K>;
+}[strict];
+
+export type ComputeRaw<A extends any> = A extends Function ? A : {
+  [K in keyof A]: A[K];
+} & {};
+
+export type OptionalFlat<O> = {
+  [K in keyof O]?: O[K];
+} & {};
+
+type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+
+export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
+/** End Helper Types for "Merge" **/
+
+export type Merge<U extends object> = ComputeRaw<_Merge<Strict<U>>>;
 
 /**
 A [[Boolean]]
@@ -489,14 +543,38 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+
+
 /**
  * Used by group by
  */
+
 export type GetScalarType<T, O> = O extends object ? {
   [P in keyof T]: P extends keyof O
     ? O[P]
     : never
 } : never
+
+type FieldPaths<
+  T,
+  U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+> = IsObject<T> extends True ? U : T
+
+type GetHavingFields<T> = {
+  [K in keyof T]: Or<
+    Or<Extends<'OR', K>, Extends<'AND', K>>,
+    Extends<'NOT', K>
+  > extends True
+    ? // infer is only needed to not hit TS limit
+      // based on the brilliant idea of Pierre-Antoine Mills
+      // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+      T[K] extends infer TK
+      ? GetHavingFields<UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never>
+      : never
+    : {} extends FieldPaths<T[K]>
+    ? never
+    : K
+}[keyof T]
 
 /**
  * Convert tuple to union
@@ -1138,17 +1216,71 @@ export namespace Prisma {
   type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+  /**
+   * Is T a Record?
+   */
+  type IsObject<T extends any> = T extends Array<any>
+  ? False
+  : T extends Date
+  ? False
+  : T extends Buffer
+  ? False
+  : T extends BigInt
+  ? False
+  : T extends object
+  ? True
+  : False
+
+
+  /**
+   * If it's T[], return T
+   */
+  export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 
   /**
    * From ts-toolbelt
    */
 
   export type Union = any
+
+  /** Helper Types for "Merge" **/
   export type IntersectOf<U extends Union> = (
     U extends unknown ? (k: U) => void : never
   ) extends (k: infer I) => void
     ? I
     : never
+
+  export type Overwrite<O extends object, O1 extends object> = {
+      [K in keyof O]: K extends keyof O1 ? O1[K] : O[K];
+  } & {};
+
+  type _Merge<U extends object> = IntersectOf<Overwrite<U, {
+      [K in keyof U]-?: At<U, K>;
+  }>>;
+
+  type Key = string | number | symbol;
+  type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
+  type AtStrict<O extends object, K extends Key> = O[K & keyof O];
+  type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
+  export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+      1: AtStrict<O, K>;
+      0: AtLoose<O, K>;
+  }[strict];
+
+  export type ComputeRaw<A extends any> = A extends Function ? A : {
+    [K in keyof A]: A[K];
+  } & {};
+
+  export type OptionalFlat<O> = {
+    [K in keyof O]?: O[K];
+  } & {};
+
+  type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+
+  export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
+  /** End Helper Types for "Merge" **/
+
+  export type Merge<U extends object> = ComputeRaw<_Merge<Strict<U>>>;
 
   /**
   A [[Boolean]]
@@ -1193,14 +1325,38 @@ export namespace Prisma {
 
   export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+
+
   /**
    * Used by group by
    */
+
   export type GetScalarType<T, O> = O extends object ? {
     [P in keyof T]: P extends keyof O
       ? O[P]
       : never
   } : never
+
+  type FieldPaths<
+    T,
+    U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+  > = IsObject<T> extends True ? U : T
+
+  type GetHavingFields<T> = {
+    [K in keyof T]: Or<
+      Or<Extends<'OR', K>, Extends<'AND', K>>,
+      Extends<'NOT', K>
+    > extends True
+      ? // infer is only needed to not hit TS limit
+        // based on the brilliant idea of Pierre-Antoine Mills
+        // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+        T[K] extends infer TK
+        ? GetHavingFields<UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never>
+        : never
+      : {} extends FieldPaths<T[K]>
+      ? never
+      : K
+  }[keyof T]
 
   /**
    * Convert tuple to union
@@ -1828,41 +1984,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByPostArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetPostGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByPostArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetPostGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -2699,41 +2863,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByUserArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetUserGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByUserArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetUserGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -3562,41 +3734,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByMArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetMGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByMArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetMGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -4425,41 +4605,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByNArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetNGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByNArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetNGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -5288,41 +5476,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOneOptionalArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOneOptionalGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOneOptionalArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetOneOptionalGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -6163,41 +6359,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByManyRequiredArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetManyRequiredGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByManyRequiredArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetManyRequiredGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -7038,41 +7242,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOptionalSide1Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide1GroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOptionalSide1Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetOptionalSide1GroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -7901,41 +8113,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOptionalSide2Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide2GroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOptionalSide2Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetOptionalSide2GroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -8762,41 +8982,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByAArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetAGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByAArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetAGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -9514,41 +9742,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByBArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetBGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByBArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetBGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -10234,41 +10470,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByCArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetCGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByCArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetCGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -10946,41 +11190,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByDArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetDGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByDArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetDGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**
@@ -11642,41 +11894,49 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      InputErrors extends HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByEArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetEGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByEArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<GetEGroupByPayload<T>>> : Promise<InputErrors>
   }
 
   /**

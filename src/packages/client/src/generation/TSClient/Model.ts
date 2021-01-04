@@ -506,9 +506,9 @@ ${
           ? never
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
-  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<${getGroupByPayloadName(
+  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<Array<${getGroupByPayloadName(
         name,
-      )}<T>> : Promise<InputErrors>`
+      )}<T>>> : Promise<InputErrors>`
     : ``
 }
 }

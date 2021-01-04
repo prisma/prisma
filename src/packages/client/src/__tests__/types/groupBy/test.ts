@@ -47,7 +47,7 @@ async function main() {
     },
   })
 
-  const { avg, count, max, sum, min, name } = x
+  const { avg, count, max, sum, min, name } = x[0]
 
   avg.age
   count._all
