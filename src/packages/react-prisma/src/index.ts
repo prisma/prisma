@@ -92,7 +92,7 @@ Please use \`@prisma/client\` directly for that.`)
         const outerMap = unstable_getCacheForType(this.createRecordMap)
 
         const innerMap = outerMap
-        const key = query
+        const key = JSON.stringify(query)
 
         let record = innerMap.get(key)
         if (!record) {
