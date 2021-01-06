@@ -17,7 +17,9 @@ async function main() {
   //   },
   // })
   const res = await prisma.user.count({
-    select: true,
+    select: {
+      _all: true,
+    },
     // skip: 3
   })
 

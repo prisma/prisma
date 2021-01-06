@@ -21,9 +21,10 @@ import {
   getAggregateInputType,
   getGroupByArgsName,
   getGroupByName,
-  getCountAggregateName,
+  getCountAggregateOutputName,
   getGroupByPayloadName,
   getArgName,
+  getCountAggregateInputName,
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
@@ -200,7 +201,9 @@ type ${getGroupByPayloadName(
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
     const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
     const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
-    const countType = this.dmmf.outputTypeMap[getCountAggregateName(model.name)]
+    const countType = this.dmmf.outputTypeMap[
+      getCountAggregateOutputName(model.name)
+    ]
 
     if (avgType) {
       aggregateTypes.push(avgType)
@@ -426,7 +429,7 @@ type ${countArgsName} = Merge<
     name,
     DMMF.ModelAction.findMany,
   )}, 'select' | 'include'> & {
-    select?: ${countArgsName} | true
+    select?: ${getCountAggregateInputName(name)} | true
   }
 >
 
@@ -451,7 +454,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
     T extends Record<'select', any>
       ? T['select'] extends true
         ? number
-        : GetScalarType<T['select'], ${getCountAggregateName(name)}>
+        : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
       : number
   >
 

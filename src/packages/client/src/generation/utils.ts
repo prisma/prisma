@@ -48,7 +48,11 @@ export function getMaxAggregateName(modelName: string): string {
   return `${capitalize(modelName)}MaxAggregateOutputType`
 }
 
-export function getCountAggregateName(modelName: string): string {
+export function getCountAggregateInputName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateInputType`
+}
+
+export function getCountAggregateOutputName(modelName: string): string {
   return `${capitalize(modelName)}CountAggregateOutputType`
 }
 
