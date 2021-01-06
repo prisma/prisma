@@ -32,5 +32,5 @@ describe('connection-limit', () => {
         'Error querying the database: db error: FATAL: sorry, too many clients already',
       )
     }
-  }, 100000)
+  }, 100_000)
 })
