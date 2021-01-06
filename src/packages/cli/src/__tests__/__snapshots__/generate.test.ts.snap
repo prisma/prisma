@@ -1,9 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`should error with exit code 1 with incorrect schema 1`] = `
+Array [
+  Object {
+    email: bob@bob.bob,
+    id: 1,
+    name: Bobby Brown Sqlite,
+  },
+]
+`;
+
 exports[`should work with a custom output dir 1`] = `
 Prisma schema loaded from prisma/schema.prisma
+✔ Created ./package.json
+audited 3 packages in 4.543s
+found 0 vulnerabilities
 
-✔ Generated Prisma Client (2.13.1) to ./generated/client in XXms
+
+> @prisma/client@2.11.0-dev.20 postinstall /tmp/dir/node_modules/@prisma/client
+> node scripts/postinstall.js
+
++ @prisma/client@2.11.0-dev.20
+added 2 packages from 1 contributor and audited 5 packages in 1.496s
+found 0 vulnerabilities
+
+
+✔ Installed the @prisma/client and prisma packages in your project
+
+✔ Generated Prisma Client (2.11.0-dev.20) to ./generated/client in XXms
 You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
 \`\`\`
 import { PrismaClient } from './generated/client'
