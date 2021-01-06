@@ -23,6 +23,7 @@ import {
   getGroupByName,
   getCountAggregateName,
   getGroupByPayloadName,
+  getArgName,
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
@@ -418,7 +419,17 @@ export class ModelDelegate implements Generatable {
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)
+    const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
+type ${countArgsName} = Merge<
+  Omit<${getModelArgName(
+    name,
+    DMMF.ModelAction.findMany,
+  )}, 'select' | 'include'> & {
+    select?: ${countArgsName} | true
+  }
+>
+
 export interface ${name}Delegate {
 ${indent(
   actions
@@ -434,10 +445,15 @@ ${actionName}${getGenericMethod(name, actionName)}(
 )}
 
 ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
-  count(args?: Omit<${getModelArgName(
-    name,
-    DMMF.ModelAction.findMany,
-  )}, 'select' | 'include'>): Promise<number>
+  count<T extends ${countArgsName}>(
+    args?: Subset<T, ${countArgsName}>,
+  ): Promise<
+    T extends Record<'select', any>
+      ? T['select'] extends true
+        ? number
+        : GetScalarType<T['select'], ${getCountAggregateName(name)}>
+      : number
+  >
 
 ${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(

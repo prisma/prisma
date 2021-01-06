@@ -121,6 +121,8 @@ export interface PrismaClientOptions {
   }
 }
 
+type Unpacker = (data: any) => any
+
 export type HookParams = {
   query: string
   path: string[]
@@ -161,6 +163,7 @@ export interface InternalRequestParams extends MiddlewareParams {
   callsite?: string
   headers?: Record<string, string>
   transactionId?: number
+  unpacker?: Unpacker
 }
 
 export type HookPoint = 'all' | 'engine'
@@ -929,6 +932,7 @@ new PrismaClient({
               internalParams.clientMethod,
               internalParams.callsite,
               internalParams.headers,
+              internalParams.unpacker,
             ),
           )
         }
@@ -948,6 +952,7 @@ new PrismaClient({
       clientMethod: string,
       callsite?: string,
       headers?: Record<string, string>,
+      unpacker?: Unpacker,
     ) {
       const middleware = middlewares.shift()
       if (middleware) {
@@ -966,6 +971,7 @@ new PrismaClient({
       ;(params as InternalRequestParams).clientMethod = clientMethod
       ;(params as InternalRequestParams).callsite = callsite
       ;(params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).unpacker = unpacker
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -980,6 +986,7 @@ new PrismaClient({
       model,
       headers,
       transactionId,
+      unpacker,
     }: InternalRequestParams) {
       if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
@@ -1066,6 +1073,7 @@ new PrismaClient({
         runInTransaction,
         headers,
         transactionId,
+        unpacker,
       })
     }
 
@@ -1081,12 +1089,21 @@ new PrismaClient({
             )
           }
 
+          // TODO: add types
           const prismaClient = ({
             operation,
             actionName,
             args,
             dataPath,
             modelName,
+            unpacker,
+          }: {
+            operation: string
+            actionName: Action
+            args: any
+            dataPath: string[]
+            modelName: string
+            unpacker?: Unpacker
           }) => {
             if (actionName === 'findOne') {
               console.warn(
@@ -1115,6 +1132,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1131,6 +1149,7 @@ new PrismaClient({
                     callsite,
                     runInTransaction: true,
                     transactionId,
+                    unpacker,
                   })
                 }
 
@@ -1146,6 +1165,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1161,6 +1181,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1238,18 +1259,29 @@ new PrismaClient({
         )
 
         delegate.count = (args) => {
+          let select
+          if (args?.select) {
+            select = { count: { select: args.select } }
+          } else {
+            select = { count: { select: { _all: true } } }
+          }
+
+          const unpacker = args?.select
+            ? undefined
+            : (data) => {
+                data.count = data.count?._all
+                return data
+              }
+
           return clients[mapping.model]({
             operation: 'query',
             actionName: `aggregate`,
-            args: args
-              ? {
-                  ...args,
-                  select: { count: { select: { _all: true } } },
-                }
-              : {
-                  select: { count: { select: { _all: true } } },
-                },
+            args: {
+              ...(args ?? {}),
+              select,
+            },
             dataPath: ['count'],
+            unpacker,
           })
         }
 
@@ -1258,6 +1290,8 @@ new PrismaClient({
            * avg, count, sum, min, max need to go into select
            * For speed reasons we can go with "for in "
            */
+          let unpacker: Unpacker | undefined = undefined
+
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
@@ -1266,7 +1300,15 @@ new PrismaClient({
               }
               // `count` doesn't have a sub-selection
               if (key === 'count') {
-                acc.select[key] = { select: { _all: value } }
+                if (typeof value === 'object' && value) {
+                  acc.select[key] = { select: value }
+                } else {
+                  acc.select[key] = { select: { _all: value } }
+                  unpacker = (data) => {
+                    data.count = data.count?._all
+                    return data
+                  }
+                }
               } else {
                 acc.select[key] = { select: value }
               }
@@ -1282,6 +1324,7 @@ new PrismaClient({
             rootField: mapping.aggregate,
             args: select,
             dataPath: [],
+            unpacker,
           })
         }
 
@@ -1413,6 +1456,7 @@ export class PrismaClientFetcher {
     args,
     headers,
     transactionId,
+    unpacker,
   }: {
     document: Document
     dataPath: string[]
@@ -1427,6 +1471,7 @@ export class PrismaClientFetcher {
     args: any
     headers?: Record<string, string>
     transactionId?: number
+    unpacker?: Unpacker
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -1470,7 +1515,13 @@ export class PrismaClientFetcher {
       /**
        * Unpack
        */
-      const unpackResult = this.unpack(document, data, dataPath, rootField)
+      const unpackResult = this.unpack(
+        document,
+        data,
+        dataPath,
+        rootField,
+        unpacker,
+      )
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
       }
@@ -1531,14 +1582,17 @@ export class PrismaClientFetcher {
     }
     return message
   }
-  unpack(document, data, path, rootField) {
+  unpack(document, data, path, rootField, unpacker?: Unpacker) {
     if (data.data) {
       data = data.data
     }
     // to lift up _all in count
-    if (rootField.startsWith('aggregate') && data[rootField].count) {
-      data[rootField].count = data[rootField].count._all
+    if (unpacker) {
+      data[rootField] = unpacker(data[rootField])
     }
+    // if (rootField.startsWith('aggregate') && data[rootField].count) {
+    //   data[rootField].count = data[rootField].count._all
+    // }
     const getPath: any[] = []
     if (rootField) {
       getPath.push(rootField)
