@@ -149,13 +149,13 @@ ${new OutputType(this.dmmf, groupByType).toTS()}
 
 type ${getGroupByPayloadName(
       model.name,
-    )}<T extends ${groupByArgsName}> = Promise<
+    )}<T extends ${groupByArgsName}> = Promise<Array<
   PickArray<${groupByType.name}, T['by']> & {
     [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
       groupByType.name
     }[P]>
   }
->
+>>
     `
   }
   private getAggregationTypes() {
@@ -464,43 +464,54 @@ ${
     OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
     ByFields extends TupleToUnion<T['by']>,
     ByValid extends Has<ByFields, OrderFields>,
-    InputErrors extends 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : [
-                    Error,
-                    \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
-                  ]
-            }[OrderFields]
-        : [Error, 'If you provide "take", you also need to provide "orderBy"']
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : [
-                    Error,
-                    \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
-                  ]
-            }[OrderFields]
-        : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-      : ByValid extends True ? {} : {
-        [P in OrderFields]: P extends ByFields
+    HavingFields extends GetHavingFields<T['having']>,
+    HavingValid extends Has<ByFields, HavingFields>,
+    ByEmpty extends T['by'] extends never[] ? True : False,
+    InputErrors extends ByEmpty extends True
+    ? \`Error: "by" must not be empty.\`
+    : HavingValid extends False
+    ? {
+        [P in HavingFields]: P extends ByFields
           ? never
+          : P extends string
+          ? \`Error: Field "$\{P}" used in "having" needs to be provided in "by".\`
           : [
               Error,
-              \`Field "$\{P}" in "orderBy" needs to be provided in "by"\`,
+              'Field ',
+              P,
+              \` in "having" needs to be provided in "by"\`,
             ]
+      }[HavingFields]
+    : 'take' extends Keys<T>
+    ? 'orderBy' extends Keys<T>
+      ? ByValid extends True
+        ? {}
+        : {
+            [P in OrderFields]: P extends ByFields
+              ? never
+              : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
+          }[OrderFields]
+      : 'Error: If you provide "take", you also need to provide "orderBy"'
+    : 'skip' extends Keys<T>
+    ? 'orderBy' extends Keys<T>
+      ? ByValid extends True
+        ? {}
+        : {
+            [P in OrderFields]: P extends ByFields
+              ? never
+              : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
+          }[OrderFields]
+      : 'Error: If you provide "skip", you also need to provide "orderBy"'
+    : ByValid extends True
+    ? {}
+    : {
+        [P in OrderFields]: P extends ByFields
+          ? never
+          : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
-  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<${getGroupByPayloadName(
+  >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
         name,
-      )}<T>> : Promise<InputErrors>`
+      )}<T> : Promise<InputErrors>`
     : ``
 }
 }

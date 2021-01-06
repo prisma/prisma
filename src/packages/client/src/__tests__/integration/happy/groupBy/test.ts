@@ -169,6 +169,7 @@ test('groupBy name and aggregations', async () => {
         min: Object {
           age: 5,
         },
+        name: Bobby Brown,
         sum: Object {
           age: 800,
         },

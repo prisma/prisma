@@ -11,7 +11,7 @@
     "@sindresorhus/slugify": "1.1.0",
     "@types/debug": "4.1.5",
     "@types/graphviz": "0.0.32",
-    "@types/node": "12.19.11",
+    "@types/node": "12.19.12",
     "@types/redis": "2.8.28",
     "arg": "5.0.0",
     "batching-toposort": "1.2.0",

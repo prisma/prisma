@@ -434,17 +434,71 @@ type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
 type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+/**
+ * Is T a Record?
+ */
+type IsObject<T extends any> = T extends Array<any>
+? False
+: T extends Date
+? False
+: T extends Buffer
+? False
+: T extends BigInt
+? False
+: T extends object
+? True
+: False
+
+
+/**
+ * If it's T[], return T
+ */
+export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 
 /**
  * From ts-toolbelt
  */
 
 export type Union = any
+
+/** Helper Types for "Merge" **/
 export type IntersectOf<U extends Union> = (
   U extends unknown ? (k: U) => void : never
 ) extends (k: infer I) => void
   ? I
   : never
+
+export type Overwrite<O extends object, O1 extends object> = {
+    [K in keyof O]: K extends keyof O1 ? O1[K] : O[K];
+} & {};
+
+type _Merge<U extends object> = IntersectOf<Overwrite<U, {
+    [K in keyof U]-?: At<U, K>;
+}>>;
+
+type Key = string | number | symbol;
+type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
+type AtStrict<O extends object, K extends Key> = O[K & keyof O];
+type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
+export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+    1: AtStrict<O, K>;
+    0: AtLoose<O, K>;
+}[strict];
+
+export type ComputeRaw<A extends any> = A extends Function ? A : {
+  [K in keyof A]: A[K];
+} & {};
+
+export type OptionalFlat<O> = {
+  [K in keyof O]?: O[K];
+} & {};
+
+type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+
+export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
+/** End Helper Types for "Merge" **/
+
+export type Merge<U extends object> = ComputeRaw<_Merge<Strict<U>>>;
 
 /**
 A [[Boolean]]
@@ -489,14 +543,38 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+
+
 /**
  * Used by group by
  */
+
 export type GetScalarType<T, O> = O extends object ? {
   [P in keyof T]: P extends keyof O
     ? O[P]
     : never
 } : never
+
+type FieldPaths<
+  T,
+  U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+> = IsObject<T> extends True ? U : T
+
+type GetHavingFields<T> = {
+  [K in keyof T]: Or<
+    Or<Extends<'OR', K>, Extends<'AND', K>>,
+    Extends<'NOT', K>
+  > extends True
+    ? // infer is only needed to not hit TS limit
+      // based on the brilliant idea of Pierre-Antoine Mills
+      // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+      T[K] extends infer TK
+      ? GetHavingFields<UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never>
+      : never
+    : {} extends FieldPaths<T[K]>
+    ? never
+    : K
+}[keyof T]
 
 /**
  * Convert tuple to union
@@ -1138,17 +1216,71 @@ export namespace Prisma {
   type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
 
 
+  /**
+   * Is T a Record?
+   */
+  type IsObject<T extends any> = T extends Array<any>
+  ? False
+  : T extends Date
+  ? False
+  : T extends Buffer
+  ? False
+  : T extends BigInt
+  ? False
+  : T extends object
+  ? True
+  : False
+
+
+  /**
+   * If it's T[], return T
+   */
+  export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 
   /**
    * From ts-toolbelt
    */
 
   export type Union = any
+
+  /** Helper Types for "Merge" **/
   export type IntersectOf<U extends Union> = (
     U extends unknown ? (k: U) => void : never
   ) extends (k: infer I) => void
     ? I
     : never
+
+  export type Overwrite<O extends object, O1 extends object> = {
+      [K in keyof O]: K extends keyof O1 ? O1[K] : O[K];
+  } & {};
+
+  type _Merge<U extends object> = IntersectOf<Overwrite<U, {
+      [K in keyof U]-?: At<U, K>;
+  }>>;
+
+  type Key = string | number | symbol;
+  type AtBasic<O extends object, K extends Key> = K extends keyof O ? O[K] : never;
+  type AtStrict<O extends object, K extends Key> = O[K & keyof O];
+  type AtLoose<O extends object, K extends Key> = O extends unknown ? AtStrict<O, K> : never;
+  export type At<O extends object, K extends Key, strict extends Boolean = 1> = {
+      1: AtStrict<O, K>;
+      0: AtLoose<O, K>;
+  }[strict];
+
+  export type ComputeRaw<A extends any> = A extends Function ? A : {
+    [K in keyof A]: A[K];
+  } & {};
+
+  export type OptionalFlat<O> = {
+    [K in keyof O]?: O[K];
+  } & {};
+
+  type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+
+  export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
+  /** End Helper Types for "Merge" **/
+
+  export type Merge<U extends object> = ComputeRaw<_Merge<Strict<U>>>;
 
   /**
   A [[Boolean]]
@@ -1193,14 +1325,38 @@ export namespace Prisma {
 
   export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+
+
   /**
    * Used by group by
    */
+
   export type GetScalarType<T, O> = O extends object ? {
     [P in keyof T]: P extends keyof O
       ? O[P]
       : never
   } : never
+
+  type FieldPaths<
+    T,
+    U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+  > = IsObject<T> extends True ? U : T
+
+  type GetHavingFields<T> = {
+    [K in keyof T]: Or<
+      Or<Extends<'OR', K>, Extends<'AND', K>>,
+      Extends<'NOT', K>
+    > extends True
+      ? // infer is only needed to not hit TS limit
+        // based on the brilliant idea of Pierre-Antoine Mills
+        // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+        T[K] extends infer TK
+        ? GetHavingFields<UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never>
+        : never
+      : {} extends FieldPaths<T[K]>
+      ? never
+      : K
+  }[keyof T]
 
   /**
    * Convert tuple to union
@@ -1520,6 +1676,7 @@ export namespace Prisma {
     where?: PostWhereInput
     orderBy?: Enumerable<PostOrderByInput>
     by: Array<PostScalarFieldEnum>
+    having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: PostCountAggregateInputType
@@ -1544,11 +1701,11 @@ export namespace Prisma {
     max: PostMaxAggregateOutputType | null
   }
 
-  type GetPostGroupByPayload<T extends GroupByPostArgs> = Promise<
+  type GetPostGroupByPayload<T extends GroupByPostArgs> = Promise<Array<
     PickArray<PostGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof PostGroupByOutputType))]: GetScalarType<T[P], PostGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type PostSelect = {
@@ -1827,41 +1984,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByPostArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetPostGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByPostArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -2374,6 +2542,7 @@ export namespace Prisma {
     where?: UserWhereInput
     orderBy?: Enumerable<UserOrderByInput>
     by: Array<UserScalarFieldEnum>
+    having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: UserCountAggregateInputType
@@ -2406,11 +2575,11 @@ export namespace Prisma {
     max: UserMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends GroupByUserArgs> = Promise<
+  type GetUserGroupByPayload<T extends GroupByUserArgs> = Promise<Array<
     PickArray<UserGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof UserGroupByOutputType))]: GetScalarType<T[P], UserGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type UserSelect = {
@@ -2697,41 +2866,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByUserArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetUserGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByUserArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -3238,6 +3418,7 @@ export namespace Prisma {
     where?: MWhereInput
     orderBy?: Enumerable<MOrderByInput>
     by: Array<MScalarFieldEnum>
+    having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: MCountAggregateInputType
@@ -3269,11 +3450,11 @@ export namespace Prisma {
     max: MMaxAggregateOutputType | null
   }
 
-  type GetMGroupByPayload<T extends GroupByMArgs> = Promise<
+  type GetMGroupByPayload<T extends GroupByMArgs> = Promise<Array<
     PickArray<MGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof MGroupByOutputType))]: GetScalarType<T[P], MGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type MSelect = {
@@ -3559,41 +3740,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByMArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetMGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByMArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -4100,6 +4292,7 @@ export namespace Prisma {
     where?: NWhereInput
     orderBy?: Enumerable<NOrderByInput>
     by: Array<NScalarFieldEnum>
+    having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: NCountAggregateInputType
@@ -4131,11 +4324,11 @@ export namespace Prisma {
     max: NMaxAggregateOutputType | null
   }
 
-  type GetNGroupByPayload<T extends GroupByNArgs> = Promise<
+  type GetNGroupByPayload<T extends GroupByNArgs> = Promise<Array<
     PickArray<NGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof NGroupByOutputType))]: GetScalarType<T[P], NGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type NSelect = {
@@ -4421,41 +4614,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByNArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetNGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByNArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -4962,6 +5166,7 @@ export namespace Prisma {
     where?: OneOptionalWhereInput
     orderBy?: Enumerable<OneOptionalOrderByInput>
     by: Array<OneOptionalScalarFieldEnum>
+    having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: OneOptionalCountAggregateInputType
@@ -4993,11 +5198,11 @@ export namespace Prisma {
     max: OneOptionalMaxAggregateOutputType | null
   }
 
-  type GetOneOptionalGroupByPayload<T extends GroupByOneOptionalArgs> = Promise<
+  type GetOneOptionalGroupByPayload<T extends GroupByOneOptionalArgs> = Promise<Array<
     PickArray<OneOptionalGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type OneOptionalSelect = {
@@ -5283,41 +5488,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOneOptionalArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOneOptionalGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOneOptionalArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -5834,6 +6050,7 @@ export namespace Prisma {
     where?: ManyRequiredWhereInput
     orderBy?: Enumerable<ManyRequiredOrderByInput>
     by: Array<ManyRequiredScalarFieldEnum>
+    having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: ManyRequiredCountAggregateInputType
@@ -5866,11 +6083,11 @@ export namespace Prisma {
     max: ManyRequiredMaxAggregateOutputType | null
   }
 
-  type GetManyRequiredGroupByPayload<T extends GroupByManyRequiredArgs> = Promise<
+  type GetManyRequiredGroupByPayload<T extends GroupByManyRequiredArgs> = Promise<Array<
     PickArray<ManyRequiredGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type ManyRequiredSelect = {
@@ -6157,41 +6374,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByManyRequiredArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetManyRequiredGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByManyRequiredArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -6708,6 +6936,7 @@ export namespace Prisma {
     where?: OptionalSide1WhereInput
     orderBy?: Enumerable<OptionalSide1OrderByInput>
     by: Array<OptionalSide1ScalarFieldEnum>
+    having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: OptionalSide1CountAggregateInputType
@@ -6740,11 +6969,11 @@ export namespace Prisma {
     max: OptionalSide1MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide1GroupByPayload<T extends GroupByOptionalSide1Args> = Promise<
+  type GetOptionalSide1GroupByPayload<T extends GroupByOptionalSide1Args> = Promise<Array<
     PickArray<OptionalSide1GroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type OptionalSide1Select = {
@@ -7031,41 +7260,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOptionalSide1Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide1GroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOptionalSide1Args, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -7572,6 +7812,7 @@ export namespace Prisma {
     where?: OptionalSide2WhereInput
     orderBy?: Enumerable<OptionalSide2OrderByInput>
     by: Array<OptionalSide2ScalarFieldEnum>
+    having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: OptionalSide2CountAggregateInputType
@@ -7603,11 +7844,11 @@ export namespace Prisma {
     max: OptionalSide2MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide2GroupByPayload<T extends GroupByOptionalSide2Args> = Promise<
+  type GetOptionalSide2GroupByPayload<T extends GroupByOptionalSide2Args> = Promise<Array<
     PickArray<OptionalSide2GroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type OptionalSide2Select = {
@@ -7893,41 +8134,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByOptionalSide2Args, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetOptionalSide2GroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByOptionalSide2Args, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -8444,6 +8696,7 @@ export namespace Prisma {
     where?: AWhereInput
     orderBy?: Enumerable<AOrderByInput>
     by: Array<AScalarFieldEnum>
+    having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: ACountAggregateInputType
@@ -8474,11 +8727,11 @@ export namespace Prisma {
     max: AMaxAggregateOutputType | null
   }
 
-  type GetAGroupByPayload<T extends GroupByAArgs> = Promise<
+  type GetAGroupByPayload<T extends GroupByAArgs> = Promise<Array<
     PickArray<AGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof AGroupByOutputType))]: GetScalarType<T[P], AGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type ASelect = {
@@ -8753,41 +9006,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByAArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetAGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByAArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -9209,6 +9473,7 @@ export namespace Prisma {
     where?: BWhereInput
     orderBy?: Enumerable<BOrderByInput>
     by: Array<BScalarFieldEnum>
+    having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: BCountAggregateInputType
@@ -9232,11 +9497,11 @@ export namespace Prisma {
     max: BMaxAggregateOutputType | null
   }
 
-  type GetBGroupByPayload<T extends GroupByBArgs> = Promise<
+  type GetBGroupByPayload<T extends GroupByBArgs> = Promise<Array<
     PickArray<BGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof BGroupByOutputType))]: GetScalarType<T[P], BGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type BSelect = {
@@ -9504,41 +9769,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByBArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetBGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByBArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -9928,6 +10204,7 @@ export namespace Prisma {
     where?: CWhereInput
     orderBy?: Enumerable<COrderByInput>
     by: Array<CScalarFieldEnum>
+    having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: CCountAggregateInputType
@@ -9949,11 +10226,11 @@ export namespace Prisma {
     max: CMaxAggregateOutputType | null
   }
 
-  type GetCGroupByPayload<T extends GroupByCArgs> = Promise<
+  type GetCGroupByPayload<T extends GroupByCArgs> = Promise<Array<
     PickArray<CGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof CGroupByOutputType))]: GetScalarType<T[P], CGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type CSelect = {
@@ -10223,41 +10500,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByCArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetCGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByCArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -10641,6 +10929,7 @@ export namespace Prisma {
     where?: DWhereInput
     orderBy?: Enumerable<DOrderByInput>
     by: Array<DScalarFieldEnum>
+    having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: DCountAggregateInputType
@@ -10661,11 +10950,11 @@ export namespace Prisma {
     max: DMaxAggregateOutputType | null
   }
 
-  type GetDGroupByPayload<T extends GroupByDArgs> = Promise<
+  type GetDGroupByPayload<T extends GroupByDArgs> = Promise<Array<
     PickArray<DGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof DGroupByOutputType))]: GetScalarType<T[P], DGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type DSelect = {
@@ -10934,41 +11223,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByDArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetDGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByDArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -11340,6 +11640,7 @@ export namespace Prisma {
     where?: EWhereInput
     orderBy?: Enumerable<EOrderByInput>
     by: Array<EScalarFieldEnum>
+    having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
     count?: ECountAggregateInputType
@@ -11358,11 +11659,11 @@ export namespace Prisma {
     max: EMaxAggregateOutputType | null
   }
 
-  type GetEGroupByPayload<T extends GroupByEArgs> = Promise<
+  type GetEGroupByPayload<T extends GroupByEArgs> = Promise<Array<
     PickArray<EGroupByOutputType, T['by']> & {
       [P in ((keyof T) & (keyof EGroupByOutputType))]: GetScalarType<T[P], EGroupByOutputType[P]>
     }
-  >
+  >>
     
 
   export type ESelect = {
@@ -11629,41 +11930,52 @@ export namespace Prisma {
       OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
-      InputErrors extends 'take' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "take", you also need to provide "orderBy"']
-        : 'skip' extends Keys<T>
-        ? 'orderBy' extends Keys<T>
-          ? ByValid extends True
-            ? {}
-            : {
-                [P in OrderFields]: P extends ByFields
-                  ? never
-                  : [
-                      Error,
-                      \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
-                    ]
-              }[OrderFields]
-          : [Error, 'If you provide "skip", you also need to provide "orderBy"']
-        : ByValid extends True ? {} : {
-          [P in OrderFields]: P extends ByFields
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
             ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
             : [
                 Error,
-                \`Field "\${P}" in "orderBy" needs to be provided in "by"\`,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
               ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, GroupByEArgs, OrderByArg> & InputErrors): {} extends InputErrors ? Promise<GetEGroupByPayload<T>> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, GroupByEArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : Promise<InputErrors>
   }
 
   /**
@@ -12181,6 +12493,18 @@ export namespace Prisma {
     id?: number
   }
 
+  export type PostScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<PostScalarWhereWithAggregatesInput>
+    OR?: Enumerable<PostScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<PostScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    createdAt?: DateTimeWithAggregatesFilter | Date | string
+    title?: StringWithAggregatesFilter | string
+    content?: StringNullableWithAggregatesFilter | string | null
+    published?: BoolWithAggregatesFilter | boolean
+    authorId?: IntWithAggregatesFilter | number
+  }
+
   export type UserWhereInput = {
     AND?: Enumerable<UserWhereInput>
     OR?: Enumerable<UserWhereInput>
@@ -12224,6 +12548,26 @@ export namespace Prisma {
     email?: string
   }
 
+  export type UserScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<UserScalarWhereWithAggregatesInput>
+    OR?: Enumerable<UserScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<UserScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    email?: StringWithAggregatesFilter | string
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+  }
+
   export type MWhereInput = {
     AND?: Enumerable<MWhereInput>
     OR?: Enumerable<MWhereInput>
@@ -12262,6 +12606,25 @@ export namespace Prisma {
 
   export type MWhereUniqueInput = {
     id?: number
+  }
+
+  export type MScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<MScalarWhereWithAggregatesInput>
+    OR?: Enumerable<MScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<MScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
   }
 
   export type NWhereInput = {
@@ -12304,6 +12667,25 @@ export namespace Prisma {
     id?: number
   }
 
+  export type NScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<NScalarWhereWithAggregatesInput>
+    OR?: Enumerable<NScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<NScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+  }
+
   export type OneOptionalWhereInput = {
     AND?: Enumerable<OneOptionalWhereInput>
     OR?: Enumerable<OneOptionalWhereInput>
@@ -12342,6 +12724,25 @@ export namespace Prisma {
 
   export type OneOptionalWhereUniqueInput = {
     id?: number
+  }
+
+  export type OneOptionalScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
+    OR?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
   }
 
   export type ManyRequiredWhereInput = {
@@ -12386,6 +12787,26 @@ export namespace Prisma {
     id?: number
   }
 
+  export type ManyRequiredScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
+    OR?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    oneOptionalId?: IntNullableWithAggregatesFilter | number | null
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+  }
+
   export type OptionalSide1WhereInput = {
     AND?: Enumerable<OptionalSide1WhereInput>
     OR?: Enumerable<OptionalSide1WhereInput>
@@ -12428,6 +12849,26 @@ export namespace Prisma {
     id?: number
   }
 
+  export type OptionalSide1ScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
+    OR?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    optionalSide2Id?: IntNullableWithAggregatesFilter | number | null
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+  }
+
   export type OptionalSide2WhereInput = {
     AND?: Enumerable<OptionalSide2WhereInput>
     OR?: Enumerable<OptionalSide2WhereInput>
@@ -12468,6 +12909,25 @@ export namespace Prisma {
     id?: number
   }
 
+  export type OptionalSide2ScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
+    OR?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
+    id?: IntWithAggregatesFilter | number
+    int?: IntWithAggregatesFilter | number
+    optionalInt?: IntNullableWithAggregatesFilter | number | null
+    float?: FloatWithAggregatesFilter | number
+    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
+    string?: StringWithAggregatesFilter | string
+    optionalString?: StringNullableWithAggregatesFilter | string | null
+    json?: JsonWithAggregatesFilter
+    optionalJson?: JsonNullableWithAggregatesFilter
+    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+  }
+
   export type AWhereInput = {
     AND?: Enumerable<AWhereInput>
     OR?: Enumerable<AWhereInput>
@@ -12506,6 +12966,24 @@ export namespace Prisma {
     email?: string
   }
 
+  export type AScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<AScalarWhereWithAggregatesInput>
+    OR?: Enumerable<AScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<AScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    email?: StringWithAggregatesFilter | string
+    name?: StringNullableWithAggregatesFilter | string | null
+    int?: IntWithAggregatesFilter | number
+    sInt?: IntWithAggregatesFilter | number
+    bInt?: BigIntWithAggregatesFilter | BigInt | number
+    serial?: IntWithAggregatesFilter | number
+    sSerial?: IntWithAggregatesFilter | number
+    bSerial?: IntWithAggregatesFilter | number
+    inc_int?: IntWithAggregatesFilter | number
+    inc_sInt?: IntWithAggregatesFilter | number
+    inc_bInt?: BigIntWithAggregatesFilter | BigInt | number
+  }
+
   export type BWhereInput = {
     AND?: Enumerable<BWhereInput>
     OR?: Enumerable<BWhereInput>
@@ -12527,6 +13005,17 @@ export namespace Prisma {
 
   export type BWhereUniqueInput = {
     id?: string
+  }
+
+  export type BScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<BScalarWhereWithAggregatesInput>
+    OR?: Enumerable<BScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<BScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    float?: FloatWithAggregatesFilter | number
+    dFloat?: FloatWithAggregatesFilter | number
+    decFloat?: DecimalWithAggregatesFilter | Decimal | number | string
+    numFloat?: DecimalWithAggregatesFilter | Decimal | number | string
   }
 
   export type CWhereInput = {
@@ -12556,6 +13045,19 @@ export namespace Prisma {
     id?: string
   }
 
+  export type CScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<CScalarWhereWithAggregatesInput>
+    OR?: Enumerable<CScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<CScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    char?: StringWithAggregatesFilter | string
+    vChar?: StringWithAggregatesFilter | string
+    text?: StringWithAggregatesFilter | string
+    bit?: StringWithAggregatesFilter | string
+    vBit?: StringWithAggregatesFilter | string
+    uuid?: StringWithAggregatesFilter | string
+  }
+
   export type DWhereInput = {
     AND?: Enumerable<DWhereInput>
     OR?: Enumerable<DWhereInput>
@@ -12581,6 +13083,18 @@ export namespace Prisma {
     id?: string
   }
 
+  export type DScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<DScalarWhereWithAggregatesInput>
+    OR?: Enumerable<DScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<DScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    bool?: BoolWithAggregatesFilter | boolean
+    byteA?: BytesWithAggregatesFilter | Buffer
+    xml?: StringWithAggregatesFilter | string
+    json?: JsonWithAggregatesFilter
+    jsonb?: JsonWithAggregatesFilter
+  }
+
   export type EWhereInput = {
     AND?: Enumerable<EWhereInput>
     OR?: Enumerable<EWhereInput>
@@ -12600,6 +13114,16 @@ export namespace Prisma {
 
   export type EWhereUniqueInput = {
     id?: string
+  }
+
+  export type EScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<EScalarWhereWithAggregatesInput>
+    OR?: Enumerable<EScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<EScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    date?: DateTimeWithAggregatesFilter | Date | string
+    time?: DateTimeWithAggregatesFilter | Date | string
+    ts?: DateTimeWithAggregatesFilter | Date | string
   }
 
   export type PostCreateInput = {
@@ -13691,6 +14215,80 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type IntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntWithAggregatesFilter | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedIntFilter
+    min?: NestedIntFilter
+    max?: NestedIntFilter
+  }
+
+  export type DateTimeWithAggregatesFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeWithAggregatesFilter | Date | string
+    count?: NestedIntFilter
+    min?: NestedDateTimeFilter
+    max?: NestedDateTimeFilter
+  }
+
+  export type StringWithAggregatesFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    mode?: QueryMode
+    not?: NestedStringWithAggregatesFilter | string
+    count?: NestedIntFilter
+    min?: NestedStringFilter
+    max?: NestedStringFilter
+  }
+
+  export type StringNullableWithAggregatesFilter = {
+    equals?: string | null
+    in?: Enumerable<string> | null
+    notIn?: Enumerable<string> | null
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter | string | null
+    count?: NestedIntNullableFilter
+    min?: NestedStringNullableFilter
+    max?: NestedStringNullableFilter
+  }
+
+  export type BoolWithAggregatesFilter = {
+    equals?: boolean
+    not?: NestedBoolWithAggregatesFilter | boolean
+    count?: NestedIntFilter
+    min?: NestedBoolFilter
+    max?: NestedBoolFilter
+  }
+
   export type IntNullableFilter = {
     equals?: number | null
     in?: Enumerable<number> | null
@@ -13759,6 +14357,98 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
+  export type IntNullableWithAggregatesFilter = {
+    equals?: number | null
+    in?: Enumerable<number> | null
+    notIn?: Enumerable<number> | null
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntNullableWithAggregatesFilter | number | null
+    count?: NestedIntNullableFilter
+    avg?: NestedFloatNullableFilter
+    sum?: NestedIntNullableFilter
+    min?: NestedIntNullableFilter
+    max?: NestedIntNullableFilter
+  }
+
+  export type FloatWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedFloatWithAggregatesFilter | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedFloatFilter
+    min?: NestedFloatFilter
+    max?: NestedFloatFilter
+  }
+
+  export type FloatNullableWithAggregatesFilter = {
+    equals?: number | null
+    in?: Enumerable<number> | null
+    notIn?: Enumerable<number> | null
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedFloatNullableWithAggregatesFilter | number | null
+    count?: NestedIntNullableFilter
+    avg?: NestedFloatNullableFilter
+    sum?: NestedFloatNullableFilter
+    min?: NestedFloatNullableFilter
+    max?: NestedFloatNullableFilter
+  }
+
+  export type JsonWithAggregatesFilter = {
+    equals?: InputJsonValue
+    not?: InputJsonValue
+    count?: NestedIntFilter
+    min?: NestedJsonFilter
+    max?: NestedJsonFilter
+  }
+
+  export type JsonNullableWithAggregatesFilter = {
+    equals?: InputJsonValue | null
+    not?: InputJsonValue | null
+    count?: NestedIntNullableFilter
+    min?: NestedJsonNullableFilter
+    max?: NestedJsonNullableFilter
+  }
+
+  export type EnumABeautifulEnumWithAggregatesFilter = {
+    equals?: ABeautifulEnum
+    in?: Enumerable<ABeautifulEnum>
+    notIn?: Enumerable<ABeautifulEnum>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    count?: NestedIntFilter
+    min?: NestedEnumABeautifulEnumFilter
+    max?: NestedEnumABeautifulEnumFilter
+  }
+
+  export type EnumABeautifulEnumNullableWithAggregatesFilter = {
+    equals?: ABeautifulEnum | null
+    in?: Enumerable<ABeautifulEnum> | null
+    notIn?: Enumerable<ABeautifulEnum> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    count?: NestedIntNullableFilter
+    min?: NestedEnumABeautifulEnumNullableFilter
+    max?: NestedEnumABeautifulEnumNullableFilter
+  }
+
+  export type BoolNullableWithAggregatesFilter = {
+    equals?: boolean | null
+    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    count?: NestedIntNullableFilter
+    min?: NestedBoolNullableFilter
+    max?: NestedBoolNullableFilter
+  }
+
   export type NListRelationFilter = {
     every?: NWhereInput
     some?: NWhereInput
@@ -13803,6 +14493,22 @@ export namespace Prisma {
     not?: NestedBigIntFilter | BigInt | number
   }
 
+  export type BigIntWithAggregatesFilter = {
+    equals?: BigInt | number
+    in?: Enumerable<BigInt> | Enumerable<number>
+    notIn?: Enumerable<BigInt> | Enumerable<number>
+    lt?: BigInt | number
+    lte?: BigInt | number
+    gt?: BigInt | number
+    gte?: BigInt | number
+    not?: NestedBigIntWithAggregatesFilter | BigInt | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedBigIntFilter
+    min?: NestedBigIntFilter
+    max?: NestedBigIntFilter
+  }
+
   export type DecimalFilter = {
     equals?: Decimal | number | string
     in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
@@ -13814,9 +14520,33 @@ export namespace Prisma {
     not?: NestedDecimalFilter | Decimal | number | string
   }
 
+  export type DecimalWithAggregatesFilter = {
+    equals?: Decimal | number | string
+    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | number | string
+    lte?: Decimal | number | string
+    gt?: Decimal | number | string
+    gte?: Decimal | number | string
+    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    count?: NestedIntFilter
+    avg?: NestedDecimalFilter
+    sum?: NestedDecimalFilter
+    min?: NestedDecimalFilter
+    max?: NestedDecimalFilter
+  }
+
   export type BytesFilter = {
     equals?: Buffer
     not?: NestedBytesFilter | Buffer
+  }
+
+  export type BytesWithAggregatesFilter = {
+    equals?: Buffer
+    not?: NestedBytesWithAggregatesFilter | Buffer
+    count?: NestedIntFilter
+    min?: NestedBytesFilter
+    max?: NestedBytesFilter
   }
 
   export type UserCreateOneWithoutPostsInput = {
@@ -14146,15 +14876,20 @@ export namespace Prisma {
     not?: NestedBoolFilter | boolean
   }
 
-  export type NestedIntNullableFilter = {
-    equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+  export type NestedIntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
     lt?: number
     lte?: number
     gt?: number
     gte?: number
-    not?: NestedIntNullableFilter | number | null
+    not?: NestedIntWithAggregatesFilter | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedIntFilter
+    min?: NestedIntFilter
+    max?: NestedIntFilter
   }
 
   export type NestedFloatFilter = {
@@ -14166,6 +14901,73 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatFilter | number
+  }
+
+  export type NestedDateTimeWithAggregatesFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeWithAggregatesFilter | Date | string
+    count?: NestedIntFilter
+    min?: NestedDateTimeFilter
+    max?: NestedDateTimeFilter
+  }
+
+  export type NestedStringWithAggregatesFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    not?: NestedStringWithAggregatesFilter | string
+    count?: NestedIntFilter
+    min?: NestedStringFilter
+    max?: NestedStringFilter
+  }
+
+  export type NestedStringNullableWithAggregatesFilter = {
+    equals?: string | null
+    in?: Enumerable<string> | null
+    notIn?: Enumerable<string> | null
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    contains?: string
+    startsWith?: string
+    endsWith?: string
+    not?: NestedStringNullableWithAggregatesFilter | string | null
+    count?: NestedIntNullableFilter
+    min?: NestedStringNullableFilter
+    max?: NestedStringNullableFilter
+  }
+
+  export type NestedIntNullableFilter = {
+    equals?: number | null
+    in?: Enumerable<number> | null
+    notIn?: Enumerable<number> | null
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntNullableFilter | number | null
+  }
+
+  export type NestedBoolWithAggregatesFilter = {
+    equals?: boolean
+    not?: NestedBoolWithAggregatesFilter | boolean
+    count?: NestedIntFilter
+    min?: NestedBoolFilter
+    max?: NestedBoolFilter
   }
 
   export type NestedFloatNullableFilter = {
@@ -14198,6 +15000,92 @@ export namespace Prisma {
     not?: NestedBoolNullableFilter | boolean | null
   }
 
+  export type NestedIntNullableWithAggregatesFilter = {
+    equals?: number | null
+    in?: Enumerable<number> | null
+    notIn?: Enumerable<number> | null
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntNullableWithAggregatesFilter | number | null
+    count?: NestedIntNullableFilter
+    avg?: NestedFloatNullableFilter
+    sum?: NestedIntNullableFilter
+    min?: NestedIntNullableFilter
+    max?: NestedIntNullableFilter
+  }
+
+  export type NestedFloatWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedFloatWithAggregatesFilter | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedFloatFilter
+    min?: NestedFloatFilter
+    max?: NestedFloatFilter
+  }
+
+  export type NestedFloatNullableWithAggregatesFilter = {
+    equals?: number | null
+    in?: Enumerable<number> | null
+    notIn?: Enumerable<number> | null
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedFloatNullableWithAggregatesFilter | number | null
+    count?: NestedIntNullableFilter
+    avg?: NestedFloatNullableFilter
+    sum?: NestedFloatNullableFilter
+    min?: NestedFloatNullableFilter
+    max?: NestedFloatNullableFilter
+  }
+
+  export type NestedJsonFilter = {
+    equals?: InputJsonValue
+    not?: InputJsonValue
+  }
+
+  export type NestedJsonNullableFilter = {
+    equals?: InputJsonValue | null
+    not?: InputJsonValue | null
+  }
+
+  export type NestedEnumABeautifulEnumWithAggregatesFilter = {
+    equals?: ABeautifulEnum
+    in?: Enumerable<ABeautifulEnum>
+    notIn?: Enumerable<ABeautifulEnum>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    count?: NestedIntFilter
+    min?: NestedEnumABeautifulEnumFilter
+    max?: NestedEnumABeautifulEnumFilter
+  }
+
+  export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
+    equals?: ABeautifulEnum | null
+    in?: Enumerable<ABeautifulEnum> | null
+    notIn?: Enumerable<ABeautifulEnum> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    count?: NestedIntNullableFilter
+    min?: NestedEnumABeautifulEnumNullableFilter
+    max?: NestedEnumABeautifulEnumNullableFilter
+  }
+
+  export type NestedBoolNullableWithAggregatesFilter = {
+    equals?: boolean | null
+    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    count?: NestedIntNullableFilter
+    min?: NestedBoolNullableFilter
+    max?: NestedBoolNullableFilter
+  }
+
   export type NestedBigIntFilter = {
     equals?: BigInt | number
     in?: Enumerable<BigInt> | Enumerable<number>
@@ -14207,6 +15095,22 @@ export namespace Prisma {
     gt?: BigInt | number
     gte?: BigInt | number
     not?: NestedBigIntFilter | BigInt | number
+  }
+
+  export type NestedBigIntWithAggregatesFilter = {
+    equals?: BigInt | number
+    in?: Enumerable<BigInt> | Enumerable<number>
+    notIn?: Enumerable<BigInt> | Enumerable<number>
+    lt?: BigInt | number
+    lte?: BigInt | number
+    gt?: BigInt | number
+    gte?: BigInt | number
+    not?: NestedBigIntWithAggregatesFilter | BigInt | number
+    count?: NestedIntFilter
+    avg?: NestedFloatFilter
+    sum?: NestedBigIntFilter
+    min?: NestedBigIntFilter
+    max?: NestedBigIntFilter
   }
 
   export type NestedDecimalFilter = {
@@ -14220,9 +15124,33 @@ export namespace Prisma {
     not?: NestedDecimalFilter | Decimal | number | string
   }
 
+  export type NestedDecimalWithAggregatesFilter = {
+    equals?: Decimal | number | string
+    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | number | string
+    lte?: Decimal | number | string
+    gt?: Decimal | number | string
+    gte?: Decimal | number | string
+    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    count?: NestedIntFilter
+    avg?: NestedDecimalFilter
+    sum?: NestedDecimalFilter
+    min?: NestedDecimalFilter
+    max?: NestedDecimalFilter
+  }
+
   export type NestedBytesFilter = {
     equals?: Buffer
     not?: NestedBytesFilter | Buffer
+  }
+
+  export type NestedBytesWithAggregatesFilter = {
+    equals?: Buffer
+    not?: NestedBytesWithAggregatesFilter | Buffer
+    count?: NestedIntFilter
+    min?: NestedBytesFilter
+    max?: NestedBytesFilter
   }
 
   export type UserCreateWithoutPostsInput = {
@@ -16470,6 +17398,11 @@ export type PostOrderByInput = Prisma.PostOrderByInput
 export type PostWhereUniqueInput = Prisma.PostWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.PostScalarWhereWithAggregatesInput\`
+ */
+export type PostScalarWhereWithAggregatesInput = Prisma.PostScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.UserWhereInput\`
  */
 export type UserWhereInput = Prisma.UserWhereInput
@@ -16483,6 +17416,11 @@ export type UserOrderByInput = Prisma.UserOrderByInput
  * @deprecated Renamed to \`Prisma.UserWhereUniqueInput\`
  */
 export type UserWhereUniqueInput = Prisma.UserWhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.UserScalarWhereWithAggregatesInput\`
+ */
+export type UserScalarWhereWithAggregatesInput = Prisma.UserScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.MWhereInput\`
@@ -16500,6 +17438,11 @@ export type MOrderByInput = Prisma.MOrderByInput
 export type MWhereUniqueInput = Prisma.MWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.MScalarWhereWithAggregatesInput\`
+ */
+export type MScalarWhereWithAggregatesInput = Prisma.MScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.NWhereInput\`
  */
 export type NWhereInput = Prisma.NWhereInput
@@ -16513,6 +17456,11 @@ export type NOrderByInput = Prisma.NOrderByInput
  * @deprecated Renamed to \`Prisma.NWhereUniqueInput\`
  */
 export type NWhereUniqueInput = Prisma.NWhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.NScalarWhereWithAggregatesInput\`
+ */
+export type NScalarWhereWithAggregatesInput = Prisma.NScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.OneOptionalWhereInput\`
@@ -16530,6 +17478,11 @@ export type OneOptionalOrderByInput = Prisma.OneOptionalOrderByInput
 export type OneOptionalWhereUniqueInput = Prisma.OneOptionalWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.OneOptionalScalarWhereWithAggregatesInput\`
+ */
+export type OneOptionalScalarWhereWithAggregatesInput = Prisma.OneOptionalScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.ManyRequiredWhereInput\`
  */
 export type ManyRequiredWhereInput = Prisma.ManyRequiredWhereInput
@@ -16543,6 +17496,11 @@ export type ManyRequiredOrderByInput = Prisma.ManyRequiredOrderByInput
  * @deprecated Renamed to \`Prisma.ManyRequiredWhereUniqueInput\`
  */
 export type ManyRequiredWhereUniqueInput = Prisma.ManyRequiredWhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.ManyRequiredScalarWhereWithAggregatesInput\`
+ */
+export type ManyRequiredScalarWhereWithAggregatesInput = Prisma.ManyRequiredScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.OptionalSide1WhereInput\`
@@ -16560,6 +17518,11 @@ export type OptionalSide1OrderByInput = Prisma.OptionalSide1OrderByInput
 export type OptionalSide1WhereUniqueInput = Prisma.OptionalSide1WhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.OptionalSide1ScalarWhereWithAggregatesInput\`
+ */
+export type OptionalSide1ScalarWhereWithAggregatesInput = Prisma.OptionalSide1ScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.OptionalSide2WhereInput\`
  */
 export type OptionalSide2WhereInput = Prisma.OptionalSide2WhereInput
@@ -16573,6 +17536,11 @@ export type OptionalSide2OrderByInput = Prisma.OptionalSide2OrderByInput
  * @deprecated Renamed to \`Prisma.OptionalSide2WhereUniqueInput\`
  */
 export type OptionalSide2WhereUniqueInput = Prisma.OptionalSide2WhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.OptionalSide2ScalarWhereWithAggregatesInput\`
+ */
+export type OptionalSide2ScalarWhereWithAggregatesInput = Prisma.OptionalSide2ScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.AWhereInput\`
@@ -16590,6 +17558,11 @@ export type AOrderByInput = Prisma.AOrderByInput
 export type AWhereUniqueInput = Prisma.AWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.AScalarWhereWithAggregatesInput\`
+ */
+export type AScalarWhereWithAggregatesInput = Prisma.AScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.BWhereInput\`
  */
 export type BWhereInput = Prisma.BWhereInput
@@ -16603,6 +17576,11 @@ export type BOrderByInput = Prisma.BOrderByInput
  * @deprecated Renamed to \`Prisma.BWhereUniqueInput\`
  */
 export type BWhereUniqueInput = Prisma.BWhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.BScalarWhereWithAggregatesInput\`
+ */
+export type BScalarWhereWithAggregatesInput = Prisma.BScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.CWhereInput\`
@@ -16620,6 +17598,11 @@ export type COrderByInput = Prisma.COrderByInput
 export type CWhereUniqueInput = Prisma.CWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.CScalarWhereWithAggregatesInput\`
+ */
+export type CScalarWhereWithAggregatesInput = Prisma.CScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.DWhereInput\`
  */
 export type DWhereInput = Prisma.DWhereInput
@@ -16635,6 +17618,11 @@ export type DOrderByInput = Prisma.DOrderByInput
 export type DWhereUniqueInput = Prisma.DWhereUniqueInput
 
 /**
+ * @deprecated Renamed to \`Prisma.DScalarWhereWithAggregatesInput\`
+ */
+export type DScalarWhereWithAggregatesInput = Prisma.DScalarWhereWithAggregatesInput
+
+/**
  * @deprecated Renamed to \`Prisma.EWhereInput\`
  */
 export type EWhereInput = Prisma.EWhereInput
@@ -16648,6 +17636,11 @@ export type EOrderByInput = Prisma.EOrderByInput
  * @deprecated Renamed to \`Prisma.EWhereUniqueInput\`
  */
 export type EWhereUniqueInput = Prisma.EWhereUniqueInput
+
+/**
+ * @deprecated Renamed to \`Prisma.EScalarWhereWithAggregatesInput\`
+ */
+export type EScalarWhereWithAggregatesInput = Prisma.EScalarWhereWithAggregatesInput
 
 /**
  * @deprecated Renamed to \`Prisma.PostCreateInput\`
@@ -17070,6 +18063,31 @@ export type BoolFilter = Prisma.BoolFilter
 export type UserRelationFilter = Prisma.UserRelationFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.IntWithAggregatesFilter\`
+ */
+export type IntWithAggregatesFilter = Prisma.IntWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.DateTimeWithAggregatesFilter\`
+ */
+export type DateTimeWithAggregatesFilter = Prisma.DateTimeWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.StringWithAggregatesFilter\`
+ */
+export type StringWithAggregatesFilter = Prisma.StringWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.StringNullableWithAggregatesFilter\`
+ */
+export type StringNullableWithAggregatesFilter = Prisma.StringNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.BoolWithAggregatesFilter\`
+ */
+export type BoolWithAggregatesFilter = Prisma.BoolWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.IntNullableFilter\`
  */
 export type IntNullableFilter = Prisma.IntNullableFilter
@@ -17115,6 +18133,46 @@ export type BoolNullableFilter = Prisma.BoolNullableFilter
 export type PostListRelationFilter = Prisma.PostListRelationFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.IntNullableWithAggregatesFilter\`
+ */
+export type IntNullableWithAggregatesFilter = Prisma.IntNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.FloatWithAggregatesFilter\`
+ */
+export type FloatWithAggregatesFilter = Prisma.FloatWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.FloatNullableWithAggregatesFilter\`
+ */
+export type FloatNullableWithAggregatesFilter = Prisma.FloatNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.JsonWithAggregatesFilter\`
+ */
+export type JsonWithAggregatesFilter = Prisma.JsonWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.JsonNullableWithAggregatesFilter\`
+ */
+export type JsonNullableWithAggregatesFilter = Prisma.JsonNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.EnumABeautifulEnumWithAggregatesFilter\`
+ */
+export type EnumABeautifulEnumWithAggregatesFilter = Prisma.EnumABeautifulEnumWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.EnumABeautifulEnumNullableWithAggregatesFilter\`
+ */
+export type EnumABeautifulEnumNullableWithAggregatesFilter = Prisma.EnumABeautifulEnumNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.BoolNullableWithAggregatesFilter\`
+ */
+export type BoolNullableWithAggregatesFilter = Prisma.BoolNullableWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.NListRelationFilter\`
  */
 export type NListRelationFilter = Prisma.NListRelationFilter
@@ -17150,14 +18208,29 @@ export type OptionalSide1RelationFilter = Prisma.OptionalSide1RelationFilter
 export type BigIntFilter = Prisma.BigIntFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.BigIntWithAggregatesFilter\`
+ */
+export type BigIntWithAggregatesFilter = Prisma.BigIntWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.DecimalFilter\`
  */
 export type DecimalFilter = Prisma.DecimalFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.DecimalWithAggregatesFilter\`
+ */
+export type DecimalWithAggregatesFilter = Prisma.DecimalWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.BytesFilter\`
  */
 export type BytesFilter = Prisma.BytesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.BytesWithAggregatesFilter\`
+ */
+export type BytesWithAggregatesFilter = Prisma.BytesWithAggregatesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateOneWithoutPostsInput\`
@@ -17365,14 +18438,39 @@ export type NestedStringNullableFilter = Prisma.NestedStringNullableFilter
 export type NestedBoolFilter = Prisma.NestedBoolFilter
 
 /**
- * @deprecated Renamed to \`Prisma.NestedIntNullableFilter\`
+ * @deprecated Renamed to \`Prisma.NestedIntWithAggregatesFilter\`
  */
-export type NestedIntNullableFilter = Prisma.NestedIntNullableFilter
+export type NestedIntWithAggregatesFilter = Prisma.NestedIntWithAggregatesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedFloatFilter\`
  */
 export type NestedFloatFilter = Prisma.NestedFloatFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedDateTimeWithAggregatesFilter\`
+ */
+export type NestedDateTimeWithAggregatesFilter = Prisma.NestedDateTimeWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedStringWithAggregatesFilter\`
+ */
+export type NestedStringWithAggregatesFilter = Prisma.NestedStringWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedStringNullableWithAggregatesFilter\`
+ */
+export type NestedStringNullableWithAggregatesFilter = Prisma.NestedStringNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedIntNullableFilter\`
+ */
+export type NestedIntNullableFilter = Prisma.NestedIntNullableFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedBoolWithAggregatesFilter\`
+ */
+export type NestedBoolWithAggregatesFilter = Prisma.NestedBoolWithAggregatesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedFloatNullableFilter\`
@@ -17395,9 +18493,54 @@ export type NestedEnumABeautifulEnumNullableFilter = Prisma.NestedEnumABeautiful
 export type NestedBoolNullableFilter = Prisma.NestedBoolNullableFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.NestedIntNullableWithAggregatesFilter\`
+ */
+export type NestedIntNullableWithAggregatesFilter = Prisma.NestedIntNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedFloatWithAggregatesFilter\`
+ */
+export type NestedFloatWithAggregatesFilter = Prisma.NestedFloatWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedFloatNullableWithAggregatesFilter\`
+ */
+export type NestedFloatNullableWithAggregatesFilter = Prisma.NestedFloatNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedJsonFilter\`
+ */
+export type NestedJsonFilter = Prisma.NestedJsonFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedJsonNullableFilter\`
+ */
+export type NestedJsonNullableFilter = Prisma.NestedJsonNullableFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedEnumABeautifulEnumWithAggregatesFilter\`
+ */
+export type NestedEnumABeautifulEnumWithAggregatesFilter = Prisma.NestedEnumABeautifulEnumWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedEnumABeautifulEnumNullableWithAggregatesFilter\`
+ */
+export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = Prisma.NestedEnumABeautifulEnumNullableWithAggregatesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedBoolNullableWithAggregatesFilter\`
+ */
+export type NestedBoolNullableWithAggregatesFilter = Prisma.NestedBoolNullableWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.NestedBigIntFilter\`
  */
 export type NestedBigIntFilter = Prisma.NestedBigIntFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedBigIntWithAggregatesFilter\`
+ */
+export type NestedBigIntWithAggregatesFilter = Prisma.NestedBigIntWithAggregatesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.NestedDecimalFilter\`
@@ -17405,9 +18548,19 @@ export type NestedBigIntFilter = Prisma.NestedBigIntFilter
 export type NestedDecimalFilter = Prisma.NestedDecimalFilter
 
 /**
+ * @deprecated Renamed to \`Prisma.NestedDecimalWithAggregatesFilter\`
+ */
+export type NestedDecimalWithAggregatesFilter = Prisma.NestedDecimalWithAggregatesFilter
+
+/**
  * @deprecated Renamed to \`Prisma.NestedBytesFilter\`
  */
 export type NestedBytesFilter = Prisma.NestedBytesFilter
+
+/**
+ * @deprecated Renamed to \`Prisma.NestedBytesWithAggregatesFilter\`
+ */
+export type NestedBytesWithAggregatesFilter = Prisma.NestedBytesWithAggregatesFilter
 
 /**
  * @deprecated Renamed to \`Prisma.UserCreateWithoutPostsInput\`

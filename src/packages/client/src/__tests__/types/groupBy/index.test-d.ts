@@ -30,6 +30,13 @@ const prisma = new PrismaClient({
     }),
   )
 
+  // empty by
+  expectError(
+    await prisma.user.groupBy({
+      by: [],
+    }),
+  )
+
   // orderBy missing, required by skip & take
   expectError(
     await prisma.user.groupBy({
@@ -114,12 +121,135 @@ const prisma = new PrismaClient({
   // age must by in by, as it's in orderBy - array
   expectError(
     await prisma.user.groupBy({
-      by: [],
+      by: ['email'],
       orderBy: [
         {
           age: 'desc',
         },
       ],
+    }),
+  )
+
+  // name must by in by, as it's in having
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        name: '',
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - OR
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        OR: {
+          name: '',
+        },
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - OR[]
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        OR: [
+          {
+            name: '',
+          },
+        ],
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - AND
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        AND: {
+          name: '',
+        },
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - AND[]
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        AND: [
+          {
+            name: '',
+          },
+        ],
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - NOT
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        NOT: {
+          name: '',
+        },
+      },
+    }),
+  )
+
+  // TODO: Fix these cases
+  // // name must by in by, as it's in nested having - NOT[]
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        NOT: [
+          {
+            email: '',
+          },
+          {
+            name: '',
+          },
+        ],
+      },
+    }),
+  )
+
+  // name must by in by, as it's in nested having - NOT
+  expectError(
+    await prisma.user.groupBy({
+      by: ['email'],
+      having: {
+        email: '',
+        NOT: {
+          AND: [
+            {
+              OR: [
+                {
+                  email: '',
+                },
+                {
+                  name: '',
+                },
+              ],
+            },
+          ],
+        },
+      },
     }),
   )
 })()

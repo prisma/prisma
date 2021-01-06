@@ -19,6 +19,31 @@ async function main() {
     avg: {
       age: true,
     },
+    having: {
+      AND: [
+        {
+          NOT: [
+            {
+              email: '',
+              name: {
+                min: {},
+              },
+              age: {
+                sum: {
+                  gt: 1,
+                },
+              },
+            },
+          ],
+        },
+      ],
+      age: {
+        gt: 1,
+        avg: {
+          gt: 5,
+        },
+      },
+    },
   })
 
   console.log(res)

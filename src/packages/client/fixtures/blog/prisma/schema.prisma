@@ -10,15 +10,15 @@ generator client {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  email      String   @unique
+  id         String    @id @default(cuid())
+  email      String    @unique
   name       String?
   age        Int?
   posts      Post[]
   likes      Like[]
-  property   Property @relation(fields: [propertyId], references: [id])
-  propertyId String
   json       Json?
+  Property   Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
 }
 
 model Property {
