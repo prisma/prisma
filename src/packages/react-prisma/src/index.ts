@@ -1,5 +1,6 @@
 import { unstable_getCacheForType, Wakeable } from 'react'
-import { PrismaClient as PrismaClientConstructor, dmmf } from '@prisma/client'
+// @ts-ignore
+import { PrismaClient as PrismaClientConstructor, dmmf } from '.prisma/client'
 
 const Pending = 0
 const Resolved = 1
@@ -69,6 +70,7 @@ const queryOperations = {
   findUnique: true,
 }
 
+// @ts-ignore
 export function PrismaClient(this, options): PrismaClientConstructor {
   this.client = new PrismaClientConstructor(options)
   // Unique function per instance because it's used for cache identity.
