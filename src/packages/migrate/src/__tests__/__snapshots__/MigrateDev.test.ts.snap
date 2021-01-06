@@ -68,10 +68,6 @@ exports[`sqlite existingdb: has a failed migration 2`] = ``;
 
 exports[`sqlite existingdb: has a failed migration 3`] = ``;
 
-exports[`sqlite existingdb: has a failed migration 5`] = ``;
-
-exports[`sqlite existingdb: has a failed migration 6`] = ``;
-
 exports[`sqlite first migration (--name) 3`] = `Array []`;
 
 exports[`sqlite first migration (--name) 4`] = `Array []`;
