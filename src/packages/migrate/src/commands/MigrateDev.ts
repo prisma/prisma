@@ -14,7 +14,6 @@ import chalk from 'chalk'
 import prompt from 'prompts'
 import path from 'path'
 import { Migrate } from '../Migrate'
-import { UserFacingErrorWithMeta } from '../types'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
   PreviewFlagError,
@@ -143,142 +142,12 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory({
-      optInToShadowDatabase: true,
-    })
-    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
+    const devDiagnostic = await migrate.devDiagnostic()
+    debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
 
-    let isResetNeeded = false
-    let isResetNeededAfterCreate = false
-    let migrationIdsFromDatabaseIsBehind: string[] = []
-    let migrationIdsFromAfterReset: string[] = []
+    const migrationIdsApplied: string[] = []
 
-    if (diagnoseResult.errorInUnappliedMigration) {
-      if (diagnoseResult.errorInUnappliedMigration.error_code === 'P3006') {
-        const failedMigrationError = diagnoseResult.errorInUnappliedMigration as UserFacingErrorWithMeta
-
-        throw new Error(
-          `The migration ${
-            failedMigrationError.meta.migration_name
-          } failed when applied to the shadow database.
-${chalk.green(
-  `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --preview-feature',
-  )} again.`,
-)}
-
-${failedMigrationError.error_code}
-${failedMigrationError.message}`,
-        )
-      } else {
-        throw new Error(`${diagnoseResult.errorInUnappliedMigration.error_code}
-${diagnoseResult.errorInUnappliedMigration.message}`)
-      }
-    }
-
-    const hasFailedMigrations = diagnoseResult.failedMigrationNames.length > 0
-    const hasModifiedMigrations = diagnoseResult.editedMigrationNames.length > 0
-
-    // if failed migration(s) or modified migration(s) print and got to reset
-    if (hasFailedMigrations || hasModifiedMigrations) {
-      isResetNeeded = true
-
-      if (hasFailedMigrations) {
-        // migration(s), usually one, that failed to apply the the database (which may have data)
-        console.info(
-          `The following migration(s) failed to apply:\n- ${diagnoseResult.failedMigrationNames.join(
-            '\n- ',
-          )}\n`,
-        )
-      }
-
-      if (hasModifiedMigrations) {
-        // migration(s) that were modified since they were applied to the db.
-        console.info(
-          `The following migration(s) were modified after they were applied:
-- ${diagnoseResult.editedMigrationNames.join('\n- ')}\n`,
-        )
-
-        if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
-          // Migration has a problem (failed to cleanly apply to a temporary database) and
-          // needs to be fixed or the database has a problem (example: incorrect version, missing extension)
-          if (diagnoseResult.drift.error.error_code === 'P3006') {
-            const failedMigrationError = diagnoseResult.drift
-              .error as UserFacingErrorWithMeta
-
-            throw new Error(
-              `The migration ${
-                failedMigrationError.meta.migration_name
-              } failed when applied to the shadow database.
-${chalk.green(
-  `Fix the migration script and run ${getCommandWithExecutor(
-    'prisma migrate dev --preview-feature',
-  )} again.`,
-)}
-  
-${failedMigrationError.error_code}
-${failedMigrationError.message}`,
-            )
-          }
-        }
-      }
-    } else {
-      if (diagnoseResult.drift) {
-        if (diagnoseResult.drift?.diagnostic === 'migrationFailedToApply') {
-          // Migration has a problem (failed to cleanly apply to a temporary database) and
-          // needs to be fixed or the database has a problem (example: incorrect version, missing extension)
-          throw new Error(
-            `A migration failed when applied to the shadow database:
-
-${
-  diagnoseResult.drift.error.error_code
-    ? diagnoseResult.drift.error.error_code
-    : ''
-}
-${diagnoseResult.drift.error.message}`,
-          )
-        } else if (diagnoseResult.drift.diagnostic === 'driftDetected') {
-          if (diagnoseResult.hasMigrationsTable === false) {
-            isResetNeededAfterCreate = true
-          } else {
-            // we could try to fix the drift in the future
-            console.info() // empty line
-            console.info(
-              'Drift detected: Your database schema is not in sync with your migration history.',
-            )
-            console.info() // empty line
-            isResetNeeded = true
-          }
-        }
-      }
-
-      if (diagnoseResult.history) {
-        if (diagnoseResult.history.diagnostic === 'databaseIsBehind') {
-          const { appliedMigrationNames } = await migrate.applyMigrations()
-          migrationIdsFromDatabaseIsBehind = appliedMigrationNames
-          // Inform user about applied migrations now
-          if (migrationIdsFromDatabaseIsBehind.length > 0) {
-            console.info(
-              `The following unapplied migration(s) have been applied:
-- ${migrationIdsFromDatabaseIsBehind.join('\n- ')}\n`,
-            )
-          }
-        } else if (
-          diagnoseResult.history.diagnostic === 'migrationsDirectoryIsBehind'
-        ) {
-          isResetNeeded = true
-        } else if (diagnoseResult.history.diagnostic === 'historiesDiverge') {
-          isResetNeeded = true
-          // migration(s) were removed from directory since they were applied to the db.
-          console.info(
-            `The following migration(s) are applied to the database but missing from the local migrations directory:
-- ${diagnoseResult.history.unpersistedMigrationNames.join('\n- ')}\n`,
-          )
-        }
-      }
-    }
-
-    if (isResetNeeded && !isResetNeededAfterCreate) {
+    if (devDiagnostic.action.tag === 'reset') {
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
@@ -286,7 +155,10 @@ ${diagnoseResult.drift.error.message}`,
         }
 
         const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(dbInfo)
+        const confirmedReset = await this.confirmReset(
+          dbInfo,
+          devDiagnostic.action.reason,
+        )
         console.info() // empty line
 
         if (!confirmedReset) {
@@ -296,23 +168,32 @@ ${diagnoseResult.drift.error.message}`,
           return ``
         }
       }
+
+      // Do the reset
       await migrate.reset()
-      const { appliedMigrationNames } = await migrate.applyMigrations()
-      migrationIdsFromAfterReset = appliedMigrationNames
-      // Inform user about applied migrations now
-      if (migrationIdsFromAfterReset.length > 0) {
-        console.info(
-          `The following migration(s) have been applied after reset:\n\n${chalk(
-            printFilesFromMigrationIds(
-              'migrations',
-              migrationIdsFromAfterReset,
-              {
-                'migration.sql': '',
-              },
-            ),
-          )}`,
-        )
-      }
+
+      // Create a draft migration if needed
+      const createMigrationResultAfterReset = await migrate.createMigration({
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        // todo ask for name?
+        migrationName: '',
+        draft: true,
+        prismaSchema: migrate.getDatamodel(),
+      })
+      debug({ createMigrationResultAfterReset })
+    }
+
+    const { appliedMigrationNames } = await migrate.applyMigrations()
+    migrationIdsApplied.push(...appliedMigrationNames)
+    // Inform user about applied migrations now
+    if (appliedMigrationNames.length > 0) {
+      console.info(
+        `The following migration(s) have been applied:\n\n${chalk(
+          printFilesFromMigrationIds('migrations', appliedMigrationNames, {
+            'migration.sql': '',
+          }),
+        )}`,
+      )
     }
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
@@ -327,7 +208,6 @@ ${diagnoseResult.drift.error.message}`,
       evaluateDataLossResult.warnings,
       args['--force'],
     )
-    console.info() // empty line
     if (userCancelled) {
       migrate.stop()
       return `Migration cancelled.`
@@ -339,7 +219,6 @@ ${diagnoseResult.drift.error.message}`,
       args['--create-only']
     ) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
-      console.info() // empty line
 
       if (getMigrationNameResult.userCancelled) {
         migrate.stop()
@@ -360,51 +239,12 @@ ${diagnoseResult.drift.error.message}`,
     if (args['--create-only']) {
       migrate.stop()
 
-      console.info() // empty line
+      // console.info() // empty line
       return `Prisma Migrate created the following migration without applying it ${printMigrationId(
         createMigrationResult.generatedMigrationName!,
       )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
         getCommandWithExecutor('prisma migrate dev --preview-feature'),
       )}.`
-    }
-
-    if (isResetNeededAfterCreate) {
-      console.info(
-        `The following migration was created from new schema changes:\n\n${chalk(
-          printFilesFromMigrationIds(
-            'migrations',
-            [createMigrationResult.generatedMigrationName!],
-            {
-              'migration.sql': '',
-            },
-          ),
-        )}`,
-      )
-      console.info() // empty line
-
-      if (!args['--force']) {
-        // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw new EnvNonInteractiveError()
-        }
-
-        console.info(
-          'Drift detected: Your database schema is not in sync with your migration history.',
-        )
-        console.info() // empty line
-
-        const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(dbInfo)
-        console.info() // empty line
-
-        if (!confirmedReset) {
-          console.info('Reset cancelled.')
-          process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
-        }
-        await migrate.reset()
-      }
     }
 
     const {
@@ -413,32 +253,22 @@ ${diagnoseResult.drift.error.message}`,
 
     migrate.stop()
 
+    // For display only, empty line
+    migrationIdsApplied.length > 0 && console.info()
+
     if (migrationIds.length === 0) {
-      if (
-        migrationIdsFromAfterReset.length > 0 ||
-        migrationIdsFromDatabaseIsBehind.length > 0
-      ) {
+      if (migrationIdsApplied.length > 0) {
         // Run if not skipped
         if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
           await migrate.tryToRunGenerate()
+          console.info() // empty line
         }
 
-        // During databaseIsBehind diagnostic migrations were applied and displayed
-        console.info() // empty line
         return `${chalk.green('Everything is now in sync.')}`
       } else {
-        console.info() // empty line
-        return `Already in sync, no schema change or unapplied migration was found.`
+        return `Already in sync, no schema change or pending migration was found.`
       }
     } else {
-      // For display only
-      if (
-        migrationIdsFromAfterReset.length > 0 ||
-        migrationIdsFromDatabaseIsBehind.length > 0
-      ) {
-        console.info() // empty line
-      }
-
       console.info(
         `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
@@ -450,25 +280,25 @@ ${diagnoseResult.drift.error.message}`,
       // Run if not skipped
       if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
         await migrate.tryToRunGenerate()
+        console.info() // empty line
       }
 
-      console.info() // empty line
       return `${chalk.green('Everything is now in sync.')}`
     }
   }
 
-  private async confirmReset({
-    schemaWord,
-    dbType,
-    dbName,
-    dbLocation,
-  }): Promise<boolean> {
-    const mssqlMessage = `We need to reset the database. ${chalk.red(
-      'All data will be lost',
-    )}.\nDo you want to continue?`
-    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}". ${chalk.red(
-      'All data will be lost',
-    )}.\nDo you want to continue?`
+  private async confirmReset(
+    { schemaWord, dbType, dbName, dbLocation },
+    reason,
+  ): Promise<boolean> {
+    const mssqlMessage = `${reason}
+
+We need to reset the database.
+Do you want to continue? ${chalk.red('All data will be lost')}.`
+    const message = `${reason}
+
+We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
+Do you want to continue? ${chalk.red('All data will be lost')}.`
 
     const confirmation = await prompt({
       type: 'confirm',
