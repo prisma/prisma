@@ -31,10 +31,12 @@ async function main() {
     },
     max: {
       age: true,
+      email: true,
       followerCount: true,
     },
     min: {
       age: true,
+      email: true,
       followerCount: true,
     },
     sum: {
@@ -43,14 +45,20 @@ async function main() {
     },
   })
   const c: number = a1.count
-  type Expected = {
+  type AvgSum = {
     age: number
     followerCount: number | null
   }
-  const avg1: Expected = a1.avg
-  const max1: Expected = a1.max
-  const min1: Expected = a1.min
-  const sum1: Expected = a1.sum
+  const avg1: AvgSum = a1.avg
+  const sum1: AvgSum = a1.sum
+ 
+  type MinMax = {
+    age: number
+    email: string | null
+    followerCount: number | null
+  }
+  const max1: MinMax = a1.max
+  const min1: MinMax = a1.min
 
   const test2 = await prisma.user.aggregate({
     cursor: {
