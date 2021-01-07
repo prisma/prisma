@@ -133,7 +133,7 @@ ${indent(
           if (f.outputType.location === 'outputObjectTypes') {
             return `${f.name}?: ${getAggregateInputType(
               (f.outputType.type as DMMF.OutputType).name,
-            )}`
+            )}${f.name === 'count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes

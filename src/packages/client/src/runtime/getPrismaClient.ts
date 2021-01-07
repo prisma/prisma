@@ -1627,9 +1627,7 @@ export class PrismaClientFetcher {
     if (unpacker) {
       data[rootField] = unpacker(data[rootField])
     }
-    // if (rootField.startsWith('aggregate') && data[rootField].count) {
-    //   data[rootField].count = data[rootField].count._all
-    // }
+
     const getPath: any[] = []
     if (rootField) {
       getPath.push(rootField)

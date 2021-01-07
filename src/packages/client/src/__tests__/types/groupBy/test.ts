@@ -61,6 +61,7 @@ async function main() {
 
   const y = await prisma.user.groupBy({
     by: ['name'],
+    count: true,
     having: {
       name: '',
       email: {

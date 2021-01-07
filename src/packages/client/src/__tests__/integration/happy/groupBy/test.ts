@@ -177,3 +177,21 @@ test('groupBy name and aggregations', async () => {
     ]
   `)
 })
+
+// TODO: enable skip, take, age in count
+// when QE bugs are fixed
+test('groupBy name and with count', async () => {
+  const user = await prisma.user.groupBy({
+    by: ['name'],
+    count: true,
+  })
+
+  expect(user).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        count: 10,
+        name: Bobby Brown,
+      },
+    ]
+  `)
+})
