@@ -31,7 +31,7 @@ function getMappings(
     .map((mapping: any) => ({
       model: mapping.model,
       plural: pluralize(lowerCase(mapping.model)),
-      findUnique: mapping.findSingle || mapping.findOne,
+      findUnique: mapping.findUnique || mapping.findSingle || mapping.findOne,
       findFirst: mapping.findFirst,
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
