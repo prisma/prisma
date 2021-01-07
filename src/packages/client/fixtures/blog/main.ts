@@ -22,10 +22,7 @@ async function main() {
     avg: {
       age: true,
     },
-    count: {
-      // age: true,
-      $all: true,
-    },
+    count: true,
     max: {
       age: true,
     },
@@ -46,7 +43,7 @@ async function main() {
   //   },
   // })
 
-  console.log(user[0].count.$all)
+  console.log(user[0].count)
 
   prisma.$disconnect()
 }
