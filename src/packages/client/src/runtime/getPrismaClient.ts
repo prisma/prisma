@@ -37,6 +37,7 @@ import {
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
+import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
@@ -1629,11 +1630,11 @@ export function getOperation(
 }
 
 function mapAllCount(args: Record<string, any>): Record<string, any> {
-  const entries = Object.entries(args).map(([key, value]) => {
+  const entries: [string, any][] = Object.entries(args).map(([key, value]) => {
     if (key === '_all') {
       return ['$all', value]
     }
-    return [key, value]
+    return [key, value] 
   })
-  return Object.fromEntries(entries)
+  return fromEntries(entries)
 }

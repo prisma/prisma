@@ -10,10 +10,30 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const res = await prisma.user.count({
-    select: {
+  const user = await prisma.user.groupBy({
+    by: ['name'],
+    where: {
+      age: {
+        gt: -1,
+      },
+    },
+    // skip: 0,
+    // take: 10000,
+    avg: {
+      age: true,
+    },
+    count: {
+      // age: true,
       $all: true,
-      name: true,
+    },
+    max: {
+      age: true,
+    },
+    min: {
+      age: true,
+    },
+    sum: {
+      age: true,
     },
   })
   // const res = await prisma.user.aggregate({
@@ -26,7 +46,7 @@ async function main() {
   //   },
   // })
 
-  console.log(res)
+  console.log(user[0].count.$all)
 
   prisma.$disconnect()
 }

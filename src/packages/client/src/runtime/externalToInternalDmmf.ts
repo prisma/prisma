@@ -2,6 +2,7 @@ import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
 import { DMMF } from './dmmf-types'
 import { capitalize, lowerCase } from './utils/common'
+import { fromEntries } from './utils/fromEntries'
 
 export function getCountAggregateOutputName(modelName: string): string {
   return `${capitalize(modelName)}CountAggregateOutputType`
@@ -19,12 +20,7 @@ export function externalToInternalDmmf(
     mappings: getMappings(document.mappings, document.datamodel),
   }
 }
-function fromEntries<T> (iterable: Array<[string, T]>): { [key: string]: T } {
-  return [...iterable].reduce<{ [key: string]: T }>((obj, [key, val]) => {
-    obj[key] = val
-    return obj
-  }, {})
-}
+
 /**
  * Renames _all in the query engine dmmf to $all
  * @param document DMMF.Document to transform
