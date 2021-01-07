@@ -46,12 +46,18 @@ export interface MigrationFeedback {
   stepIndex: number
 }
 
+export type DevAction =
+  | { tag: 'reset'; reason: string }
+  | { tag: 'createMigration' }
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {
   /**
    * These RPCs need a sourceConfig, therefore a db connection to function
    */
-
+  export interface DevDiagnosticInput {
+    migrationsDirectoryPath: string
+  }
   export interface ListMigrationDirectoriesInput {
     migrationsDirectoryPath: string
   }
@@ -119,7 +125,9 @@ export namespace EngineResults {
     /// validate that unapplied migrations are at least minimally valid.
     errorInUnappliedMigration: UserFacingError | null
   }
-
+  export interface DevDiagnosticOutput {
+    action: DevAction
+  }
   export interface PlanMigrationOutput {
     // Todo
   }

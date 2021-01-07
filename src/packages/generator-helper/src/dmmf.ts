@@ -157,6 +157,13 @@ export namespace DMMF {
       namespace?: FieldNamespace
     }
     args: SchemaArg[]
+    deprecation?: SchemaFieldDeprecation
+  }
+
+  export interface SchemaFieldDeprecation {
+    sinceVersion: string
+    reason: string
+    plannedRemovalVersion: string
   }
 
   export interface InputType {

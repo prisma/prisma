@@ -438,3 +438,40 @@ it('listMigrationDirectories - schema-only-sqlite', async () => {
 
   migrate.stop()
 })
+
+it('devDiagnostic - createMigration', async () => {
+  ctx.fixture('schema-only-sqlite')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.devDiagnostic({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            action: Object {
+              tag: createMigration,
+            },
+          }
+        `)
+
+  migrate.stop()
+})
+
+it('devDiagnostic - reset because drift', async () => {
+  ctx.fixture('existing-db-1-migration-conflict')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const result = migrate.engine.devDiagnostic({
+    migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+  })
+  await expect(result).resolves.toMatchInlineSnapshot(`
+          Object {
+            action: Object {
+              reason: Drift detected: Your database schema is not in sync with your migration history.,
+              tag: reset,
+            },
+          }
+        `)
+
+  migrate.stop()
+})

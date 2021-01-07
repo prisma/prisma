@@ -284,6 +284,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "findUnique": "findUniqueUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -1549,9 +1550,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -2402,6 +2434,7 @@ Object {
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "findOne": "findOnePost",
+        "findUnique": "findUniquePost",
         "model": "Post",
         "updateMany": "updateManyPost",
         "updateOne": "updateOnePost",
@@ -2415,6 +2448,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "findUnique": "findUniqueUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -2428,6 +2462,7 @@ Object {
         "findFirst": "findFirstUser1",
         "findMany": "findManyUser1",
         "findOne": "findOneUser1",
+        "findUnique": "findUniqueUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
         "updateOne": "updateOneUser1",
@@ -2441,6 +2476,7 @@ Object {
         "findFirst": "findFirstUser2",
         "findMany": "findManyUser2",
         "findOne": "findOneUser2",
+        "findUnique": "findUniqueUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
         "updateOne": "updateOneUser2",
@@ -6504,9 +6540,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOnePost",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniquePost",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -6802,9 +6869,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -7100,9 +7198,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser1",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser1",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -7398,9 +7527,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser2",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -9662,6 +9822,7 @@ Object {
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
         "findOne": "findOnePost",
+        "findUnique": "findUniquePost",
         "model": "Post",
         "updateMany": "updateManyPost",
         "updateOne": "updateOnePost",
@@ -9675,6 +9836,7 @@ Object {
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
         "findOne": "findOneUser",
+        "findUnique": "findUniqueUser",
         "model": "User",
         "updateMany": "updateManyUser",
         "updateOne": "updateOneUser",
@@ -9688,6 +9850,7 @@ Object {
         "findFirst": "findFirstUser1",
         "findMany": "findManyUser1",
         "findOne": "findOneUser1",
+        "findUnique": "findUniqueUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
         "updateOne": "updateOneUser1",
@@ -9701,6 +9864,7 @@ Object {
         "findFirst": "findFirstUser2",
         "findMany": "findManyUser2",
         "findOne": "findOneUser2",
+        "findUnique": "findUniqueUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
         "updateOne": "updateOneUser2",
@@ -13764,9 +13928,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOnePost",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniquePost",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -14062,9 +14257,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -14360,9 +14586,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser1",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser1",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -14658,9 +14915,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser2",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -16578,11 +16866,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `76865164`;
+exports[`getDMMF big schema 1`] = `79544132`;
 
-exports[`getDMMF chinook introspected schema 1`] = `473612`;
+exports[`getDMMF chinook introspected schema 1`] = `479504`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `473612`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `479504`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -16716,6 +17004,7 @@ Object {
         "findFirst": "findFirstA",
         "findMany": "findManyA",
         "findOne": "findOneA",
+        "findUnique": "findUniqueA",
         "model": "A",
         "updateMany": "updateManyA",
         "updateOne": "updateOneA",
@@ -17961,9 +18250,40 @@ Object {
                   "name": "where",
                 },
               ],
+              "deprecation": Object {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The \`findOne\` query has been deprecated and replaced with \`findUnique\`.",
+                "sinceVersion": "2.14",
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueA",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
