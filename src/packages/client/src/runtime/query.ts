@@ -627,6 +627,7 @@ export class Field {
   public toString() {
     let str = this.name
 
+    // before sending it to the query engine, rename $all to _all
     if (str === '$all') {
       str = '_all'
     }
