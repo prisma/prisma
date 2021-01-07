@@ -1,8 +1,11 @@
 import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
-import { getCountAggregateOutputName } from '../generation/utils'
 import { DMMF } from './dmmf-types'
-import { lowerCase } from './utils/common'
+import { capitalize, lowerCase } from './utils/common'
+
+export function getCountAggregateOutputName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateOutputType`
+}
 
 /**
  * Turns type: string into type: string[] for all args in order to support union input types
