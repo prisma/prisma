@@ -179,22 +179,6 @@ type ${getGroupByPayloadName(
       )
     }
 
-    const countFieldIndex = aggregateType.fields.findIndex(
-      (f) => f.name === 'count',
-    )
-
-    aggregateType.fields[countFieldIndex] = {
-      name: 'count',
-      args: [],
-      isRequired: false,
-      isNullable: true,
-      outputType: {
-        isList: false,
-        location: 'scalar',
-        type: 'Int',
-      },
-    }
-
     const aggregateTypes = [aggregateType]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
@@ -226,6 +210,9 @@ type ${getGroupByPayloadName(
     }
 
     const aggregateArgsName = getAggregateArgsName(model.name)
+
+    const aggregateName = getAggregateName(model.name)
+
     this.collector?.addSymbol(aggregateArgsName)
 
     return `${aggregateTypes
@@ -280,7 +267,7 @@ ${indent(
         )
         data += comment ? wrapComment(comment) + '\n' : ''
         if (f.name === 'count') {
-          data += `${f.name}?: true`
+          data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
           data += `${f.name}?: ${getAggregateInputType(
             (f.outputType.type as DMMF.OutputType).name,
@@ -297,22 +284,12 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T]: P extends 'count' ? number : ${
-    avgType ? `${getAggregateScalarGetName(model.name)}<T[P]>` : 'never'
-  }
-}
-
-${
-  avgType
-    ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
-  [P in keyof T]: P extends keyof ${getAvgAggregateName(
-    model.name,
-  )} ? ${getAvgAggregateName(model.name)}[P] : never
+  [P in keyof T & keyof ${aggregateName}]: P extends 'count'
+    ? T[P] extends true
+      ? number
+      : GetScalarType<T[P], ${aggregateName}[P]>
+    : GetScalarType<T[P], ${aggregateName}[P]>
 }`
-    : ''
-}
-
-    `
   }
   public toTSWithoutNamespace(): string {
     const { model } = this

@@ -16,11 +16,18 @@ async function main() {
   //     name: true,
   //   },
   // })
-  const res = await prisma.user.count({
-    select: {
-      _all: true,
-    },
+  const res = await prisma.user.aggregate({
+    // select: true,
     // skip: 3
+    count: {
+      age: true,
+      _all: true,
+      json: true,
+    },
+    min: {
+      email: true,
+      // json: true,
+    },
   })
 
   console.log(res)

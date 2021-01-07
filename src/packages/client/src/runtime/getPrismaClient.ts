@@ -1260,7 +1260,7 @@ new PrismaClient({
 
         delegate.count = (args) => {
           let select
-          if (args?.select) {
+          if (args?.select && typeof args?.select === 'object') {
             select = { count: { select: args.select } }
           } else {
             select = { count: { select: { _all: true } } }
