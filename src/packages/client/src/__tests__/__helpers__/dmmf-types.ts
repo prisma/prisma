@@ -3986,7 +3986,7 @@ const dmmf: DMMF.Document = {
               "args": [],
               "isNullable": false,
               "isRequired": true,
-              "name": "_all",
+              "name": "$all",
               "outputType": {
                 "isList": false,
                 "location": "scalar",
@@ -4176,7 +4176,7 @@ const dmmf: DMMF.Document = {
               "args": [],
               "isNullable": false,
               "isRequired": true,
-              "name": "_all",
+              "name": "$all",
               "outputType": {
                 "isList": false,
                 "location": "scalar",

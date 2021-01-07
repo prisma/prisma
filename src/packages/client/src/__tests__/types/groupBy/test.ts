@@ -31,7 +31,8 @@ async function main() {
     },
     count: {
       age: true,
-      _all: true,
+      email: true,
+      $all: true,
     },
     max: {
       age: true,
@@ -50,8 +51,9 @@ async function main() {
   const { avg, count, max, sum, min, name } = x[0]
 
   avg.age
-  count._all
+  count.$all
   count.age
+  count.email
   max.age
   name
   sum.age
