@@ -19,13 +19,18 @@ export function externalToInternalDmmf(
     mappings: getMappings(document.mappings, document.datamodel),
   }
 }
-
+function fromEntries<T> (iterable: Array<[string, T]>): { [key: string]: T } {
+  return [...iterable].reduce<{ [key: string]: T }>((obj, [key, val]) => {
+    obj[key] = val
+    return obj
+  }, {})
+}
 /**
  * Renames _all in the query engine dmmf to $all
  * @param document DMMF.Document to transform
  */
 function renameAllCount(document: DMMF.Document): DMMF.Document {
-  const countTypeNames = Object.fromEntries(
+  const countTypeNames = fromEntries(
     document.mappings.modelOperations.map((o) => [
       getCountAggregateOutputName(o.model),
       true,
