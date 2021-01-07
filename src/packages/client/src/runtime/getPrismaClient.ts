@@ -1351,6 +1351,8 @@ generator client {
 }
 `)
           }
+          let unpacker: Unpacker | undefined = undefined
+
           /**
            * avg, count, sum, min, max need to go into select
            * For speed reasons we can go with "for in "
@@ -1366,6 +1368,27 @@ generator client {
               // otherwise leave it alone
             } else {
               acc[key] = value
+            }
+            if (key === 'count') {
+              if (typeof value === 'object' && value) {
+                acc.select[key] = { select: mapAllCount(value) }
+                console.log(acc.select[key]);
+                unpacker = (data) => {
+                  console.log(data);
+                  if (data?.[0]?.count && typeof data[0].count === 'object') {
+                    data = data.map(i => ({...i, count: mapAllCount(i.count)}))
+                  }
+                  return data
+                }
+              } else if(typeof value === 'boolean') {
+                acc.select[key] = { select: { $all: value } }
+                unpacker = (data) => {
+                  if (data?.[0]?.count && typeof data[0].count === 'object') {
+                    data = data.map(i => ({...i, count: i.count?._all}))
+                  }
+                  return data
+                }
+              }
             }
             if (key === 'by' && Array.isArray(value) && value.length > 0) {
               if (!acc.select) {
@@ -1384,6 +1407,7 @@ generator client {
             rootField: mapping.groupBy,
             args: select,
             dataPath: [],
+            unpacker
           })
         }
 
