@@ -1677,7 +1677,7 @@ export namespace Prisma {
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: PostCountAggregateInputType
+    count?: PostCountAggregateInputType | true
     avg?: PostAvgAggregateInputType
     sum?: PostSumAggregateInputType
     min?: PostMinAggregateInputType
@@ -2555,7 +2555,7 @@ export namespace Prisma {
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: UserCountAggregateInputType
+    count?: UserCountAggregateInputType | true
     avg?: UserAvgAggregateInputType
     sum?: UserSumAggregateInputType
     min?: UserMinAggregateInputType
@@ -3443,7 +3443,7 @@ export namespace Prisma {
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: MCountAggregateInputType
+    count?: MCountAggregateInputType | true
     avg?: MAvgAggregateInputType
     sum?: MSumAggregateInputType
     min?: MMinAggregateInputType
@@ -4329,7 +4329,7 @@ export namespace Prisma {
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: NCountAggregateInputType
+    count?: NCountAggregateInputType | true
     avg?: NAvgAggregateInputType
     sum?: NSumAggregateInputType
     min?: NMinAggregateInputType
@@ -5215,7 +5215,7 @@ export namespace Prisma {
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OneOptionalCountAggregateInputType
+    count?: OneOptionalCountAggregateInputType | true
     avg?: OneOptionalAvgAggregateInputType
     sum?: OneOptionalSumAggregateInputType
     min?: OneOptionalMinAggregateInputType
@@ -6111,7 +6111,7 @@ export namespace Prisma {
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ManyRequiredCountAggregateInputType
+    count?: ManyRequiredCountAggregateInputType | true
     avg?: ManyRequiredAvgAggregateInputType
     sum?: ManyRequiredSumAggregateInputType
     min?: ManyRequiredMinAggregateInputType
@@ -7009,7 +7009,7 @@ export namespace Prisma {
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide1CountAggregateInputType
+    count?: OptionalSide1CountAggregateInputType | true
     avg?: OptionalSide1AvgAggregateInputType
     sum?: OptionalSide1SumAggregateInputType
     min?: OptionalSide1MinAggregateInputType
@@ -7897,7 +7897,7 @@ export namespace Prisma {
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide2CountAggregateInputType
+    count?: OptionalSide2CountAggregateInputType | true
     avg?: OptionalSide2AvgAggregateInputType
     sum?: OptionalSide2SumAggregateInputType
     min?: OptionalSide2MinAggregateInputType
@@ -8793,7 +8793,7 @@ export namespace Prisma {
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ACountAggregateInputType
+    count?: ACountAggregateInputType | true
     avg?: AAvgAggregateInputType
     sum?: ASumAggregateInputType
     min?: AMinAggregateInputType
@@ -9582,7 +9582,7 @@ export namespace Prisma {
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: BCountAggregateInputType
+    count?: BCountAggregateInputType | true
     avg?: BAvgAggregateInputType
     sum?: BSumAggregateInputType
     min?: BMinAggregateInputType
@@ -10327,7 +10327,7 @@ export namespace Prisma {
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: CCountAggregateInputType
+    count?: CCountAggregateInputType | true
     min?: CMinAggregateInputType
     max?: CMaxAggregateInputType
   }
@@ -11066,7 +11066,7 @@ export namespace Prisma {
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: DCountAggregateInputType
+    count?: DCountAggregateInputType | true
     min?: DMinAggregateInputType
     max?: DMaxAggregateInputType
   }
@@ -11791,7 +11791,7 @@ export namespace Prisma {
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ECountAggregateInputType
+    count?: ECountAggregateInputType | true
     min?: EMinAggregateInputType
     max?: EMaxAggregateInputType
   }

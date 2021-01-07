@@ -1372,9 +1372,7 @@ generator client {
             if (key === 'count') {
               if (typeof value === 'object' && value) {
                 acc.select[key] = { select: mapAllCount(value) }
-                console.log(acc.select[key]);
                 unpacker = (data) => {
-                  console.log(data);
                   if (data?.[0]?.count && typeof data[0].count === 'object') {
                     data = data.map(i => ({...i, count: mapAllCount(i.count)}))
                   }
