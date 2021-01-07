@@ -1,5 +1,11 @@
 {
   "scripts": {
     "postinstall": "cd subdir && ../../../build/index.js generate"
+  },
+  "devDependencies": {
+    "@prisma/cli": "^2.11.0-dev.20"
+  },
+  "dependencies": {
+    "@prisma/client": "^2.11.0-dev.20"
   }
 }

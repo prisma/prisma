@@ -1,5 +1,11 @@
 import 'ts-node/register'
 import { consoleContext, Context } from './__helpers__/context'
+import path from 'path'
+
+process.env.PRISMA_GENERATE_CLIENT_PATH = path.resolve(
+  __dirname,
+  '../../prisma-client',
+)
 
 const ctx = Context.new().add(consoleContext()).assemble()
 

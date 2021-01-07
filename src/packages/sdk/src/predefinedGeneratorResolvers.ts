@@ -41,7 +41,9 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    let prismaClientDir =
+      process.env.PRISMA_GENERATE_CLIENT_PATH ??
+      resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
 
     if (debugEnabled) {

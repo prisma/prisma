@@ -3,6 +3,7 @@ const fs = require('fs')
 const chalk = require('chalk')
 const { promisify } = require('util')
 const makeDir = require('make-dir')
+const copy = require('@timsuchanek/copy')
 
 const copyFile = promisify(fs.copyFile)
 
@@ -51,7 +52,13 @@ async function main() {
       false,
     ),
     run('rollup -c'),
-    run('ncp runtime-dist/esm runtime/esm', false),
+    copy({
+      from: 'runtime-dist/esm',
+      to: 'runtime/esm',
+      recursive: true,
+      parallelJobs: process.platform === 'win32' ? 1 : 20,
+      overwrite: true,
+    }),
   ])
 
   await Promise.all([
