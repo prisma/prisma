@@ -141,7 +141,7 @@ test('groupBy name and aggregations', async () => {
     },
     count: {
       // age: true,
-      _all: true,
+      $all: true,
     },
     max: {
       age: true,
@@ -161,7 +161,7 @@ test('groupBy name and aggregations', async () => {
           age: 80,
         },
         count: Object {
-          _all: 10,
+          $all: 10,
         },
         max: Object {
           age: 163,
