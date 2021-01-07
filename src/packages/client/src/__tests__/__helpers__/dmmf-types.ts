@@ -162,7 +162,7 @@ const dmmf: DMMF.Document = {
         "deleteMany": "deleteManyPost",
         "findFirst": "findFirstPost",
         "findMany": "findManyPost",
-        "findUnique": "findOnePost",
+        "findUnique": "findUniquePost",
         "model": "Post",
         "plural": "posts",
         "update": "updateOnePost",
@@ -176,7 +176,7 @@ const dmmf: DMMF.Document = {
         "deleteMany": "deleteManyUser",
         "findFirst": "findFirstUser",
         "findMany": "findManyUser",
-        "findUnique": "findOneUser",
+        "findUnique": "findUniqueUser",
         "model": "User",
         "plural": "users",
         "update": "updateOneUser",
@@ -2986,9 +2986,40 @@ const dmmf: DMMF.Document = {
                   "name": "where"
                 }
               ],
+              "deprecation": {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The `findOne` query has been deprecated and replaced with `findUnique`.",
+                "sinceVersion": "2.14"
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOnePost",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post"
+              }
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where"
+                }
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniquePost",
               "outputType": {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -3284,9 +3315,40 @@ const dmmf: DMMF.Document = {
                   "name": "where"
                 }
               ],
+              "deprecation": {
+                "plannedRemovalVersion": "2.15",
+                "reason": "The `findOne` query has been deprecated and replaced with `findUnique`.",
+                "sinceVersion": "2.14"
+              },
               "isNullable": true,
               "isRequired": false,
               "name": "findOneUser",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User"
+              }
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where"
+                }
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "findUniqueUser",
               "outputType": {
                 "isList": false,
                 "location": "outputObjectTypes",
