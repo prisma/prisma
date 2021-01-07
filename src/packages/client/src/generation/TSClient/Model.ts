@@ -17,13 +17,11 @@ import {
   getMaxAggregateName,
   getAggregateArgsName,
   getAggregateGetName,
-  getAggregateScalarGetName,
   getAggregateInputType,
   getGroupByArgsName,
   getGroupByName,
   getCountAggregateOutputName,
   getGroupByPayloadName,
-  getArgName,
   getCountAggregateInputName,
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'

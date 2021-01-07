@@ -627,6 +627,10 @@ export class Field {
   public toString() {
     let str = this.name
 
+    if (str === '$all') {
+      str = '_all'
+    }
+
     if (this.error) {
       return str + ' # INVALID_FIELD'
     }

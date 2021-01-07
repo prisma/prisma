@@ -1260,18 +1260,22 @@ new PrismaClient({
 
         delegate.count = (args) => {
           let select
+          let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { count: { select: args.select } }
-          } else {
-            select = { count: { select: { _all: true } } }
-          }
-
-          const unpacker = args?.select
-            ? undefined
-            : (data) => {
-                data.count = data.count?._all
-                return data
+            select = { count: { select: mapAllCount(args.select) } }
+            unpacker = (data) => {
+              if (data.count && typeof data.count === 'object') {
+                data.count = mapAllCount(data.count)
               }
+              return data
+            }
+          } else {
+            select = { count: { select: { $all: true } } }
+            unpacker = (data) => {
+              data.count = data.count?._all
+              return data
+            }
+          }
 
           return clients[mapping.model]({
             operation: 'query',
@@ -1301,11 +1305,19 @@ new PrismaClient({
               // `count` doesn't have a sub-selection
               if (key === 'count') {
                 if (typeof value === 'object' && value) {
-                  acc.select[key] = { select: value }
-                } else {
-                  acc.select[key] = { select: { _all: value } }
+                  acc.select[key] = { select: mapAllCount(value) }
                   unpacker = (data) => {
-                    data.count = data.count?._all
+                    if (data.count && typeof data.count === 'object') {
+                      data.count = mapAllCount(data.count)
+                    }
+                    return data
+                  }
+                } else {
+                  acc.select[key] = { select: { $all: value } }
+                  unpacker = (data) => {
+                    if (data.count) {
+                      data.count = data.count?._all
+                    }
                     return data
                   }
                 }
@@ -1614,4 +1626,14 @@ export function getOperation(
     return 'query'
   }
   return 'mutation'
+}
+
+function mapAllCount(args: Record<string, any>): Record<string, any> {
+  const entries = Object.entries(args).map(([key, value]) => {
+    if (key === '_all') {
+      return ['$all', value]
+    }
+    return [key, value]
+  })
+  return Object.fromEntries(entries)
 }
