@@ -22,20 +22,6 @@
   "main": "index.js",
   "browser": "index-browser.js",
   "types": "index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./index.js",
-      "default": "./index.mjs"
-    },
-    "./runtime": {
-      "require": "./runtime/index.js",
-      "default": "./runtime/esm/index.mjs"
-    },
-    "./package.json": {
-      "require": "./package.json",
-      "default": "./package.json"
-    }
-  },
   "module": "index.mjs",
   "license": "Apache-2.0",
   "engines": {
