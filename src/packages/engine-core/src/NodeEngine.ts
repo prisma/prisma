@@ -1173,7 +1173,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.throwAsyncErrorIfExists()
 
     // A currentRequestPromise is only being canceled by the sendPanic function
-    if (this.currentRequestPromise.isCanceled) {
+    if (this.currentRequestPromise?.isCanceled) {
       this.throwAsyncErrorIfExists()
     } else if (
       // matching on all relevant error codes from
