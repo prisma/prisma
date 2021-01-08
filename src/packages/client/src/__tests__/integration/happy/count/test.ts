@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('aggregations', async () => {
+test('count', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   const result = await prisma.user.count()
