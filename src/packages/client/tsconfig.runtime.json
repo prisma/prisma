@@ -7,7 +7,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "runtime-dist/commonjs",
+    "outDir": "runtime-dist",
     "rootDir": "src/runtime",
     "declaration": true,
     "incremental": true,

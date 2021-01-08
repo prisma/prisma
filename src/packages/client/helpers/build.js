@@ -25,15 +25,10 @@ async function main() {
     }
   }
 
-  await Promise.all([
-    makeDir('./runtime-dist/esm'),
-    makeDir('./runtime-dist/commonjs'),
-    makeDir('./runtime/esm'),
-    makeDir('./runtime/commonjs'),
-  ])
+  await Promise.all([makeDir('./runtime-dist/esm'), makeDir('./runtime/esm')])
 
   await Promise.all([
-    run('tsc --build tsconfig.runtime.esm.json', true),
+    // run('tsc --build tsconfig.runtime.esm.json', true),
     run('tsc --build tsconfig.runtime.json', true),
     run('tsc --build tsconfig.json', true),
     run(
@@ -44,24 +39,22 @@ async function main() {
 
   await Promise.all([
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime/ --bundle --platform=node --target=node10',
+      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
       false,
     ),
-    await run(
+    run(
+      'esbuild src/runtime/index.ts --outdir=runtime/esm --bundle --platform=node --target=esnext',
+      false,
+    ),
+    run(
       'esbuild src/runtime/index-browser.ts --format=cjs --outdir=runtime --bundle --target=chrome58,firefox57,safari11,edge16',
       false,
     ),
     run('rollup -c'),
-    copy({
-      from: 'runtime-dist/esm',
-      to: 'runtime/esm',
-      recursive: true,
-      parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true,
-    }),
   ])
 
   await Promise.all([
+    copyFile('./runtime/index.d.ts', './runtime/esm/index.d.ts'),
     copyFile('./scripts/backup-index.js', 'index.js'),
     copyFile('./scripts/backup-index-browser.js', 'index-browser.js'),
     copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),

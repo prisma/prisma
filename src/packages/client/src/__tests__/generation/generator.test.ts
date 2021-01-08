@@ -9,6 +9,8 @@ const del = promisify(rimraf)
 
 jest.setTimeout(30000)
 
+process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL = 'true'
+
 describe('generator', () => {
   test('minimal', async () => {
     const prismaClientTarget = path.join(
@@ -22,6 +24,8 @@ describe('generator', () => {
       //
     }
     await getPackedPackage('@prisma/client', prismaClientTarget)
+
+    console.log({ prismaClientTarget })
 
     if (!fs.existsSync(prismaClientTarget)) {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)

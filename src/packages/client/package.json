@@ -30,6 +30,10 @@
     "./runtime": {
       "require": "./runtime/index.js",
       "default": "./runtime/esm/index.mjs"
+    },
+    "./package.json": {
+      "require": "./package.json",
+      "default": "./package.json"
     }
   },
   "module": "index.mjs",
@@ -115,6 +119,8 @@
     "pluralize": "8.0.0",
     "prettier": "2.2.1",
     "replace-string": "3.1.0",
+    "resolve-from": "^5.0.0",
+    "resolve-pkg": "^2.0.0",
     "rimraf": "3.0.2",
     "rollup": "2.36.0",
     "rollup-plugin-dts": "2.0.1",
