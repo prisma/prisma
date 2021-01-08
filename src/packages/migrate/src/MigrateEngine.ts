@@ -190,6 +190,8 @@ export class MigrateEngine {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary('migration-engine')
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
@@ -209,6 +211,7 @@ export class MigrateEngine {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
+            ...rest,
             SERVER_ROOT: this.projectDir,
             RUST_LOG: 'info',
             RUST_BACKTRACE: '1',
