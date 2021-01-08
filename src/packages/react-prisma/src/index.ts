@@ -2,26 +2,26 @@ import { unstable_getCacheForType, Wakeable } from 'react'
 // @ts-ignore
 import { PrismaClient as PrismaClientConstructor, dmmf } from '.prisma/client'
 
-const Pending = 0
-const Resolved = 1
-const Rejected = 2
+enum STATUS {
+ Pending,
+ Resolved,
+ Rejected
+}
 
-type Pending = 0
-type Resolved = 1
-type Rejected = 2
+const { Pending, Resolved, Rejected } = STATUS
 
 type PendingRecord = {
-  status: Pending
+  status: STATUS.Pending
   value: Wakeable
 }
 
 type ResolvedRecord = {
-  status: Resolved
+  status: STATUS.Resolved
   value: any
 }
 
 type RejectedRecord = {
-  status: Rejected
+  status: STATUS.Rejected
   value: any
 }
 
