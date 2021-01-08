@@ -2,7 +2,6 @@ import execa from 'execa'
 import path from 'path'
 import tempy from 'tempy'
 import fs from 'fs'
-import resolvePkg from 'resolve-pkg'
 import tar from 'tar'
 import copy from '@timsuchanek/copy'
 import makeDir from 'make-dir'
@@ -10,6 +9,7 @@ import { promisify } from 'util'
 import rimraf from 'rimraf'
 import readPkgUp from 'read-pkg-up'
 import { hasYarn } from './utils/hasYarn'
+import { resolvePkg } from './resolvePkg'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)
@@ -23,8 +23,8 @@ export async function getPackedPackage(
 ): Promise<string | void> {
   packageDir =
     packageDir ||
-    resolvePkg(name, { cwd: __dirname }) ||
-    resolvePkg(name, { cwd: target })
+    resolvePkg(__dirname, name) ||
+    (target ? resolvePkg(target, name) : undefined)!
 
   if (!packageDir) {
     const pkg = await readPkgUp({

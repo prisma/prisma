@@ -12,7 +12,7 @@ jest.setTimeout(30000)
 process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL = 'true'
 
 describe('generator', () => {
-  test('minimal', async () => {
+  test.only('minimal', async () => {
     const prismaClientTarget = path.join(
       __dirname,
       './node_modules/@prisma/client',

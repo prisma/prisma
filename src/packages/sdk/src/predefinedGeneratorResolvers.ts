@@ -1,4 +1,3 @@
-import resolvePkg from 'resolve-pkg'
 import chalk from 'chalk'
 import hasYarn from 'has-yarn'
 import execa from 'execa'
@@ -6,6 +5,7 @@ import path from 'path'
 import fs from 'fs'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 import Debug from '@prisma/debug'
+import { resolvePkg } from './resolvePkg'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
@@ -41,7 +41,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    let prismaClientDir = resolvePkg(baseDir, '@prisma/client')
 
     checkYarnVersion()
 
@@ -78,7 +78,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D @prisma/cli@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+      prismaClientDir = resolvePkg(baseDir, '@prisma/client')
 
       if (!prismaClientDir) {
         throw new Error(

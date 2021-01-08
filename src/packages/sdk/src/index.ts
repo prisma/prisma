@@ -83,3 +83,5 @@ export {
 } from './migrateEngineCommands'
 
 export { printConfigWarnings } from './utils/printConfigWarnings'
+
+export { resolvePkg } from './resolvePkg'

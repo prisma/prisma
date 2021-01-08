@@ -424,7 +424,7 @@ import {
   raw,
   Sql,
   Decimal,
-} from '${runtimePath}/esm'
+} from '${runtimePath}'
 import path from 'path'
 import { fileURLToPath } from 'url';
 const debug = debugLib('prisma-client')

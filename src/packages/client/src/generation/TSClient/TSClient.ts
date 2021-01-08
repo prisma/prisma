@@ -16,7 +16,7 @@ import { Enum } from './Enum'
 import { PrismaClientClass } from './PrismaClient'
 import { Model } from './Model'
 import { InputType } from './Input'
-import { commonCodeJS, commonCodeTS } from './common'
+import { commonCodeJS, commonCodeMJS, commonCodeTS } from './common'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -343,7 +343,7 @@ Object.assign(exports, Prisma)
   }
 
   public toMJS(): string {
-    return `${commonCodeJS(this.options)}
+    return `${commonCodeMJS(this.options)}
 /**
  * Build tool annotations
  * In order to make \`ncc\` and \`node-file-trace\` happy.

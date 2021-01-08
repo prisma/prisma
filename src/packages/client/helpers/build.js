@@ -43,7 +43,7 @@ async function main() {
       false,
     ),
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime/esm --bundle --platform=node --target=esnext',
+      'esbuild src/runtime/index.ts --outdir=runtime/esm --bundle --platform=node --target=node10 --format=esm --out-extension:.js=.mjs',
       false,
     ),
     run(
@@ -78,4 +78,24 @@ function run(command, preferLocal = true) {
 main().catch((e) => {
   console.error(e)
   process.exit(1)
+})
+
+// from https://github.com/evanw/esbuild/issues/566#issuecomment-735551834
+const externalCjsToEsmPlugin = (external) => ({
+  name: 'external',
+  setup(build) {
+    let escape = (text) => `^${text.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}$`
+    let filter = new RegExp(external.map(escape).join('|'))
+    build.onResolve({ filter: /.*/, namespace: 'external' }, (args) => ({
+      path: args.path,
+      external: true,
+    }))
+    build.onResolve({ filter }, (args) => ({
+      path: args.path,
+      namespace: 'external',
+    }))
+    build.onLoad({ filter: /.*/, namespace: 'external' }, (args) => ({
+      contents: `export * from ${JSON.stringify(args.path)}`,
+    }))
+  },
 })
