@@ -49,6 +49,8 @@ ${chalk.bold('Options')}
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
+      -f, --force   Skip the confirmation prompt
+
 
 ${chalk.bold('Examples')}
 
@@ -59,14 +61,17 @@ ${chalk.bold('Examples')}
   ${chalk.dim(
     '$',
   )} prisma migrate reset --schema=./schema.prisma --preview-feature 
+
+  Use --force to skip the confirmation prompt
+  ${chalk.dim('$')} prisma migrate reset --force --preview-feature
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      // '--force': Boolean,
-      // '-f': '--force',
+      '--force': Boolean,
+      '-f': '--force',
       '--skip-generate': Boolean,
       '--experimental': Boolean,
       '--preview-feature': Boolean,

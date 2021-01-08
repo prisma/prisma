@@ -99,30 +99,28 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  // it('should work (--force)', async () => {
-  //   ctx.fixture('reset')
+  it('should work (--force)', async () => {
+    ctx.fixture('reset')
 
-  //   const result = MigrateReset.new().parse([
-  //     '--preview-feature',
-  //     '--force',
-  //   ])
-  //   await expect(result).resolves.toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-  //     .toMatchInlineSnapshot(`
-  //     Prisma schema loaded from prisma/schema.prisma
+    const result = MigrateReset.new().parse(['--preview-feature', '--force'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-  //     Database reset successful
+      Database reset successful
 
-  //     The following migration(s) have been applied:
+      The following migration(s) have been applied:
 
-  //     migrations/
-  //       └─ 20201231000000_init/
-  //         └─ migration.sql
-  //   `)
-  //   expect(
-  //     ctx.mocked['console.error'].mock.calls.join('\n'),
-  //   ).toMatchInlineSnapshot(``)
-  // })
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
 
   it('with missing db', async () => {
     ctx.fixture('reset')
