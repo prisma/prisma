@@ -412,7 +412,7 @@ describe('download', () => {
     // value on Mac: 1440
     // value on GH Actions: ~5812
     const took = after - before
-    expect(took).toBeLessThan(13000)
+    expect(took).toBeLessThan(20000)
     const before2 = Date.now()
     await download({
       binaries: {
