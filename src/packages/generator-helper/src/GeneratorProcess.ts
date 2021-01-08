@@ -44,7 +44,6 @@ export class GeneratorProcess {
           this.child = fork(this.executablePath, [], {
             stdio: ['pipe', 'inherit', 'pipe', 'ipc'],
             env: {
-              ...process.env,
               PRISMA_GENERATOR_INVOCATION: 'true',
             },
             execArgv: ['--max-old-space-size=8096'],
@@ -53,7 +52,6 @@ export class GeneratorProcess {
           this.child = spawn(this.executablePath, {
             stdio: ['pipe', 'inherit', 'pipe'],
             env: {
-              ...process.env,
               PRISMA_GENERATOR_INVOCATION: 'true',
             },
             shell: true,
