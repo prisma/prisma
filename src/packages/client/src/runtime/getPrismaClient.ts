@@ -1373,16 +1373,26 @@ generator client {
               if (typeof value === 'object' && value) {
                 acc.select[key] = { select: mapAllCount(value) }
                 unpacker = (data) => {
-                  if (data?.[0]?.count && typeof data[0].count === 'object') {
-                    data = data.map(i => ({...i, count: mapAllCount(i.count)}))
+                  if (Array.isArray(data)) {
+                    data = data.map(row => {
+                      if (row.count) {
+                          row.count = mapAllCount(row.count)
+                      }
+                      return row
+                    })
                   }
                   return data
                 }
               } else if(typeof value === 'boolean') {
                 acc.select[key] = { select: { $all: value } }
                 unpacker = (data) => {
-                  if (data?.[0]?.count && typeof data[0].count === 'object') {
-                    data = data.map(i => ({...i, count: i.count?._all}))
+                  if (Array.isArray(data)) {
+                    data = data.map(row => {
+                      if (typeof row.count === 'object' && row.count?._all) {
+                      row.count = row.count?._all
+                    }
+                    return row
+                    })
                   }
                   return data
                 }
