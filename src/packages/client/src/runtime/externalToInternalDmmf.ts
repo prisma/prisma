@@ -1,7 +1,12 @@
 import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
 import { DMMF } from './dmmf-types'
-import { lowerCase } from './utils/common'
+import { capitalize, lowerCase } from './utils/common'
+import { fromEntries } from './utils/fromEntries'
+
+export function getCountAggregateOutputName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateOutputType`
+}
 
 /**
  * Turns type: string into type: string[] for all args in order to support union input types
@@ -11,9 +16,33 @@ export function externalToInternalDmmf(
   document: ExternalDMMF.Document,
 ): DMMF.Document {
   return {
-    ...document,
+    ...renameAllCount(document),
     mappings: getMappings(document.mappings, document.datamodel),
   }
+}
+
+/**
+ * Renames _all in the query engine dmmf to $all
+ * @param document DMMF.Document to transform
+ */
+function renameAllCount(document: DMMF.Document): DMMF.Document {
+  const countTypeNames = fromEntries(
+    document.mappings.modelOperations.map((o) => [
+      getCountAggregateOutputName(o.model),
+      true,
+    ]),
+  )
+
+  for (const type of document.schema.outputObjectTypes.prisma) {
+    if (countTypeNames[type.name]) {
+      const allField = type.fields.find((f) => f.name === '_all')
+      if (allField) {
+        allField.name = '$all'
+      }
+    }
+  }
+
+  return document
 }
 
 function getMappings(

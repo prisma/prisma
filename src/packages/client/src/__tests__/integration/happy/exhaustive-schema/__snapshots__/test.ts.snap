@@ -1514,7 +1514,7 @@ export namespace Prisma {
 
 
   export type AggregatePost = {
-    count: number | null
+    count: PostCountAggregateOutputType | null
     avg: PostAvgAggregateOutputType | null
     sum: PostSumAggregateOutputType | null
     min: PostMinAggregateOutputType | null
@@ -1556,7 +1556,7 @@ export namespace Prisma {
     content: number | null
     published: number | null
     authorId: number
-    _all: number
+    $all: number
   }
 
 
@@ -1595,7 +1595,7 @@ export namespace Prisma {
     content?: true
     published?: true
     authorId?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregatePostArgs = {
@@ -1632,7 +1632,7 @@ export namespace Prisma {
      * 
      * Count returned Posts
     **/
-    count?: true
+    count?: true | PostCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -1660,14 +1660,12 @@ export namespace Prisma {
   }
 
   export type GetPostAggregateType<T extends AggregatePostArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetPostAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregatePost]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePost[P]>
+      : GetScalarType<T[P], AggregatePost[P]>
   }
-
-  export type GetPostAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof PostAvgAggregateOutputType ? PostAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -1679,7 +1677,7 @@ export namespace Prisma {
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: PostCountAggregateInputType
+    count?: PostCountAggregateInputType | true
     avg?: PostAvgAggregateInputType
     sum?: PostSumAggregateInputType
     min?: PostMinAggregateInputType
@@ -1746,6 +1744,12 @@ export namespace Prisma {
     : Post
   : Post
 
+
+  type PostCountArgs = Merge<
+    Omit<FindManyPostArgs, 'select' | 'include'> & {
+      select?: PostCountAggregateInputType | true
+    }
+  >
 
   export interface PostDelegate {
     /**
@@ -1921,7 +1925,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Posts.
-     * @param {FindManyPostArgs} args - Arguments to filter Posts to count.
+     * @param {PostCountArgs} args - Arguments to filter Posts to count.
      * @example
      * // Count the number of Posts
      * const count = await prisma.post.count({
@@ -1930,7 +1934,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyPostArgs, 'select' | 'include'>): Promise<number>
+    count<T extends PostCountArgs>(
+      args?: Subset<T, PostCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PostCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a Post.
@@ -2320,7 +2332,7 @@ export namespace Prisma {
 
 
   export type AggregateUser = {
-    count: number | null
+    count: UserCountAggregateOutputType | null
     avg: UserAvgAggregateOutputType | null
     sum: UserSumAggregateOutputType | null
     min: UserMinAggregateOutputType | null
@@ -2392,7 +2404,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -2461,7 +2473,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateUserArgs = {
@@ -2498,7 +2510,7 @@ export namespace Prisma {
      * 
      * Count returned Users
     **/
-    count?: true
+    count?: true | UserCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -2526,14 +2538,12 @@ export namespace Prisma {
   }
 
   export type GetUserAggregateType<T extends AggregateUserArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetUserAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateUser]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUser[P]>
+      : GetScalarType<T[P], AggregateUser[P]>
   }
-
-  export type GetUserAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof UserAvgAggregateOutputType ? UserAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -2545,7 +2555,7 @@ export namespace Prisma {
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: UserCountAggregateInputType
+    count?: UserCountAggregateInputType | true
     avg?: UserAvgAggregateInputType
     sum?: UserSumAggregateInputType
     min?: UserMinAggregateInputType
@@ -2628,6 +2638,12 @@ export namespace Prisma {
     : User
   : User
 
+
+  type UserCountArgs = Merge<
+    Omit<FindManyUserArgs, 'select' | 'include'> & {
+      select?: UserCountAggregateInputType | true
+    }
+  >
 
   export interface UserDelegate {
     /**
@@ -2803,7 +2819,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Users.
-     * @param {FindManyUserArgs} args - Arguments to filter Users to count.
+     * @param {UserCountArgs} args - Arguments to filter Users to count.
      * @example
      * // Count the number of Users
      * const count = await prisma.user.count({
@@ -2812,7 +2828,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyUserArgs, 'select' | 'include'>): Promise<number>
+    count<T extends UserCountArgs>(
+      args?: Subset<T, UserCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a User.
@@ -3202,7 +3226,7 @@ export namespace Prisma {
 
 
   export type AggregateM = {
-    count: number | null
+    count: MCountAggregateOutputType | null
     avg: MAvgAggregateOutputType | null
     sum: MSumAggregateOutputType | null
     min: MMinAggregateOutputType | null
@@ -3271,7 +3295,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -3337,7 +3361,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateMArgs = {
@@ -3374,7 +3398,7 @@ export namespace Prisma {
      * 
      * Count returned MS
     **/
-    count?: true
+    count?: true | MCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -3402,14 +3426,12 @@ export namespace Prisma {
   }
 
   export type GetMAggregateType<T extends AggregateMArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetMAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateM]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateM[P]>
+      : GetScalarType<T[P], AggregateM[P]>
   }
-
-  export type GetMAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof MAvgAggregateOutputType ? MAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -3421,7 +3443,7 @@ export namespace Prisma {
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: MCountAggregateInputType
+    count?: MCountAggregateInputType | true
     avg?: MAvgAggregateInputType
     sum?: MSumAggregateInputType
     min?: MMinAggregateInputType
@@ -3502,6 +3524,12 @@ export namespace Prisma {
     : M
   : M
 
+
+  type MCountArgs = Merge<
+    Omit<FindManyMArgs, 'select' | 'include'> & {
+      select?: MCountAggregateInputType | true
+    }
+  >
 
   export interface MDelegate {
     /**
@@ -3677,7 +3705,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Ms.
-     * @param {FindManyMArgs} args - Arguments to filter Ms to count.
+     * @param {MCountArgs} args - Arguments to filter Ms to count.
      * @example
      * // Count the number of Ms
      * const count = await prisma.m.count({
@@ -3686,7 +3714,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyMArgs, 'select' | 'include'>): Promise<number>
+    count<T extends MCountArgs>(
+      args?: Subset<T, MCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a M.
@@ -4076,7 +4112,7 @@ export namespace Prisma {
 
 
   export type AggregateN = {
-    count: number | null
+    count: NCountAggregateOutputType | null
     avg: NAvgAggregateOutputType | null
     sum: NSumAggregateOutputType | null
     min: NMinAggregateOutputType | null
@@ -4145,7 +4181,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -4211,7 +4247,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateNArgs = {
@@ -4248,7 +4284,7 @@ export namespace Prisma {
      * 
      * Count returned NS
     **/
-    count?: true
+    count?: true | NCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -4276,14 +4312,12 @@ export namespace Prisma {
   }
 
   export type GetNAggregateType<T extends AggregateNArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetNAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateN]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateN[P]>
+      : GetScalarType<T[P], AggregateN[P]>
   }
-
-  export type GetNAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof NAvgAggregateOutputType ? NAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -4295,7 +4329,7 @@ export namespace Prisma {
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: NCountAggregateInputType
+    count?: NCountAggregateInputType | true
     avg?: NAvgAggregateInputType
     sum?: NSumAggregateInputType
     min?: NMinAggregateInputType
@@ -4376,6 +4410,12 @@ export namespace Prisma {
     : N
   : N
 
+
+  type NCountArgs = Merge<
+    Omit<FindManyNArgs, 'select' | 'include'> & {
+      select?: NCountAggregateInputType | true
+    }
+  >
 
   export interface NDelegate {
     /**
@@ -4551,7 +4591,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Ns.
-     * @param {FindManyNArgs} args - Arguments to filter Ns to count.
+     * @param {NCountArgs} args - Arguments to filter Ns to count.
      * @example
      * // Count the number of Ns
      * const count = await prisma.n.count({
@@ -4560,7 +4600,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyNArgs, 'select' | 'include'>): Promise<number>
+    count<T extends NCountArgs>(
+      args?: Subset<T, NCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a N.
@@ -4950,7 +4998,7 @@ export namespace Prisma {
 
 
   export type AggregateOneOptional = {
-    count: number | null
+    count: OneOptionalCountAggregateOutputType | null
     avg: OneOptionalAvgAggregateOutputType | null
     sum: OneOptionalSumAggregateOutputType | null
     min: OneOptionalMinAggregateOutputType | null
@@ -5019,7 +5067,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -5085,7 +5133,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateOneOptionalArgs = {
@@ -5122,7 +5170,7 @@ export namespace Prisma {
      * 
      * Count returned OneOptionals
     **/
-    count?: true
+    count?: true | OneOptionalCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -5150,14 +5198,12 @@ export namespace Prisma {
   }
 
   export type GetOneOptionalAggregateType<T extends AggregateOneOptionalArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetOneOptionalAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateOneOptional]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOneOptional[P]>
+      : GetScalarType<T[P], AggregateOneOptional[P]>
   }
-
-  export type GetOneOptionalAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof OneOptionalAvgAggregateOutputType ? OneOptionalAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -5169,7 +5215,7 @@ export namespace Prisma {
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OneOptionalCountAggregateInputType
+    count?: OneOptionalCountAggregateInputType | true
     avg?: OneOptionalAvgAggregateInputType
     sum?: OneOptionalSumAggregateInputType
     min?: OneOptionalMinAggregateInputType
@@ -5250,6 +5296,12 @@ export namespace Prisma {
     : OneOptional
   : OneOptional
 
+
+  type OneOptionalCountArgs = Merge<
+    Omit<FindManyOneOptionalArgs, 'select' | 'include'> & {
+      select?: OneOptionalCountAggregateInputType | true
+    }
+  >
 
   export interface OneOptionalDelegate {
     /**
@@ -5425,7 +5477,7 @@ export namespace Prisma {
 
     /**
      * Count the number of OneOptionals.
-     * @param {FindManyOneOptionalArgs} args - Arguments to filter OneOptionals to count.
+     * @param {OneOptionalCountArgs} args - Arguments to filter OneOptionals to count.
      * @example
      * // Count the number of OneOptionals
      * const count = await prisma.oneOptional.count({
@@ -5434,7 +5486,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyOneOptionalArgs, 'select' | 'include'>): Promise<number>
+    count<T extends OneOptionalCountArgs>(
+      args?: Subset<T, OneOptionalCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OneOptionalCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a OneOptional.
@@ -5824,7 +5884,7 @@ export namespace Prisma {
 
 
   export type AggregateManyRequired = {
-    count: number | null
+    count: ManyRequiredCountAggregateOutputType | null
     avg: ManyRequiredAvgAggregateOutputType | null
     sum: ManyRequiredSumAggregateOutputType | null
     min: ManyRequiredMinAggregateOutputType | null
@@ -5898,7 +5958,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -5969,7 +6029,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateManyRequiredArgs = {
@@ -6006,7 +6066,7 @@ export namespace Prisma {
      * 
      * Count returned ManyRequireds
     **/
-    count?: true
+    count?: true | ManyRequiredCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -6034,14 +6094,12 @@ export namespace Prisma {
   }
 
   export type GetManyRequiredAggregateType<T extends AggregateManyRequiredArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetManyRequiredAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateManyRequired]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateManyRequired[P]>
+      : GetScalarType<T[P], AggregateManyRequired[P]>
   }
-
-  export type GetManyRequiredAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof ManyRequiredAvgAggregateOutputType ? ManyRequiredAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -6053,7 +6111,7 @@ export namespace Prisma {
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ManyRequiredCountAggregateInputType
+    count?: ManyRequiredCountAggregateInputType | true
     avg?: ManyRequiredAvgAggregateInputType
     sum?: ManyRequiredSumAggregateInputType
     min?: ManyRequiredMinAggregateInputType
@@ -6136,6 +6194,12 @@ export namespace Prisma {
     : ManyRequired
   : ManyRequired
 
+
+  type ManyRequiredCountArgs = Merge<
+    Omit<FindManyManyRequiredArgs, 'select' | 'include'> & {
+      select?: ManyRequiredCountAggregateInputType | true
+    }
+  >
 
   export interface ManyRequiredDelegate {
     /**
@@ -6311,7 +6375,7 @@ export namespace Prisma {
 
     /**
      * Count the number of ManyRequireds.
-     * @param {FindManyManyRequiredArgs} args - Arguments to filter ManyRequireds to count.
+     * @param {ManyRequiredCountArgs} args - Arguments to filter ManyRequireds to count.
      * @example
      * // Count the number of ManyRequireds
      * const count = await prisma.manyRequired.count({
@@ -6320,7 +6384,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyManyRequiredArgs, 'select' | 'include'>): Promise<number>
+    count<T extends ManyRequiredCountArgs>(
+      args?: Subset<T, ManyRequiredCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ManyRequiredCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a ManyRequired.
@@ -6710,7 +6782,7 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide1 = {
-    count: number | null
+    count: OptionalSide1CountAggregateOutputType | null
     avg: OptionalSide1AvgAggregateOutputType | null
     sum: OptionalSide1SumAggregateOutputType | null
     min: OptionalSide1MinAggregateOutputType | null
@@ -6784,7 +6856,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -6855,7 +6927,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateOptionalSide1Args = {
@@ -6892,7 +6964,7 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide1s
     **/
-    count?: true
+    count?: true | OptionalSide1CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -6920,14 +6992,12 @@ export namespace Prisma {
   }
 
   export type GetOptionalSide1AggregateType<T extends AggregateOptionalSide1Args> = {
-    [P in keyof T]: P extends 'count' ? number : GetOptionalSide1AggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateOptionalSide1]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOptionalSide1[P]>
+      : GetScalarType<T[P], AggregateOptionalSide1[P]>
   }
-
-  export type GetOptionalSide1AggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof OptionalSide1AvgAggregateOutputType ? OptionalSide1AvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -6939,7 +7009,7 @@ export namespace Prisma {
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide1CountAggregateInputType
+    count?: OptionalSide1CountAggregateInputType | true
     avg?: OptionalSide1AvgAggregateInputType
     sum?: OptionalSide1SumAggregateInputType
     min?: OptionalSide1MinAggregateInputType
@@ -7022,6 +7092,12 @@ export namespace Prisma {
     : OptionalSide1
   : OptionalSide1
 
+
+  type OptionalSide1CountArgs = Merge<
+    Omit<FindManyOptionalSide1Args, 'select' | 'include'> & {
+      select?: OptionalSide1CountAggregateInputType | true
+    }
+  >
 
   export interface OptionalSide1Delegate {
     /**
@@ -7197,7 +7273,7 @@ export namespace Prisma {
 
     /**
      * Count the number of OptionalSide1s.
-     * @param {FindManyOptionalSide1Args} args - Arguments to filter OptionalSide1s to count.
+     * @param {OptionalSide1CountArgs} args - Arguments to filter OptionalSide1s to count.
      * @example
      * // Count the number of OptionalSide1s
      * const count = await prisma.optionalSide1.count({
@@ -7206,7 +7282,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyOptionalSide1Args, 'select' | 'include'>): Promise<number>
+    count<T extends OptionalSide1CountArgs>(
+      args?: Subset<T, OptionalSide1CountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OptionalSide1CountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a OptionalSide1.
@@ -7596,7 +7680,7 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide2 = {
-    count: number | null
+    count: OptionalSide2CountAggregateOutputType | null
     avg: OptionalSide2AvgAggregateOutputType | null
     sum: OptionalSide2SumAggregateOutputType | null
     min: OptionalSide2MinAggregateOutputType | null
@@ -7665,7 +7749,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -7731,7 +7815,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateOptionalSide2Args = {
@@ -7768,7 +7852,7 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide2s
     **/
-    count?: true
+    count?: true | OptionalSide2CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -7796,14 +7880,12 @@ export namespace Prisma {
   }
 
   export type GetOptionalSide2AggregateType<T extends AggregateOptionalSide2Args> = {
-    [P in keyof T]: P extends 'count' ? number : GetOptionalSide2AggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateOptionalSide2]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOptionalSide2[P]>
+      : GetScalarType<T[P], AggregateOptionalSide2[P]>
   }
-
-  export type GetOptionalSide2AggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof OptionalSide2AvgAggregateOutputType ? OptionalSide2AvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -7815,7 +7897,7 @@ export namespace Prisma {
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide2CountAggregateInputType
+    count?: OptionalSide2CountAggregateInputType | true
     avg?: OptionalSide2AvgAggregateInputType
     sum?: OptionalSide2SumAggregateInputType
     min?: OptionalSide2MinAggregateInputType
@@ -7896,6 +7978,12 @@ export namespace Prisma {
     : OptionalSide2
   : OptionalSide2
 
+
+  type OptionalSide2CountArgs = Merge<
+    Omit<FindManyOptionalSide2Args, 'select' | 'include'> & {
+      select?: OptionalSide2CountAggregateInputType | true
+    }
+  >
 
   export interface OptionalSide2Delegate {
     /**
@@ -8071,7 +8159,7 @@ export namespace Prisma {
 
     /**
      * Count the number of OptionalSide2s.
-     * @param {FindManyOptionalSide2Args} args - Arguments to filter OptionalSide2s to count.
+     * @param {OptionalSide2CountArgs} args - Arguments to filter OptionalSide2s to count.
      * @example
      * // Count the number of OptionalSide2s
      * const count = await prisma.optionalSide2.count({
@@ -8080,7 +8168,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyOptionalSide2Args, 'select' | 'include'>): Promise<number>
+    count<T extends OptionalSide2CountArgs>(
+      args?: Subset<T, OptionalSide2CountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OptionalSide2CountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a OptionalSide2.
@@ -8470,7 +8566,7 @@ export namespace Prisma {
 
 
   export type AggregateA = {
-    count: number | null
+    count: ACountAggregateOutputType | null
     avg: AAvgAggregateOutputType | null
     sum: ASumAggregateOutputType | null
     min: AMinAggregateOutputType | null
@@ -8544,7 +8640,7 @@ export namespace Prisma {
     inc_int: number
     inc_sInt: number
     inc_bInt: number
-    _all: number
+    $all: number
   }
 
 
@@ -8615,7 +8711,7 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateAArgs = {
@@ -8652,7 +8748,7 @@ export namespace Prisma {
      * 
      * Count returned AS
     **/
-    count?: true
+    count?: true | ACountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -8680,14 +8776,12 @@ export namespace Prisma {
   }
 
   export type GetAAggregateType<T extends AggregateAArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetAAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateA]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateA[P]>
+      : GetScalarType<T[P], AggregateA[P]>
   }
-
-  export type GetAAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof AAvgAggregateOutputType ? AAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -8699,7 +8793,7 @@ export namespace Prisma {
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ACountAggregateInputType
+    count?: ACountAggregateInputType | true
     avg?: AAvgAggregateInputType
     sum?: ASumAggregateInputType
     min?: AMinAggregateInputType
@@ -8768,6 +8862,12 @@ export namespace Prisma {
     : A
   : A
 
+
+  type ACountArgs = Merge<
+    Omit<FindManyAArgs, 'select' | 'include'> & {
+      select?: ACountAggregateInputType | true
+    }
+  >
 
   export interface ADelegate {
     /**
@@ -8943,7 +9043,7 @@ export namespace Prisma {
 
     /**
      * Count the number of As.
-     * @param {FindManyAArgs} args - Arguments to filter As to count.
+     * @param {ACountArgs} args - Arguments to filter As to count.
      * @example
      * // Count the number of As
      * const count = await prisma.a.count({
@@ -8952,7 +9052,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyAArgs, 'select' | 'include'>): Promise<number>
+    count<T extends ACountArgs>(
+      args?: Subset<T, ACountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ACountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a A.
@@ -9309,7 +9417,7 @@ export namespace Prisma {
 
 
   export type AggregateB = {
-    count: number | null
+    count: BCountAggregateOutputType | null
     avg: BAvgAggregateOutputType | null
     sum: BSumAggregateOutputType | null
     min: BMinAggregateOutputType | null
@@ -9352,7 +9460,7 @@ export namespace Prisma {
     dFloat: number
     decFloat: number
     numFloat: number
-    _all: number
+    $all: number
   }
 
 
@@ -9392,7 +9500,7 @@ export namespace Prisma {
     dFloat?: true
     decFloat?: true
     numFloat?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateBArgs = {
@@ -9429,7 +9537,7 @@ export namespace Prisma {
      * 
      * Count returned BS
     **/
-    count?: true
+    count?: true | BCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -9457,14 +9565,12 @@ export namespace Prisma {
   }
 
   export type GetBAggregateType<T extends AggregateBArgs> = {
-    [P in keyof T]: P extends 'count' ? number : GetBAggregateScalarType<T[P]>
+    [P in keyof T & keyof AggregateB]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateB[P]>
+      : GetScalarType<T[P], AggregateB[P]>
   }
-
-  export type GetBAggregateScalarType<T extends any> = {
-    [P in keyof T]: P extends keyof BAvgAggregateOutputType ? BAvgAggregateOutputType[P] : never
-  }
-
-    
 
 
     
@@ -9476,7 +9582,7 @@ export namespace Prisma {
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: BCountAggregateInputType
+    count?: BCountAggregateInputType | true
     avg?: BAvgAggregateInputType
     sum?: BSumAggregateInputType
     min?: BMinAggregateInputType
@@ -9531,6 +9637,12 @@ export namespace Prisma {
     : B
   : B
 
+
+  type BCountArgs = Merge<
+    Omit<FindManyBArgs, 'select' | 'include'> & {
+      select?: BCountAggregateInputType | true
+    }
+  >
 
   export interface BDelegate {
     /**
@@ -9706,7 +9818,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Bs.
-     * @param {FindManyBArgs} args - Arguments to filter Bs to count.
+     * @param {BCountArgs} args - Arguments to filter Bs to count.
      * @example
      * // Count the number of Bs
      * const count = await prisma.b.count({
@@ -9715,7 +9827,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyBArgs, 'select' | 'include'>): Promise<number>
+    count<T extends BCountArgs>(
+      args?: Subset<T, BCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a B.
@@ -10072,7 +10192,7 @@ export namespace Prisma {
 
 
   export type AggregateC = {
-    count: number | null
+    count: CCountAggregateOutputType | null
     min: CMinAggregateOutputType | null
     max: CMaxAggregateOutputType | null
   }
@@ -10105,7 +10225,7 @@ export namespace Prisma {
     bit: number | null
     vBit: number | null
     uuid: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -10137,7 +10257,7 @@ export namespace Prisma {
     bit?: true
     vBit?: true
     uuid?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateCArgs = {
@@ -10174,7 +10294,7 @@ export namespace Prisma {
      * 
      * Count returned CS
     **/
-    count?: true
+    count?: true | CCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -10190,12 +10310,12 @@ export namespace Prisma {
   }
 
   export type GetCAggregateType<T extends AggregateCArgs> = {
-    [P in keyof T]: P extends 'count' ? number : never
+    [P in keyof T & keyof AggregateC]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateC[P]>
+      : GetScalarType<T[P], AggregateC[P]>
   }
-
-
-
-    
 
 
     
@@ -10207,7 +10327,7 @@ export namespace Prisma {
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: CCountAggregateInputType
+    count?: CCountAggregateInputType | true
     min?: CMinAggregateInputType
     max?: CMaxAggregateInputType
   }
@@ -10262,6 +10382,12 @@ export namespace Prisma {
     : C
   : C
 
+
+  type CCountArgs = Merge<
+    Omit<FindManyCArgs, 'select' | 'include'> & {
+      select?: CCountAggregateInputType | true
+    }
+  >
 
   export interface CDelegate {
     /**
@@ -10437,7 +10563,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Cs.
-     * @param {FindManyCArgs} args - Arguments to filter Cs to count.
+     * @param {CCountArgs} args - Arguments to filter Cs to count.
      * @example
      * // Count the number of Cs
      * const count = await prisma.c.count({
@@ -10446,7 +10572,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyCArgs, 'select' | 'include'>): Promise<number>
+    count<T extends CCountArgs>(
+      args?: Subset<T, CCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], CCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a C.
@@ -10803,7 +10937,7 @@ export namespace Prisma {
 
 
   export type AggregateD = {
-    count: number | null
+    count: DCountAggregateOutputType | null
     min: DMinAggregateOutputType | null
     max: DMaxAggregateOutputType | null
   }
@@ -10833,7 +10967,7 @@ export namespace Prisma {
     xml: number | null
     json: number | null
     jsonb: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -10862,7 +10996,7 @@ export namespace Prisma {
     xml?: true
     json?: true
     jsonb?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateDArgs = {
@@ -10899,7 +11033,7 @@ export namespace Prisma {
      * 
      * Count returned DS
     **/
-    count?: true
+    count?: true | DCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -10915,12 +11049,12 @@ export namespace Prisma {
   }
 
   export type GetDAggregateType<T extends AggregateDArgs> = {
-    [P in keyof T]: P extends 'count' ? number : never
+    [P in keyof T & keyof AggregateD]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateD[P]>
+      : GetScalarType<T[P], AggregateD[P]>
   }
-
-
-
-    
 
 
     
@@ -10932,7 +11066,7 @@ export namespace Prisma {
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: DCountAggregateInputType
+    count?: DCountAggregateInputType | true
     min?: DMinAggregateInputType
     max?: DMaxAggregateInputType
   }
@@ -10985,6 +11119,12 @@ export namespace Prisma {
     : D
   : D
 
+
+  type DCountArgs = Merge<
+    Omit<FindManyDArgs, 'select' | 'include'> & {
+      select?: DCountAggregateInputType | true
+    }
+  >
 
   export interface DDelegate {
     /**
@@ -11160,7 +11300,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Ds.
-     * @param {FindManyDArgs} args - Arguments to filter Ds to count.
+     * @param {DCountArgs} args - Arguments to filter Ds to count.
      * @example
      * // Count the number of Ds
      * const count = await prisma.d.count({
@@ -11169,7 +11309,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyDArgs, 'select' | 'include'>): Promise<number>
+    count<T extends DCountArgs>(
+      args?: Subset<T, DCountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DCountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a D.
@@ -11526,7 +11674,7 @@ export namespace Prisma {
 
 
   export type AggregateE = {
-    count: number | null
+    count: ECountAggregateOutputType | null
     min: EMinAggregateOutputType | null
     max: EMaxAggregateOutputType | null
   }
@@ -11550,7 +11698,7 @@ export namespace Prisma {
     date: number | null
     time: number | null
     ts: number | null
-    _all: number
+    $all: number
   }
 
 
@@ -11573,7 +11721,7 @@ export namespace Prisma {
     date?: true
     time?: true
     ts?: true
-    _all?: true
+    $all?: true
   }
 
   export type AggregateEArgs = {
@@ -11610,7 +11758,7 @@ export namespace Prisma {
      * 
      * Count returned ES
     **/
-    count?: true
+    count?: true | ECountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -11626,12 +11774,12 @@ export namespace Prisma {
   }
 
   export type GetEAggregateType<T extends AggregateEArgs> = {
-    [P in keyof T]: P extends 'count' ? number : never
+    [P in keyof T & keyof AggregateE]: P extends 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateE[P]>
+      : GetScalarType<T[P], AggregateE[P]>
   }
-
-
-
-    
 
 
     
@@ -11643,7 +11791,7 @@ export namespace Prisma {
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ECountAggregateInputType
+    count?: ECountAggregateInputType | true
     min?: EMinAggregateInputType
     max?: EMaxAggregateInputType
   }
@@ -11692,6 +11840,12 @@ export namespace Prisma {
     : E
   : E
 
+
+  type ECountArgs = Merge<
+    Omit<FindManyEArgs, 'select' | 'include'> & {
+      select?: ECountAggregateInputType | true
+    }
+  >
 
   export interface EDelegate {
     /**
@@ -11867,7 +12021,7 @@ export namespace Prisma {
 
     /**
      * Count the number of Es.
-     * @param {FindManyEArgs} args - Arguments to filter Es to count.
+     * @param {ECountArgs} args - Arguments to filter Es to count.
      * @example
      * // Count the number of Es
      * const count = await prisma.e.count({
@@ -11876,7 +12030,15 @@ export namespace Prisma {
      *   }
      * })
     **/
-    count(args?: Omit<FindManyEArgs, 'select' | 'include'>): Promise<number>
+    count<T extends ECountArgs>(
+      args?: Subset<T, ECountArgs>,
+    ): Promise<
+      T extends Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ECountAggregateOutputType>
+        : number
+    >
 
     /**
      * Allows you to perform aggregations operations on a E.

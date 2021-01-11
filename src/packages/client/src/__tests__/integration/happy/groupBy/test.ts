@@ -141,7 +141,7 @@ test('groupBy name and aggregations', async () => {
     },
     count: {
       // age: true,
-      _all: true,
+      $all: true,
     },
     max: {
       age: true,
@@ -161,7 +161,7 @@ test('groupBy name and aggregations', async () => {
           age: 80,
         },
         count: Object {
-          _all: 10,
+          $all: 10,
         },
         max: Object {
           age: 163,
@@ -173,6 +173,24 @@ test('groupBy name and aggregations', async () => {
         sum: Object {
           age: 800,
         },
+      },
+    ]
+  `)
+})
+
+// TODO: enable skip, take, age in count
+// when QE bugs are fixed
+test('groupBy name and with count', async () => {
+  const user = await prisma.user.groupBy({
+    by: ['name'],
+    count: true,
+  })
+
+  expect(user).toMatchInlineSnapshot(`
+    Array [
+      Object {
+        count: 10,
+        name: Bobby Brown,
       },
     ]
   `)

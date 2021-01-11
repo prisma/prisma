@@ -48,7 +48,11 @@ export function getMaxAggregateName(modelName: string): string {
   return `${capitalize(modelName)}MaxAggregateOutputType`
 }
 
-export function getCountAggregateName(modelName: string): string {
+export function getCountAggregateInputName(modelName: string): string {
+  return `${capitalize(modelName)}CountAggregateInputType`
+}
+
+export function getCountAggregateOutputName(modelName: string): string {
   return `${capitalize(modelName)}CountAggregateOutputType`
 }
 
@@ -134,7 +138,7 @@ export function getModelArgName(
     case DMMF.ModelAction.aggregate:
       return getAggregateArgsName(modelName)
     case DMMF.ModelAction.count:
-      return getModelArgName(modelName, DMMF.ModelAction.findMany)
+      return `${modelName}CountArgs`
   }
 }
 
