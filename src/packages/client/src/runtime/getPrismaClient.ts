@@ -1037,10 +1037,10 @@ new PrismaClient({
       const typeName = getOutputTypeName(field.outputType.type)
 
       let rejectOnEmpty:  boolean | Error  = false
-      if('rejectOnEmpty' in args){
+      if(args && typeof args === 'object' && 'rejectOnEmpty' in args){
         rejectOnEmpty = args['rejectOnEmpty']
         delete args['rejectOnEmpty'];
-      } else if(typeof this._rejectOnEmpty === 'object' && typeName in this._rejectOnEmpty){
+      } else if(this._rejectOnEmpty && typeof this._rejectOnEmpty === 'object' && typeName in this._rejectOnEmpty){
         rejectOnEmpty = this._rejectOnEmpty[typeName]
       } else if(typeof this._rejectOnEmpty === 'boolean' || isError(this._rejectOnEmpty)) {
         rejectOnEmpty= this._rejectOnEmpty
