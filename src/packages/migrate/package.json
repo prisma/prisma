@@ -18,7 +18,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
-    "@types/jest": "26.0.19",
+    "@types/jest": "26.0.20",
     "@types/node": "12.19.12",
     "@types/pg": "7.14.7",
     "@types/prompts": "2.0.9",
