@@ -1111,6 +1111,10 @@ export namespace Prisma {
 
   export interface PrismaClientOptions {
     /**
+     * Will throw an Error if findUnique returns null
+     */
+    rejectOnEmpty?: Error | boolean | {[key in ModelName]?: boolean | Error}
+    /**
      * Overwrites the datasource url from your prisma.schema file
      */
     datasources?: Datasources
@@ -1793,6 +1797,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: PostInclude | null
+    /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
     /**
      * Filter, which Post to fetch.
     **/
@@ -2672,6 +2680,10 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which User to fetch.
     **/
     where: UserWhereUniqueInput
@@ -3541,6 +3553,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: MInclude | null
+    /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
     /**
      * Filter, which M to fetch.
     **/
@@ -4412,6 +4428,10 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which N to fetch.
     **/
     where: NWhereUniqueInput
@@ -5281,6 +5301,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
     /**
      * Filter, which OneOptional to fetch.
     **/
@@ -6164,6 +6188,10 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which ManyRequired to fetch.
     **/
     where: ManyRequiredWhereUniqueInput
@@ -7046,6 +7074,10 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which OptionalSide1 to fetch.
     **/
     where: OptionalSide1WhereUniqueInput
@@ -7916,6 +7948,10 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which OptionalSide2 to fetch.
     **/
     where: OptionalSide2WhereUniqueInput
@@ -8743,6 +8779,10 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which A to fetch.
     **/
     where: AWhereUniqueInput
@@ -9502,6 +9542,10 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which B to fetch.
     **/
     where: BWhereUniqueInput
@@ -10231,6 +10275,10 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which C to fetch.
     **/
     where: CWhereUniqueInput
@@ -10952,6 +11000,10 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
+    /**
      * Filter, which D to fetch.
     **/
     where: DWhereUniqueInput
@@ -11656,6 +11708,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the E
     **/
     select?: ESelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+    **/
+    rejectOnEmpty?: boolean | Error
     /**
      * Filter, which E to fetch.
     **/
