@@ -1388,7 +1388,7 @@ generator client {
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
                     data = data.map(row => {
-                      if (typeof row.count === 'object' && row.count?._all) {
+                      if (row && typeof row.count === 'object' && row.count?._all) {
                       row.count = row.count?._all
                     }
                     return row
