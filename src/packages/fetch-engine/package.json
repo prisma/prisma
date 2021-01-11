@@ -7,7 +7,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/engines-version": "2.15.0-4.c9c2ad73afb6d3375f265c44f1a172eff67300dc",
-    "@types/jest": "26.0.19",
+    "@types/jest": "26.0.20",
     "@types/node": "12.19.12",
     "@types/node-fetch": "2.5.7",
     "@types/progress": "2.0.3",

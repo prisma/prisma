@@ -67,7 +67,7 @@
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
-    "@types/jest": "26.0.19",
+    "@types/jest": "26.0.20",
     "@types/js-levenshtein": "1.1.0",
     "@types/node": "12.19.12",
     "@types/pg": "7.14.7",
