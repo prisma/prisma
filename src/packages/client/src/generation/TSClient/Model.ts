@@ -17,12 +17,12 @@ import {
   getMaxAggregateName,
   getAggregateArgsName,
   getAggregateGetName,
-  getAggregateScalarGetName,
   getAggregateInputType,
   getGroupByArgsName,
   getGroupByName,
-  getCountAggregateName,
+  getCountAggregateOutputName,
   getGroupByPayloadName,
+  getCountAggregateInputName,
 } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { Generatable, TS } from './Generatable'
@@ -133,7 +133,7 @@ ${indent(
           if (f.outputType.location === 'outputObjectTypes') {
             return `${f.name}?: ${getAggregateInputType(
               (f.outputType.type as DMMF.OutputType).name,
-            )}`
+            )}${f.name === 'count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
@@ -177,29 +177,15 @@ type ${getGroupByPayloadName(
       )
     }
 
-    const countFieldIndex = aggregateType.fields.findIndex(
-      (f) => f.name === 'count',
-    )
-
-    aggregateType.fields[countFieldIndex] = {
-      name: 'count',
-      args: [],
-      isRequired: false,
-      isNullable: true,
-      outputType: {
-        isList: false,
-        location: 'scalar',
-        type: 'Int',
-      },
-    }
-
     const aggregateTypes = [aggregateType]
 
     const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
     const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
     const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
-    const countType = this.dmmf.outputTypeMap[getCountAggregateName(model.name)]
+    const countType = this.dmmf.outputTypeMap[
+      getCountAggregateOutputName(model.name)
+    ]
 
     if (avgType) {
       aggregateTypes.push(avgType)
@@ -222,6 +208,9 @@ type ${getGroupByPayloadName(
     }
 
     const aggregateArgsName = getAggregateArgsName(model.name)
+
+    const aggregateName = getAggregateName(model.name)
+
     this.collector?.addSymbol(aggregateArgsName)
 
     return `${aggregateTypes
@@ -276,7 +265,7 @@ ${indent(
         )
         data += comment ? wrapComment(comment) + '\n' : ''
         if (f.name === 'count') {
-          data += `${f.name}?: true`
+          data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
           data += `${f.name}?: ${getAggregateInputType(
             (f.outputType.type as DMMF.OutputType).name,
@@ -293,22 +282,12 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T]: P extends 'count' ? number : ${
-    avgType ? `${getAggregateScalarGetName(model.name)}<T[P]>` : 'never'
-  }
-}
-
-${
-  avgType
-    ? `export type ${getAggregateScalarGetName(model.name)}<T extends any> = {
-  [P in keyof T]: P extends keyof ${getAvgAggregateName(
-    model.name,
-  )} ? ${getAvgAggregateName(model.name)}[P] : never
+  [P in keyof T & keyof ${aggregateName}]: P extends 'count'
+    ? T[P] extends true
+      ? number
+      : GetScalarType<T[P], ${aggregateName}[P]>
+    : GetScalarType<T[P], ${aggregateName}[P]>
 }`
-    : ''
-}
-
-    `
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
@@ -418,7 +397,17 @@ export class ModelDelegate implements Generatable {
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)
+    const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
+type ${countArgsName} = Merge<
+  Omit<${getModelArgName(
+    name,
+    DMMF.ModelAction.findMany,
+  )}, 'select' | 'include'> & {
+    select?: ${getCountAggregateInputName(name)} | true
+  }
+>
+
 export interface ${name}Delegate {
 ${indent(
   actions
@@ -434,10 +423,15 @@ ${actionName}${getGenericMethod(name, actionName)}(
 )}
 
 ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
-  count(args?: Omit<${getModelArgName(
-    name,
-    DMMF.ModelAction.findMany,
-  )}, 'select' | 'include'>): Promise<number>
+  count<T extends ${countArgsName}>(
+    args?: Subset<T, ${countArgsName}>,
+  ): Promise<
+    T extends Record<'select', any>
+      ? T['select'] extends true
+        ? number
+        : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
+      : number
+  >
 
 ${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(

@@ -87,4 +87,31 @@ const prisma = new PrismaClient({
       someRandomField: {}, // TODO: fix types
     }),
   )
+  expectError(
+    await prisma.user.aggregate({
+      avg: { 
+        email: true
+      }
+    }),
+  )
+  expectError(
+    await prisma.user.aggregate({
+      sum: { 
+        email: true
+      }
+    }),
+  )
+
+  expectError(
+    await prisma.user.aggregate({
+      count: 0,
+    }),
+  )
+  expectError(
+    await prisma.user.aggregate({
+      count: {
+        _all: true
+      },
+    }),
+  )
 })()

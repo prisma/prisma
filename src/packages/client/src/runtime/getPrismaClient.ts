@@ -37,6 +37,7 @@ import {
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
+import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
@@ -121,6 +122,8 @@ export interface PrismaClientOptions {
   }
 }
 
+type Unpacker = (data: any) => any
+
 export type HookParams = {
   query: string
   path: string[]
@@ -161,6 +164,7 @@ export interface InternalRequestParams extends MiddlewareParams {
   callsite?: string
   headers?: Record<string, string>
   transactionId?: number
+  unpacker?: Unpacker
 }
 
 export type HookPoint = 'all' | 'engine'
@@ -929,6 +933,7 @@ new PrismaClient({
               internalParams.clientMethod,
               internalParams.callsite,
               internalParams.headers,
+              internalParams.unpacker,
             ),
           )
         }
@@ -948,6 +953,7 @@ new PrismaClient({
       clientMethod: string,
       callsite?: string,
       headers?: Record<string, string>,
+      unpacker?: Unpacker,
     ) {
       const middleware = middlewares.shift()
       if (middleware) {
@@ -966,6 +972,7 @@ new PrismaClient({
       ;(params as InternalRequestParams).clientMethod = clientMethod
       ;(params as InternalRequestParams).callsite = callsite
       ;(params as InternalRequestParams).headers = headers
+      ;(params as InternalRequestParams).unpacker = unpacker
 
       return this._executeRequest(params as InternalRequestParams)
     }
@@ -980,6 +987,7 @@ new PrismaClient({
       model,
       headers,
       transactionId,
+      unpacker,
     }: InternalRequestParams) {
       if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
@@ -1066,6 +1074,7 @@ new PrismaClient({
         runInTransaction,
         headers,
         transactionId,
+        unpacker,
       })
     }
 
@@ -1081,12 +1090,21 @@ new PrismaClient({
             )
           }
 
+          // TODO: add types
           const prismaClient = ({
             operation,
             actionName,
             args,
             dataPath,
             modelName,
+            unpacker,
+          }: {
+            operation: string
+            actionName: Action
+            args: any
+            dataPath: string[]
+            modelName: string
+            unpacker?: Unpacker
           }) => {
             if (actionName === 'findOne') {
               console.warn(
@@ -1115,6 +1133,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1131,6 +1150,7 @@ new PrismaClient({
                     callsite,
                     runInTransaction: true,
                     transactionId,
+                    unpacker,
                   })
                 }
 
@@ -1146,6 +1166,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1161,6 +1182,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    unpacker,
                   })
                 }
 
@@ -1238,18 +1260,33 @@ new PrismaClient({
         )
 
         delegate.count = (args) => {
+          let select
+          let unpacker: Unpacker | undefined
+          if (args?.select && typeof args?.select === 'object') {
+            select = { count: { select: mapAllCount(args.select) } }
+            unpacker = (data) => {
+              if (data.count && typeof data.count === 'object') {
+                data.count = mapAllCount(data.count)
+              }
+              return data
+            }
+          } else {
+            select = { count: { select: { $all: true } } }
+            unpacker = (data) => {
+              data.count = data.count?._all
+              return data
+            }
+          }
+
           return clients[mapping.model]({
             operation: 'query',
             actionName: `aggregate`,
-            args: args
-              ? {
-                  ...args,
-                  select: { count: { select: { _all: true } } },
-                }
-              : {
-                  select: { count: { select: { _all: true } } },
-                },
+            args: {
+              ...(args ?? {}),
+              select,
+            },
             dataPath: ['count'],
+            unpacker,
           })
         }
 
@@ -1258,6 +1295,8 @@ new PrismaClient({
            * avg, count, sum, min, max need to go into select
            * For speed reasons we can go with "for in "
            */
+          let unpacker: Unpacker | undefined = undefined
+
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
@@ -1266,7 +1305,23 @@ new PrismaClient({
               }
               // `count` doesn't have a sub-selection
               if (key === 'count') {
-                acc.select[key] = { select: { _all: value } }
+                if (typeof value === 'object' && value) {
+                  acc.select[key] = { select: mapAllCount(value) }
+                  unpacker = (data) => {
+                    if (data.count && typeof data.count === 'object') {
+                      data.count = mapAllCount(data.count)
+                    }
+                    return data
+                  }
+                } else {
+                  acc.select[key] = { select: { $all: value } }
+                  unpacker = (data) => {
+                    if (data.count) {
+                      data.count = data.count?._all
+                    }
+                    return data
+                  }
+                }
               } else {
                 acc.select[key] = { select: value }
               }
@@ -1282,6 +1337,7 @@ new PrismaClient({
             rootField: mapping.aggregate,
             args: select,
             dataPath: [],
+            unpacker,
           })
         }
 
@@ -1295,6 +1351,8 @@ generator client {
 }
 `)
           }
+          let unpacker: Unpacker | undefined = undefined
+
           /**
            * avg, count, sum, min, max need to go into select
            * For speed reasons we can go with "for in "
@@ -1310,6 +1368,35 @@ generator client {
               // otherwise leave it alone
             } else {
               acc[key] = value
+            }
+            if (key === 'count') {
+              if (typeof value === 'object' && value) {
+                acc.select[key] = { select: mapAllCount(value) }
+                unpacker = (data) => {
+                  if (Array.isArray(data)) {
+                    data = data.map(row => {
+                      if (row && typeof row === 'object' && row.count) {
+                          row.count = mapAllCount(row.count)
+                      }
+                      return row
+                    })
+                  }
+                  return data
+                }
+              } else if(typeof value === 'boolean') {
+                acc.select[key] = { select: { $all: value } }
+                unpacker = (data) => {
+                  if (Array.isArray(data)) {
+                    data = data.map(row => {
+                      if (row && typeof row.count === 'object' && row.count?._all) {
+                      row.count = row.count?._all
+                    }
+                    return row
+                    })
+                  }
+                  return data
+                }
+              }
             }
             if (key === 'by' && Array.isArray(value) && value.length > 0) {
               if (!acc.select) {
@@ -1328,6 +1415,7 @@ generator client {
             rootField: mapping.groupBy,
             args: select,
             dataPath: [],
+            unpacker
           })
         }
 
@@ -1413,6 +1501,7 @@ export class PrismaClientFetcher {
     args,
     headers,
     transactionId,
+    unpacker,
   }: {
     document: Document
     dataPath: string[]
@@ -1427,6 +1516,7 @@ export class PrismaClientFetcher {
     args: any
     headers?: Record<string, string>
     transactionId?: number
+    unpacker?: Unpacker
   }) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -1470,7 +1560,13 @@ export class PrismaClientFetcher {
       /**
        * Unpack
        */
-      const unpackResult = this.unpack(document, data, dataPath, rootField)
+      const unpackResult = this.unpack(
+        document,
+        data,
+        dataPath,
+        rootField,
+        unpacker,
+      )
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
       }
@@ -1531,14 +1627,15 @@ export class PrismaClientFetcher {
     }
     return message
   }
-  unpack(document, data, path, rootField) {
+  unpack(document, data, path, rootField, unpacker?: Unpacker) {
     if (data.data) {
       data = data.data
     }
     // to lift up _all in count
-    if (rootField.startsWith('aggregate') && data[rootField].count) {
-      data[rootField].count = data[rootField].count._all
+    if (unpacker) {
+      data[rootField] = unpacker(data[rootField])
     }
+
     const getPath: any[] = []
     if (rootField) {
       getPath.push(rootField)
@@ -1560,4 +1657,14 @@ export function getOperation(
     return 'query'
   }
   return 'mutation'
+}
+
+function mapAllCount(args: Record<string, any>): Record<string, any> {
+  const entries: [string, any][] = Object.entries(args).map(([key, value]) => {
+    if (key === '_all') {
+      return ['$all', value]
+    }
+    return [key, value] 
+  })
+  return fromEntries(entries)
 }

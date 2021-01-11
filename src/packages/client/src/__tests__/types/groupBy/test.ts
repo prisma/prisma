@@ -31,7 +31,8 @@ async function main() {
     },
     count: {
       age: true,
-      _all: true,
+      email: true,
+      $all: true,
     },
     max: {
       age: true,
@@ -47,18 +48,31 @@ async function main() {
     },
   })
 
-  const { avg, count, max, sum, min, name } = x[0]
-
-  avg.age
-  count._all
-  count.age
-  max.age
-  name
-  sum.age
-  min.age
+  type X0 = {
+    name: string | null
+    avg: {
+      age: number
+    }
+    sum: {
+      age: number
+    }
+    count: {
+      age: number
+      email: number | null
+      $all: number
+    }
+    min: {
+      age: number
+    }
+    max: {
+      age: number
+    }
+  }
+  const x0: X0 = x[0]
 
   const y = await prisma.user.groupBy({
     by: ['name'],
+    count: true,
     having: {
       name: '',
       email: {

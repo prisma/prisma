@@ -59,7 +59,7 @@ describe('aggregate', () => {
         select: {
           count: {
             select: {
-              _all: true,
+              $all: true,
             },
           },
         },
