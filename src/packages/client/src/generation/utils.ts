@@ -61,7 +61,7 @@ export function getAggregateInputType(aggregateOutputType: string): string {
 }
 
 export function getGroupByArgsName(modelName: string): string {
-  return `GroupBy${capitalize(modelName)}Args`
+  return `${capitalize(modelName)}GroupByArgs`
 }
 
 export function getGroupByPayloadName(modelName: string): string {
@@ -69,7 +69,7 @@ export function getGroupByPayloadName(modelName: string): string {
 }
 
 export function getAggregateArgsName(modelName: string): string {
-  return `Aggregate${capitalize(modelName)}Args`
+  return `${capitalize(modelName)}AggregateArgs`
 }
 
 export function getAggregateGetName(modelName: string): string {
@@ -100,7 +100,7 @@ export function getArgName(name: string, isList: boolean): string {
     return `${name}Args`
   }
 
-  return `FindMany${name}Args`
+  return `${name}FindManyArgs`
 }
 
 // we need names for all top level args,
@@ -114,13 +114,13 @@ export function getModelArgName(
   }
   switch (action) {
     case DMMF.ModelAction.findMany:
-      return `FindMany${modelName}Args`
+      return `${modelName}FindManyArgs`
     case DMMF.ModelAction.findUnique:
-      return `FindUnique${modelName}Args`
+      return `${modelName}FindUniqueArgs`
     case 'findOne':
-      return `FindUnique${modelName}Args`
+      return `${modelName}FindUniqueArgs`
     case DMMF.ModelAction.findFirst:
-      return `FindFirst${modelName}Args`
+      return `${modelName}FindFirstArgs`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
