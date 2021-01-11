@@ -164,7 +164,7 @@ async function main() {
   const $disconnect: Promise<void> = prisma.$disconnect()
 
   // Trick to define a "positive" test, if "include" is NOT in "FindManyMachineDataArgs"
-  type X = keyof Prisma.FindManyMachineDataArgs
+  type X = keyof Prisma.MachineDataFindManyArgs
   type Y = 'include' extends X ? number : string
   const y: Y = 'string'
 
