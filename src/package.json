@@ -18,7 +18,7 @@
     "chalk": "4.1.0",
     "debug": "4.3.1",
     "execa": "5.0.0",
-    "globby": "11.0.1",
+    "globby": "11.0.2",
     "graphviz": "0.0.9",
     "node-fetch": "2.6.1",
     "p-map": "4.0.0",
