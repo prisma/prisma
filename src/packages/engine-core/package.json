@@ -10,7 +10,6 @@
     "@types/node": "12.19.12",
     "@typescript-eslint/eslint-plugin": "4.12.0",
     "@typescript-eslint/parser": "4.12.0",
-    "abort-controller": "3.0.0",
     "eslint": "7.17.0",
     "eslint-config-prettier": "7.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
