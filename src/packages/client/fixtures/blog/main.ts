@@ -7,43 +7,29 @@ const prisma = new PrismaClient({
       level: 'query',
     },
   ],
+  rejectOnEmpty: {
+    "House": true,
+  }
 })
 
 async function main() {
-  const user = await prisma.user.groupBy({
-    by: ['name'],
-    where: {
-      age: {
-        gt: -1,
-      },
-    },
-    // skip: 0,
-    // take: 10000,
-    avg: {
-      age: true,
-    },
-    count: true,
-    max: {
-      age: true,
-    },
-    min: {
-      age: true,
-    },
-    sum: {
-      age: true,
+  prisma.$on('query', (q) => {
+    console.log({ q })
+  })
+  const res = await prisma.user.findUnique({ 
+    where: { 
+      id: 'asdaf'
     },
   })
-  // const res = await prisma.user.aggregate({
-  //   // select: true,
-  //   // skip: 3
-  //   count: true,
-  //   min: {
-  //     email: true,
-  //     // json: true,
+  console.log(res);
+  // const res = await prisma.user.findUnique({
+  //   where: {
+  //     email: 'prisma@prisma.de'
   //   },
+  //   rejectOnEmpty: true
   // })
 
-  console.log(user[0].count)
+  // console.log(res)
 
   prisma.$disconnect()
 }

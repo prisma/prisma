@@ -1,8 +1,9 @@
 import { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 import leven from 'js-levenshtein'
 import { PrismaClientConstructorValidationError } from '../query'
+import { isError } from '@prisma/sdk'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal']
+const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnEmpty']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -161,6 +162,17 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     // TODO: Add more validation here
     // but as this is an internal, non user-facing api, it's not urgent
   },
+  rejectOnEmpty: (value => {
+    if (!value) {
+      return
+    }
+    if(isError(value) || typeof value === 'boolean' || typeof value === 'object'){
+      return value
+    }
+    throw new PrismaClientConstructorValidationError(
+      `Invalid rejectOnEmpty expected a boolean/Error/{[modelName: Error | boolean]} but received ${JSON.stringify(value)}`,
+    ) 
+  })
 }
 
 export function validatePrismaClientOptions(

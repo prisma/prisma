@@ -8,7 +8,7 @@ import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import { tryLoadEnvs } from '@prisma/sdk'
+import { isError, tryLoadEnvs } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { AsyncResource } from 'async_hooks'
 import chalk from 'chalk'
@@ -78,6 +78,10 @@ export type Datasource = {
 export type Datasources = Record<string, Datasource>
 
 export interface PrismaClientOptions {
+  /**
+   * Will throw an Error if findUnique returns null
+   */
+  rejectOnEmpty?: boolean | Error | Record<string, boolean | Error>
   /**
    * Overwrites the datasource url from your prisma.schema file
    */
@@ -303,11 +307,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
+    private _rejectOnEmpty: boolean | Error | Record<string, boolean | Error> = false
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-
+      this._rejectOnEmpty = optionsArg?.rejectOnEmpty ?? false
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       const envPaths = {
@@ -1031,6 +1036,16 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
+      let rejectOnEmpty:  boolean | Error  = false
+      if('rejectOnEmpty' in args){
+        rejectOnEmpty = args['rejectOnEmpty']
+        delete args['rejectOnEmpty'];
+      } else if(typeof this._rejectOnEmpty === 'object' && typeName in this._rejectOnEmpty){
+        rejectOnEmpty = this._rejectOnEmpty[typeName]
+      } else if(typeof this._rejectOnEmpty === 'boolean' || isError(this._rejectOnEmpty)) {
+        rejectOnEmpty= this._rejectOnEmpty
+      }
+      
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1064,6 +1079,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
+        rejectOnEmpty: rejectOnEmpty ?? this._rejectOnEmpty,
         isList,
         rootField: rootField!,
         callsite,
@@ -1477,6 +1493,7 @@ export class PrismaClientFetcher {
     typeName,
     isList,
     callsite,
+    rejectOnEmpty,
     clientMethod,
     runInTransaction,
     showColors,
@@ -1493,6 +1510,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
+    rejectOnEmpty?: boolean | Error
     runInTransaction?: boolean
     showColors?: boolean
     engineHook?: EngineMiddleware
@@ -1552,6 +1570,13 @@ export class PrismaClientFetcher {
       )
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
+      }
+      if(clientMethod.includes('findUnique') && rejectOnEmpty){
+        if(typeof rejectOnEmpty === 'boolean'){
+          throw new Error(`No ${typeName} found`)
+        } else {
+          throw rejectOnEmpty
+        }
       }
       return unpackResult
     } catch (e) {

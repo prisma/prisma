@@ -127,3 +127,11 @@ export interface InvalidArgTypeError {
   }
   providedValue: any
 }
+
+/**
+ * Thrown if findUnique returns null and rejectOnEmpty
+ */
+export interface RejectOnEmptyError {
+  type: 'emptyResponse'
+  argName: string
+}

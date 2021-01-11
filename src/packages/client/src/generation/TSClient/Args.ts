@@ -16,7 +16,7 @@ export class ArgsType implements Generatable {
   public toTS(): string {
     const { action, args } = this
     const { name } = this.model
-
+    const isFindUnique = action === DMMF.ModelAction.findUnique
     for (const arg of args) {
       arg.comment = getArgFieldJSDoc(this.model, action, arg)
     }
@@ -69,7 +69,21 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-
+    if(isFindUnique){
+      bothArgsOptional.push({
+        name: 'rejectOnEmpty',
+        isRequired: false,
+        isNullable: true,
+        inputTypes: [
+          {
+            type: 'boolean | Error',
+            location: 'scalar',
+            isList: false,
+          },
+        ],
+        comment: `Choose, which related nodes to fetch as well.`,
+      })
+    }
     bothArgsOptional.push(...args)
 
     const modelArgName = getModelArgName(name, action)
