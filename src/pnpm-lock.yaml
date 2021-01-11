@@ -309,7 +309,7 @@ importers:
   packages/engine-core:
     dependencies:
       '@prisma/debug': 'link:../debug'
-      '@prisma/engines': 2.15.0-2.62ebf4964be84b059bc26f113771490f7a6ad391
+      '@prisma/engines': 2.15.0-4.c9c2ad73afb6d3375f265c44f1a172eff67300dc
       '@prisma/generator-helper': 'link:../generator-helper'
       '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
@@ -319,13 +319,12 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.2.0
       terminal-link: 2.1.1
-      undici: 2.2.1
+      undici: 3.0.0
     devDependencies:
       '@types/jest': 26.0.19
       '@types/node': 12.19.12
       '@typescript-eslint/eslint-plugin': 4.12.0_343306961d6b60bcf6bd09d193a54461
       '@typescript-eslint/parser': 4.12.0_eslint@7.17.0+typescript@4.1.3
-      abort-controller: 3.0.0
       eslint: 7.17.0
       eslint-config-prettier: 7.1.0_eslint@7.17.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.17.0
@@ -339,14 +338,13 @@ importers:
       typescript: 4.1.3
     specifiers:
       '@prisma/debug': 'workspace:*'
-      '@prisma/engines': 2.15.0-2.62ebf4964be84b059bc26f113771490f7a6ad391
+      '@prisma/engines': 2.15.0-4.c9c2ad73afb6d3375f265c44f1a172eff67300dc
       '@prisma/generator-helper': 'workspace:*'
       '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.19
       '@types/node': 12.19.12
       '@typescript-eslint/eslint-plugin': 4.12.0
       '@typescript-eslint/parser': 4.12.0
-      abort-controller: 3.0.0
       chalk: ^4.0.0
       eslint: 7.17.0
       eslint-config-prettier: 7.1.0
@@ -365,7 +363,7 @@ importers:
       terminal-link: ^2.1.1
       ts-jest: 26.4.4
       typescript: 4.1.3
-      undici: 2.2.1
+      undici: 3.0.0
   packages/fetch-engine:
     dependencies:
       '@prisma/debug': 'link:../debug'
@@ -1488,6 +1486,11 @@ packages:
     requiresBuild: true
     resolution:
       integrity: sha512-3A/c9ED6xpb+kYO41bZGNrKdN+bJzo7JMuJjAF9GxnlRGPufAX67w33X9oq+4Twl/1h1tIEPLzlmVIHfOm9DKw==
+  /@prisma/engines/2.15.0-4.c9c2ad73afb6d3375f265c44f1a172eff67300dc:
+    dev: false
+    requiresBuild: true
+    resolution:
+      integrity: sha512-Ep/dV2sl7wmAZ86K2HH+5mp52dVrG5ULXK32EEep4GXtpa6umFVUDP2aa1J4n/tJxxEmpt7ImbeS522utrsong==
   /@prisma/fetch-engine/2.15.0-dev.6:
     dependencies:
       '@prisma/debug': 2.15.0-dev.6
@@ -2412,14 +2415,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==
-  /abort-controller/3.0.0:
-    dependencies:
-      event-target-shim: 5.0.1
-    dev: true
-    engines:
-      node: '>=6.5'
-    resolution:
-      integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==
   /accepts/1.3.7:
     dependencies:
       mime-types: 2.1.27
@@ -4042,12 +4037,6 @@ packages:
       node: '>= 0.6'
     resolution:
       integrity: sha1-Qa4u62XvpiJorr/qg6x9eSmbCIc=
-  /event-target-shim/5.0.1:
-    dev: true
-    engines:
-      node: '>=6'
-    resolution:
-      integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==
   /exec-sh/0.3.4:
     dev: true
     resolution:
@@ -8881,8 +8870,13 @@ packages:
     resolution:
       integrity: sha512-21rQzss/XPMjolTiIezSu3JAjgagXKROtNrYFEOWK109qY1Uv2tVjPTZ1ci2HgvQDA16gHYSthQIJfB+XId/rQ==
   /undici/2.2.1:
+    dev: true
     resolution:
       integrity: sha512-21sJmMvJOMsyt/2pQPgB5Ruvm2ADTTm34NHRy4kzfeW9uMO7gK2oN0f+5KaJCmoKGJb8KxdU6yWpW0SphFHadw==
+  /undici/3.0.0:
+    dev: false
+    resolution:
+      integrity: sha512-qBIjzq7IZd7gQ7pf+JjyT3l3kZbsgpPlRqZRK7QawkLvdDY4TIk6kgOEoZFceM6mFBXM+1MROfr7bpi5O904sQ==
   /union-value/1.0.1:
     dependencies:
       arr-union: 3.1.0
