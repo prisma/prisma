@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`rejectOnEmpty contructor=customError findUnique=customError 1`] = `FindUnique Custom Error`;
+
+exports[`rejectOnEmpty contructor=customError findUnique=false 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=customError findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=customError findUnique=undefined 1`] = `Contructor Custom Error`;
+
+exports[`rejectOnEmpty contructor=customErrorPerModel findUnique=customError 1`] = `FindUnique Custom Error`;
+
+exports[`rejectOnEmpty contructor=customErrorPerModel findUnique=false 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=customErrorPerModel findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=customErrorPerModel findUnique=undefined 1`] = `Contructor Custom Error on User`;
+
+exports[`rejectOnEmpty contructor=false findUnique=customError 1`] = `FindUnique Custom Error`;
+
+exports[`rejectOnEmpty contructor=false findUnique=false 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=false findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=false findUnique=undefined 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=true findUnique=customError 1`] = `FindUnique Custom Error`;
+
+exports[`rejectOnEmpty contructor=true findUnique=false 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=true findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=true findUnique=undefined 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=undefined findUnique=customError 1`] = `FindUnique Custom Error`;
+
+exports[`rejectOnEmpty contructor=undefined findUnique=false 1`] = `null`;
+
+exports[`rejectOnEmpty contructor=undefined findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnEmpty contructor=undefined findUnique=undefined 1`] = `null`;

@@ -307,12 +307,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
-    private _rejectOnEmpty: boolean | Error | Record<string, boolean | Error> = false
+    private _rejectOnEmpty?: boolean | Error | Record<string, boolean | Error> 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-      this._rejectOnEmpty = optionsArg?.rejectOnEmpty ?? false
+      this._rejectOnEmpty = optionsArg?.rejectOnEmpty
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       const envPaths = {
@@ -1036,14 +1036,20 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
-      let rejectOnEmpty:  boolean | Error  = false
-      if(args && typeof args === 'object' && 'rejectOnEmpty' in args){
+      let rejectOnEmpty:  boolean | Error;
+      if(args && typeof args === 'object' && 'rejectOnEmpty' in args && args.rejectOnEmpty !== undefined) {
+        console.log('Args');
         rejectOnEmpty = args['rejectOnEmpty']
         delete args['rejectOnEmpty'];
       } else if(this._rejectOnEmpty && typeof this._rejectOnEmpty === 'object' && typeName in this._rejectOnEmpty){
+        console.log('Object');
         rejectOnEmpty = this._rejectOnEmpty[typeName]
       } else if(typeof this._rejectOnEmpty === 'boolean' || isError(this._rejectOnEmpty)) {
+        console.log('Boolean');
         rejectOnEmpty= this._rejectOnEmpty
+      } else {
+        console.log('None');
+        rejectOnEmpty = false
       }
       
       let document = makeDocument({
@@ -1079,7 +1085,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
-        rejectOnEmpty: rejectOnEmpty ?? this._rejectOnEmpty,
+        rejectOnEmpty: rejectOnEmpty,
         isList,
         rootField: rootField!,
         callsite,
