@@ -242,7 +242,6 @@ export interface GetPrismaClientOptions {
 }
 
 export type Action =
-  | 'findOne'
   | 'findUnique'
   | 'findFirst'
   | 'findMany'
@@ -257,7 +256,6 @@ export type Action =
   | 'aggregate'
 
 const actionOperationMap = {
-  findOne: 'query',
   findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
@@ -964,7 +962,7 @@ new PrismaClient({
             clientMethod,
             callsite,
             headers,
-            unpacker
+            unpacker,
           ),
         )
       }
@@ -1000,7 +998,6 @@ new PrismaClient({
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
       }
-      if (action === 'findOne') action = 'findUnique'
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
@@ -1108,13 +1105,6 @@ new PrismaClient({
             modelName: string
             unpacker?: Unpacker
           }) => {
-            if (actionName === 'findOne') {
-              console.warn(
-                `${chalk.yellow(
-                  'warn(prisma) ',
-                )} findOne is deprecated. Please use findUnique instead.`,
-              )
-            }
             dataPath = dataPath ?? []
 
             const clientMethod = `${lowerCaseModel}.${actionName}`
@@ -1239,27 +1229,19 @@ new PrismaClient({
           groupBy: true,
         }
 
-        const newMapping = {
-          ...mapping,
-          findOne: mapping.findUnique,
-        }
+        const delegate: any = Object.keys(mapping).reduce((acc, actionName) => {
+          if (!filteredActionsList[actionName]) {
+            const operation = getOperation(actionName as any)
+            acc[actionName] = (args) =>
+              clients[mapping.model]({
+                operation,
+                actionName,
+                args,
+              })
+          }
 
-        const delegate: any = Object.keys(newMapping).reduce(
-          (acc, actionName) => {
-            if (!filteredActionsList[actionName]) {
-              const operation = getOperation(actionName as any)
-              acc[actionName] = (args) =>
-                clients[mapping.model]({
-                  operation,
-                  actionName,
-                  args,
-                })
-            }
-
-            return acc
-          },
-          {},
-        )
+          return acc
+        }, {})
 
         delegate.count = (args) => {
           let select
@@ -1376,24 +1358,28 @@ generator client {
                 acc.select[key] = { select: mapAllCount(value) }
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
-                    data = data.map(row => {
+                    data = data.map((row) => {
                       if (row && typeof row === 'object' && row.count) {
-                          row.count = mapAllCount(row.count)
+                        row.count = mapAllCount(row.count)
                       }
                       return row
                     })
                   }
                   return data
                 }
-              } else if(typeof value === 'boolean') {
+              } else if (typeof value === 'boolean') {
                 acc.select[key] = { select: { $all: value } }
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
-                    data = data.map(row => {
-                      if (row && typeof row.count === 'object' && row.count?._all) {
-                      row.count = row.count?._all
-                    }
-                    return row
+                    data = data.map((row) => {
+                      if (
+                        row &&
+                        typeof row.count === 'object' &&
+                        row.count?._all
+                      ) {
+                        row.count = row.count?._all
+                      }
+                      return row
                     })
                   }
                   return data
@@ -1417,7 +1403,7 @@ generator client {
             rootField: mapping.groupBy,
             args: select,
             dataPath: [],
-            unpacker
+            unpacker,
           })
         }
 
@@ -1462,12 +1448,7 @@ export class PrismaClientFetcher {
           return 'transaction-batch'
         }
 
-        if (
-          !(
-            request.document.children[0].name.startsWith('findOne') ||
-            request.document.children[0].name.startsWith('findUnique')
-          )
-        ) {
+        if (!request.document.children[0].name.startsWith('findUnique')) {
           return null
         }
 
@@ -1647,13 +1628,10 @@ export class PrismaClientFetcher {
   }
 }
 
-export function getOperation(
-  action: DMMF.ModelAction | 'findOne',
-): 'query' | 'mutation' {
+export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
     action === DMMF.ModelAction.findMany ||
     action === DMMF.ModelAction.findUnique ||
-    action === 'findOne' ||
     action === DMMF.ModelAction.findFirst
   ) {
     return 'query'
@@ -1666,7 +1644,7 @@ function mapAllCount(args: Record<string, any>): Record<string, any> {
     if (key === '_all') {
       return ['$all', value]
     }
-    return [key, value] 
+    return [key, value]
   })
   return fromEntries(entries)
 }

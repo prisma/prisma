@@ -9,7 +9,7 @@ export interface JSDocMethodBodyCtx {
   firstScalar: DMMF.Field | undefined
   method: string
   model: DMMF.Model
-  action: DMMF.ModelAction | 'findOne'
+  action: DMMF.ModelAction
   mapping: DMMF.ModelMapping
 }
 const Docs = {
@@ -20,7 +20,7 @@ const Docs = {
   sorting: `@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs`,
 }
 type JSDocsType = {
-  [action in DMMF.ModelAction | 'findOne']: {
+  [action in DMMF.ModelAction]: {
     body: (ctx: JSDocMethodBodyCtx) => string
     fields: {
       [field: string]: (singular: string, plural: string) => string
@@ -93,27 +93,6 @@ const ${ctx.singular} = await ${ctx.method}({
 `,
     fields: {
       data: (singular) => `The data needed to create a ${singular}.`,
-    },
-  },
-  findOne: {
-    body: (ctx) =>
-      `Find zero or one ${ctx.singular} that matches the filter.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to find a ${ctx.singular}
-@deprecated This will be deprecated please use ${`prisma.${lowerCase(
-        ctx.mapping.model,
-      )}.findUnique`}
-@example
-// Get one ${ctx.singular}
-const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
-  where: {
-    // ... provide filter here
-  }
-})`,
-    fields: {
-      where: (singular) => `Filter, which ${singular} to fetch.`,
     },
   },
   findUnique: {
