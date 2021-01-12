@@ -1,8 +1,10 @@
 import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
-  rejectOnNotFound: {  
-    findFirst: (ee) => ee
+  rejectOnNotFound: {
+    findFirst: {
+      
+    }
   },
 })
 
