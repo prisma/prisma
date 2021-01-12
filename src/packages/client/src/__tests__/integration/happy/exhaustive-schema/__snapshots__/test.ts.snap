@@ -1107,13 +1107,21 @@ export namespace Prisma {
     db?: Datasource
   }
 
+  export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
+
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
   export interface PrismaClientOptions {
     /**
      * Will throw an Error if findUnique returns null
      */
-    rejectOnNotFound?: Error | boolean | {[key in ModelName]?: boolean | Error}
+    rejectOnNotFound?: | RejectOnNotFound
+    | { [key in 'findUnique' | 'findFirst']?: RejectOnNotFound }
+    | {
+      [key in 'findUnique' | 'findFirst']?: {
+          [key in ModelName]?: RejectOnNotFound
+        }
+      }
     /**
      * Overwrites the datasource url from your prisma.schema file
      */
@@ -1798,7 +1806,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * Throw an Error if a Post can't be found (i.e null)
+     * Throw an Error if a Post can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -1821,7 +1829,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * Throw an Error if a Post can't be found (i.e null)
+     * Throw an Error if a Post can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -2684,7 +2692,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * Throw an Error if a User can't be found (i.e null)
+     * Throw an Error if a User can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -2707,7 +2715,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * Throw an Error if a User can't be found (i.e null)
+     * Throw an Error if a User can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -3562,7 +3570,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * Throw an Error if a M can't be found (i.e null)
+     * Throw an Error if a M can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -3585,7 +3593,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * Throw an Error if a M can't be found (i.e null)
+     * Throw an Error if a M can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -4440,7 +4448,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * Throw an Error if a N can't be found (i.e null)
+     * Throw an Error if a N can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -4463,7 +4471,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * Throw an Error if a N can't be found (i.e null)
+     * Throw an Error if a N can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -5318,7 +5326,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * Throw an Error if a OneOptional can't be found (i.e null)
+     * Throw an Error if a OneOptional can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -5341,7 +5349,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * Throw an Error if a OneOptional can't be found (i.e null)
+     * Throw an Error if a OneOptional can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -6208,7 +6216,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * Throw an Error if a ManyRequired can't be found (i.e null)
+     * Throw an Error if a ManyRequired can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -6231,7 +6239,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * Throw an Error if a ManyRequired can't be found (i.e null)
+     * Throw an Error if a ManyRequired can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -7098,7 +7106,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * Throw an Error if a OptionalSide1 can't be found (i.e null)
+     * Throw an Error if a OptionalSide1 can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -7121,7 +7129,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * Throw an Error if a OptionalSide1 can't be found (i.e null)
+     * Throw an Error if a OptionalSide1 can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -7976,7 +7984,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * Throw an Error if a OptionalSide2 can't be found (i.e null)
+     * Throw an Error if a OptionalSide2 can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -7999,7 +8007,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * Throw an Error if a OptionalSide2 can't be found (i.e null)
+     * Throw an Error if a OptionalSide2 can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -8811,7 +8819,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * Throw an Error if a A can't be found (i.e null)
+     * Throw an Error if a A can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -8830,7 +8838,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * Throw an Error if a A can't be found (i.e null)
+     * Throw an Error if a A can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -9578,7 +9586,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * Throw an Error if a B can't be found (i.e null)
+     * Throw an Error if a B can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -9597,7 +9605,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * Throw an Error if a B can't be found (i.e null)
+     * Throw an Error if a B can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -10315,7 +10323,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * Throw an Error if a C can't be found (i.e null)
+     * Throw an Error if a C can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -10334,7 +10342,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * Throw an Error if a C can't be found (i.e null)
+     * Throw an Error if a C can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -11044,7 +11052,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * Throw an Error if a D can't be found (i.e null)
+     * Throw an Error if a D can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -11063,7 +11071,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * Throw an Error if a D can't be found (i.e null)
+     * Throw an Error if a D can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -11757,7 +11765,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * Throw an Error if a E can't be found (i.e null)
+     * Throw an Error if a E can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**
@@ -11776,7 +11784,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * Throw an Error if a E can't be found (i.e null)
+     * Throw an Error if a E can't be found
     **/
     rejectOnNotFound?: boolean | Error
     /**

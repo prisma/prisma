@@ -63,4 +63,14 @@ const p1 = new PrismaClient({
       rejectOnNotFound: {},
     }),
   )
+  expectError(
+    p1.user.findFirst({
+      where: { id: 'anything' },
+      rejectOnNotFound: {
+        findUnique: new Error('Contructor Custom Error on User'),
+        findFirst: true,
+      },
+    }),
+  )
+  
 })()

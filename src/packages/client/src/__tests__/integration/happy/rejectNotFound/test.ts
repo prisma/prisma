@@ -1,11 +1,29 @@
+import { isError } from '@prisma/sdk'
 import { getTestClient } from '../../../../utils/getTestClient'
 const cases = {
-  contructor: {
-    customError: new Error('Contructor Custom Error'),
-    customErrorPerModel: {
-      User: new Error('Contructor Custom Error on User'),
+  constructor: {
+    customError: new Error('Constructor Custom Error'),
+    booleanPerAction: {
+      findUnique: true,
+      findFirst: false,
     },
-    thunk: () => new Error('Contructor Thunk'),
+    thunkPerAction: {
+      findFirst: () => new Error('Constructor Thunk on findFirst'),
+      findUnique: (err) => err
+    },
+    errorPerAction: {
+      findFirst: Error('Constructor Error on findFirst'),
+      findUnique: Error('Constructor Error on findUnique'),
+    },
+    customErrorPerActionPerModel: {
+      findFirst: {
+        User: new Error('Constructor Custom Error on findFirst:User')
+      },
+      findUnique: {
+        User: () => new Error('Constructor Thunk on findUnique:User')
+      },
+    },
+    thunk: () => new Error('Constructor Thunk'),
     true: true,
     false: false,
     undefined: undefined,
@@ -27,13 +45,14 @@ const cases = {
     },
   },
 }
-for (const constructorKey of Object.keys(cases.contructor)) {
-  const constructor = cases.contructor[constructorKey]
+
+for (const constructorKey of Object.keys(cases.constructor)) {
+  const constructor = cases.constructor[constructorKey]
   for (const method of Object.keys(cases.methods)) {
     const currentMethod = cases.methods[method]
     for (const valueKey of Object.keys(currentMethod)) {
       const value = currentMethod[valueKey]
-      test(`rejectOnNotFound contructor=${constructorKey} ${method}=${value}`, async () => {
+      test(`rejectOnNotFound | constructor=${constructorKey} | ${method}=${value}`, async () => {
         // It should fail or not
         expect.assertions(1)
         const PrismaClient = await getTestClient()
@@ -43,7 +62,7 @@ for (const constructorKey of Object.keys(cases.contructor)) {
 
         // Test Rejection
         try {
-          const r = await prisma.user.findUnique({
+          const r = await prisma.user[method]({
             where: { id: 'none' },
             rejectOnNotFound: value,
           })

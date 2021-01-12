@@ -1,23 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 
 // tslint:disable
-const cases = {
-  contructor: {
-    customError: new Error('Contructor Custom Error'),
-    customErrorPerModel: {
-      User: new Error('Contructor Custom Error on User'),
-    },
-    true: true,
-    false: false,
-    undefined: undefined,
-  },
-  findUnique: {
-    customError: new Error('FindUnique Custom Error'),
-    true: true,
-    false: false,
-    undefined: undefined,
-  },
-}
+
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
   // Contructor
@@ -25,15 +9,27 @@ async function main() {
     rejectOnNotFound: true,
   })
   const p2 = new PrismaClient({
-    rejectOnNotFound: new Error('Contructor Custom Error'),
+    rejectOnNotFound: new Error('Error'),
+  })
+  const p21 = new PrismaClient({
+    rejectOnNotFound: () => new Error('Error'),
   })
   const p3 = new PrismaClient({
     rejectOnNotFound: {
-      User: new Error('Contructor Custom Error on User'),
-      Post: true,
+      findUnique: new Error('Error'),
+      findFirst: true,
     },
   })
-
+  const p4 = new PrismaClient({
+    rejectOnNotFound: {
+      findUnique: { 
+        User: true,
+        MachineData: new Error('Error'),
+        Post: () => new Error('Error'),
+      },
+      findFirst: false,
+    },
+  })
   // FindUnique
   p1.user.findUnique({
     where: { id: 'anything' },
@@ -45,6 +41,10 @@ async function main() {
   p1.user.findUnique({
     where: { id: 'anything' },
     rejectOnNotFound: new Error('FindUnique Custom Error'),
+  })
+  p1.user.findUnique({
+    where: { id: 'anything' },
+    rejectOnNotFound: () => new Error('FindUnique Custom Error'),
   })
   p1.user.findUnique({
     where: { id: 'anything' },
@@ -62,6 +62,10 @@ async function main() {
   p1.user.findFirst({
     where: { id: 'anything' },
     rejectOnNotFound: new Error('FindUnique Custom Error'),
+  })
+  p1.user.findFirst({
+    where: { id: 'anything' },
+    rejectOnNotFound: () => new Error('FindUnique Custom Error'),
   })
   p1.user.findFirst({
     where: { id: 'anything' },
