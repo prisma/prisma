@@ -159,11 +159,9 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
     return `${new Datasources(this.internalDatasources).toTS()}
 
 export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
-export type RejectPerModel = { [key in ModelName]?: RejectOnNotFound }
-export type RejectPerQuery = { 
-  findUnique?: RejectPerModel | RejectOnNotFound ,
-  findFirst?: RejectPerModel | RejectOnNotFound
-}
+type LooseRecord<K extends string | number | symbol, T> = { [P in K]?: T; }
+export type RejectPerModel = LooseRecord<ModelName, RejectOnNotFound>
+export type RejectPerQuery =  LooseRecord<"findUnique" | "findFirst", RejectPerModel | RejectOnNotFound>
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 

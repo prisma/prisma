@@ -78,7 +78,7 @@ export class ArgsType implements Generatable {
         isNullable: true,
         inputTypes: [
           {
-            type: 'boolean | Error',
+            type: 'RejectOnNotFound',
             location: 'scalar',
             isList: false,
           },

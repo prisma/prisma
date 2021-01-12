@@ -1108,11 +1108,9 @@ export namespace Prisma {
   }
 
   export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
-  export type RejectPerModel = { [key in ModelName]?: RejectOnNotFound }
-  export type RejectPerQuery = { 
-    findUnique?: RejectPerModel | RejectOnNotFound ,
-    findFirst?: RejectPerModel | RejectOnNotFound
-  }
+  type LooseRecord<K extends string | number | symbol, T> = { [P in K]?: T; }
+  export type RejectPerModel = LooseRecord<ModelName, RejectOnNotFound>
+  export type RejectPerQuery =  LooseRecord<"findUnique" | "findFirst", RejectPerModel | RejectOnNotFound>
 
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -1807,7 +1805,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a Post can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
     **/
@@ -1830,7 +1828,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a Post can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
     **/
@@ -2693,7 +2691,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a User can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
     **/
@@ -2716,7 +2714,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a User can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
     **/
@@ -3571,7 +3569,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a M can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
     **/
@@ -3594,7 +3592,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a M can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
     **/
@@ -4449,7 +4447,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a N can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
     **/
@@ -4472,7 +4470,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a N can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
     **/
@@ -5327,7 +5325,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OneOptional can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
     **/
@@ -5350,7 +5348,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OneOptional can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
     **/
@@ -6217,7 +6215,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a ManyRequired can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
     **/
@@ -6240,7 +6238,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a ManyRequired can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
     **/
@@ -7107,7 +7105,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OptionalSide1 can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
     **/
@@ -7130,7 +7128,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OptionalSide1 can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
     **/
@@ -7985,7 +7983,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OptionalSide2 can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
     **/
@@ -8008,7 +8006,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a OptionalSide2 can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
     **/
@@ -8820,7 +8818,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a A can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
     **/
@@ -8839,7 +8837,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a A can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
     **/
@@ -9587,7 +9585,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a B can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
     **/
@@ -9606,7 +9604,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a B can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
     **/
@@ -10324,7 +10322,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a C can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
     **/
@@ -10343,7 +10341,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a C can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
     **/
@@ -11053,7 +11051,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a D can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
     **/
@@ -11072,7 +11070,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a D can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
     **/
@@ -11766,7 +11764,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a E can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
     **/
@@ -11785,7 +11783,7 @@ export namespace Prisma {
     /**
      * Throw an Error if a E can't be found
     **/
-    rejectOnNotFound?: boolean | Error
+    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
     **/
