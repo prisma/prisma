@@ -963,6 +963,8 @@ new PrismaClient({
             middlewares,
             clientMethod,
             callsite,
+            headers,
+            unpacker
           ),
         )
       }
@@ -989,6 +991,7 @@ new PrismaClient({
       transactionId,
       unpacker,
     }: InternalRequestParams) {
+      console.log(unpacker);
       if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
       }
