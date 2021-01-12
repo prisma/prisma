@@ -158,13 +158,21 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
   public toTS(): string {
     return `${new Datasources(this.internalDatasources).toTS()}
 
+export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
+
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
   /**
    * Will throw an Error if findUnique returns null
    */
-  rejectOnNotFound?: Error | boolean | {[key in ModelName]?: boolean | Error}
+  rejectOnNotFound?: | RejectOnNotFound
+  | { [key in 'findUnique' | 'findFirst']?: RejectOnNotFound }
+  | {
+    [key in 'findUnique' | 'findFirst']?: {
+        [key in ModelName]?: RejectOnNotFound
+      }
+    }
   /**
    * Overwrites the datasource url from your prisma.schema file
    */

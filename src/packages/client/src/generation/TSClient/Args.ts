@@ -68,10 +68,10 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-    const addRejectNotFound =
+    const addRejectOnNotFound =
       action === DMMF.ModelAction.findUnique ||
       action === DMMF.ModelAction.findFirst
-    if (addRejectNotFound) {
+    if (addRejectOnNotFound) {
       bothArgsOptional.push({
         name: 'rejectOnNotFound',
         isRequired: false,
@@ -83,7 +83,7 @@ export class ArgsType implements Generatable {
             isList: false,
           },
         ],
-        comment: `Throw an Error if a ${name} can't be found (i.e null)`,
+        comment: `Throw an Error if a ${name} can't be found`,
       })
     }
     bothArgsOptional.push(...args)
