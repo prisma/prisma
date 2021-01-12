@@ -111,6 +111,7 @@ import { Telemetry } from './Telemetry'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
+import { detectPrisma1 } from './detectPrisma1'
 
 // aliases are only used by @prisma/studio, but not for users anymore,
 // as they have to ship their own version of @prisma/client
@@ -135,6 +136,9 @@ const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
+
+  detectPrisma1()
+
   const cli = CLI.new(
     {
       init: Init.new(),
