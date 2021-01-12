@@ -58,7 +58,7 @@
     "dotenv": "^8.2.0",
     "execa": "^5.0.0",
     "find-up": "5.0.0",
-    "global-dirs": "^2.0.1",
+    "global-dirs": "^3.0.0",
     "globby": "^11.0.0",
     "has-yarn": "^2.1.0",
     "is-ci": "^2.0.0",
