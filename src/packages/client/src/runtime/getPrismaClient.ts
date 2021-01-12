@@ -1588,7 +1588,7 @@ export class PrismaClientFetcher {
         unpacker,
       )
       const REGEX = /(findUnique|findFirst)/
-      if (rejectNotFound && REGEX.exec(clientMethod)) {
+      if (rejectNotFound && !unpackResult && REGEX.exec(clientMethod)) {
         const NotFoundError = new Error(`No ${typeName} found`)
         if (typeof rejectNotFound === 'boolean') {
           throw NotFoundError

@@ -1798,7 +1798,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a Post can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -1820,6 +1820,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: PostInclude | null
+    /**
+     * Throw an Error if a Post can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which Post to fetch.
     **/
@@ -2680,7 +2684,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a User can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -2702,6 +2706,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: UserInclude | null
+    /**
+     * Throw an Error if a User can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which User to fetch.
     **/
@@ -3554,7 +3562,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a M can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -3576,6 +3584,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: MInclude | null
+    /**
+     * Throw an Error if a M can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which M to fetch.
     **/
@@ -4428,7 +4440,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a N can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -4450,6 +4462,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: NInclude | null
+    /**
+     * Throw an Error if a N can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which N to fetch.
     **/
@@ -5302,7 +5318,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a OneOptional can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -5324,6 +5340,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Throw an Error if a OneOptional can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OneOptional to fetch.
     **/
@@ -6188,7 +6208,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a ManyRequired can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -6210,6 +6230,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: ManyRequiredInclude | null
+    /**
+     * Throw an Error if a ManyRequired can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which ManyRequired to fetch.
     **/
@@ -7074,7 +7098,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a OptionalSide1 can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -7096,6 +7120,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: OptionalSide1Include | null
+    /**
+     * Throw an Error if a OptionalSide1 can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OptionalSide1 to fetch.
     **/
@@ -7948,7 +7976,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a OptionalSide2 can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -7970,6 +7998,10 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well.
     **/
     include?: OptionalSide2Include | null
+    /**
+     * Throw an Error if a OptionalSide2 can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OptionalSide2 to fetch.
     **/
@@ -8779,7 +8811,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a A can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -8797,6 +8829,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the A
     **/
     select?: ASelect | null
+    /**
+     * Throw an Error if a A can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which A to fetch.
     **/
@@ -9542,7 +9578,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a B can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -9560,6 +9596,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the B
     **/
     select?: BSelect | null
+    /**
+     * Throw an Error if a B can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which B to fetch.
     **/
@@ -10275,7 +10315,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a C can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -10293,6 +10333,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the C
     **/
     select?: CSelect | null
+    /**
+     * Throw an Error if a C can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which C to fetch.
     **/
@@ -11000,7 +11044,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a D can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -11018,6 +11062,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the D
     **/
     select?: DSelect | null
+    /**
+     * Throw an Error if a D can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which D to fetch.
     **/
@@ -11709,7 +11757,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * Choose, which related nodes to fetch as well.
+     * Throw an Error if a E can't be found (i.e null)
     **/
     rejectNotFound?: boolean | Error
     /**
@@ -11727,6 +11775,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the E
     **/
     select?: ESelect | null
+    /**
+     * Throw an Error if a E can't be found (i.e null)
+    **/
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which E to fetch.
     **/
