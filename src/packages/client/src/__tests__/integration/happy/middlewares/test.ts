@@ -52,3 +52,13 @@ test('middlewares', async () => {
 
   db.$disconnect()
 })
+
+test('middlewares unpack', async () => {
+  const PrismaClient = await getTestClient()
+  const db = new PrismaClient()
+  db.$use((params, next) => next(params))
+  const result = await db.user.count()
+  expect(typeof result).toBe('number')
+
+  db.$disconnect()
+})
