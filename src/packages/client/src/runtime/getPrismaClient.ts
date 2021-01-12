@@ -8,7 +8,7 @@ import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import { isError, tryLoadEnvs } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { AsyncResource } from 'async_hooks'
 import chalk from 'chalk'
