@@ -963,6 +963,8 @@ new PrismaClient({
             middlewares,
             clientMethod,
             callsite,
+            headers,
+            unpacker
           ),
         )
       }
