@@ -9,26 +9,26 @@ const cases = {
     },
     true: true,
     false: false,
-    undefined: undefined
+    undefined: undefined,
   },
   findUnique: {
     customError: new Error('FindUnique Custom Error'),
     true: true,
     false: false,
-    undefined: undefined
-  }
+    undefined: undefined,
+  },
 }
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
   // Contructor
   const p1 = new PrismaClient({
-    rejectOnEmpty: true
+    rejectNotFound: true,
   })
   const p2 = new PrismaClient({
-    rejectOnEmpty: new Error('Contructor Custom Error')
+    rejectNotFound: new Error('Contructor Custom Error'),
   })
   const p3 = new PrismaClient({
-    rejectOnEmpty: {
+    rejectNotFound: {
       User: new Error('Contructor Custom Error on User'),
       Post: true,
     },
@@ -36,19 +36,36 @@ async function main() {
 
   // FindUnique
   p1.user.findUnique({
-    where: { id: 'anything'},
+    where: { id: 'anything' },
   })
   p1.user.findUnique({
-    where: { id: 'anything'},
-    rejectOnEmpty: true
+    where: { id: 'anything' },
+    rejectNotFound: true,
   })
   p1.user.findUnique({
-    where: { id: 'anything'},
-    rejectOnEmpty: new Error('FindUnique Custom Error')
+    where: { id: 'anything' },
+    rejectNotFound: new Error('FindUnique Custom Error'),
   })
   p1.user.findUnique({
-    where: { id: 'anything'},
-    rejectOnEmpty: false
+    where: { id: 'anything' },
+    rejectNotFound: false,
+  })
+
+  // FindFirst
+  p1.user.findFirst({
+    where: { id: 'anything' },
+  })
+  p1.user.findFirst({
+    where: { id: 'anything' },
+    rejectNotFound: true,
+  })
+  p1.user.findFirst({
+    where: { id: 'anything' },
+    rejectNotFound: new Error('FindUnique Custom Error'),
+  })
+  p1.user.findFirst({
+    where: { id: 'anything' },
+    rejectNotFound: false,
   })
 }
 

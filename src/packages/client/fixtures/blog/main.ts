@@ -1,15 +1,15 @@
 import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
-  rejectOnEmpty: undefined
+  rejectNotFound: undefined
 })
 
 async function main() {
-  const res = await prisma.user.findUnique({ 
+  const res = await prisma.user.findFirst({ 
     where: { 
       id: 'asdaf'
     },
-    rejectOnEmpty: false
+    rejectNotFound: true
   })
   // console.log(res);
   // const res = await prisma.user.findUnique({

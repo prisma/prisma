@@ -1113,7 +1113,7 @@ export namespace Prisma {
     /**
      * Will throw an Error if findUnique returns null
      */
-    rejectOnEmpty?: Error | boolean | {[key in ModelName]?: boolean | Error}
+    rejectNotFound?: Error | boolean | {[key in ModelName]?: boolean | Error}
     /**
      * Overwrites the datasource url from your prisma.schema file
      */
@@ -1800,7 +1800,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which Post to fetch.
     **/
@@ -2682,7 +2682,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which User to fetch.
     **/
@@ -3556,7 +3556,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which M to fetch.
     **/
@@ -4430,7 +4430,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which N to fetch.
     **/
@@ -5304,7 +5304,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OneOptional to fetch.
     **/
@@ -6190,7 +6190,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which ManyRequired to fetch.
     **/
@@ -7076,7 +7076,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OptionalSide1 to fetch.
     **/
@@ -7950,7 +7950,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which OptionalSide2 to fetch.
     **/
@@ -8781,7 +8781,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which A to fetch.
     **/
@@ -9544,7 +9544,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which B to fetch.
     **/
@@ -10277,7 +10277,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which C to fetch.
     **/
@@ -11002,7 +11002,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which D to fetch.
     **/
@@ -11711,7 +11711,7 @@ export namespace Prisma {
     /**
      * Choose, which related nodes to fetch as well.
     **/
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error
     /**
      * Filter, which E to fetch.
     **/

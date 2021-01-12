@@ -81,7 +81,7 @@ export interface PrismaClientOptions {
   /**
    * Will throw an Error if findUnique returns null
    */
-  rejectOnEmpty?: boolean | Error | Record<string, boolean | Error>
+  rejectNotFound?: boolean | Error | Record<string, boolean | Error> | ((error: Error) => Error)
   /**
    * Overwrites the datasource url from your prisma.schema file
    */
@@ -307,12 +307,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
-    private _rejectOnEmpty?: boolean | Error | Record<string, boolean | Error> 
+    private _rejectNotFound?: boolean | Error | Record<string, boolean | Error> | ((error: Error) => Error)
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-      this._rejectOnEmpty = optionsArg?.rejectOnEmpty
+      this._rejectNotFound = optionsArg?.rejectNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       const envPaths = {
@@ -1036,22 +1036,34 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
-      let rejectOnEmpty:  boolean | Error;
-      if(args && typeof args === 'object' && 'rejectOnEmpty' in args && args.rejectOnEmpty !== undefined) {
-        console.log('Args');
-        rejectOnEmpty = args['rejectOnEmpty']
-        delete args['rejectOnEmpty'];
-      } else if(this._rejectOnEmpty && typeof this._rejectOnEmpty === 'object' && typeName in this._rejectOnEmpty){
-        console.log('Object');
-        rejectOnEmpty = this._rejectOnEmpty[typeName]
-      } else if(typeof this._rejectOnEmpty === 'boolean' || isError(this._rejectOnEmpty)) {
-        console.log('Boolean');
-        rejectOnEmpty= this._rejectOnEmpty
-      } else {
-        console.log('None');
-        rejectOnEmpty = false
+      let rejectNotFound: boolean | Error | ((error: Error) => Error)
+      if (
+        args &&
+        typeof args === 'object' &&
+        'rejectNotFound' in args &&
+        args.rejectNotFound !== undefined
+      ) {
+        rejectNotFound = args['rejectNotFound']
+        delete args['rejectNotFound']
+      } else if (
+        this._rejectNotFound &&
+        typeof this._rejectNotFound === 'object' &&
+        typeName in this._rejectNotFound
+      ) {
+        rejectNotFound = this._rejectNotFound[typeName]
+      } else if (
+        typeof this._rejectNotFound === 'boolean' ||
+        isError(this._rejectNotFound)
+      ) {
+        rejectNotFound = this._rejectNotFound
+      } else if (
+        typeof this._rejectNotFound === 'function'
+      ) {
+        rejectNotFound = this._rejectNotFound
+      }else {
+        rejectNotFound = false
       }
-      
+
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1085,7 +1097,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
-        rejectOnEmpty: rejectOnEmpty,
+        rejectNotFound: rejectNotFound,
         isList,
         rootField: rootField!,
         callsite,
@@ -1499,7 +1511,7 @@ export class PrismaClientFetcher {
     typeName,
     isList,
     callsite,
-    rejectOnEmpty,
+    rejectNotFound,
     clientMethod,
     runInTransaction,
     showColors,
@@ -1516,7 +1528,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
-    rejectOnEmpty?: boolean | Error
+    rejectNotFound?: boolean | Error | ((error: Error) => Error)
     runInTransaction?: boolean
     showColors?: boolean
     engineHook?: EngineMiddleware
@@ -1538,6 +1550,7 @@ export class PrismaClientFetcher {
         args,
       })
     }
+
     try {
       /**
        * If there's an engine hook, use it here
@@ -1574,15 +1587,18 @@ export class PrismaClientFetcher {
         rootField,
         unpacker,
       )
+      const REGEX = /(findUnique|findFirst)/
+      if (rejectNotFound && REGEX.exec(clientMethod)) {
+        const NotFoundError = new Error(`No ${typeName} found`)
+        if (typeof rejectNotFound === 'boolean') {
+          throw NotFoundError
+        } else if(typeof rejectNotFound === 'function') {
+          throw rejectNotFound(NotFoundError)
+        }
+        throw rejectNotFound
+      }
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
-      }
-      if(clientMethod.includes('findUnique') && rejectOnEmpty){
-        if(typeof rejectOnEmpty === 'boolean'){
-          throw new Error(`No ${typeName} found`)
-        } else {
-          throw rejectOnEmpty
-        }
       }
       return unpackResult
     } catch (e) {

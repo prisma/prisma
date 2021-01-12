@@ -164,7 +164,7 @@ export interface PrismaClientOptions {
   /**
    * Will throw an Error if findUnique returns null
    */
-  rejectOnEmpty?: Error | boolean | {[key in ModelName]?: boolean | Error}
+  rejectNotFound?: Error | boolean | {[key in ModelName]?: boolean | Error}
   /**
    * Overwrites the datasource url from your prisma.schema file
    */
