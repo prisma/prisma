@@ -31,16 +31,21 @@ describe('push', () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"nativeTypes" preview feature is not supported yet. Remove it from your schema to use Prisma Migrate.`,
+      `UserFacingError`,
     )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      SQLite database dev.db created at file:./dev.db
+
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(
+      `Response: Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)`,
+    )
   })
 
   it('already in sync', async () => {
@@ -105,11 +110,11 @@ describe('push', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                          ⚠️  There might be data loss when applying the changes:
+                                                ⚠️  There might be data loss when applying the changes:
 
-                                            • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+                                                  • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
-                            `)
+                                `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -151,15 +156,20 @@ describe('push', () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"nativeTypes" preview feature is not supported yet. Remove it from your schema to use Prisma Migrate.`,
+      `UserFacingError`,
     )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      SQLite database dev.db created at file:./dev.db
+
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(
+      `Response: Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)`,
+    )
   })
 })
