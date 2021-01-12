@@ -10,9 +10,9 @@ async function main() {
     int: number
     sInt: number
     bInt: BigInt
-    serial: number
-    sSerial: number
-    bSerial: number
+    // serial: number
+    // sSerial: number
+    // bSerial: number
     inc_int: number
     inc_sInt: number
     inc_bInt: BigInt
