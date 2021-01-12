@@ -83,8 +83,10 @@ export async function ensureDatabaseExists(
   )
 
   if (isNativeTypesEnabled) {
-    throw new Error(
-      `"nativeTypes" preview feature is not supported yet. Remove it from your schema to use Prisma Migrate.`,
+    console.warn(
+      `${chalk.yellow(
+        'warn',
+      )} "nativeTypes" is a preview feature. There may be bugs and it's not recommended to use it in production environments.`,
     )
   }
 
