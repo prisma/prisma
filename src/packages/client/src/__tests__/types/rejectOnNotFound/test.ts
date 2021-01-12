@@ -22,13 +22,13 @@ const cases = {
 async function main() {
   // Contructor
   const p1 = new PrismaClient({
-    rejectNotFound: true,
+    rejectOnNotFound: true,
   })
   const p2 = new PrismaClient({
-    rejectNotFound: new Error('Contructor Custom Error'),
+    rejectOnNotFound: new Error('Contructor Custom Error'),
   })
   const p3 = new PrismaClient({
-    rejectNotFound: {
+    rejectOnNotFound: {
       User: new Error('Contructor Custom Error on User'),
       Post: true,
     },
@@ -40,15 +40,15 @@ async function main() {
   })
   p1.user.findUnique({
     where: { id: 'anything' },
-    rejectNotFound: true,
+    rejectOnNotFound: true,
   })
   p1.user.findUnique({
     where: { id: 'anything' },
-    rejectNotFound: new Error('FindUnique Custom Error'),
+    rejectOnNotFound: new Error('FindUnique Custom Error'),
   })
   p1.user.findUnique({
     where: { id: 'anything' },
-    rejectNotFound: false,
+    rejectOnNotFound: false,
   })
 
   // FindFirst
@@ -57,15 +57,15 @@ async function main() {
   })
   p1.user.findFirst({
     where: { id: 'anything' },
-    rejectNotFound: true,
+    rejectOnNotFound: true,
   })
   p1.user.findFirst({
     where: { id: 'anything' },
-    rejectNotFound: new Error('FindUnique Custom Error'),
+    rejectOnNotFound: new Error('FindUnique Custom Error'),
   })
   p1.user.findFirst({
     where: { id: 'anything' },
-    rejectNotFound: false,
+    rejectOnNotFound: false,
   })
 }
 

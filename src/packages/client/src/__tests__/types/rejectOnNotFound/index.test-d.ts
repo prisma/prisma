@@ -1,5 +1,5 @@
-import { expectError } from 'tsd';
-import { PrismaClient } from '.';
+import { expectError } from 'tsd'
+import { PrismaClient } from '.'
 
 // tslint:disable
 
@@ -11,58 +11,56 @@ const p1 = new PrismaClient({
   },
 })
 
-
-
 ;(async () => {
   expectError(
     new PrismaClient({
-      rejectNotFound: 'true'
-    })
+      rejectOnNotFound: 'true',
+    }),
   )
   expectError(
     new PrismaClient({
-      rejectNotFound: {
+      rejectOnNotFound: {
         NotAModel: new Error('Contructor Custom Error on User'),
       },
-    })
+    }),
   )
   // findUnique
   expectError(
     p1.user.findUnique({
-      where: { id: 'anything'},
-      rejectNotFound: [true]
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: [true],
+    }),
   )
   expectError(
     p1.user.findUnique({
-      where: { id: 'anything'},
-      rejectNotFound: 'false'
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: 'false',
+    }),
   )
   expectError(
     p1.user.findUnique({
-      where: { id: 'anything'},
-      rejectNotFound: {}
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: {},
+    }),
   )
 
   //findFirst
   expectError(
     p1.user.findFirst({
-      where: { id: 'anything'},
-      rejectNotFound: [true]
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: [true],
+    }),
   )
   expectError(
     p1.user.findFirst({
-      where: { id: 'anything'},
-      rejectNotFound: 'false'
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: 'false',
+    }),
   )
   expectError(
     p1.user.findFirst({
-      where: { id: 'anything'},
-      rejectNotFound: {}
-    })
+      where: { id: 'anything' },
+      rejectOnNotFound: {},
+    }),
   )
 })()

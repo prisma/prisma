@@ -68,10 +68,12 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-    const addRejectNotFound = action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst
-    if(addRejectNotFound){
+    const addRejectNotFound =
+      action === DMMF.ModelAction.findUnique ||
+      action === DMMF.ModelAction.findFirst
+    if (addRejectNotFound) {
       bothArgsOptional.push({
-        name: 'rejectNotFound',
+        name: 'rejectOnNotFound',
         isRequired: false,
         isNullable: true,
         inputTypes: [

@@ -25,7 +25,7 @@ const cases = {
       false: false,
       undefined: undefined,
     },
-  }
+  },
 }
 for (const constructorKey of Object.keys(cases.contructor)) {
   const constructor = cases.contructor[constructorKey]
@@ -33,19 +33,19 @@ for (const constructorKey of Object.keys(cases.contructor)) {
     const currentMethod = cases.methods[method]
     for (const valueKey of Object.keys(currentMethod)) {
       const value = currentMethod[valueKey]
-      test(`rejectNotFound contructor=${constructorKey} ${method}=${value}`, async () => {
+      test(`rejectOnNotFound contructor=${constructorKey} ${method}=${value}`, async () => {
         // It should fail or not
         expect.assertions(1)
         const PrismaClient = await getTestClient()
         const prisma = new PrismaClient({
-          rejectNotFound: constructor,
+          rejectOnNotFound: constructor,
         })
-  
+
         // Test Rejection
         try {
           const r = await prisma.user.findUnique({
             where: { id: 'none' },
-            rejectNotFound: value,
+            rejectOnNotFound: value,
           })
           expect(r).toMatchSnapshot()
         } catch (error) {
@@ -55,5 +55,4 @@ for (const constructorKey of Object.keys(cases.contructor)) {
       })
     }
   }
-  
 }

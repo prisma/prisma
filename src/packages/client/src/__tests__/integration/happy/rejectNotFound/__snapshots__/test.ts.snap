@@ -1,121 +1,121 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`rejectNotFound contructor=customError findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=customError findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=customError findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=customError findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=customError findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=customError findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=customError findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=customError findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=customError findFirst=undefined 1`] = `Contructor Custom Error`;
+exports[`rejectOnNotFound contructor=customError findFirst=undefined 1`] = `Contructor Custom Error`;
 
-exports[`rejectNotFound contructor=customError findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=customError findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=customError findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=customError findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=customError findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=customError findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=customError findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=customError findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=customError findUnique=undefined 1`] = `Contructor Custom Error`;
+exports[`rejectOnNotFound contructor=customError findUnique=undefined 1`] = `Contructor Custom Error`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findFirst=undefined 1`] = `Contructor Custom Error on User`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findFirst=undefined 1`] = `Contructor Custom Error on User`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=customErrorPerModel findUnique=undefined 1`] = `Contructor Custom Error on User`;
+exports[`rejectOnNotFound contructor=customErrorPerModel findUnique=undefined 1`] = `Contructor Custom Error on User`;
 
-exports[`rejectNotFound contructor=false findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=false findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=false findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=false findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=false findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=false findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=false findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=false findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=false findFirst=undefined 1`] = `null`;
+exports[`rejectOnNotFound contructor=false findFirst=undefined 1`] = `null`;
 
-exports[`rejectNotFound contructor=false findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=false findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=false findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=false findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=false findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=false findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=false findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=false findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=false findUnique=undefined 1`] = `null`;
+exports[`rejectOnNotFound contructor=false findUnique=undefined 1`] = `null`;
 
-exports[`rejectNotFound contructor=thunk findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=thunk findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=thunk findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=thunk findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=thunk findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=thunk findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=thunk findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=thunk findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=thunk findFirst=undefined 1`] = `Contructor Thunk`;
+exports[`rejectOnNotFound contructor=thunk findFirst=undefined 1`] = `Contructor Thunk`;
 
-exports[`rejectNotFound contructor=thunk findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=thunk findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=thunk findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=thunk findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=thunk findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=thunk findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=thunk findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=thunk findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=thunk findUnique=undefined 1`] = `Contructor Thunk`;
+exports[`rejectOnNotFound contructor=thunk findUnique=undefined 1`] = `Contructor Thunk`;
 
-exports[`rejectNotFound contructor=true findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=true findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=true findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=true findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=true findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=true findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=true findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=true findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=true findFirst=undefined 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=true findFirst=undefined 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=true findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=true findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=true findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=true findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=true findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=true findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=true findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=true findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=true findUnique=undefined 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=true findUnique=undefined 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=undefined findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
+exports[`rejectOnNotFound contructor=undefined findFirst=() => new Error('FindFirst Thunk') 1`] = `FindFirst Thunk`;
 
-exports[`rejectNotFound contructor=undefined findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
+exports[`rejectOnNotFound contructor=undefined findFirst=Error: FindFirst Custom Error 1`] = `FindFirst Custom Error`;
 
-exports[`rejectNotFound contructor=undefined findFirst=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=undefined findFirst=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=undefined findFirst=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=undefined findFirst=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=undefined findFirst=undefined 1`] = `null`;
+exports[`rejectOnNotFound contructor=undefined findFirst=undefined 1`] = `null`;
 
-exports[`rejectNotFound contructor=undefined findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
+exports[`rejectOnNotFound contructor=undefined findUnique=() => new Error('FindUnique Thunk') 1`] = `FindUnique Thunk`;
 
-exports[`rejectNotFound contructor=undefined findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
+exports[`rejectOnNotFound contructor=undefined findUnique=Error: FindUnique Custom Error 1`] = `FindUnique Custom Error`;
 
-exports[`rejectNotFound contructor=undefined findUnique=false 1`] = `null`;
+exports[`rejectOnNotFound contructor=undefined findUnique=false 1`] = `null`;
 
-exports[`rejectNotFound contructor=undefined findUnique=true 1`] = `No User found`;
+exports[`rejectOnNotFound contructor=undefined findUnique=true 1`] = `No User found`;
 
-exports[`rejectNotFound contructor=undefined findUnique=undefined 1`] = `null`;
+exports[`rejectOnNotFound contructor=undefined findUnique=undefined 1`] = `null`;
