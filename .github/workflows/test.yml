@@ -78,49 +78,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test:
+        database:
           - sqlite
           - postgresql
           - mysql
           - mariadb
         node: [12]
 
-    services:
-      postgres:
-        image: postgres:9
-        env:
-          POSTGRES_DB: tests
-          POSTGRES_USER: prisma
-          POSTGRES_PASSWORD: prisma
-        ports:
-          - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-      # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
-      # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
-      mysql:
-        image: bitnami/mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tests
-          MYSQL_USER: prisma
-          MYSQL_PASSWORD: prisma
-          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
-        ports:
-          - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 5
-
-      mariadb:
-        image: mariadb:10
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tests
-          MYSQL_USER: prisma
-          MYSQL_PASSWORD: prisma
-        ports:
-          - 3306
-
     steps:
+      - run: docker-compose up --detach ${{matrix.database}} -f ./src/docker/docker-compose.yml
+        if: matrix.database != 'sqlite'
+          
       - uses: actions/checkout@v2
 
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
@@ -147,14 +115,14 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@5.0 --unsafe-perm --reporter=silent
-        if: ${{ matrix.test == 'sqlite' }}
+        if: ${{ matrix.database == 'sqlite' }}
         working-directory: src/packages/tests
 
       # temp
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=8
+      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
         working-directory: src/packages/tests
         env:
           CI: true
