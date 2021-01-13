@@ -34,9 +34,6 @@ describe('getGenerators', () => {
             "queryEngine",
             "migrationEngine",
           ],
-          "requiresGenerators": Array [
-            "prisma-client-js",
-          ],
         },
       ]
     `)
