@@ -86,7 +86,7 @@ jobs:
         node: [12]
 
     steps:
-      - run: docker-compose up --detach ${{matrix.database}} -f src/docker/docker-compose.yml
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
           
       - uses: actions/checkout@v2
