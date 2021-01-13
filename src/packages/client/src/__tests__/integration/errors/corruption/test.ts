@@ -26,5 +26,5 @@ test('corruption', async () => {
     errorFormat: 'minimal',
   })
 
-  await expect(prisma.user.findMany()).rejects.toThrowError('not found')
+  await expect(prisma.user.findMany()).rejects.toThrowError()
 })

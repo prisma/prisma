@@ -5,7 +5,7 @@ import { getAggregateArgsName, getModelArgName, unique } from '../utils'
 import { JSDocMethodBodyCtx, JSDocs } from './constants'
 
 export function getMethodJSDocBody(
-  action: DMMF.ModelAction | 'findOne',
+  action: DMMF.ModelAction,
   mapping: DMMF.ModelMapping,
   model: DMMF.Model,
 ): string {
