@@ -39,12 +39,6 @@ jobs:
     timeout-minutes: 7
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        node: [12]
-
     steps:
       - uses: actions/checkout@v2
 
@@ -61,9 +55,9 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node }}
+          node-version: '12'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -142,7 +136,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -213,7 +207,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -264,7 +258,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -354,7 +348,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -417,7 +411,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -480,7 +474,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -537,7 +531,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      - uses: actions/setup-node@v2-beta
+      - uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
 
@@ -554,6 +548,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
         working-directory: src/packages/debug
@@ -567,6 +562,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
         working-directory: src/packages/engine-core
@@ -580,6 +576,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
         working-directory: src/packages/fetch-engine
@@ -593,6 +590,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
         working-directory: src/packages/generator-helper
@@ -606,6 +604,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
         working-directory: src/packages/get-platform
