@@ -29,7 +29,7 @@ test('count', async () => {
     }
   `)
   try {
-    const result4 = await prisma.user.count({
+    await prisma.user.count({
       select: {
         $all: true,
         email: true,

@@ -1,8 +1,4 @@
-import {
-  PrismaClient,
-  PrismaClientKnownRequestError,
-  SortOrder,
-} from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 
 // tslint:disable
 
@@ -13,12 +9,12 @@ async function main() {
   try {
     const x = await prisma.user.findMany()
   } catch (e) {
-    if (!(e instanceof PrismaClientKnownRequestError)) {
+    if (!(e instanceof Prisma.PrismaClientKnownRequestError)) {
       //
     }
   }
 
-  const x: SortOrder = 'asc'
+  const x: Prisma.SortOrder = 'asc'
 }
 
 main().catch((e) => {

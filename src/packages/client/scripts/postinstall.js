@@ -9,13 +9,6 @@ const copyFile = promisify(fs.copyFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
-const breakingChangesMessage = `${c
-  .yellow()
-  .bold('warn')} Prisma 2.12.0 has breaking changes.
-You can update your code with
-${c.bold('`npx @prisma/codemods update-2.12 ./`')}
-Read more at https://pris.ly/2.12`
-
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
@@ -27,7 +20,9 @@ async function main() {
   // Only execute if !localpath
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
+  // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
+
   try {
     if (localPath) {
       await run('node', [
@@ -116,7 +111,6 @@ if (!process.env.SKIP_GENERATE) {
     } else {
       console.error(e)
     }
-    console.log(breakingChangesMessage)
     process.exit(0)
   })
 }
@@ -223,6 +217,8 @@ async function makeDir(input) {
  * Get the command that triggered this postinstall script being run. If there is
  * an error while attempting to get this value then the string constant
  * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
+ * This information is just necessary for telemetry.
+ * This get's passed in to Generate, which then automatically get's propagated to telemetry.
  */
 function getPostInstallTrigger() {
   /*
