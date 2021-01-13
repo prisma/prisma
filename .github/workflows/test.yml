@@ -69,9 +69,9 @@ jobs:
         working-directory: ./
 
   #
-  # CLI-INTEGRATION-1
+  # CLI-INTEGRATION
   #
-  cli-integration-1:
+  cli-integration:
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
@@ -83,6 +83,7 @@ jobs:
           - postgres
           - mysql
           - mariadb
+          - mssql 
         node: [12]
 
     steps:
@@ -134,67 +135,6 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
-
-  #
-  # CLI-INTEGRATION-2
-  #
-  cli-integration-2:
-    timeout-minutes: 20
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        test:
-          - mssql
-        node: [12]
-
-    services:
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: "Pr1sm4_Pr1sm4"
-        ports:
-          - 1433:1433
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      # temp
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
-      - run: pnpm run jest integration/${{ matrix.test }} -- --forceExit --maxConcurrency=8
-        working-directory: src/packages/tests
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
   #
@@ -256,53 +196,11 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
-    services:
-      postgres:
-        image: postgres:9
-        env:
-          POSTGRES_DB: tests
-          POSTGRES_USER: prisma
-          POSTGRES_PASSWORD: prisma
-        ports:
-          - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
-
-      postgres_isolated:
-        image: postgres:10
-        env:
-          POSTGRES_DB: tests
-          POSTGRES_USER: prisma
-          POSTGRES_PASSWORD: prisma
-        ports:
-          - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 10
-
-      mssql:
-        image: mcr.microsoft.com/mssql/server:2019-latest
-        env:
-          ACCEPT_EULA: Y
-          SA_PASSWORD: "Pr1sm4_Pr1sm4"
-        ports:
-          - 1433:1433
-        options: --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P ${SA_PASSWORD} -Q 'SELECT 1' || exit 1"  --health-interval 10s --health-timeout 5s --health-retries 10
-
-      # mysql:8.0 would not work as we use `mariadb` node lib and it doesn't support the latest default password algorithm
-      # https://stackoverflow.com/questions/60902904/how-to-pass-mysql-native-password-to-mysql-service-in-github-actions
-      mysql:
-        image: bitnami/mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: tests
-          MYSQL_USER: prisma
-          MYSQL_PASSWORD: prisma
-          MYSQL_AUTHENTICATION_PLUGIN: mysql_native_password
-        ports:
-          - 3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 10
-
     steps:
       - uses: actions/checkout@v2
 
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
+          
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -339,9 +237,9 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
-          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres_isolated.ports[5432] }}/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:${{ job.services.mysql.ports[3306] }}/tests
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
@@ -415,20 +313,11 @@ jobs:
         os: [macos-latest, windows-latest, ubuntu-latest]
         node: [12]
 
-    services:
-      postgres:
-        image: postgres:9
-        env:
-          POSTGRES_DB: tests
-          POSTGRES_USER: prisma
-          POSTGRES_PASSWORD: prisma
-        ports:
-          - 5432/tcp
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
     steps:
       - uses: actions/checkout@v2
 
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
+       
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -461,8 +350,8 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests
-          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:${{ job.services.postgres.ports[5432] }}/tests-migrate
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
 
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
