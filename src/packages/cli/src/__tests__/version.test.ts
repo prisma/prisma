@@ -33,7 +33,7 @@ describe('version', () => {
     for (const engine in engineEnvVarMap) {
       const envVar = engineEnvVarMap[engine]
       process.env[envVar] = binaryPaths[engine][platform]
-      console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+      // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
     }
 
     const data = await ctx.cli('--version')

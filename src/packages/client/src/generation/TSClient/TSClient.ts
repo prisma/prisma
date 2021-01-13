@@ -270,25 +270,6 @@ export const dmmf: runtime.DMMF.Document;
   2,
 )}}`
 
-    const symbols = collector.getSymbols()
-
-    code +=
-      `\n
-/*
-* Exports for compatibility introduced in 2.12.0
-* Please import from the Prisma namespace instead
-*/
-` +
-      symbols
-        .map(
-          (s) => `
-/**
- * @deprecated Renamed to \`Prisma.${s}\`
- */
-export type ${s} = Prisma.${s}`,
-        )
-        .join('\n')
-
     return code
   }
 

@@ -99,8 +99,6 @@ export const commonCodeTS = ({
   engineVersion,
 }: CommonCodeParams) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
-
-${commonCodeTS({ runtimePath, clientVersion, engineVersion }).ts(true)}
 `,
   ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
 
