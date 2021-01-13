@@ -140,8 +140,9 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
       ),
     )
 
-    let isJSClient
+    let hasJsClient
     let generators: Generator[] | undefined
+    let clientGeneratorVersion: string | null = null
     try {
       generators = await getGenerators({
         schemaPath,
@@ -154,10 +155,14 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         this.logText += `${missingGeneratorMessage}\n`
       } else {
         // Only used for CLI output, ie Go client doesn't want JS example output
-        isJSClient = generators.find(
+        const jsClient = generators.find(
           (g) =>
             g.options && g.options.generator.provider === 'prisma-client-js',
         )
+
+        clientGeneratorVersion = jsClient?.manifest?.version ?? null
+
+        hasJsClient = Boolean(jsClient)
 
         try {
           await this.runGenerate({ generators })
@@ -182,7 +187,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     }
 
     let printBreakingChangesMessage = false
-    if (isJSClient) {
+    if (hasJsClient) {
       try {
         const clientVersionBeforeGenerate = getCurrentClientVersion()
         if (
@@ -229,6 +234,19 @@ Please run \`prisma generate\` manually.`
 
 ${breakingChangesMessage}`
           : ''
+
+        const versionsOutOfSync =
+          clientGeneratorVersion && pkg.version !== clientGeneratorVersion
+        const versionsWarning = versionsOutOfSync
+          ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(
+              `@prisma/cli@${pkg.version}`,
+            )} and ${chalk.bold(
+              `@prisma/client@${clientGeneratorVersion}`,
+            )} don't match.
+This might lead to unexpected behavior.
+Please make sure they have the same version.`
+          : ''
+
         hint = `You can now start using Prisma Client in your code. Reference: ${link(
           'https://pris.ly/d/client',
         )}
@@ -236,12 +254,12 @@ ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
-${chalk.dim('```')}${breakingChangesStr}`
+${chalk.dim('```')}${breakingChangesStr}${versionsWarning}`
       }
       const message =
         '\n' +
         this.logText +
-        (isJSClient && !this.hasGeneratorErrored ? hint : '')
+        (hasJsClient && !this.hasGeneratorErrored ? hint : '')
 
       if (this.hasGeneratorErrored) {
         if (isPostinstall) {
