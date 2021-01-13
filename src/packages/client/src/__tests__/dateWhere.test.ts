@@ -48,7 +48,8 @@ describe('date where filter', () => {
       data: {
         status: 'published',
         publishedAt: new Date('2020-11-13T10:36:43.261Z'),
-        updatedAt: new Date('2020-11-13T10:36:43.261Z'),
+        // tests RFC 3339
+        updatedAt: '2021-01-13T12:40:47+01:00',
       },
     }
     const document = makeDocument({
@@ -82,7 +83,7 @@ describe('date where filter', () => {
           data: {
             status: "published"
             publishedAt: "2020-11-13T10:36:43.261Z"
-            updatedAt: "2020-11-13T10:36:43.261Z"
+            updatedAt: "2021-01-13T12:40:47+01:00"
           }
         ) {
           count
@@ -113,7 +114,7 @@ describe('date where filter', () => {
           data: {
             status: "published"
             publishedAt: "2020-11-13T10:36:43.261Z"
-            updatedAt: "2020-11-13T10:36:43.261Z"
+            updatedAt: "2021-01-13T12:40:47+01:00"
           }
         ) {
           count

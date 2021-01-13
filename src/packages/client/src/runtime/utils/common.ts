@@ -123,6 +123,11 @@ export function wrapWithList(str: string, isList: boolean) {
   return str
 }
 
+// from https://github.com/excitement-engineer/graphql-iso-date/blob/master/src/utils/validator.js#L121
+const RFC_3339_REGEX = /^(\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60))(\.\d{1,})?(([Z])|([+|-]([01][0-9]|2[0-3]):[0-5][0-9]))$/
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 export function getGraphQLType(
   value: any,
   potentialType?: string | DMMF.SchemaEnum | DMMF.InputType,
@@ -172,11 +177,7 @@ export function getGraphQLType(
     return 'DateTime'
   }
   if (jsType === 'string') {
-    if (
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-        value,
-      )
-    ) {
+    if (UUID_REGEX.test(value)) {
       return 'UUID'
     }
     const date = new Date(value)
@@ -191,11 +192,7 @@ export function getGraphQLType(
     if (date.toString() === 'Invalid Date') {
       return 'String'
     }
-    if (
-      /\d{4}-[01]\d-[0-3]\dT[0-2]\d:[0-5]\d:[0-5]\d\.\d+([+-][0-2]\d:[0-5]\d|Z)/.test(
-        value,
-      )
-    ) {
+    if (RFC_3339_REGEX.test(value)) {
       return 'DateTime'
     }
   }
