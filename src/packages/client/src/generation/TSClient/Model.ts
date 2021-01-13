@@ -383,9 +383,6 @@ export class ModelDelegate implements Generatable {
     }
     const model = this.dmmf.modelMap[name]
 
-    // TODO: handle findUnique
-    mapping['findOne'] = mapping['findUnique']
-
     const actions = Object.entries(mapping).filter(
       ([key, value]) =>
         key !== 'model' &&

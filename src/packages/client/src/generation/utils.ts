@@ -107,7 +107,7 @@ export function getArgName(name: string, isList: boolean): string {
 // as GraphQL doesn't have the concept of unnamed args
 export function getModelArgName(
   modelName: string,
-  action?: DMMF.ModelAction | 'findOne',
+  action?: DMMF.ModelAction,
 ): string {
   if (!action) {
     return `${modelName}Args`
@@ -116,8 +116,6 @@ export function getModelArgName(
     case DMMF.ModelAction.findMany:
       return `${modelName}FindManyArgs`
     case DMMF.ModelAction.findUnique:
-      return `${modelName}FindUniqueArgs`
-    case 'findOne':
       return `${modelName}FindUniqueArgs`
     case DMMF.ModelAction.findFirst:
       return `${modelName}FindFirstArgs`
@@ -213,7 +211,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: DMMF.ModelAction | 'findOne'
+  actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
@@ -260,22 +258,14 @@ export function getSelectReturnType({
   }
 
   return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
-    actionName === 'findUnique' ||
-    actionName === 'findOne' ||
-    actionName === 'findFirst'
-      ? ' | null'
-      : ''
+    actionName === 'findUnique' || actionName === 'findFirst' ? ' | null' : ''
   }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
-    actionName === 'findUnique' ||
-    actionName === 'findOne' ||
-    actionName === 'findFirst'
-      ? ' | null'
-      : ''
+    actionName === 'findUnique' || actionName === 'findFirst' ? ' | null' : ''
   }>>`
 }
 
 export function isQueryAction(
-  action: DMMF.ModelAction | 'findOne',
+  action: DMMF.ModelAction,
   operation: 'query' | 'mutation',
 ): boolean {
   if (!(action in DMMF.ModelAction)) {
@@ -283,8 +273,7 @@ export function isQueryAction(
   }
   const result =
     action === DMMF.ModelAction.findUnique ||
-    action === DMMF.ModelAction.findMany ||
-    action === 'findOne'
+    action === DMMF.ModelAction.findMany
   return operation === 'query' ? result : !result
 }
 

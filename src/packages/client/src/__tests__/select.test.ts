@@ -398,7 +398,7 @@ describe('select validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'query',
-      rootField: 'findOnePost',
+      rootField: 'findUniquePost',
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -428,7 +428,7 @@ describe('select validation', () => {
       dmmf,
       select: ast,
       rootTypeName: 'query',
-      rootField: 'findOnePost',
+      rootField: 'findUniquePost',
     })
 
     expect(String(document)).toMatchSnapshot()
