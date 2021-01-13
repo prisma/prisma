@@ -80,7 +80,7 @@ jobs:
       matrix:
         database:
           - sqlite
-          - postgresql
+          - postgres
           - mysql
           - mariadb
         node: [12]
