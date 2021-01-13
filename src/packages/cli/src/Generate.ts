@@ -181,7 +181,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    let printBreakingChangesMessage: boolean = false
+    let printBreakingChangesMessage = false
     if (isJSClient) {
       try {
         const clientVersionBeforeGenerate = getCurrentClientVersion()
@@ -189,7 +189,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           clientVersionBeforeGenerate &&
           typeof clientVersionBeforeGenerate === 'string'
         ) {
-          const [_major, minor] = clientVersionBeforeGenerate.split('.')
+          const minor = clientVersionBeforeGenerate.split('.')[1]
           if (parseInt(minor, 10) < 12) {
             printBreakingChangesMessage = true
           }

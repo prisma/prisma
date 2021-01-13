@@ -188,7 +188,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
       new Enum(type, false, collector).toTS(),
     )
 
-    let code = `
+    const code = `
 /**
  * Client
 **/
