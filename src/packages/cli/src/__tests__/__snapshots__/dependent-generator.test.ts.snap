@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`should error when dependent generator is missing 1`] = `
+Error: Generator "I depend on the client" requires generator "prisma-client-js", but it is missing in your schema.prisma.
+Please add it to your schema.prisma:
+
+generator gen {
+  provider = "prisma-client-js"
+}
+
+`;
