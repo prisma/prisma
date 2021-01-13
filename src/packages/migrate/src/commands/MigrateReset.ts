@@ -20,7 +20,7 @@ import {
 import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 
 export class MigrateReset implements Command {
@@ -114,9 +114,15 @@ ${chalk.bold('Examples')}
 
     await printDatasource(schemaPath)
 
+    console.info() // empty line
+
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
-    await ensureCanConnectToDatabase(schemaPath)
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    if (wasDbCreated) {
+      console.info(wasDbCreated)
+    }
 
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
@@ -151,10 +157,10 @@ ${chalk.bold('Examples')}
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      console.info(`\n${chalk.green('Database reset successful')}`)
+      console.info(`${chalk.green('Database reset successful')}`)
     } else {
       console.info(
-        `\n${chalk.green('Database reset successful')}
+        `${chalk.green('Database reset successful')}
 
 The following migration(s) have been applied:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {

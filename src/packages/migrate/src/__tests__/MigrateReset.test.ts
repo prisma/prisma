@@ -126,14 +126,22 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
+    const result = MigrateReset.new().parse(['--preview-feature', '--force'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      SQLite database dev.db created at file:dev.db
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -173,6 +181,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
       Reset cancelled.
     `)
