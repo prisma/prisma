@@ -18,6 +18,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
+import resolvePkg from 'resolve-pkg'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
@@ -180,6 +181,30 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
+    let printBreakingChangesMessage = false
+    if (isJSClient) {
+      try {
+        const clientVersionBeforeGenerate = getCurrentClientVersion()
+        if (
+          clientVersionBeforeGenerate &&
+          typeof clientVersionBeforeGenerate === 'string'
+        ) {
+          const minor = clientVersionBeforeGenerate.split('.')[1]
+          if (parseInt(minor, 10) < 12) {
+            printBreakingChangesMessage = true
+          }
+        }
+      } catch (e) {
+        //
+      }
+    }
+
+    if (isPostinstall && printBreakingChangesMessage) {
+      // skipping generate
+      return `There have been breaking changes in Prisma Client since you updated last time.
+Please run \`prisma generate\` manually.`
+    }
+
     const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(
       schemaPath,
     )}\n`
@@ -199,6 +224,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               ),
             )
           : '@prisma/client'
+        const breakingChangesStr = printBreakingChangesMessage
+          ? `
+
+${breakingChangesMessage}`
+          : ''
         hint = `You can now start using Prisma Client in your code. Reference: ${link(
           'https://pris.ly/d/client',
         )}
@@ -206,9 +236,7 @@ ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
-${chalk.dim('```')}
-
-${breakingChangesMessage}`
+${chalk.dim('```')}${breakingChangesStr}`
       }
       const message =
         '\n' +
@@ -286,4 +314,34 @@ function prefixRelativePathIfNecessary(relativePath: string): string {
   }
 
   return `./${relativePath}`
+}
+
+function getCurrentClientVersion(): string | null {
+  try {
+    let pkgPath = resolvePkg('.prisma/client', { cwd: process.cwd() })
+    if (!pkgPath) {
+      const potentialPkgPath = path.join(
+        process.cwd(),
+        'node_modules/.prisma/client',
+      )
+      if (fs.existsSync(potentialPkgPath)) {
+        pkgPath = potentialPkgPath
+      }
+    }
+    if (pkgPath) {
+      const indexPath = path.join(pkgPath, 'index.js')
+      if (fs.existsSync(indexPath)) {
+        const program = require(indexPath)
+        return (
+          program?.prismaVersion?.client ??
+          program?.Prisma?.prismaVersion?.client
+        )
+      }
+    }
+  } catch (e) {
+    //
+    return null
+  }
+
+  return null
 }
