@@ -198,7 +198,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 5 # For codecov
+          
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
           
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
@@ -223,13 +225,6 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      # MySQL tests sometimes exit with "ERROR HY000 (1449): The user specified as a definer ('mysql.infoschema'@'localhost') does not exist"
-      # Maybe this can help
-      - name: Sleep for few seconds
-        uses: jakejarvis/wait-action@master
-        with:
-          time: "15s"
 
       - run: pnpm run test
         working-directory: src/packages/client
@@ -263,7 +258,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 5 # For codecov
+          
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -315,7 +312,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 5 # For codecov
+          
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
        
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
@@ -374,7 +373,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 5 # For codecov
+          
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
