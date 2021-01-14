@@ -73,7 +73,7 @@ export class PrismaClient<
 
   ${indent(this.jsDoc, TAB_SIZE)}
 
-  constructor(optionsArg ?: T);
+  constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
   $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
@@ -158,9 +158,28 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
   public toTS(): string {
     return `${new Datasources(this.internalDatasources).toTS()}
 
+export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
+export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
+export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
+
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
+  /**
+   * Configure findUnique/findFirst to throw an error if the query returns null. 
+   *  * @example
+   * \`\`\`
+   * // Reject on both findUnique/findFirst
+   * rejectOnNotFound: true
+   * 
+   * // Reject only on findFirst with a custom error
+   * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
+   * 
+   * // Reject on user.findUnique with a custom error
+   * rejectOnNotFound: { findUnique: {User: new Error("User not found")}}
+   * \`\`\`
+   */
+  rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
   /**
    * Overwrites the datasource url from your prisma.schema file
    */

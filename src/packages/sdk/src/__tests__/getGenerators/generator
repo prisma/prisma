@@ -18,7 +18,6 @@ generatorHandler({
       denylist: ['SomeForbiddenType'],
       prettyName: 'This is a pretty pretty name',
       requiresEngines: ['queryEngine', 'migrationEngine'],
-      requiresGenerators: [],
     }
   },
 })
