@@ -41,6 +41,12 @@ import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
+import {
+  getRejectOnNotFound,
+  InstanceRejectOnNotFound,
+  RejectOnNotFound,
+  throwIfNotFound,
+} from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
@@ -78,6 +84,10 @@ export type Datasource = {
 export type Datasources = Record<string, Datasource>
 
 export interface PrismaClientOptions {
+  /**
+   * Will throw an Error if findUnique returns null
+   */
+  rejectOnNotFound?: InstanceRejectOnNotFound
   /**
    * Overwrites the datasource url from your prisma.schema file
    */
@@ -303,11 +313,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
+    private _rejectOnNotFound?: InstanceRejectOnNotFound
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-
+      this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       const envPaths = {
@@ -1031,6 +1042,11 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
+      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(
+        action,
+        args,
+        this._rejectOnNotFound,
+      )
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1064,6 +1080,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
+        rejectOnNotFound,
         isList,
         rootField: rootField!,
         callsite,
@@ -1477,6 +1494,7 @@ export class PrismaClientFetcher {
     typeName,
     isList,
     callsite,
+    rejectOnNotFound,
     clientMethod,
     runInTransaction,
     showColors,
@@ -1493,6 +1511,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
+    rejectOnNotFound?: RejectOnNotFound
     runInTransaction?: boolean
     showColors?: boolean
     engineHook?: EngineMiddleware
@@ -1550,6 +1569,7 @@ export class PrismaClientFetcher {
         rootField,
         unpacker,
       )
+      throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
       }
