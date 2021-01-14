@@ -201,7 +201,7 @@ jobs:
         with:
           fetch-depth: 5 # For codecov
           
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mssql
           
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
