@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DB_URL")
+  provider = "sqlite"
+  url      = "file:./dev.db"
 }
 
 generator client {
@@ -16,7 +16,6 @@ model User {
   age        Int?
   posts      Post[]
   likes      Like[]
-  json       Json?
   Property   Property? @relation(fields: [propertyId], references: [id])
   propertyId String?
 }
@@ -58,7 +57,3 @@ model Like {
   @@unique([userId, postId])
 }
 
-enum Sound {
-  Bang
-  Click
-}

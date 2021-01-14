@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import {
   DatasourceOverwrite,
   EngineConfig,
+  EngineEventType,
   NodeEngine,
 } from '@prisma/engine-core/dist/NodeEngine'
 import {
@@ -480,7 +481,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    $on(eventType: any, callback: (event: any) => void) {
+    $on(eventType: EngineEventType, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
         this._engine.on('beforeExit', callback)
       } else {
