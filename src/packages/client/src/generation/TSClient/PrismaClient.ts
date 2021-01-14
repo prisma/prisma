@@ -167,7 +167,18 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
   /**
-   * Will throw an Error if findUnique returns null
+   * Configure findUnique/findFirst to throw an error if the query returns null. 
+   *  * @example
+   * \`\`\`
+   * // Reject on both findUnique/findFirst
+   * rejectOnNotFound: true
+   * 
+   * // Reject only on findFirst with a custom error
+   * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
+   * 
+   * // Reject on user.findUnique with a custom error
+   * rejectOnNotFound: { findUnique: {User: new Error("User not found")}}
+   * \`\`\`
    */
   rejectOnNotFound?: RejectOnNotFound | RejectPerQuery
   /**
