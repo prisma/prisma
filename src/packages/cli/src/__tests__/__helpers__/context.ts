@@ -56,7 +56,7 @@ export const Context = {
           {
             cwd: c.fs.cwd(),
             stdio: 'pipe',
-            all: true
+            all: true,
           },
         )
       }
@@ -124,10 +124,10 @@ export const consoleContext: ContextContributorFactory<
       .mockImplementation(() => {})
     ctx.mocked['console.log'] = jest
       .spyOn(console, 'log')
-      .mockImplementation(() => { })
+      .mockImplementation(() => {})
     ctx.mocked['console.warn'] = jest
       .spyOn(console, 'warn')
-      .mockImplementation(() => { })
+      .mockImplementation(() => {})
   })
 
   afterEach(() => {

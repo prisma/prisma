@@ -209,7 +209,33 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
       },
     )
 
-    // 2. Download all binaries and binary targets needed
+    // 2. Check, if all required generators are there.
+    // Generators can say in their "requiresGenerators" property in the manifest, which other generators they depend on
+    // This has mostly been introduced for 3rd party generators, which rely on `prisma-client-js`.
+    const generatorProviders: string[] = generatorConfigs.map((g) => g.provider)
+
+    for (const g of generators) {
+      if (
+        g?.manifest?.requiresGenerators &&
+        g?.manifest?.requiresGenerators.length > 0
+      ) {
+        for (const neededGenerator of g?.manifest?.requiresGenerators) {
+          if (!generatorProviders.includes(neededGenerator)) {
+            throw new Error(
+              `Generator "${g.manifest.prettyName}" requires generator "${neededGenerator}", but it is missing in your schema.prisma.
+Please add it to your schema.prisma:
+
+generator gen {
+  provider = "${neededGenerator}"
+}
+`,
+            )
+          }
+        }
+      }
+    }
+
+    // 3. Download all binaries and binary targets needed
 
     const neededVersions = Object.create(null)
     for (const g of generators) {
