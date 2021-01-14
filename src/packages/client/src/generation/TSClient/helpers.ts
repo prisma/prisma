@@ -55,7 +55,7 @@ export function getArgs(name: string, actionName: DMMF.ModelAction) {
     actionName === DMMF.ModelAction.deleteMany
       ? '?'
       : ''
-  }: Subset<T, ${getModelArgName(name, actionName)}>`
+  }: SelectSubset<T, ${getModelArgName(name, actionName)}>`
 }
 export function wrapComment(str: string): string {
   return `/**\n${str
