@@ -73,7 +73,7 @@ export class PrismaClient<
 
   ${indent(this.jsDoc, TAB_SIZE)}
 
-  constructor(optionsArg ?: T);
+  constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
   $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
