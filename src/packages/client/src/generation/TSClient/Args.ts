@@ -1,10 +1,10 @@
 import indent from 'indent-string'
-import { Generatable } from './Generatable'
 import { DMMF } from '../../runtime/dmmf-types'
-import { ExportCollector, getArgFieldJSDoc } from './helpers'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
-import { InputField } from './Input'
 import { TAB_SIZE } from './constants'
+import { Generatable } from './Generatable'
+import { ExportCollector, getArgFieldJSDoc } from './helpers'
+import { InputField } from './Input'
 
 export class ArgsType implements Generatable {
   constructor(
@@ -16,7 +16,6 @@ export class ArgsType implements Generatable {
   public toTS(): string {
     const { action, args } = this
     const { name } = this.model
-
     for (const arg of args) {
       arg.comment = getArgFieldJSDoc(this.model, action, arg)
     }
@@ -69,7 +68,24 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-
+    const addRejectOnNotFound =
+      action === DMMF.ModelAction.findUnique ||
+      action === DMMF.ModelAction.findFirst
+    if (addRejectOnNotFound) {
+      bothArgsOptional.push({
+        name: 'rejectOnNotFound',
+        isRequired: false,
+        isNullable: true,
+        inputTypes: [
+          {
+            type: 'RejectOnNotFound',
+            location: 'scalar',
+            isList: false,
+          },
+        ],
+        comment: `Throw an Error if a ${name} can't be found`,
+      })
+    }
     bothArgsOptional.push(...args)
 
     const modelArgName = getModelArgName(name, action)

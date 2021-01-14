@@ -1,53 +1,36 @@
 import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
-  log: [
-    {
-      emit: 'event',
-      level: 'query',
-    },
-  ],
+  rejectOnNotFound: {
+
+  },
+  log: [{
+    emit: 'event', level:"query"
+  }]
 })
 
 async function main() {
-  const user = await prisma.user.groupBy({
-    by: ['name'],
+  prisma.$on('query', () => {})
+  const res = await prisma.user.findFirst({
     where: {
-      age: {
-        gt: -1,
-      },
+      id: 'asdaf',
     },
-    // skip: 0,
-    // take: 10000,
-    avg: {
-      age: true,
-    },
-    count: true,
-    max: {
-      age: true,
-    },
-    min: {
-      age: true,
-    },
-    sum: {
-      age: true,
-    },
+    rejectOnNotFound: new Error('Home')
   })
-  // const res = await prisma.user.aggregate({
-  //   // select: true,
-  //   // skip: 3
-  //   count: true,
-  //   min: {
-  //     email: true,
-  //     // json: true,
+  // console.log(res);
+  // const res = await prisma.user.findUnique({
+  //   where: {
+  //     email: 'prisma@prisma.de'
   //   },
+  //   rejectOnEmpty: true
   // })
 
-  console.log(user[0].count)
+  // console.log(res)
 
   prisma.$disconnect()
 }
 
 main().catch((e) => {
   console.error(e)
+  prisma.$disconnect()
 })
