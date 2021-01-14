@@ -41,7 +41,12 @@ import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
-import { getRejectOnNotFound, InstanceRejectOnNotFound, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
+import {
+  getRejectOnNotFound,
+  InstanceRejectOnNotFound,
+  RejectOnNotFound,
+  throwIfNotFound,
+} from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
@@ -77,6 +82,7 @@ export type Datasource = {
   url?: string
 }
 export type Datasources = Record<string, Datasource>
+
 export interface PrismaClientOptions {
   /**
    * Will throw an Error if findUnique returns null
@@ -1036,7 +1042,11 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
-      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, args, this._rejectOnNotFound)
+      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(
+        action,
+        args,
+        this._rejectOnNotFound,
+      )
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1070,7 +1080,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
-        rejectOnNotFound: rejectOnNotFound,
+        rejectOnNotFound,
         isList,
         rootField: rootField!,
         callsite,
@@ -1523,7 +1533,6 @@ export class PrismaClientFetcher {
         args,
       })
     }
-
     try {
       /**
        * If there's an engine hook, use it here

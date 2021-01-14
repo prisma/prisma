@@ -159,9 +159,8 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
     return `${new Datasources(this.internalDatasources).toTS()}
 
 export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
-type LooseRecord<K extends string | number | symbol, T> = { [P in K]?: T; }
-export type RejectPerModel = LooseRecord<ModelName, RejectOnNotFound>
-export type RejectPerQuery =  LooseRecord<"findUnique" | "findFirst", RejectPerModel | RejectOnNotFound>
+export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
+export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
 
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
@@ -180,7 +179,7 @@ export interface PrismaClientOptions {
    * rejectOnNotFound: { findUnique: {User: new Error("User not found")}}
    * \`\`\`
    */
-  rejectOnNotFound?: RejectOnNotFound | RejectPerQuery
+  rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
   /**
    * Overwrites the datasource url from your prisma.schema file
    */

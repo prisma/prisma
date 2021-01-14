@@ -2,10 +2,7 @@ import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
   rejectOnNotFound: {
-    findFirst: {
-      User: true,
-      Post: true,
-    }
+
   },
   log: [{
     emit: 'event', level:"query"
