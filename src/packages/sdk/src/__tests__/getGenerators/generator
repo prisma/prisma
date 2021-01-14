@@ -7,7 +7,7 @@ const { generatorHandler } = require('@prisma/generator-helper')
 generatorHandler({
   async onGenerate() {
     console.log('Logging in onGenerate should be fine')
-    await new Promise(r => {
+    await new Promise((r) => {
       setTimeout(r, 100)
     })
   },
@@ -18,7 +18,7 @@ generatorHandler({
       denylist: ['SomeForbiddenType'],
       prettyName: 'This is a pretty pretty name',
       requiresEngines: ['queryEngine', 'migrationEngine'],
-      requiresGenerators: ['prisma-client-js'],
+      requiresGenerators: [],
     }
   },
 })
