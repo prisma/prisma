@@ -92,6 +92,7 @@ import {
   MigrateDeploy,
   DbPush,
   DbDrop,
+  DbSeed,
   DbCommand,
   handlePanic,
 } from '@prisma/migrate'
@@ -153,6 +154,7 @@ async function main(): Promise<number> {
         pull: Introspect.new(),
         push: DbPush.new(),
         drop: DbDrop.new(),
+        seed: DbDrop.new(),
       }),
       introspect: Introspect.new(),
       dev: Dev.new(),

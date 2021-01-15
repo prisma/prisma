@@ -201,4 +201,33 @@ describe('reset', () => {
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
+
+  it('reset - multiple seed files', async () => {
+    ctx.fixture('seed-sqlite')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse(['--preview-feature'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            More than 1 seed file was found in \`prisma\`.
+            This command only supports 1 \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file.
+          `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('reset - seed.js', async () => {
+    ctx.fixture('seed-sqlite')
+    // ctx.fs.remove('prisma/seed.js')
+    ctx.fs.remove('prisma/seed.ts')
+    ctx.fs.remove('prisma/seed.sh')
+    ctx.fs.remove('prisma/seed.go')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse(['--preview-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
 })
