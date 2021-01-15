@@ -61,7 +61,7 @@ export async function downloadZip(
         }
 
         const lastModified = resp.headers.get('last-modified')!
-        const size = parseFloat(resp.headers.get('content-length'))
+        const size = parseFloat(resp.headers.get('content-length') as string)
         const ws = fs.createWriteStream(partial)
 
         // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
