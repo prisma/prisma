@@ -439,7 +439,7 @@ describe('download', () => {
     // value on GH Actions: ?
     // https://github.com/prisma/prisma/runs/1176632754
     const took2 = after2 - before2
-    expect(took2).toBeLessThan(8000)
+    expect(took2).toBeLessThan(10000)
   })
 })
 
