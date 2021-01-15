@@ -103,13 +103,6 @@ async function main() {
     },
   })
 
-  const result3: 'Please either choose `select` or `include`' = await prisma.post.findMany(
-    {
-      select: {},
-      include: {},
-    },
-  )
-
   const result4: Array<{
     id: string
     author: {

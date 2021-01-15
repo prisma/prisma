@@ -17,4 +17,15 @@ const prisma = new PrismaClient({
       prop: true,
     }),
   )
+
+  expectError(
+    await prisma.user.findFirst({
+      include: {
+        posts: true,
+      },
+      select: {
+        id: true,
+      },
+    }),
+  )
 })()
