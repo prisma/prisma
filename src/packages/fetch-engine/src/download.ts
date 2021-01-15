@@ -67,7 +67,7 @@ type BinaryDownloadJob = {
   binaryTarget: string
   fileName: string
   targetFilePath: string
-  envVarPath: string
+  envVarPath: string | null
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
@@ -75,7 +75,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (['nixos'].includes(os.distro)) {
+  if (os.distro && ['nixos'].includes(os.distro)) {
     console.error(
       `${chalk.yellow('Warning')} Precompiled binaries are not available for ${
         os.distro
@@ -97,19 +97,18 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   // merge options
-  options = {
+  const opts = {
     ...options,
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
-    binaries: mapKeys(options.binaries, (key) =>
-      engineTypeToBinaryType(key, platform),
+    binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform),
     ), // just necessary to support both camelCase and hyphen-case
   }
 
-  const binaryJobs: Array<BinaryDownloadJob> = flatMap(
-    Object.entries(options.binaries),
-    ([binaryName, targetFolder]) =>
-      options.binaryTargets.map((binaryTarget) => {
+  const binaryJobs = flatMap(
+    Object.entries(opts.binaries),
+    ([binaryName, targetFolder]: [string, string]) =>
+      opts.binaryTargets.map((binaryTarget) => {
         const fileName = getBinaryName(binaryName, binaryTarget)
         return {
           binaryName,
@@ -123,14 +122,14 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
-    options.version = process.env.BINARY_DOWNLOAD_VERSION
+    opts.version = process.env.BINARY_DOWNLOAD_VERSION
   }
 
   if (options.version === 'latest') {
-    options.version = await getLatestTag()
+    opts.version = await getLatestTag()
   }
 
-  if (options.printVersion) {
+  if (opts.printVersion) {
     console.log(`version: ${options.version}`)
   }
 
@@ -139,8 +138,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const needsToBeDownloaded = await binaryNeedsToBeDownloaded(
       job,
       platform,
-      options.version,
-      options.failSilent,
+      opts.version,
+      opts.failSilent,
     )
     const isSupported = platforms.includes(job.binaryTarget as Platform)
     const shouldDownload =
@@ -163,8 +162,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       | undefined
       | ((sourcePath: string) => (progress: number) => void)
 
-    if (options.showProgress) {
-      const collectiveBar = getCollectiveBar(options)
+    if (opts.showProgress) {
+      const collectiveBar = getCollectiveBar(opts)
       finishBar = collectiveBar.finishBar
       setProgress = collectiveBar.setProgress
     }
@@ -174,8 +173,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       binariesToDownload.map((job) =>
         downloadBinary({
           ...job,
-          version: options.version,
-          failSilent: options.failSilent,
+          version: opts.version,
+          failSilent: opts.failSilent,
           progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
         }),
       ),
@@ -212,7 +211,7 @@ function getCollectiveBar(
 } {
   const bar = getBar(
     `Downloading Prisma engines for ${options.binaryTargets
-      .map((p) => chalk.bold(p))
+      ?.map((p) => chalk.bold(p))
       .join(' and ')}`,
   )
 
@@ -220,7 +219,7 @@ function getCollectiveBar(
   // Object.values is faster than Object.keys
   const numDownloads =
     Object.values(options.binaries).length *
-    Object.values(options.binaryTargets).length
+    Object.values(options?.binaryTargets ?? []).length
   const setProgress = (sourcePath: string) => (progress): void => {
     progressMap[sourcePath] = progress
     const progressValues = Object.values(progressMap)
@@ -262,7 +261,7 @@ async function binaryNeedsToBeDownloaded(
   job: BinaryDownloadJob,
   nativePlatform: string,
   version: string,
-  failSilent: boolean,
+  failSilent?: boolean,
 ): Promise<boolean> {
   const binaryPath = job.envVarPath ?? job.targetFilePath
 
@@ -337,7 +336,7 @@ export function getBinaryName(binaryName: string, platform: string): string {
 
 type GetCachedBinaryOptions = BinaryDownloadJob & {
   version: string
-  failSilent: boolean
+  failSilent?: boolean
 }
 
 async function getCachedBinaryPath({
@@ -372,7 +371,7 @@ async function getCachedBinaryPath({
 export function getBinaryEnvVarPath(binaryName: string): string | null {
   const envVar = binaryToEnvVar[binaryName]
   if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.cwd(), process.env[envVar])
+    const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
         `Env var ${chalk.bold(
@@ -508,15 +507,15 @@ function engineTypeToBinaryType(
   return engineType
 }
 
-function mapKeys<T extends object>(
+function mapKeys<T extends object, K extends keyof T>(
   obj: T,
-  mapper: (key: keyof T) => string,
+  mapper: (key: K) => string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): any {
+) {
   return Object.entries(obj).reduce((acc, [key, value]) => {
-    acc[mapper(key as keyof T)] = value
+    acc[mapper(key as K)] = value
     return acc
-  }, {})
+  }, {} as Record<string, any>)
 }
 
 export async function maybeCopyToTmp(file: string): Promise<string> {
