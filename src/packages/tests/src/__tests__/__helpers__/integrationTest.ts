@@ -410,7 +410,7 @@ function makeDatasourceBlock(providerName: string, url: string) {
  * Create Prisma schema enabled features array of strings.
  */
 function renderPreviewFeatures(
-  featureMatrix: Input['prismaClientSettings']['previewFeatures'] | undefined,
+  featureMatrix: PreviewFeature[] | undefined,
 ) {
   if (featureMatrix) {
     return `previewFeatures = [${featureMatrix.map(

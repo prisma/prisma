@@ -4,8 +4,9 @@ import { getRootCacheDir } from './util'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import pMap from 'p-map'
-// import Debug from '@prisma/debug'
-// const debug = Debug('cleanupCache')
+
+import Debug from '@prisma/debug'
+const debug = Debug('cleanupCache')
 const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
@@ -13,6 +14,10 @@ const stat = promisify(fs.stat)
 export async function cleanupCache(n = 5): Promise<void> {
   try {
     const rootCacheDir = await getRootCacheDir()
+    if(!rootCacheDir){
+      debug('no rootCacheDir found')
+      return
+    }
     const channel = 'master'
     const cacheDir = path.join(rootCacheDir, channel)
     const dirs = await readdir(cacheDir)

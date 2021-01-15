@@ -193,7 +193,7 @@ describe('download', () => {
         'query-engine': __dirname,
       },
     })
-    const dummyPath = e['query-engine'][Object.keys(e['query-engine'])[0]]!
+    const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
     const targetPath = path.join(
       __dirname,
       getBinaryName('query-engine', 'marvin'),
@@ -207,7 +207,7 @@ describe('download', () => {
       },
       binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     })
-    expect(testResult['query-engine']['marvin']).toEqual(targetPath)
+    expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
   })
   test.skip('download all binaries & cache them', async () => {
     const baseDir = path.join(__dirname, 'all')
