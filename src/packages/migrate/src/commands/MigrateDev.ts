@@ -200,8 +200,11 @@ ${chalk.bold('Examples')}
     debug({ evaluateDataLossResult })
 
     // display unexecutableSteps
-    // throw error
-    handleUnexecutableSteps(evaluateDataLossResult.unexecutableSteps)
+    // throws error if not create-only
+    handleUnexecutableSteps(
+      evaluateDataLossResult.unexecutableSteps,
+      args['--create-only'],
+    )
 
     // log warnings and prompt user to continue if needed
     const userCancelled = await handleWarnings(

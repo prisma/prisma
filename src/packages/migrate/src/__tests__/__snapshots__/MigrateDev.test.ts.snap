@@ -60,6 +60,20 @@ exports[`sqlite existingdb: 1 unexecutable schema change 3`] = `Array []`;
 
 exports[`sqlite existingdb: 1 unexecutable schema change 4`] = `Array []`;
 
+exports[`sqlite existingdb: 1 unexecutable schema change with --create-only should succeed 3`] = `Array []`;
+
+exports[`sqlite existingdb: 1 unexecutable schema change with --create-only should succeed 4`] = `
+Array [
+  Array [
+    
+⚠️ We found changes that cannot be executed:
+
+  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+,
+  ],
+]
+`;
+
 exports[`sqlite existingdb: 1 warning from schema change (prompt no) 4`] = `Array []`;
 
 exports[`sqlite existingdb: 1 warning from schema change (prompt yes) 4`] = `Array []`;
