@@ -194,18 +194,25 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
  */
 export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
 
+/**
+ * From T, pick a set of properties whose keys are in the union K
+ */
+type Prisma__Pick<T, K extends keyof T> = {
+    [P in K]: T[P];
+};
+
 
 export type Enumerable<T> = T | Array<T>;
 
 export type RequiredKeys<T> = {
-  [K in keyof T]-?: {} extends Pick<T, K> ? never : K
+  [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
 }[keyof T]
 
 export type TruthyKeys<T> = {
   [key in keyof T]: T[key] extends false | undefined | null ? never : key
 }[keyof T]
 
-export type TrueKeys<T> = TruthyKeys<Pick<T, RequiredKeys<T>>>
+export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 
 /**
  * Subset
@@ -397,7 +404,7 @@ type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 /**
  * Like \`Pick\`, but with an array
  */
-type PickArray<T, K extends Array<keyof T>> = Pick<T, TupleToUnion<K>>
+type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 
 ${
   !hideFetcher
