@@ -209,7 +209,7 @@ describe('download', () => {
     })
     expect(testResult['query-engine']['marvin']).toEqual(targetPath)
   })
-  test('download all binaries & cache them', async () => {
+  test.skip('download all binaries & cache them', async () => {
     const baseDir = path.join(__dirname, 'all')
     await download({
       binaries: {
