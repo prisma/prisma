@@ -1,11 +1,13 @@
 ![Prisma](https://i.imgur.com/SFzi1NE.png)
 
 <div align="center">
-  <h1>Prisma &middot; <a href="https://www.npmjs.com/package/@prisma/cli"><img src="https://img.shields.io/npm/v/@prisma/cli.svg?style=flat" /></a>
+  <h1>Prisma</h1>
+  <a href="https://www.npmjs.com/package/@prisma/cli"><img src="https://img.shields.io/npm/v/@prisma/cli.svg?style=flat" /></a>
   <a href="https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
-</h1>
+  <br />
+  <br />
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://www.prisma.io/">Website</a>
@@ -20,15 +22,14 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://www.youtube.com/watch?v=0RhtQgIs-TE&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=1">Demo videos</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/prisma/prisma1">Prisma 1</a>
   <br />
+  <hr />
 </div>
 
 ## What is Prisma?
 
-Prisma is a **database toolkit** that consists of these tools:
+Prisma is a **next-generation ORM** that consists of these tools:
 
 - [**Prisma Client**](https://www.prisma.io/docs/concepts/components/prisma-client): Auto-generated and type-safe query builder for Node.js & TypeScript
 - [**Prisma Migrate**](https://www.prisma.io/docs/concepts/components/prisma-migrate): Declarative data modeling & migration system
@@ -45,7 +46,7 @@ The fastest way to get started with Prisma is by following the [**Quickstart (5 
 The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project-typescript-postgres)
-- [Setup a new project with Prisma from scratch (Prisma Migrate)](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
+- [Setup a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
 
 ## How does Prisma work
 
@@ -56,15 +57,18 @@ This section provides a high-level overview of how Prisma works and its most imp
 Every project that uses a tool from the Prisma toolkit starts with a [Prisma schema file](https://www.prisma.io/docs/concepts/components/prisma-schema). The Prisma schema allows developers to define their _application models_ in an intuitive data modeling language. It also contains the connection to a database and defines a _generator_:
 
 ```prisma
+// Data source
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Generator
 generator client {
   provider = "prisma-client-js"
 }
 
+// Data model
 model Post {
   id        Int     @id @default(autoincrement())
   title     String
@@ -223,7 +227,7 @@ Prisma has a large and supportive [community](https://www.prisma.io/community) o
 
 ## Security
 
-If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20)
+If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20).
 
 ## Support
 
@@ -235,7 +239,7 @@ You can ask questions and initiate [discussions](https://github.com/prisma/prism
 
 ### Create a bug report for Prisma
 
-If you see an error message or run into an issue, please make sure to create a bug report! You can find best practices for creating bug reports (like including additional debugging output) in the [docs](https://www.prisma.io/docs/about/creating-bug-reports).
+If you see an error message or run into an issue, please make sure to create a bug report! You can find [best practices for creating bug reports](https://www.prisma.io/docs/support/creating-bug-reports) (like including additional debugging output) in the docs.
 
 👉 [**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
 
