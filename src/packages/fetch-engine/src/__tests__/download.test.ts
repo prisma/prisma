@@ -170,7 +170,7 @@ describe('download', () => {
       `"Unknown binaryTarget marvin and no custom binaries were provided"`,
     )
   })
-  test('handle non-existent binary target with missing custom binaries', async () => {
+  test.skip('handle non-existent binary target with missing custom binaries', async () => {
     expect.assertions(1)
     process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
     try {
@@ -187,7 +187,7 @@ describe('download', () => {
       )
     }
   })
-  test('handle non-existent binary target with custom binaries', async () => {
+  test.skip('handle non-existent binary target with custom binaries', async () => {
     const e = await download({
       binaries: {
         'query-engine': __dirname,
