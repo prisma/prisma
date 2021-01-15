@@ -32,7 +32,7 @@ async function main() {
     count: {
       age: true,
       email: true,
-      $all: true,
+      _all: true,
     },
     max: {
       age: true,
@@ -59,7 +59,7 @@ async function main() {
     count: {
       age: number
       email: number | null
-      $all: number
+      _all: number
     }
     min: {
       age: number

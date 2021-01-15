@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import {
   DatasourceOverwrite,
   EngineConfig,
+  EngineEventType,
   NodeEngine,
 } from '@prisma/engine-core/dist/NodeEngine'
 import {
@@ -41,6 +42,12 @@ import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
+import {
+  getRejectOnNotFound,
+  InstanceRejectOnNotFound,
+  RejectOnNotFound,
+  throwIfNotFound,
+} from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 const debug = Debug('prisma-client')
@@ -78,6 +85,10 @@ export type Datasource = {
 export type Datasources = Record<string, Datasource>
 
 export interface PrismaClientOptions {
+  /**
+   * Will throw an Error if findUnique returns null
+   */
+  rejectOnNotFound?: InstanceRejectOnNotFound
   /**
    * Overwrites the datasource url from your prisma.schema file
    */
@@ -303,11 +314,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
+    private _rejectOnNotFound?: InstanceRejectOnNotFound
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-
+      this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       const envPaths = {
@@ -469,7 +481,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       }
     }
 
-    $on(eventType: any, callback: (event: any) => void) {
+    $on(eventType: EngineEventType, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
         this._engine.on('beforeExit', callback)
       } else {
@@ -1031,6 +1043,11 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
+      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(
+        action,
+        args,
+        this._rejectOnNotFound,
+      )
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1064,6 +1081,7 @@ new PrismaClient({
         clientMethod,
         typeName,
         dataPath,
+        rejectOnNotFound,
         isList,
         rootField: rootField!,
         callsite,
@@ -1247,15 +1265,9 @@ new PrismaClient({
           let select
           let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { count: { select: mapAllCount(args.select) } }
-            unpacker = (data) => {
-              if (data.count && typeof data.count === 'object') {
-                data.count = mapAllCount(data.count)
-              }
-              return data
-            }
+            select = { count: { select: args.select } }
           } else {
-            select = { count: { select: { $all: true } } }
+            select = { count: { select: { _all: true } } }
             unpacker = (data) => {
               data.count = data.count?._all
               return data
@@ -1290,15 +1302,9 @@ new PrismaClient({
               // `count` doesn't have a sub-selection
               if (key === 'count') {
                 if (typeof value === 'object' && value) {
-                  acc.select[key] = { select: mapAllCount(value) }
-                  unpacker = (data) => {
-                    if (data.count && typeof data.count === 'object') {
-                      data.count = mapAllCount(data.count)
-                    }
-                    return data
-                  }
+                  acc.select[key] = { select: value }
                 } else {
-                  acc.select[key] = { select: { $all: value } }
+                  acc.select[key] = { select: { _all: value } }
                   unpacker = (data) => {
                     if (data.count) {
                       data.count = data.count?._all
@@ -1355,20 +1361,9 @@ generator client {
             }
             if (key === 'count') {
               if (typeof value === 'object' && value) {
-                acc.select[key] = { select: mapAllCount(value) }
-                unpacker = (data) => {
-                  if (Array.isArray(data)) {
-                    data = data.map((row) => {
-                      if (row && typeof row === 'object' && row.count) {
-                        row.count = mapAllCount(row.count)
-                      }
-                      return row
-                    })
-                  }
-                  return data
-                }
+                acc.select[key] = { select: value }
               } else if (typeof value === 'boolean') {
-                acc.select[key] = { select: { $all: value } }
+                acc.select[key] = { select: { _all: value } }
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
                     data = data.map((row) => {
@@ -1477,6 +1472,7 @@ export class PrismaClientFetcher {
     typeName,
     isList,
     callsite,
+    rejectOnNotFound,
     clientMethod,
     runInTransaction,
     showColors,
@@ -1493,6 +1489,7 @@ export class PrismaClientFetcher {
     isList: boolean
     clientMethod: string
     callsite?: string
+    rejectOnNotFound?: RejectOnNotFound
     runInTransaction?: boolean
     showColors?: boolean
     engineHook?: EngineMiddleware
@@ -1550,6 +1547,7 @@ export class PrismaClientFetcher {
         rootField,
         unpacker,
       )
+      throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
       }
@@ -1637,14 +1635,4 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
     return 'query'
   }
   return 'mutation'
-}
-
-function mapAllCount(args: Record<string, any>): Record<string, any> {
-  const entries: [string, any][] = Object.entries(args).map(([key, value]) => {
-    if (key === '_all') {
-      return ['$all', value]
-    }
-    return [key, value]
-  })
-  return fromEntries(entries)
 }

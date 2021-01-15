@@ -89,16 +89,16 @@ const prisma = new PrismaClient({
   )
   expectError(
     await prisma.user.aggregate({
-      avg: { 
-        email: true
-      }
+      avg: {
+        email: true,
+      },
     }),
   )
   expectError(
     await prisma.user.aggregate({
-      sum: { 
-        email: true
-      }
+      sum: {
+        email: true,
+      },
     }),
   )
 
@@ -110,7 +110,7 @@ const prisma = new PrismaClient({
   expectError(
     await prisma.user.aggregate({
       count: {
-        _all: true
+        $all: true,
       },
     }),
   )

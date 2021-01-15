@@ -51,7 +51,7 @@ async function main() {
   }
   const avg1: AvgSum = a1.avg
   const sum1: AvgSum = a1.sum
- 
+
   type MinMax = {
     age: number
     email: string | null
@@ -73,7 +73,7 @@ async function main() {
       age: { gt: 500 },
     },
     count: {
-      $all: true,
+      _all: true,
       age: true,
       email: true,
       followerCount: true,
@@ -82,7 +82,7 @@ async function main() {
     },
   })
   const c2: {
-    $all: number
+    _all: number
     age: number
     email: number | null
     followerCount: number | null

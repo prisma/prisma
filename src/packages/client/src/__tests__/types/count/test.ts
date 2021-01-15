@@ -13,29 +13,27 @@ async function main() {
   })
 
   const c1 = await prisma.user.count({
-    select: true
+    select: true,
   })
   const t1: number = c1
 
-
   const c2 = await prisma.user.count({
-
     select: {
-      $all: true,
+      _all: true,
       age: true,
       email: true,
       followerCount: true,
       id: true,
-      name: true
-    }
+      name: true,
+    },
   })
-  const t2:  {
-    $all: number;
-    age: number;
-    email: number | null;
-    followerCount: number | null;
-    id: number | null;
-    name: number | null;
+  const t2: {
+    _all: number
+    age: number
+    email: number | null
+    followerCount: number | null
+    id: number | null
+    name: number | null
   } = c2
 }
 

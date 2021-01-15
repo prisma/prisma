@@ -21,12 +21,15 @@ async function main() {
   prisma.$on('query', (a) => {
     //
   })
-
+  prisma.$on('beforeExit', () => {
+    //
+  })
   Prisma.prismaVersion.client
 
   const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw(
     'User',
   )} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${Prisma.empty} `
+
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
@@ -99,13 +102,6 @@ async function main() {
       author: true,
     },
   })
-
-  const result3: 'Please either choose `select` or `include`' = await prisma.post.findMany(
-    {
-      select: {},
-      include: {},
-    },
-  )
 
   const result4: Array<{
     id: string
