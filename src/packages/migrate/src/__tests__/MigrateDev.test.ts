@@ -595,11 +595,34 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                      `)
+                                                                                                                                                                                                                                                                                                                                                                                                                `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
+  it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
+    ctx.fixture('existing-db-1-unexecutable-schema-change')
+    const result = MigrateDev.new().parse([
+      '--preview-feature',
+      '--create-only',
+    ])
+
+    await expect(result).resolves.toMatchInlineSnapshot(`
+            Prisma Migrate created the following migration without applying it 20201231000000_
+
+            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -635,10 +658,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                        ⚠️  There will be data loss when applying the migration:
+                                                                              ⚠️  There will be data loss when applying the migration:
 
-                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                `)
+                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -659,10 +682,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                        ⚠️  There will be data loss when applying the migration:
+                                                                              ⚠️  There will be data loss when applying the migration:
 
-                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                `)
+                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
