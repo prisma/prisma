@@ -1,11 +1,12 @@
 import chalk from 'chalk'
 import prompt from 'prompts'
-import { getCommandWithExecutor, isCi } from '@prisma/sdk'
+import { isCi } from '@prisma/sdk'
 import { MigrationFeedback } from '../types'
 import { EnvNonInteractiveError } from './errors'
 
 export function handleUnexecutableSteps(
   unexecutableSteps: MigrationFeedback[],
+  createOnly = false,
 ) {
   if (unexecutableSteps && unexecutableSteps.length > 0) {
     const messages: string[] = []
@@ -16,8 +17,13 @@ export function handleUnexecutableSteps(
       messages.push(`${chalk(`  • Step ${item.stepIndex} ${item.message}`)}`)
     }
     console.info() // empty line
-    // Exit
-    throw new Error(`${messages.join('\n')}\n`)
+
+    // If create only, allow to continue
+    if (createOnly) {
+      console.error(`${messages.join('\n')}\n`)
+    } else {
+      throw new Error(`${messages.join('\n')}\n`)
+    }
   }
 }
 
