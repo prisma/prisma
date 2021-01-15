@@ -154,7 +154,7 @@ async function main(): Promise<number> {
         pull: Introspect.new(),
         push: DbPush.new(),
         drop: DbDrop.new(),
-        seed: DbDrop.new(),
+        seed: DbSeed.new(),
       }),
       introspect: Introspect.new(),
       dev: Dev.new(),
