@@ -125,12 +125,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     opts.version = process.env.BINARY_DOWNLOAD_VERSION
   }
 
-  if (options.version === 'latest') {
+  if (opts.version === 'latest') {
     opts.version = await getLatestTag()
   }
 
   if (opts.printVersion) {
-    console.log(`version: ${options.version}`)
+    console.log(`version: ${opts.version}`)
   }
 
   // filter out files, which don't yet exist or have to be created
@@ -145,7 +145,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const shouldDownload =
       isSupported &&
       !job.envVarPath &&
-      (options.ignoreCache || needsToBeDownloaded)
+      (opts.ignoreCache || needsToBeDownloaded)
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(
         `Unknown binaryTarget ${job.binaryTarget} and no custom binaries were provided`,
