@@ -216,6 +216,18 @@ export type Subset<T, U> = {
 };
 
 /**
+ * SelectSubset
+ * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection.
+ * Additionally, it validates, if both select and include are present. If the case, it errors.
+ */
+export type SelectSubset<T, U> = {
+  [key in keyof T]: key extends keyof U ? T[key] : never
+} &
+  (T extends SelectAndInclude
+    ? 'Please either choose \`select\` or \`include\`.'
+    : {})
+
+/**
  * Subset + Intersection
  * @desc From \`T\` pick properties that exist in \`U\` and intersect \`K\`
  */
