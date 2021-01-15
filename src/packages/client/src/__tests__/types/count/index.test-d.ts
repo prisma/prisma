@@ -14,19 +14,18 @@ const prisma = new PrismaClient({
 ;(async () => {
   expectError(
     await prisma.user.count({
-      select: 0
-    })
+      select: 0,
+    }),
   )
 
   expectError(
     await prisma.user.count({
-      where: { 
-        name: { not: null}
+      where: {
+        name: { not: null },
       },
       select: {
-        _all: true
-      }
-
+        $all: true,
+      },
     }),
   )
 })()

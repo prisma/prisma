@@ -14,7 +14,7 @@ test('count', async () => {
 
   const result3 = await prisma.user.count({
     select: {
-      $all: true,
+      _all: true,
       email: true,
       age: true,
       name: true,
@@ -22,7 +22,7 @@ test('count', async () => {
   })
   expect(result3).toMatchInlineSnapshot(`
     Object {
-      $all: 10,
+      _all: 10,
       age: 10,
       email: 10,
       name: 10,
@@ -31,7 +31,7 @@ test('count', async () => {
   try {
     await prisma.user.count({
       select: {
-        $all: true,
+        _all: true,
         email: true,
         age: true,
         name: true,
@@ -45,7 +45,7 @@ test('count', async () => {
 
       {
         count: {
-      ?   $all?: true,
+      ?   _all?: true,
       ?   email?: true,
       ?   age?: true,
       ?   name?: true,
