@@ -1265,15 +1265,9 @@ new PrismaClient({
           let select
           let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { count: { select: mapAllCount(args.select) } }
-            unpacker = (data) => {
-              if (data.count && typeof data.count === 'object') {
-                data.count = mapAllCount(data.count)
-              }
-              return data
-            }
+            select = { count: { select: args.select } }
           } else {
-            select = { count: { select: { $all: true } } }
+            select = { count: { select: { _all: true } } }
             unpacker = (data) => {
               data.count = data.count?._all
               return data
@@ -1308,15 +1302,9 @@ new PrismaClient({
               // `count` doesn't have a sub-selection
               if (key === 'count') {
                 if (typeof value === 'object' && value) {
-                  acc.select[key] = { select: mapAllCount(value) }
-                  unpacker = (data) => {
-                    if (data.count && typeof data.count === 'object') {
-                      data.count = mapAllCount(data.count)
-                    }
-                    return data
-                  }
+                  acc.select[key] = { select: value }
                 } else {
-                  acc.select[key] = { select: { $all: value } }
+                  acc.select[key] = { select: { _all: value } }
                   unpacker = (data) => {
                     if (data.count) {
                       data.count = data.count?._all
@@ -1373,20 +1361,9 @@ generator client {
             }
             if (key === 'count') {
               if (typeof value === 'object' && value) {
-                acc.select[key] = { select: mapAllCount(value) }
-                unpacker = (data) => {
-                  if (Array.isArray(data)) {
-                    data = data.map((row) => {
-                      if (row && typeof row === 'object' && row.count) {
-                        row.count = mapAllCount(row.count)
-                      }
-                      return row
-                    })
-                  }
-                  return data
-                }
+                acc.select[key] = { select: value }
               } else if (typeof value === 'boolean') {
-                acc.select[key] = { select: { $all: value } }
+                acc.select[key] = { select: { _all: value } }
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
                     data = data.map((row) => {
@@ -1658,14 +1635,4 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
     return 'query'
   }
   return 'mutation'
-}
-
-function mapAllCount(args: Record<string, any>): Record<string, any> {
-  const entries: [string, any][] = Object.entries(args).map(([key, value]) => {
-    if (key === '_all') {
-      return ['$all', value]
-    }
-    return [key, value]
-  })
-  return fromEntries(entries)
 }

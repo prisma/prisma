@@ -61,7 +61,7 @@ test('aggregations', async () => {
       age: true,
     },
     count: {
-      $all: true,
+      _all: true,
       name: true,
     },
     max: {
@@ -82,7 +82,7 @@ test('aggregations', async () => {
         age: 80,
       },
       count: Object {
-        $all: 10,
+        _all: 10,
         name: 10,
       },
       max: Object {
