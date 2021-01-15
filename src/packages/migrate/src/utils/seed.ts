@@ -5,25 +5,24 @@ import execa from 'execa'
 export function detectSeedFiles() {
   const seedPath = path.join(process.cwd(), 'prisma', 'seed.')
 
-  const jsFilePath = seedPath + 'js'
-  const tsFilePath = seedPath + 'ts'
-  const shFilePath = seedPath + 'sh'
-  const goFilePath = seedPath + 'go'
-
   const detected = {
     seedPath,
     numberOfSeedFiles: 0,
-    js: fs.existsSync(jsFilePath) ? jsFilePath : null,
-    ts: fs.existsSync(tsFilePath) ? tsFilePath : null,
-    sh: fs.existsSync(shFilePath) ? shFilePath : null,
-    go: fs.existsSync(goFilePath) ? goFilePath : null,
+    js: '',
+    ts: '',
+    sh: '',
+    go: '',
   }
 
-  detected.numberOfSeedFiles =
-    Number(!!detected.js) +
-    Number(!!detected.ts) +
-    Number(!!detected.sh) +
-    Number(!!detected.go)
+  const extensions = ['js', 'ts', 'sh', 'go']
+  for (const extension of extensions) {
+    const fullPath = seedPath + extension
+    if (!fs.existsSync(fullPath)) {
+      continue
+    }
+    detected[extension] = fullPath
+    detected.numberOfSeedFiles++
+  }
 
   return detected
 }
