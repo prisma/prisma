@@ -1,0 +1,8 @@
+generator gen {
+  provider = "node ./generator.js"
+  output   = "./generated/client"
+}
+
+model User {
+  id Int @id
+}

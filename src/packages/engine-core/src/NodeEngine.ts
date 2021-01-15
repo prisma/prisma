@@ -113,6 +113,7 @@ export type StopDeferred = {
   resolve: (code: number | null) => void
   reject: (err: Error) => void
 }
+export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
 const engines: NodeEngine[] = []
 const socketPaths: string[] = []
@@ -327,7 +328,7 @@ You may have to run ${chalk.greenBright(
   }
 
   on(
-    event: 'query' | 'info' | 'warn' | 'error' | 'beforeExit',
+    event: EngineEventType,
     listener: (args?: any) => any,
   ): void {
     if (event === 'beforeExit') {

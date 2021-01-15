@@ -51,7 +51,7 @@ export async function getLatestTag(): Promise<any> {
 }
 
 export function getAllUrls(branch: string, commit: string): string[] {
-  const urls = []
+  const urls: string[] = []
   const excludedPlatforms = [
     'freebsd',
     'arm',
@@ -96,7 +96,7 @@ export function getAllUrls(branch: string, commit: string): string[] {
 async function getFirstFinishedCommit(
   branch: string,
   commits: string[],
-): Promise<string> {
+): Promise<string | void> {
   for (const commit of commits) {
     const urls = getAllUrls(branch, commit)
     // TODO: potential to speed things up

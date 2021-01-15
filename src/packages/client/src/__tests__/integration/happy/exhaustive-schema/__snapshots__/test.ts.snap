@@ -597,7 +597,7 @@ export class PrismaClient<
    */
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
+  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
@@ -1291,7 +1291,7 @@ export namespace Prisma {
     content: number | null
     published: number | null
     authorId: number
-    $all: number
+    _all: number
   }
 
 
@@ -1330,7 +1330,7 @@ export namespace Prisma {
     content?: true
     published?: true
     authorId?: true
-    $all?: true
+    _all?: true
   }
 
   export type PostAggregateArgs = {
@@ -2131,7 +2131,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -2200,7 +2200,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type UserAggregateArgs = {
@@ -3014,7 +3014,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -3080,7 +3080,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type MAggregateArgs = {
@@ -3892,7 +3892,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -3958,7 +3958,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type NAggregateArgs = {
@@ -4770,7 +4770,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -4836,7 +4836,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type OneOptionalAggregateArgs = {
@@ -5653,7 +5653,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -5724,7 +5724,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type ManyRequiredAggregateArgs = {
@@ -6543,7 +6543,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -6614,7 +6614,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type OptionalSide1AggregateArgs = {
@@ -7428,7 +7428,7 @@ export namespace Prisma {
     optionalEnum: number | null
     boolean: number | null
     optionalBoolean: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -7494,7 +7494,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
-    $all?: true
+    _all?: true
   }
 
   export type OptionalSide2AggregateArgs = {
@@ -8296,7 +8296,7 @@ export namespace Prisma {
     inc_int: number
     inc_sInt: number
     inc_bInt: number
-    $all: number
+    _all: number
   }
 
 
@@ -8352,7 +8352,7 @@ export namespace Prisma {
     inc_int?: true
     inc_sInt?: true
     inc_bInt?: true
-    $all?: true
+    _all?: true
   }
 
   export type AAggregateArgs = {
@@ -9087,7 +9087,7 @@ export namespace Prisma {
     dFloat: number
     decFloat: number
     numFloat: number
-    $all: number
+    _all: number
   }
 
 
@@ -9127,7 +9127,7 @@ export namespace Prisma {
     dFloat?: true
     decFloat?: true
     numFloat?: true
-    $all?: true
+    _all?: true
   }
 
   export type BAggregateArgs = {
@@ -9844,7 +9844,7 @@ export namespace Prisma {
     bit: number | null
     vBit: number | null
     uuid: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -9876,7 +9876,7 @@ export namespace Prisma {
     bit?: true
     vBit?: true
     uuid?: true
-    $all?: true
+    _all?: true
   }
 
   export type CAggregateArgs = {
@@ -10578,7 +10578,7 @@ export namespace Prisma {
     xml: number | null
     json: number | null
     jsonb: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -10607,7 +10607,7 @@ export namespace Prisma {
     xml?: true
     json?: true
     jsonb?: true
-    $all?: true
+    _all?: true
   }
 
   export type DAggregateArgs = {
@@ -11301,7 +11301,7 @@ export namespace Prisma {
     date: number | null
     time: number | null
     ts: number | null
-    $all: number
+    _all: number
   }
 
 
@@ -11324,7 +11324,7 @@ export namespace Prisma {
     date?: true
     time?: true
     ts?: true
-    $all?: true
+    _all?: true
   }
 
   export type EAggregateArgs = {

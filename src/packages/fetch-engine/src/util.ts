@@ -8,7 +8,7 @@ const debug = Debug('cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
-    const cacheDir = await findCacheDir({ name: 'prisma', create: true })
+    const cacheDir = findCacheDir({ name: 'prisma', create: true })
     if (cacheDir) {
       return cacheDir
     }

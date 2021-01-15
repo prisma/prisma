@@ -1,4 +1,5 @@
 function flatten<T>(array: T[]): [] {
+  // @ts-ignore
   return Array.prototype.concat.apply([], array)
 }
 
