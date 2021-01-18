@@ -30,18 +30,9 @@ describe('push', () => {
   it('should fail if nativeTypes feature is enabled', async () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012
-
-            error: Native type VarChar is not supported for sqlite connector.
-              -->  schema.prisma:13
-               | 
-            12 |   id Int @id
-            13 |   name String @db.VarChar(100)
-               | 
-
-
-          `)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `UserFacingError`,
+    )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -52,7 +43,9 @@ describe('push', () => {
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(
+      `Response: Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)`,
+    )
   })
 
   it('already in sync', async () => {
@@ -117,11 +110,11 @@ describe('push', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                      ⚠️  There might be data loss when applying the changes:
+                                                            ⚠️  There might be data loss when applying the changes:
 
-                                                        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+                                                              • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
-                                    `)
+                                        `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -162,18 +155,9 @@ describe('push', () => {
   it('should fail if nativeTypes feature is enabled', async () => {
     ctx.fixture('nativeTypes-sqlite')
     const result = DbPush.new().parse(['--preview-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012
-
-            error: Native type VarChar is not supported for sqlite connector.
-              -->  schema.prisma:13
-               | 
-            12 |   id Int @id
-            13 |   name String @db.VarChar(100)
-               | 
-
-
-          `)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `UserFacingError`,
+    )
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -184,6 +168,8 @@ describe('push', () => {
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(
+      `Response: Some of the requested preview features are not yet allowed in migration engine. Please remove them from your data model before using migrations. (blocked: \`nativeTypes\`)`,
+    )
   })
 })
