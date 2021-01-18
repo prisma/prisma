@@ -117,7 +117,7 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
   prisma.$disconnect()
 })
 
-test('wrong-native-types-mysql D: Date, Time, Datetime, Timestamp, Year', async () => {
+test('wrong-native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => {
   const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
