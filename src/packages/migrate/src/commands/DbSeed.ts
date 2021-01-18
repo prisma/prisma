@@ -58,7 +58,7 @@ ${chalk.bold('Options')}
 
     return `\n${
       process.platform === 'win32' ? '' : '🌱  '
-    }Your database is now seeded.`
+    }Your database has been seeded.`
   }
 
   public help(error?: string): string | HelpError {
