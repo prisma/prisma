@@ -55,7 +55,7 @@ describe('seed', () => {
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            More than 1 seed file was found in \`prisma\`.
+            More than one seed file was found in \`prisma\`.
             This command only supports 1 \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file.
           `)
     expect(
