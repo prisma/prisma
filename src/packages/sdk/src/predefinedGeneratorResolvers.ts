@@ -125,7 +125,6 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
     cwd: baseDir,
     stdio: 'inherit',
     env: {
-      ...process.env,
       SKIP_GENERATE: 'true',
     },
   })

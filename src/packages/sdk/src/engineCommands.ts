@@ -53,7 +53,6 @@ export async function getDMMF({
     const options = {
       cwd,
       env: {
-        ...process.env,
         PRISMA_DML_PATH: tempDatamodelPath,
         RUST_BACKTRACE: '1',
         ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
@@ -232,7 +231,6 @@ export async function getConfig({
       {
         cwd,
         env: {
-          ...process.env,
           PRISMA_DML_PATH: tempDatamodelPath,
           RUST_BACKTRACE: '1',
         },
@@ -296,7 +294,6 @@ export async function formatSchema({
 
   const options = {
     env: {
-      ...process.env,
       RUST_BACKTRACE: '1',
       ...(showColors ? { CLICOLOR_FORCE: '1' } : {}),
     },
@@ -326,9 +323,6 @@ export async function getVersion(
   enginePath = await resolveBinary(binaryName, enginePath)
 
   const result = await execa(enginePath, ['--version'], {
-    env: {
-      ...process.env,
-    },
     maxBuffer: MAX_BUFFER,
   })
 
