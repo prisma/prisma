@@ -6,7 +6,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native"]
-  previewFeatures = ["uncheckedScalarInputs", "groupBy"]
+  previewFeatures = ["groupBy"]
 }
 
 model User {
@@ -14,6 +14,7 @@ model User {
   email      String    @unique
   name       String?
   age        Int?
+  strList    String[]
   posts      Post[]
   likes      Like[]
   json       Json?

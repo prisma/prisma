@@ -220,11 +220,13 @@ export class NodeEngine {
       'transactionApi',
       'transaction',
       'connectOrCreate',
+      'uncheckedScalarInputs',
     ]
     const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
+
     if (
       removedFlagsUsed.length > 0 &&
       !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
@@ -237,6 +239,7 @@ export class NodeEngine {
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
     }
+
     this.enableExperimental = this.enableExperimental.filter(
       (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
     )
