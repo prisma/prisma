@@ -76,7 +76,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  Your database is now seeded.
+                                                                                                                                                                                                            🌱  Your database has been seeded.
                                                                                                                                                                           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
