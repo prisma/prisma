@@ -1,20 +1,16 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`postgresql create first migration 3`] = `Array []`;
+
+exports[`postgresql create first migration 4`] = `Array []`;
+
 exports[`postgresql draft migration and apply (--name) 5`] = `Array []`;
 
 exports[`postgresql draft migration and apply (--name) 6`] = `Array []`;
 
-exports[`postgresql existingdb: first migration after init 3`] = `Array []`;
+exports[`postgresql existingdb: create first migration 3`] = `Array []`;
 
-exports[`postgresql existingdb: first migration after init 4`] = `Array []`;
-
-exports[`postgresql first migration after init - empty.prisma 3`] = `Array []`;
-
-exports[`postgresql first migration after init - empty.prisma 4`] = `Array []`;
-
-exports[`postgresql first migration after init 3`] = `Array []`;
-
-exports[`postgresql first migration after init 4`] = `Array []`;
+exports[`postgresql existingdb: create first migration 4`] = `Array []`;
 
 exports[`postgresql schema only (prompt yes) 2`] = `Array []`;
 
