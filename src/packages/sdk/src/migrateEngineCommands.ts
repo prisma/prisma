@@ -59,7 +59,6 @@ export async function canConnectToDatabase(
       {
         cwd,
         env: {
-          ...process.env,
           RUST_BACKTRACE: '1',
           RUST_LOG: 'info',
         },
@@ -113,7 +112,6 @@ export async function createDatabase(
     {
       cwd,
       env: {
-        ...process.env,
         RUST_BACKTRACE: '1',
         RUST_LOG: 'info',
       },
@@ -134,7 +132,6 @@ export async function dropDatabase(
     {
       cwd,
       env: {
-        ...process.env,
         RUST_BACKTRACE: '1',
         RUST_LOG: 'info',
       },
