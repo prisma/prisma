@@ -39,7 +39,7 @@ Create a \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file in the prisma folder.
         process.cwd(),
         path.dirname(detected.seedPath),
       )}\`.
-This command only supports one seed file: User \`seed.ts\`, \`.js\` or \`.sh\` or \`.go\`.`,
+This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.`,
     )
   } else {
     if (detected.js) {

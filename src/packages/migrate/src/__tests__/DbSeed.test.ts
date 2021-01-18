@@ -23,7 +23,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             More than one seed file was found in \`prisma\`.
-            This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\` or \`.go\`.
+            This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
           `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -56,7 +56,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             More than one seed file was found in \`prisma\`.
-            This command only supports one seed file: Use \`seed.ts\`, or \`.js\` or \`.sh\` or \`.go\`.
+            This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -76,8 +76,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  Your database has been seeded.
-                                                                                                                                                                          `)
+                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running \`node seed.js\` ...`)
@@ -96,8 +96,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  Your database is now seeded.
-                                                                                                                                                                          `)
+                        🌱  Your database has been seeded.
+                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running \`ts-node seed.ts\` ...`)
@@ -116,8 +116,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  Your database has been seeded.
-                                                                                                                                                                          `)
+                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running \`sh seed.sh\` ...`)
