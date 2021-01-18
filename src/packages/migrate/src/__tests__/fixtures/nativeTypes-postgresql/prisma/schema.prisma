@@ -1,0 +1,19 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
+
+generator client {
+  previewFeatures = ["nativeTypes"]
+  provider        = "prisma-client-js"
+}
+
+model Cat {
+  id   Int    @id
+  name String @db.VarChar(100)
+}
+
+model Dog {
+  id           Int  @id
+  bestFriendId Int?
+}

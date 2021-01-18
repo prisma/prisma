@@ -12,7 +12,6 @@ afterAll(() => {
 })
 
 test('findMany filter by rfc3339 date string', async () => {
-  console.log('going for it')
   const user = await prisma.post.findMany({
     where: {
       createdAt: {
