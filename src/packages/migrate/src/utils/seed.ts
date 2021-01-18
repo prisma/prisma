@@ -35,7 +35,7 @@ export async function tryToRunSeed() {
 Create a \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file in the prisma folder.`)
   } else if (detected.numberOfSeedFiles > 1) {
     throw new Error(
-      `More than 1 seed file was found in \`${path.relative(
+      `More than one seed file was found in \`${path.relative(
         process.cwd(),
         path.dirname(detected.seedPath),
       )}\`.
