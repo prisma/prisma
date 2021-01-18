@@ -231,7 +231,7 @@ test('Blog fixture: Postgres', async () => {
 
   expect(resultJsonUpdateWithoutSet.title).toBe('json array updated')
 
-  const resultJsonUpdateWithoutSetDatetime = await prisma.post.update({
+  const resultJsonUpdateWithoutSetDateTime = await prisma.post.update({
     where: {
       id: resultJsonArray.id,
     },
@@ -240,7 +240,7 @@ test('Blog fixture: Postgres', async () => {
       jsonData: new Date(),
     },
   })
-  expect(resultJsonUpdateWithoutSetDatetime.title).toBe(
+  expect(resultJsonUpdateWithoutSetDateTime.title).toBe(
     'json array updated date',
   )
 
