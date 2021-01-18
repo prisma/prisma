@@ -190,7 +190,7 @@ export class NodeEngine {
     activeProvider,
   }: EngineConfig) {
     this.dirname = dirname
-    this.useUds = useUds === undefined ? process.platform !== 'win32' : useUds
+    this.useUds = useUds ?? false // === undefined ? process.platform !== 'win32' : useUds
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
@@ -327,10 +327,7 @@ You may have to run ${chalk.greenBright(
     return process.cwd()
   }
 
-  on(
-    event: EngineEventType,
-    listener: (args?: any) => any,
-  ): void {
+  on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
       this.beforeExitListener = listener
     } else {
