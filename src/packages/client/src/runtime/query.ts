@@ -940,7 +940,6 @@ export function makeDocument({
       type: rootType,
       location: 'outputObjectTypes',
     },
-    isRequired: true,
     name: rootTypeName,
   }
   const children = selectionToFields(

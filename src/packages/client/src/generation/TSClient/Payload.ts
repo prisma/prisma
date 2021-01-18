@@ -73,7 +73,7 @@ export type ${getPayloadName(name)}<
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
-    if (field.isRequired && !outputType.isList) {
+    if (!field.isNullable && !outputType.isList) {
       return str
     }
     if (outputType.isList) {

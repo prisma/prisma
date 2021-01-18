@@ -61,7 +61,7 @@ export class OutputField implements Generatable {
 
     const arrayStr = field.outputType.isList ? `[]` : ''
     const nullableStr =
-      !field.isRequired && !field.outputType.isList ? ' | null' : ''
+      field.isNullable && !field.outputType.isList ? ' | null' : ''
     const namespaceStr =
       useNamespace &&
       needsNamespace(
@@ -69,7 +69,7 @@ export class OutputField implements Generatable {
           name: field.name,
           type: field.outputType.type,
           isList: field.outputType.isList,
-          isRequired: field.isRequired,
+          isRequired: !field.isNullable,
         },
         this.dmmf,
       )
