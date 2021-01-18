@@ -208,8 +208,8 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            More than 1 seed file was found in \`prisma\`.
-            This command only supports 1 \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file.
+            More than one seed file was found in \`prisma\`.
+            This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
           `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
