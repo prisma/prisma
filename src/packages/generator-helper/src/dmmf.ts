@@ -148,7 +148,6 @@ export namespace DMMF {
 
   export interface SchemaField {
     name: string
-    isRequired: boolean
     isNullable?: boolean
     outputType: {
       type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes

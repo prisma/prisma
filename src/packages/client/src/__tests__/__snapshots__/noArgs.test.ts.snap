@@ -5,13 +5,7 @@ exports[`no args createOne 1`] = `
 Invalid \`prisma.user()\` invocation:
 
 {
-+ data: {
-+   id: Int,
-+   name: String,
-+   email: String,
-+   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-+   persona: PersonaCreateOneWithoutUserInput
-+ }
++ data: UserCreateInput | UserUncheckedCreateInput
 }
 
 Argument data is missing.
@@ -76,17 +70,15 @@ Invalid \`prisma.user()\` invocation:
 
 {
   data: {
-    likedArticles: {
-?     create?: ArticleCreateWithoutLikedByInput | ArticleCreateWithoutLikedByInput[],
-?     connect?: ArticleWhereUniqueInput | ArticleWhereUniqueInput[],
-?     connectOrCreate?: ArticleCreateOrConnectWithoutlikedByInput | ArticleCreateOrConnectWithoutlikedByInput[]
-    }
++   personaId: Int
   }
 }
 
-Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
+Unknown arg \`likedArticles\` in data.likedArticles for type UserUncheckedCreateInput.
+Unknown arg \`persona\` in data.persona for type UserUncheckedCreateInput. Did you mean \`personaId\`?
+Argument personaId for data.personaId is missing.
 
-Note: Lines with ? are optional.
+Note: Lines with + are required
 
 `;
 
@@ -95,14 +87,10 @@ exports[`no args updateMany 1`] = `
 Invalid \`prisma.user()\` invocation:
 
 {
-+ data: {
-+   id?: Int | IntFieldUpdateOperationsInput,
-+   name?: String | StringFieldUpdateOperationsInput,
-+   email?: String | StringFieldUpdateOperationsInput
-+ },
++ data: UserUpdateManyMutationInput | UserUncheckedUpdateManyInput,
 ? where?: {
 ?   AND?: UserWhereInput | UserWhereInput,
-?   OR?: UserWhereInput | UserWhereInput,
+?   OR?: UserWhereInput,
 ?   NOT?: UserWhereInput | UserWhereInput,
 ?   id?: IntFilter | Int,
 ?   name?: StringFilter | String,
@@ -128,20 +116,8 @@ Invalid \`prisma.user()\` invocation:
 +   id?: Int,
 +   email?: String
 + },
-+ create: {
-+   id: Int,
-+   name: String,
-+   email: String,
-+   likedArticles?: ArticleCreateManyWithoutLikedByInput,
-+   persona: PersonaCreateOneWithoutUserInput
-+ },
-+ update: {
-+   id?: Int | IntFieldUpdateOperationsInput,
-+   name?: String | StringFieldUpdateOperationsInput,
-+   email?: String | StringFieldUpdateOperationsInput,
-+   likedArticles?: ArticleUpdateManyWithoutLikedByInput,
-+   persona?: PersonaUpdateOneRequiredWithoutUserInput
-+ }
++ create: UserCreateInput | UserUncheckedCreateInput,
++ update: UserUpdateInput | UserUncheckedUpdateInput
 }
 
 Argument where is missing.
