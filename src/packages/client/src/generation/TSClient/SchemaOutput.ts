@@ -20,7 +20,7 @@ export class SchemaOutputField implements Generatable {
     }
     const arrayStr = field.outputType.isList ? `[]` : ''
     const nullableStr =
-      !field.isRequired && !field.outputType.isList ? ' | null' : ''
+      field.isNullable && !field.outputType.isList ? ' | null' : ''
     return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
   }
 }

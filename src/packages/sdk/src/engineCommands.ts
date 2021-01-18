@@ -76,6 +76,9 @@ export async function getDMMF({
       transactionApi: `${chalk.blueBright(
         'info',
       )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
+      uncheckedScalarInputs: `${chalk.blueBright(
+        'info',
+      )} The preview flag "uncheckedScalarInputs" is not needed anymore, please remove it from your schema.prisma`,
     }
 
     if (enableExperimental) {

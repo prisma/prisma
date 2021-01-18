@@ -1,12 +1,13 @@
 import { PrismaClient } from './@prisma/client'
 
 const prisma = new PrismaClient({
-  rejectOnNotFound: {
-
-  },
-  log: [{
-    emit: 'event', level:"query"
-  }]
+  rejectOnNotFound: {},
+  log: [
+    {
+      emit: 'event',
+      level: 'query',
+    },
+  ],
 })
 
 async function main() {
@@ -14,8 +15,14 @@ async function main() {
   const res = await prisma.user.findFirst({
     where: {
       id: 'asdaf',
+      strList: {
+        has: '',
+        isEmpty: false,
+        hasSome: [''],
+        hasEvery: [''],
+      },
     },
-    rejectOnNotFound: new Error('Home')
+    rejectOnNotFound: new Error('Home'),
   })
   // console.log(res);
   // const res = await prisma.user.findUnique({

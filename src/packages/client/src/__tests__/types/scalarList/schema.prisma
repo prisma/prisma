@@ -1,0 +1,24 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes"]
+}
+
+model Forest {
+  id           String   @id @default(uuid())
+  trees        Tree[]
+  names        String[]
+  randomInts   Int[]
+  randomFloats Float[]
+  jsonList     Json[]
+}
+
+enum Tree {
+  Oak
+  Pine
+  Ash
+}
