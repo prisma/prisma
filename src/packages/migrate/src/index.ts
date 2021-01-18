@@ -1,3 +1,4 @@
+import { DbSeed } from './commands/DbSeed'
 export { Migrate } from './Migrate'
 export { MigrateEngine } from './MigrateEngine'
 export { MigrateCommand } from './commands/MigrateCommand'
@@ -9,6 +10,7 @@ export { MigrateDeploy } from './commands/MigrateDeploy'
 export { DbCommand } from './commands/DbCommand'
 export { DbPush } from './commands/DbPush'
 export { DbDrop } from './commands/DbDrop'
+export { DbSeed } from './commands/DbSeed'
 export { default as byline } from './utils/byline'
 export { handlePanic } from './utils/handlePanic'
 

@@ -22,6 +22,7 @@ import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
+import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -173,6 +174,12 @@ The following migration(s) have been applied:\n\n${chalk(
       if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
         await migrate.tryToRunGenerate()
       }
+    }
+
+    // Run seed if 1 or more seed files are present
+    const detected = detectSeedFiles()
+    if (detected.numberOfSeedFiles > 0) {
+      await tryToRunSeed()
     }
 
     return ``

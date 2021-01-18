@@ -50,6 +50,7 @@ import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
 import { DbPush } from './commands/DbPush'
 import { DbDrop } from './commands/DbDrop'
+import { DbSeed } from './commands/DbSeed'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'
 
@@ -69,6 +70,7 @@ async function main(): Promise<number> {
     // for convenient debugging
     push: DbPush.new(),
     drop: DbDrop.new(),
+    seed: DbSeed.new(),
   })
   // parse the arguments
   const result = await cli.parse(process.argv.slice(2))
