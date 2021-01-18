@@ -171,16 +171,6 @@ ${chalk.bold('Examples')}
 
       // Do the reset
       await migrate.reset()
-
-      // Create a draft migration if needed
-      const createMigrationResultAfterReset = await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-        // todo ask for name?
-        migrationName: '',
-        draft: true,
-        prismaSchema: migrate.getDatamodel(),
-      })
-      debug({ createMigrationResultAfterReset })
     }
 
     const { appliedMigrationNames } = await migrate.applyMigrations()
