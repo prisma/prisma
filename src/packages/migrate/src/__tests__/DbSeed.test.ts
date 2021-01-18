@@ -56,7 +56,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             More than one seed file was found in \`prisma\`.
-            This command only supports 1 \`seed.ts\` or \`.js\` or \`.sh\` or \`.go\` file.
+            This command only supports one seed file: Use \`seed.ts\`, or \`.js\` or \`.sh\` or \`.go\`.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
