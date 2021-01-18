@@ -231,17 +231,7 @@ exports[`select validation missing arg object 2`] = `
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
-+ data: {
-+   id?: String,
-+   createdAt?: DateTime,
-+   updatedAt?: DateTime,
-+   published: Boolean,
-+   title: String,
-+   content?: String | null,
-+   optionnal?: Float | null,
-+   author?: UserCreateOneWithoutPostsInput,
-+   categories?: CategoryCreateManyWithoutPostsInput
-+ }
++ data: PostCreateInput | PostUncheckedCreateInput
 }
 
 Argument data is missing.
@@ -270,17 +260,7 @@ exports[`select validation missing arg object colorless 2`] = `
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
-+ data: {
-+   id?: String,
-+   createdAt?: DateTime,
-+   updatedAt?: DateTime,
-+   published: Boolean,
-+   title: String,
-+   content?: String | null,
-+   optionnal?: Float | null,
-+   author?: UserCreateOneWithoutPostsInput,
-+   categories?: CategoryCreateManyWithoutPostsInput
-+ }
++ data: PostCreateInput | PostUncheckedCreateInput
 }
 
 Argument data is missing.
@@ -299,17 +279,7 @@ exports[`select validation missing arg object colorless 4`] = `
 Invalid \`prisma.createOnePost()\` invocation:
 
 {
-+ data: {
-+   id?: String,
-+   createdAt?: DateTime,
-+   updatedAt?: DateTime,
-+   published: Boolean,
-+   title: String,
-+   content?: String | null,
-+   optionnal?: Float | null,
-+   author?: UserCreateOneWithoutPostsInput,
-+   categories?: CategoryCreateManyWithoutPostsInput
-+ }
++ data: PostCreateInput | PostUncheckedCreateInput
 }
 
 Argument data is missing.
@@ -347,17 +317,8 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   optionnal?: Float | null,
-?   author?: {
-?     create?: UserCreateWithoutPostsInput,
-?     connect?: UserWhereUniqueInput,
-?     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
-?   },
-?   categories?: {
-?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
-?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
-?   }
+?   authorId?: String | null,
+?   optionnal?: Float | null
   }
 }
 
@@ -372,8 +333,8 @@ mutation {
   createOnePost(data: {
     title: "string"
     author: {
-      connect: {
-        id: ""
+      "connect": {
+        "id": ""
       }
     }
   }) {
@@ -397,6 +358,7 @@ Invalid \`prisma.createOnePost()\` invocation:
   data: {
     title: 'string',
     author: {
+    ~~~~~~
       connect: {
         id: ''
       }
@@ -406,15 +368,12 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   optionnal?: Float | null,
-?   categories?: {
-?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput,
-?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput,
-?     connectOrCreate?: CategoryCreateOrConnectWithoutpostsInput | CategoryCreateOrConnectWithoutpostsInput
-?   }
+?   authorId?: String | null,
+?   optionnal?: Float | null
   }
 }
 
+Unknown arg \`author\` in data.author for type PostUncheckedCreateInput. Did you mean \`authorId\`?
 Argument published for data.published is missing.
 
 Note: Lines with + are required, lines with ? are optional.
@@ -612,7 +571,7 @@ Invalid \`prisma.findManyUser()\` invocation:
 Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -633,7 +592,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -655,7 +614,7 @@ Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_a
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -676,7 +635,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -698,7 +657,7 @@ Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. 
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -720,7 +679,7 @@ Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInp
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -741,7 +700,7 @@ type UserWhereInput {
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -762,7 +721,7 @@ type UserWhereInput {
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -783,7 +742,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -805,7 +764,7 @@ Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereI
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -897,7 +856,7 @@ Invalid \`prisma.findManyUser()\` invocation:
 Unknown arg \`name_in\` in where.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -918,7 +877,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -940,7 +899,7 @@ Unknown arg \`this_is_completely_arbitrary\` in where.AND.0.this_is_completely_a
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -961,7 +920,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.1.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -983,7 +942,7 @@ Unknown arg \`id_endsWith\` in where.AND.1.id_endsWith for type UserWhereInput. 
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -1005,7 +964,7 @@ Unknown arg \`name_contains\` in where.AND.1.name_contains for type UserWhereInp
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -1026,7 +985,7 @@ type UserWhereInput {
 Unknown arg \`name_gt\` in where.AND.1.name_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -1047,7 +1006,7 @@ type UserWhereInput {
 Unknown arg \`name_in\` in where.AND.1.name_in for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -1068,7 +1027,7 @@ type UserWhereInput {
 Unknown arg \`age_gt\` in where.AND.1.AND.0.age_gt for type UserWhereInput. Did you mean \`name\`? Available args:
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String
@@ -1090,7 +1049,7 @@ Unknown arg \`id_endsWith\` in where.AND.1.AND.0.id_endsWith for type UserWhereI
 
 type UserWhereInput {
   AND?: UserWhereInput | List<UserWhereInput>
-  OR?: UserWhereInput | List<UserWhereInput>
+  OR?: List<UserWhereInput>
   NOT?: UserWhereInput | List<UserWhereInput>
   id?: StringFilter | String
   email?: StringFilter | String

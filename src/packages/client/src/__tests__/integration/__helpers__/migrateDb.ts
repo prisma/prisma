@@ -11,7 +11,7 @@ export async function migrateDb({
   schemaPath,
 }: MigrateOptions) {
   await createDatabase(connectionString)
-  const migrate = new Migrate(schemaPath, ['nativeTypes'])
+  const migrate = new Migrate(schemaPath)
 
   await migrate.push({
     force: true,

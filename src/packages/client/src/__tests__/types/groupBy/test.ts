@@ -51,21 +51,21 @@ async function main() {
   type X0 = {
     name: string | null
     avg: {
-      age: number
+      age: number | null
     }
     sum: {
-      age: number
+      age: number | null
     }
     count: {
-      age: number
+      age: number | null
       email: number | null
-      _all: number
+      _all: number | null
     }
     min: {
-      age: number
+      age: number | null
     }
     max: {
-      age: number
+      age: number | null
     }
   }
   const x0: X0 = x[0]

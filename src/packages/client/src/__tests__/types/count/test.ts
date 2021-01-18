@@ -28,8 +28,8 @@ async function main() {
     },
   })
   const t2: {
-    _all: number
-    age: number
+    _all: number | null
+    age: number | null
     email: number | null
     followerCount: number | null
     id: number | null

@@ -220,11 +220,13 @@ export class NodeEngine {
       'transactionApi',
       'transaction',
       'connectOrCreate',
+      'uncheckedScalarInputs',
     ]
     const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
+
     if (
       removedFlagsUsed.length > 0 &&
       !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
@@ -237,6 +239,7 @@ export class NodeEngine {
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
     }
+
     this.enableExperimental = this.enableExperimental.filter(
       (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
     )
@@ -1077,8 +1080,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       .then(({ data, headers }) => {
         // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
-        if (Array.isArray(data)) {
-          return data.map((result) => {
+        const { batchResult, errors } = data
+
+        if (Array.isArray(batchResult)) {
+          return batchResult.map((result) => {
             if (result.errors) {
               return this.graphQLToJSError(result.errors[0])
             }
@@ -1088,8 +1093,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          if (data.errors && data.errors.length === 1) {
-            throw new Error(data.errors[0].error)
+          if (errors && errors.length === 1) {
+            throw new Error(errors[0].error)
           }
           throw new Error(JSON.stringify(data))
         }

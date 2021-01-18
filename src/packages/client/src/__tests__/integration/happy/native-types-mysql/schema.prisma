@@ -22,7 +22,7 @@ model B {
   float    Float    @db.Float
   dFloat   Float    @db.Double
   decFloat Decimal? @db.Decimal(2, 1)
-  numFloat Decimal? @db.Numeric(10, 6)
+  numFloat Decimal? @db.Decimal(10, 6)
 }
 
 model C {

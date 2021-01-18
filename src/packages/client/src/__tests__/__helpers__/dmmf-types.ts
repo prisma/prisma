@@ -257,12 +257,6 @@ const dmmf: DMMF.Document = {
             {
               "inputTypes": [
                 {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereInput"
-                },
-                {
                   "isList": true,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
@@ -496,12 +490,6 @@ const dmmf: DMMF.Document = {
             {
               "inputTypes": [
                 {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput"
-                },
-                {
                   "isList": true,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
@@ -708,6 +696,63 @@ const dmmf: DMMF.Document = {
                 {
                   "isList": false,
                   "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "authorId"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedCreateInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
                   "type": "String"
                 },
                 {
@@ -766,6 +811,87 @@ const dmmf: DMMF.Document = {
                 {
                   "isList": false,
                   "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "authorId"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedUpdateInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
                   "type": "String"
                 },
                 {
@@ -811,6 +937,87 @@ const dmmf: DMMF.Document = {
                 {
                   "isList": false,
                   "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "authorId"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedUpdateManyInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
                   "type": "String"
                 }
               ],
@@ -833,6 +1040,52 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "UserCreateInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "email"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateManyWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "posts"
+            }
+          ],
+          "name": "UserUncheckedCreateInput"
         },
         {
           "constraints": {
@@ -885,6 +1138,64 @@ const dmmf: DMMF.Document = {
                 {
                   "isList": false,
                   "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "email"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateManyWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "posts"
+            }
+          ],
+          "name": "UserUncheckedUpdateInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
                   "type": "String"
                 },
                 {
@@ -900,6 +1211,51 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "UserUpdateManyMutationInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "email"
+            }
+          ],
+          "name": "UserUncheckedUpdateManyInput"
         },
         {
           "constraints": {
@@ -1307,6 +1663,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserCreateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -1397,6 +1759,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserCreateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -1423,6 +1791,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserUpdateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -1460,6 +1834,75 @@ const dmmf: DMMF.Document = {
         },
         {
           "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "increment"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "decrement"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "multiply"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "divide"
+            }
+          ],
+          "name": "IntFieldUpdateOperationsInput"
+        },
+        {
+          "constraints": {
             "maxNumFields": null,
             "minNumFields": null
           },
@@ -1477,6 +1920,18 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -1543,6 +1998,96 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "create"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            }
+          ],
+          "name": "PostUncheckedCreateManyWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -1722,6 +2267,217 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "PostUpdateManyWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "create"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "disconnect"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "delete"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateWithWhereUniqueWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateWithWhereUniqueWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "update"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateManyWithWhereWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateManyWithWhereWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "updateMany"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostScalarWhereInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostScalarWhereInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "deleteMany"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            }
+          ],
+          "name": "PostUncheckedUpdateManyWithoutAuthorInput"
         },
         {
           "constraints": {
@@ -2051,6 +2807,39 @@ const dmmf: DMMF.Document = {
               "inputTypes": [
                 {
                   "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "email"
+            }
+          ],
+          "name": "UserUncheckedCreateWithoutPostsInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserWhereUniqueInput"
@@ -2067,6 +2856,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserCreateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -2113,9 +2908,60 @@ const dmmf: DMMF.Document = {
               "inputTypes": [
                 {
                   "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "email"
+            }
+          ],
+          "name": "UserUncheckedUpdateWithoutPostsInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserUpdateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -2129,6 +2975,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "UserCreateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -2181,6 +3033,51 @@ const dmmf: DMMF.Document = {
               "inputTypes": [
                 {
                   "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedCreateWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostWhereUniqueInput"
@@ -2197,6 +3094,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -2232,6 +3135,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostUpdateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -2267,6 +3176,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostUpdateManyMutationInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateManyWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -2303,12 +3218,6 @@ const dmmf: DMMF.Document = {
             },
             {
               "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostScalarWhereInput"
-                },
                 {
                   "isList": true,
                   "location": "inputObjectTypes",
@@ -2440,6 +3349,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostUpdateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -2453,6 +3368,12 @@ const dmmf: DMMF.Document = {
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
                   "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -2506,6 +3427,132 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "PostUpdateWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedUpdateWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFieldUpdateOperationsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published"
+            }
+          ],
+          "name": "PostUncheckedUpdateManyWithoutPostsInput"
         }
       ]
     },
@@ -2516,7 +3563,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -2527,7 +3573,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "author",
               "outputType": {
                 "isList": false,
@@ -2539,7 +3584,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -2550,7 +3594,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "title",
               "outputType": {
                 "isList": false,
@@ -2561,7 +3604,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "published",
               "outputType": {
                 "isList": false,
@@ -2577,7 +3619,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -2588,7 +3629,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "email",
               "outputType": {
                 "isList": false,
@@ -2682,7 +3722,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "posts",
               "outputType": {
                 "isList": true,
@@ -2784,7 +3823,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "findFirstPost",
               "outputType": {
                 "isList": false,
@@ -2879,7 +3917,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "findManyPost",
               "outputType": {
                 "isList": true,
@@ -2961,7 +3998,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "aggregatePost",
               "outputType": {
                 "isList": false,
@@ -2992,7 +4028,6 @@ const dmmf: DMMF.Document = {
                 "sinceVersion": "2.14"
               },
               "isNullable": true,
-              "isRequired": false,
               "name": "findOnePost",
               "outputType": {
                 "isList": false,
@@ -3018,7 +4053,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "findUniquePost",
               "outputType": {
                 "isList": false,
@@ -3113,7 +4147,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "findFirstUser",
               "outputType": {
                 "isList": false,
@@ -3208,7 +4241,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "findManyUser",
               "outputType": {
                 "isList": true,
@@ -3290,7 +4322,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "aggregateUser",
               "outputType": {
                 "isList": false,
@@ -3321,7 +4352,6 @@ const dmmf: DMMF.Document = {
                 "sinceVersion": "2.14"
               },
               "isNullable": true,
-              "isRequired": false,
               "name": "findOneUser",
               "outputType": {
                 "isList": false,
@@ -3347,7 +4377,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "findUniqueUser",
               "outputType": {
                 "isList": false,
@@ -3370,6 +4399,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "PostCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedCreateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3378,7 +4413,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "createOnePost",
               "outputType": {
                 "isList": false,
@@ -3404,7 +4438,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "deleteOnePost",
               "outputType": {
                 "isList": false,
@@ -3422,6 +4455,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "PostUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3443,7 +4482,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "updateOnePost",
               "outputType": {
                 "isList": false,
@@ -3474,6 +4512,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "PostCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedCreateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3487,6 +4531,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "PostUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3495,7 +4545,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "upsertOnePost",
               "outputType": {
                 "isList": false,
@@ -3513,6 +4562,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "PostUpdateManyMutationInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateManyInput"
                     }
                   ],
                   "isNullable": false,
@@ -3534,7 +4589,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "updateManyPost",
               "outputType": {
                 "isList": false,
@@ -3560,7 +4614,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "deleteManyPost",
               "outputType": {
                 "isList": false,
@@ -3578,6 +4631,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "UserCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3586,7 +4645,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "createOneUser",
               "outputType": {
                 "isList": false,
@@ -3612,7 +4670,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "deleteOneUser",
               "outputType": {
                 "isList": false,
@@ -3630,6 +4687,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "UserUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3651,7 +4714,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": true,
-              "isRequired": false,
               "name": "updateOneUser",
               "outputType": {
                 "isList": false,
@@ -3682,6 +4744,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "UserCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3695,6 +4763,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "UserUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput"
                     }
                   ],
                   "isNullable": false,
@@ -3703,7 +4777,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "upsertOneUser",
               "outputType": {
                 "isList": false,
@@ -3721,6 +4794,12 @@ const dmmf: DMMF.Document = {
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
                       "type": "UserUpdateManyMutationInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateManyInput"
                     }
                   ],
                   "isNullable": false,
@@ -3742,7 +4821,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "updateManyUser",
               "outputType": {
                 "isList": false,
@@ -3768,7 +4846,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "deleteManyUser",
               "outputType": {
                 "isList": false,
@@ -3805,7 +4882,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "executeRaw",
               "outputType": {
                 "isList": false,
@@ -3841,7 +4917,6 @@ const dmmf: DMMF.Document = {
                 }
               ],
               "isNullable": false,
-              "isRequired": true,
               "name": "queryRaw",
               "outputType": {
                 "isList": false,
@@ -3857,7 +4932,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "count",
               "outputType": {
                 "isList": false,
@@ -3869,7 +4943,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "avg",
               "outputType": {
                 "isList": false,
@@ -3881,7 +4954,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "sum",
               "outputType": {
                 "isList": false,
@@ -3893,7 +4965,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "min",
               "outputType": {
                 "isList": false,
@@ -3905,7 +4976,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "max",
               "outputType": {
                 "isList": false,
@@ -3922,7 +4992,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "count",
               "outputType": {
                 "isList": false,
@@ -3934,7 +5003,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "avg",
               "outputType": {
                 "isList": false,
@@ -3946,7 +5014,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "sum",
               "outputType": {
                 "isList": false,
@@ -3958,7 +5025,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "min",
               "outputType": {
                 "isList": false,
@@ -3970,7 +5036,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "max",
               "outputType": {
                 "isList": false,
@@ -3987,7 +5052,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "count",
               "outputType": {
                 "isList": false,
@@ -4003,7 +5067,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4014,7 +5077,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -4025,7 +5087,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "title",
               "outputType": {
                 "isList": false,
@@ -4036,7 +5097,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "published",
               "outputType": {
                 "isList": false,
@@ -4047,7 +5107,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "_all",
               "outputType": {
                 "isList": false,
@@ -4063,7 +5122,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4074,7 +5132,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -4090,7 +5147,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4101,7 +5157,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -4117,7 +5172,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4128,7 +5182,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -4139,7 +5192,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "title",
               "outputType": {
                 "isList": false,
@@ -4150,7 +5202,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "published",
               "outputType": {
                 "isList": false,
@@ -4166,7 +5217,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4177,7 +5227,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -4188,7 +5237,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "title",
               "outputType": {
                 "isList": false,
@@ -4199,7 +5247,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "published",
               "outputType": {
                 "isList": false,
@@ -4215,7 +5262,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4226,7 +5272,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "email",
               "outputType": {
                 "isList": false,
@@ -4237,7 +5282,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "_all",
               "outputType": {
                 "isList": false,
@@ -4253,7 +5297,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4269,7 +5312,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4285,7 +5327,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4296,7 +5337,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "email",
               "outputType": {
                 "isList": false,
@@ -4312,7 +5352,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": false,
-              "isRequired": true,
               "name": "id",
               "outputType": {
                 "isList": false,
@@ -4323,7 +5362,6 @@ const dmmf: DMMF.Document = {
             {
               "args": [],
               "isNullable": true,
-              "isRequired": false,
               "name": "email",
               "outputType": {
                 "isList": false,

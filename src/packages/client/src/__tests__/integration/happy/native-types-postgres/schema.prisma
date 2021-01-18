@@ -31,7 +31,7 @@ model B {
   float    Float     @db.Real
   dFloat   Float     @db.DoublePrecision
   decFloat Decimal   @db.Decimal(2, 1)
-  numFloat Decimal   @db.Numeric(10, 6)
+  numFloat Decimal   @db.Decimal(10, 6)
   decArray Decimal[] @db.Decimal(20, 10)
 }
 
