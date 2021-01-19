@@ -182,6 +182,8 @@ ${chalk.bold('Examples')}
         }
       } catch (e) {
         console.error(e)
+      } finally {
+        console.info() // empty line
       }
     }
 

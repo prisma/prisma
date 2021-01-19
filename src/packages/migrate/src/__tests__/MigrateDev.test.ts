@@ -361,6 +361,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -409,6 +410,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
       The following migration(s) have been applied:
 
       migrations/
@@ -437,6 +439,7 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
 
       The following migration(s) have been applied:
@@ -595,11 +598,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -658,10 +661,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                `)
+                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -682,10 +685,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                `)
+                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -731,6 +734,7 @@ describe('sqlite', () => {
 
 
       Running \`node seed.js\` ...
+
       The following migration(s) have been applied:
 
       migrations/
@@ -762,6 +766,7 @@ describe('sqlite', () => {
 
 
       Running \`node seed.js\` ...
+
       The following migration(s) have been applied:
 
       migrations/
@@ -793,6 +798,7 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
 
       The following migration(s) have been applied:
