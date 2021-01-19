@@ -1,0 +1,9 @@
+generator gen {
+  provider      = "predefined-generator"
+  binaryTargets = ["darwin"]
+}
+
+model User {
+  id   Int    @id
+  name String
+}

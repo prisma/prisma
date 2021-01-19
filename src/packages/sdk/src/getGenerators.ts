@@ -34,6 +34,7 @@ import { enginesVersion } from '@prisma/engines'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
 import Debug from '@prisma/debug'
+import { missingDatasource } from './utils/missingDatasource'
 const debug = Debug('getGenerators')
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -113,6 +114,10 @@ export async function getGenerators({
     prismaPath,
     ignoreEnvVarErrors: true,
   })
+
+  if (config.datasources.length === 0) {
+    throw new Error(missingDatasource)
+  }
 
   printConfigWarnings(config.warnings)
 
