@@ -39,7 +39,7 @@ generatorHandler({
       engineVersion: options.version,
       clientVersion,
       transpile: true,
-      activeProvider: options.datasources[0].activeProvider,
+      activeProvider: options.datasources[0]?.activeProvider,
     })
   },
 })

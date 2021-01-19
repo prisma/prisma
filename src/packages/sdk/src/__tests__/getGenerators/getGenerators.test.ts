@@ -5,6 +5,7 @@ import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
 import { getEnginesPath } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
+import stripAnsi from 'strip-ansi'
 
 jest.setTimeout(20000)
 
@@ -154,5 +155,37 @@ describe('getGenerators', () => {
         providerAliases: aliases,
       }),
     ).rejects.toThrow('Unknown')
+  })
+
+  test('fail if datasource is missing', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'missing-datasource-schema.prisma'),
+        providerAliases: aliases,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        You don't have any datasource defined in your schema.prisma.
+        You can define a datasource like this:
+
+        datasource db {
+          provider = \\"postgresql\\"
+          url      = env(\\"DB_URL\\")
+        }
+
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
+    }
   })
 })
