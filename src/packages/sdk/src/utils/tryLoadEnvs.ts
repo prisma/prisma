@@ -128,7 +128,10 @@ export function loadEnv(
     debug(`Environment variables loaded from ${envPath}`)
     return {
       dotenvResult: dotenvExpand(
-        dotenv.config({ path: envPath, debug: !!process.env.DEBUG }),
+        dotenv.config({
+          path: envPath,
+          debug: Boolean(process.env.DEBUG) || undefined,
+        }),
       ),
       message: chalk.dim(
         `Environment variables loaded from ${path.relative(
