@@ -208,7 +208,7 @@ describe('reset', () => {
 
     const result = MigrateReset.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            More than one seed file was found in \`prisma\`.
+            More than one seed file was found in \`prisma\` directory.
             This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
           `)
     expect(

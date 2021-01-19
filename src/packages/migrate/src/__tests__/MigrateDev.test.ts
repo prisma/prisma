@@ -361,6 +361,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -409,6 +410,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+
       The following migration(s) have been applied:
 
       migrations/
@@ -437,6 +439,7 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
 
       The following migration(s) have been applied:
@@ -595,11 +598,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -658,10 +661,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
 
-                                                                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                `)
+                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -682,10 +685,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
 
-                                                                                                  • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                `)
+                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -711,6 +714,108 @@ describe('sqlite', () => {
     ).toMatchInlineSnapshot(
       `Response: Datasource provider arrays are no longer supported in migrate. Please change your datasource to use a single provider. Read more at https://pris.ly/multi-provider-deprecation`,
     )
+  })
+
+  it('one seed file', async () => {
+    ctx.fixture('edited-and-draft')
+    fs.write('prisma/seed.js', 'console.log("Hello from generated seed")')
+
+    prompt.inject(['y'])
+
+    const result = MigrateDev.new().parse(['--preview-feature'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Everything is now in sync.`,
+    )
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Running \`node seed.js\` ...
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_test/
+          └─ migration.sql
+        └─ 20201231000000_draft/
+          └─ migration.sql
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  })
+
+  it('one broken seed file', async () => {
+    ctx.fixture('edited-and-draft')
+    fs.write('prisma/seed.js', 'BROKENCODE;;;;;')
+
+    prompt.inject(['y'])
+
+    const result = MigrateDev.new().parse(['--preview-feature'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Everything is now in sync.`,
+    )
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Running \`node seed.js\` ...
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_test/
+          └─ migration.sql
+        └─ 20201231000000_draft/
+          └─ migration.sql
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
+      'Command failed with exit code 1',
+    )
+  })
+
+  it('multple seed files', async () => {
+    ctx.fixture('edited-and-draft')
+    fs.write('prisma/seed.sh', 'echo "Hello from generated seed"')
+    fs.write('prisma/seed.js', 'console.log("Hello from generated seed")')
+
+    prompt.inject(['y'])
+
+    const result = MigrateDev.new().parse(['--preview-feature'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(
+      `Everything is now in sync.`,
+    )
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_test/
+          └─ migration.sql
+        └─ 20201231000000_draft/
+          └─ migration.sql
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join())
+      .toMatchInlineSnapshot(`
+      Error: More than one seed file was found in \`prisma\` directory.
+      This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
+    `)
   })
 })
 
