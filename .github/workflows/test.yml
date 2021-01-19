@@ -7,13 +7,27 @@ on:
       - master
     paths-ignore:
       - "*.md"
-      - ".buildkite/**"
+      - ".vscode/**"
       - "docs/**"
-      - "scripts/**"
-      - ".prettierrc.yml"
-      - ".dockerignore"
+      - "examples/**"
       - "LICENSE"
+      - "src/.buildkite/**"
+      - "src/.dockerignore"
+      - "src/scripts/**"
+      - "src/graphs/**"
+      - "src/scripts/**"
   pull_request:
+   paths-ignore:
+      - "*.md"
+      - ".vscode/**"
+      - "docs/**"
+      - "examples/**"
+      - "LICENSE"
+      - "src/.buildkite/**"
+      - "src/.dockerignore"
+      - "src/scripts/**"
+      - "src/graphs/**"
+      - "src/scripts/**"
 
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
