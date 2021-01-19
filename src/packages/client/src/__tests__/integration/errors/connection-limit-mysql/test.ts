@@ -1,20 +1,20 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-describe('connection-limit', () => {
-  expect.assertions(1)
+describe('connection-limit-mysql', () => {
+  expect.assertions(2)
   const clients: any[] = []
 
   afterAll(async () => {
     await Promise.all(clients.map((c) => c.$disconnect()))
   })
 
-  test('the client cannot query the db with 100 connections already open', async () => {
+  test('the client cannot query the db with 152 connections already open', async () => {
     const PrismaClient = await getTestClient()
     const connectionString =
-      process.env.TEST_POSTGRES_ISOLATED_URI ||
-      'postgres://prisma:prisma@localhost:5435/tests'
+      process.env.TEST_MYSQL_ISOLATED_URI ||
+      'mysql://root:root@mysql:3306/tests'
 
-    for (let i = 0; i <= 100; i++) {
+    for (let i = 0; i <= 155; i++) {
       const client = new PrismaClient({
         datasources: {
           db: { url: connectionString },
@@ -22,14 +22,16 @@ describe('connection-limit', () => {
       })
       clients.push(client)
     }
-
+    let count = 0
     try {
       for (const client of clients) {
         await client.$connect()
+        count++
       }
     } catch (e) {
-      expect(e.message).toMatch(
-        'Error querying the database: db error: FATAL: sorry, too many clients already',
+      expect(count).toEqual(152)
+      expect(e.message).toMatchInlineSnapshot(
+        `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )
     }
   }, 100_000)
