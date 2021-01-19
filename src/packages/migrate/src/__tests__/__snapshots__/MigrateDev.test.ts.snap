@@ -86,6 +86,14 @@ exports[`sqlite first migration (prompt) 3`] = `Array []`;
 
 exports[`sqlite first migration (prompt) 4`] = `Array []`;
 
+exports[`sqlite multple seed files 3`] = ``;
+
+exports[`sqlite one broken seed file 3`] = ``;
+
+exports[`sqlite one seed file 3`] = ``;
+
+exports[`sqlite one seed file 4`] = ``;
+
 exports[`sqlite provider array should fail 3`] = `Array []`;
 
 exports[`sqlite removed applied migration and unapplied empty draft 3`] = ``;
