@@ -13,16 +13,7 @@ const prisma = new PrismaClient({
 async function main() {
   prisma.$on('query', () => {})
   const res = await prisma.user.findFirst({
-    where: {
-      id: 'asdaf',
-      strList: {
-        has: '',
-        isEmpty: false,
-        hasSome: [''],
-        hasEvery: [''],
-      },
-    },
-    rejectOnNotFound: new Error('Home'),
+    rejectOnNotFound: true,
   })
   // console.log(res);
   // const res = await prisma.user.findUnique({
