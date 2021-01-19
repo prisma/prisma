@@ -38,7 +38,6 @@ import {
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
-import { fromEntries } from './utils/fromEntries'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'

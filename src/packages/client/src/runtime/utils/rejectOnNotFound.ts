@@ -24,7 +24,7 @@ export class NotFoundError extends Error {
  */
 export function getRejectOnNotFound(
   action: Action,
-  modelName: string, 
+  modelName: string,
   args?: any,
   clientInstance?: InstanceRejectOnNotFound,
 ): RejectOnNotFound {
@@ -39,15 +39,24 @@ export function getRejectOnNotFound(
     delete args['rejectOnNotFound']
   } else if (typeof clientInstance === 'boolean') {
     rejectOnNotFound = clientInstance
-  } else if (clientInstance && typeof clientInstance === 'object' && action in clientInstance) {
+  } else if (
+    clientInstance &&
+    typeof clientInstance === 'object' &&
+    action in clientInstance
+  ) {
     const rejectPerOperation = clientInstance[action]
-    if(rejectPerOperation && typeof rejectPerOperation === 'object'){
-      if(modelName in rejectPerOperation) {
+    if (rejectPerOperation && typeof rejectPerOperation === 'object') {
+      if (modelName in rejectPerOperation) {
         return rejectPerOperation[modelName]
-      } 
+      }
       return undefined
     }
-    rejectOnNotFound = getRejectOnNotFound(action, modelName, args, rejectPerOperation)
+    rejectOnNotFound = getRejectOnNotFound(
+      action,
+      modelName,
+      args,
+      rejectPerOperation,
+    )
   } else if (typeof clientInstance === 'function') {
     rejectOnNotFound = clientInstance
   } else {
