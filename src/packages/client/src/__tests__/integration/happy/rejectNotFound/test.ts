@@ -1,44 +1,40 @@
-import { isError } from '@prisma/sdk'
 import { getTestClient } from '../../../../utils/getTestClient'
 const cases = {
   constructor: {
-    customError: new Error('Constructor Custom Error'),
-    booleanPerAction: {
+    customError: () => new Error('Constructor Custom Error'),
+    truePerAction: {
       findUnique: true,
+      findFirst: true,
+    },
+    falsePerAction: {
+      findUnique: false,
       findFirst: false,
     },
-    thunkPerAction: {
-      findFirst: () => new Error('Constructor Thunk on findFirst'),
-      findUnique: (err) => err
-    },
     errorPerAction: {
-      findFirst: Error('Constructor Error on findFirst'),
-      findUnique: Error('Constructor Error on findUnique'),
+      findFirst: () => new Error('Constructor Error on findFirst'),
+      findUnique: () => new Error('Constructor Error on findUnique'),
     },
     customErrorPerActionPerModel: {
       findFirst: {
-        User: new Error('Constructor Custom Error on findFirst:User')
+        User: () => new Error('Constructor Custom Error on findFirst:User'),
       },
       findUnique: {
-        User: () => new Error('Constructor Thunk on findUnique:User')
+        User: () => new Error('Constructor Thunk on findUnique:User'),
       },
     },
-    thunk: () => new Error('Constructor Thunk'),
     true: true,
     false: false,
     undefined: undefined,
   },
   methods: {
     findUnique: {
-      customError: new Error('FindUnique Custom Error'),
-      thunk: () => new Error('FindUnique Thunk'),
+      customError: () => new Error('FindUnique Custom Error'),
       true: true,
       false: false,
       undefined: undefined,
     },
     findFirst: {
-      customError: new Error('FindFirst Custom Error'),
-      thunk: () => new Error('FindFirst Thunk'),
+      customError: () => new Error('FindFirst Custom Error'),
       true: true,
       false: false,
       undefined: undefined,

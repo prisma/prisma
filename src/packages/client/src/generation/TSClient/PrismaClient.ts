@@ -158,7 +158,7 @@ get ${methodName}(): Prisma.${m.model}Delegate;`
   public toTS(): string {
     return `${new Datasources(this.internalDatasources).toTS()}
 
-export type RejectOnNotFound = boolean | Error | ((error: Error) => Error)
+export type RejectOnNotFound = boolean | ((error: Error) => Error)
 export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
 export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
 
@@ -171,12 +171,10 @@ export interface PrismaClientOptions {
    * \`\`\`
    * // Reject on both findUnique/findFirst
    * rejectOnNotFound: true
-   * 
    * // Reject only on findFirst with a custom error
    * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
-   * 
    * // Reject on user.findUnique with a custom error
-   * rejectOnNotFound: { findUnique: {User: new Error("User not found")}}
+   * rejectOnNotFound: { findUnique: {User: (err) => new Error("User not found")}}
    * \`\`\`
    */
   rejectOnNotFound?: RejectOnNotFound | RejectPerOperation

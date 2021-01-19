@@ -8,23 +8,21 @@ async function main() {
   const p1 = new PrismaClient({
     rejectOnNotFound: true,
   })
-  const p2 = new PrismaClient({
-    rejectOnNotFound: new Error('Error'),
-  })
+
   const p21 = new PrismaClient({
     rejectOnNotFound: () => new Error('Error'),
   })
   const p3 = new PrismaClient({
     rejectOnNotFound: {
-      findUnique: new Error('Error'),
+      findUnique: () => new Error('Error'),
       findFirst: true,
     },
   })
   const p4 = new PrismaClient({
     rejectOnNotFound: {
-      findUnique: { 
+      findUnique: {
         User: true,
-        MachineData: new Error('Error'),
+        MachineData: () => new Error('Error'),
         Post: () => new Error('Error'),
       },
       findFirst: false,
@@ -40,7 +38,7 @@ async function main() {
   })
   p1.user.findUnique({
     where: { id: 'anything' },
-    rejectOnNotFound: new Error('FindUnique Custom Error'),
+    rejectOnNotFound: () => new Error('FindUnique Custom Error'),
   })
   p1.user.findUnique({
     where: { id: 'anything' },
@@ -61,7 +59,7 @@ async function main() {
   })
   p1.user.findFirst({
     where: { id: 'anything' },
-    rejectOnNotFound: new Error('FindUnique Custom Error'),
+    rejectOnNotFound: () => new Error('FindUnique Custom Error'),
   })
   p1.user.findFirst({
     where: { id: 'anything' },
