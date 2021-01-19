@@ -141,7 +141,6 @@ describe('seed', () => {
     ).toMatchInlineSnapshot(`Running \`node seed.js\` ...`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       'Command failed with exit code 1',
-      ``,
     )
   })
 })
