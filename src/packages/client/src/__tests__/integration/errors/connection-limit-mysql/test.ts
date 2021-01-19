@@ -25,11 +25,11 @@ describe('connection-limit-mysql', () => {
     let count = 0
     try {
       for (const client of clients) {
-        count++
         await client.$connect()
+        count++
       }
     } catch (e) {
-      expect(count).toEqual(153)
+      expect(count).toEqual(152)
       expect(e.message).toMatchInlineSnapshot(
         `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )
