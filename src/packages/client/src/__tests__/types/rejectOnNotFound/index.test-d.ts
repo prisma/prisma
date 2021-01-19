@@ -19,6 +19,12 @@ const p1 = new PrismaClient({
   )
   expectError(
     new PrismaClient({
+      rejectOnNotFound: new Error('Error'),
+    }),
+  )
+
+  expectError(
+    new PrismaClient({
       rejectOnNotFound: {
         NotAModel: new Error('Contructor Custom Error on User'),
       },
@@ -72,5 +78,4 @@ const p1 = new PrismaClient({
       },
     }),
   )
-  
 })()
