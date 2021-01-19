@@ -1045,6 +1045,7 @@ new PrismaClient({
 
       const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(
         action,
+        typeName,
         args,
         this._rejectOnNotFound,
       )
