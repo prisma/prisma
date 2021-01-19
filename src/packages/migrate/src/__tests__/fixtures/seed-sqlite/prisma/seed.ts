@@ -1,1 +1,2 @@
-console.log('Hello from seed.js')
+process.env.TEST = 'yes'
+console.log('Hello from seed.ts')

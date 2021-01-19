@@ -1,6 +1,9 @@
 import fs from 'fs'
 import path from 'path'
 import execa from 'execa'
+import resolvePkg from 'resolve-pkg'
+import hasYarn from 'has-yarn'
+import chalk from 'chalk'
 
 export function detectSeedFiles() {
   const seedPath = path.join(process.cwd(), 'prisma', 'seed.')
@@ -49,6 +52,31 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
         stdio: 'inherit',
       })
     } else if (detected.ts) {
+      const hasTypescriptPkg = resolvePkg('typescript')
+      const hasTsNodePkg = resolvePkg('ts-node')
+      const hasTypesNodePkg = resolvePkg('@types/node')
+
+      const missingPkgs: string[] = []
+      if (!hasTypescriptPkg) {
+        missingPkgs.push('typescript')
+      }
+      if (!hasTsNodePkg) {
+        missingPkgs.push('ts-node')
+      }
+      if (!hasTypesNodePkg) {
+        missingPkgs.push('@types/node')
+      }
+
+      if (missingPkgs.length > 0) {
+        const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
+        console.info(`We detected a \`seed.ts\` file but it seems that you do not have the following dependencies installed:
+${missingPkgs.map((name) => `- ${name}`).join('\n')}
+
+To install them run: ${chalk.green(
+          `${packageManager} ${missingPkgs.join(' ')}`,
+        )}\n`)
+      }
+
       console.info('Running `ts-node seed.ts` ...')
       return await execa('ts-node', [detected.ts], {
         shell: true,
