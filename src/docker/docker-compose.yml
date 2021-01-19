@@ -57,7 +57,22 @@ services:
       - mysql:/var/lib/mysql
     ports:
       - '3306:3306'
-
+  mysql_isolated:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+    volumes:
+      - mysql_isolated:/var/lib/mysql
+    ports:
+      - '3307:3306'
   mariadb:
     image: mariadb:10
     restart: always
@@ -86,5 +101,6 @@ volumes:
   postgres:
   postgres_isolated:
   mysql:
+  mysql_isolated:
   mariadb:
   mssql:
