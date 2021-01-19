@@ -188,7 +188,7 @@ export class Init implements Command {
       steps.unshift(
         `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
           '.env',
-        )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started.`,
+        )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
       )
     }
 
