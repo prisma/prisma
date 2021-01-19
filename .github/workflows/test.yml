@@ -184,7 +184,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
   #
-  # CLIENT
+  # CLIENT (without types test)
   #
   client:
     timeout-minutes: 20
@@ -226,7 +226,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test
+      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts
         working-directory: src/packages/client
         env:
           CI: true
@@ -243,6 +243,51 @@ jobs:
         working-directory: src/packages/client
         run: |
           bash <(curl -s https://codecov.io/bash) -F client -f ./src/__tests__/coverage/clover.xml
+
+  #
+  # CLIENT (types tests only)
+  #
+  client-types:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+          
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test src/__tests__/types/types.test.ts
+        working-directory: src/packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
 
   #
   # SDK
