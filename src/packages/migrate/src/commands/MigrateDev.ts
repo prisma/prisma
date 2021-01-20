@@ -172,19 +172,6 @@ ${chalk.bold('Examples')}
 
       // Do the reset
       await migrate.reset()
-
-      // Run seed if 1 or more seed files are present
-      // And catch the error to continue execution
-      try {
-        const detected = detectSeedFiles()
-        if (detected.numberOfSeedFiles > 0) {
-          await tryToRunSeed()
-        }
-      } catch (e) {
-        console.error(e)
-      } finally {
-        console.info() // empty line
-      }
     }
 
     const { appliedMigrationNames } = await migrate.applyMigrations()
@@ -198,6 +185,21 @@ ${chalk.bold('Examples')}
           }),
         )}`,
       )
+    }
+
+    // If database was reset we want to run the seed
+    if (devDiagnostic.action.tag === 'reset') {
+      // Run seed if 1 or more seed files are present
+      // And catch the error to continue execution
+      try {
+        const detected = detectSeedFiles()
+        if (detected.numberOfSeedFiles > 0) {
+          console.info() // empty line
+          await tryToRunSeed()
+        }
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     const evaluateDataLossResult = await migrate.evaluateDataLoss()
