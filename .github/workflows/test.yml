@@ -15,7 +15,6 @@ on:
       - "src/.dockerignore"
       - "src/scripts/**"
       - "src/graphs/**"
-      - "src/scripts/**"
   pull_request:
    paths-ignore:
       - "*.md"
@@ -27,7 +26,6 @@ on:
       - "src/.dockerignore"
       - "src/scripts/**"
       - "src/graphs/**"
-      - "src/scripts/**"
 
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"

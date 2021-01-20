@@ -9,9 +9,10 @@ node -v
 npm install
 npm run build
 
-cd ..
-node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md,.github,.prettierrc.yml' 
-export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude='docs,examples,scripts,README.md,LICENSE,CONTRIBUTING.md,.github,.prettierrc.yml' | wc -l)
+EXCLUDE_LIST="docs,.vscode,examples,src/scripts,src/graphs,README.md,LICENSE,CONTRIBUTING.md,.github"
+echo $EXCLUDE_LIST
+node last-git-changes/bin.js --exclude="$EXCLUDE_LIST"
+export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude="$EXCLUDE_LIST" | wc -l)
 
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
