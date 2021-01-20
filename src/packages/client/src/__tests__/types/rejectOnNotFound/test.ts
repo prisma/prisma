@@ -28,8 +28,20 @@ async function main() {
       findUnique: true,
     },
   })
-  const r1p2: User = await p1.user.findFirst()
-  const r2p2: User = await p1.user.findFirst()
+  const r1p2: User = await p2.user.findFirst()
+  const r2p2: Post = await p2.post.findFirst()
+
+  const r3p2: Post = await p2.post.findUnique({ where: { id: '' } })
+  const r4p2: User = await p2.user.findUnique({ where: { id: '' } })
+
+  const r5p2: Post | null = await p2.post.findUnique({
+    where: { id: '' },
+    rejectOnNotFound: false,
+  })
+  const r6p2: User | null = await p2.user.findUnique({
+    where: { id: '' },
+    rejectOnNotFound: false,
+  })
 
   const p3 = new PrismaClient({
     rejectOnNotFound: {
