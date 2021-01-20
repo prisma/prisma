@@ -806,31 +806,24 @@ async function testPackages(
   publishOrder: string[][],
 ): Promise<void> {
   let order = flatten(publishOrder)
-  console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
 
   // If paralelism is set in builkite we split the testing
   // Job 0 all but client
   // Job 1 only client
-  console.debug(
-    'BUILDKITE_PARALLEL_JOB',
-    process.env.BUILDKITE_PARALLEL_JOB,
-    typeof process.env.BUILDKITE_PARALLEL_JOB,
-  )
-  console.debug(
-    'BUILDKITE_PARALLEL_JOB_COUNT',
-    process.env.BUILDKITE_PARALLEL_JOB_COUNT,
-    typeof process.env.BUILDKITE_PARALLEL_JOB_COUNT,
-  )
-
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
+    console.log(
+      'BUILDKITE_PARALLEL_JOB === 0 - running all tests excluding client',
+    )
     const index = order.indexOf('@prisma/client')
     if (index > -1) {
       order.splice(index, 1)
     }
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
+    console.log('BUILDKITE_PARALLEL_JOB === 0 - running client only')
     order = ['@prisma/client']
   }
 
+  console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
   console.log(order)
 
   for (const pkgName of order) {
