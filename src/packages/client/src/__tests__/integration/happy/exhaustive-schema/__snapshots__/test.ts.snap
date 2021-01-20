@@ -1140,8 +1140,6 @@ export namespace Prisma {
     Model extends ModelName
   > = Local extends RejectOnNotFound
     ? isTrue<Local>
-    : Global extends boolean
-    ? isTrue<Global>
     : Global extends RejectPerOperation
     ? Action extends keyof Global
       ? Global[Action] extends boolean
@@ -1152,7 +1150,7 @@ export namespace Prisma {
           : 0
         : 0
       : 0
-    : 0
+    : isTrue<Global>
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
   export interface PrismaClientOptions {
@@ -1526,9 +1524,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends PostFindUniqueArgs>(
+    findUnique<T extends PostFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'Post'> extends 1 ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'Post'> extends 1 ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
         >, Prisma__PostClient<PostGetPayload<T> | null
         >>
 
@@ -1543,9 +1541,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends PostFindFirstArgs>(
+    findFirst<T extends PostFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'Post'> extends 1 ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'Post'> extends 1 ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
         >, Prisma__PostClient<PostGetPayload<T> | null
         >>
 
@@ -2418,9 +2416,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends UserFindUniqueArgs>(
+    findUnique<T extends UserFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'User'> extends 1 ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'User'> extends 1 ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
         >, Prisma__UserClient<UserGetPayload<T> | null
         >>
 
@@ -2435,9 +2433,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends UserFindFirstArgs>(
+    findFirst<T extends UserFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'User'> extends 1 ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'User'> extends 1 ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
         >, Prisma__UserClient<UserGetPayload<T> | null
         >>
 
@@ -3300,9 +3298,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends MFindUniqueArgs>(
+    findUnique<T extends MFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'M'> extends 1 ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'M'> extends 1 ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
         >, Prisma__MClient<MGetPayload<T> | null
         >>
 
@@ -3317,9 +3315,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends MFindFirstArgs>(
+    findFirst<T extends MFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'M'> extends 1 ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'M'> extends 1 ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
         >, Prisma__MClient<MGetPayload<T> | null
         >>
 
@@ -4182,9 +4180,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends NFindUniqueArgs>(
+    findUnique<T extends NFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'N'> extends 1 ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'N'> extends 1 ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
         >, Prisma__NClient<NGetPayload<T> | null
         >>
 
@@ -4199,9 +4197,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends NFindFirstArgs>(
+    findFirst<T extends NFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'N'> extends 1 ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'N'> extends 1 ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
         >, Prisma__NClient<NGetPayload<T> | null
         >>
 
@@ -5064,9 +5062,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OneOptionalFindUniqueArgs>(
+    findUnique<T extends OneOptionalFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'OneOptional'> extends 1 ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'OneOptional'> extends 1 ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
         >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null
         >>
 
@@ -5081,9 +5079,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OneOptionalFindFirstArgs>(
+    findFirst<T extends OneOptionalFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'OneOptional'> extends 1 ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'OneOptional'> extends 1 ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
         >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null
         >>
 
@@ -5958,9 +5956,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends ManyRequiredFindUniqueArgs>(
+    findUnique<T extends ManyRequiredFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'ManyRequired'> extends 1 ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'ManyRequired'> extends 1 ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
         >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null
         >>
 
@@ -5975,9 +5973,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends ManyRequiredFindFirstArgs>(
+    findFirst<T extends ManyRequiredFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'ManyRequired'> extends 1 ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'ManyRequired'> extends 1 ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
         >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null
         >>
 
@@ -6854,9 +6852,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OptionalSide1FindUniqueArgs>(
+    findUnique<T extends OptionalSide1FindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'OptionalSide1'> extends 1 ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'OptionalSide1'> extends 1 ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
         >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null
         >>
 
@@ -6871,9 +6869,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OptionalSide1FindFirstArgs>(
+    findFirst<T extends OptionalSide1FindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'OptionalSide1'> extends 1 ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'OptionalSide1'> extends 1 ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
         >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null
         >>
 
@@ -7738,9 +7736,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OptionalSide2FindUniqueArgs>(
+    findUnique<T extends OptionalSide2FindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'OptionalSide2'> extends 1 ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'OptionalSide2'> extends 1 ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
         >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null
         >>
 
@@ -7755,9 +7753,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OptionalSide2FindFirstArgs>(
+    findFirst<T extends OptionalSide2FindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'OptionalSide2'> extends 1 ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'OptionalSide2'> extends 1 ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
         >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null
         >>
 
@@ -8584,9 +8582,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends AFindUniqueArgs>(
+    findUnique<T extends AFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'A'> extends 1 ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'A'> extends 1 ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
         >, Prisma__AClient<AGetPayload<T> | null
         >>
 
@@ -8601,9 +8599,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends AFindFirstArgs>(
+    findFirst<T extends AFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'A'> extends 1 ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'A'> extends 1 ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
         >, Prisma__AClient<AGetPayload<T> | null
         >>
 
@@ -9355,9 +9353,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends BFindUniqueArgs>(
+    findUnique<T extends BFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'B'> extends 1 ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'B'> extends 1 ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
         >, Prisma__BClient<BGetPayload<T> | null
         >>
 
@@ -9372,9 +9370,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends BFindFirstArgs>(
+    findFirst<T extends BFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'B'> extends 1 ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'B'> extends 1 ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
         >, Prisma__BClient<BGetPayload<T> | null
         >>
 
@@ -10096,9 +10094,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends CFindUniqueArgs>(
+    findUnique<T extends CFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'C'> extends 1 ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'C'> extends 1 ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
         >, Prisma__CClient<CGetPayload<T> | null
         >>
 
@@ -10113,9 +10111,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends CFindFirstArgs>(
+    findFirst<T extends CFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'C'> extends 1 ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'C'> extends 1 ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
         >, Prisma__CClient<CGetPayload<T> | null
         >>
 
@@ -10829,9 +10827,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends DFindUniqueArgs>(
+    findUnique<T extends DFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'D'> extends 1 ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'D'> extends 1 ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
         >, Prisma__DClient<DGetPayload<T> | null
         >>
 
@@ -10846,9 +10844,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends DFindFirstArgs>(
+    findFirst<T extends DFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'D'> extends 1 ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'D'> extends 1 ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
         >, Prisma__DClient<DGetPayload<T> | null
         >>
 
@@ -11546,9 +11544,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends EFindUniqueArgs>(
+    findUnique<T extends EFindUniqueArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findUnique', 'E'> extends 1 ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
+    ): RejectHelper<R, LocalReject, 'findUnique', 'E'> extends 1 ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
         >, Prisma__EClient<EGetPayload<T> | null
         >>
 
@@ -11563,9 +11561,9 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends EFindFirstArgs>(
+    findFirst<T extends EFindFirstArgs,  LocalReject = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs>
-    ): RejectHelper<R, T['rejectOnNotFound'], 'findFirst', 'E'> extends 1 ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
+    ): RejectHelper<R, LocalReject, 'findFirst', 'E'> extends 1 ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
         >, Prisma__EClient<EGetPayload<T> | null
         >>
 

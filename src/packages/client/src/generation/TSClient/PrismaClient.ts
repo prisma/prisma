@@ -172,8 +172,6 @@ export type RejectHelper<
   Model extends ModelName
 > = Local extends RejectOnNotFound
   ? isTrue<Local>
-  : Global extends boolean
-  ? isTrue<Global>
   : Global extends RejectPerOperation
   ? Action extends keyof Global
     ? Global[Action] extends boolean
@@ -184,7 +182,7 @@ export type RejectHelper<
         : 0
       : 0
     : 0
-  : 0
+  : isTrue<Global>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {

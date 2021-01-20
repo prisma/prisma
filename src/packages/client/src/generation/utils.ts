@@ -262,7 +262,7 @@ export function getSelectReturnType({
       >, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)} | null
       >>`
     }
-    return `RejectHelper<R, T['rejectOnNotFound'], '${actionName}', '${name}'> extends 1 ? CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
+    return `RejectHelper<R, LocalReject, '${actionName}', '${name}'> extends 1 ? CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
     >, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)} | null
     >>`
   }
