@@ -71,7 +71,7 @@
     "@types/jest": "26.0.20",
     "@types/js-levenshtein": "1.1.0",
     "@types/node": "12.19.14",
-    "@types/pg": "7.14.8",
+    "@types/pg": "7.14.9",
     "@typescript-eslint/eslint-plugin": "4.14.0",
     "@typescript-eslint/parser": "4.14.0",
     "arg": "5.0.0",
