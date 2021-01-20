@@ -811,6 +811,21 @@ async function testPackages(
   // If paralelism is set in builkite we split the testing
   // Job 0 all but client
   // Job 1 only client
+  console.debug(
+    'BUILDKITE_PARALLEL_JOB',
+    process.env.BUILDKITE_PARALLEL_JOB,
+    typeof process.env.BUILDKITE_PARALLEL_JOB,
+  )
+  console.debug(
+    'BUILDKITE_PARALLEL_JOB',
+    process.env.BUILDKITE_PARALLEL_JOB,
+    typeof process.env.BUILDKITE_PARALLEL_JOB,
+  )
+  console.debug(
+    'BUILDKITE_PARALLEL_JOB_COUNT',
+    process.env.BUILDKITE_PARALLEL_JOB_COUNT,
+  )
+
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
     const index = order.indexOf('@prisma/client')
     if (index > -1) {
