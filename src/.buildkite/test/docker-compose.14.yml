@@ -18,6 +18,8 @@ services:
       - TEST_MSSQL_URI=mssql://SA:Pr1sm4_Pr1sm4@mssql:1433/master
       - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
       - BUILDKITE
+      - BUILDKITE_PARALLEL_JOB
+      - BUILDKITE_PARALLEL_JOB_COUNT
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
       - PATCH_BRANCH

@@ -817,13 +817,9 @@ async function testPackages(
     typeof process.env.BUILDKITE_PARALLEL_JOB,
   )
   console.debug(
-    'BUILDKITE_PARALLEL_JOB',
-    process.env.BUILDKITE_PARALLEL_JOB,
-    typeof process.env.BUILDKITE_PARALLEL_JOB,
-  )
-  console.debug(
     'BUILDKITE_PARALLEL_JOB_COUNT',
     process.env.BUILDKITE_PARALLEL_JOB_COUNT,
+    typeof process.env.BUILDKITE_PARALLEL_JOB_COUNT,
   )
 
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
