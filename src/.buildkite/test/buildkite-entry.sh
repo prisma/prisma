@@ -10,7 +10,7 @@ npm install
 npm run build
 
 cd ..
-EXCLUDE_LIST="'docs,.vscode,examples,src/scripts,src/graphs,README.md,LICENSE,CONTRIBUTING.md,.github'"
+EXCLUDE_LIST="docs,.vscode,examples,src/scripts,src/graphs,README.md,LICENSE,CONTRIBUTING.md,.github"
 echo $EXCLUDE_LIST
 node last-git-changes/bin.js --exclude="$EXCLUDE_LIST"
 export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude="$EXCLUDE_LIST" | wc -l)
