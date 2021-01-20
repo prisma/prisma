@@ -405,7 +405,7 @@ type ${countArgsName} = Merge<
   }
 >
 
-export interface ${name}Delegate {
+export interface ${name}Delegate<R> {
 ${indent(
   actions
     .map(
