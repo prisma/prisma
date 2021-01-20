@@ -346,10 +346,13 @@ async function getNewIntegrationVersion(packages: Packages, branch: string): Pro
 
   const branchWithoutPrefix = branch.replace(/^integration\//, '')
   const versions = await getAllVersions(packages, 'integration', `${nextStable}-integration-${branchWithoutPrefix}`)
+  console.debug({ versions })
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
+  console.debug({ maxIntegration })
 
   const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${maxIntegration + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
+  
   return version
 }
 
