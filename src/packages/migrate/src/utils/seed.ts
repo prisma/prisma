@@ -4,6 +4,32 @@ import execa from 'execa'
 import resolvePkg from 'resolve-pkg'
 import hasYarn from 'has-yarn'
 import chalk from 'chalk'
+import globalDirectories from 'global-dirs'
+
+export function isPackageInstalledGlobally(
+  packageName: string,
+): 'npm' | 'yarn' | false {
+  try {
+    const usingGlobalYarn = fs.existsSync(
+      path.join(globalDirectories.npm.packages, packageName),
+    )
+    const usingGlobalNpm = fs.existsSync(
+      path.join(globalDirectories.npm.packages, packageName),
+    )
+
+    if (usingGlobalNpm) {
+      return 'npm'
+    }
+    if (usingGlobalYarn) {
+      return 'yarn'
+    } else {
+      false
+    }
+  } catch (e) {
+    //
+  }
+  return false
+}
 
 export function detectSeedFiles() {
   const seedPath = path.join(process.cwd(), 'prisma', 'seed.')
@@ -52,8 +78,10 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
         stdio: 'inherit',
       })
     } else if (detected.ts) {
-      const hasTypescriptPkg = resolvePkg('typescript')
-      const hasTsNodePkg = resolvePkg('ts-node')
+      const hasTypescriptPkg =
+        resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
+      const hasTsNodePkg =
+        resolvePkg('ts-node') || isPackageInstalledGlobally('ts-node')
       const hasTypesNodePkg = resolvePkg('@types/node')
 
       const missingPkgs: string[] = []
