@@ -164,25 +164,25 @@ get ${methodName}(): Prisma.${m.model}Delegate<GlobalReject>;`
 export type RejectOnNotFound = boolean | ((error: Error) => Error)
 export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
 export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
-type isTrue<T> = T extends true ? 1 : T extends (err: Error)=> Error ? 1 : 0
+type IsReject<T> = T extends true ? True : T extends (err: Error) => Error ? True : False
 export type RejectHelper<
   Global extends Prisma.PrismaClientOptions['rejectOnNotFound'],
   Local,
   Action extends PrismaAction,
   Model extends ModelName
 > = Local extends RejectOnNotFound
-  ? isTrue<Local>
+  ? IsReject<Local>
   : Global extends RejectPerOperation
   ? Action extends keyof Global
     ? Global[Action] extends boolean
-      ? isTrue<Global[Action]>
+      ? IsReject<Global[Action]>
       : Global[Action] extends RejectPerModel
       ? Model extends keyof Global[Action]
-        ? isTrue<Global[Action][Model]>
-        : 0
-      : 0
-    : 0
-  : isTrue<Global>
+        ? IsReject<Global[Action][Model]>
+        : False
+      : False
+    : False
+  : IsReject<Global>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
