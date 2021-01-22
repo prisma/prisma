@@ -130,7 +130,10 @@ export function loadEnv(
       dotenvResult: dotenvExpand(
         dotenv.config({
           path: envPath,
-          debug: Boolean(process.env.DEBUG) || undefined,
+          debug:
+            process.env.DEBUG && process.env.DEBUG.length > 0
+              ? true
+              : undefined,
         }),
       ),
       message: chalk.dim(
