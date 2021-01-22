@@ -2,8 +2,12 @@ import fs from 'fs'
 import path from 'path'
 import execa from 'execa'
 
-export function detectSeedFiles() {
-  const seedPath = path.join(process.cwd(), 'prisma', 'seed.')
+export function detectSeedFiles(schemaPath) {
+  let parentDirectory = 'prisma'
+  if (schemaPath) {
+    parentDirectory = path.dirname(schemaPath)
+  }
+  const seedPath = path.join(process.cwd(), parentDirectory, 'seed.')
 
   const detected = {
     seedPath,
@@ -27,8 +31,8 @@ export function detectSeedFiles() {
   return detected
 }
 
-export async function tryToRunSeed() {
-  const detected = detectSeedFiles()
+export async function tryToRunSeed(schemaPath: string | null) {
+  const detected = detectSeedFiles(schemaPath)
 
   if (detected.numberOfSeedFiles === 0) {
     throw new Error(`No seed file found.

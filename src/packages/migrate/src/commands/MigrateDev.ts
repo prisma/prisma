@@ -195,7 +195,7 @@ ${chalk.bold('Examples')}
         const detected = detectSeedFiles()
         if (detected.numberOfSeedFiles > 0) {
           console.info() // empty line
-          await tryToRunSeed()
+          await tryToRunSeed(schemaPath)
         }
       } catch (e) {
         console.error(e)

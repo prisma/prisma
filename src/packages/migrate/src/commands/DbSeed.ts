@@ -1,6 +1,16 @@
-import { arg, Command, format, HelpError, isError, link } from '@prisma/sdk'
+import {
+  arg,
+  Command,
+  format,
+  HelpError,
+  isError,
+  link,
+  getSchemaPath,
+} from '@prisma/sdk'
+import path from 'path'
 import chalk from 'chalk'
 import { PreviewFlagError } from '../utils/flagErrors'
+import { NoSchemaFoundError } from '../utils/errors'
 import { tryToRunSeed } from '../utils/seed'
 
 export class DbSeed implements Command {
@@ -28,6 +38,12 @@ ${chalk.bold('Usage')}
 ${chalk.bold('Options')}
 
            -h, --help   Display this help message
+           --schema   Custom path to your Prisma schema
+
+${chalk.bold('Examples')}
+
+  Specify a schema
+  ${chalk.dim('$')} prisma db seed --preview-feature --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -37,6 +53,7 @@ ${chalk.bold('Options')}
         '--help': Boolean,
         '-h': '--help',
         '--preview-feature': Boolean,
+        '--schema': String,
         '--telemetry-information': String,
       },
       false,
@@ -54,7 +71,25 @@ ${chalk.bold('Options')}
       throw new PreviewFlagError()
     }
 
-    await tryToRunSeed()
+    let schemaPath
+    if (args['--schema']) {
+      schemaPath = await getSchemaPath(args['--schema'])
+
+      if (!schemaPath) {
+        throw new NoSchemaFoundError()
+      }
+
+      console.info(
+        chalk.dim(
+          `Prisma schema loaded from ${path.relative(
+            process.cwd(),
+            schemaPath,
+          )}`,
+        ),
+      )
+    }
+
+    await tryToRunSeed(schemaPath)
 
     return `\n${
       process.platform === 'win32' ? '' : '🌱  '

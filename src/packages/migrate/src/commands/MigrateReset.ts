@@ -179,7 +179,7 @@ The following migration(s) have been applied:\n\n${chalk(
     // Run seed if 1 or more seed files are present
     const detected = detectSeedFiles()
     if (detected.numberOfSeedFiles > 0) {
-      await tryToRunSeed()
+      await tryToRunSeed(schemaPath)
     }
 
     return ``
