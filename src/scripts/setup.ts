@@ -154,6 +154,8 @@ export async function run(
     return await execa.command(cmd, {
       cwd,
       stdio: 'inherit',
+      // important to avoid passing DEBUG="setup," set by debug at the beginning of the setup script.
+      extendEnv: false,
     })
   } catch (e) {
     throw new Error(
@@ -175,8 +177,6 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
       cwd,
       stdio: 'pipe',
       shell: true,
-      // important to avoid passing DEBUG="setup," set by debug at the beginning of the setup script.
-      extendEnv: false,
     })
     return result.stdout
   } catch (e) {
