@@ -8,15 +8,12 @@ export class Undici {
     this.pool = new Pool(url, {
       connections: 100,
       pipelining: 10,
-      keepAliveMaxTimeout: 600e3,
+      keepAliveMaxTimeout:600e3,
       headersTimeout: 0,
       ...moreArgs,
     })
   }
-  request(
-    body: Client.DispatchOptions['body'],
-    customHeaders?: Record<string, string>,
-  ) {
+  request(body: Client.DispatchOptions['body'], customHeaders?: Record<string, string>) {
     return new Promise((resolve, reject) => {
       this.pool.request(
         {
