@@ -694,9 +694,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
-                this.undici = new Undici('http://localhost', {
-                  socketPath: this.socketPath,
-                })
+                this.undici = new Undici("http://localhost",
+                  {
+                    socketPath: this.socketPath,
+                  },
+                )
               } else {
                 this.undici = new Undici(`http://localhost:${this.port}`)
               }
