@@ -97,7 +97,7 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
 
       if (missingPkgs.length > 0) {
         const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
-        console.info(`We detected a \`seed.ts\` file but it seems that you do not have the following dependencies installed:
+        console.info(`We detected a seed file at \`prisma/seed.ts\` but it seems that you do not have the following dependencies installed:
 ${missingPkgs.map((name) => `- ${name}`).join('\n')}
 
 To install them run: ${chalk.green(
