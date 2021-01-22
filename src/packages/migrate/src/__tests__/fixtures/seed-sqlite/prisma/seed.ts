@@ -1,1 +1,1 @@
-console.log('Hello from seed.js')
+console.log('Hello from seed.ts')
