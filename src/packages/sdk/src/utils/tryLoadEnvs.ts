@@ -127,19 +127,14 @@ export function loadEnv(
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
-    console.debug(
-      'process.env.DEBUG',
-      process.env.DEBUG,
-      typeof process.env.DEBUG,
-    )
-    debug('process.env.DEBUG', process.env.DEBUG, typeof process.env.DEBUG)
-
     return {
       dotenvResult: dotenvExpand(
         dotenv.config({
           path: envPath,
           debug:
-            process.env.DEBUG && process.env.DEBUG.length > 0
+            // the setup namespace is placed by the setup script for CI and needs to be ignored here
+            // https://github.com/prisma/prisma/blob/master/src/scripts/setup.ts#L12
+            process.env.DEBUG && process.env.DEBUG !== 'setup'
               ? true
               : undefined,
         }),

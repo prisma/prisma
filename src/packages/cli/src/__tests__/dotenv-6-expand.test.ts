@@ -3,11 +3,6 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 
 it('should read expanded env vars', async () => {
-  console.debug(
-    'process.env.DEBUG',
-    process.env.DEBUG,
-    typeof process.env.DEBUG,
-  )
   ctx.fixture('dotenv-6-expand')
   process.argv.push('--version')
   process.argv.push('--schema=./expand/schema.prisma')
