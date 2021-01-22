@@ -1,11 +1,13 @@
 steps:
-  - label: ':coverage: Test Node 10'
+  - label: ':coverage: Test %n - Node 10'
+    parallelism: 2
     plugins:
       - docker-compose#v3.7.0:
           config: src/.buildkite/test/docker-compose.10.yml
           run: app
 
-  - label: ':coverage: Test Node 14'
+  - label: ':coverage: Test %n - Node 14'
+    parallelism: 2
     plugins:
       - docker-compose#v3.7.0:
           config: src/.buildkite/test/docker-compose.14.yml

@@ -4,14 +4,19 @@ import { URL } from 'url'
 export class Undici {
   private pool: Pool
   private closed = false
-  constructor(url: string | Partial<URL>, moreArgs?: Pool.Options) {
-    this.pool = new Pool(url as string, {
+  constructor(url: string | URL, moreArgs?: Pool.Options) {
+    this.pool = new Pool(url, {
       connections: 100,
       pipelining: 10,
+      keepAliveMaxTimeout: 600e3,
+      headersTimeout: 0,
       ...moreArgs,
     })
   }
-  request(body: Client.DispatchOptions['body'], customHeaders?: Record<string, string>) {
+  request(
+    body: Client.DispatchOptions['body'],
+    customHeaders?: Record<string, string>,
+  ) {
     return new Promise((resolve, reject) => {
       this.pool.request(
         {

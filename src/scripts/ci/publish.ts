@@ -334,7 +334,10 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
  * For now supporting 2.Y.Z-dev.#
  * @param packages Local package definitions
  */
-async function getNewIntegrationVersion(packages: Packages, branch: string): Promise<string> {
+async function getNewIntegrationVersion(
+  packages: Packages,
+  branch: string,
+): Promise<string> {
   const before = Date.now()
   console.log('\nCalculating new dev version...')
   // Why are we calling zeroOutPatch?
@@ -345,14 +348,20 @@ async function getNewIntegrationVersion(packages: Packages, branch: string): Pro
   console.log(`getNewIntegrationVersion: Next minor stable: ${nextStable}`)
 
   const branchWithoutPrefix = branch.replace(/^integration\//, '')
-  const versions = await getAllVersions(packages, 'integration', `${nextStable}-integration-${branchWithoutPrefix}`)
+  const versions = await getAllVersions(
+    packages,
+    'integration',
+    `${nextStable}-integration-${branchWithoutPrefix}`,
+  )
   console.debug({ versions })
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
   console.debug({ maxIntegration })
 
-  const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${maxIntegration + 1}`
+  const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${
+    maxIntegration + 1
+  }`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
-  
+
   return version
 }
 
@@ -466,7 +475,7 @@ async function getAllVersions(
   return unique(
     flatten(
       await pMap(
-        Object.values(packages).filter(p => p.name !== '@prisma/tests'),
+        Object.values(packages).filter((p) => p.name !== '@prisma/tests'),
         async (pkg) => {
           if (pkg.name === '@prisma/tests') {
             return []
@@ -645,7 +654,6 @@ async function publish() {
 
     console.log({ patchBranch, tag, tagForE2ECheck, prisma2Version })
 
-
     const packagesWithVersions = await getNewPackageVersions(
       packages,
       prisma2Version,
@@ -695,7 +703,9 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         }
       }
 
-      const publishOrder = filterPublishOrder(getPublishOrder(packages), ['@prisma/tests'])
+      const publishOrder = filterPublishOrder(getPublishOrder(packages), [
+        '@prisma/tests',
+      ])
 
       if (!dryRun) {
         console.log(`Let's first do a dry run!`)
@@ -773,7 +783,9 @@ async function tagEnginesRepo(dryRun = false) {
   const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
   // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.dependencies['@prisma/engines']?.split('.').slice(-1)[0]
+  const engineVersion = pkg.dependencies['@prisma/engines']
+    ?.split('.')
+    .slice(-1)[0]
   const packageVersion = pkg.version
 
   /** Tag */
@@ -796,9 +808,27 @@ async function testPackages(
   packages: Packages,
   publishOrder: string[][],
 ): Promise<void> {
-  const order = flatten(publishOrder)
+  let order = flatten(publishOrder)
+
+  // If paralelism is set in builkite we split the testing
+  // Job 0 all but client
+  // Job 1 only client
+  if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
+    console.log(
+      'BUILDKITE_PARALLEL_JOB === 0 - running all tests excluding client',
+    )
+    const index = order.indexOf('@prisma/client')
+    if (index > -1) {
+      order.splice(index, 1)
+    }
+  } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
+    console.log('BUILDKITE_PARALLEL_JOB === 0 - running client only')
+    order = ['@prisma/client']
+  }
+
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
   console.log(order)
+
   for (const pkgName of order) {
     const pkg = packages[pkgName]
     if (pkg.packageJson.scripts.test) {
@@ -833,8 +863,9 @@ function patchVersion(version: string): string | null {
 
   const match = semverRegex.exec(version)
   if (match) {
-    return `${match.groups.major}.${match.groups.minor}.${Number(match.groups.patch) + 1
-      }`
+    return `${match.groups.major}.${match.groups.minor}.${
+      Number(match.groups.patch) + 1
+    }`
   }
 
   return null
@@ -843,8 +874,9 @@ function patchVersion(version: string): string | null {
 function increaseMinor(version: string): string | null {
   const match = semverRegex.exec(version)
   if (match) {
-    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${match.groups.patch
-      }`
+    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
+      match.groups.patch
+    }`
   }
 
   return null
@@ -872,10 +904,13 @@ async function patch(pkg: Package): Promise<string> {
   return patchVersion(maxVersion)
 }
 
-function filterPublishOrder(publishOrder: string[][], packages: string[]): string[][] {
+function filterPublishOrder(
+  publishOrder: string[][],
+  packages: string[],
+): string[][] {
   return publishOrder.reduce<string[][]>((acc, curr) => {
     if (Array.isArray(curr)) {
-      curr = curr.filter(pkg => !packages.includes(pkg))
+      curr = curr.filter((pkg) => !packages.includes(pkg))
       if (curr.length > 0) {
         acc.push(curr)
       }
@@ -903,8 +938,8 @@ async function publishPackages(
   const publishStr = dryRun
     ? `${chalk.bold('Dry publish')} `
     : releaseVersion
-      ? 'Releasing '
-      : 'Publishing '
+    ? 'Releasing '
+    : 'Publishing '
 
   if (releaseVersion) {
     console.log(
@@ -970,7 +1005,10 @@ async function publishPackages(
       }
 
       // @prisma/engines & @prisma/engines-version are published outside of this script
-      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      const packagesNotToPublish = [
+        '@prisma/engines',
+        '@prisma/engines-version',
+      ]
       if (packagesNotToPublish.includes(pkgName)) {
         continue
       }
@@ -1015,12 +1053,12 @@ async function publishPackages(
       const skipPackages =
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
-            '@prisma/debug',
-            '@prisma/get-platform',
-            '@prisma/generator-helper',
-            '@prisma/ink-components',
-            '@prisma/fetch-engine',
-          ]
+              '@prisma/debug',
+              '@prisma/get-platform',
+              '@prisma/generator-helper',
+              '@prisma/ink-components',
+              '@prisma/fetch-engine',
+            ]
           : []
       if (!skipPackages.includes(pkgName)) {
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
@@ -1136,7 +1174,8 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   const packageJson = JSON.parse(file)
   if (dryRun) {
     console.log(
-      `Would update ${pkgJsonPath} from ${packageJson.version
+      `Would update ${pkgJsonPath} from ${
+        packageJson.version
       } to ${version} now ${chalk.dim('(dry)')}`,
     )
   } else {
@@ -1161,14 +1200,16 @@ async function getPrismaBranch(): Promise<string | undefined> {
     return process.env.BUILDKITE_BRANCH
   }
   try {
-    return await runResult('.', 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
-  } catch (e) {
-
-  }
+    return await runResult(
+      '.',
+      'git rev-parse --symbolic-full-name --abbrev-ref HEAD',
+    )
+  } catch (e) {}
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
-  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
+  let svgUrl =
+    'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
 
   if (tag === 'patch-dev') {
     svgUrl += tag
@@ -1194,4 +1235,3 @@ function getPatchBranch(): string | null {
 
   return null
 }
-

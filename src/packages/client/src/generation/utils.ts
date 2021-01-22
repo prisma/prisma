@@ -256,12 +256,35 @@ export function getSelectReturnType({
       name,
     )}<T>${listClose}${promiseClose}>`
   }
-
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}${
-    actionName === 'findUnique' || actionName === 'findFirst' ? ' | null' : ''
-  }>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}${
-    actionName === 'findUnique' || actionName === 'findFirst' ? ' | null' : ''
-  }>>`
+  if (actionName === 'findFirst' || actionName === 'findUnique') {
+    if (isField) {
+      return `CheckSelect<T, Prisma__${name}Client<${getType(
+        name,
+        isList,
+      )} | null
+      >, Prisma__${name}Client<${getType(
+        getPayloadName(name) + '<T>',
+        isList,
+      )} | null
+      >>`
+    }
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
+      name,
+      isList,
+    )}>, Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T>',
+      isList,
+    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
+    >, Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T>',
+      isList,
+    )} | null
+    >>`
+  }
+  return `CheckSelect<T, Prisma__${name}Client<${getType(
+    name,
+    isList,
+  )}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>>`
 }
 
 export function isQueryAction(
