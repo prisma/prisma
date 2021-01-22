@@ -9,7 +9,7 @@ const p1 = new PrismaClient({
       url: 'file:dev.db',
     },
   },
-  rejectOnNotFound: true,
+  rejectOnNotFound: true
 })
 
 ;(async () => {
@@ -31,7 +31,7 @@ const p1 = new PrismaClient({
       },
     }),
   )
-
+  
   // findUnique
   expectError(
     p1.user.findUnique({
