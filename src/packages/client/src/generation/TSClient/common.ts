@@ -84,6 +84,7 @@ Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
 Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
+Prisma.validator = () => (val) => val
 `
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
@@ -361,7 +362,43 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
+/**
+ * Allows creating \`select\` or \`include\` outside of the main statement
+ * From https://github.com/prisma/prisma/issues/3372#issuecomment-762296484
+ */
 
+type Cast<A1, A2> = A1 extends A2 ? A1 : A2;
+
+/**
+ * \`Exact\` forces a type to comply by another type. It will need to be a subset
+ * and must have exactly the same properties, no more, no less.
+ */
+type Exact<A, W> = A & Cast<{
+  [K in keyof A]: K extends keyof W ? A[K] : never
+}, W>;
+
+type Narrow<A, W = unknown> =
+    A & {[K in keyof A]: NarrowAt<A, W, K>};
+
+type NarrowAt<A, W, K extends keyof A, AK = A[K], WK = Att<W, K>> =
+    WK extends Widen<infer T> ? T :
+    AK extends Narrowable ? AK & WK :
+    Narrow<AK, WK>;
+
+type Att<O, K> = K extends keyof O ? O[K] : unknown;
+
+type Widen<A> = {[type]: A};
+
+type Narrowable =
+| string
+| number
+| bigint
+| boolean
+| [];
+
+export const type: unique symbol;
+
+export function validator<V>(): <S>(select: Exact<Narrow<S, V>, V>) => S;
 
 /**
  * Used by group by
