@@ -32,11 +32,12 @@ export function isPackageInstalledGlobally(
 }
 
 export function detectSeedFiles(schemaPath) {
-  let parentDirectory = 'prisma'
+  let parentDirectory = path.join(process.cwd(), 'prisma')
   if (schemaPath) {
     parentDirectory = path.dirname(schemaPath)
   }
-  const seedPath = path.join(process.cwd(), parentDirectory, 'seed.')
+
+  const seedPath = path.join(parentDirectory, 'seed.')
 
   const detected = {
     seedPath,
