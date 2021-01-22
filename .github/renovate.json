@@ -17,7 +17,8 @@
         "@prisma/engines-version",
         "@prisma/studio",
         "@prisma/studio-server",
-        "checkpoint-client"
+        "checkpoint-client",
+        "sqlite3"
       ],
       "schedule": [
         "before 9am on Monday",
