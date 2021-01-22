@@ -131,12 +131,9 @@ export function loadEnv(
       dotenvResult: dotenvExpand(
         dotenv.config({
           path: envPath,
-          debug:
-            // the setup namespace is placed by the setup script for CI and needs to be ignored here
-            // https://github.com/prisma/prisma/blob/master/src/scripts/setup.ts#L12
-            process.env.DEBUG && process.env.DEBUG !== 'setup,'
-              ? true
-              : undefined,
+          // Value needs to be null or undefined, false is truthy
+          // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
+          debug: Boolean(process.env.DEBUG) || undefined,
         }),
       ),
       message: chalk.dim(

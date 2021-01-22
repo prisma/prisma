@@ -154,6 +154,8 @@ export async function run(
     return await execa.command(cmd, {
       cwd,
       stdio: 'inherit',
+      // important to avoid passing DEBUG="setup," set by debug at the beginning of the setup script.
+      extendEnv: false,
     })
   } catch (e) {
     throw new Error(
