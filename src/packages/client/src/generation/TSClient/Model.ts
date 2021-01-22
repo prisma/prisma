@@ -405,7 +405,7 @@ type ${countArgsName} = Merge<
   }
 >
 
-export interface ${name}Delegate<R> {
+export interface ${name}Delegate<GlobalRejectSettings> {
 ${indent(
   actions
     .map(
