@@ -134,7 +134,7 @@ export function loadEnv(
           debug:
             // the setup namespace is placed by the setup script for CI and needs to be ignored here
             // https://github.com/prisma/prisma/blob/master/src/scripts/setup.ts#L12
-            process.env.DEBUG && process.env.DEBUG !== 'setup'
+            process.env.DEBUG && process.env.DEBUG !== 'setup,'
               ? true
               : undefined,
         }),
