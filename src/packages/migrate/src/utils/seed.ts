@@ -11,7 +11,7 @@ export function isPackageInstalledGlobally(
 ): 'npm' | 'yarn' | false {
   try {
     const usingGlobalYarn = fs.existsSync(
-      path.join(globalDirectories.npm.packages, packageName),
+      path.join(globalDirectories.yarn.packages, packageName),
     )
     const usingGlobalNpm = fs.existsSync(
       path.join(globalDirectories.npm.packages, packageName),
