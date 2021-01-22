@@ -37,11 +37,8 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   if (actionName === 'aggregate') {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
-  if (actionName === 'findFirst' || actionName === 'findUnique') {
-    return `<T extends ${getModelArgName(
-      name,
-      actionName,
-    )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+  if(actionName === 'findFirst' || actionName === 'findUnique'){
+    return `<T extends ${getModelArgName(name, actionName)},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
   }
   return `<T extends ${getModelArgName(name, actionName)}>`
 }
