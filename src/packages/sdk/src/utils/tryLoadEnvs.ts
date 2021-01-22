@@ -126,6 +126,14 @@ export function loadEnv(
 ): LoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
+
+    console.debug(
+      'process.env.DEBUG',
+      process.env.DEBUG,
+      typeof process.env.DEBUG,
+    )
+    debug('process.env.DEBUG', process.env.DEBUG, typeof process.env.DEBUG)
+
     return {
       dotenvResult: dotenvExpand(
         dotenv.config({
