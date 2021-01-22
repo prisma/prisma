@@ -8,8 +8,7 @@ it('should read expanded env vars', async () => {
   process.argv.push('--schema=./expand/schema.prisma')
   await import('../bin')
   console.debug(
-    'process.env.DEBUG',
-    process.env.DEBUG,
+    `process.env.DEBUG="${process.env.DEBUG}"`,
     typeof process.env.DEBUG,
   )
   expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
