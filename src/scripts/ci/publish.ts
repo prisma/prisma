@@ -348,18 +348,22 @@ async function getNewIntegrationVersion(
   console.log(`getNewIntegrationVersion: Next minor stable: ${nextStable}`)
 
   const branchWithoutPrefix = branch.replace(/^integration\//, '')
+  const versionNameSlug = `${nextStable}-integration-${slugify(
+    branchWithoutPrefix,
+  )}`
+  console.debug({ versionNameSlug })
+  console.debug({ branchWithoutPrefix })
+
   const versions = await getAllVersions(
     packages,
     'integration',
-    `${nextStable}-integration-${branchWithoutPrefix}`,
+    versionNameSlug,
   )
   console.debug({ versions })
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
   console.debug({ maxIntegration })
 
-  const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${
-    maxIntegration + 1
-  }`
+  const version = `${versionNameSlug}.${maxIntegration + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
 
   return version
@@ -490,6 +494,7 @@ async function getAllVersions(
           )
 
           const remoteVersions = JSON.parse(remoteVersionsString)
+          console.debug({ remoteVersions })
 
           for (const remoteVersion of remoteVersions) {
             if (
