@@ -2354,7 +2354,7 @@ Object {
             "isId": false,
             "isList": true,
             "isReadOnly": false,
-            "isRequired": false,
+            "isRequired": true,
             "isUnique": false,
             "isUpdatedAt": false,
             "kind": "object",
@@ -11127,7 +11127,7 @@ Object {
             "isId": false,
             "isList": true,
             "isReadOnly": false,
-            "isRequired": false,
+            "isRequired": true,
             "isUnique": false,
             "isUpdatedAt": false,
             "kind": "object",
@@ -19755,9 +19755,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `88978676`;
 
-exports[`getDMMF chinook introspected schema 1`] = `685392`;
+exports[`getDMMF chinook introspected schema 1`] = `685381`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `685392`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `685381`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
