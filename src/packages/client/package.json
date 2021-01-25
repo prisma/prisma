@@ -60,16 +60,16 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.15.0-26.6c8b3ff8b9a910842e10127753e5ab9b411f9e03",
+    "@prisma/engines": "2.16.0-11.ddf9b723ca6efd7f080931f4019e173c4539639d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
-    "@types/mssql": "6.0.7",
     "@types/jest": "26.0.20",
     "@types/js-levenshtein": "1.1.0",
+    "@types/mssql": "6.0.7",
     "@types/node": "12.19.15",
     "@types/pg": "7.14.9",
     "@typescript-eslint/eslint-plugin": "4.14.0",
@@ -126,7 +126,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.15.0-26.6c8b3ff8b9a910842e10127753e5ab9b411f9e03"
+    "@prisma/engines-version": "2.16.0-11.ddf9b723ca6efd7f080931f4019e173c4539639d"
   },
   "lint-staged": {
     "*.ts": [
