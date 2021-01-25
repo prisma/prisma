@@ -6,6 +6,10 @@ on:
     branches:
       - master
     paths-ignore:
+      # Any update here needs to be done for 
+      # - `pull_request` see below
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - "*.md"
       - ".vscode/**"
       - "docs/**"
@@ -13,10 +17,14 @@ on:
       - "LICENSE"
       - "src/.buildkite/**"
       - "src/.dockerignore"
-      - "src/scripts/**"
+      - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
   pull_request:
    paths-ignore:
+      # Any update here needs to be done for 
+      # - `push`see before
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - "*.md"
       - ".vscode/**"
       - "docs/**"
@@ -24,7 +32,7 @@ on:
       - "LICENSE"
       - "src/.buildkite/**"
       - "src/.dockerignore"
-      - "src/scripts/**"
+      - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
 
 env:
