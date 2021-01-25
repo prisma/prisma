@@ -126,8 +126,16 @@ export function loadEnv(
 ): LoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
+
     return {
-      dotenvResult: dotenvExpand(dotenv.config({ path: envPath })),
+      dotenvResult: dotenvExpand(
+        dotenv.config({
+          path: envPath,
+          // Value needs to be null or undefined, false is truthy
+          // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
+          debug: Boolean(process.env.DEBUG) || undefined,
+        }),
+      ),
       message: chalk.dim(
         `Environment variables loaded from ${path.relative(
           process.cwd(),
