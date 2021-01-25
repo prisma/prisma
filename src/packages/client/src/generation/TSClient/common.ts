@@ -398,7 +398,7 @@ type Narrowable =
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: Exact<Narrow<S, V>, V>) => S;
+export function validator<V>(): <S>(select: Exact<Narrow<V, S>, V>) => S;
 
 /**
  * Used by group by
