@@ -37,8 +37,8 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-           -h, --help   Display this help message
-           --schema   Custom path to your Prisma schema
+    -h, --help   Display this help message
+      --schema   Custom path to your Prisma schema
 
 ${chalk.bold('Examples')}
 
