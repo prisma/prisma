@@ -114,7 +114,7 @@
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest dotenv format doctor generate init introspect studio --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
+    "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
     "install": "node scripts/install-entry.js",
@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.16.0-16.8dba86708c0617090afa18f53a8c7bcfe706236e"
+    "@prisma/engines": "2.16.0-17.874f616fce40a665d24867f42e602ce8b5ed2cd7"
   },
   "lint-staged": {
     "*.ts": [
