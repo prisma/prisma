@@ -63,7 +63,7 @@ jobs:
       #  This is required as setup.sh can modify pnpm-lock.yml
       - run: rm -f src/pnpm-lock.yaml
       - name: Run benchmarks
-        run: yarn bench
+        run: pnpm run bench
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
