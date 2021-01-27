@@ -109,7 +109,10 @@ import { Format } from './Format'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
-import { printUpdateMessage } from './utils/printUpdateMessage'
+import {
+  printPrismaCliUpdateWarning,
+  printUpdateMessage,
+} from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
 import { detectPrisma1 } from './detectPrisma1'
@@ -137,6 +140,10 @@ const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
+
+  if (__dirname.includes(`@prisma${path.sep}cli`)) {
+    printPrismaCliUpdateWarning()
+  }
 
   detectPrisma1()
 
