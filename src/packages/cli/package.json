@@ -114,7 +114,7 @@
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest dotenv format doctor generate init introspect studio --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
+    "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
     "install": "node scripts/install-entry.js",
