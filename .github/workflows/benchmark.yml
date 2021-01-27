@@ -1,0 +1,80 @@
+name: Benchmarks
+# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      # Any update here needs to be done for
+      # - `pull_request` see below
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
+      - "*.md"
+      - ".vscode/**"
+      - "docs/**"
+      - "examples/**"
+      - "LICENSE"
+      - "src/.buildkite/**"
+      - "src/.dockerignore"
+      - "src/scripts/ci/publish.ts"
+      - "src/graphs/**"
+  pull_request:
+    paths-ignore:
+      # Any update here needs to be done for
+      # - `push`see before
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
+      - "*.md"
+      - ".vscode/**"
+      - "docs/**"
+      - "examples/**"
+      - "LICENSE"
+      - "src/.buildkite/**"
+      - "src/.dockerignore"
+      - "src/scripts/ci/publish.ts"
+      - "src/graphs/**"
+jobs:
+  benchmark:
+    name: client compilation time
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Run benchmark
+        run: yarn ts-node src/__tests__/integration/happy/exhaustive-schema/benchmark.ts | tee output.txt
+        working-directory: src/packages/client
+      - name: Store benchmark result
+        uses: rhysd/github-action-benchmark@v1
+        with:
+          name: Benchmark.js Benchmark
+          tool: "benchmarkjs"
+          output-file-path: /benchmarks/output.txt
+          # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: true
+          # Show alert with commit comment on detecting possible performance regression
+          alert-threshold: "200%"
+          comment-on-alert: true
+          fail-on-alert: true
+          alert-comment-cc-users: "@williamluke4"
