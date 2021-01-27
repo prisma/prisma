@@ -20,10 +20,7 @@
         "checkpoint-client",
         "sqlite3"
       ],
-      "schedule": [
-        "before 9am on Monday",
-        "before 9am on Wednesday"
-      ]
+      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
     },
     {
       "groupName": "dependencies (non-major)",
@@ -34,10 +31,7 @@
         "@prisma/engines-version",
         "checkpoint-client"
       ],
-      "schedule": [
-        "before 9am on Monday",
-        "before 9am on Wednesday"
-      ]
+      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
     },
     {
       "groupName": "definitelyTyped",
@@ -48,6 +42,7 @@
     {
       "groupName": "engines",
       "automerge": "true",
+      "ignoreUnstable": true,
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
@@ -65,13 +60,9 @@
     },
     {
       "groupName": "react-prisma",
-      "paths": [
-        "src/packages/react-prisma/**"
-      ],
+      "paths": ["src/packages/react-prisma/**"],
       "rangeStrategy": "replace",
-      "schedule": [
-        "before 9am on Monday"
-      ],
+      "schedule": ["before 9am on Monday"],
       "reviewers": ["@timsuchanek"]
     }
   ]
