@@ -54,13 +54,6 @@ window.BENCHMARK_DATA = {
             "range": "±5.90%",
             "unit": "ops/sec",
             "extra": "7 samples"
-          },
-          {
-            "name": "client 2 generation",
-            "value": 0.42,
-            "range": "±3.47%",
-            "unit": "ops/sec",
-            "extra": "7 samples"
           }
         ]
       },
