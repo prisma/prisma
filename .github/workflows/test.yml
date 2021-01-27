@@ -89,9 +89,9 @@ jobs:
         working-directory: ./
 
   #
-  # CLI-INTEGRATION
+  # TESTS-INTEGRATION
   #
-  cli-integration:
+  tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
