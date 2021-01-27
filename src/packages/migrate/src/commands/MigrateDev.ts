@@ -192,10 +192,10 @@ ${chalk.bold('Examples')}
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
-        const detected = detectSeedFiles()
+        const detected = detectSeedFiles(schemaPath)
         if (detected.numberOfSeedFiles > 0) {
           console.info() // empty line
-          await tryToRunSeed()
+          await tryToRunSeed(schemaPath)
         }
       } catch (e) {
         console.error(e)
