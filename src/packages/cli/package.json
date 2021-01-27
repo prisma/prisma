@@ -1,6 +1,6 @@
 {
   "version": "2.11.0-dev.20",
-  "name": "@prisma/cli",
+  "name": "prisma",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
     "typescript",
@@ -69,17 +69,17 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.340.0",
-    "@prisma/studio-server": "0.340.0",
+    "@prisma/studio": "0.343.0",
+    "@prisma/studio-server": "0.343.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.20",
     "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.14.0",
-    "@typescript-eslint/parser": "4.14.0",
+    "@typescript-eslint/eslint-plugin": "4.14.1",
+    "@typescript-eslint/parser": "4.14.1",
     "chalk": "4.1.0",
     "checkpoint-client": "1.1.18",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.34",
+    "esbuild": "0.8.36",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.18.0",
     "eslint-config-prettier": "7.2.0",
@@ -114,7 +114,7 @@
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest dotenv format doctor generate init introspect studio --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u && pnpm run test:integration -- -u",
+    "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
     "install": "node scripts/install-entry.js",
@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.15.0-26.6c8b3ff8b9a910842e10127753e5ab9b411f9e03"
+    "@prisma/engines": "2.16.0-17.874f616fce40a665d24867f42e602ce8b5ed2cd7"
   },
   "lint-staged": {
     "*.ts": [

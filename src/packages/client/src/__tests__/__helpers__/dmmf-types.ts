@@ -132,7 +132,7 @@ const dmmf: DMMF.Document = {
             "isId": false,
             "isList": true,
             "isReadOnly": false,
-            "isRequired": false,
+            "isRequired": true,
             "isUnique": false,
             "isUpdatedAt": false,
             "kind": "object",
