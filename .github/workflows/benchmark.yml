@@ -62,15 +62,14 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
       #  This is required as setup.sh can modify pnpm-lock.yml
       - run: rm -f src/pnpm-lock.yaml
-      - name: Run benchmark
-        run: yarn ts-node src/__tests__/integration/happy/exhaustive-schema/exhaustive-schema.bench.ts | tee output.txt
-        working-directory: src/packages/client
+      - name: Run benchmarks
+        run: yarn bench
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
           tool: "benchmarkjs"
-          output-file-path: src/packages/client/output.txt
+          output-file-path: output.txt
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true

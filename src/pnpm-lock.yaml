@@ -158,7 +158,6 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@timsuchanek/copy': 1.4.5
-      '@types/benchmark': 2.1.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
       '@types/js-levenshtein': 1.1.0
@@ -168,7 +167,6 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.14.2_e5f964fa93e839b7a7927397f6cb9cb1
       '@typescript-eslint/parser': 4.14.2_eslint@7.19.0+typescript@4.1.3
       arg: 5.0.0
-      benchmark: 2.1.4
       chalk: 4.1.0
       decimal.js: 10.2.1
       esbuild: 0.8.39
@@ -220,7 +218,6 @@ importers:
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
       '@timsuchanek/copy': 1.4.5
-      '@types/benchmark': ^2.1.0
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
       '@types/js-levenshtein': 1.1.0
@@ -230,7 +227,6 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.14.2
       '@typescript-eslint/parser': 4.14.2
       arg: 5.0.0
-      benchmark: ^2.1.4
       chalk: 4.1.0
       decimal.js: 10.2.1
       esbuild: 0.8.39
@@ -1788,10 +1784,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-S63Dt4CZOkuTmpLGGWtT/mQdVORJOpx6SZWGVaP56dda/0Nx5nEe82K7/LAm8zYr6SfMq+1N2OreIOrHAx656w==
-  /@types/benchmark/2.1.0:
-    dev: true
-    resolution:
-      integrity: sha512-wxT2/LZn4z0NvSfZirxmBx686CU7EXp299KHkIk79acXpQtgeYHrslFzDacPGXifC0Pe3CEaLup07bgY1PnuQw==
   /@types/cross-spawn/6.0.2:
     dependencies:
       '@types/node': 14.14.20
@@ -2778,13 +2770,6 @@ packages:
     dev: true
     resolution:
       integrity: sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
-  /benchmark/2.1.4:
-    dependencies:
-      lodash: 4.17.20
-      platform: 1.3.6
-    dev: true
-    resolution:
-      integrity: sha1-CfPeMckWQl1JjMLuVloOvzwqVik=
   /bl/3.0.1:
     dependencies:
       readable-stream: 3.6.0
@@ -7241,10 +7226,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-FK4GqHtcCY2PPPVaKViU0NyRzpo6gCS7tPKN5b7AkElqjAOCH1bsRKgohEnxThr6DWfTGByGqba2YHGR/BqbmA==
-  /platform/1.3.6:
-    dev: true
-    resolution:
-      integrity: sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==
   /please-upgrade-node/3.2.0:
     dependencies:
       semver-compare: 1.0.0
@@ -8688,7 +8669,7 @@ packages:
       bs-logger: 0.2.6
       buffer-from: 1.1.1
       fast-json-stable-stringify: 2.1.0
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       jest-util: 26.6.2
       json5: 2.1.3
       lodash: 4.17.20

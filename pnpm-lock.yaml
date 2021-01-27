@@ -1,8 +1,10 @@
 devDependencies:
-  '@types/node': 14.14.25
+  '@types/benchmark': 2.1.0
+  '@types/node': 14.14.22
   '@typescript-eslint/eslint-plugin': 4.14.2_e5f964fa93e839b7a7927397f6cb9cb1
   '@typescript-eslint/parser': 4.14.2_eslint@7.19.0+typescript@4.1.3
   arg: 5.0.0
+  benchmark: 2.1.4
   chalk: 4.1.0
   eslint: 7.19.0
   eslint-config-prettier: 7.2.0_eslint@7.19.0
@@ -77,6 +79,10 @@ packages:
       node: '>= 8'
     resolution:
       integrity: sha512-8Broas6vTtW4GIXTAHDoE32hnN2M5ykgCpWGbuXHQ15vEMqr23pB76e/GZcYsZCHALv50ktd24qhEyKr6wBtow==
+  /@types/benchmark/2.1.0:
+    dev: true
+    resolution:
+      integrity: sha512-wxT2/LZn4z0NvSfZirxmBx686CU7EXp299KHkIk79acXpQtgeYHrslFzDacPGXifC0Pe3CEaLup07bgY1PnuQw==
   /@types/json-schema/7.0.6:
     dev: true
     resolution:
@@ -348,6 +354,13 @@ packages:
     dev: true
     resolution:
       integrity: sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
+  /benchmark/2.1.4:
+    dependencies:
+      lodash: 4.17.20
+      platform: 1.3.6
+    dev: true
+    resolution:
+      integrity: sha1-CfPeMckWQl1JjMLuVloOvzwqVik=
   /brace-expansion/1.1.11:
     dependencies:
       balanced-match: 1.0.0
@@ -1202,6 +1215,10 @@ packages:
       node: '>=10'
     resolution:
       integrity: sha512-NPE8TDbzl/3YQYY7CSS228s3g2ollTFnc+Qi3tqmqJp9Vg2ovUpixcJEo2HJScN2Ez+kEaal6y70c0ehqJBJeA==
+  /platform/1.3.6:
+    dev: true
+    resolution:
+      integrity: sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==
   /please-upgrade-node/3.2.0:
     dependencies:
       semver-compare: 1.0.0
@@ -1518,9 +1535,11 @@ packages:
       integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==
 specifiers:
   '@types/node': 14.14.25
+  '@types/benchmark': ^2.1.0
   '@typescript-eslint/eslint-plugin': 4.14.2
   '@typescript-eslint/parser': 4.14.2
   arg: 5.0.0
+  benchmark: ^2.1.4
   chalk: 4.1.0
   eslint: 7.19.0
   eslint-config-prettier: 7.2.0
