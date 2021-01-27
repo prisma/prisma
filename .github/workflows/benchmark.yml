@@ -60,7 +60,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-
+      - run: rm -f src/pnpm-lock.yaml
       - name: Run benchmark
         run: yarn ts-node src/__tests__/integration/happy/exhaustive-schema/benchmark.ts | tee output.txt
         working-directory: src/packages/client
