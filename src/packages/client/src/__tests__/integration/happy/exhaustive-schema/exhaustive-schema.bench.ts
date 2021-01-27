@@ -4,10 +4,10 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 const suite = new Benchmark.Suite()
 
 suite
-  .add('benchmark client generation', {
+  .add('client generation', {
     defer: true,
     fn: function (deferred) {
-      generateTestClient().then(() => {
+      generateTestClient().then<void>(() => {
         deferred.resolve()
       })
     },
