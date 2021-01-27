@@ -7,8 +7,11 @@ suite
   .add('client generation', {
     defer: true,
     fn: function (deferred) {
-      generateTestClient().then<void>(() => {
+      generateTestClient().then(() => {
         deferred.resolve()
+      }).catch((err) => {
+        console.error(err);
+        process.exit(1)
       })
     },
   })
