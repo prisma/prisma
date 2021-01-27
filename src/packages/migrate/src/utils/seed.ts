@@ -32,7 +32,10 @@ export function isPackageInstalledGlobally(
 }
 
 export function detectSeedFiles(schemaPath) {
-  let parentDirectory = path.join(process.cwd(), 'prisma')
+  let parentDirectory = path.relative(
+    process.cwd(),
+    path.join(process.cwd(), 'prisma'),
+  )
   if (schemaPath) {
     parentDirectory = path.dirname(schemaPath)
   }
@@ -77,8 +80,8 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
     )
   } else {
     if (detected.js) {
-      console.info('Running `node seed.js` ...')
-      return await execa('node', [detected.js], {
+      console.info(`Running ${chalk.bold(`node "${detected.js}"`)} ...`)
+      return await execa('node', [`"${detected.js}"`], {
         shell: true,
         stdio: 'inherit',
       })
@@ -110,20 +113,20 @@ To install them run: ${chalk.green(
         )}\n`)
       }
 
-      console.info('Running `ts-node seed.ts` ...')
-      return await execa('ts-node', [detected.ts], {
+      console.info(`Running ${chalk.bold(`ts-node "${detected.ts}"`)} ...`)
+      return await execa('ts-node', [`"${detected.ts}"`], {
         shell: true,
         stdio: 'inherit',
       })
     } else if (detected.sh) {
-      console.info('Running `sh seed.sh` ...')
-      return await execa('sh', [detected.sh], {
+      console.info(`Running ${chalk.bold(`sh "${detected.sh}"`)} ...`)
+      return await execa('sh', [`"${detected.sh}"`], {
         shell: true,
         stdio: 'inherit',
       })
     } else if (detected.go) {
-      console.info('Running `go run seed.go` ...')
-      return await execa('go run', [detected.go], {
+      console.info(`Running ${chalk.bold(`go run "${detected.go}"`)} ...`)
+      return await execa('go run', [`"${detected.go}"`], {
         shell: true,
         stdio: 'inherit',
       })
