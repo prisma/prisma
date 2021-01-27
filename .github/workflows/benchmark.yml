@@ -1,4 +1,4 @@
-name: Benchmarks
+name: Bench
 # Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
@@ -35,7 +35,7 @@ on:
       - "src/graphs/**"
 jobs:
   benchmark:
-    name: client compilation time
+    name: client / compilation time
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
