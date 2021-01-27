@@ -69,7 +69,7 @@ jobs:
         with:
           name: Benchmark.js Benchmark
           tool: "benchmarkjs"
-          output-file-path: /benchmarks/output.txt
+          output-file-path: benchmarks/output.txt
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
