@@ -76,11 +76,13 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running \`node seed.js\` ...`)
+    ).toMatchInlineSnapshot(
+      `Running node "/path/from/snapshotSerializer.ts" ...`,
+    )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -96,11 +98,11 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                            🌱  Your database has been seeded.
-                                                                                          `)
+                                                                                                                                                            🌱  Your database has been seeded.
+                                                                                                                                  `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running \`ts-node seed.ts\` ...`)
+    ).toMatchInlineSnapshot(`Running ts-node "prisma/seed.ts" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -116,11 +118,11 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running \`sh seed.sh\` ...`)
+    ).toMatchInlineSnapshot(`Running sh "prisma/seed.sh" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -138,9 +140,32 @@ describe('seed', () => {
     await expect(result).rejects.toThrowError()
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running \`node seed.js\` ...`)
+    ).toMatchInlineSnapshot(
+      `Running node "/path/from/snapshotSerializer.ts" ...`,
+    )
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       ``,
     )
+  })
+
+  it('Custom --schema', async () => {
+    ctx.fixture('seed-sqlite')
+
+    const result = DbSeed.new().parse([
+      '--schema=./some-folder/schema.prisma',
+      '--preview-feature',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(`
+
+                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                            `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from some-folder/schema.prisma
+      Running node "/path/from/snapshotSerializer.ts" ...
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
   })
 })
