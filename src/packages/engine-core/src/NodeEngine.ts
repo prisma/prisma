@@ -637,13 +637,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
         } else {
-          // https://github.com/prisma/prisma-engines/blob/135c319036a7c9fa7fdb7d2c517c426002c600cd/query-engine/query-engine/src/opt.rs#L55
-          flags.push('--port', this.port?.toString() || '4466')
+          this.port = await this.getFreePort()
+          flags.push('--port', String(this.port))
         }
 
         debug({ flags })
 
-        this.port = await this.getFreePort()
         const env = this.getEngineEnvVars()
 
         this.child = spawn(prismaPath, flags, {
