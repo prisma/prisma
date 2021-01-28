@@ -1910,7 +1910,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -1935,7 +1935,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -2084,7 +2084,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -3552,7 +3552,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOneWithoutPostsInput",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
                 },
               ],
               "isNullable": false,
@@ -3944,7 +3944,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostCreateManyWithoutAuthorInput",
+                  "type": "PostCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -3990,7 +3990,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedCreateManyWithoutAuthorInput",
+                  "type": "PostUncheckedCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -5602,7 +5602,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "UserCreateOneWithoutPostsInput",
+          "name": "UserCreateNestedOneWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -5877,7 +5877,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostCreateManyWithoutAuthorInput",
+          "name": "PostCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -5955,7 +5955,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostUncheckedCreateManyWithoutAuthorInput",
+          "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -9262,7 +9262,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9287,7 +9287,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9494,7 +9494,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9519,7 +9519,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9726,7 +9726,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9751,7 +9751,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9958,7 +9958,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9983,7 +9983,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -10312,7 +10312,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -12325,7 +12325,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOneWithoutPostsInput",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
                 },
               ],
               "isNullable": false,
@@ -12717,7 +12717,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostCreateManyWithoutAuthorInput",
+                  "type": "PostCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -12763,7 +12763,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedCreateManyWithoutAuthorInput",
+                  "type": "PostUncheckedCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -14375,7 +14375,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "UserCreateOneWithoutPostsInput",
+          "name": "UserCreateNestedOneWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -14650,7 +14650,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostCreateManyWithoutAuthorInput",
+          "name": "PostCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -14728,7 +14728,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostUncheckedCreateManyWithoutAuthorInput",
+          "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -18035,7 +18035,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18060,7 +18060,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18267,7 +18267,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18292,7 +18292,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18499,7 +18499,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18524,7 +18524,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18731,7 +18731,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18756,7 +18756,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -19085,7 +19085,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -19753,11 +19753,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `88978676`;
+exports[`getDMMF big schema 1`] = `89039210`;
 
-exports[`getDMMF chinook introspected schema 1`] = `685381`;
+exports[`getDMMF chinook introspected schema 1`] = `686221`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `685381`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `686221`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -21497,7 +21497,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -21522,7 +21522,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -21671,7 +21671,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [

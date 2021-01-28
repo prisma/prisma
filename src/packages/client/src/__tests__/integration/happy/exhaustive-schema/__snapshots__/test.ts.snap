@@ -12999,7 +12999,7 @@ export namespace Prisma {
     title: string
     content?: string | null
     published?: boolean
-    author: UserCreateOneWithoutPostsInput
+    author: UserCreateNestedOneWithoutPostsInput
   }
 
   export type PostUncheckedCreateInput = {
@@ -13044,6 +13044,15 @@ export namespace Prisma {
     authorId?: IntFieldUpdateOperationsInput | number
   }
 
+  export type PostCreateManyInput = {
+    id?: number
+    createdAt?: Date | string
+    title: string
+    content?: string | null
+    published?: boolean
+    authorId: number
+  }
+
   export type UserCreateInput = {
     email: string
     int: number
@@ -13058,7 +13067,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    posts?: PostCreateManyWithoutAuthorInput
+    posts?: PostCreateNestedManyWithoutAuthorInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -13076,7 +13085,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    posts?: PostUncheckedCreateManyWithoutAuthorInput
+    posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
   }
 
   export type UserUpdateInput = {
@@ -13147,6 +13156,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type UserCreateManyInput = {
+    id?: number
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type MCreateInput = {
     int: number
     optionalInt?: number | null
@@ -13160,7 +13186,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    n?: NCreateManyWithoutMInput
+    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
@@ -13242,6 +13268,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type MCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type NCreateInput = {
     int: number
     optionalInt?: number | null
@@ -13255,7 +13297,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    m?: MCreateManyWithoutNInput
+    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
@@ -13337,6 +13379,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type NCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OneOptionalCreateInput = {
     int: number
     optionalInt?: number | null
@@ -13350,7 +13408,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredCreateManyWithoutOneInput
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
@@ -13367,7 +13425,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredUncheckedCreateManyWithoutOneInput
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
@@ -13434,6 +13492,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type OneOptionalCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type ManyRequiredCreateInput = {
     int: number
     optionalInt?: number | null
@@ -13447,7 +13521,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    one?: OneOptionalCreateOneWithoutManyInput
+    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -13532,6 +13606,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type ManyRequiredCreateManyInput = {
+    id?: number
+    oneOptionalId?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OptionalSide1CreateInput = {
     int: number
     optionalInt?: number | null
@@ -13545,7 +13636,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide2CreateOneWithoutOptiInput
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -13630,6 +13721,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type OptionalSide1CreateManyInput = {
+    id?: number
+    optionalSide2Id?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OptionalSide2CreateInput = {
     int: number
     optionalInt?: number | null
@@ -13643,7 +13751,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1CreateOneWithoutOptiInput
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
@@ -13660,7 +13768,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1UncheckedCreateOneWithoutOptiInput
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
@@ -13725,6 +13833,22 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+  }
+
+  export type OptionalSide2CreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
   }
 
   export type ACreateInput = {
@@ -13799,6 +13923,18 @@ export namespace Prisma {
     inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
+  export type ACreateManyInput = {
+    id?: string
+    email: string
+    name?: string | null
+    int: number
+    sInt: number
+    bInt: BigInt | number
+    inc_int?: number
+    inc_sInt?: number
+    inc_bInt?: BigInt | number
+  }
+
   export type BCreateInput = {
     id?: string
     float: number
@@ -13845,6 +13981,14 @@ export namespace Prisma {
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
     numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+  }
+
+  export type BCreateManyInput = {
+    id?: string
+    float: number
+    dFloat: number
+    decFloat: Decimal | number | string
+    numFloat: Decimal | number | string
   }
 
   export type CCreateInput = {
@@ -13907,6 +14051,16 @@ export namespace Prisma {
     uuid?: StringFieldUpdateOperationsInput | string
   }
 
+  export type CCreateManyInput = {
+    id?: string
+    char: string
+    vChar: string
+    text: string
+    bit: string
+    vBit: string
+    uuid: string
+  }
+
   export type DCreateInput = {
     id?: string
     bool: boolean
@@ -13961,6 +14115,15 @@ export namespace Prisma {
     jsonb?: InputJsonValue
   }
 
+  export type DCreateManyInput = {
+    id?: string
+    bool: boolean
+    byteA: Buffer
+    xml: string
+    json: InputJsonValue
+    jsonb: InputJsonValue
+  }
+
   export type ECreateInput = {
     id?: string
     date: Date | string
@@ -14001,6 +14164,13 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ECreateManyInput = {
+    id?: string
+    date: Date | string
+    time: Date | string
+    ts: Date | string
   }
 
   export type IntFilter = {
@@ -14399,7 +14569,7 @@ export namespace Prisma {
     max?: NestedBytesFilter
   }
 
-  export type UserCreateOneWithoutPostsInput = {
+  export type UserCreateNestedOneWithoutPostsInput = {
     create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
     connect?: UserWhereUniqueInput
     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
@@ -14437,16 +14607,18 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type PostCreateManyWithoutAuthorInput = {
+  export type PostCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    createMany?: PostCreateManyAuthorInputEnvelope
   }
 
-  export type PostUncheckedCreateManyWithoutAuthorInput = {
+  export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    createMany?: PostCreateManyAuthorInputEnvelope
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -14487,6 +14659,7 @@ export namespace Prisma {
 
   export type PostUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -14500,6 +14673,7 @@ export namespace Prisma {
 
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -14511,7 +14685,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
   }
 
-  export type NCreateManyWithoutMInput = {
+  export type NCreateNestedManyWithoutMInput = {
     create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
     connect?: Enumerable<NWhereUniqueInput>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
@@ -14530,7 +14704,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
   }
 
-  export type MCreateManyWithoutNInput = {
+  export type MCreateNestedManyWithoutNInput = {
     create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
     connect?: Enumerable<MWhereUniqueInput>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
@@ -14549,20 +14723,23 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
   }
 
-  export type ManyRequiredCreateManyWithoutOneInput = {
+  export type ManyRequiredCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
   }
 
-  export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
+  export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
   }
 
   export type ManyRequiredUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14576,6 +14753,7 @@ export namespace Prisma {
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14587,7 +14765,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
   }
 
-  export type OneOptionalCreateOneWithoutManyInput = {
+  export type OneOptionalCreateNestedOneWithoutManyInput = {
     create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
     connect?: OneOptionalWhereUniqueInput
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
@@ -14603,7 +14781,7 @@ export namespace Prisma {
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
   }
 
-  export type OptionalSide2CreateOneWithoutOptiInput = {
+  export type OptionalSide2CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
     connect?: OptionalSide2WhereUniqueInput
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
@@ -14619,13 +14797,13 @@ export namespace Prisma {
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
   }
 
-  export type OptionalSide1CreateOneWithoutOptiInput = {
+  export type OptionalSide1CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
   }
 
-  export type OptionalSide1UncheckedCreateOneWithoutOptiInput = {
+  export type OptionalSide1UncheckedCreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
@@ -15099,6 +15277,11 @@ export namespace Prisma {
     create: XOR<PostUncheckedCreateWithoutAuthorInput, PostCreateWithoutAuthorInput>
   }
 
+  export type PostCreateManyAuthorInputEnvelope = {
+    data: Enumerable<PostCreateManyAuthorInput>
+    skipDuplicates?: boolean
+  }
+
   export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
     data: XOR<PostUncheckedUpdateWithoutAuthorInput, PostUpdateWithoutAuthorInput>
@@ -15303,6 +15486,11 @@ export namespace Prisma {
   export type ManyRequiredCreateOrConnectWithoutoneInput = {
     where: ManyRequiredWhereUniqueInput
     create: XOR<ManyRequiredUncheckedCreateWithoutOneInput, ManyRequiredCreateWithoutOneInput>
+  }
+
+  export type ManyRequiredCreateManyOneInputEnvelope = {
+    data: Enumerable<ManyRequiredCreateManyOneInput>
+    skipDuplicates?: boolean
   }
 
   export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
@@ -15557,6 +15745,14 @@ export namespace Prisma {
     create: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
   }
 
+  export type PostCreateManyAuthorInput = {
+    id?: number
+    createdAt?: Date | string
+    title: string
+    content?: string | null
+    published?: boolean
+  }
+
   export type PostUpdateWithoutAuthorInput = {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
@@ -15672,6 +15868,22 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+  }
+
+  export type ManyRequiredCreateManyOneInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
   }
 
   export type ManyRequiredUpdateWithoutOneInput = {
