@@ -216,6 +216,20 @@ describe('reset', () => {
     ).toMatchInlineSnapshot(``)
   })
 
+  it('reset - multiple seed files - --skip-seed', async () => {
+    ctx.fixture('seed-sqlite')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([
+      '--skip-seed',
+      '--preview-feature',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
   it('reset - seed.js', async () => {
     ctx.fixture('seed-sqlite')
     // ctx.fs.remove('prisma/seed.js')

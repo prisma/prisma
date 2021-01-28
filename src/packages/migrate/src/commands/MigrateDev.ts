@@ -65,6 +65,7 @@ ${chalk.bold('Options')}
     --create-only   Create a new migration but do not apply it
                     The migration will be empty if there are no changes in Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
+      --skip-seed   Skip triggering seed
 
 ${chalk.bold('Examples')}
 
@@ -91,6 +92,7 @@ ${chalk.bold('Examples')}
       '--create-only': Boolean,
       '--schema': String,
       '--skip-generate': Boolean,
+      '--skip-seed': Boolean,
       '--experimental': Boolean,
       '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
@@ -187,8 +189,12 @@ ${chalk.bold('Examples')}
       )
     }
 
-    // If database was reset we want to run the seed
-    if (devDiagnostic.action.tag === 'reset') {
+    // If database was reset we want to run the seed if not skipped
+    if (
+      devDiagnostic.action.tag === 'reset' &&
+      !process.env.MIGRATE_SKIP_SEED &&
+      !args['--skip-seed']
+    ) {
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
