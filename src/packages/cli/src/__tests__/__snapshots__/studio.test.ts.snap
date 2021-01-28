@@ -2,8 +2,8 @@
 
 exports[`can respond to \`create\` queries 1`] = `
 Object {
-  action: request,
-  channel: -photon,
+  action: client-request,
+  channel: -prisma,
   payload: Object {
     data: Object {
       params: Object {
@@ -69,8 +69,8 @@ Object {
 
 exports[`can respond to \`delete\` queries 1`] = `
 Object {
-  action: request,
-  channel: -photon,
+  action: client-request,
+  channel: -prisma,
   payload: Object {
     data: Object {
       params: Object {
@@ -116,8 +116,8 @@ Object {
 
 exports[`can respond to \`findMany\` queries 1`] = `
 Object {
-  action: request,
-  channel: -photon,
+  action: client-request,
+  channel: -prisma,
   payload: Object {
     data: Object {
       params: Object {
@@ -175,8 +175,8 @@ Object {
 
 exports[`can respond to \`update\` queries 1`] = `
 Object {
-  action: request,
-  channel: -photon,
+  action: client-request,
+  channel: -prisma,
   payload: Object {
     data: Object {
       params: Object {
