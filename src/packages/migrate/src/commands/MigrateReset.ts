@@ -50,6 +50,7 @@ ${chalk.bold('Options')}
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
+      --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
 
@@ -74,6 +75,7 @@ ${chalk.bold('Examples')}
       '--force': Boolean,
       '-f': '--force',
       '--skip-generate': Boolean,
+      '--skip-seed': Boolean,
       '--experimental': Boolean,
       '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
@@ -176,10 +178,13 @@ The following migration(s) have been applied:\n\n${chalk(
       }
     }
 
-    // Run seed if 1 or more seed files are present
-    const detected = detectSeedFiles(schemaPath)
-    if (detected.numberOfSeedFiles > 0) {
-      await tryToRunSeed(schemaPath)
+    // Run if not skipped
+    if (!process.env.MIGRATE_SKIP_SEED && !args['--skip-seed']) {
+      // Run seed if 1 or more seed files are present
+      const detected = detectSeedFiles(schemaPath)
+      if (detected.numberOfSeedFiles > 0) {
+        await tryToRunSeed(schemaPath)
+      }
     }
 
     return ``
