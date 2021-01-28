@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1611768415418,
+  "lastUpdate": 1611821002596,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -187,6 +187,33 @@ window.BENCHMARK_DATA = {
             "name": "client generation",
             "value": 0.44,
             "range": "±5.48%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "c40f568400c9e860a669c8a89c17a7c9209ad360",
+          "message": "test(client): benchmark client compilation",
+          "timestamp": "2021-01-28T07:35:56Z",
+          "url": "https://github.com/prisma/prisma/pull/5301/commits/c40f568400c9e860a669c8a89c17a7c9209ad360"
+        },
+        "date": 1611821001852,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation",
+            "value": 0.55,
+            "range": "±2.08%",
             "unit": "ops/sec",
             "extra": "7 samples"
           }
