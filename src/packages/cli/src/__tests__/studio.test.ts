@@ -21,7 +21,10 @@ const setupWS = (): Promise<WebSocket> => {
         expect(message.channel).not.toBeUndefined()
         expect(message.action).not.toBeUndefined()
 
-        if (message.channel !== '-photon' && message.action !== 'start') {
+        if (
+          message.channel !== '-prisma' &&
+          message.action !== 'client-start'
+        ) {
           return
         }
 
@@ -31,8 +34,8 @@ const setupWS = (): Promise<WebSocket> => {
       ws.send(
         JSON.stringify({
           requestId: 1,
-          channel: 'photon',
-          action: 'start',
+          channel: 'prisma',
+          action: 'client-start',
           payload: {},
         }),
       )
@@ -48,7 +51,10 @@ const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
       expect(message.channel).not.toBeUndefined()
       expect(message.action).not.toBeUndefined()
 
-      if (message.channel !== '-photon' && message.action !== 'request') {
+      if (
+        message.channel !== '-prisma' &&
+        message.action !== 'client-request'
+      ) {
         return
       }
 
@@ -118,8 +124,8 @@ it('launches client correctly', async () => {
 it('can respond to `findMany` queries', async () => {
   const res = await sendRequest(ws, {
     requestId: 1,
-    channel: 'photon',
-    action: 'request',
+    channel: 'prisma',
+    action: 'client-request',
     payload: {
       data: {
         query: `
@@ -143,8 +149,8 @@ it('can respond to `findMany` queries', async () => {
 it('can respond to `create` queries', async () => {
   const res = await sendRequest(ws, {
     requestId: 1,
-    channel: 'photon',
-    action: 'request',
+    channel: 'prisma',
+    action: 'client-request',
     payload: {
       data: {
         query: `
@@ -185,8 +191,8 @@ it('can respond to `create` queries', async () => {
 it('can respond to `update` queries', async () => {
   const res = await sendRequest(ws, {
     requestId: 1,
-    channel: 'photon',
-    action: 'request',
+    channel: 'prisma',
+    action: 'client-request',
     payload: {
       data: {
         query: `
@@ -229,8 +235,8 @@ it('can respond to `update` queries', async () => {
 it('can respond to `delete` queries', async () => {
   const res = await sendRequest(ws, {
     requestId: 1,
-    channel: 'photon',
-    action: 'request',
+    channel: 'prisma',
+    action: 'client-request',
     payload: {
       data: {
         query: `
