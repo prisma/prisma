@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.16.0-28.6958b52ccd822992f6a61f80f3ef00193cec162e"
+    "@prisma/engines": "2.16.0-29.c0f52b4d7869da701759796acfb33402173a2b25"
   },
   "lint-staged": {
     "*.ts": [
