@@ -108,7 +108,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.0",
-    "ts-jest": "26.4.4",
+    "ts-jest": "26.5.0",
     "typescript": "4.1.3",
     "ws": "7.4.2"
   },
