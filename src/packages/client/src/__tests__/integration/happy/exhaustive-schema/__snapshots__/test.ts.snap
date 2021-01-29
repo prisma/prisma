@@ -2180,8 +2180,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -2197,8 +2195,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -2249,8 +2245,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -2266,8 +2260,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -3090,8 +3082,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -3106,8 +3096,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -3156,8 +3144,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -3172,8 +3158,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -3993,8 +3977,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -4009,8 +3991,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -4059,8 +4039,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -4075,8 +4053,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -4896,8 +4872,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -4912,8 +4886,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -4962,8 +4934,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -4978,8 +4948,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -5802,8 +5770,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -5819,8 +5785,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -5873,8 +5837,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -5890,8 +5852,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -6717,8 +6677,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -6734,8 +6692,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -6788,8 +6744,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -6805,8 +6759,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -7629,8 +7581,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -7645,8 +7595,6 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    json: JsonValue | null
-    optionalJson: JsonValue | null
     enum: ABeautifulEnum | null
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
@@ -7695,8 +7643,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -7711,8 +7657,6 @@ export namespace Prisma {
     optionalFloat?: true
     string?: true
     optionalString?: true
-    json?: true
-    optionalJson?: true
     enum?: true
     optionalEnum?: true
     boolean?: true
@@ -10897,8 +10841,6 @@ export namespace Prisma {
     bool: boolean | null
     byteA: Buffer | null
     xml: string | null
-    json: JsonValue | null
-    jsonb: JsonValue | null
   }
 
   export type DMaxAggregateOutputType = {
@@ -10906,8 +10848,6 @@ export namespace Prisma {
     bool: boolean | null
     byteA: Buffer | null
     xml: string | null
-    json: JsonValue | null
-    jsonb: JsonValue | null
   }
 
   export type DCountAggregateOutputType = {
@@ -10926,8 +10866,6 @@ export namespace Prisma {
     bool?: true
     byteA?: true
     xml?: true
-    json?: true
-    jsonb?: true
   }
 
   export type DMaxAggregateInputType = {
@@ -10935,8 +10873,6 @@ export namespace Prisma {
     bool?: true
     byteA?: true
     xml?: true
-    json?: true
-    jsonb?: true
   }
 
   export type DCountAggregateInputType = {
