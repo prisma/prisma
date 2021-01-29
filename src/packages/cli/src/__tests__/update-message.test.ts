@@ -4,7 +4,7 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-it('should display a update message w/ dev tag', async () => {
+it('should display a update message w/ dev tag', () => {
   printUpdateMessage({
     status: 'ok',
     // @ts-ignore
@@ -22,7 +22,7 @@ it('should display a update message w/ dev tag', async () => {
   expect(message).toMatchSnapshot()
 })
 
-it('should display a update message w/o tag', async () => {
+it('should display a update message w/o tag', () => {
   printUpdateMessage({
     status: 'ok',
     // @ts-ignore
