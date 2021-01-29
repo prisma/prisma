@@ -13028,6 +13028,15 @@ export namespace Prisma {
     authorId?: IntFieldUpdateOperationsInput | number
   }
 
+  export type PostCreateManyInput = {
+    id?: number
+    createdAt?: Date | string
+    title: string
+    content?: string | null
+    published?: boolean
+    authorId: number
+  }
+
   export type PostUpdateManyMutationInput = {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
@@ -13042,15 +13051,6 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
     authorId?: IntFieldUpdateOperationsInput | number
-  }
-
-  export type PostCreateManyInput = {
-    id?: number
-    createdAt?: Date | string
-    title: string
-    content?: string | null
-    published?: boolean
-    authorId: number
   }
 
   export type UserCreateInput = {
@@ -13123,6 +13123,23 @@ export namespace Prisma {
     posts?: PostUncheckedUpdateManyWithoutAuthorInput
   }
 
+  export type UserCreateManyInput = {
+    id?: number
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type UserUpdateManyMutationInput = {
     email?: StringFieldUpdateOperationsInput | string
     int?: IntFieldUpdateOperationsInput | number
@@ -13154,23 +13171,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type UserCreateManyInput = {
-    id?: number
-    email: string
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type MCreateInput = {
@@ -13237,6 +13237,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type MCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type MUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13266,22 +13282,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type MCreateManyInput = {
-    id?: number
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type NCreateInput = {
@@ -13348,6 +13348,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type NCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type NUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13377,22 +13393,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type NCreateManyInput = {
-    id?: number
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type OneOptionalCreateInput = {
@@ -13461,6 +13461,22 @@ export namespace Prisma {
     many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
   }
 
+  export type OneOptionalCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OneOptionalUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13490,22 +13506,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type OneOptionalCreateManyInput = {
-    id?: number
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type ManyRequiredCreateInput = {
@@ -13574,6 +13574,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type ManyRequiredCreateManyInput = {
+    id?: number
+    oneOptionalId?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type ManyRequiredUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13604,23 +13621,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type ManyRequiredCreateManyInput = {
-    id?: number
-    oneOptionalId?: number | null
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type OptionalSide1CreateInput = {
@@ -13689,6 +13689,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type OptionalSide1CreateManyInput = {
+    id?: number
+    optionalSide2Id?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OptionalSide1UpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13719,23 +13736,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type OptionalSide1CreateManyInput = {
-    id?: number
-    optionalSide2Id?: number | null
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type OptionalSide2CreateInput = {
@@ -13804,6 +13804,22 @@ export namespace Prisma {
     opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
   }
 
+  export type OptionalSide2CreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OptionalSide2UpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13833,22 +13849,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type OptionalSide2CreateManyInput = {
-    id?: number
-    int: number
-    optionalInt?: number | null
-    float: number
-    optionalFloat?: number | null
-    string: string
-    optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
-    boolean: boolean
-    optionalBoolean?: boolean | null
   }
 
   export type ACreateInput = {
@@ -13899,6 +13899,18 @@ export namespace Prisma {
     inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
+  export type ACreateManyInput = {
+    id?: string
+    email: string
+    name?: string | null
+    int: number
+    sInt: number
+    bInt: BigInt | number
+    inc_int?: number
+    inc_sInt?: number
+    inc_bInt?: BigInt | number
+  }
+
   export type AUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -13921,18 +13933,6 @@ export namespace Prisma {
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
     inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
-  }
-
-  export type ACreateManyInput = {
-    id?: string
-    email: string
-    name?: string | null
-    int: number
-    sInt: number
-    bInt: BigInt | number
-    inc_int?: number
-    inc_sInt?: number
-    inc_bInt?: BigInt | number
   }
 
   export type BCreateInput = {
@@ -13967,6 +13967,14 @@ export namespace Prisma {
     numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
+  export type BCreateManyInput = {
+    id?: string
+    float: number
+    dFloat: number
+    decFloat: Decimal | number | string
+    numFloat: Decimal | number | string
+  }
+
   export type BUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
@@ -13981,14 +13989,6 @@ export namespace Prisma {
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
     numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-  }
-
-  export type BCreateManyInput = {
-    id?: string
-    float: number
-    dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
   }
 
   export type CCreateInput = {
@@ -14031,6 +14031,16 @@ export namespace Prisma {
     uuid?: StringFieldUpdateOperationsInput | string
   }
 
+  export type CCreateManyInput = {
+    id?: string
+    char: string
+    vChar: string
+    text: string
+    bit: string
+    vBit: string
+    uuid: string
+  }
+
   export type CUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
@@ -14049,16 +14059,6 @@ export namespace Prisma {
     bit?: StringFieldUpdateOperationsInput | string
     vBit?: StringFieldUpdateOperationsInput | string
     uuid?: StringFieldUpdateOperationsInput | string
-  }
-
-  export type CCreateManyInput = {
-    id?: string
-    char: string
-    vChar: string
-    text: string
-    bit: string
-    vBit: string
-    uuid: string
   }
 
   export type DCreateInput = {
@@ -14097,6 +14097,15 @@ export namespace Prisma {
     jsonb?: InputJsonValue
   }
 
+  export type DCreateManyInput = {
+    id?: string
+    bool: boolean
+    byteA: Buffer
+    xml: string
+    json: InputJsonValue
+    jsonb: InputJsonValue
+  }
+
   export type DUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
@@ -14113,15 +14122,6 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: InputJsonValue
     jsonb?: InputJsonValue
-  }
-
-  export type DCreateManyInput = {
-    id?: string
-    bool: boolean
-    byteA: Buffer
-    xml: string
-    json: InputJsonValue
-    jsonb: InputJsonValue
   }
 
   export type ECreateInput = {
@@ -14152,6 +14152,13 @@ export namespace Prisma {
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ECreateManyInput = {
+    id?: string
+    date: Date | string
+    time: Date | string
+    ts: Date | string
+  }
+
   export type EUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14164,13 +14171,6 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type ECreateManyInput = {
-    id?: string
-    date: Date | string
-    time: Date | string
-    ts: Date | string
   }
 
   export type IntFilter = {
