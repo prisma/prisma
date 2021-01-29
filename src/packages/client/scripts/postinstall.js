@@ -53,7 +53,7 @@ async function main() {
     console.error(
       `${c.yellow(
         'warning',
-      )} In order to use "@prisma/client", please install @prisma/cli. You can install it with "npm add -D @prisma/cli".`,
+      )} In order to use "@prisma/client", please install Prisma CLI. You can install it with "npm add -D prisma".`,
     )
   }
 }
@@ -61,13 +61,13 @@ async function main() {
 function getLocalPackagePath() {
   let packagePath
   try {
-    packagePath = require.resolve('@prisma/cli/package.json')
+    packagePath = require.resolve('prisma/package.json')
   } catch (e) {
     return null
   }
 
   if (packagePath) {
-    return require.resolve('@prisma/cli')
+    return require.resolve('prisma')
   }
 
   return null
@@ -76,7 +76,7 @@ function getLocalPackagePath() {
 async function isInstalledGlobally() {
   try {
     const result = await exec('prisma -v')
-    if (result.stdout.includes('@prisma/cli')) {
+    if (result.stdout.includes('@prisma/client')) {
       return true
     } else {
       console.error(`${c.yellow('warning')} You still have the ${c.bold(
