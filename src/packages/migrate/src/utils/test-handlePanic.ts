@@ -16,7 +16,7 @@ async function main() {
   const packageJsonVersion = '0.0.0'
   const prismaVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
 
-  await handlePanic(error, packageJsonVersion, prismaVersion)
+  await handlePanic(error, packageJsonVersion, prismaVersion, 'something-test')
     .catch((e) => {
       console.log(e)
     })

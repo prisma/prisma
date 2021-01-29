@@ -7,15 +7,16 @@ export async function handlePanic(
   error: RustPanic,
   cliVersion: string,
   binaryVersion: string,
+  command: string,
 ): Promise<void> {
   if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
     throw error
   }
 
-  await panicDialog(error, cliVersion, binaryVersion)
+  await panicDialog(error, cliVersion, binaryVersion, command)
 }
 
-async function panicDialog(error, cliVersion, binaryVersion) {
+async function panicDialog(error, cliVersion, binaryVersion, command) {
   const errorMessage = error.message
     .split('\n')
     .slice(0, Math.max(20, process.stdout.rows))
@@ -77,5 +78,6 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     error,
     cliVersion,
     binaryVersion,
+    command,
   })
 }
