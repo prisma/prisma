@@ -391,7 +391,6 @@ export class ModelDelegate implements Generatable {
         key !== 'groupBy' &&
         value,
     )
-    // console.log(actions);
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)

@@ -140,8 +140,6 @@ export function getModelArgName(
     case DMMF.ModelAction.count:
       return `${modelName}CountArgs`
   }
-  console.log(DMMF.ModelAction.createMany);
-  return 'wtf'
 }
 
 export function getDefaultArgName(
@@ -269,12 +267,10 @@ export function getSelectReturnType({
       return `CheckSelect<T, Prisma__${name}Client<${getType(
         name,
         isList,
-      )} | null
-      >, Prisma__${name}Client<${getType(
+      )} | null >, Prisma__${name}Client<${getType(
         getPayloadName(name) + '<T>',
         isList,
-      )} | null
-      >>`
+      )} | null >>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
       name,
@@ -282,12 +278,13 @@ export function getSelectReturnType({
     )}>, Prisma__${name}Client<${getType(
       getPayloadName(name) + '<T>',
       isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
-    >, Prisma__${name}Client<${getType(
+    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(
+      name,
+      isList
+    )} | null >, Prisma__${name}Client<${getType(
       getPayloadName(name) + '<T>',
       isList,
-    )} | null
-    >>`
+    )} | null >>`
   }
   return `CheckSelect<T, Prisma__${name}Client<${getType(
     name,

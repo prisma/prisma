@@ -148,7 +148,7 @@ importers:
       ws: 7.4.2
   packages/client:
     dependencies:
-      '@prisma/engines-version': 2.16.0-24.010a061820516f9f59b5124ae9d5b8531b19bec9
+      '@prisma/engines-version': 2.16.0-25.5c9244a360f184579af31ceeb5f43ecd494ba2f8
     devDependencies:
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
@@ -212,7 +212,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 2.16.0-25.5c9244a360f184579af31ceeb5f43ecd494ba2f8
-      '@prisma/engines-version': 2.16.0-24.010a061820516f9f59b5124ae9d5b8531b19bec9
+      '@prisma/engines-version': 2.16.0-25.5c9244a360f184579af31ceeb5f43ecd494ba2f8
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/migrate': workspace:*
@@ -1444,12 +1444,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-AJdeKFnr3JZcQoyYo9cZj5QfmsHdJYBSjPMl22WIuxmR2T402Ypar427bn+ByO+zH0avQpRKPpdchxr3w+nuyw==
-  /@prisma/engines-version/2.16.0-24.010a061820516f9f59b5124ae9d5b8531b19bec9:
-    dev: false
-    resolution:
-      integrity: sha512-pD4ufqxB19ci4A+6mMHkJ67pkuoBr/9xhxQJBUp1kBRRXNgjtUY9B7YEKcLeb7JuSvGvj69eq1NiArKwnkDADw==
   /@prisma/engines-version/2.16.0-25.5c9244a360f184579af31ceeb5f43ecd494ba2f8:
-    dev: true
     resolution:
       integrity: sha512-dMRnqivb9T4KO/HS5pGH1K4oZ23AojC27yqzHWrFHQ6Ur9O9RsYgG2Ovpe/I9UCnfoA6dT+UDxp+zDKW1gEaOg==
   /@prisma/engines/2.16.0-23.0912dc6a337ad2067160deccb6183a43f25928ef:
