@@ -239,7 +239,7 @@ ${breakingChangesMessage}`
           clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning = versionsOutOfSync
           ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(
-              `@prisma/cli@${pkg.version}`,
+              `prisma@${pkg.version}`,
             )} and ${chalk.bold(
               `@prisma/client@${clientGeneratorVersion}`,
             )} don't match.

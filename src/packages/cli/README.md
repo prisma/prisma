@@ -1,4 +1,4 @@
-# Prisma CLI &middot; [![npm version](https://img.shields.io/npm/v/@prisma/cli.svg?style=flat)](https://www.npmjs.com/package/@prisma/cli) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/master/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
+# Prisma CLI &middot; [![npm version](https://img.shields.io/npm/v/prisma.svg?style=flat)](https://www.npmjs.com/package/prisma) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/master/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
 
 Learn more about Prisma in the [docs](https://www.prisma.io/docs/).
 
@@ -14,13 +14,13 @@ We recommend using [the latest Node.js LTS ("long-term support") release.](https
 ### npm
 
 ```
-npm install @prisma/cli --save-dev
+npm install prisma --save-dev
 ```
 
 ### Yarn
 
 ```
-yarn add @prisma/cli --dev
+yarn add prisma --dev
 ```
 
 [Check out the docs for more information.](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-cli/installation)

@@ -317,7 +317,7 @@ function handleIndividualError(error): void {
 
 /**
  * Annotations for `pkg` so it bundles things correctly with yarn's hoisting
- * `node_modules/@prisma/cli/build/index.js` needs to get to:
+ * `node_modules/prisma/build/index.js` needs to get to:
  * `node_modules/@prisma/engines`
  */
 

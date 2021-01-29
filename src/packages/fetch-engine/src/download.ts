@@ -101,7 +101,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
-    binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform),
+    binaries: mapKeys(options.binaries, (key) =>
+      engineTypeToBinaryType(key, platform),
     ), // just necessary to support both camelCase and hyphen-case
   }
 
@@ -371,7 +372,10 @@ async function getCachedBinaryPath({
 export function getBinaryEnvVarPath(binaryName: string): string | null {
   const envVar = binaryToEnvVar[binaryName]
   if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
+    const envVarPath = path.resolve(
+      process.cwd(),
+      process.env[envVar] as string,
+    )
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
         `Env var ${chalk.bold(
@@ -423,7 +427,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
       return
     } else {
       throw new Error(
-        `Can't write to ${targetDir} please make sure you install "@prisma/cli" with the right permissions.`,
+        `Can't write to ${targetDir} please make sure you install "prisma" with the right permissions.`,
       )
     }
   }
