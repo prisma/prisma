@@ -74,7 +74,7 @@ export class Model implements Generatable {
           `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
         )
       }
-      if (action === 'updateMany' || action === 'deleteMany') {
+      if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany' ) {
         argsTypes.push(
           new MinimalArgsType(
             field.args,
@@ -391,6 +391,7 @@ export class ModelDelegate implements Generatable {
         key !== 'groupBy' &&
         value,
     )
+    // console.log(actions);
     const previewFeatures = this.generator?.previewFeatures ?? []
     const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)

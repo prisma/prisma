@@ -12,8 +12,10 @@ const prisma = new PrismaClient({
 
 async function main() {
   prisma.$on('query', () => {})
-  const res = await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  const res = await prisma.user.createMany({
+    data:[{
+      email: 'williamluke4@gmail.com'
+    }]
   })
   // console.log(res);
   // const res = await prisma.user.findUnique({

@@ -265,6 +265,7 @@ export type PrismaAction =
   | 'findMany'
   | 'findFirst'
   | 'create'
+  | 'createMany'
   | 'update'
   | 'updateMany'
   | 'upsert'
