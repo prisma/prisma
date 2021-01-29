@@ -1270,6 +1270,7 @@ export namespace Prisma {
     | 'findMany'
     | 'findFirst'
     | 'create'
+    | 'createMany'
     | 'update'
     | 'updateMany'
     | 'upsert'
@@ -1617,6 +1618,22 @@ export namespace Prisma {
     create<T extends PostCreateArgs>(
       args: SelectSubset<T, PostCreateArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
+    /**
+     * Create many Posts.
+     *     @param {PostCreateManyArgs} args - Arguments to create many Posts.
+     *     @example
+     *     // Create many Posts
+     *     const post = await prisma.post.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends PostCreateManyArgs>(
+      args?: SelectSubset<T, PostCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a Post.
@@ -2017,6 +2034,15 @@ export namespace Prisma {
      * The data needed to create a Post.
     **/
     data: XOR<PostUncheckedCreateInput, PostCreateInput>
+  }
+
+
+  /**
+   * Post createMany
+   */
+  export type PostCreateManyArgs = {
+    data: Enumerable<PostCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -2511,6 +2537,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
 
     /**
+     * Create many Users.
+     *     @param {UserCreateManyArgs} args - Arguments to create many Users.
+     *     @example
+     *     // Create many Users
+     *     const user = await prisma.user.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends UserCreateManyArgs>(
+      args?: SelectSubset<T, UserCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a User.
      * @param {UserDeleteArgs} args - Arguments to delete one User.
      * @example
@@ -2907,6 +2949,15 @@ export namespace Prisma {
      * The data needed to create a User.
     **/
     data: XOR<UserUncheckedCreateInput, UserCreateInput>
+  }
+
+
+  /**
+   * User createMany
+   */
+  export type UserCreateManyArgs = {
+    data: Enumerable<UserCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -3393,6 +3444,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
 
     /**
+     * Create many Ms.
+     *     @param {MCreateManyArgs} args - Arguments to create many Ms.
+     *     @example
+     *     // Create many Ms
+     *     const m = await prisma.m.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends MCreateManyArgs>(
+      args?: SelectSubset<T, MCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a M.
      * @param {MDeleteArgs} args - Arguments to delete one M.
      * @example
@@ -3789,6 +3856,15 @@ export namespace Prisma {
      * The data needed to create a M.
     **/
     data: XOR<MUncheckedCreateInput, MCreateInput>
+  }
+
+
+  /**
+   * M createMany
+   */
+  export type MCreateManyArgs = {
+    data: Enumerable<MCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -4275,6 +4351,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
 
     /**
+     * Create many Ns.
+     *     @param {NCreateManyArgs} args - Arguments to create many Ns.
+     *     @example
+     *     // Create many Ns
+     *     const n = await prisma.n.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends NCreateManyArgs>(
+      args?: SelectSubset<T, NCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a N.
      * @param {NDeleteArgs} args - Arguments to delete one N.
      * @example
@@ -4671,6 +4763,15 @@ export namespace Prisma {
      * The data needed to create a N.
     **/
     data: XOR<NUncheckedCreateInput, NCreateInput>
+  }
+
+
+  /**
+   * N createMany
+   */
+  export type NCreateManyArgs = {
+    data: Enumerable<NCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -5157,6 +5258,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
 
     /**
+     * Create many OneOptionals.
+     *     @param {OneOptionalCreateManyArgs} args - Arguments to create many OneOptionals.
+     *     @example
+     *     // Create many OneOptionals
+     *     const oneOptional = await prisma.oneOptional.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OneOptionalCreateManyArgs>(
+      args?: SelectSubset<T, OneOptionalCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a OneOptional.
      * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
      * @example
@@ -5553,6 +5670,15 @@ export namespace Prisma {
      * The data needed to create a OneOptional.
     **/
     data: XOR<OneOptionalUncheckedCreateInput, OneOptionalCreateInput>
+  }
+
+
+  /**
+   * OneOptional createMany
+   */
+  export type OneOptionalCreateManyArgs = {
+    data: Enumerable<OneOptionalCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -6051,6 +6177,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
 
     /**
+     * Create many ManyRequireds.
+     *     @param {ManyRequiredCreateManyArgs} args - Arguments to create many ManyRequireds.
+     *     @example
+     *     // Create many ManyRequireds
+     *     const manyRequired = await prisma.manyRequired.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ManyRequiredCreateManyArgs>(
+      args?: SelectSubset<T, ManyRequiredCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a ManyRequired.
      * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
      * @example
@@ -6449,6 +6591,15 @@ export namespace Prisma {
      * The data needed to create a ManyRequired.
     **/
     data: XOR<ManyRequiredUncheckedCreateInput, ManyRequiredCreateInput>
+  }
+
+
+  /**
+   * ManyRequired createMany
+   */
+  export type ManyRequiredCreateManyArgs = {
+    data: Enumerable<ManyRequiredCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -6947,6 +7098,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
 
     /**
+     * Create many OptionalSide1s.
+     *     @param {OptionalSide1CreateManyArgs} args - Arguments to create many OptionalSide1s.
+     *     @example
+     *     // Create many OptionalSide1s
+     *     const optionalSide1 = await prisma.optionalSide1.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OptionalSide1CreateManyArgs>(
+      args?: SelectSubset<T, OptionalSide1CreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a OptionalSide1.
      * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
      * @example
@@ -7345,6 +7512,15 @@ export namespace Prisma {
      * The data needed to create a OptionalSide1.
     **/
     data: XOR<OptionalSide1UncheckedCreateInput, OptionalSide1CreateInput>
+  }
+
+
+  /**
+   * OptionalSide1 createMany
+   */
+  export type OptionalSide1CreateManyArgs = {
+    data: Enumerable<OptionalSide1CreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -7831,6 +8007,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
 
     /**
+     * Create many OptionalSide2s.
+     *     @param {OptionalSide2CreateManyArgs} args - Arguments to create many OptionalSide2s.
+     *     @example
+     *     // Create many OptionalSide2s
+     *     const optionalSide2 = await prisma.optionalSide2.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OptionalSide2CreateManyArgs>(
+      args?: SelectSubset<T, OptionalSide2CreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a OptionalSide2.
      * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
      * @example
@@ -8229,6 +8421,15 @@ export namespace Prisma {
      * The data needed to create a OptionalSide2.
     **/
     data: XOR<OptionalSide2UncheckedCreateInput, OptionalSide2CreateInput>
+  }
+
+
+  /**
+   * OptionalSide2 createMany
+   */
+  export type OptionalSide2CreateManyArgs = {
+    data: Enumerable<OptionalSide2CreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -8677,6 +8878,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
 
     /**
+     * Create many As.
+     *     @param {ACreateManyArgs} args - Arguments to create many As.
+     *     @example
+     *     // Create many As
+     *     const a = await prisma.a.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ACreateManyArgs>(
+      args?: SelectSubset<T, ACreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a A.
      * @param {ADeleteArgs} args - Arguments to delete one A.
      * @example
@@ -9056,6 +9273,15 @@ export namespace Prisma {
      * The data needed to create a A.
     **/
     data: XOR<AUncheckedCreateInput, ACreateInput>
+  }
+
+
+  /**
+   * A createMany
+   */
+  export type ACreateManyArgs = {
+    data: Enumerable<ACreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -9448,6 +9674,22 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
 
     /**
+     * Create many Bs.
+     *     @param {BCreateManyArgs} args - Arguments to create many Bs.
+     *     @example
+     *     // Create many Bs
+     *     const b = await prisma.b.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends BCreateManyArgs>(
+      args?: SelectSubset<T, BCreateManyArgs>
+    ): Promise<BatchPayload>
+
+    /**
      * Delete a B.
      * @param {BDeleteArgs} args - Arguments to delete one B.
      * @example
@@ -9831,6 +10073,15 @@ export namespace Prisma {
 
 
   /**
+   * B createMany
+   */
+  export type BCreateManyArgs = {
+    data: Enumerable<BCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * B update
    */
   export type BUpdateArgs = {
@@ -10187,6 +10438,22 @@ export namespace Prisma {
     create<T extends CCreateArgs>(
       args: SelectSubset<T, CCreateArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
+    /**
+     * Create many Cs.
+     *     @param {CCreateManyArgs} args - Arguments to create many Cs.
+     *     @example
+     *     // Create many Cs
+     *     const c = await prisma.c.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends CCreateManyArgs>(
+      args?: SelectSubset<T, CCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a C.
@@ -10572,6 +10839,15 @@ export namespace Prisma {
 
 
   /**
+   * C createMany
+   */
+  export type CCreateManyArgs = {
+    data: Enumerable<CCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * C update
    */
   export type CUpdateArgs = {
@@ -10920,6 +11196,22 @@ export namespace Prisma {
     create<T extends DCreateArgs>(
       args: SelectSubset<T, DCreateArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
+    /**
+     * Create many Ds.
+     *     @param {DCreateManyArgs} args - Arguments to create many Ds.
+     *     @example
+     *     // Create many Ds
+     *     const d = await prisma.d.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends DCreateManyArgs>(
+      args?: SelectSubset<T, DCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a D.
@@ -11305,6 +11597,15 @@ export namespace Prisma {
 
 
   /**
+   * D createMany
+   */
+  export type DCreateManyArgs = {
+    data: Enumerable<DCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * D update
    */
   export type DUpdateArgs = {
@@ -11637,6 +11938,22 @@ export namespace Prisma {
     create<T extends ECreateArgs>(
       args: SelectSubset<T, ECreateArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
+    /**
+     * Create many Es.
+     *     @param {ECreateManyArgs} args - Arguments to create many Es.
+     *     @example
+     *     // Create many Es
+     *     const e = await prisma.e.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ECreateManyArgs>(
+      args?: SelectSubset<T, ECreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a E.
@@ -12018,6 +12335,15 @@ export namespace Prisma {
      * The data needed to create a E.
     **/
     data: XOR<EUncheckedCreateInput, ECreateInput>
+  }
+
+
+  /**
+   * E createMany
+   */
+  export type ECreateManyArgs = {
+    data: Enumerable<ECreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -15936,7 +16262,7 @@ export namespace Prisma {
 
 
   /**
-   * Batch Payload for updateMany & deleteMany
+   * Batch Payload for updateMany & deleteMany & createMany
    */
 
   export type BatchPayload = {
