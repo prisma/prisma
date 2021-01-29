@@ -40,7 +40,11 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   if(actionName === 'findFirst' || actionName === 'findUnique'){
     return `<T extends ${getModelArgName(name, actionName)},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
   }
-  return `<T extends ${getModelArgName(name, actionName)}>`
+  const modelArgName = getModelArgName(name, actionName)
+  if(!modelArgName){
+    console.log({name, actionName});
+  }
+  return `<T extends ${modelArgName}>`
 }
 export function getArgs(name: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
@@ -55,7 +59,8 @@ export function getArgs(name: string, actionName: DMMF.ModelAction) {
   return `args${
     actionName === DMMF.ModelAction.findMany ||
     actionName === DMMF.ModelAction.findFirst ||
-    actionName === DMMF.ModelAction.deleteMany
+    actionName === DMMF.ModelAction.deleteMany ||
+    actionName === DMMF.ModelAction.createMany
       ? '?'
       : ''
   }: SelectSubset<T, ${getModelArgName(name, actionName)}>`

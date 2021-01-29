@@ -85,7 +85,7 @@ test('uncheckedScalarInputs validation', async () => {
         maxPeople?: Int | Null
         createdAt?: DateTime
         updatedAt?: DateTime
-        users?: UsersToActivitiesUncheckedCreateManyWithoutActivityInput
+        users?: UsersToActivitiesUncheckedCreateNestedManyWithoutActivityInput
       }
 
 

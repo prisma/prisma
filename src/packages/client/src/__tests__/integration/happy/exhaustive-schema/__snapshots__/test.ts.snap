@@ -1270,6 +1270,7 @@ export namespace Prisma {
     | 'findMany'
     | 'findFirst'
     | 'create'
+    | 'createMany'
     | 'update'
     | 'updateMany'
     | 'upsert'
@@ -1563,9 +1564,7 @@ export namespace Prisma {
     **/
     findUnique<T extends PostFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
-        >, Prisma__PostClient<PostGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
 
     /**
      * Find the first Post that matches the filter.
@@ -1580,9 +1579,7 @@ export namespace Prisma {
     **/
     findFirst<T extends PostFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null
-        >, Prisma__PostClient<PostGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -1617,6 +1614,22 @@ export namespace Prisma {
     create<T extends PostCreateArgs>(
       args: SelectSubset<T, PostCreateArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
+    /**
+     * Create many Posts.
+     *     @param {PostCreateManyArgs} args - Arguments to create many Posts.
+     *     @example
+     *     // Create many Posts
+     *     const post = await prisma.post.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends PostCreateManyArgs>(
+      args?: SelectSubset<T, PostCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a Post.
@@ -1852,9 +1865,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | null
-          >, Prisma__UserClient<UserGetPayload<T> | null
-          >>;
+    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>;
 
     private get _document();
     /**
@@ -2017,6 +2028,15 @@ export namespace Prisma {
      * The data needed to create a Post.
     **/
     data: XOR<PostUncheckedCreateInput, PostCreateInput>
+  }
+
+
+  /**
+   * Post createMany
+   */
+  export type PostCreateManyArgs = {
+    data: Enumerable<PostCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -2455,9 +2475,7 @@ export namespace Prisma {
     **/
     findUnique<T extends UserFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
-        >, Prisma__UserClient<UserGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
 
     /**
      * Find the first User that matches the filter.
@@ -2472,9 +2490,7 @@ export namespace Prisma {
     **/
     findFirst<T extends UserFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null
-        >, Prisma__UserClient<UserGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -2509,6 +2525,22 @@ export namespace Prisma {
     create<T extends UserCreateArgs>(
       args: SelectSubset<T, UserCreateArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
+    /**
+     * Create many Users.
+     *     @param {UserCreateManyArgs} args - Arguments to create many Users.
+     *     @example
+     *     // Create many Users
+     *     const user = await prisma.user.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends UserCreateManyArgs>(
+      args?: SelectSubset<T, UserCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a User.
@@ -2907,6 +2939,15 @@ export namespace Prisma {
      * The data needed to create a User.
     **/
     data: XOR<UserUncheckedCreateInput, UserCreateInput>
+  }
+
+
+  /**
+   * User createMany
+   */
+  export type UserCreateManyArgs = {
+    data: Enumerable<UserCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -3337,9 +3378,7 @@ export namespace Prisma {
     **/
     findUnique<T extends MFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
-        >, Prisma__MClient<MGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
 
     /**
      * Find the first M that matches the filter.
@@ -3354,9 +3393,7 @@ export namespace Prisma {
     **/
     findFirst<T extends MFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null
-        >, Prisma__MClient<MGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -3391,6 +3428,22 @@ export namespace Prisma {
     create<T extends MCreateArgs>(
       args: SelectSubset<T, MCreateArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
+    /**
+     * Create many Ms.
+     *     @param {MCreateManyArgs} args - Arguments to create many Ms.
+     *     @example
+     *     // Create many Ms
+     *     const m = await prisma.m.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends MCreateManyArgs>(
+      args?: SelectSubset<T, MCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a M.
@@ -3789,6 +3842,15 @@ export namespace Prisma {
      * The data needed to create a M.
     **/
     data: XOR<MUncheckedCreateInput, MCreateInput>
+  }
+
+
+  /**
+   * M createMany
+   */
+  export type MCreateManyArgs = {
+    data: Enumerable<MCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -4219,9 +4281,7 @@ export namespace Prisma {
     **/
     findUnique<T extends NFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
-        >, Prisma__NClient<NGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
 
     /**
      * Find the first N that matches the filter.
@@ -4236,9 +4296,7 @@ export namespace Prisma {
     **/
     findFirst<T extends NFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null
-        >, Prisma__NClient<NGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -4273,6 +4331,22 @@ export namespace Prisma {
     create<T extends NCreateArgs>(
       args: SelectSubset<T, NCreateArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
+    /**
+     * Create many Ns.
+     *     @param {NCreateManyArgs} args - Arguments to create many Ns.
+     *     @example
+     *     // Create many Ns
+     *     const n = await prisma.n.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends NCreateManyArgs>(
+      args?: SelectSubset<T, NCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a N.
@@ -4671,6 +4745,15 @@ export namespace Prisma {
      * The data needed to create a N.
     **/
     data: XOR<NUncheckedCreateInput, NCreateInput>
+  }
+
+
+  /**
+   * N createMany
+   */
+  export type NCreateManyArgs = {
+    data: Enumerable<NCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -5101,9 +5184,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OneOptionalFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
-        >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
 
     /**
      * Find the first OneOptional that matches the filter.
@@ -5118,9 +5199,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OneOptionalFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
-        >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -5155,6 +5234,22 @@ export namespace Prisma {
     create<T extends OneOptionalCreateArgs>(
       args: SelectSubset<T, OneOptionalCreateArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
+    /**
+     * Create many OneOptionals.
+     *     @param {OneOptionalCreateManyArgs} args - Arguments to create many OneOptionals.
+     *     @example
+     *     // Create many OneOptionals
+     *     const oneOptional = await prisma.oneOptional.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OneOptionalCreateManyArgs>(
+      args?: SelectSubset<T, OneOptionalCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a OneOptional.
@@ -5553,6 +5648,15 @@ export namespace Prisma {
      * The data needed to create a OneOptional.
     **/
     data: XOR<OneOptionalUncheckedCreateInput, OneOptionalCreateInput>
+  }
+
+
+  /**
+   * OneOptional createMany
+   */
+  export type OneOptionalCreateManyArgs = {
+    data: Enumerable<OneOptionalCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -5995,9 +6099,7 @@ export namespace Prisma {
     **/
     findUnique<T extends ManyRequiredFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
-        >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
 
     /**
      * Find the first ManyRequired that matches the filter.
@@ -6012,9 +6114,7 @@ export namespace Prisma {
     **/
     findFirst<T extends ManyRequiredFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null
-        >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -6049,6 +6149,22 @@ export namespace Prisma {
     create<T extends ManyRequiredCreateArgs>(
       args: SelectSubset<T, ManyRequiredCreateArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
+    /**
+     * Create many ManyRequireds.
+     *     @param {ManyRequiredCreateManyArgs} args - Arguments to create many ManyRequireds.
+     *     @example
+     *     // Create many ManyRequireds
+     *     const manyRequired = await prisma.manyRequired.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ManyRequiredCreateManyArgs>(
+      args?: SelectSubset<T, ManyRequiredCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a ManyRequired.
@@ -6284,9 +6400,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null
-          >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null
-          >>;
+    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>;
 
     private get _document();
     /**
@@ -6449,6 +6563,15 @@ export namespace Prisma {
      * The data needed to create a ManyRequired.
     **/
     data: XOR<ManyRequiredUncheckedCreateInput, ManyRequiredCreateInput>
+  }
+
+
+  /**
+   * ManyRequired createMany
+   */
+  export type ManyRequiredCreateManyArgs = {
+    data: Enumerable<ManyRequiredCreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -6891,9 +7014,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide1FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
-        >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
 
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -6908,9 +7029,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide1FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
-        >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -6945,6 +7064,22 @@ export namespace Prisma {
     create<T extends OptionalSide1CreateArgs>(
       args: SelectSubset<T, OptionalSide1CreateArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
+    /**
+     * Create many OptionalSide1s.
+     *     @param {OptionalSide1CreateManyArgs} args - Arguments to create many OptionalSide1s.
+     *     @example
+     *     // Create many OptionalSide1s
+     *     const optionalSide1 = await prisma.optionalSide1.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OptionalSide1CreateManyArgs>(
+      args?: SelectSubset<T, OptionalSide1CreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a OptionalSide1.
@@ -7180,9 +7315,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
-          >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null
-          >>;
+    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>;
 
     private get _document();
     /**
@@ -7345,6 +7478,15 @@ export namespace Prisma {
      * The data needed to create a OptionalSide1.
     **/
     data: XOR<OptionalSide1UncheckedCreateInput, OptionalSide1CreateInput>
+  }
+
+
+  /**
+   * OptionalSide1 createMany
+   */
+  export type OptionalSide1CreateManyArgs = {
+    data: Enumerable<OptionalSide1CreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -7775,9 +7917,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide2FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
-        >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
 
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -7792,9 +7932,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide2FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null
-        >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -7829,6 +7967,22 @@ export namespace Prisma {
     create<T extends OptionalSide2CreateArgs>(
       args: SelectSubset<T, OptionalSide2CreateArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
+    /**
+     * Create many OptionalSide2s.
+     *     @param {OptionalSide2CreateManyArgs} args - Arguments to create many OptionalSide2s.
+     *     @example
+     *     // Create many OptionalSide2s
+     *     const optionalSide2 = await prisma.optionalSide2.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends OptionalSide2CreateManyArgs>(
+      args?: SelectSubset<T, OptionalSide2CreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a OptionalSide2.
@@ -8064,9 +8218,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null
-          >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null
-          >>;
+    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>;
 
     private get _document();
     /**
@@ -8229,6 +8381,15 @@ export namespace Prisma {
      * The data needed to create a OptionalSide2.
     **/
     data: XOR<OptionalSide2UncheckedCreateInput, OptionalSide2CreateInput>
+  }
+
+
+  /**
+   * OptionalSide2 createMany
+   */
+  export type OptionalSide2CreateManyArgs = {
+    data: Enumerable<OptionalSide2CreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -8621,9 +8782,7 @@ export namespace Prisma {
     **/
     findUnique<T extends AFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
-        >, Prisma__AClient<AGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
 
     /**
      * Find the first A that matches the filter.
@@ -8638,9 +8797,7 @@ export namespace Prisma {
     **/
     findFirst<T extends AFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null
-        >, Prisma__AClient<AGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
 
     /**
      * Find zero or more As that matches the filter.
@@ -8675,6 +8832,22 @@ export namespace Prisma {
     create<T extends ACreateArgs>(
       args: SelectSubset<T, ACreateArgs>
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+
+    /**
+     * Create many As.
+     *     @param {ACreateManyArgs} args - Arguments to create many As.
+     *     @example
+     *     // Create many As
+     *     const a = await prisma.a.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ACreateManyArgs>(
+      args?: SelectSubset<T, ACreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a A.
@@ -9060,6 +9233,15 @@ export namespace Prisma {
 
 
   /**
+   * A createMany
+   */
+  export type ACreateManyArgs = {
+    data: Enumerable<ACreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * A update
    */
   export type AUpdateArgs = {
@@ -9392,9 +9574,7 @@ export namespace Prisma {
     **/
     findUnique<T extends BFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
-        >, Prisma__BClient<BGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
 
     /**
      * Find the first B that matches the filter.
@@ -9409,9 +9589,7 @@ export namespace Prisma {
     **/
     findFirst<T extends BFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null
-        >, Prisma__BClient<BGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -9446,6 +9624,22 @@ export namespace Prisma {
     create<T extends BCreateArgs>(
       args: SelectSubset<T, BCreateArgs>
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+
+    /**
+     * Create many Bs.
+     *     @param {BCreateManyArgs} args - Arguments to create many Bs.
+     *     @example
+     *     // Create many Bs
+     *     const b = await prisma.b.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends BCreateManyArgs>(
+      args?: SelectSubset<T, BCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a B.
@@ -9831,6 +10025,15 @@ export namespace Prisma {
 
 
   /**
+   * B createMany
+   */
+  export type BCreateManyArgs = {
+    data: Enumerable<BCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * B update
    */
   export type BUpdateArgs = {
@@ -10133,9 +10336,7 @@ export namespace Prisma {
     **/
     findUnique<T extends CFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
-        >, Prisma__CClient<CGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
 
     /**
      * Find the first C that matches the filter.
@@ -10150,9 +10351,7 @@ export namespace Prisma {
     **/
     findFirst<T extends CFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null
-        >, Prisma__CClient<CGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -10187,6 +10386,22 @@ export namespace Prisma {
     create<T extends CCreateArgs>(
       args: SelectSubset<T, CCreateArgs>
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+
+    /**
+     * Create many Cs.
+     *     @param {CCreateManyArgs} args - Arguments to create many Cs.
+     *     @example
+     *     // Create many Cs
+     *     const c = await prisma.c.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends CCreateManyArgs>(
+      args?: SelectSubset<T, CCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a C.
@@ -10572,6 +10787,15 @@ export namespace Prisma {
 
 
   /**
+   * C createMany
+   */
+  export type CCreateManyArgs = {
+    data: Enumerable<CCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * C update
    */
   export type CUpdateArgs = {
@@ -10866,9 +11090,7 @@ export namespace Prisma {
     **/
     findUnique<T extends DFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
-        >, Prisma__DClient<DGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
 
     /**
      * Find the first D that matches the filter.
@@ -10883,9 +11105,7 @@ export namespace Prisma {
     **/
     findFirst<T extends DFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null
-        >, Prisma__DClient<DGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -10920,6 +11140,22 @@ export namespace Prisma {
     create<T extends DCreateArgs>(
       args: SelectSubset<T, DCreateArgs>
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+
+    /**
+     * Create many Ds.
+     *     @param {DCreateManyArgs} args - Arguments to create many Ds.
+     *     @example
+     *     // Create many Ds
+     *     const d = await prisma.d.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends DCreateManyArgs>(
+      args?: SelectSubset<T, DCreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a D.
@@ -11305,6 +11541,15 @@ export namespace Prisma {
 
 
   /**
+   * D createMany
+   */
+  export type DCreateManyArgs = {
+    data: Enumerable<DCreateManyInput>
+    skipDuplicates?: boolean
+  }
+
+
+  /**
    * D update
    */
   export type DUpdateArgs = {
@@ -11583,9 +11828,7 @@ export namespace Prisma {
     **/
     findUnique<T extends EFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
-        >, Prisma__EClient<EGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
 
     /**
      * Find the first E that matches the filter.
@@ -11600,9 +11843,7 @@ export namespace Prisma {
     **/
     findFirst<T extends EFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null
-        >, Prisma__EClient<EGetPayload<T> | null
-        >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
 
     /**
      * Find zero or more Es that matches the filter.
@@ -11637,6 +11878,22 @@ export namespace Prisma {
     create<T extends ECreateArgs>(
       args: SelectSubset<T, ECreateArgs>
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+
+    /**
+     * Create many Es.
+     *     @param {ECreateManyArgs} args - Arguments to create many Es.
+     *     @example
+     *     // Create many Es
+     *     const e = await prisma.e.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends ECreateManyArgs>(
+      args?: SelectSubset<T, ECreateManyArgs>
+    ): Promise<BatchPayload>
 
     /**
      * Delete a E.
@@ -12018,6 +12275,15 @@ export namespace Prisma {
      * The data needed to create a E.
     **/
     data: XOR<EUncheckedCreateInput, ECreateInput>
+  }
+
+
+  /**
+   * E createMany
+   */
+  export type ECreateManyArgs = {
+    data: Enumerable<ECreateManyInput>
+    skipDuplicates?: boolean
   }
 
 
@@ -12999,7 +13265,7 @@ export namespace Prisma {
     title: string
     content?: string | null
     published?: boolean
-    author: UserCreateOneWithoutPostsInput
+    author: UserCreateNestedOneWithoutPostsInput
   }
 
   export type PostUncheckedCreateInput = {
@@ -13026,6 +13292,15 @@ export namespace Prisma {
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
     authorId?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type PostCreateManyInput = {
+    id?: number
+    createdAt?: Date | string
+    title: string
+    content?: string | null
+    published?: boolean
+    authorId: number
   }
 
   export type PostUpdateManyMutationInput = {
@@ -13058,7 +13333,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    posts?: PostCreateManyWithoutAuthorInput
+    posts?: PostCreateNestedManyWithoutAuthorInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -13076,7 +13351,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    posts?: PostUncheckedCreateManyWithoutAuthorInput
+    posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
   }
 
   export type UserUpdateInput = {
@@ -13112,6 +13387,23 @@ export namespace Prisma {
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUncheckedUpdateManyWithoutAuthorInput
+  }
+
+  export type UserCreateManyInput = {
+    id?: number
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -13160,7 +13452,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    n?: NCreateManyWithoutMInput
+    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
@@ -13211,6 +13503,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type MCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type MUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13255,7 +13563,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    m?: MCreateManyWithoutNInput
+    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
@@ -13306,6 +13614,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type NCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type NUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13350,7 +13674,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredCreateManyWithoutOneInput
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
@@ -13367,7 +13691,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredUncheckedCreateManyWithoutOneInput
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
@@ -13401,6 +13725,22 @@ export namespace Prisma {
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
+  }
+
+  export type OneOptionalCreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
   }
 
   export type OneOptionalUpdateManyMutationInput = {
@@ -13447,7 +13787,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    one?: OneOptionalCreateOneWithoutManyInput
+    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -13500,6 +13840,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type ManyRequiredCreateManyInput = {
+    id?: number
+    oneOptionalId?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type ManyRequiredUpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13545,7 +13902,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide2CreateOneWithoutOptiInput
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -13598,6 +13955,23 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type OptionalSide1CreateManyInput = {
+    id?: number
+    optionalSide2Id?: number | null
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type OptionalSide1UpdateManyMutationInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -13643,7 +14017,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1CreateOneWithoutOptiInput
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
@@ -13660,7 +14034,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1UncheckedCreateOneWithoutOptiInput
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
@@ -13694,6 +14068,22 @@ export namespace Prisma {
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
+  }
+
+  export type OptionalSide2CreateManyInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
   }
 
   export type OptionalSide2UpdateManyMutationInput = {
@@ -13775,6 +14165,18 @@ export namespace Prisma {
     inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
   }
 
+  export type ACreateManyInput = {
+    id?: string
+    email: string
+    name?: string | null
+    int: number
+    sInt: number
+    bInt: BigInt | number
+    inc_int?: number
+    inc_sInt?: number
+    inc_bInt?: BigInt | number
+  }
+
   export type AUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
@@ -13829,6 +14231,14 @@ export namespace Prisma {
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
     numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+  }
+
+  export type BCreateManyInput = {
+    id?: string
+    float: number
+    dFloat: number
+    decFloat: Decimal | number | string
+    numFloat: Decimal | number | string
   }
 
   export type BUpdateManyMutationInput = {
@@ -13887,6 +14297,16 @@ export namespace Prisma {
     uuid?: StringFieldUpdateOperationsInput | string
   }
 
+  export type CCreateManyInput = {
+    id?: string
+    char: string
+    vChar: string
+    text: string
+    bit: string
+    vBit: string
+    uuid: string
+  }
+
   export type CUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
@@ -13943,6 +14363,15 @@ export namespace Prisma {
     jsonb?: InputJsonValue
   }
 
+  export type DCreateManyInput = {
+    id?: string
+    bool: boolean
+    byteA: Buffer
+    xml: string
+    json: InputJsonValue
+    jsonb: InputJsonValue
+  }
+
   export type DUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
@@ -13987,6 +14416,13 @@ export namespace Prisma {
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ECreateManyInput = {
+    id?: string
+    date: Date | string
+    time: Date | string
+    ts: Date | string
   }
 
   export type EUpdateManyMutationInput = {
@@ -14399,7 +14835,7 @@ export namespace Prisma {
     max?: NestedBytesFilter
   }
 
-  export type UserCreateOneWithoutPostsInput = {
+  export type UserCreateNestedOneWithoutPostsInput = {
     create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
     connect?: UserWhereUniqueInput
     connectOrCreate?: UserCreateOrConnectWithoutpostsInput
@@ -14437,16 +14873,18 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type PostCreateManyWithoutAuthorInput = {
+  export type PostCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    createMany?: PostCreateManyAuthorInputEnvelope
   }
 
-  export type PostUncheckedCreateManyWithoutAuthorInput = {
+  export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
     connect?: Enumerable<PostWhereUniqueInput>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    createMany?: PostCreateManyAuthorInputEnvelope
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -14487,6 +14925,7 @@ export namespace Prisma {
 
   export type PostUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -14500,6 +14939,7 @@ export namespace Prisma {
 
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
@@ -14511,7 +14951,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
   }
 
-  export type NCreateManyWithoutMInput = {
+  export type NCreateNestedManyWithoutMInput = {
     create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
     connect?: Enumerable<NWhereUniqueInput>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
@@ -14530,7 +14970,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
   }
 
-  export type MCreateManyWithoutNInput = {
+  export type MCreateNestedManyWithoutNInput = {
     create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
     connect?: Enumerable<MWhereUniqueInput>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
@@ -14549,20 +14989,23 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
   }
 
-  export type ManyRequiredCreateManyWithoutOneInput = {
+  export type ManyRequiredCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
   }
 
-  export type ManyRequiredUncheckedCreateManyWithoutOneInput = {
+  export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
   }
 
   export type ManyRequiredUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14576,6 +15019,7 @@ export namespace Prisma {
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14587,7 +15031,7 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
   }
 
-  export type OneOptionalCreateOneWithoutManyInput = {
+  export type OneOptionalCreateNestedOneWithoutManyInput = {
     create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
     connect?: OneOptionalWhereUniqueInput
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
@@ -14603,7 +15047,7 @@ export namespace Prisma {
     connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
   }
 
-  export type OptionalSide2CreateOneWithoutOptiInput = {
+  export type OptionalSide2CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
     connect?: OptionalSide2WhereUniqueInput
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
@@ -14619,13 +15063,13 @@ export namespace Prisma {
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
   }
 
-  export type OptionalSide1CreateOneWithoutOptiInput = {
+  export type OptionalSide1CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
   }
 
-  export type OptionalSide1UncheckedCreateOneWithoutOptiInput = {
+  export type OptionalSide1UncheckedCreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
     connect?: OptionalSide1WhereUniqueInput
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
@@ -15099,6 +15543,11 @@ export namespace Prisma {
     create: XOR<PostUncheckedCreateWithoutAuthorInput, PostCreateWithoutAuthorInput>
   }
 
+  export type PostCreateManyAuthorInputEnvelope = {
+    data: Enumerable<PostCreateManyAuthorInput>
+    skipDuplicates?: boolean
+  }
+
   export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
     data: XOR<PostUncheckedUpdateWithoutAuthorInput, PostUpdateWithoutAuthorInput>
@@ -15303,6 +15752,11 @@ export namespace Prisma {
   export type ManyRequiredCreateOrConnectWithoutoneInput = {
     where: ManyRequiredWhereUniqueInput
     create: XOR<ManyRequiredUncheckedCreateWithoutOneInput, ManyRequiredCreateWithoutOneInput>
+  }
+
+  export type ManyRequiredCreateManyOneInputEnvelope = {
+    data: Enumerable<ManyRequiredCreateManyOneInput>
+    skipDuplicates?: boolean
   }
 
   export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
@@ -15557,6 +16011,14 @@ export namespace Prisma {
     create: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
   }
 
+  export type PostCreateManyAuthorInput = {
+    id?: number
+    createdAt?: Date | string
+    title: string
+    content?: string | null
+    published?: boolean
+  }
+
   export type PostUpdateWithoutAuthorInput = {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
@@ -15674,6 +16136,22 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type ManyRequiredCreateManyOneInput = {
+    id?: number
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
   export type ManyRequiredUpdateWithoutOneInput = {
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15724,7 +16202,7 @@ export namespace Prisma {
 
 
   /**
-   * Batch Payload for updateMany & deleteMany
+   * Batch Payload for updateMany & deleteMany & createMany
    */
 
   export type BatchPayload = {

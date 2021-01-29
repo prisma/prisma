@@ -6,11 +6,11 @@ import { PrismaClient, Prisma } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
-  type Check = 'createOrConnect' extends keyof Prisma.UserCreateOneWithoutPostsInput
+  type Check = 'connectOrCreate' extends keyof Prisma.UserCreateNestedOneWithoutPostsInput
     ? number
     : string
 
-  const str: Check = 'needs to be a string'
+  const str: Check = 12345
 }
 
 main().catch((e) => {
