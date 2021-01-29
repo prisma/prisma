@@ -254,7 +254,7 @@ test('introspection basic', async () => {
                         name: \\"amount\\",
                         tpe: ColumnType {
                             full_data_type: \\"REAL\\",
-                            family: Decimal,
+                            family: Float,
                             arity: Required,
                             native_type: None,
                         },
@@ -274,7 +274,7 @@ test('introspection basic', async () => {
                         name: \\"balance\\",
                         tpe: ColumnType {
                             full_data_type: \\"REAL\\",
-                            family: Decimal,
+                            family: Float,
                             arity: Required,
                             native_type: None,
                         },
