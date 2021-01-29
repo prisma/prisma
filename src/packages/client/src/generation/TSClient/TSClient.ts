@@ -255,7 +255,7 @@ ${
 }
 
 /**
- * Batch Payload for updateMany & deleteMany
+ * Batch Payload for updateMany & deleteMany & createMany
  */
 
 export type BatchPayload = {

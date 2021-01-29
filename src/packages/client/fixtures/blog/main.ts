@@ -12,19 +12,17 @@ const prisma = new PrismaClient({
 
 async function main() {
   prisma.$on('query', () => {})
-  const res = await prisma.user.findFirst({
-    rejectOnNotFound: true,
+  const res = await prisma.user.createMany({
+    data:[
+    {
+      email: 'test@1.com'
+    },
+    {
+      email: 'test@2.com'
+    }
+  ]
   })
-  // console.log(res);
-  // const res = await prisma.user.findUnique({
-  //   where: {
-  //     email: 'prisma@prisma.de'
-  //   },
-  //   rejectOnEmpty: true
-  // })
-
-  // console.log(res)
-
+  console.log(res.count);
   prisma.$disconnect()
 }
 

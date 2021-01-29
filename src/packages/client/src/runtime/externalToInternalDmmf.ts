@@ -39,6 +39,7 @@ function getMappings(
       findFirst: mapping.findFirst,
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
+      createMany: mapping.createMany,
       delete: mapping.deleteOne || mapping.deleteSingle || mapping.delete,
       update: mapping.updateOne || mapping.updateSingle || mapping.update,
       deleteMany: mapping.deleteMany,

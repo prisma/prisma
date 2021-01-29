@@ -256,6 +256,7 @@ export type Action =
   | 'findFirst'
   | 'findMany'
   | 'create'
+  | 'createMany'
   | 'update'
   | 'updateMany'
   | 'upsert'
@@ -271,6 +272,7 @@ const actionOperationMap = {
   findMany: 'query',
   count: 'query',
   create: 'mutation',
+  createMany: 'mutation',
   update: 'mutation',
   updateMany: 'mutation',
   upsert: 'mutation',

@@ -1752,6 +1752,69 @@ Object {
                   "isRequired": true,
                   "name": "where",
                 },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
               ],
               "isNullable": true,
               "name": "deleteOneUser",
@@ -1814,69 +1877,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "UserWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserCreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "UserUpdateManyMutationInput",
                     },
                     Object {
@@ -1910,7 +1910,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -1935,7 +1935,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -2084,7 +2084,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -3552,7 +3552,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOneWithoutPostsInput",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
                 },
               ],
               "isNullable": false,
@@ -3944,7 +3944,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostCreateManyWithoutAuthorInput",
+                  "type": "PostCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -3990,7 +3990,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedCreateManyWithoutAuthorInput",
+                  "type": "PostUncheckedCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -5602,7 +5602,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "UserCreateOneWithoutPostsInput",
+          "name": "UserCreateNestedOneWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -5877,7 +5877,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostCreateManyWithoutAuthorInput",
+          "name": "PostCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -5955,7 +5955,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostUncheckedCreateManyWithoutAuthorInput",
+          "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -9104,6 +9104,69 @@ Object {
                   "isRequired": true,
                   "name": "where",
                 },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOnePost",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
               ],
               "isNullable": true,
               "name": "deleteOnePost",
@@ -9166,69 +9229,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "PostWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostCreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOnePost",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "PostUpdateManyMutationInput",
                     },
                     Object {
@@ -9262,7 +9262,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9287,7 +9287,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9314,6 +9314,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -9398,69 +9461,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "UserWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserCreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "UserUpdateManyMutationInput",
                     },
                     Object {
@@ -9494,7 +9494,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9519,7 +9519,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9546,6 +9546,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser1",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser1",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -9630,69 +9693,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "User1WhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1CreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser1",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User1",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "User1UpdateManyMutationInput",
                     },
                     Object {
@@ -9726,7 +9726,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9751,7 +9751,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9778,6 +9778,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser2",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -9862,69 +9925,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "User2WhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2CreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser2",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User2",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "User2UpdateManyMutationInput",
                     },
                     Object {
@@ -9958,7 +9958,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -9983,7 +9983,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -10312,7 +10312,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -12325,7 +12325,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOneWithoutPostsInput",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
                 },
               ],
               "isNullable": false,
@@ -12717,7 +12717,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostCreateManyWithoutAuthorInput",
+                  "type": "PostCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -12763,7 +12763,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedCreateManyWithoutAuthorInput",
+                  "type": "PostUncheckedCreateNestedManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -14375,7 +14375,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "UserCreateOneWithoutPostsInput",
+          "name": "UserCreateNestedOneWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -14650,7 +14650,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostCreateManyWithoutAuthorInput",
+          "name": "PostCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -14728,7 +14728,7 @@ Object {
               "name": "connectOrCreate",
             },
           ],
-          "name": "PostUncheckedCreateManyWithoutAuthorInput",
+          "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -17877,6 +17877,69 @@ Object {
                   "isRequired": true,
                   "name": "where",
                 },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOnePost",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
               ],
               "isNullable": true,
               "name": "deleteOnePost",
@@ -17939,69 +18002,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "PostWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostCreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOnePost",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "PostUpdateManyMutationInput",
                     },
                     Object {
@@ -18035,7 +18035,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18060,7 +18060,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18087,6 +18087,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -18171,69 +18234,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "UserWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserCreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "UserUpdateManyMutationInput",
                     },
                     Object {
@@ -18267,7 +18267,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18292,7 +18292,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18319,6 +18319,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser1",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1UncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser1",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -18403,69 +18466,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "User1WhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1CreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User1UncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser1",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User1",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "User1UpdateManyMutationInput",
                     },
                     Object {
@@ -18499,7 +18499,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18524,7 +18524,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18551,6 +18551,69 @@ Object {
               ],
               "isNullable": false,
               "name": "createOneUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2UncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser2",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -18635,69 +18698,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "User2WhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2CreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "User2UncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser2",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User2",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "User2UpdateManyMutationInput",
                     },
                     Object {
@@ -18731,7 +18731,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -18756,7 +18756,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -19085,7 +19085,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
@@ -19753,11 +19753,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `88978676`;
+exports[`getDMMF big schema 1`] = `89039210`;
 
-exports[`getDMMF chinook introspected schema 1`] = `685381`;
+exports[`getDMMF chinook introspected schema 1`] = `686221`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `685381`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `686221`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -21339,6 +21339,69 @@ Object {
                   "isRequired": true,
                   "name": "where",
                 },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedCreateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUpdateInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AUncheckedUpdateInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update",
+                },
+              ],
+              "isNullable": false,
+              "name": "upsertOneA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
               ],
               "isNullable": true,
               "name": "deleteOneA",
@@ -21401,69 +21464,6 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "AWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "ACreateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "AUncheckedCreateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "AUpdateInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "AUncheckedUpdateInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update",
-                },
-              ],
-              "isNullable": false,
-              "name": "upsertOneA",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "A",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "AUpdateManyMutationInput",
                     },
                     Object {
@@ -21497,7 +21497,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -21522,7 +21522,7 @@ Object {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload",
+                "type": "AffectedRowsOutput",
               },
             },
             Object {
@@ -21671,7 +21671,7 @@ Object {
               },
             },
           ],
-          "name": "BatchPayload",
+          "name": "AffectedRowsOutput",
         },
         Object {
           "fields": Array [
