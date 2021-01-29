@@ -2,18 +2,18 @@
 
 exports[`should display a update message w/ dev tag 1`] = `
 ┌─────────────────────────────────────────────────────────┐
-│  Update available 2.6.1 -> 2.7.0                        │
+│  Update available 2.6.1 -> 2.16.0                       │
 │  Run the following to update                            │
-│    npm i --save-dev @prisma/cli@dev                     │
+│    npm i --save-dev prisma@dev                          │
 │    npm i @prisma/client@dev                             │
 └─────────────────────────────────────────────────────────┘
 `;
 
 exports[`should display a update message w/o tag 1`] = `
 ┌─────────────────────────────────────────────────────────┐
-│  Update available 2.6.1 -> 2.7.0                        │
+│  Update available 2.6.1 -> 2.16.0                       │
 │  Run the following to update                            │
-│    npm i --save-dev @prisma/cli                         │
+│    npm i --save-dev prisma                              │
 │    npm i @prisma/client                                 │
 └─────────────────────────────────────────────────────────┘
 `;

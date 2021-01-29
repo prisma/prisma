@@ -48,5 +48,5 @@ describe('version', () => {
 })
 
 function cleanSnapshot(str: string): string {
-  return str.replace(/\(at .*/g, '')
+  return str.replace(/:(.*)/g, ': placeholder')
 }
