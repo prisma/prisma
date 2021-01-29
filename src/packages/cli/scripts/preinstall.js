@@ -88,10 +88,10 @@ export function main() {
   let message
   if (installedGlobally.name === 'prisma2') {
     message = `
-The package ${white('prisma2')} has been renamed to ${white('@prisma/cli')}.
+The package ${white('prisma2')} has been renamed to ${white('prisma')}.
 
 Please uninstall ${white('prisma2')} globally first.
-Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
+Then install ${white('prisma')} to continue using ${b('Prisma 2.0')}:
 
    # Uninstall old CLI
    ${white(
@@ -101,7 +101,7 @@ Then install ${white('@prisma/cli')} to continue using ${b('Prisma 2.0')}:
    )}
 
    # Install new CLI
-   ${white(`npm install @prisma/cli${isDev ? '@dev' : ''} --save-dev`)}
+   ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}
 
    # Invoke via npx
    ${white('npx prisma --help')}
@@ -140,7 +140,7 @@ It exposes the executable ${white('prisma1')}.
 Then you can install Prisma 2:
 
    # Install Prisma 2 CLI
-   ${white(`npm install @prisma/cli${isDev ? '@dev' : ''} --save-dev`)}
+   ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}
    
    # Invoke via npx
    ${white('npx prisma --help')}

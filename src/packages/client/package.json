@@ -118,10 +118,10 @@
     "typescript": "4.1.3"
   },
   "peerDependencies": {
-    "@prisma/cli": "*"
+    "prisma": ">=2.15.0"
   },
   "peerDependenciesMeta": {
-    "@prisma/cli": {
+    "prisma": {
       "optional": true
     }
   },
