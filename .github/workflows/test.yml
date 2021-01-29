@@ -196,7 +196,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:commands
+      - run: pnpm run test
         working-directory: src/packages/cli
         env:
           CI: true
