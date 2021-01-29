@@ -11,9 +11,11 @@ process.on('unhandledRejection', (e, promise) => {
 
 import { HelpError, isError, tryLoadEnvs, arg, getEnvPaths } from '@prisma/sdk'
 
+const commandArray = process.argv.slice(2)
+
 // Parse CLI arguments
 const args = arg(
-  process.argv.slice(2),
+  commandArray,
   {
     '--schema': String,
     '--telemetry-information': String,
@@ -73,7 +75,7 @@ async function main(): Promise<number> {
     seed: DbSeed.new(),
   })
   // parse the arguments
-  const result = await cli.parse(process.argv.slice(2))
+  const result = await cli.parse(commandArray)
   if (result instanceof HelpError) {
     console.error(result)
     return 1
@@ -100,7 +102,12 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, enginesVersion)
+      handlePanic(
+        error,
+        packageJson.version,
+        enginesVersion,
+        commandArray.join(' '),
+      )
         .catch((e) => {
           if (Debug.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)

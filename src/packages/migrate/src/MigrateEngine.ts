@@ -423,7 +423,6 @@ function serializePanic(log): string {
     `${log.message}`,
   )}
 
-Please create an issue in the ${chalk.bold('migrate')} repo with
-your \`schema.prisma\` and the prisma command you tried to use 🙏:
+Please create an issue with your \`schema.prisma\` at 
 ${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
 }

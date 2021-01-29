@@ -6,6 +6,7 @@ import { IntrospectionEngine } from '@prisma/sdk'
 async function main() {
   const packageJsonVersion = '0.0.0'
   const prismaVersion = 'prismaVersionHash'
+  const command = 'something-test'
 
   try {
     const dirPath = path.join(
@@ -31,7 +32,7 @@ async function main() {
   } catch (err) {
     console.debug({ err })
 
-    handlePanic(err, packageJsonVersion, prismaVersion)
+    handlePanic(err, packageJsonVersion, prismaVersion, command)
       .catch((e) => {
         console.error('Error: ' + e.stack)
         console.error('Error: ' + e.message)

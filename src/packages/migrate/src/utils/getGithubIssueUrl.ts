@@ -24,16 +24,20 @@ export function getGithubIssueUrl({
     body,
   })
 }
+
 interface IssueOptions {
-  title?: string
   error: any
   cliVersion: string
   binaryVersion: string
+  command: string
   prompt: Boolean
+  title?: string
   reportId?: number
 }
+
 export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
   let shouldCreateNewIssue
+
   if (options.prompt) {
     shouldCreateNewIssue = await prompt({
       type: 'select',
@@ -56,6 +60,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
   } else {
     shouldCreateNewIssue = { value: true }
   }
+
   if (shouldCreateNewIssue.value) {
     const platform = await getPlatform()
 
@@ -75,6 +80,10 @@ Hi Prisma Team! Prisma Migrate just crashed. ${
   Report Id: ${options.reportId}`
       : ''
   }
+
+## Command
+
+\`${options.command}\`
 
 ## Versions
       

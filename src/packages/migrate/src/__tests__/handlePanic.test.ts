@@ -77,6 +77,7 @@ describe('handlePanic', () => {
   )
   const packageJsonVersion = '0.0.0'
   const prismaVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const command = 'something-test'
 
   // Only works locally (not in CI)
   it.skip('ask to submit the panic error in interactive mode', async () => {
@@ -89,7 +90,7 @@ describe('handlePanic', () => {
     setTimeout(() => sendKeystrokes(io).then(), 5)
 
     try {
-      await handlePanic(error, packageJsonVersion, prismaVersion)
+      await handlePanic(error, packageJsonVersion, prismaVersion, command)
     } catch (e) {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
       expect(stripAnsi(e.message)).toMatchSnapshot()
@@ -102,7 +103,7 @@ describe('handlePanic', () => {
   it('no interactive mode in CI', async () => {
     process.env.GITHUB_ACTIONS = 'maybe'
     try {
-      await handlePanic(error, packageJsonVersion, prismaVersion)
+      await handlePanic(error, packageJsonVersion, prismaVersion, command)
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`Some error message!`)
@@ -150,7 +151,7 @@ describe('handlePanic', () => {
       setTimeout(() => sendKeystrokes(io).then(), 5)
       // This allows this test to be run in the CI
       try {
-        await handlePanic(err, packageJsonVersion, prismaVersion)
+        await handlePanic(err, packageJsonVersion, prismaVersion, command)
       } catch (err) {
         error = err
       }
@@ -161,8 +162,7 @@ describe('handlePanic', () => {
         Error in migration engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-        Please create an issue in the migrate repo with
-        your \`schema.prisma\` and the prisma command you tried to use 🙏:
+        Please create an issue with your \`schema.prisma\` at 
         https://github.com/prisma/prisma/issues/new
 
       `)
@@ -170,22 +170,24 @@ describe('handlePanic', () => {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
 
-        ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
+                  console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
 
-        ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
+                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
 
-        ✔ Submit error report › No
+                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
 
-
-
-        ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
-
-        ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
-
-        ✔ Would you like to create a Github issue? › No
+                ✔ Submit error report › No
 
 
-      `)
+
+                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
+
+                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
+
+                ✔ Would you like to create a Github issue? › No
+
+
+            `)
     }
     captureStdout.stopCapture()
   })

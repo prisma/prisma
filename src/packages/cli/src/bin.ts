@@ -16,6 +16,7 @@ import chalk from 'chalk'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
+const commandArray = process.argv.slice(2)
 
 import Debug from '@prisma/debug'
 
@@ -45,17 +46,14 @@ if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
       )} command is deprecated and has been renamed to ${chalk.greenBright(
         'prisma',
       )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' +
-          (process.argv.length > 2
-            ? ' ' + process.argv.slice(2).join(' ')
-            : ''),
+        'prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : ''),
       )} instead.\n`,
   )
 }
 
 // Parse CLI arguments
 const args = arg(
-  process.argv.slice(2),
+  commandArray,
   {
     '--schema': String,
     '--telemetry-information': String,
@@ -68,7 +66,7 @@ const args = arg(
 // Read .env file only if next to schema.prisma
 //
 // if the CLI is called without any command like `prisma` we can ignore .env loading
-if (process.argv.length > 2) {
+if (commandArray.length) {
   try {
     const envPaths = getEnvPaths(args['--schema'])
     const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
@@ -190,7 +188,7 @@ async function main(): Promise<number> {
     ],
   )
   // parse the arguments
-  const result = await cli.parse(process.argv.slice(2))
+  const result = await cli.parse(commandArray)
 
   if (result instanceof HelpError) {
     console.error(result.message)
@@ -242,7 +240,7 @@ async function main(): Promise<number> {
       schema_generators_providers: schemaGeneratorsProviders,
       cli_path: process.argv[1],
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
-      command: process.argv.slice(2).join(' '),
+      command: commandArray.join(' '),
       information:
         args['--telemetry-information'] ||
         process.env.PRISMA_TELEMETRY_INFORMATION,
@@ -291,7 +289,12 @@ if (require.main === module) {
 
 function handleIndividualError(error): void {
   if (error.rustStack) {
-    handlePanic(error, packageJson.version, enginesVersion)
+    handlePanic(
+      error,
+      packageJson.version,
+      enginesVersion,
+      commandArray.join(' '),
+    )
       .catch((e) => {
         if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)
