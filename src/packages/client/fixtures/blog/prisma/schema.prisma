@@ -1,65 +1,32 @@
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DB_URL")
 }
 
 generator client {
   provider        = "prisma-client-js"
   binaryTargets   = ["native"]
-  previewFeatures = ["groupBy", "createMany"]
+  previewFeatures = ["nativeTypes"]
 }
-
-model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
-  name       String?
-  age        Int?
-  strList    String[]
-  posts      Post[]
-  likes      Like[]
-  json       Json?
-  Property   Property? @relation(fields: [propertyId], references: [id])
-  propertyId String?
-}
-
-model Property {
-  id      String @id @default(cuid())
-  house   House  @relation(fields: [houseId], references: [id])
-  users   User[]
-  houseId String
-}
-
-model House {
-  id         String     @id @default(cuid())
-  like       Like       @relation(fields: [likeId], references: [id])
-  properties Property[]
-  likeId     String
-}
-
 model Post {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  Like      Like[]
+  id           Int                     @id @default(autoincrement())
+  title        String                  @db.VarChar(50)
+  content      String?                 @db.VarChar(191)
+  published    Boolean                 @default(false)
+  authorId     Int?                    @db.Int
+  polygonField Unsupported("polygon")? @unique
+  pointField   Unsupported("point")?
+  User         User?                   @relation(fields: [authorId], references: [id])
+  @@index([authorId], name: "authorId")
+  @@index([polygonField], name: "polygonFieldIndex")
 }
-
-model Like {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
-  House House[]
-  @@unique([userId, postId])
+model User {
+  id                   Int                            @id @default(autoincrement()) @db.Int
+  email                String                         @unique
+  name                 String?                        @default("")
+  Post                 Post[]
 }
-
-enum Sound {
-  Bang
-  Click
+model IgnoredModel{
+  multilinestringfield Unsupported("multilinestring") @default(dbgenerated("''")) @unique
+  @@ignore
 }
