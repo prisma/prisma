@@ -59,7 +59,7 @@ export namespace DMMF {
     [key: string]: any // safe net for additional new props
   }
 
-  export type FieldKind = 'scalar' | 'object' | 'enum'
+  export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
   export type FieldLocation =

@@ -2,31 +2,29 @@ datasource db {
   provider = "mysql"
   url      = env("DB_URL")
 }
-
 generator client {
   provider        = "prisma-client-js"
-  binaryTargets   = ["native"]
   previewFeatures = ["nativeTypes"]
 }
-model Post {
-  id           Int                     @id @default(autoincrement())
-  title        String                  @db.VarChar(50)
-  content      String?                 @db.VarChar(191)
-  published    Boolean                 @default(false)
-  authorId     Int?                    @db.Int
-  polygonField Unsupported("polygon")? @unique
-  pointField   Unsupported("point")?
-  User         User?                   @relation(fields: [authorId], references: [id])
-  @@index([authorId], name: "authorId")
-  @@index([polygonField], name: "polygonFieldIndex")
+
+model Events {
+  id          Int                       @id @default(autoincrement())
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime
+  name        String
+  description String?
+  start       DateTime
+  end         DateTime
+  organiserId Int?
+  /// This type is currently not supported by the Prisma Client.
+  location    Unsupported("geography")?
+  organiser   User?                     @relation(fields: [organiserId], references: [id])
+  attendees   User[]                    @relation("attendance")
 }
 model User {
-  id                   Int                            @id @default(autoincrement()) @db.Int
-  email                String                         @unique
-  name                 String?                        @default("")
-  Post                 Post[]
-}
-model IgnoredModel{
-  multilinestringfield Unsupported("multilinestring") @default(dbgenerated("''")) @unique
-  @@ignore
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  name            String
+  eventsOrganised Events[]
+  eventsAttending Events[] @relation("attendance")
 }
