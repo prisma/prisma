@@ -760,24 +760,6 @@ async function tagEnginesRepo(dryRun = false) {
   console.log(`Going to tag the engines repo dryRun: ${dryRun}`)
   /** Get ready */
   await cloneOrPull('prisma-engines', dryRun)
-  const remotes = dryRun
-    ? []
-    : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
-
-  if (!remotes.includes('origin-push')) {
-    await run(
-      'prisma-engines',
-      `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
-      dryRun,
-      true,
-    )
-  }
-  await run(
-    '.',
-    `git config --global user.email "prismabots@gmail.com"`,
-    dryRun,
-  )
-  await run('.', `git config --global user.name "prisma-bot"`, dryRun)
 
   /** Get version */
   const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
@@ -799,6 +781,25 @@ async function tagEnginesRepo(dryRun = false) {
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' ${packageVersion} -m "${packageVersion}"`,
   )
+
+  const remotes = dryRun
+    ? []
+    : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
+
+  if (!remotes.includes('origin-push')) {
+    await run(
+      'prisma-engines',
+      `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
+      dryRun,
+      true,
+    )
+  }
+  await run(
+    '.',
+    `git config --global user.email "prismabots@gmail.com"`,
+    dryRun,
+  )
+  await run('.', `git config --global user.name "prisma-bot"`, dryRun)
 
   /** Tag */
   await run(
