@@ -779,7 +779,7 @@ async function tagEnginesRepo(dryRun = false) {
   /** Get commits between previous tag and engines sha1 */
   const changelog = await runResult(
     'prisma-engines',
-    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' ${packageVersion} -m "${packageVersion}"`,
+    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' ${packageVersion} -m "${packageVersion}" --`,
   )
 
   const remotes = dryRun
