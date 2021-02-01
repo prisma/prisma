@@ -3,6 +3,8 @@ const path = require('path')
 const pkgUp = require('pkg-up')
 const Debug = require('debug')
 const debug = Debug('prisma:install')
+const pkg = require('../package.json')
+const pkgName = pkg.name
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
@@ -35,7 +37,7 @@ async function ensurePostInstall() {
 function addPostInstallHook(pkgPath) {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'))
   // only update package.json if prisma is a dependency or devDependency
-  if (!pkg.dependencies['prisma'] && !pkg.devDependencies['prisma']) {
+  if (!pkg.dependencies[pkgName] && !pkg.devDependencies[pkgName]) {
     return false
   }
 
