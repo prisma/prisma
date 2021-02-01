@@ -2837,6 +2837,19 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserOrderByInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "enumTypes",
                   "namespace": "prisma",
                   "type": "SortOrder",
@@ -11610,6 +11623,19 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserOrderByInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "enumTypes",
                   "namespace": "prisma",
                   "type": "SortOrder",
@@ -19755,9 +19781,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `89039210`;
 
-exports[`getDMMF chinook introspected schema 1`] = `686221`;
+exports[`getDMMF chinook introspected schema 1`] = `688098`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `686221`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `688098`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing

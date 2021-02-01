@@ -12565,6 +12565,7 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
+    author?: UserOrderByInput
     authorId?: SortOrder
   }
 
@@ -12847,6 +12848,7 @@ export namespace Prisma {
 
   export type ManyRequiredOrderByInput = {
     id?: SortOrder
+    one?: OneOptionalOrderByInput
     oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -12909,6 +12911,7 @@ export namespace Prisma {
 
   export type OptionalSide1OrderByInput = {
     id?: SortOrder
+    opti?: OptionalSide2OrderByInput
     optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
