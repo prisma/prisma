@@ -10,7 +10,7 @@ const debug = Debug('engineCommands')
 
 const unlink = promisify(fs.unlink)
 
-const MAX_BUFFER = 1000_000_000
+const MAX_BUFFER = 1_000_000_000
 
 export interface ConfigMetaFormat {
   datasources: DataSource[]
@@ -245,7 +245,7 @@ export async function getConfig({
     const data: ConfigMetaFormat = JSON.parse(result.stdout)
 
     if (
-      data.datasources[0].provider[0] === 'sqlite' &&
+      data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
       data.generators.some((g) => g.previewFeatures.includes('createMany'))
     ) {
       throw new Error(`Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
