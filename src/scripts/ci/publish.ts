@@ -788,10 +788,22 @@ async function tagEnginesRepo(dryRun = false) {
     .slice(-1)[0]
   const packageVersion = pkg.version
 
+  /** Get previous tag */
+  const previousTag = await runResult(
+    'prisma-engines',
+    `git describe --tags --abbrev=0`,
+  )
+
+  /** Get commits between previous tag and engines sha1 */
+  const changelog = await runResult(
+    'prisma-engines',
+    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' ${packageVersion} -m "${packageVersion}"`,
+  )
+
   /** Tag */
   await run(
     'prisma-engines',
-    `git tag -a ${packageVersion} ${engineVersion} -m "${packageVersion}"`,
+    `git tag -a ${packageVersion} ${engineVersion} -m "${changelog}"`,
     dryRun,
   )
 
