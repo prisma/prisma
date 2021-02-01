@@ -60,8 +60,15 @@ async function main() {
 
 function getLocalPackagePath() {
   let packagePath
+
   try {
     packagePath = require.resolve('prisma/package.json')
+  } catch (e) {
+    //
+  }
+
+  try {
+    packagePath = require.resolve('@prisma/cli/package.json')
   } catch (e) {
     return null
   }
