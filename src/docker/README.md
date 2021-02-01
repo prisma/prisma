@@ -23,7 +23,7 @@ docker-compose logs -f mysql
 In attached mode:
 
 ```
-docker-compose up`
+docker-compose up
 ```
 
 Or start only one service:
