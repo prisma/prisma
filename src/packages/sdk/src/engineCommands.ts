@@ -242,7 +242,17 @@ export async function getConfig({
       await unlink(tempDatamodelPath)
     }
 
-    return JSON.parse(result.stdout)
+    const data: ConfigMetaFormat = JSON.parse(result.stdout)
+
+    if (
+      data.datasources[0].provider[0] === 'sqlite' &&
+      data.generators.some((g) => g.previewFeatures.includes('createMany'))
+    ) {
+      throw new Error(`Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
+Please either remove the "createMany" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver.`)
+    }
+
+    return data
   } catch (e) {
     if (e.stderr || e.stdout) {
       const error = e.stderr ? e.stderr : e.stout
@@ -269,7 +279,7 @@ export async function getConfig({
       throw new Error(message)
     }
 
-    throw new Error(chalk.redBright.bold('Get config ') + e)
+    throw new Error(chalk.redBright.bold('Get config: ') + e)
   }
 }
 

@@ -277,6 +277,34 @@ describe('getConfig', () => {
     expect(config).toMatchSnapshot()
   })
 
+  test('sqlite and createMany', async () => {
+    expect.assertions(1)
+    try {
+      await getConfig({
+        datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
+
+      generator client {
+        provider = "prisma-client-js"
+        previewFeatures = ["createMany"]
+      }
+      
+      model A {
+        id Int @id
+        name String
+      }`,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "Get config: Error: Database provider \\"sqlite\\" and the preview feature \\"createMany\\" can't be used at the same time.
+        Please either remove the \\"createMany\\" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver."
+      `)
+    }
+  })
+
   test('with generator and datasource', async () => {
     const config = await getConfig({
       datamodel: `
