@@ -21,4 +21,4 @@ Right now this package does not support:
 prisma.user.findUnique({ where: { id: 42 } }).posts()
 ```
 
-- mutations, only `findMany`, `findFirst`, `findOne`, `findUnique` operations are allowed.
+- mutations, only `findMany`, `findFirst`, `findOne`, `findUnique`, `count` operations are allowed.
