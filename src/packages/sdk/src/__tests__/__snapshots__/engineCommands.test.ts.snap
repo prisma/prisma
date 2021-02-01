@@ -5581,12 +5581,12 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserWhereUniqueInput",
+                  "type": "UserCreateOrConnectWithoutpostsInput",
                 },
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connect",
+              "name": "connectOrCreate",
             },
             Object {
               "inputTypes": Array [
@@ -5594,12 +5594,12 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput",
+                  "type": "UserWhereUniqueInput",
                 },
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connectOrCreate",
+              "name": "connect",
             },
           ],
           "name": "UserCreateNestedOneWithoutPostsInput",
@@ -5746,6 +5746,32 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "UserCreateOrConnectWithoutpostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpsertWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "UserWhereUniqueInput",
                 },
               ],
@@ -5771,32 +5797,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpsertWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "UserUpdateOneRequiredWithoutPostsInput",
@@ -5844,25 +5844,6 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connect",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "PostCreateOrConnectWithoutauthorInput",
                 },
                 Object {
@@ -5875,6 +5856,25 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect",
             },
           ],
           "name": "PostCreateNestedManyWithoutAuthorInput",
@@ -5922,25 +5922,6 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connect",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "PostCreateOrConnectWithoutauthorInput",
                 },
                 Object {
@@ -5953,6 +5934,25 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect",
             },
           ],
           "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
@@ -6000,6 +6000,44 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput",
                 },
                 Object {
@@ -6126,44 +6164,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "PostUpdateManyWithoutAuthorInput",
@@ -6211,6 +6211,44 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput",
                 },
                 Object {
@@ -6337,44 +6375,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "PostUncheckedUpdateManyWithoutAuthorInput",
@@ -6781,6 +6781,53 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateWithoutPostsInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateWithoutPostsInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create",
+            },
+          ],
+          "name": "UserUpsertWithoutPostsInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -6842,53 +6889,6 @@ Object {
             },
           ],
           "name": "UserUncheckedUpdateWithoutPostsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateWithoutPostsInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedUpdateWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateWithoutPostsInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedCreateWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create",
-            },
-          ],
-          "name": "UserUpsertWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -7020,6 +7020,66 @@ Object {
             },
           ],
           "name": "PostCreateOrConnectWithoutauthorInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "where",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateWithoutAuthorInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create",
+            },
+          ],
+          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -7234,66 +7294,6 @@ Object {
             },
           ],
           "name": "PostScalarWhereInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "where",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpdateWithoutAuthorInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedUpdateWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateWithoutAuthorInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedCreateWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create",
-            },
-          ],
-          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -14354,12 +14354,12 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserWhereUniqueInput",
+                  "type": "UserCreateOrConnectWithoutpostsInput",
                 },
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connect",
+              "name": "connectOrCreate",
             },
             Object {
               "inputTypes": Array [
@@ -14367,12 +14367,12 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput",
+                  "type": "UserWhereUniqueInput",
                 },
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connectOrCreate",
+              "name": "connect",
             },
           ],
           "name": "UserCreateNestedOneWithoutPostsInput",
@@ -14519,6 +14519,32 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "UserCreateOrConnectWithoutpostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpsertWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "UserWhereUniqueInput",
                 },
               ],
@@ -14544,32 +14570,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpsertWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "UserUpdateOneRequiredWithoutPostsInput",
@@ -14617,25 +14617,6 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connect",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "PostCreateOrConnectWithoutauthorInput",
                 },
                 Object {
@@ -14648,6 +14629,25 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect",
             },
           ],
           "name": "PostCreateNestedManyWithoutAuthorInput",
@@ -14695,25 +14695,6 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connect",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "PostCreateOrConnectWithoutauthorInput",
                 },
                 Object {
@@ -14726,6 +14707,25 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connect",
             },
           ],
           "name": "PostUncheckedCreateNestedManyWithoutAuthorInput",
@@ -14773,6 +14773,44 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput",
                 },
                 Object {
@@ -14899,44 +14937,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "PostUpdateManyWithoutAuthorInput",
@@ -14984,6 +14984,44 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutauthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+                Object {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput",
                 },
                 Object {
@@ -15110,44 +15148,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-                Object {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate",
             },
           ],
           "name": "PostUncheckedUpdateManyWithoutAuthorInput",
@@ -15554,6 +15554,53 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateWithoutPostsInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateWithoutPostsInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create",
+            },
+          ],
+          "name": "UserUpsertWithoutPostsInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -15615,53 +15662,6 @@ Object {
             },
           ],
           "name": "UserUncheckedUpdateWithoutPostsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateWithoutPostsInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedUpdateWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateWithoutPostsInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedCreateWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create",
-            },
-          ],
-          "name": "UserUpsertWithoutPostsInput",
         },
         Object {
           "constraints": Object {
@@ -15793,6 +15793,66 @@ Object {
             },
           ],
           "name": "PostCreateOrConnectWithoutauthorInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "where",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateWithoutAuthorInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput",
+                },
+                Object {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create",
+            },
+          ],
+          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
@@ -16007,66 +16067,6 @@ Object {
             },
           ],
           "name": "PostScalarWhereInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "where",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpdateWithoutAuthorInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedUpdateWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateWithoutAuthorInput",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedCreateWithoutAuthorInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create",
-            },
-          ],
-          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput",
         },
         Object {
           "constraints": Object {
