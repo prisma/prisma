@@ -59,23 +59,21 @@ async function main() {
 }
 
 function getLocalPackagePath() {
-  let packagePath
-
   try {
-    packagePath = require.resolve('prisma/package.json')
+    const packagePath = require.resolve('prisma/package.json')
+    if (packagePath) {
+      return require.resolve('prisma')
+    }
   } catch (e) {
     //
   }
 
   try {
-    packagePath = require.resolve('@prisma/cli/package.json')
-  } catch (e) {
-    return null
-  }
-
-  if (packagePath) {
-    return require.resolve('prisma')
-  }
+    const packagePath = require.resolve('@prisma/cli/package.json')
+    if (packagePath) {
+      return require.resolve('@prisma/cli')
+    }
+  } catch (e) {}
 
   return null
 }
