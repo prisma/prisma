@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
-    "@prisma/engines-version": "2.16.0-39.814043c397de250569743363ffe6b901ef371c38",
+    "@prisma/engines-version": "2.16.0-40.862b9eb4be65fdb5bd306443588d42f21d6ffb13",
     "@types/find-cache-dir": "3.2.0",
     "@types/jest": "26.0.20",
     "@types/node": "12.19.15",
