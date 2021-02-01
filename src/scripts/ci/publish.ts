@@ -804,7 +804,7 @@ async function tagEnginesRepo(dryRun = false) {
   /** Tag */
   await run(
     'prisma-engines',
-    `git tag -a ${packageVersion} ${engineVersion} -m "${changelog}"`,
+    `git tag -a ${packageVersion} ${engineVersion} -m "${packageVersion}" -m "${engineVersion}" -m "${changelog}"`,
     dryRun,
   )
 
