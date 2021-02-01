@@ -68,6 +68,7 @@ const queryOperations = {
   findFirst: true,
   findOne: true,
   findUnique: true,
+  count: true,
 }
 
 // @ts-ignore
