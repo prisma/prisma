@@ -218,7 +218,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
 async function getVersionHashes(
   npmVersion: string,
 ): Promise<{ prisma: string }> {
-  return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
+  return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
     headers: {
       accept: 'application/json',
     },
