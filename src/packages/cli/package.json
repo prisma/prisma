@@ -3,7 +3,6 @@
   "name": "prisma",
   "description": "Prisma is an open-source database toolkit. It includes a JavaScript/TypeScript ORM for Node.js, migrations and a modern GUI to view and edit the data in your database. You can use Prisma in new projects or add it to an existing one.",
   "keywords": [
-    "typescript",
     "orm",
     "prisma2",
     "prisma",
@@ -14,6 +13,8 @@
     "mysql",
     "sqlite",
     "mariadb",
+    "mssql",
+    "typescript",
     "query-builder"
   ],
   "main": "build/index.js",
@@ -22,12 +23,10 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Tim Suchanek <suchanek@prisma.io>",
-    "Joël Galeran <galeran@prisma.io>"
+    "Joël Galeran <galeran@prisma.io>",
+    "William Luke <luke@prisma.io>"
   ],
-  "bugs": {
-    "url": "https://github.com/prisma/prisma/issues",
-    "email": "suchanek@prisma.io"
-  },
+  "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=10.4"
@@ -36,6 +35,7 @@
     "prismaCommit": "87d13fded344f1f387a8510f0fa23139444516c6"
   },
   "files": [
+    "README.md",
     "build",
     "install",
     "runtime/*.js",

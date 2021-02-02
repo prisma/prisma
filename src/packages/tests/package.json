@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
+  "repository": "git@github.com:prisma/prisma.git",
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -60,6 +61,7 @@
   },
   "files": [
     "!**/__tests__",
+    "README.md",
     "dist"
   ],
   "lint-staged": {

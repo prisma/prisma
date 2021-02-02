@@ -9,6 +9,8 @@
     "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>"
   ],
+  "homepage": "https://www.prisma.io",
+  "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "prisma": {
     "version": "latest"
@@ -79,9 +81,8 @@
   },
   "files": [
     "!**/__tests__",
-    "dist",
-    "download.js",
-    "scripts/download.js"
+    "README.md",
+    "dist"
   ],
   "lint-staged": {
     "*.ts": [

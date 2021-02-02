@@ -15,6 +15,7 @@
     "mysql",
     "sqlite",
     "mariadb",
+    "mssql",
     "typescript",
     "query-builder"
   ],
@@ -25,18 +26,15 @@
   "engines": {
     "node": ">=10.4"
   },
-  "homepage": "https://github.com/prisma/prisma-client-js",
-  "repository": {
-    "url": "git@github.com:prisma/prisma.git"
-  },
+  "homepage": "https://www.prisma.io",
+  "repository": "git@github.com:prisma/prisma.git",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Tim Suchanek <suchanek@prisma.io>",
-    "Joël Galeran <galeran@prisma.io>"
+    "Joël Galeran <galeran@prisma.io>",
+    "William Luke <luke@prisma.io>"
   ],
-  "bugs": {
-    "email": "suchanek@prisma.io",
-    "url": "https://github.com/prisma/prisma-client-js/issues"
-  },
+  "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
     "build": "node helpers/build.js",
     "test": "jest",
@@ -50,6 +48,7 @@
     "precommit": "lint-staged"
   },
   "files": [
+    "README.md",
     "runtime",
     "scripts",
     "generator-build",
