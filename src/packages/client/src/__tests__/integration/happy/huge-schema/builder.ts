@@ -40,7 +40,7 @@ model ${this.name} {
   }
 }
 
-async function main() {
+function main() {
   let schema = `
 generator client {
   provider        = "prisma-client-js"
@@ -53,16 +53,17 @@ datasource db {
   }
   
   `
-  let ts = `
+  const ts = `
 import { PrismaClient } from  '@prisma/client'
 const client = new PrismaClient();
 
 async function main(){
   const a = await client.a.findMany()
 }
+main().catch(err => console.log(err))
 `
   const modelMap = new Map<string, Model>()
-  for (let i = 1; i < 200; i++) {
+  for (let i = 1; i < 50; i++) {
     const modelName = numberToBase26(i).toLowerCase()
     if (
       ['as', 'and', 'or', 'do', 'in', 'if', 'for', 'any'].includes(modelName)
@@ -91,12 +92,10 @@ async function main(){
     schema += model.build()
   })
   const schemaPath = path.join(__dirname, 'schema.prisma')
-  const tsPath = path.join(__dirname, 'compile_test.ts')
+  const tsPath = path.join(__dirname, 'compile.ts')
 
   write(schemaPath, schema)
   write(tsPath, ts)
 }
 
-main().catch((e) => {
-  console.log(e)
-})
+main()
