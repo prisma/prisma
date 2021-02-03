@@ -362,39 +362,15 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
-/**
- * Allows creating \`select\` or \`include\` outside of the main statement
- * From https://github.com/prisma/prisma/issues/3372#issuecomment-762296484
- */
+type Exact<A, W = unknown> = 
+W extends unknown ? A extends Narrowable ? Cast<A, W> : Cast<
+{[K in keyof A]: K extends keyof W ? Exact<A[K], W[K]> : never},
+{[K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : W[K]}>
+: never;
 
-type Cast<A1, A2> = A1 extends A2 ? A1 : A2;
+type Narrowable = string | number | boolean | bigint;
 
-/**
- * \`Exact\` forces a type to comply by another type. It will need to be a subset
- * and must have exactly the same properties, no more, no less.
- */
-type Exact<A, W> = A & Cast<{
-  [K in keyof A]: K extends keyof W ? A[K] : never
-}, W>;
-
-type Narrow<A, W = unknown> =
-    A & {[K in keyof A]: NarrowAt<A, W, K>};
-
-type NarrowAt<A, W, K extends keyof A, AK = A[K], WK = Att<W, K>> =
-    WK extends Widen<infer T> ? T :
-    AK extends Narrowable ? AK & WK :
-    Narrow<AK, WK>;
-
-type Att<O, K> = K extends keyof O ? O[K] : unknown;
-
-type Widen<A> = {[type]: A};
-
-type Narrowable =
-| string
-| number
-| bigint
-| boolean
-| [];
+type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 

@@ -17,6 +17,12 @@ const prisma = new PrismaClient({
   expectError(
     validator({
       asd: true,
+    }),
+  )
+
+  expectError(
+    validator({
+      asd: true,
       id: true,
     }),
   )
