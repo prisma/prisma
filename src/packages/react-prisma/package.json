@@ -6,6 +6,7 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "repository": "git@github.com:prisma/prisma.git",
+  "homepage": "https://www.prisma.io",
   "devDependencies": {
     "@types/jest": "26.0.20",
     "@types/node": "12.19.15",
@@ -36,6 +37,7 @@
   },
   "files": [
     "!**/__tests__",
+    "README.md",
     "dist"
   ],
   "lint-staged": {

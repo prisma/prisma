@@ -5,6 +5,14 @@
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
+  "homepage": "https://www.prisma.io",
+  "repository": "git@github.com:prisma/prisma.git",
+  "maintainers": [
+    "Tim Suchanek <suchanek@prisma.io>",
+    "Joël Galeran <galeran@prisma.io>",
+    "William Luke <luke@prisma.io>"
+  ],
+  "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "26.0.20",
     "@types/node": "12.19.15",
@@ -33,6 +41,7 @@
   },
   "files": [
     "!**/__tests__",
+    "README.md",
     "dist"
   ],
   "dependencies": {

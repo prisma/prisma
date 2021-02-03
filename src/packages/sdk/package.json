@@ -4,11 +4,13 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
+  "homepage": "https://www.prisma.io",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>"
   ],
+  "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc -d",
@@ -21,6 +23,7 @@
   },
   "files": [
     "!**/__tests__",
+    "README.md",
     "dist",
     "scripts"
   ],
