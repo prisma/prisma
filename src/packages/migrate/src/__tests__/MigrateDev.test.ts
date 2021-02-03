@@ -120,6 +120,8 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
+    expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
+
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
