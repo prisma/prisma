@@ -78,18 +78,6 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  const isNativeTypesEnabled = config.generators.find(
-    (g) => g.previewFeatures && g.previewFeatures.includes('nativeTypes'),
-  )
-
-  if (isNativeTypesEnabled) {
-    console.warn(
-      `${chalk.yellow(
-        'warn',
-      )} "nativeTypes" is a preview feature. There may be bugs and it's not recommended to use it in production environments.`,
-    )
-  }
-
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
