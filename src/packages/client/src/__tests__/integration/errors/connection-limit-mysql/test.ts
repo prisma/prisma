@@ -29,7 +29,6 @@ describe('connection-limit-mysql', () => {
         count++
       }
     } catch (e) {
-      expect(count).toBeGreaterThan(100)
       expect(e.message).toMatchInlineSnapshot(
         `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )
