@@ -5,17 +5,25 @@
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
+  "homepage": "https://www.prisma.io",
+  "repository": "git@github.com:prisma/prisma.git",
+  "maintainers": [
+    "Tim Suchanek <suchanek@prisma.io>",
+    "Joël Galeran <galeran@prisma.io>",
+    "William Luke <luke@prisma.io>"
+  ],
+  "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@prisma/engines-version": "2.15.0-26.6c8b3ff8b9a910842e10127753e5ab9b411f9e03",
+    "@prisma/engines-version": "2.16.0-44.854c8ba7f0dce66f115af36af24e66989a8c02a1",
     "@types/find-cache-dir": "3.2.0",
     "@types/jest": "26.0.20",
-    "@types/node": "12.19.14",
+    "@types/node": "12.19.15",
     "@types/node-fetch": "2.5.8",
     "@types/progress": "2.0.3",
-    "@typescript-eslint/eslint-plugin": "4.14.0",
-    "@typescript-eslint/parser": "4.14.0",
+    "@typescript-eslint/eslint-plugin": "4.14.2",
+    "@typescript-eslint/parser": "4.14.2",
     "del": "6.0.0",
-    "eslint": "7.18.0",
+    "eslint": "7.19.0",
     "eslint-config-prettier": "7.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.1.3",
@@ -24,7 +32,7 @@
     "lint-staged": "10.5.3",
     "prettier": "2.2.1",
     "strip-ansi": "6.0.0",
-    "ts-jest": "26.4.4",
+    "ts-jest": "26.5.0",
     "typescript": "4.1.3"
   },
   "dependencies": {
@@ -57,6 +65,7 @@
   },
   "files": [
     "!**/__tests__",
+    "README.md",
     "dist"
   ],
   "lint-staged": {

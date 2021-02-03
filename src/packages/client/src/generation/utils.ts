@@ -129,6 +129,8 @@ export function getModelArgName(
       return `${modelName}DeleteArgs`
     case DMMF.ModelAction.create:
       return `${modelName}CreateArgs`
+    case DMMF.ModelAction.createMany:
+      return `${modelName}CreateManyArgs`
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
@@ -239,7 +241,11 @@ export function getSelectReturnType({
 
   const isList = actionName === DMMF.ModelAction.findMany
 
-  if (actionName === 'deleteMany' || actionName === 'updateMany') {
+  if (
+    actionName === 'deleteMany' ||
+    actionName === 'updateMany' ||
+    actionName === 'createMany'
+  ) {
     return `Promise<BatchPayload>`
   }
 
@@ -256,17 +262,34 @@ export function getSelectReturnType({
       name,
     )}<T>${listClose}${promiseClose}>`
   }
-  if(actionName === 'findFirst' || actionName === 'findUnique'){
-    if(isField){
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
-      >, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)} | null
-      >>`
+  if (actionName === 'findFirst' || actionName === 'findUnique') {
+    if (isField) {
+      return `CheckSelect<T, Prisma__${name}Client<${getType(
+        name,
+        isList,
+      )} | null >, Prisma__${name}Client<${getType(
+        getPayloadName(name) + '<T>',
+        isList,
+      )} | null >>`
     }
-    return `RejectHelper<R, LocalReject, '${actionName}', '${name}'> extends 1 ? CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null
-    >, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)} | null
-    >>`
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
+      name,
+      isList,
+    )}>, Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T>',
+      isList,
+    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(
+      name,
+      isList
+    )} | null >, Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T>',
+      isList,
+    )} | null >>`
   }
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>>`
+  return `CheckSelect<T, Prisma__${name}Client<${getType(
+    name,
+    isList,
+  )}>, Prisma__${name}Client<${getType(getPayloadName(name) + '<T>', isList)}>>`
 }
 
 export function isQueryAction(

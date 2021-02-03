@@ -168,9 +168,3 @@ export class Version implements Command {
 function slugify(str: string): string {
   return str.toString().toLowerCase().replace(/\s+/g, '-')
 }
-
-// @prisma/cli          : 2.0.0-dev.0
-// Current platform     : darwin
-// Query Engine         : version (at /.../.../, resolved by PRISMA_QUERY_ENGINE_BINARY)
-// Migration Engine     : version (at /.../.../)
-// Introspection Engine : version (at /.../.../)

@@ -1,30 +1,32 @@
-import { InputField } from './../TSClient'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
+import { klona } from 'klona'
 import { DMMFClass } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
-  getFieldArgName,
-  getIncludeName,
-  getModelArgName,
-  getSelectName,
-  getSelectReturnType,
-  Projection,
-  getAggregateName,
-  getAvgAggregateName,
-  getSumAggregateName,
-  getMinAggregateName,
-  getMaxAggregateName,
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateInputType,
+  getAggregateName,
+  getAvgAggregateName,
+  getCountAggregateInputName,
+  getCountAggregateOutputName,
+  getFieldArgName,
   getGroupByArgsName,
   getGroupByName,
-  getCountAggregateOutputName,
   getGroupByPayloadName,
-  getCountAggregateInputName,
+  getIncludeName,
+  getMaxAggregateName,
+  getMinAggregateName,
+  getModelArgName,
+  getSelectName,
+  getSelectReturnType,
+  getSumAggregateName,
+  Projection,
 } from '../utils'
+import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
+import { TAB_SIZE } from './constants'
 import { Generatable, TS } from './Generatable'
 import {
   ExportCollector,
@@ -36,10 +38,8 @@ import {
 } from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
-import { SchemaOutputType } from './SchemaOutput'
-import { TAB_SIZE } from './constants'
 import { PayloadType } from './Payload'
-import { klona } from 'klona'
+import { SchemaOutputType } from './SchemaOutput'
 
 export class Model implements Generatable {
   protected outputType?: OutputType
@@ -74,7 +74,11 @@ export class Model implements Generatable {
           `Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`,
         )
       }
-      if (action === 'updateMany' || action === 'deleteMany') {
+      if (
+        action === 'updateMany' ||
+        action === 'deleteMany' ||
+        action === 'createMany'
+      ) {
         argsTypes.push(
           new MinimalArgsType(
             field.args,
@@ -298,7 +302,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 export type ${model.name} = {
 ${indent(
   model.fields
-    .filter((f) => f.kind !== 'object')
+    .filter((f) => f.kind !== 'object' && f.kind !== 'unsupported')
     .map((field) => new ModelOutputField(this.dmmf, field, true).toTS())
     .join('\n'),
   TAB_SIZE,
@@ -405,7 +409,7 @@ type ${countArgsName} = Merge<
   }
 >
 
-export interface ${name}Delegate<R> {
+export interface ${name}Delegate<GlobalRejectSettings> {
 ${indent(
   actions
     .map(

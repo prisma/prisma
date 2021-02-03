@@ -95,6 +95,24 @@ const ${ctx.singular} = await ${ctx.method}({
       data: (singular) => `The data needed to create a ${singular}.`,
     },
   },
+  createMany: {
+    body: (ctx) => `Create many ${ctx.plural}.
+    @param {${getModelArgName(
+            ctx.model.name,
+            ctx.action,
+          )}} args - Arguments to create many ${ctx.plural}.
+    @example
+    // Create many ${ctx.plural}
+    const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+      data: {
+        // ... provide data here
+      }
+    })
+    `,
+    fields: {
+      data: (singular, plural) => `The data used to create many ${plural}.`,
+    },
+  },
   findUnique: {
     body: (ctx) =>
       `Find zero or one ${ctx.singular} that matches the filter.

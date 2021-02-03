@@ -20,7 +20,7 @@ test('missing-relation', async () => {
              7 
              8 await expect(
           →  9   prisma.post.findMany(
-            PANIC in query-engine/core/src/response_ir/internal.rs:348:26
+            PANIC in query-engine/core/src/response_ir/internal.rs:353:26
           Application logic invariant error: received null value for field author which may not be null
 
           This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.

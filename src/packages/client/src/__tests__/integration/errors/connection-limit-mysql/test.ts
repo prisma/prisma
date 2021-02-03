@@ -1,7 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('connection-limit-mysql', () => {
-  expect.assertions(2)
+  expect.assertions(1)
   const clients: any[] = []
 
   afterAll(async () => {
@@ -29,7 +29,6 @@ describe('connection-limit-mysql', () => {
         count++
       }
     } catch (e) {
-      expect(count).toBeGreaterThan(150)
       expect(e.message).toMatchInlineSnapshot(
         `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )

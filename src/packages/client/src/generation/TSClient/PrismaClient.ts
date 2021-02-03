@@ -165,24 +165,24 @@ export type RejectOnNotFound = boolean | ((error: Error) => Error)
 export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
 export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
 type IsReject<T> = T extends true ? True : T extends (err: Error) => Error ? True : False
-export type RejectHelper<
-  Global extends Prisma.PrismaClientOptions['rejectOnNotFound'],
-  Local,
+export type HasReject<
+  GlobalRejectSettings extends Prisma.PrismaClientOptions['rejectOnNotFound'],
+  LocalRejectSettings,
   Action extends PrismaAction,
   Model extends ModelName
-> = Local extends RejectOnNotFound
-  ? IsReject<Local>
-  : Global extends RejectPerOperation
-  ? Action extends keyof Global
-    ? Global[Action] extends boolean
-      ? IsReject<Global[Action]>
-      : Global[Action] extends RejectPerModel
-      ? Model extends keyof Global[Action]
-        ? IsReject<Global[Action][Model]>
+> = LocalRejectSettings extends RejectOnNotFound
+  ? IsReject<LocalRejectSettings>
+  : GlobalRejectSettings extends RejectPerOperation
+  ? Action extends keyof GlobalRejectSettings
+    ? GlobalRejectSettings[Action] extends boolean
+      ? IsReject<GlobalRejectSettings[Action]>
+      : GlobalRejectSettings[Action] extends RejectPerModel
+      ? Model extends keyof GlobalRejectSettings[Action]
+        ? IsReject<GlobalRejectSettings[Action][Model]>
         : False
       : False
     : False
-  : IsReject<Global>
+  : IsReject<GlobalRejectSettings>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
@@ -265,6 +265,7 @@ export type PrismaAction =
   | 'findMany'
   | 'findFirst'
   | 'create'
+  | 'createMany'
   | 'update'
   | 'updateMany'
   | 'upsert'

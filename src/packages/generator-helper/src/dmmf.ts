@@ -59,7 +59,7 @@ export namespace DMMF {
     [key: string]: any // safe net for additional new props
   }
 
-  export type FieldKind = 'scalar' | 'object' | 'enum'
+  export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
   export type FieldLocation =
@@ -182,6 +182,7 @@ export namespace DMMF {
     findFirst?: string | null
     findMany?: string | null
     create?: string | null
+    createMany?: string | null
     update?: string | null
     updateMany?: string | null
     upsert?: string | null
@@ -197,6 +198,7 @@ export namespace DMMF {
     findFirst = 'findFirst',
     findMany = 'findMany',
     create = 'create',
+    createMany = 'createMany',
     update = 'update',
     updateMany = 'updateMany',
     upsert = 'upsert',

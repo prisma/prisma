@@ -1,6 +1,5 @@
 import execa from 'execa'
 import chalk from 'chalk'
-import Debug from 'debug'
 import fs from 'fs'
 import path from 'path'
 import pMap from 'p-map'
@@ -9,8 +8,6 @@ import {
   getPublishOrder,
   getPackageDependencies,
 } from './ci/publish'
-Debug.enable('setup')
-const debug = Debug('setup')
 import fetch from 'node-fetch'
 
 function getCommitEnvVar(name: string): string {
@@ -60,7 +57,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
   console.log(publishOrder)
   if (!buildOnly) {
-    debug(`Installing dependencies`)
+    console.debug(`Installing dependencies`)
 
     await run(
       '.',
@@ -68,7 +65,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     ).catch((e) => {})
   }
 
-  debug(`Building packages`)
+  console.debug(`Building packages`)
 
   for (const batch of publishOrder) {
     await pMap(
@@ -146,7 +143,7 @@ export async function run(
   if (dry) {
     args.push(chalk.dim('(dry)'))
   }
-  debug(args.join(' '))
+  console.debug(args.join(' '))
   if (dry) {
     return
   }
@@ -221,7 +218,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
 async function getVersionHashes(
   npmVersion: string,
 ): Promise<{ prisma: string }> {
-  return fetch(`https://unpkg.com/@prisma/cli@${npmVersion}/package.json`, {
+  return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
     headers: {
       accept: 'application/json',
     },

@@ -4,14 +4,14 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-it('should display a update message w/ dev tag', async () => {
+it('should display a update message w/ dev tag', () => {
   printUpdateMessage({
     status: 'ok',
     // @ts-ignore
     data: {
       previous_version: '2.6.1',
-      current_version: '2.7.0',
-      package: '@prisma/cli',
+      current_version: '2.16.0',
+      package: 'prisma',
       release_tag: 'dev',
     },
   })
@@ -22,14 +22,14 @@ it('should display a update message w/ dev tag', async () => {
   expect(message).toMatchSnapshot()
 })
 
-it('should display a update message w/o tag', async () => {
+it('should display a update message w/o tag', () => {
   printUpdateMessage({
     status: 'ok',
     // @ts-ignore
     data: {
       previous_version: '2.6.1',
-      current_version: '2.7.0',
-      package: '@prisma/cli',
+      current_version: '2.16.0',
+      package: 'prisma',
       release_tag: 'latest',
     },
   })

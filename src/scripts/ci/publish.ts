@@ -348,17 +348,20 @@ async function getNewIntegrationVersion(
   console.log(`getNewIntegrationVersion: Next minor stable: ${nextStable}`)
 
   const branchWithoutPrefix = branch.replace(/^integration\//, '')
+  const versionNameSlug = `${nextStable}-integration-${slugify(
+    branchWithoutPrefix,
+  )}`
+
   const versions = await getAllVersions(
     packages,
     'integration',
-    `${nextStable}-integration-${branchWithoutPrefix}`,
+    versionNameSlug,
   )
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
 
-  const version = `${nextStable}-integration-${slugify(branchWithoutPrefix)}.${
-    maxIntegration + 1
-  }`
+  const version = `${versionNameSlug}.${maxIntegration + 1}`
   console.log(`Got ${version} in ${Date.now() - before}ms`)
+
   return version
 }
 
@@ -757,6 +760,28 @@ async function tagEnginesRepo(dryRun = false) {
   console.log(`Going to tag the engines repo dryRun: ${dryRun}`)
   /** Get ready */
   await cloneOrPull('prisma-engines', dryRun)
+
+  /** Get version */
+  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
+  const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
+  // const engineVersion = pkg.prisma.version
+  const engineVersion = pkg.dependencies['@prisma/engines']
+    ?.split('.')
+    .slice(-1)[0]
+  const packageVersion = pkg.version
+
+  /** Get previous tag */
+  const previousTag = await runResult(
+    'prisma-engines',
+    `git describe --tags --abbrev=0`,
+  )
+
+  /** Get commits between previous tag and engines sha1 */
+  const changelog = await runResult(
+    'prisma-engines',
+    `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
+  )
+
   const remotes = dryRun
     ? []
     : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
@@ -776,19 +801,10 @@ async function tagEnginesRepo(dryRun = false) {
   )
   await run('.', `git config --global user.name "prisma-bot"`, dryRun)
 
-  /** Get version */
-  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
-  const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
-  // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.dependencies['@prisma/engines']
-    ?.split('.')
-    .slice(-1)[0]
-  const packageVersion = pkg.version
-
   /** Tag */
   await run(
     'prisma-engines',
-    `git tag -a ${packageVersion} ${engineVersion} -m "${packageVersion}"`,
+    `git tag -a ${packageVersion} ${engineVersion} -m "${packageVersion}" -m "${engineVersion}" -m "${changelog}"`,
     dryRun,
   )
 

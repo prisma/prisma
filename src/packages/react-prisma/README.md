@@ -13,9 +13,12 @@ We don't guarantee that this works. Any moment the underlying `react` api can ch
 
 # Known limitations
 
-Right now this package does not support query chaining.
-You can for example not do this yet:
+Right now this package does not support:
+
+- query chaining, like:
 
 ```ts
 prisma.user.findUnique({ where: { id: 42 } }).posts()
 ```
+
+- mutations, only `findMany`, `findFirst`, `findOne`, `findUnique`, `count` operations are allowed.

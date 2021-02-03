@@ -4,29 +4,32 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "@prisma/client"
+  provider        = "prisma-client-js"
+  output          = "@prisma/client"
+  previewFeatures = ["createMany"]
 }
 
 // / User model comment
-model User {
-  id    String  @default(uuid()) @id
-  email String  @unique
+model user {
+  id            String  @id @default(uuid())
+  email         String  @unique
+  age           Int
+  followerCount Int?
   // / name comment
-  name  String?
-  posts Post[]
-  Like  Like[]
+  name          String?
+  posts         Post[]
+  Like          Like[]
 }
 
 model Post {
-  id        String   @default(cuid()) @id
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
   title     String
   content   String?
   authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
+  author    user?    @relation(fields: [authorId], references: [id])
   Like      Like[]
 }
 
@@ -36,7 +39,7 @@ enum Role {
 }
 
 model MachineData {
-  id        String @default(cuid()) @id
+  id        String @id @default(cuid())
   machineId String
   os        String
   osVersion Float
@@ -47,9 +50,9 @@ model MachineData {
 }
 
 model Like {
-  id     String @default(cuid()) @id
+  id     String @id @default(cuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id])
+  user   user   @relation(fields: [userId], references: [id])
   postId String
   post   Post   @relation(fields: [postId], references: [id])
 

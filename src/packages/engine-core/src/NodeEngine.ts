@@ -559,11 +559,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       RUST_LOG: 'info',
     }
 
-    if (!this.useUds) {
-      env.PORT = String(this.port)
-      debug(`port: ${this.port}`)
-    }
-
     if (this.logQueries || this.logLevel === 'info') {
       env.RUST_LOG = 'info'
       if (this.logQueries) {
@@ -641,11 +636,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
+        } else {
+          this.port = await this.getFreePort()
+          flags.push('--port', String(this.port))
         }
 
         debug({ flags })
 
-        this.port = await this.getFreePort()
         const env = this.getEngineEnvVars()
 
         this.child = spawn(prismaPath, flags, {
@@ -694,15 +691,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
-                this.undici = new Undici(
-                  {
-                    hostname: 'localhost',
-                    protocol: 'http:',
-                  },
-                  {
-                    socketPath: this.socketPath,
-                  },
-                )
+                this.undici = new Undici('http://localhost', {
+                  socketPath: this.socketPath,
+                })
               } else {
                 this.undici = new Undici(`http://localhost:${this.port}`)
               }
