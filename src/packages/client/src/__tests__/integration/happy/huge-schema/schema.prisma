@@ -1,0 +1,3163 @@
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["nativeTypes", "groupBy"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  }
+  
+  
+model a {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model b {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model c {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model d {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model e {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model f {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model g {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model h {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model i {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model j {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model k {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model l {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model m {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model n {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model o {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model p {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model q {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model r {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model s {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model t {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model u {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model v {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model w {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model x {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model y {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model z {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model aa {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ab {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ac {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ad {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ae {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model af {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ag {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ah {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ai {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model aj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ak {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model al {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model am {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model an {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ao {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ap {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model aq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ar {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model at {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model au {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model av {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model aw {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ax {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ay {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model az {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ba {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bb {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bc {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bd {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model be {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bf {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bh {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bi {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bk {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bl {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bm {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bn {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bo {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bp {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model br {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bs {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bt {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bu {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bv {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bw {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bx {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model by {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model bz {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ca {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cb {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cc {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cd {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ce {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cf {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ch {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ci {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ck {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cl {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cm {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cn {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model co {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cp {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cr {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cs {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ct {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cu {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cv {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cw {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cx {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cy {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model cz {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model da {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model db {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dc {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dd {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model de {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model df {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dh {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model di {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dk {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dl {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dm {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dn {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dp {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dr {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ds {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dt {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model du {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dv {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dw {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dx {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dy {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model dz {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ea {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eb {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ec {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ed {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ee {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ef {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eh {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ei {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ej {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ek {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model el {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model em {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model en {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eo {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ep {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model er {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model es {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model et {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model eu {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ev {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ew {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ex {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ey {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ez {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fa {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fb {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fc {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fd {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fe {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ff {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fh {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fi {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fk {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fl {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fm {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fn {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fo {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fp {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fr {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fs {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ft {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fu {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fv {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fw {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fx {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fy {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model fz {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ga {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gb {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gc {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gd {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model ge {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gf {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gg {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gh {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gi {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gj {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gk {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gl {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gm {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gn {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model go {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gp {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
+
+model gq {
+  
+    id        Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+
+}
