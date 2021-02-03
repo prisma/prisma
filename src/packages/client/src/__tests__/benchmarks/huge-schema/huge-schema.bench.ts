@@ -2,8 +2,8 @@
 
 import Benchmark from 'benchmark'
 import path from 'path'
-import { compileFile } from '../../../../utils/compileFile'
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { compileFile } from '../../../utils/compileFile'
+import { generateTestClient } from '../../../utils/getTestClient'
 
 const suite = new Benchmark.Suite('typescript')
 // @ts-ignore

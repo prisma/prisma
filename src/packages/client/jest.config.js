@@ -15,6 +15,7 @@ module.exports = {
     'index.js',
     'index.test-d.ts',
     '.bench.ts',
+    '__tests__/benchmarks/',
     '__tests__/types/.*/test.ts',
     'stack.js',
     'runner.js',
