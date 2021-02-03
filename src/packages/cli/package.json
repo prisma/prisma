@@ -74,12 +74,12 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.20",
     "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.14.1",
-    "@typescript-eslint/parser": "4.14.1",
+    "@typescript-eslint/eslint-plugin": "4.14.2",
+    "@typescript-eslint/parser": "4.14.2",
     "chalk": "4.1.0",
     "checkpoint-client": "1.1.18",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.38",
+    "esbuild": "0.8.39",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.19.0",
     "eslint-config-prettier": "7.2.0",
@@ -98,7 +98,7 @@
     "lint-staged": "10.5.3",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
-    "open": "7.3.1",
+    "open": "7.4.0",
     "pg": "8.5.1",
     "pkg": "4.4.9",
     "pkg-up": "3.1.0",
@@ -110,7 +110,7 @@
     "tempy": "1.0.0",
     "ts-jest": "26.5.0",
     "typescript": "4.1.3",
-    "ws": "7.4.2"
+    "ws": "7.4.3"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
