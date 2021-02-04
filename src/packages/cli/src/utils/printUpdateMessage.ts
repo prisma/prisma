@@ -84,7 +84,7 @@ And install ${chalk.bold.greenBright('prisma')}: ${makeInstallCommand(
       'latest',
       {
         canBeGlobal: true,
-        canBeDev: false,
+        canBeDev: true,
       },
     )}`,
   )
