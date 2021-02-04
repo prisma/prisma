@@ -852,7 +852,7 @@ describe('postgresql', () => {
   const SetupParams: SetupParams = {
     connectionString:
       process.env.TEST_POSTGRES_URI_MIGRATE ||
-      'postgres://prisma:prisma@localhost:5432/tests-migrate',
+      'postgres://prisma:prisma@127.0.0.1:5432/tests-migrate',
     dirname: './fixtures',
   }
 
