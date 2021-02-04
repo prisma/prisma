@@ -45,7 +45,7 @@ jobs:
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
@@ -57,7 +57,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     steps:
       - uses: actions/checkout@v2
@@ -93,7 +93,7 @@ jobs:
   #
   tests-integration:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
@@ -149,25 +149,25 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
-          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
-          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@127.0.0.1:5432
+          TEST_MYSQL_BASE_URI: mysql://root:root@127.0.0.1:3306
+          TEST_MARIADB_BASE_URI: mysql://root:root@127.0.0.1:4306
+          TEST_POSTGRES_URI: postgres://prisma:prisma@127.0.0.1:5432/tests
+          TEST_MYSQL_URI: mysql://root:root@127.0.0.1:3306/tests
+          TEST_MARIADB_URI: mysql://root:root@127.0.0.1:4306/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@127.0.0.1:1433/master
 
   #
   # CLI-COMMANDS
   #
   cli-commands:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node: [12]
 
     steps:
@@ -208,12 +208,12 @@ jobs:
   #
   client:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node: [12]
 
     steps:
@@ -252,12 +252,12 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
+          TEST_POSTGRES_URI: postgres://prisma:prisma@127.0.0.1:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@127.0.0.1:5435/tests
+          TEST_MYSQL_URI: mysql://root:root@127.0.0.1:3306/tests
+          TEST_MYSQL_ISOLATED_URI: mysql://root:root@127.0.0.1:3307/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@127.0.0.1:1433/master
+          TEST_MSSQL_JDBC_URI: sqlserver://127.0.0.1:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
       - name: Upload coverage report
         working-directory: src/packages/client
@@ -269,7 +269,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
@@ -314,12 +314,12 @@ jobs:
   #
   sdk:
     timeout-minutes: 5
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node: [12]
 
     steps:
@@ -358,7 +358,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/sdk
         run: |
           bash <(curl -s https://codecov.io/bash) -F sdk -f ./src/__tests__/coverage/clover.xml
@@ -368,12 +368,12 @@ jobs:
   #
   migrate:
     timeout-minutes: 7
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node: [12]
 
     steps:
@@ -415,11 +415,11 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
+          TEST_POSTGRES_URI: postgres://prisma:prisma@127.0.0.1:5432/tests
+          TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@127.0.0.1:5432/tests-migrate
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/migrate
         run: |
           bash <(curl -s https://codecov.io/bash) -F migrate -f ./src/__tests__/coverage/clover.xml
@@ -429,12 +429,12 @@ jobs:
   #
   others:
     timeout-minutes: 10
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-latest, windows-latest, ubuntu-18.04]
         node: [12]
 
     steps:
@@ -474,7 +474,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/debug
         run: |
           bash <(curl -s https://codecov.io/bash) -F debug -f ./src/__tests__/coverage/clover.xml
@@ -488,7 +488,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/engine-core
         run: |
           bash <(curl -s https://codecov.io/bash) -F engine-core -f ./src/__tests__/coverage/clover.xml
@@ -502,7 +502,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/fetch-engine
         run: |
           bash <(curl -s https://codecov.io/bash) -F fetch-engine -f ./src/__tests__/coverage/clover.xml
@@ -516,7 +516,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/generator-helper
         run: |
           bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
@@ -530,7 +530,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-latest' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
         working-directory: src/packages/get-platform
         run: |
           bash <(curl -s https://codecov.io/bash) -F get-platform -f ./src/__tests__/coverage/clover.xml

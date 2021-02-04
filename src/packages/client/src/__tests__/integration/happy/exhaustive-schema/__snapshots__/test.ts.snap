@@ -14752,7 +14752,7 @@ export namespace Prisma {
 
   export type UserCreateNestedOneWithoutPostsInput = {
     create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutpostsInput
+    connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     connect?: UserWhereUniqueInput
   }
 
@@ -14774,7 +14774,7 @@ export namespace Prisma {
 
   export type UserUpdateOneRequiredWithoutPostsInput = {
     create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutpostsInput
+    connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     upsert?: UserUpsertWithoutPostsInput
     connect?: UserWhereUniqueInput
     update?: XOR<UserUncheckedUpdateWithoutPostsInput, UserUpdateWithoutPostsInput>
@@ -14790,14 +14790,14 @@ export namespace Prisma {
 
   export type PostCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
   }
 
   export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
   }
@@ -14840,7 +14840,7 @@ export namespace Prisma {
 
   export type PostUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
@@ -14854,7 +14854,7 @@ export namespace Prisma {
 
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutauthorInput>
+    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
@@ -14868,13 +14868,13 @@ export namespace Prisma {
 
   export type NCreateNestedManyWithoutMInput = {
     create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
   }
 
   export type NUpdateManyWithoutMInput = {
     create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutmInput>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
     set?: Enumerable<NWhereUniqueInput>
@@ -14887,13 +14887,13 @@ export namespace Prisma {
 
   export type MCreateNestedManyWithoutNInput = {
     create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
   }
 
   export type MUpdateManyWithoutNInput = {
     create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutnInput>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
     set?: Enumerable<MWhereUniqueInput>
@@ -14906,21 +14906,21 @@ export namespace Prisma {
 
   export type ManyRequiredCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
   }
 
   export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
   }
 
   export type ManyRequiredUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14934,7 +14934,7 @@ export namespace Prisma {
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
     create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutoneInput>
+    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
@@ -14948,13 +14948,13 @@ export namespace Prisma {
 
   export type OneOptionalCreateNestedOneWithoutManyInput = {
     create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
-    connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
+    connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     connect?: OneOptionalWhereUniqueInput
   }
 
   export type OneOptionalUpdateOneWithoutManyInput = {
     create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
-    connectOrCreate?: OneOptionalCreateOrConnectWithoutmanyInput
+    connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     upsert?: OneOptionalUpsertWithoutManyInput
     connect?: OneOptionalWhereUniqueInput
     disconnect?: boolean
@@ -14964,13 +14964,13 @@ export namespace Prisma {
 
   export type OptionalSide2CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     connect?: OptionalSide2WhereUniqueInput
   }
 
   export type OptionalSide2UpdateOneWithoutOptiInput = {
     create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide2CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide2UpsertWithoutOptiInput
     connect?: OptionalSide2WhereUniqueInput
     disconnect?: boolean
@@ -14980,19 +14980,19 @@ export namespace Prisma {
 
   export type OptionalSide1CreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
   }
 
   export type OptionalSide1UncheckedCreateNestedOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
   }
 
   export type OptionalSide1UpdateOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
@@ -15002,7 +15002,7 @@ export namespace Prisma {
 
   export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
     create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
-    connectOrCreate?: OptionalSide1CreateOrConnectWithoutoptiInput
+    connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
@@ -15395,7 +15395,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type UserCreateOrConnectWithoutpostsInput = {
+  export type UserCreateOrConnectWithoutPostsInput = {
     where: UserWhereUniqueInput
     create: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
   }
@@ -15453,7 +15453,7 @@ export namespace Prisma {
     published?: boolean
   }
 
-  export type PostCreateOrConnectWithoutauthorInput = {
+  export type PostCreateOrConnectWithoutAuthorInput = {
     where: PostWhereUniqueInput
     create: XOR<PostUncheckedCreateWithoutAuthorInput, PostCreateWithoutAuthorInput>
   }
@@ -15522,7 +15522,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type NCreateOrConnectWithoutmInput = {
+  export type NCreateOrConnectWithoutMInput = {
     where: NWhereUniqueInput
     create: XOR<NUncheckedCreateWithoutMInput, NCreateWithoutMInput>
   }
@@ -15593,7 +15593,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type MCreateOrConnectWithoutnInput = {
+  export type MCreateOrConnectWithoutNInput = {
     where: MWhereUniqueInput
     create: XOR<MUncheckedCreateWithoutNInput, MCreateWithoutNInput>
   }
@@ -15664,7 +15664,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type ManyRequiredCreateOrConnectWithoutoneInput = {
+  export type ManyRequiredCreateOrConnectWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
     create: XOR<ManyRequiredUncheckedCreateWithoutOneInput, ManyRequiredCreateWithoutOneInput>
   }
@@ -15741,7 +15741,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type OneOptionalCreateOrConnectWithoutmanyInput = {
+  export type OneOptionalCreateOrConnectWithoutManyInput = {
     where: OneOptionalWhereUniqueInput
     create: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
   }
@@ -15813,7 +15813,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type OptionalSide2CreateOrConnectWithoutoptiInput = {
+  export type OptionalSide2CreateOrConnectWithoutOptiInput = {
     where: OptionalSide2WhereUniqueInput
     create: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
   }
@@ -15885,7 +15885,7 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
-  export type OptionalSide1CreateOrConnectWithoutoptiInput = {
+  export type OptionalSide1CreateOrConnectWithoutOptiInput = {
     where: OptionalSide1WhereUniqueInput
     create: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
   }

@@ -42,7 +42,7 @@
     {
       "groupName": "engines",
       "automerge": "true",
-      "ignoreUnstable": true,
+      "ignoreUnstable": false,
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
