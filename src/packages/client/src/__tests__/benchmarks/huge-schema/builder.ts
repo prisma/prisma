@@ -3,20 +3,6 @@
 import fs from 'fs'
 import path from 'path'
 
-const numberToBase26 = (val: number, tail = '') => {
-  if (val <= 26) {
-    return `${String.fromCharCode(val + 64)}${tail}`
-  }
-
-  const remainder = val % 26 || 26
-  const division = Math.trunc(val / 26) - (remainder === 26 ? 1 : 0)
-
-  return numberToBase26(
-    division,
-    `${String.fromCharCode(remainder + 64)}${tail}`,
-  )
-}
-
 function write(location: string, data: string) {
   if (fs.existsSync(location)) {
     fs.unlinkSync(location)
@@ -44,7 +30,7 @@ function main() {
   let schema = `
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["nativeTypes", "groupBy"]
+  previewFeatures = ["groupBy"]
 }
 
 datasource db {
@@ -58,22 +44,16 @@ import { PrismaClient } from  '@prisma/client'
 const client = new PrismaClient();
 
 async function main(){
-  const a = await client.a.findMany()
+  const a = await client.model1.findMany()
 }
 main().catch(err => console.log(err))
 `
   const modelMap = new Map<string, Model>()
   for (let i = 1; i < 50; i++) {
-    const modelName = numberToBase26(i).toLowerCase()
-    if (
-      ['as', 'and', 'or', 'do', 'in', 'if', 'for', 'any'].includes(modelName)
-    ) {
-      continue
-    }
+    const modelName = `Model${i}`
     const model = new Model({
       name: modelName,
-      body: `
-    id        Int      @id @default(autoincrement())
+      body: `   id        Int      @id @default(autoincrement())
     int             Int
     optionalInt     Int?
     float           Float
@@ -83,8 +63,7 @@ main().catch(err => console.log(err))
     json            Json
     optionalJson    Json?
     boolean         Boolean
-    optionalBoolean Boolean?
-`,
+    optionalBoolean Boolean?`,
     })
     modelMap.set(modelName, model)
   }
