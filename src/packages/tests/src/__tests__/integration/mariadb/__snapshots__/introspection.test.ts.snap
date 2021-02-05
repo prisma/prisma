@@ -12,7 +12,7 @@ datasource mysql {
 }
 
 model migrate {
-  version Int @id
+  version BigInt @id
 }
 
 `;
@@ -31,8 +31,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -51,8 +51,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @default("alice")
+  id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String @default("alice") @mysql.VarChar(50)
 }
 
 `;
@@ -71,10 +71,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
 }
@@ -95,9 +95,9 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @mysql.VarChar(50)
+  name  String @mysql.VarChar(50)
 
   @@unique([email, name], name: "users_email_name_key")
 }
@@ -118,8 +118,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -144,8 +144,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -170,8 +170,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -196,8 +196,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String?
+  id    BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String? @mysql.Text
 }
 
 `;
@@ -216,8 +216,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -246,16 +246,17 @@ model invalid_enum_value_name {
   here_be_enum invalid_enum_value_name_here_be_enum?
 }
 
-// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-// model no_unique_identifier {
-  // field1 Int?
-  // field2 Int?
-// }
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model no_unique_identifier {
+  field1 Int?
+  field2 Int?
+
+  @@ignore
+}
 
 model unsupported_type {
-  field1         Int                        @id @default(autoincrement())
-  // This type is currently not supported by the Prisma Client.
-  // unsupported Unsupported("binary(50)")?
+  field1      Int    @id @default(autoincrement())
+  unsupported Bytes? @mysql.Binary(50)
 }
 
 enum invalid_enum_value_name_here_be_enum {
@@ -291,17 +292,6 @@ Array [
   Object {
     affected: Array [
       Object {
-        field: unsupported,
-        model: unsupported_type,
-        tpe: binary(50),
-      },
-    ],
-    code: 3,
-    message: These fields are not supported by the Prisma Client, because Prisma currently does not support their types.,
-  },
-  Object {
-    affected: Array [
-      Object {
         enm: invalid_enum_value_name_here_be_enum,
         value: 123,
       },
@@ -328,8 +318,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -349,8 +339,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -370,8 +360,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -390,8 +380,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -411,8 +401,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -432,9 +422,9 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  job       String  @unique @mysql.VarChar(50)
+  frequency String? @mysql.Text
 }
 
 `;
@@ -453,8 +443,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -473,8 +463,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -493,8 +483,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -513,8 +503,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -533,9 +523,9 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  id         BigInt   @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title      String   @mysql.VarChar(50)
+  created_at DateTime @default(now()) @mysql.DateTime(0)
 }
 
 `;
@@ -554,8 +544,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -574,8 +564,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -594,8 +584,8 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float
+  id       BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  distance Decimal @mysql.Decimal(5, 3)
 }
 
 `;
@@ -614,9 +604,9 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   token Int    @unique
-  name  String
+  name  String @mysql.VarChar(50)
 }
 
 `;
@@ -635,9 +625,9 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   token Int    @unique
-  name  String
+  name  String @mysql.VarChar(50)
 }
 
 `;
@@ -656,9 +646,9 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  job       String  @unique @mysql.VarChar(50)
+  frequency String? @mysql.Text
 }
 
 `;
@@ -677,9 +667,9 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   token Int    @unique
-  name  String
+  name  String @mysql.VarChar(50)
 }
 
 `;
@@ -698,9 +688,9 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   token Int    @unique
-  name  String
+  name  String @mysql.VarChar(50)
 }
 
 `;
@@ -719,9 +709,9 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  job       String  @unique @mysql.VarChar(50)
+  frequency String? @mysql.Text
 }
 
 `;
@@ -740,9 +730,9 @@ datasource mysql {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   token Int    @unique
-  name  String
+  name  String @mysql.VarChar(50)
 }
 
 `;
@@ -761,8 +751,8 @@ datasource mysql {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
-  time DateTime?
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
+  time DateTime? @mysql.DateTime(0)
 }
 
 `;
@@ -781,9 +771,9 @@ datasource mysql {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  job       String  @unique @mysql.VarChar(50)
+  frequency String? @mysql.Text
 }
 
 `;
@@ -802,9 +792,9 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  id         BigInt   @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title      String   @mysql.VarChar(50)
+  created_at DateTime @default(now()) @mysql.Timestamp(0)
 }
 
 `;
@@ -823,9 +813,9 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  id         BigInt   @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title      String   @mysql.VarChar(50)
+  created_at DateTime @default(now()) @mysql.Timestamp(0)
 }
 
 `;
@@ -844,9 +834,9 @@ datasource mysql {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  id         BigInt   @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title      String   @mysql.VarChar(50)
+  created_at DateTime @default(now()) @mysql.Timestamp(0)
 }
 
 `;
@@ -865,8 +855,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -885,17 +875,17 @@ datasource mysql {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
-  user_id Int
-  title   String
+  id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  user_id BigInt @mysql.UnsignedBigInt
+  title   String @mysql.VarChar(50)
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
+  id    BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String  @unique @mysql.VarChar(50)
   posts posts[]
 }
 
@@ -916,8 +906,8 @@ datasource mysql {
 
 model teams {
   id    Int    @id
-  name  String @unique
-  email String @unique
+  name  String @unique @mysql.VarChar(50)
+  email String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -937,7 +927,7 @@ datasource mysql {
 
 model teams {
   id   Int    @id
-  name String @unique
+  name String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -964,10 +954,10 @@ model a {
 }
 
 model b {
-  id  Int @id @default(autoincrement())
+  id  BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a      @relation(fields: [one, two], references: [one, two])
 
   @@index([one, two], name: "one")
 }
@@ -988,10 +978,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
 }
@@ -1012,9 +1002,9 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @mysql.VarChar(50)
+  name  String @mysql.VarChar(50)
 
   @@unique([email, name], name: "users_email_name_key")
 }
@@ -1035,8 +1025,8 @@ datasource mysql {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique
+  id       BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  distance Decimal @unique @mysql.Decimal(5, 3)
 }
 
 `;
@@ -1055,10 +1045,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
   @@unique([value, email], name: "variables_value_email_key")
@@ -1080,11 +1070,11 @@ datasource mysql {
 }
 
 model variables {
-  id    Int    @id @default(autoincrement())
-  name  String
-  key   String
-  value String
-  email String
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@unique([name, key], name: "variables_name_key_key")
 }
@@ -1105,17 +1095,17 @@ datasource mysql {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
-  user_id Int
-  title   String
+  id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  user_id BigInt @mysql.UnsignedBigInt
+  title   String @mysql.VarChar(50)
   users   users  @relation(fields: [user_id], references: [id])
 
   @@index([user_id], name: "user_id")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
+  id    BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String  @unique @mysql.VarChar(50)
   posts posts[]
 }
 
@@ -1135,8 +1125,8 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -1155,10 +1145,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
 }
@@ -1179,9 +1169,9 @@ datasource mysql {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  email String @mysql.VarChar(50)
+  name  String @mysql.VarChar(50)
 
   @@unique([email, name], name: "users_email_name_key")
 }
@@ -1202,8 +1192,8 @@ datasource mysql {
 }
 
 model teams {
-  id    Int @id @default(autoincrement())
-  token Int @unique
+  id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  token Int    @unique
 }
 
 `;
@@ -1222,8 +1212,8 @@ datasource mysql {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique
+  id     BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name   String  @unique @mysql.VarChar(50)
   active Boolean @default(true)
 }
 
@@ -1243,8 +1233,8 @@ datasource mysql {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique
+  id     BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name   String  @unique @mysql.VarChar(50)
   active Boolean @default(true)
 }
 
@@ -1264,8 +1254,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -1284,8 +1274,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String @unique @mysql.VarChar(50)
 }
 
 `;
@@ -1304,8 +1294,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -1330,8 +1320,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -1356,8 +1346,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int     @id @default(autoincrement())
-  name String?
+  id   BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String? @mysql.Text
 }
 
 `;
@@ -1376,8 +1366,8 @@ datasource mysql {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String
+  id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
+  name String @mysql.VarChar(50)
 }
 
 `;
@@ -1396,8 +1386,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int             @id @default(autoincrement())
-  title     String
+  id        BigInt          @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String          @mysql.VarChar(50)
   published posts_published @default(DRAFT)
 }
 
@@ -1422,8 +1412,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -1443,8 +1433,8 @@ datasource mysql {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
-  title     String
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
+  title     String  @mysql.VarChar(50)
   published Boolean @default(false)
 }
 
@@ -1464,10 +1454,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
 }
@@ -1488,10 +1478,10 @@ datasource mysql {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @mysql.VarChar(50)
+  key   String @mysql.VarChar(50)
+  value String @mysql.VarChar(50)
+  email String @mysql.VarChar(50)
 
   @@id([name, key])
 }

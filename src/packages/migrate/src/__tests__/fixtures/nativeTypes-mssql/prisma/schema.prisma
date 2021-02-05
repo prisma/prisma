@@ -4,8 +4,8 @@ datasource db {
 }
 
 generator client {
-  previewFeatures = ["microsoftSqlServer", "nativeTypes"]
-  provider = "prisma-client-js"
+  previewFeatures = ["microsoftSqlServer"]
+  provider        = "prisma-client-js"
 }
 
 model User {

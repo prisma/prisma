@@ -140,17 +140,17 @@ model column_name_that_becomes_empty_string {
   // 12345 Int? @map("12345")
 }
 
-// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-// model no_unique_identifier {
-  // This type is currently not supported by the Prisma Client.
-  // field1 Unsupported("integer key")
-  // field2 Int?
-// }
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model no_unique_identifier {
+  field1 Unsupported("integer key")
+  field2 Int?
+
+  @@ignore
+}
 
 model unsupported_type {
-  field1         Int                        @id @default(autoincrement())
-  // This type is currently not supported by the Prisma Client.
-  // unsupported Unsupported("binary(50)")?
+  field1      Int                        @id @default(autoincrement())
+  unsupported Unsupported("binary(50)")?
 }
 
 `;
@@ -473,8 +473,8 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float
+  id       Int     @id @default(autoincrement())
+  distance Decimal
 }
 
 `;
@@ -867,8 +867,8 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique @default(12.3)
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique @default(12.3)
 }
 
 `;
@@ -887,8 +887,8 @@ datasource sqlite {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique
 }
 
 `;

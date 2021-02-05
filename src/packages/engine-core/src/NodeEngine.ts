@@ -221,8 +221,8 @@ export class NodeEngine {
       'transaction',
       'connectOrCreate',
       'uncheckedScalarInputs',
+      'nativeTypes',
     ]
-    const filteredFlags = ['nativeTypes']
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
     )
@@ -241,7 +241,7 @@ export class NodeEngine {
     }
 
     this.enableExperimental = this.enableExperimental.filter(
-      (e) => !removedFlags.includes(e) && !filteredFlags.includes(e),
+      (e) => !removedFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
 
