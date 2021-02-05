@@ -166,7 +166,7 @@ model A {
   inc_bInt BigInt @default(autoincrement()) @db.BigInt
 }
 
-model B {previewFeatures = ["nativeTypes", "uncheckedScalarInputs", "groupBy", "createMany"]
+model B {
   id       String  @id @default(cuid())
   float    Float   @db.Real
   dFloat   Float   @db.DoublePrecision
