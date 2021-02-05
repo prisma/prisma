@@ -94,10 +94,7 @@ describe('sqlite', () => {
       '--preview-feature',
       '--applied=does_not_exist',
     ])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Failed to read migration script
-
-          `)
+    await expect(result).rejects.toThrowError()
   })
 
   it('--applied should fail if migration is already applied', async () => {
