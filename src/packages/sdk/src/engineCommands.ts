@@ -79,6 +79,9 @@ export async function getDMMF({
       uncheckedScalarInputs: `${chalk.blueBright(
         'info',
       )} The preview flag "uncheckedScalarInputs" is not needed anymore, please remove it from your schema.prisma`,
+      nativeTypes: `${chalk.blueBright(
+        'info',
+      )} The preview flag "nativeTypes" is not needed anymore, please remove it from your schema.prisma`,
     }
 
     if (enableExperimental) {

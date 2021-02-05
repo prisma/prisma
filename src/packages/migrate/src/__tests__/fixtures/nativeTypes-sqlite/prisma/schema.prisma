@@ -4,16 +4,15 @@ datasource db {
 }
 
 generator client {
-  previewFeatures = ["nativeTypes"]
   provider = "prisma-client-js"
 }
 
 model Cat {
-  id Int @id
+  id   Int    @id
   name String @db.VarChar(100)
 }
 
 model Dog {
-  id Int @id
+  id           Int  @id
   bestFriendId Int?
 }

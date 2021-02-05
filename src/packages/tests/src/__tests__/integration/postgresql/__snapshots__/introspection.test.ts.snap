@@ -12,7 +12,7 @@ datasource postgresql {
 }
 
 model migrate {
-  version Int @id
+  version BigInt @id
 }
 
 `;
@@ -246,16 +246,17 @@ model invalid_enum_value_name {
   here_be_enum invalid_enum?
 }
 
-// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-// model no_unique_identifier {
-  // field1 Int?
-  // field2 Int?
-// }
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model no_unique_identifier {
+  field1 Int?
+  field2 Int?
+
+  @@ignore
+}
 
 model unsupported_type {
-  field1         Int                     @id @default(autoincrement())
-  // This type is currently not supported by the Prisma Client.
-  // unsupported Unsupported("polygon")?
+  field1      Int                     @id @default(autoincrement())
+  unsupported Unsupported("polygon")?
 }
 
 enum invalid_enum {
@@ -371,7 +372,7 @@ datasource postgresql {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique @postgresql.Citext
 }
 
 `;
@@ -454,7 +455,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -474,7 +475,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -494,7 +495,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -514,7 +515,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -535,7 +536,7 @@ datasource postgresql {
 model posts {
   id         Int      @id @default(autoincrement())
   title      String
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
 
 `;
@@ -555,7 +556,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -575,7 +576,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -594,8 +595,8 @@ datasource postgresql {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float
+  id       Int     @id @default(autoincrement())
+  distance Decimal @postgresql.Decimal(5, 3)
 }
 
 `;
@@ -762,7 +763,7 @@ datasource postgresql {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @postgresql.Timestamptz(6)
 }
 
 `;
@@ -804,7 +805,7 @@ datasource postgresql {
 model posts {
   id         Int      @id @default(autoincrement())
   title      String
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
 
 `;
@@ -825,7 +826,7 @@ datasource postgresql {
 model posts {
   id         Int      @id @default(autoincrement())
   title      String
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
 
 `;
@@ -846,7 +847,7 @@ datasource postgresql {
 model posts {
   id         Int      @id @default(autoincrement())
   title      String
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @postgresql.Timestamp(6)
 }
 
 `;
@@ -1094,8 +1095,8 @@ datasource postgresql {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique @default(12.3)
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique @default(12.3) @postgresql.Decimal(5, 3)
 }
 
 `;
@@ -1114,8 +1115,8 @@ datasource postgresql {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique @postgresql.Decimal(5, 3)
 }
 
 `;

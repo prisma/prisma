@@ -13,7 +13,7 @@ datasource sqlserver {
 }
 
 model migrate {
-  version Int @id
+  version BigInt @id
 }
 
 `;
@@ -34,7 +34,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -55,7 +55,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @default("alice")
+  name String @default("alice") @sqlserver.VarChar(32)
 }
 
 `;
@@ -75,10 +75,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
 }
@@ -101,8 +101,8 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  email String @sqlserver.VarChar(32)
+  name  String @sqlserver.VarChar(32)
 
   @@unique([email, name], name: "u_const")
 }
@@ -125,7 +125,7 @@ datasource sqlserver {
 
 model users {
   id    Int     @id @default(autoincrement())
-  email String?
+  email String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -146,7 +146,7 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -167,7 +167,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -189,7 +189,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -211,7 +211,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -233,7 +233,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -255,8 +255,8 @@ datasource sqlserver {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  job       String  @unique @sqlserver.VarChar(32)
+  frequency String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -277,7 +277,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -298,8 +298,8 @@ datasource sqlserver {
 
 model posts {
   id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  title      String   @sqlserver.VarChar(32)
+  created_at DateTime @default(now()) @sqlserver.DateTime
 }
 
 `;
@@ -320,7 +320,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -341,8 +341,8 @@ datasource sqlserver {
 
 model posts {
   id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  title      String   @sqlserver.VarChar(32)
+  created_at DateTime @default(now()) @sqlserver.DateTime
 }
 
 `;
@@ -363,7 +363,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -384,8 +384,8 @@ datasource sqlserver {
 
 model posts {
   id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  title      String   @sqlserver.VarChar(32)
+  created_at DateTime @default(now()) @sqlserver.DateTime
 }
 
 `;
@@ -406,7 +406,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -427,8 +427,8 @@ datasource sqlserver {
 
 model posts {
   id         Int      @id @default(autoincrement())
-  title      String
-  created_at DateTime @default(now())
+  title      String   @sqlserver.VarChar(32)
+  created_at DateTime @default(now()) @sqlserver.DateTime
 }
 
 `;
@@ -449,7 +449,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -470,7 +470,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -490,8 +490,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float
+  id       Int     @id @default(autoincrement())
+  distance Decimal @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -513,7 +513,7 @@ datasource sqlserver {
 model teams {
   id    Int    @id @default(autoincrement())
   token Int    @unique
-  name  String
+  name  String @sqlserver.VarChar(32)
 }
 
 `;
@@ -535,7 +535,7 @@ datasource sqlserver {
 model teams {
   id    Int    @id @default(autoincrement())
   token Int    @unique
-  name  String
+  name  String @sqlserver.VarChar(32)
 }
 
 `;
@@ -556,8 +556,8 @@ datasource sqlserver {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  job       String  @unique @sqlserver.VarChar(32)
+  frequency String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -579,7 +579,7 @@ datasource sqlserver {
 model teams {
   id    Int    @id @default(autoincrement())
   token Int    @unique
-  name  String
+  name  String @sqlserver.VarChar(32)
 }
 
 `;
@@ -601,7 +601,7 @@ datasource sqlserver {
 model teams {
   id    Int    @id @default(autoincrement())
   token Int    @unique
-  name  String
+  name  String @sqlserver.VarChar(32)
 }
 
 `;
@@ -622,8 +622,8 @@ datasource sqlserver {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  job       String  @unique @sqlserver.VarChar(32)
+  frequency String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -645,7 +645,7 @@ datasource sqlserver {
 model teams {
   id    Int    @id @default(autoincrement())
   token Int    @unique
-  name  String
+  name  String @sqlserver.VarChar(32)
 }
 
 `;
@@ -666,7 +666,7 @@ datasource sqlserver {
 
 model events {
   id   Int       @id @default(autoincrement())
-  time DateTime?
+  time DateTime? @sqlserver.DateTime
 }
 
 `;
@@ -687,8 +687,8 @@ datasource sqlserver {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
-  frequency String?
+  job       String  @unique @sqlserver.VarChar(32)
+  frequency String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -709,7 +709,7 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -731,13 +731,13 @@ datasource sqlserver {
 model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
-  title   String
+  title   String @sqlserver.VarChar(32)
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
   id    Int     @id @default(autoincrement())
-  email String  @unique
+  email String  @unique @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -759,8 +759,8 @@ datasource sqlserver {
 
 model teams {
   id    Int    @id
-  name  String @unique
-  email String @unique
+  name  String @unique @sqlserver.VarChar(32)
+  email String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -781,7 +781,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id
-  name String @unique
+  name String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -832,10 +832,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
 }
@@ -858,8 +858,8 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  email String @sqlserver.VarChar(32)
+  name  String @sqlserver.VarChar(32)
 
   @@unique([email, name], name: "u_const")
 }
@@ -881,8 +881,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique @default(12.3)
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique @default(12.3) @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -902,8 +902,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int   @id @default(autoincrement())
-  distance Float @unique
+  id       Int     @id @default(autoincrement())
+  distance Decimal @unique @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -923,10 +923,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
   @@unique([value, email], name: "u_const")
@@ -950,10 +950,10 @@ datasource sqlserver {
 
 model variables {
   id    Int    @id @default(autoincrement())
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@unique([name, key], name: "u_const")
 }
@@ -977,13 +977,13 @@ datasource sqlserver {
 model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
-  title   String
+  title   String @sqlserver.VarChar(32)
   users   users  @relation(fields: [user_id], references: [id])
 }
 
 model users {
   id    Int     @id @default(autoincrement())
-  email String  @unique
+  email String  @unique @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -1005,7 +1005,7 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -1025,10 +1025,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
 }
@@ -1051,8 +1051,8 @@ datasource sqlserver {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String
-  name  String
+  email String @sqlserver.VarChar(32)
+  name  String @sqlserver.VarChar(32)
 
   @@unique([email, name], name: "u_const")
 }
@@ -1096,7 +1096,7 @@ datasource sqlserver {
 
 model teams {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String  @unique @sqlserver.VarChar(32)
   active Boolean @default(true)
 }
 
@@ -1118,7 +1118,7 @@ datasource sqlserver {
 
 model teams {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String  @unique @sqlserver.VarChar(32)
   active Boolean @default(true)
 }
 
@@ -1140,7 +1140,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -1161,7 +1161,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique @sqlserver.VarChar(32)
 }
 
 `;
@@ -1182,7 +1182,7 @@ datasource sqlserver {
 
 model teams {
   id   Int     @id @default(autoincrement())
-  name String?
+  name String? @sqlserver.VarChar(32)
 }
 
 `;
@@ -1203,7 +1203,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @sqlserver.VarChar(32)
 }
 
 `;
@@ -1224,7 +1224,7 @@ datasource sqlserver {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String
+  name String @sqlserver.VarChar(32)
 }
 
 `;
@@ -1245,7 +1245,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -1267,7 +1267,7 @@ datasource sqlserver {
 
 model posts {
   id        Int     @id @default(autoincrement())
-  title     String
+  title     String  @sqlserver.VarChar(32)
   published Boolean @default(false)
 }
 
@@ -1288,10 +1288,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
 }
@@ -1313,10 +1313,10 @@ datasource sqlserver {
 }
 
 model variables {
-  name  String
-  key   String
-  value String
-  email String
+  name  String @sqlserver.VarChar(32)
+  key   String @sqlserver.VarChar(32)
+  value String @sqlserver.VarChar(32)
+  email String @sqlserver.VarChar(32)
 
   @@id([name, key])
 }
