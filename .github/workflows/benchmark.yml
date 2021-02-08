@@ -62,6 +62,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
       #  This is required as setup.sh can modify pnpm-lock.yml
       - run: rm -f src/pnpm-lock.yaml
+      - run: rm -f ./pnpm-lock.yaml
       - name: Run benchmarks
         run: pnpm run bench
       - name: Store benchmark result
