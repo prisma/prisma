@@ -46,6 +46,7 @@ services:
 
   postgres_isolated:
     image: postgres:10
+    command: postgres -c 'max_connections=10' 
     restart: always
     environment:
       - POSTGRES_DB=tests
