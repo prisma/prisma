@@ -697,7 +697,7 @@ async function publish() {
           throw new Error(`tagForE2ECheck missing`)
         }
         const passing = await areEndToEndTestsPassing(tagForE2ECheck)
-        if (!passing) {
+        if (!passing && !process.env.SKIP_E2E_CHECK) {
           throw new Error(`We can't release, as the e2e tests are not passing for the ${tag} npm tag!
 Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
         }
