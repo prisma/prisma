@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612780988104,
+  "lastUpdate": 1612783513002,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -652,6 +652,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.63%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a2d46efe55bd845357723276959ff6b9202125ff",
+          "message": "fix: build-kite mysql_isolated (#5532)",
+          "timestamp": "2021-02-08T12:21:26+01:00",
+          "tree_id": "06a621eb08198df1bc4f9a935d31e728a9c431fe",
+          "url": "https://github.com/prisma/prisma/commit/a2d46efe55bd845357723276959ff6b9202125ff"
+        },
+        "date": 1612783512429,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.38,
+            "range": "±5.07%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.72%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
