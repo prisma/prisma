@@ -34,6 +34,7 @@ services:
       - DRY_RUN
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
+      - SKIP_E2E_CHECK
     depends_on:
       - postgres
       - postgres_isolated
