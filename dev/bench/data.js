@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612780539460,
+  "lastUpdate": 1612780988104,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -618,6 +618,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.85%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "056742db283a814f7cd296ff790608e4f10f94df",
+          "message": "fix: build-kite mysql_isolated",
+          "timestamp": "2021-02-08T10:29:23Z",
+          "url": "https://github.com/prisma/prisma/pull/5532/commits/056742db283a814f7cd296ff790608e4f10f94df"
+        },
+        "date": 1612780987287,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.38,
+            "range": "±4.02%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.63%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
