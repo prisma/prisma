@@ -17,6 +17,7 @@ on:
       - "LICENSE"
       - "src/.buildkite/**"
       - "src/.dockerignore"
+      - "*.bench.ts"
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
   pull_request:
@@ -32,6 +33,7 @@ on:
       - "LICENSE"
       - "src/.buildkite/**"
       - "src/.dockerignore"
+      - "*.bench.ts"
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
 
