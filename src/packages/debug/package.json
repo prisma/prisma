@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "26.0.20",
-    "@types/node": "12.19.15",
+    "@types/node": "12.19.16",
     "@typescript-eslint/eslint-plugin": "4.14.2",
     "@typescript-eslint/parser": "4.14.2",
     "eslint": "7.19.0",
