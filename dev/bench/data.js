@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612786744489,
+  "lastUpdate": 1612787460131,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -898,6 +898,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.49%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b4f03250bc48a4dcb1060fd4803164f8eadd25b4",
+          "message": "test(client): skip `connection-limit-mysql`",
+          "timestamp": "2021-02-08T13:27:26+01:00",
+          "tree_id": "55846d2543d883fcc8a2c92ae0edb7571a4b391a",
+          "url": "https://github.com/prisma/prisma/commit/b4f03250bc48a4dcb1060fd4803164f8eadd25b4"
+        },
+        "date": 1612787459158,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±4.74%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.12%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
