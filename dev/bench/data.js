@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612804129447,
+  "lastUpdate": 1612816878722,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -1288,6 +1288,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±1.72%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "d4dd0f154dcf9c7dc0e8c949fdb10b1b81a7460e",
+          "message": "chore(deps): update dependency husky to v5",
+          "timestamp": "2021-02-08T19:42:35Z",
+          "url": "https://github.com/prisma/prisma/pull/5544/commits/d4dd0f154dcf9c7dc0e8c949fdb10b1b81a7460e"
+        },
+        "date": 1612816876695,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±7.06%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±5.75%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
