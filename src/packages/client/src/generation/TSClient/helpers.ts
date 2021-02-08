@@ -2,7 +2,7 @@ import pluralize from 'pluralize'
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
-import { JSDocMethodBodyCtx, JSDocs } from './constants'
+import { JSDocMethodBodyCtx, JSDocs } from './jsdoc'
 
 export function getMethodJSDocBody(
   action: DMMF.ModelAction,
@@ -37,12 +37,15 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   if (actionName === 'aggregate') {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
-  if(actionName === 'findFirst' || actionName === 'findUnique'){
-    return `<T extends ${getModelArgName(name, actionName)},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+  if (actionName === 'findFirst' || actionName === 'findUnique') {
+    return `<T extends ${getModelArgName(
+      name,
+      actionName,
+    )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
   }
   const modelArgName = getModelArgName(name, actionName)
-  if(!modelArgName){
-    console.log({name, actionName});
+  if (!modelArgName) {
+    console.log({ name, actionName })
   }
   return `<T extends ${modelArgName}>`
 }

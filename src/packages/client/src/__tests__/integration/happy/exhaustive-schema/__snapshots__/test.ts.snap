@@ -1544,6 +1544,8 @@ export namespace Prisma {
 
     /**
      * Find the first Post that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostFindFirstArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
@@ -1559,6 +1561,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Posts that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Posts
@@ -1660,6 +1664,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Posts.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Posts
@@ -1700,6 +1706,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Posts.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostCountArgs} args - Arguments to filter Posts to count.
      * @example
      * // Count the number of Posts
@@ -1721,6 +1729,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a Post.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -1745,6 +1755,8 @@ export namespace Prisma {
 
     /**
      * Group by Post.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {PostGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -2447,6 +2459,8 @@ export namespace Prisma {
 
     /**
      * Find the first User that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindFirstArgs} args - Arguments to find a User
      * @example
      * // Get one User
@@ -2462,6 +2476,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Users that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Users
@@ -2563,6 +2579,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Users.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Users
@@ -2603,6 +2621,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Users.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserCountArgs} args - Arguments to filter Users to count.
      * @example
      * // Count the number of Users
@@ -2624,6 +2644,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a User.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -2648,6 +2670,8 @@ export namespace Prisma {
 
     /**
      * Group by User.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {UserGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -3342,6 +3366,8 @@ export namespace Prisma {
 
     /**
      * Find the first M that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MFindFirstArgs} args - Arguments to find a M
      * @example
      * // Get one M
@@ -3357,6 +3383,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Ms that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ms
@@ -3458,6 +3486,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Ms.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Ms
@@ -3498,6 +3528,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Ms.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MCountArgs} args - Arguments to filter Ms to count.
      * @example
      * // Count the number of Ms
@@ -3519,6 +3551,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a M.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -3543,6 +3577,8 @@ export namespace Prisma {
 
     /**
      * Group by M.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {MGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -4237,6 +4273,8 @@ export namespace Prisma {
 
     /**
      * Find the first N that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NFindFirstArgs} args - Arguments to find a N
      * @example
      * // Get one N
@@ -4252,6 +4290,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Ns that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ns
@@ -4353,6 +4393,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Ns.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Ns
@@ -4393,6 +4435,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Ns.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NCountArgs} args - Arguments to filter Ns to count.
      * @example
      * // Count the number of Ns
@@ -4414,6 +4458,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a N.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -4438,6 +4484,8 @@ export namespace Prisma {
 
     /**
      * Group by N.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {NGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -5132,6 +5180,8 @@ export namespace Prisma {
 
     /**
      * Find the first OneOptional that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalFindFirstArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
@@ -5147,6 +5197,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more OneOptionals that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OneOptionals
@@ -5248,6 +5300,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more OneOptionals.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many OneOptionals
@@ -5288,6 +5342,8 @@ export namespace Prisma {
 
     /**
      * Count the number of OneOptionals.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalCountArgs} args - Arguments to filter OneOptionals to count.
      * @example
      * // Count the number of OneOptionals
@@ -5309,6 +5365,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a OneOptional.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -5333,6 +5391,8 @@ export namespace Prisma {
 
     /**
      * Group by OneOptional.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -6039,6 +6099,8 @@ export namespace Prisma {
 
     /**
      * Find the first ManyRequired that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredFindFirstArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
@@ -6054,6 +6116,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all ManyRequireds
@@ -6155,6 +6219,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more ManyRequireds.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many ManyRequireds
@@ -6195,6 +6261,8 @@ export namespace Prisma {
 
     /**
      * Count the number of ManyRequireds.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredCountArgs} args - Arguments to filter ManyRequireds to count.
      * @example
      * // Count the number of ManyRequireds
@@ -6216,6 +6284,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a ManyRequired.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -6240,6 +6310,8 @@ export namespace Prisma {
 
     /**
      * Group by ManyRequired.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -6946,6 +7018,8 @@ export namespace Prisma {
 
     /**
      * Find the first OptionalSide1 that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1FindFirstArgs} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
@@ -6961,6 +7035,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide1s
@@ -7062,6 +7138,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more OptionalSide1s.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1UpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many OptionalSide1s
@@ -7102,6 +7180,8 @@ export namespace Prisma {
 
     /**
      * Count the number of OptionalSide1s.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1CountArgs} args - Arguments to filter OptionalSide1s to count.
      * @example
      * // Count the number of OptionalSide1s
@@ -7123,6 +7203,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a OptionalSide1.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1AggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -7147,6 +7229,8 @@ export namespace Prisma {
 
     /**
      * Group by OptionalSide1.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1GroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -7841,6 +7925,8 @@ export namespace Prisma {
 
     /**
      * Find the first OptionalSide2 that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2FindFirstArgs} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
@@ -7856,6 +7942,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all OptionalSide2s
@@ -7957,6 +8045,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more OptionalSide2s.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2UpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many OptionalSide2s
@@ -7997,6 +8087,8 @@ export namespace Prisma {
 
     /**
      * Count the number of OptionalSide2s.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2CountArgs} args - Arguments to filter OptionalSide2s to count.
      * @example
      * // Count the number of OptionalSide2s
@@ -8018,6 +8110,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a OptionalSide2.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2AggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -8042,6 +8136,8 @@ export namespace Prisma {
 
     /**
      * Group by OptionalSide2.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2GroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -8706,6 +8802,8 @@ export namespace Prisma {
 
     /**
      * Find the first A that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {AFindFirstArgs} args - Arguments to find a A
      * @example
      * // Get one A
@@ -8721,6 +8819,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more As that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all As
@@ -8822,6 +8922,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more As.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {AUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many As
@@ -8862,6 +8964,8 @@ export namespace Prisma {
 
     /**
      * Count the number of As.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ACountArgs} args - Arguments to filter As to count.
      * @example
      * // Count the number of As
@@ -8883,6 +8987,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a A.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {AAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -8907,6 +9013,8 @@ export namespace Prisma {
 
     /**
      * Group by A.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {AGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -9498,6 +9606,8 @@ export namespace Prisma {
 
     /**
      * Find the first B that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BFindFirstArgs} args - Arguments to find a B
      * @example
      * // Get one B
@@ -9513,6 +9623,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Bs that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Bs
@@ -9614,6 +9726,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Bs.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Bs
@@ -9654,6 +9768,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Bs.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BCountArgs} args - Arguments to filter Bs to count.
      * @example
      * // Count the number of Bs
@@ -9675,6 +9791,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a B.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -9699,6 +9817,8 @@ export namespace Prisma {
 
     /**
      * Group by B.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {BGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -10260,6 +10380,8 @@ export namespace Prisma {
 
     /**
      * Find the first C that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CFindFirstArgs} args - Arguments to find a C
      * @example
      * // Get one C
@@ -10275,6 +10397,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Cs that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Cs
@@ -10376,6 +10500,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Cs.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Cs
@@ -10416,6 +10542,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Cs.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CCountArgs} args - Arguments to filter Cs to count.
      * @example
      * // Count the number of Cs
@@ -10437,6 +10565,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a C.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -10461,6 +10591,8 @@ export namespace Prisma {
 
     /**
      * Group by C.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {CGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -11006,6 +11138,8 @@ export namespace Prisma {
 
     /**
      * Find the first D that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DFindFirstArgs} args - Arguments to find a D
      * @example
      * // Get one D
@@ -11021,6 +11155,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Ds that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Ds
@@ -11122,6 +11258,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Ds.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Ds
@@ -11162,6 +11300,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Ds.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DCountArgs} args - Arguments to filter Ds to count.
      * @example
      * // Count the number of Ds
@@ -11183,6 +11323,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a D.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -11207,6 +11349,8 @@ export namespace Prisma {
 
     /**
      * Group by D.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {DGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
@@ -11744,6 +11888,8 @@ export namespace Prisma {
 
     /**
      * Find the first E that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {EFindFirstArgs} args - Arguments to find a E
      * @example
      * // Get one E
@@ -11759,6 +11905,8 @@ export namespace Prisma {
 
     /**
      * Find zero or more Es that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all Es
@@ -11860,6 +12008,8 @@ export namespace Prisma {
 
     /**
      * Update zero or more Es.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {EUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many Es
@@ -11900,6 +12050,8 @@ export namespace Prisma {
 
     /**
      * Count the number of Es.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {ECountArgs} args - Arguments to filter Es to count.
      * @example
      * // Count the number of Es
@@ -11921,6 +12073,8 @@ export namespace Prisma {
 
     /**
      * Allows you to perform aggregations operations on a E.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {EAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
      * // Ordered by age ascending
@@ -11945,6 +12099,8 @@ export namespace Prisma {
 
     /**
      * Group by E.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
      * @param {EGroupByArgs} args - Group by arguments.
      * @example
      * // Group by city, order by createdAt, get count
