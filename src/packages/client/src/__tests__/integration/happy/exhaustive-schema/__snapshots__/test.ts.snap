@@ -1379,7 +1379,7 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
     **/
@@ -1924,7 +1924,7 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
     **/
@@ -1948,7 +1948,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of Posts.
     **/
@@ -1973,7 +1973,7 @@ export namespace Prisma {
     **/
     where?: PostWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
     **/
@@ -2278,7 +2278,7 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
     **/
@@ -2839,7 +2839,7 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
     **/
@@ -2863,7 +2863,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of Users.
     **/
@@ -2888,7 +2888,7 @@ export namespace Prisma {
     **/
     where?: UserWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
     **/
@@ -3187,7 +3187,7 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
     **/
@@ -3746,7 +3746,7 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
     **/
@@ -3770,7 +3770,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of MS.
     **/
@@ -3795,7 +3795,7 @@ export namespace Prisma {
     **/
     where?: MWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
     **/
@@ -4094,7 +4094,7 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
     **/
@@ -4653,7 +4653,7 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
     **/
@@ -4677,7 +4677,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of NS.
     **/
@@ -4702,7 +4702,7 @@ export namespace Prisma {
     **/
     where?: NWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
     **/
@@ -5001,7 +5001,7 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
     **/
@@ -5560,7 +5560,7 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
     **/
@@ -5584,7 +5584,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OneOptionals.
     **/
@@ -5609,7 +5609,7 @@ export namespace Prisma {
     **/
     where?: OneOptionalWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
     **/
@@ -5918,7 +5918,7 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
@@ -6479,7 +6479,7 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
@@ -6503,7 +6503,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of ManyRequireds.
     **/
@@ -6528,7 +6528,7 @@ export namespace Prisma {
     **/
     where?: ManyRequiredWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
@@ -6837,7 +6837,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
@@ -7398,7 +7398,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
@@ -7422,7 +7422,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OptionalSide1s.
     **/
@@ -7447,7 +7447,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide1WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
@@ -7746,7 +7746,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
@@ -8305,7 +8305,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
@@ -8329,7 +8329,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OptionalSide2s.
     **/
@@ -8354,7 +8354,7 @@ export namespace Prisma {
     **/
     where?: OptionalSide2WhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
@@ -8641,7 +8641,7 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
     **/
@@ -9173,7 +9173,7 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
     **/
@@ -9197,7 +9197,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of AS.
     **/
@@ -9218,7 +9218,7 @@ export namespace Prisma {
     **/
     where?: AWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
     **/
@@ -9453,7 +9453,7 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
     **/
@@ -9977,7 +9977,7 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
     **/
@@ -10001,7 +10001,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of BS.
     **/
@@ -10022,7 +10022,7 @@ export namespace Prisma {
     **/
     where?: BWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
     **/
@@ -10239,7 +10239,7 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
     **/
@@ -10751,7 +10751,7 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
     **/
@@ -10775,7 +10775,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of CS.
     **/
@@ -10796,7 +10796,7 @@ export namespace Prisma {
     **/
     where?: CWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
     **/
@@ -10999,7 +10999,7 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
     **/
@@ -11509,7 +11509,7 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
     **/
@@ -11533,7 +11533,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of DS.
     **/
@@ -11554,7 +11554,7 @@ export namespace Prisma {
     **/
     where?: DWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
     **/
@@ -11753,7 +11753,7 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
     **/
@@ -12259,7 +12259,7 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
     **/
@@ -12283,7 +12283,7 @@ export namespace Prisma {
     **/
     skip?: number
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of ES.
     **/
@@ -12304,7 +12304,7 @@ export namespace Prisma {
     **/
     where?: EWhereInput
     /**
-     * @link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
     **/
