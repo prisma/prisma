@@ -1,7 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe.skip('connection-limit-mysql', () => {
-  expect.assertions(1)
+  // TODO uncomment when remove SKIP
+  // expect.assertions(1)
   const clients: any[] = []
 
   afterAll(async () => {
