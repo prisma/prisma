@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612784304272,
+  "lastUpdate": 1612785470416,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -792,6 +792,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±5.00%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "eaffe1bb388e717d70993a940a0f7c8107978426",
+          "message": "test(client): set isolated connection limits",
+          "timestamp": "2021-02-08T11:35:35Z",
+          "url": "https://github.com/prisma/prisma/pull/5534/commits/eaffe1bb388e717d70993a940a0f7c8107978426"
+        },
+        "date": 1612785469598,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.38,
+            "range": "±6.37%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±1.72%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
