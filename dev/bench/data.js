@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612804060258,
+  "lastUpdate": 1612804129447,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -1250,6 +1250,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.04%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cf52bad7a1d6d8ce63d1ea3b209088e81511581d",
+          "message": "fix: integrate new engines with localhost resolution fix (#5542)\n\nCo-authored-by: timsuchanek <tim.suchanek@gmail.com>",
+          "timestamp": "2021-02-08T18:05:13+01:00",
+          "tree_id": "51414413af0e23adf71f71aeed7394a7c45e6f5e",
+          "url": "https://github.com/prisma/prisma/commit/cf52bad7a1d6d8ce63d1ea3b209088e81511581d"
+        },
+        "date": 1612804128635,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±8.19%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.72%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
