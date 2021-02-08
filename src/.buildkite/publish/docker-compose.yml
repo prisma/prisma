@@ -14,6 +14,7 @@ services:
       - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/tests
       - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5432/tests
       - TEST_MYSQL_URI=mysql://root:root@mysql:3306/tests
+      - TEST_MYSQL_ISOLATED_URI=mysql://root:root@mysql_isolated:3306/tests
       - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       - TEST_MSSQL_URI=mssql://SA:Pr1sm4_Pr1sm4@mssql:1433/master
       - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
@@ -73,6 +74,18 @@ services:
     volumes:
       - mysql:/var/lib/mysql
 
+  mysql_isolated:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mysql_isolated:/var/lib/mysql
+
   mariadb:
     image: mariadb:10
     restart: always
@@ -97,5 +110,6 @@ volumes:
   postgres:
   postgres_isolated:
   mysql:
+  mysql_isolated:
   mariadb:
   mssql:
