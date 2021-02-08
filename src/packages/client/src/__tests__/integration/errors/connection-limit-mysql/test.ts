@@ -12,7 +12,7 @@ describe('connection-limit-mysql', () => {
     const PrismaClient = await getTestClient()
     const connectionString =
       process.env.TEST_MYSQL_ISOLATED_URI ||
-      'mysql://root:root@mysql:3306/tests'
+      'mysql://root:root@mysql_isolated:3306/tests'
 
     for (let i = 0; i <= 155; i++) {
       const client = new PrismaClient({

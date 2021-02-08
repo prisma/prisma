@@ -12,7 +12,7 @@ describe('connection-limit-postgres', () => {
     const PrismaClient = await getTestClient()
     const connectionString =
       process.env.TEST_POSTGRES_ISOLATED_URI ||
-      'postgres://prisma:prisma@localhost:5435/tests'
+      'postgres://prisma:prisma@postgres_isolated:5435/tests'
 
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({
