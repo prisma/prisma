@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-describe('connection-limit-mysql', () => {
+describe.skip('connection-limit-mysql', () => {
   expect.assertions(1)
   const clients: any[] = []
 
