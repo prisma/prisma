@@ -124,8 +124,6 @@ export class PrismaClient<
 
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    * @example
    * \`\`\`
    * const [george, bob, alice] = await prisma.transaction([
@@ -134,6 +132,8 @@ export class PrismaClient<
    *   prisma.user.create({ data: { name: 'Alice' } }),
    * ])
    * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction: (arg: PrismaPromise<any>[]) => any
 
