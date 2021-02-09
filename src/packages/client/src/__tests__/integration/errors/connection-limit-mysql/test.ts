@@ -8,13 +8,13 @@ describe('connection-limit-mysql', () => {
     await Promise.all(clients.map((c) => c.$disconnect()))
   })
 
-  test('the client cannot query the db with 152 connections already open', async () => {
+  test('error', async () => {
     const PrismaClient = await getTestClient()
     const connectionString =
       process.env.TEST_MYSQL_ISOLATED_URI ||
       'mysql://root:root@mysql_isolated:3306/tests'
 
-    for (let i = 0; i <= 155; i++) {
+    for (let i = 0; i <= 11; i++) {
       const client = new PrismaClient({
         datasources: {
           db: { url: connectionString },
@@ -33,5 +33,5 @@ describe('connection-limit-mysql', () => {
         `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )
     }
-  }, 100_000)
+  }, 20_000)
 })
