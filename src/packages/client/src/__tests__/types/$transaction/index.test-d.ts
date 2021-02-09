@@ -14,14 +14,24 @@ const prisma = new PrismaClient({
 ;(async () => {
   expectError(
     await prisma.$transaction(
-      [prisma.user.findMany(), prisma.$queryRaw`SELECT 1`, 'rrandom string'],
+      [prisma.user.findMany(), prisma.$queryRaw`SELECT 1`, 'random string'],
       {},
-    ), // TODO: this should fail without the {}
+    ),
   )
   expectError(
     await prisma.$transaction(
-      [new Promise((res) => res("Nope"))],
-    ), // TODO: this should fail without the {}
+      [5],
+    ),
+  )
+  expectError(
+    await prisma.$transaction(
+      ["str"],
+    ),
+  )
+  expectError(
+    await prisma.$transaction(
+      [{}],
+    ),
   )
 })()
 
