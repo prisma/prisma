@@ -1,5 +1,26 @@
 # Contributing
 
+## Security
+
+If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20) with as much details as possible so that it can be handled confidentially.
+
+## Community
+
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers.
+You can join us on [Slack](https://slack.prisma.io) and here on [GitHub Discussions](https://github.com/prisma/prisma/discussions).
+
+## Bug Reports and Feature Requests
+
+If you have found a **bug** or have a **feature request** then please create an issue in this repository (please search first in case a similar issue already exists).
+
+## Do not force push to your pull request branch
+
+Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to review your work.
+PRs will always be squashed by us when we merge your work.
+Commit as many times as you need in your pull request branch.
+
+## Code
+
 Prisma consists of a mono-repo for all TypeScript code.
 To setup and build the packages, follow these steps:
 
@@ -50,7 +71,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 1. `cd fixtures/blog`
 1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
    For this step you might find our [docker-compose setup](./src/docker) helpful
-1. `npx @prisma/cli db push --preview-feature`
+1. `npx prisma db push --preview-feature`
 1. `ts-node main`
 
 ### Integration tests
@@ -152,7 +173,7 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 ### Developing Prisma Migrate
 
 1. `cd src/packages/migrate/fixtures/blog`
-1. `ts-node ../../src/bin.ts up`
+1. `ts-node ../../src/bin.ts dev`
 
 ### Developing `prisma init` Command
 
@@ -160,16 +181,16 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 1. `mkdir test && cd test`
 1. `ts-node ../src/bin.ts`
 
-### Developing `@prisma/cli` CLI
+### Developing `prisma` CLI
 
-1. `cd src/packages/prisma2`
+1. `cd src/packages/cli`
 1. `mkdir test && cd test`
 1. `ts-node ../src/bin.ts generate`
 
-## Running the CI system locally
+## Running the Databases locally with Docker Compose
 
 ```bash
-cd src/.buildkite/test
+cd src/docker
 docker-compose up -d
 docker-compose logs -f app
 ```
@@ -207,14 +228,17 @@ List of packages:
 
 - cli
 - client
+- debug
 - engine-core
 - fetch-engine
 - generator-helper
 - get-platform
 - migrate
+- react-prisma
 - sdk
+- tests
 
-# Graphs
+## Graphs
 
 To Generate/Update install [GraphViz](http://graphviz.org/download/)
 
@@ -223,14 +247,21 @@ cd src
 ts-node scripts/graph-dependencies.ts
 ```
 
-## Dependencies
+### Dependencies
 
 <img src="./src/graphs/dependencies.png">
 
-## Dev Dependencies
+### Dev Dependencies
 
 <img src="./src/graphs/devDependencies.png">
 
-## Peer Dependencies
+### Peer Dependencies
 
 <img src="./src/graphs/peerDependencies.png">
+
+## Legal
+
+Pull Request authors must sign the Prisma CLA, it will show up in an automated comment after you create a PR.
+
+If you cannot or do not want to sign this CLA (e.g. your employment contract for your employer may not allow this), you should not submit a PR.
+Open an issue and someone else can do the work.
