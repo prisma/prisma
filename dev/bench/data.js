@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612879559877,
+  "lastUpdate": 1612879739951,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -2037,6 +2037,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±4.57%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c553b763944854d3dd94f624a452d627dcb807ec",
+          "message": "ci: gh actions switch to ubuntu-20.04 (#5559)",
+          "timestamp": "2021-02-09T15:05:55+01:00",
+          "tree_id": "7fe30cb7f0196cf6ef1313ba1d23832f3e783fad",
+          "url": "https://github.com/prisma/prisma/commit/c553b763944854d3dd94f624a452d627dcb807ec"
+        },
+        "date": 1612879736596,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.5,
+            "range": "±6.76%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.18,
+            "range": "±3.14%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
