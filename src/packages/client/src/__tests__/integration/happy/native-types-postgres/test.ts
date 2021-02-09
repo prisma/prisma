@@ -76,7 +76,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
     float: 1.1,
     dFloat: 1.3,
     decFloat: 0,
-    numFloat: '23.12',
+    numFloat: '-23.12',
     decArray: [1.1, 2.5],
   }
 

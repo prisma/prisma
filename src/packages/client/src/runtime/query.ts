@@ -1369,7 +1369,7 @@ function hasCorrectScalarType(
   // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L115
   if (
     graphQLType === 'String' &&
-    /^(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value) &&
+    /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value) &&
     expectedType === 'Decimal'
   ) {
     return true
