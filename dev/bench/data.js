@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612878959758,
+  "lastUpdate": 1612879193651,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -1935,6 +1935,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.12%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "22fed554cb2c424973b733818bfb4b705ded072c",
+          "message": "ci: gh actions switch to ubuntu-20.04",
+          "timestamp": "2021-02-09T13:49:49Z",
+          "url": "https://github.com/prisma/prisma/pull/5559/commits/22fed554cb2c424973b733818bfb4b705ded072c"
+        },
+        "date": 1612879192859,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±2.25%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.34%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
