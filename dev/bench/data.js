@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612878227107,
+  "lastUpdate": 1612878764490,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -1829,6 +1829,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.79%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "258f80110fac661c51ab59d68bb82df2cefe1052",
+          "message": "fix(client): negative decimal (#5556)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2021-02-09T14:49:44+01:00",
+          "tree_id": "9f20f778a48e9f03bf8a741389906d8797479965",
+          "url": "https://github.com/prisma/prisma/commit/258f80110fac661c51ab59d68bb82df2cefe1052"
+        },
+        "date": 1612878763793,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.48,
+            "range": "±6.08%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±2.11%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
