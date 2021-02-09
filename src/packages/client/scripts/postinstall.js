@@ -117,6 +117,8 @@ if (!process.env.SKIP_GENERATE) {
       console.error(e)
     }
     process.exit(0)
+  }).finally(() => {
+    console.log(`Postinstall Trigger:${getPostInstallTrigger()}`)
   })
 }
 
