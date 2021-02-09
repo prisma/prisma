@@ -18,4 +18,10 @@ const prisma = new PrismaClient({
       {},
     ), // TODO: this should fail without the {}
   )
+  expectError(
+    await prisma.$transaction(
+      [new Promise((res) => res("Nope"))],
+    ), // TODO: this should fail without the {}
+  )
 })()
+
