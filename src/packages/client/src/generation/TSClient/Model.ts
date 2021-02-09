@@ -426,7 +426,7 @@ ${actionName}${getGenericMethod(name, actionName)}(
 ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
-  ): Promise<
+  ): PrismaPromise<
     T extends Record<'select', any>
       ? T['select'] extends true
         ? number
@@ -439,7 +439,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
     name,
   )}>(args: Subset<T, ${getAggregateArgsName(
       name,
-    )}>): Promise<${getAggregateGetName(name)}<T>>
+    )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
 
 ${
   groupByEnabled
@@ -517,7 +517,8 @@ ${
  * Because we want to prevent naming conflicts as mentioned in 
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T> implements Promise<T> {
+export class Prisma__${name}Client<T> implements PrismaPromise<T> {
+  [prisma]: true;
   private readonly _dmmf;
   private readonly _fetcher;
   private readonly _queryType;
@@ -563,13 +564,13 @@ ${f.name}<T extends ${getFieldArgName(
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of which ever callback is executed.
    */
-  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+  then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
   /**
    * Attaches a callback for only the rejection of the Promise.
    * @param onrejected The callback to execute when the Promise is rejected.
    * @returns A Promise for the completion of the callback.
    */
-  catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+  catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
   /**
    * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
    * resolved value cannot be modified from the callback.
