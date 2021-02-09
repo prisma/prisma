@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612871855844,
+  "lastUpdate": 1612871930091,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -1492,6 +1492,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±3.54%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c769974011af50542e0cff0a9e019b50a94465c",
+          "message": "fix(client): jsdoc for undefined vs null (#5530)\n\nCo-authored-by: William Luke <william@atto-byte.com>",
+          "timestamp": "2021-02-09T12:54:52+01:00",
+          "tree_id": "5d6220bdb04afc3a34b40ff0a063c078b3bff4ce",
+          "url": "https://github.com/prisma/prisma/commit/6c769974011af50542e0cff0a9e019b50a94465c"
+        },
+        "date": 1612871929328,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±4.42%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.15%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
