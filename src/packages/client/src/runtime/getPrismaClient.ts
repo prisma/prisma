@@ -3,8 +3,9 @@ import {
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
-  NodeEngine,
-} from '@prisma/engine-core/dist/NodeEngine'
+  Engine,
+} from '@prisma/engine-core/dist/Engine'
+import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
 import {
   DataSource,
   GeneratorConfig,
@@ -298,7 +299,7 @@ const aggregateKeys = {
 export function getPrismaClient(config: GetPrismaClientOptions): any {
   class NewPrismaClient {
     _dmmf: DMMFClass
-    _engine: NodeEngine
+    _engine: Engine
     _fetcher: PrismaClientFetcher
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
