@@ -135,7 +135,7 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction: (arg: PrismaPromise<any>[]) => any
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
 
     ${indent(
       dmmf.mappings.modelOperations

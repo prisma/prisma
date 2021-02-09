@@ -20,6 +20,16 @@ const prisma = new PrismaClient({
   )
   expectError(
     await prisma.$transaction(
+      [prisma.$connect()]
+    ),
+  )
+  expectError(
+    await prisma.$transaction(
+      [prisma.$disconnect()]
+    ),
+  )
+  expectError(
+    await prisma.$transaction(
       [new Promise((res) => res("You Shall Not Pass"))],
     ),
   )

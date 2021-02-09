@@ -300,6 +300,9 @@ exports[`exhaustive-schema: generatedTypeScript 1`] = `
 import * as runtime from '@prisma/client/runtime';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
+type UnwrapTuple<Tuple extends readonly unknown[]> = {
+  [K in keyof Tuple]: K extends \`\${number}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : never : never
+};
 
 
 /**
@@ -661,7 +664,7 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction: (arg: PrismaPromise<any>[]) => any
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
