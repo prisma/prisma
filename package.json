@@ -2,14 +2,17 @@
   "private": true,
   "scripts": {
     "lint": "ts-node scripts/lint.ts",
+    "bench": "ts-node scripts/bench.ts | tee output.txt",
     "precommit-all": "ts-node scripts/lint.ts --staged",
     "eslint": "eslint"
   },
   "devDependencies": {
     "@types/node": "14.14.25",
+    "@types/benchmark": "2.1.0",
     "@typescript-eslint/eslint-plugin": "4.14.2",
     "@typescript-eslint/parser": "4.14.2",
     "arg": "5.0.0",
+    "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "eslint": "7.19.0",
     "eslint-config-prettier": "7.2.0",

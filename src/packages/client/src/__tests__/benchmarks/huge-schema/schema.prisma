@@ -1,0 +1,695 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["groupBy"]
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Model1 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model2 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model3 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model4 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model5 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model6 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model7 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model8 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model9 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model10 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model11 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model12 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model13 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model14 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model15 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model16 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model17 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model18 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model19 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model20 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model21 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model22 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model23 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model24 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model25 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model26 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model27 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model28 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model29 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model30 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model31 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model32 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model33 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model34 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model35 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model36 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model37 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model38 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model39 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model40 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model41 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model42 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model43 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model44 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model45 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model46 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model47 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model48 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model Model49 {
+    id              Int      @id @default(autoincrement())
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
