@@ -298,6 +298,8 @@ exports[`exhaustive-schema: generatedTypeScript 1`] = `
 **/
 
 import * as runtime from '@prisma/client/runtime';
+declare const prisma: unique symbol
+export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 
 
 /**
@@ -630,7 +632,7 @@ export class PrismaClient<
   * 
   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
   */
-  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<number>;
+  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
 
   /**
    * Performs a raw query and returns the SELECT data
@@ -644,7 +646,7 @@ export class PrismaClient<
   * 
   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
   */
-  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): Promise<T>;
+  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
 
   /**
    * Execute queries in a transaction
@@ -891,8 +893,7 @@ export namespace Prisma {
   type Prisma__Pick<T, K extends keyof T> = {
       [P in K]: T[P];
   };
-  declare const prisma: unique symbol
-  export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
+
 
   export type Enumerable<T> = T | Array<T>;
 
@@ -1578,7 +1579,7 @@ export namespace Prisma {
     **/
     findMany<T extends PostFindManyArgs>(
       args?: SelectSubset<T, PostFindManyArgs>
-    ): CheckSelect<T, Promise<Array<Post>>, Promise<Array<PostGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>
 
     /**
      * Create a Post.
@@ -2494,7 +2495,7 @@ export namespace Prisma {
     **/
     findMany<T extends UserFindManyArgs>(
       args?: SelectSubset<T, UserFindManyArgs>
-    ): CheckSelect<T, Promise<Array<User>>, Promise<Array<UserGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<User>>, PrismaPromise<Array<UserGetPayload<T>>>>
 
     /**
      * Create a User.
@@ -2771,7 +2772,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, Promise<Array<Post>>, Promise<Array<PostGetPayload<T>>>>;
+    posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>;
 
     private get _document();
     /**
@@ -3402,7 +3403,7 @@ export namespace Prisma {
     **/
     findMany<T extends MFindManyArgs>(
       args?: SelectSubset<T, MFindManyArgs>
-    ): CheckSelect<T, Promise<Array<M>>, Promise<Array<MGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<M>>, PrismaPromise<Array<MGetPayload<T>>>>
 
     /**
      * Create a M.
@@ -3679,7 +3680,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends NFindManyArgs = {}>(args?: Subset<T, NFindManyArgs>): CheckSelect<T, Promise<Array<N>>, Promise<Array<NGetPayload<T>>>>;
+    n<T extends NFindManyArgs = {}>(args?: Subset<T, NFindManyArgs>): CheckSelect<T, PrismaPromise<Array<N>>, PrismaPromise<Array<NGetPayload<T>>>>;
 
     private get _document();
     /**
@@ -4310,7 +4311,7 @@ export namespace Prisma {
     **/
     findMany<T extends NFindManyArgs>(
       args?: SelectSubset<T, NFindManyArgs>
-    ): CheckSelect<T, Promise<Array<N>>, Promise<Array<NGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<N>>, PrismaPromise<Array<NGetPayload<T>>>>
 
     /**
      * Create a N.
@@ -4587,7 +4588,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends MFindManyArgs = {}>(args?: Subset<T, MFindManyArgs>): CheckSelect<T, Promise<Array<M>>, Promise<Array<MGetPayload<T>>>>;
+    m<T extends MFindManyArgs = {}>(args?: Subset<T, MFindManyArgs>): CheckSelect<T, PrismaPromise<Array<M>>, PrismaPromise<Array<MGetPayload<T>>>>;
 
     private get _document();
     /**
@@ -5218,7 +5219,7 @@ export namespace Prisma {
     **/
     findMany<T extends OneOptionalFindManyArgs>(
       args?: SelectSubset<T, OneOptionalFindManyArgs>
-    ): CheckSelect<T, Promise<Array<OneOptional>>, Promise<Array<OneOptionalGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<OneOptional>>, PrismaPromise<Array<OneOptionalGetPayload<T>>>>
 
     /**
      * Create a OneOptional.
@@ -5495,7 +5496,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends ManyRequiredFindManyArgs = {}>(args?: Subset<T, ManyRequiredFindManyArgs>): CheckSelect<T, Promise<Array<ManyRequired>>, Promise<Array<ManyRequiredGetPayload<T>>>>;
+    many<T extends ManyRequiredFindManyArgs = {}>(args?: Subset<T, ManyRequiredFindManyArgs>): CheckSelect<T, PrismaPromise<Array<ManyRequired>>, PrismaPromise<Array<ManyRequiredGetPayload<T>>>>;
 
     private get _document();
     /**
@@ -6138,7 +6139,7 @@ export namespace Prisma {
     **/
     findMany<T extends ManyRequiredFindManyArgs>(
       args?: SelectSubset<T, ManyRequiredFindManyArgs>
-    ): CheckSelect<T, Promise<Array<ManyRequired>>, Promise<Array<ManyRequiredGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<ManyRequired>>, PrismaPromise<Array<ManyRequiredGetPayload<T>>>>
 
     /**
      * Create a ManyRequired.
@@ -7058,7 +7059,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide1FindManyArgs>(
       args?: SelectSubset<T, OptionalSide1FindManyArgs>
-    ): CheckSelect<T, Promise<Array<OptionalSide1>>, Promise<Array<OptionalSide1GetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<OptionalSide1>>, PrismaPromise<Array<OptionalSide1GetPayload<T>>>>
 
     /**
      * Create a OptionalSide1.
@@ -7966,7 +7967,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide2FindManyArgs>(
       args?: SelectSubset<T, OptionalSide2FindManyArgs>
-    ): CheckSelect<T, Promise<Array<OptionalSide2>>, Promise<Array<OptionalSide2GetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<OptionalSide2>>, PrismaPromise<Array<OptionalSide2GetPayload<T>>>>
 
     /**
      * Create a OptionalSide2.
@@ -8844,7 +8845,7 @@ export namespace Prisma {
     **/
     findMany<T extends AFindManyArgs>(
       args?: SelectSubset<T, AFindManyArgs>
-    ): CheckSelect<T, Promise<Array<A>>, Promise<Array<AGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<A>>, PrismaPromise<Array<AGetPayload<T>>>>
 
     /**
      * Create a A.
@@ -9649,7 +9650,7 @@ export namespace Prisma {
     **/
     findMany<T extends BFindManyArgs>(
       args?: SelectSubset<T, BFindManyArgs>
-    ): CheckSelect<T, Promise<Array<B>>, Promise<Array<BGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<B>>, PrismaPromise<Array<BGetPayload<T>>>>
 
     /**
      * Create a B.
@@ -10424,7 +10425,7 @@ export namespace Prisma {
     **/
     findMany<T extends CFindManyArgs>(
       args?: SelectSubset<T, CFindManyArgs>
-    ): CheckSelect<T, Promise<Array<C>>, Promise<Array<CGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<C>>, PrismaPromise<Array<CGetPayload<T>>>>
 
     /**
      * Create a C.
@@ -11183,7 +11184,7 @@ export namespace Prisma {
     **/
     findMany<T extends DFindManyArgs>(
       args?: SelectSubset<T, DFindManyArgs>
-    ): CheckSelect<T, Promise<Array<D>>, Promise<Array<DGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<D>>, PrismaPromise<Array<DGetPayload<T>>>>
 
     /**
      * Create a D.
@@ -11934,7 +11935,7 @@ export namespace Prisma {
     **/
     findMany<T extends EFindManyArgs>(
       args?: SelectSubset<T, EFindManyArgs>
-    ): CheckSelect<T, Promise<Array<E>>, Promise<Array<EGetPayload<T>>>>
+    ): CheckSelect<T, PrismaPromise<Array<E>>, PrismaPromise<Array<EGetPayload<T>>>>
 
     /**
      * Create a E.
