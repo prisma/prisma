@@ -657,7 +657,7 @@ export class PrismaClient<
    * ])
    * \`\`\`
    */
-  $transaction: PromiseConstructor['all']
+  $transaction: (arg: PrismaPromise<any>[]) => any
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -891,7 +891,8 @@ export namespace Prisma {
   type Prisma__Pick<T, K extends keyof T> = {
       [P in K]: T[P];
   };
-
+  declare const prisma: unique symbol
+  export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 
   export type Enumerable<T> = T | Array<T>;
 
@@ -1719,7 +1720,7 @@ export namespace Prisma {
     **/
     count<T extends PostCountArgs>(
       args?: Subset<T, PostCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -1751,7 +1752,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends PostAggregateArgs>(args: Subset<T, PostAggregateArgs>): Promise<GetPostAggregateType<T>>
+    aggregate<T extends PostAggregateArgs>(args: Subset<T, PostAggregateArgs>): PrismaPromise<GetPostAggregateType<T>>
 
     /**
      * Group by Post.
@@ -1837,7 +1838,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * TEST_GITHUB_LINK
    */
-  export class Prisma__PostClient<T> implements Promise<T> {
+  export class Prisma__PostClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -1862,13 +1864,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -2634,7 +2636,7 @@ export namespace Prisma {
     **/
     count<T extends UserCountArgs>(
       args?: Subset<T, UserCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -2666,7 +2668,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends UserAggregateArgs>(args: Subset<T, UserAggregateArgs>): Promise<GetUserAggregateType<T>>
+    aggregate<T extends UserAggregateArgs>(args: Subset<T, UserAggregateArgs>): PrismaPromise<GetUserAggregateType<T>>
 
     /**
      * Group by User.
@@ -2752,7 +2754,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__UserClient<T> implements Promise<T> {
+  export class Prisma__UserClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -2777,13 +2780,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -3541,7 +3544,7 @@ export namespace Prisma {
     **/
     count<T extends MCountArgs>(
       args?: Subset<T, MCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -3573,7 +3576,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends MAggregateArgs>(args: Subset<T, MAggregateArgs>): Promise<GetMAggregateType<T>>
+    aggregate<T extends MAggregateArgs>(args: Subset<T, MAggregateArgs>): PrismaPromise<GetMAggregateType<T>>
 
     /**
      * Group by M.
@@ -3659,7 +3662,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__MClient<T> implements Promise<T> {
+  export class Prisma__MClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -3684,13 +3688,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -4448,7 +4452,7 @@ export namespace Prisma {
     **/
     count<T extends NCountArgs>(
       args?: Subset<T, NCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -4480,7 +4484,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends NAggregateArgs>(args: Subset<T, NAggregateArgs>): Promise<GetNAggregateType<T>>
+    aggregate<T extends NAggregateArgs>(args: Subset<T, NAggregateArgs>): PrismaPromise<GetNAggregateType<T>>
 
     /**
      * Group by N.
@@ -4566,7 +4570,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__NClient<T> implements Promise<T> {
+  export class Prisma__NClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -4591,13 +4596,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -5355,7 +5360,7 @@ export namespace Prisma {
     **/
     count<T extends OneOptionalCountArgs>(
       args?: Subset<T, OneOptionalCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -5387,7 +5392,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends OneOptionalAggregateArgs>(args: Subset<T, OneOptionalAggregateArgs>): Promise<GetOneOptionalAggregateType<T>>
+    aggregate<T extends OneOptionalAggregateArgs>(args: Subset<T, OneOptionalAggregateArgs>): PrismaPromise<GetOneOptionalAggregateType<T>>
 
     /**
      * Group by OneOptional.
@@ -5473,7 +5478,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OneOptionalClient<T> implements Promise<T> {
+  export class Prisma__OneOptionalClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -5498,13 +5504,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -6274,7 +6280,7 @@ export namespace Prisma {
     **/
     count<T extends ManyRequiredCountArgs>(
       args?: Subset<T, ManyRequiredCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -6306,7 +6312,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends ManyRequiredAggregateArgs>(args: Subset<T, ManyRequiredAggregateArgs>): Promise<GetManyRequiredAggregateType<T>>
+    aggregate<T extends ManyRequiredAggregateArgs>(args: Subset<T, ManyRequiredAggregateArgs>): PrismaPromise<GetManyRequiredAggregateType<T>>
 
     /**
      * Group by ManyRequired.
@@ -6392,7 +6398,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__ManyRequiredClient<T> implements Promise<T> {
+  export class Prisma__ManyRequiredClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -6417,13 +6424,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -7193,7 +7200,7 @@ export namespace Prisma {
     **/
     count<T extends OptionalSide1CountArgs>(
       args?: Subset<T, OptionalSide1CountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -7225,7 +7232,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends OptionalSide1AggregateArgs>(args: Subset<T, OptionalSide1AggregateArgs>): Promise<GetOptionalSide1AggregateType<T>>
+    aggregate<T extends OptionalSide1AggregateArgs>(args: Subset<T, OptionalSide1AggregateArgs>): PrismaPromise<GetOptionalSide1AggregateType<T>>
 
     /**
      * Group by OptionalSide1.
@@ -7311,7 +7318,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OptionalSide1Client<T> implements Promise<T> {
+  export class Prisma__OptionalSide1Client<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -7336,13 +7344,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -8100,7 +8108,7 @@ export namespace Prisma {
     **/
     count<T extends OptionalSide2CountArgs>(
       args?: Subset<T, OptionalSide2CountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -8132,7 +8140,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends OptionalSide2AggregateArgs>(args: Subset<T, OptionalSide2AggregateArgs>): Promise<GetOptionalSide2AggregateType<T>>
+    aggregate<T extends OptionalSide2AggregateArgs>(args: Subset<T, OptionalSide2AggregateArgs>): PrismaPromise<GetOptionalSide2AggregateType<T>>
 
     /**
      * Group by OptionalSide2.
@@ -8218,7 +8226,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OptionalSide2Client<T> implements Promise<T> {
+  export class Prisma__OptionalSide2Client<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -8243,13 +8252,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -8977,7 +8986,7 @@ export namespace Prisma {
     **/
     count<T extends ACountArgs>(
       args?: Subset<T, ACountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -9009,7 +9018,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends AAggregateArgs>(args: Subset<T, AAggregateArgs>): Promise<GetAAggregateType<T>>
+    aggregate<T extends AAggregateArgs>(args: Subset<T, AAggregateArgs>): PrismaPromise<GetAAggregateType<T>>
 
     /**
      * Group by A.
@@ -9095,7 +9104,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__AClient<T> implements Promise<T> {
+  export class Prisma__AClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -9119,13 +9129,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -9781,7 +9791,7 @@ export namespace Prisma {
     **/
     count<T extends BCountArgs>(
       args?: Subset<T, BCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -9813,7 +9823,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends BAggregateArgs>(args: Subset<T, BAggregateArgs>): Promise<GetBAggregateType<T>>
+    aggregate<T extends BAggregateArgs>(args: Subset<T, BAggregateArgs>): PrismaPromise<GetBAggregateType<T>>
 
     /**
      * Group by B.
@@ -9899,7 +9909,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__BClient<T> implements Promise<T> {
+  export class Prisma__BClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -9923,13 +9934,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -10555,7 +10566,7 @@ export namespace Prisma {
     **/
     count<T extends CCountArgs>(
       args?: Subset<T, CCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -10587,7 +10598,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends CAggregateArgs>(args: Subset<T, CAggregateArgs>): Promise<GetCAggregateType<T>>
+    aggregate<T extends CAggregateArgs>(args: Subset<T, CAggregateArgs>): PrismaPromise<GetCAggregateType<T>>
 
     /**
      * Group by C.
@@ -10673,7 +10684,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__CClient<T> implements Promise<T> {
+  export class Prisma__CClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -10697,13 +10709,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -11313,7 +11325,7 @@ export namespace Prisma {
     **/
     count<T extends DCountArgs>(
       args?: Subset<T, DCountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -11345,7 +11357,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends DAggregateArgs>(args: Subset<T, DAggregateArgs>): Promise<GetDAggregateType<T>>
+    aggregate<T extends DAggregateArgs>(args: Subset<T, DAggregateArgs>): PrismaPromise<GetDAggregateType<T>>
 
     /**
      * Group by D.
@@ -11431,7 +11443,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__DClient<T> implements Promise<T> {
+  export class Prisma__DClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -11455,13 +11468,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.
@@ -12063,7 +12076,7 @@ export namespace Prisma {
     **/
     count<T extends ECountArgs>(
       args?: Subset<T, ECountArgs>,
-    ): Promise<
+    ): PrismaPromise<
       T extends Record<'select', any>
         ? T['select'] extends true
           ? number
@@ -12095,7 +12108,7 @@ export namespace Prisma {
      *   take: 10,
      * })
     **/
-    aggregate<T extends EAggregateArgs>(args: Subset<T, EAggregateArgs>): Promise<GetEAggregateType<T>>
+    aggregate<T extends EAggregateArgs>(args: Subset<T, EAggregateArgs>): PrismaPromise<GetEAggregateType<T>>
 
     /**
      * Group by E.
@@ -12181,7 +12194,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in 
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__EClient<T> implements Promise<T> {
+  export class Prisma__EClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
     private readonly _queryType;
@@ -12205,13 +12219,13 @@ export namespace Prisma {
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of which ever callback is executed.
      */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | Promise<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | Promise<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
     /**
      * Attaches a callback for only the rejection of the Promise.
      * @param onrejected The callback to execute when the Promise is rejected.
      * @returns A Promise for the completion of the callback.
      */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | Promise<TResult>) | undefined | null): Promise<T | TResult>;
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
     /**
      * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
      * resolved value cannot be modified from the callback.

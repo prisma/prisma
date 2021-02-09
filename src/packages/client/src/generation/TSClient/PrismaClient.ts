@@ -133,7 +133,7 @@ export class PrismaClient<
    * ])
    * \`\`\`
    */
-  $transaction: PromiseConstructor['all']
+  $transaction: (arg: PrismaPromise<any>[]) => any
 
     ${indent(
       dmmf.mappings.modelOperations

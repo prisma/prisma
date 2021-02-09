@@ -100,6 +100,8 @@ export const commonCodeTS = ({
   engineVersion,
 }: CommonCodeParams) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
+declare const prisma: unique symbol
+export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 `,
   ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
 
