@@ -3,7 +3,7 @@ export {
   PrismaClientUnknownRequestError,
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
-} from './Engine'
+} from './errors'
 export { NodeEngine as Engine } from './NodeEngine'
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'
 export { printGeneratorConfig } from './printGeneratorConfig'
