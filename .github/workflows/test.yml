@@ -47,7 +47,7 @@ jobs:
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: rokroskar/workflow-run-cleanup-action@master
         env:
@@ -59,7 +59,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2
@@ -95,7 +95,7 @@ jobs:
   #
   tests-integration:
     timeout-minutes: 20
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
@@ -164,12 +164,12 @@ jobs:
   #
   cli-commands:
     timeout-minutes: 10
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-20.04]
         node: [12]
 
     steps:
@@ -210,12 +210,12 @@ jobs:
   #
   client:
     timeout-minutes: 20
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-20.04]
         node: [12]
 
     steps:
@@ -271,7 +271,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 10
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
@@ -316,12 +316,12 @@ jobs:
   #
   sdk:
     timeout-minutes: 5
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-20.04]
         node: [12]
 
     steps:
@@ -360,7 +360,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/sdk
         run: |
           bash <(curl -s https://codecov.io/bash) -F sdk -f ./src/__tests__/coverage/clover.xml
@@ -370,12 +370,12 @@ jobs:
   #
   migrate:
     timeout-minutes: 7
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-20.04]
         node: [12]
 
     steps:
@@ -421,7 +421,7 @@ jobs:
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/migrate
         run: |
           bash <(curl -s https://codecov.io/bash) -F migrate -f ./src/__tests__/coverage/clover.xml
@@ -431,12 +431,12 @@ jobs:
   #
   others:
     timeout-minutes: 10
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-18.04]
+        os: [macos-latest, windows-latest, ubuntu-20.04]
         node: [12]
 
     steps:
@@ -476,7 +476,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/debug
         run: |
           bash <(curl -s https://codecov.io/bash) -F debug -f ./src/__tests__/coverage/clover.xml
@@ -490,7 +490,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/engine-core
         run: |
           bash <(curl -s https://codecov.io/bash) -F engine-core -f ./src/__tests__/coverage/clover.xml
@@ -504,7 +504,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/fetch-engine
         run: |
           bash <(curl -s https://codecov.io/bash) -F fetch-engine -f ./src/__tests__/coverage/clover.xml
@@ -518,7 +518,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/generator-helper
         run: |
           bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
@@ -532,7 +532,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-18.04' }}
+        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/get-platform
         run: |
           bash <(curl -s https://codecov.io/bash) -F get-platform -f ./src/__tests__/coverage/clover.xml
