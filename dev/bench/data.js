@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612976127707,
+  "lastUpdate": 1612976131943,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -3199,6 +3199,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±3.54%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a85ddfc8eb1f962b223b29f2286389eb439cefd5",
+          "message": "fix: validate schema when calling migrate dev (#5583)",
+          "timestamp": "2021-02-10T17:52:08+01:00",
+          "tree_id": "f5f4d9b60d043135f04e5ace53e09e3621b3bf02",
+          "url": "https://github.com/prisma/prisma/commit/a85ddfc8eb1f962b223b29f2286389eb439cefd5"
+        },
+        "date": 1612976128033,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±10.47%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±0.91%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
