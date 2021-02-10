@@ -98,6 +98,7 @@
     "lint-staged": "10.5.4",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
+    "node-fetch": "2.6.1",
     "open": "7.4.0",
     "pg": "8.5.1",
     "pkg": "4.4.9",
@@ -109,8 +110,7 @@
     "strip-ansi": "6.0.0",
     "tempy": "1.0.0",
     "ts-jest": "26.5.0",
-    "typescript": "4.1.3",
-    "ws": "7.4.3"
+    "typescript": "4.1.3"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",

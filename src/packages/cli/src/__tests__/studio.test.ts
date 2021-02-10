@@ -1,7 +1,7 @@
 import fs from 'fs'
 import http from 'http'
 import path from 'path'
-import WebSocket from 'ws'
+import fetch from 'node-fetch'
 import rimraf from 'rimraf'
 
 import { Studio } from '../Studio'
@@ -11,63 +11,17 @@ const STUDIO_TEST_PORT = 5678
 // silencium
 console.log = () => null
 
-const setupWS = (): Promise<WebSocket> => {
-  return new Promise((res) => {
-    const ws = new WebSocket(`ws://127.0.0.1:${STUDIO_TEST_PORT}/`)
-    ws.on('open', () => {
-      ws.on('message', (data: string) => {
-        const message: any = JSON.parse(data)
-
-        expect(message.channel).not.toBeUndefined()
-        expect(message.action).not.toBeUndefined()
-
-        if (
-          message.channel !== '-prisma' &&
-          message.action !== 'client-start'
-        ) {
-          return
-        }
-
-        res(ws)
-      })
-
-      ws.send(
-        JSON.stringify({
-          requestId: 1,
-          channel: 'prisma',
-          action: 'client-start',
-          payload: {},
-        }),
-      )
-    })
-  })
-}
-
-const sendRequest = (ws: WebSocket, message: any): Promise<any> => {
-  return new Promise((res) => {
-    ws.on('message', (data: string) => {
-      const message: any = JSON.parse(data)
-
-      expect(message.channel).not.toBeUndefined()
-      expect(message.action).not.toBeUndefined()
-
-      if (
-        message.channel !== '-prisma' &&
-        message.action !== 'client-request'
-      ) {
-        return
-      }
-
-      res(message)
-    })
-
-    // Send the same query Studio would send if launched
-    ws.send(JSON.stringify(message))
+const sendRequest = (message: any): Promise<any> => {
+  return fetch(`http://127.0.0.1:${STUDIO_TEST_PORT}/api`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
   })
 }
 
 let studio: Studio
-let ws: WebSocket
 
 beforeEach(async () => {
   // Before  every test, we'd like to reset the DB.
@@ -100,12 +54,16 @@ beforeEach(async () => {
     'none',
   ])
 
-  ws = await setupWS()
+  await sendRequest({
+    requestId: 1,
+    channel: 'prisma',
+    action: 'clientStart',
+    payload: {},
+  })
 })
 
 afterEach(async () => {
   await studio.instance?.stop()
-  ws?.close()
 })
 
 it('launches client correctly', async () => {
@@ -122,10 +80,10 @@ it('launches client correctly', async () => {
 })
 
 it('can respond to `findMany` queries', async () => {
-  const res = await sendRequest(ws, {
+  const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',
-    action: 'client-request',
+    action: 'clientRequest',
     payload: {
       data: {
         query: `
@@ -143,14 +101,15 @@ it('can respond to `findMany` queries', async () => {
       },
     },
   })
+
   expect(res).toMatchSnapshot()
 })
 
 it('can respond to `create` queries', async () => {
-  const res = await sendRequest(ws, {
+  const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',
-    action: 'client-request',
+    action: 'clientRequest',
     payload: {
       data: {
         query: `
@@ -185,14 +144,15 @@ it('can respond to `create` queries', async () => {
       },
     },
   })
+
   expect(res).toMatchSnapshot()
 })
 
 it('can respond to `update` queries', async () => {
-  const res = await sendRequest(ws, {
+  const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',
-    action: 'client-request',
+    action: 'clientRequest',
     payload: {
       data: {
         query: `
@@ -229,14 +189,15 @@ it('can respond to `update` queries', async () => {
       },
     },
   })
+
   expect(res).toMatchSnapshot()
 })
 
 it('can respond to `delete` queries', async () => {
-  const res = await sendRequest(ws, {
+  const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',
-    action: 'client-request',
+    action: 'clientRequest',
     payload: {
       data: {
         query: `
@@ -255,5 +216,6 @@ it('can respond to `delete` queries', async () => {
       },
     },
   })
+
   expect(res).toMatchSnapshot()
 })

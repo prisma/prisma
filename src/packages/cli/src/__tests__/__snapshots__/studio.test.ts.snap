@@ -2,7 +2,7 @@
 
 exports[`can respond to \`create\` queries 1`] = `
 Object {
-  action: client-request,
+  action: clientRequest,
   channel: -prisma,
   payload: Object {
     data: Object {
@@ -69,7 +69,7 @@ Object {
 
 exports[`can respond to \`delete\` queries 1`] = `
 Object {
-  action: client-request,
+  action: clientRequest,
   channel: -prisma,
   payload: Object {
     data: Object {
@@ -116,7 +116,7 @@ Object {
 
 exports[`can respond to \`findMany\` queries 1`] = `
 Object {
-  action: client-request,
+  action: clientRequest,
   channel: -prisma,
   payload: Object {
     data: Object {
@@ -175,7 +175,7 @@ Object {
 
 exports[`can respond to \`update\` queries 1`] = `
 Object {
-  action: client-request,
+  action: clientRequest,
   channel: -prisma,
   payload: Object {
     data: Object {
