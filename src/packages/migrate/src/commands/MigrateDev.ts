@@ -7,11 +7,14 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
+  getConfig,
+  getDMMF,
   link,
 } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import prompt from 'prompts'
+import fs from 'fs'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
@@ -136,6 +139,15 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
+
+    // Validate schema (same as prisma validate)
+    const schema = fs.readFileSync(schemaPath, 'utf-8')
+    await getDMMF({
+      datamodel: schema,
+    })
+    await getConfig({
+      datamodel: schema,
+    })
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
