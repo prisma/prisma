@@ -2,6 +2,19 @@ const assert = require('assert')
 const crypto = require('crypto')
 import { generateTestClient } from '../../../../utils/getTestClient'
 
+function clean(array: any[]) {
+  return array.map((item) => {
+    if (Array.isArray(item)) {
+      return clean(item)
+    } else {
+      if (item?.id) {
+        item.id = 'REMOVED'
+      }
+      return item
+    }
+  })
+}
+
 test('transaction', async () => {
   await generateTestClient()
   const {
@@ -15,9 +28,49 @@ test('transaction', async () => {
   }
 
   // Test connecting and disconnecting all the time
-  const result = await db.$transaction([db.user.findMany(), db.user.findMany()])
-  assert.equal(result.length, 2)
-
+  const result = await db.$transaction([
+    db.user.findMany(),
+    db.user.create({
+      data: {
+        email: 'test@hey.com',
+      },
+    }),
+    db.user.findMany(),
+    db.user.delete({ where: { email: 'test@hey.com' } }),
+  ])
+  expect(clean(result)).toMatchInlineSnapshot(`
+    Array [
+      Array [
+        Object {
+          email: a@a.de,
+          id: REMOVED,
+          name: Alice,
+        },
+      ],
+      Object {
+        email: test@hey.com,
+        id: REMOVED,
+        name: null,
+      },
+      Array [
+        Object {
+          email: a@a.de,
+          id: REMOVED,
+          name: Alice,
+        },
+        Object {
+          email: test@hey.com,
+          id: REMOVED,
+          name: null,
+        },
+      ],
+      Object {
+        email: test@hey.com,
+        id: REMOVED,
+        name: null,
+      },
+    ]
+  `)
   const email = crypto.randomBytes(20).toString('hex') + '@hey.com'
 
   // intentionally use the same email 2 times to see, if the transaction gets rolled back properly
