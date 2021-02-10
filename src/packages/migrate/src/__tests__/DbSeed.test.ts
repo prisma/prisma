@@ -76,8 +76,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                                      `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -98,8 +98,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                            🌱  Your database has been seeded.
-                                                                                                                                  `)
+                                                                                                                                                                        🌱  Your database has been seeded.
+                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running ts-node "prisma/seed.ts" ...`)
@@ -118,8 +118,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                                      `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running sh "prisma/seed.sh" ...`)
@@ -157,8 +157,8 @@ describe('seed', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                                      `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from some-folder/schema.prisma
@@ -169,19 +169,19 @@ describe('seed', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('Custom --schema from package.json', async () => {
+  it.only('Custom --schema from package.json', async () => {
     ctx.fixture('seed-squilte-schema-from-package-json')
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from some-folder/schema.prisma
-      Running node "/path/from/snapshotSerializer.ts" ...
-    `)
+                                                                                                                                                                                                                                                                                                                                                                                    🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                                      `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(
+      `Running node "/path/from/snapshotSerializer.ts" ...`,
+    )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
