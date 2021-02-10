@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612971438887,
+  "lastUpdate": 1612972098562,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -3097,6 +3097,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.36%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "56535b0af86d3ec689698fa71d024ae26e9598c2",
+          "message": "fix: validate schema when calling migrate dev",
+          "timestamp": "2021-02-10T15:33:45Z",
+          "url": "https://github.com/prisma/prisma/pull/5583/commits/56535b0af86d3ec689698fa71d024ae26e9598c2"
+        },
+        "date": 1612972094920,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±3.35%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.26%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
