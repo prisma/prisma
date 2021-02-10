@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1612969994713,
+  "lastUpdate": 1612971438887,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -3059,6 +3059,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.00%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ecec51b548d349b416ad9f106f5029442598d6a9",
+          "message": "fix(deps): update engines to v2.17.0-23.042c1f79055ce32d2f7750200f37304a5000dda3 (#5581)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-02-10T16:33:40+01:00",
+          "tree_id": "297a0fd690515de37e50bd7bd4bc4d41bae0ff5e",
+          "url": "https://github.com/prisma/prisma/commit/ecec51b548d349b416ad9f106f5029442598d6a9"
+        },
+        "date": 1612971438059,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±4.83%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.36%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
