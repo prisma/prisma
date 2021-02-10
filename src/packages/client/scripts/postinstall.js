@@ -22,22 +22,18 @@ async function main() {
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
   // this is needed, so that the Generate command does not fail in postinstall
-  process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
+  // process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
   console.log({localPath, installedGlobally, init_cwd});
   try {
     if (localPath) {
       await run('node', [
         localPath,
-        'generate',
-        '--postinstall',
-        doubleQuote(getPostInstallTrigger()),
+        'generate'
       ])
       return
     } else if (installedGlobally) {
       await run('prisma', [
-        'generate',
-        '--postinstall',
-        doubleQuote(getPostInstallTrigger()),
+        'generate'
       ])
       return
     }
@@ -46,6 +42,7 @@ async function main() {
     if (e && e !== 1) {
       console.error(e)
     }
+    console.log(e);
   }
 
   if (!localPath && !installedGlobally) {
