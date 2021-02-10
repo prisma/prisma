@@ -71,23 +71,17 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    let schemaPath
-    if (args['--schema']) {
-      schemaPath = await getSchemaPath(args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'])
 
-      if (!schemaPath) {
-        throw new NoSchemaFoundError()
-      }
-
-      console.info(
-        chalk.dim(
-          `Prisma schema loaded from ${path.relative(
-            process.cwd(),
-            schemaPath,
-          )}`,
-        ),
-      )
+    if (!schemaPath) {
+      throw new NoSchemaFoundError()
     }
+
+    console.log(
+      chalk.dim(
+        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
+      ),
+    )
 
     await tryToRunSeed(schemaPath)
 
