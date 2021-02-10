@@ -113,6 +113,35 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
+  it('invalid schema', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateDev.new().parse([
+      '--schema=./prisma/invalid.prisma',
+      '--preview-feature',
+    ])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Schema Parsing P1012
+
+            Get config 
+            error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+              -->  schema.prisma:10
+               | 
+             9 | }
+            10 | model Blog {
+            11 | 
+               | 
+
+            Validation Error Count: 1
+
+          `)
+
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/invalid.prisma`)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+
   it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first', '--preview-feature'])
@@ -597,11 +626,11 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -660,10 +689,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                          ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                                                                            ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                                                            • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                            `)
+                                                                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -684,10 +713,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                          ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                                                                            ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                                                            • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                            `)
+                                                                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 

@@ -86,6 +86,10 @@ exports[`sqlite first migration (prompt) 3`] = `Array []`;
 
 exports[`sqlite first migration (prompt) 4`] = `Array []`;
 
+exports[`sqlite invalid schema 3`] = `Array []`;
+
+exports[`sqlite invalid schema 4`] = `Array []`;
+
 exports[`sqlite multple seed files 3`] = ``;
 
 exports[`sqlite one broken seed file 3`] = ``;
