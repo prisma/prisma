@@ -18,7 +18,7 @@ const sendRequest = (message: any): Promise<any> => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(message),
-  })
+  }).then((res) => res.json())
 }
 
 let studio: Studio
