@@ -1,23 +1,23 @@
-import copy from '@timsuchanek/copy'
 import {
   BinaryPaths,
   DataSource,
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
+import { getVersion } from '@prisma/sdk/dist/engineCommands'
+import copy from '@timsuchanek/copy'
+import chalk from 'chalk'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
-import chalk from 'chalk'
+import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
-import { getPrismaClientDMMF } from './getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
-import { TSClient, TS, JS } from './TSClient'
-import { getVersion } from '@prisma/sdk/dist/engineCommands'
-import pkgUp from 'pkg-up'
+import { getPrismaClientDMMF } from './getDMMF'
+import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
 
 const remove = promisify(fs.unlink)
@@ -76,7 +76,21 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-
+  console.log({
+    datamodel,
+    schemaDir,
+    runtimePath,
+    browser,
+    binaryPaths,
+    outputDir,
+    generator,
+    dmmf,
+    datasources,
+    engineVersion,
+    clientVersion,
+    projectRoot,
+    activeProvider,
+  })
   const client = new TSClient({
     document,
     runtimePath,
@@ -156,10 +170,10 @@ export async function generateClient({
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir
-
+  console.log({ finalOutputDir })
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
-
+  console.log({ finalOutputDir, projectRoot, cwd: process.cwd() })
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
