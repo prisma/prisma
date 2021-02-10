@@ -10,6 +10,7 @@ const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
 async function main() {
+  const init_cwd = process.env.INIT_CWD
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
     // in the postinstall hook
@@ -22,7 +23,7 @@ async function main() {
 
   // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-
+  console.log({localPath, installedGlobally, init_cwd});
   try {
     if (localPath) {
       await run('node', [
@@ -32,9 +33,7 @@ async function main() {
         doubleQuote(getPostInstallTrigger()),
       ])
       return
-    }
-
-    if (installedGlobally) {
+    } else if (installedGlobally) {
       await run('prisma', [
         'generate',
         '--postinstall',
