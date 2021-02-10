@@ -134,11 +134,12 @@ function run(cmd, params) {
       if (code === 0) {
         resolve()
       } else {
+        signal.
         reject(code)
       }
     })
-    child.on('error', () => {
-      reject()
+    child.on('error', (err) => {
+      reject(err)
     })
   })
 }
