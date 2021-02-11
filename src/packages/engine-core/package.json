@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.17.0-26.14846d65cbe31a423a9fa1d6f056233ed7914a56",
+    "@prisma/engines": "2.17.0-28.ee4e2ae9b5d0ac5a7a0392727558f39b16154a01",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
