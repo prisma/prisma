@@ -3,7 +3,7 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-it('should work with a custom output dir', async () => {
+it.skip('should work with a custom output dir', async () => {
   ctx.fixture('example-project')
   const data = await ctx.cli('generate')
 
@@ -16,7 +16,7 @@ it('should work with a custom output dir', async () => {
   await expect(main()).resolves.toMatchSnapshot()
 }, 10000)
 
-it('should error with exit code 1 with incorrect schema', async () => {
+it.skip('should error with exit code 1 with incorrect schema', async () => {
   ctx.fixture('broken-example-project')
   await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(1)
 })
