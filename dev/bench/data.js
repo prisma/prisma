@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613062285811,
+  "lastUpdate": 1613062575213,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -4081,6 +4081,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.49%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "14089081b2db8d8d1686159c967329efa7fcd2b1",
+          "message": "feat(migrate): improve db push warnings/unexecutable migrations (#5602)\n\nCloses https://github.com/prisma/migrations-team/issues/102",
+          "timestamp": "2021-02-11T17:53:00+01:00",
+          "tree_id": "5941caaa0fdeb239413192c81bdaf2259e943ba7",
+          "url": "https://github.com/prisma/prisma/commit/14089081b2db8d8d1686159c967329efa7fcd2b1"
+        },
+        "date": 1613062574616,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±6.97%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.04%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
