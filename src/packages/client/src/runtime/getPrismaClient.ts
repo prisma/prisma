@@ -5,6 +5,7 @@ import {
   EngineEventType,
   Engine,
 } from '@prisma/engine-core/dist/Engine'
+import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
 import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
 import {
   DataSource,
@@ -423,7 +424,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
         debug({ clientVersion: config.clientVersion })
 
-        this._engine = new NodeEngine(this._engineConfig)
+        // this._engine = new NodeEngine(this._engineConfig)
+        this._engine = new NAPIEngine(this._engineConfig)
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
         if (options.log) {
@@ -523,7 +525,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     async _runDisconnect() {
       await this._engine.stop()
       delete this._connectionPromise
-      this._engine = new NodeEngine(this._engineConfig)
+      this._engine = new NAPIEngine(this._engineConfig)
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
@@ -1444,7 +1446,9 @@ export class PrismaClientFetcher {
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine.requestBatch(queries, runTransaction)
+        return this.prisma._engine
+          .requestBatch(queries, runTransaction)
+          .then((res) => res.batchResult ?? res.errors)
       },
       singleLoader: (request) => {
         const query = String(request.document)
