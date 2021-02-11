@@ -124,6 +124,9 @@ export async function buildClient({
 }
 
 async function getDotPrismaDir(outputDir: string): Promise<string> {
+  if(outputDir.endsWith('node_modules/@prisma/client')){
+    return path.join(outputDir, '../../.prisma/client')
+  }
   if (
     process.env.INIT_CWD &&
     process.env.npm_lifecycle_event === 'postinstall' &&
