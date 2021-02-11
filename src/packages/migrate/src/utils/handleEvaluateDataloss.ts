@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import prompt from 'prompts'
 import { isCi } from '@prisma/sdk'
 import { MigrationFeedback } from '../types'
-import { EnvNonInteractiveError } from './errors'
+import { MigrateDevEnvNonInteractiveError } from './errors'
 
 export function handleUnexecutableSteps(
   unexecutableSteps: MigrationFeedback[],
@@ -45,7 +45,7 @@ export async function handleWarnings(
     if (!force) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw new EnvNonInteractiveError()
+        throw new MigrateDevEnvNonInteractiveError()
       } else {
         const confirmation = await prompt({
           type: 'confirm',

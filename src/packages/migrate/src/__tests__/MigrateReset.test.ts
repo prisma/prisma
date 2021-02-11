@@ -194,9 +194,12 @@ describe('reset', () => {
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
     const result = MigrateReset.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `We detected that your environment is non-interactive. Running this command in not supported in this context.`,
-    )
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
+
+            Use --force to run this command without user interaction.
+            See https://www.prisma.io/docs/reference/api-reference/command-reference#migrate-reset
+          `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
