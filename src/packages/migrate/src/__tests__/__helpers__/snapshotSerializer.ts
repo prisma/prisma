@@ -15,7 +15,7 @@ function normalizeRustError(str) {
 }
 
 function normalizeMs(str) {
-  return str.replace(/\d{2,3}ms/g, 'XXms')
+  return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
 function normalizeSeedPath(str) {
