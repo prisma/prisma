@@ -23,7 +23,10 @@ import {
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
+import {
+  NoSchemaFoundError,
+  MigrateDevEnvNonInteractiveError,
+} from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import {
@@ -166,7 +169,7 @@ ${chalk.bold('Examples')}
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          throw new EnvNonInteractiveError()
+          throw new MigrateDevEnvNonInteractiveError()
         }
 
         const dbInfo = await getDbInfo(schemaPath)

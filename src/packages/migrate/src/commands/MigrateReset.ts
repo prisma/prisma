@@ -17,7 +17,10 @@ import {
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
-import { NoSchemaFoundError, EnvNonInteractiveError } from '../utils/errors'
+import {
+  NoSchemaFoundError,
+  MigrateResetEnvNonInteractiveError,
+} from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
@@ -130,7 +133,7 @@ ${chalk.bold('Examples')}
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw new EnvNonInteractiveError()
+        throw new MigrateResetEnvNonInteractiveError()
       }
 
       console.info() // empty line
