@@ -9,11 +9,25 @@ const copyFile = promisify(fs.copyFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
-function debug(message, ...optionalParams){
-  if(process.env.DEBUG && process.env.DEBUG.includes('postinstall')){
-    console.log(message, ...optionalParams);
+function debug(message, ...optionalParams) {
+  if (process.env.DEBUG && process.env.DEBUG.includes('postinstall')) {
+    console.log(message, ...optionalParams)
   }
 }
+
+/**
+ * This replicates the exception of `fs.mkdir` with native the
+ * `recusive` option when run on an invalid drive under Windows.
+ **/
+function permissionError(pth) {
+  const error = new Error(`operation not permitted, mkdir '${pth}'`)
+  error.code = 'EPERM'
+  error.errno = -4048
+  error.path = pth
+  error.syscall = 'mkdir'
+  return error
+}
+
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
@@ -27,7 +41,7 @@ async function main() {
 
   // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  debug({localPath, installedGlobally, init_cwd});
+  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD })
   try {
     if (localPath) {
       await run('node', [
@@ -50,7 +64,7 @@ async function main() {
     if (e && e !== 1) {
       console.error(e)
     }
-    debug(e);
+    debug(e)
   }
 
   if (!localPath && !installedGlobally) {
@@ -101,29 +115,31 @@ Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
 }
 
 if (!process.env.SKIP_GENERATE) {
-  main().catch((e) => {
-    if (e.stderr) {
-      if (e.stderr.includes(`Can't find schema.prisma`)) {
-        console.error(
-          `${c.yellow('warning')} @prisma/client needs a ${c.bold(
-            'schema.prisma',
-          )} to function, but couldn't find it.
+  main()
+    .catch((e) => {
+      if (e.stderr) {
+        if (e.stderr.includes(`Can't find schema.prisma`)) {
+          console.error(
+            `${c.yellow('warning')} @prisma/client needs a ${c.bold(
+              'schema.prisma',
+            )} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma init')}.
         Once you created it, run ${c.bold('prisma generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
           './prisma',
         )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
-        )
+          )
+        } else {
+          console.error(e.stderr)
+        }
       } else {
-        console.error(e.stderr)
+        console.error(e)
       }
-    } else {
-      console.error(e)
-    }
-    process.exit(0)
-  }).finally(() => {
-    debug(`postinstall trigger: ${getPostInstallTrigger()}`)
-  })
+      process.exit(0)
+    })
+    .finally(() => {
+      debug(`postinstall trigger: ${getPostInstallTrigger()}`)
+    })
 }
 
 function run(cmd, params) {
