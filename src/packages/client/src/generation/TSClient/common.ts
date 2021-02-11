@@ -317,7 +317,11 @@ export type OptionalFlat<O> = {
   [K in keyof O]?: O[K];
 } & {};
 
-type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<Record<Exclude<Keys<_U>, keyof U>, never>> : never;
+type _Record<K extends keyof any, T> = {
+  [P in K]: T;
+};
+
+type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
 
 export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
 /** End Helper Types for "Merge" **/
