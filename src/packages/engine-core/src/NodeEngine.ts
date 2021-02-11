@@ -39,6 +39,7 @@ import {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
+  EngineEventType,
   GetConfigResult,
 } from './Engine'
 

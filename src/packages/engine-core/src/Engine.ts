@@ -11,7 +11,6 @@ export interface Engine {
   kill(signal: string): void
   getConfig(): Promise<GetConfigResult>
   version(forceRun?: boolean): Promise<string>
-  internalVersion(): Promise<string>
   request<T>(
     query: string,
     headers: Record<string, string>,

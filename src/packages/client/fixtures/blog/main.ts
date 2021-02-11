@@ -11,8 +11,18 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const res = await prisma.user.findMany()
-
+  prisma.$on('query', () => {})
+  await prisma.$connect()
+  let res = await prisma.$transaction([
+    prisma.user.create({
+      data: {
+        age: 1000,
+        email: 'a@a.de2',
+        name: 'blub',
+      },
+    }),
+  ])
+  console.log(res)
   prisma.$disconnect()
 }
 
