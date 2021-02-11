@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613003920589,
+  "lastUpdate": 1613032164641,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -3593,6 +3593,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±3.88%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "bac7f978948fea9e45097a5680541971f40213d3",
+          "message": "chore(deps): update studio to v0.348.0 (#5568)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: Siddhant <me@madebysid.com>",
+          "timestamp": "2021-02-11T09:25:43+01:00",
+          "tree_id": "551eae69328586286a92a9e1ffbc1aaf3bf170a5",
+          "url": "https://github.com/prisma/prisma/commit/bac7f978948fea9e45097a5680541971f40213d3"
+        },
+        "date": 1613032163743,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±10.69%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.30%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
