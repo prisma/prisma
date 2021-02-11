@@ -193,7 +193,7 @@ it('can respond to `update` queries', async () => {
   expect(res).toMatchSnapshot()
 })
 
-it('can respond to `delete` queries', async () => {
+it.skip('can respond to `delete` queries', async () => {
   const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',
