@@ -1,6 +1,7 @@
 process.env.GITHUB_ACTIONS = '1'
 process.env.MIGRATE_SKIP_GENERATE = '1'
 
+import prompt from 'prompts'
 import { DbPush } from '../commands/DbPush'
 import { consoleContext, Context } from './__helpers__/context'
 
@@ -44,25 +45,23 @@ describe('push', () => {
           `)
   })
 
-  it('already in sync', async () => {
+  it('--force flag renamed', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      🚀  Your database is now in sync with your schema. Done in XXms
-    `)
+    const result = DbPush.new().parse(['--preview-feature', '--force'])
+    await expect(result).rejects.toMatchInlineSnapshot(
+      `The --force flag was renamed to --accept-data-loss in 2.17.0, use prisma db push --preview-feature --accept-data-loss`,
+    )
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
 
-  it('already in sync (--force)', async () => {
+  it('already in sync', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature', '--force'])
+    const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -80,7 +79,7 @@ describe('push', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = DbPush.new().parse(['--preview-feature', '--force'])
+    const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -97,33 +96,37 @@ describe('push', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('should ask for --force if not provided', async () => {
+  it('should ask for --accept-data-loss if not provided in CI', async () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to ignore these warnings like prisma db push --preview-feature --force`,
+      `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --preview-feature --accept-data-loss`,
     )
-    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-
-                                                                              ⚠️  There might be data loss when applying the changes:
-
-                                                                                • You are about to drop the \`Blog\` table, which is not empty (1 rows).
-
-                                                    `)
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
 
-  it('should work with --force', async () => {
-    ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature', '--force'])
+  it('dataloss warnings accepted (prompt)', async () => {
+    ctx.fixture('existing-db-warnings')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
 
       🚀  Your database is now in sync with your schema. Done in XXms
     `)
@@ -132,17 +135,146 @@ describe('push', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('should work with -f', async () => {
-    ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature', '--force'])
+  it('dataloss warnings cancelled (prompt)', async () => {
+    ctx.fixture('existing-db-warnings')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
+    prompt.inject([new Error()]) // simulate user cancellation
+
+    const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
+      Push cancelled.
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(mockExit).toBeCalledWith(0)
+  })
+
+  it('--accept-data-loss flag', async () => {
+    ctx.fixture('existing-db-warnings')
+    const result = DbPush.new().parse([
+      '--preview-feature',
+      '--accept-data-loss',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
       🚀  Your database is now in sync with your schema. Done in XXms
     `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('unexecutable - drop accepted (prompt)', async () => {
+    ctx.fixture('existing-db-1-unexecutable-schema-change')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--preview-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      ⚠️ We found changes that cannot be executed:
+
+        • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+
+
+      The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
+
+      🚀  Your database is now in sync with your schema. Done in XXms
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('unexecutable - drop cancelled (prompt)', async () => {
+    ctx.fixture('existing-db-warnings')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
+    prompt.inject([new Error()]) // simulate user cancellation
+
+    const result = DbPush.new().parse(['--preview-feature'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
+      Push cancelled.
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(mockExit).toBeCalledWith(0)
+  })
+
+  it('unexecutable - --force-reset', async () => {
+    ctx.fixture('existing-db-1-unexecutable-schema-change')
+    const result = DbPush.new().parse(['--preview-feature', '--force-reset'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
+
+      SQLite database dev.db created at file:dev.db
+
+
+      🚀  Your database is now in sync with your schema. Done in XXms
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('unexecutable - should ask for --force-reset in CI', async () => {
+    ctx.fixture('existing-db-1-unexecutable-schema-change')
+    const result = DbPush.new().parse(['--preview-feature'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+
+                                                            ⚠️ We found changes that cannot be executed:
+
+                                                              • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+
+                                                            Use the --force-reset flag to drop the database before push like prisma db push --preview-feature --force-reset
+                                                            All data will be lost.
+                                                                    
+                                                  `)
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
