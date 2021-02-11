@@ -9,8 +9,12 @@ const copyFile = promisify(fs.copyFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
+function debug(message, ...optionalParams){
+  if(process.env.DEBUG && process.env.DEBUG.includes('postinstall')){
+    console.log(message, ...optionalParams);
+  }
+}
 async function main() {
-  const init_cwd = process.env.INIT_CWD
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
     // in the postinstall hook
@@ -22,18 +26,22 @@ async function main() {
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
   // this is needed, so that the Generate command does not fail in postinstall
-  // process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  console.log({localPath, installedGlobally, init_cwd});
+  process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
+  debug({localPath, installedGlobally, init_cwd});
   try {
     if (localPath) {
       await run('node', [
         localPath,
-        'generate'
+        'generate',
+        '--postinstall',
+        doubleQuote(getPostInstallTrigger()),
       ])
       return
     } else if (installedGlobally) {
       await run('prisma', [
-        'generate'
+        'generate',
+        '--postinstall',
+        doubleQuote(getPostInstallTrigger()),
       ])
       return
     }
@@ -42,7 +50,7 @@ async function main() {
     if (e && e !== 1) {
       console.error(e)
     }
-    console.log(e);
+    debug(e);
   }
 
   if (!localPath && !installedGlobally) {
@@ -114,7 +122,7 @@ if (!process.env.SKIP_GENERATE) {
     }
     process.exit(0)
   }).finally(() => {
-    console.log(`Postinstall Trigger:${getPostInstallTrigger()}`)
+    debug(`postinstall trigger: ${getPostInstallTrigger()}`)
   })
 }
 
@@ -131,12 +139,11 @@ function run(cmd, params) {
       if (code === 0) {
         resolve()
       } else {
-        signal.
         reject(code)
       }
     })
-    child.on('error', (err) => {
-      reject(err)
+    child.on('error', () => {
+      reject()
     })
   })
 }

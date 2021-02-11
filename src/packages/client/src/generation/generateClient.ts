@@ -76,21 +76,7 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-  console.log({
-    datamodel,
-    schemaDir,
-    runtimePath,
-    browser,
-    binaryPaths,
-    outputDir,
-    generator,
-    dmmf,
-    datasources,
-    engineVersion,
-    clientVersion,
-    projectRoot,
-    activeProvider,
-  })
+
   const client = new TSClient({
     document,
     runtimePath,
@@ -173,10 +159,10 @@ export async function generateClient({
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir
-  console.log({ finalOutputDir })
+
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
-  console.log({ finalOutputDir, projectRoot, cwd: process.cwd() })
+
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
