@@ -1731,7 +1731,7 @@ export namespace Prisma {
     count<T extends PostCountArgs>(
       args?: Subset<T, PostCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], PostCountAggregateOutputType>
@@ -2647,7 +2647,7 @@ export namespace Prisma {
     count<T extends UserCountArgs>(
       args?: Subset<T, UserCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], UserCountAggregateOutputType>
@@ -3555,7 +3555,7 @@ export namespace Prisma {
     count<T extends MCountArgs>(
       args?: Subset<T, MCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], MCountAggregateOutputType>
@@ -4463,7 +4463,7 @@ export namespace Prisma {
     count<T extends NCountArgs>(
       args?: Subset<T, NCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], NCountAggregateOutputType>
@@ -5371,7 +5371,7 @@ export namespace Prisma {
     count<T extends OneOptionalCountArgs>(
       args?: Subset<T, OneOptionalCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OneOptionalCountAggregateOutputType>
@@ -6291,7 +6291,7 @@ export namespace Prisma {
     count<T extends ManyRequiredCountArgs>(
       args?: Subset<T, ManyRequiredCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ManyRequiredCountAggregateOutputType>
@@ -7211,7 +7211,7 @@ export namespace Prisma {
     count<T extends OptionalSide1CountArgs>(
       args?: Subset<T, OptionalSide1CountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OptionalSide1CountAggregateOutputType>
@@ -8119,7 +8119,7 @@ export namespace Prisma {
     count<T extends OptionalSide2CountArgs>(
       args?: Subset<T, OptionalSide2CountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OptionalSide2CountAggregateOutputType>
@@ -8997,7 +8997,7 @@ export namespace Prisma {
     count<T extends ACountArgs>(
       args?: Subset<T, ACountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ACountAggregateOutputType>
@@ -9802,7 +9802,7 @@ export namespace Prisma {
     count<T extends BCountArgs>(
       args?: Subset<T, BCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], BCountAggregateOutputType>
@@ -10577,7 +10577,7 @@ export namespace Prisma {
     count<T extends CCountArgs>(
       args?: Subset<T, CCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], CCountAggregateOutputType>
@@ -11336,7 +11336,7 @@ export namespace Prisma {
     count<T extends DCountArgs>(
       args?: Subset<T, DCountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], DCountAggregateOutputType>
@@ -12087,7 +12087,7 @@ export namespace Prisma {
     count<T extends ECountArgs>(
       args?: Subset<T, ECountArgs>,
     ): PrismaPromise<
-      T extends Record<'select', any>
+      T extends _Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ECountAggregateOutputType>
