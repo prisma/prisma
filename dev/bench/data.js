@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613060796377,
+  "lastUpdate": 1613061815534,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -4009,6 +4009,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±4.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "98b3de55ae186cce6edb2f84ed2c49f2a8cef6f1",
+          "message": "feat(migrate): improve db push warnings/unexecutable migrations",
+          "timestamp": "2021-02-11T16:29:22Z",
+          "url": "https://github.com/prisma/prisma/pull/5602/commits/98b3de55ae186cce6edb2f84ed2c49f2a8cef6f1"
+        },
+        "date": 1613061814772,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±5.53%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
