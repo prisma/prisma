@@ -203,7 +203,7 @@ describe('push', () => {
         • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
 
-      The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
+      The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
       🚀  Your database is now in sync with your schema. Done in XXms
     `)
@@ -247,10 +247,7 @@ describe('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
-
-      SQLite database dev.db created at file:dev.db
-
+      The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
       🚀  Your database is now in sync with your schema. Done in XXms
     `)
@@ -264,14 +261,14 @@ describe('push', () => {
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                            ⚠️ We found changes that cannot be executed:
+            ⚠️ We found changes that cannot be executed:
 
-                                                              • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+              • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                            Use the --force-reset flag to drop the database before push like prisma db push --preview-feature --force-reset
-                                                            All data will be lost.
-                                                                    
-                                                  `)
+            Use the --force-reset flag to drop the database before push like prisma db push --preview-feature --force-reset
+            All data will be lost.
+                    
+          `)
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
