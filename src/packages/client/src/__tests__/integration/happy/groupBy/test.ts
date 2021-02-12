@@ -4,14 +4,7 @@ let prisma
 
 beforeAll(async () => {
   const PrismaClient = await getTestClient()
-  prisma = new PrismaClient({
-    log: [
-      {
-        emit: 'event',
-        level: 'query',
-      },
-    ],
-  })
+  prisma = new PrismaClient()
 })
 
 afterAll(() => {
