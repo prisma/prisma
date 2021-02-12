@@ -41,7 +41,9 @@ async function main() {
 
   // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD })
+  const packageRoot = localPath && path.join(localPath, '../../../../')
+
+  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD, packageRoot })
   try {
     if (localPath) {
       await run('node', [
@@ -49,9 +51,10 @@ async function main() {
         'generate',
         '--postinstall',
         doubleQuote(getPostInstallTrigger()),
-      ])
+      ], packageRoot)
       return
-    } else if (installedGlobally) {
+    } 
+    if (installedGlobally) {
       await run('prisma', [
         'generate',
         '--postinstall',
@@ -142,9 +145,10 @@ if (!process.env.SKIP_GENERATE) {
     })
 }
 
-function run(cmd, params) {
+function run(cmd, params, cwd=process.cwd()) {
   const child = childProcess.spawn(cmd, params, {
     stdio: ['pipe', 'inherit', 'inherit'],
+    cwd
   })
 
   return new Promise((resolve, reject) => {
