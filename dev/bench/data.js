@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613145420168,
+  "lastUpdate": 1613146790694,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5259,6 +5259,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tim.suchanek@gmail.com",
+            "name": "timsuchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "tim.suchanek@gmail.com",
+            "name": "timsuchanek",
+            "username": "timsuchanek"
+          },
+          "distinct": true,
+          "id": "744c383543371017b1d928d18f71931adadd80e2",
+          "message": "chore: fix flaky findUnique test",
+          "timestamp": "2021-02-12T17:15:58+01:00",
+          "tree_id": "61855e65ee90c1162e4729518cb7b60400cb84da",
+          "url": "https://github.com/prisma/prisma/commit/744c383543371017b1d928d18f71931adadd80e2"
+        },
+        "date": 1613146789895,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±11.24%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.47%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
