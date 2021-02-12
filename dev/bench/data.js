@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613134404880,
+  "lastUpdate": 1613135427868,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -4827,6 +4827,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee694c6adc23049a215702f1cbc046b30c0b7b61",
+          "message": "chore: add findUnique batch test (#5615)",
+          "timestamp": "2021-02-12T14:06:56+01:00",
+          "tree_id": "560df05188286daa8b2396597208250e6715ea24",
+          "url": "https://github.com/prisma/prisma/commit/ee694c6adc23049a215702f1cbc046b30c0b7b61"
+        },
+        "date": 1613135426989,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±11.97%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.23%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
