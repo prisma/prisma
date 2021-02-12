@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613139593230,
+  "lastUpdate": 1613141390118,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5119,6 +5119,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±5.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "d8dd7715a88d2f52d66bd3827b63c43523d39da2",
+          "message": "fix(client): allow xMany in $transactions",
+          "timestamp": "2021-02-12T14:16:01Z",
+          "url": "https://github.com/prisma/prisma/pull/5629/commits/d8dd7715a88d2f52d66bd3827b63c43523d39da2"
+        },
+        "date": 1613141389318,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±9.52%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.65%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
