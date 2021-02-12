@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613135427868,
+  "lastUpdate": 1613135549629,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -4865,6 +4865,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.23%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "42120904+safinsingh@users.noreply.github.com",
+            "name": "Safin Singh",
+            "username": "safinsingh"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7eda5d6f23ac940fcdf92e176bb32b35b6446552",
+          "message": "feat: use `only-allow` to enforce installation with `pnpm` (#5608)",
+          "timestamp": "2021-02-12T14:08:57+01:00",
+          "tree_id": "5cb111388236a26e636ce6af26d028cebf1271e0",
+          "url": "https://github.com/prisma/prisma/commit/7eda5d6f23ac940fcdf92e176bb32b35b6446552"
+        },
+        "date": 1613135548839,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±9.65%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.95%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
