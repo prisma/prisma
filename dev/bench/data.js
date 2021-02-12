@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613146790694,
+  "lastUpdate": 1613149651253,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5297,6 +5297,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.47%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "75b3ae63d0aabb1a5314b0f3f73f726d17e5acd7",
+          "message": "fix: printDatasource - add default port (#5627)\n\nCloses https://github.com/prisma/prisma/issues/5429",
+          "timestamp": "2021-02-12T18:03:43+01:00",
+          "tree_id": "57fda50df8934da94695e6a33f70bf44ac972379",
+          "url": "https://github.com/prisma/prisma/commit/75b3ae63d0aabb1a5314b0f3f73f726d17e5acd7"
+        },
+        "date": 1613149647784,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±7.27%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±0.93%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
