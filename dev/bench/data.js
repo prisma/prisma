@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613132127732,
+  "lastUpdate": 1613132473211,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -4683,6 +4683,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±1.43%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cff7c43dd89f0cb6932292dac1b42c359948eafa",
+          "message": "chore: trigger new release by incrementing internal version",
+          "timestamp": "2021-02-12T13:15:59+01:00",
+          "tree_id": "9c6671c301483b540e1cb6ccbc99ce334dd5e7b1",
+          "url": "https://github.com/prisma/prisma/commit/cff7c43dd89f0cb6932292dac1b42c359948eafa"
+        },
+        "date": 1613132469739,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±8.52%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.26%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
