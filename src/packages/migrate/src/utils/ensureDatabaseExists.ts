@@ -172,6 +172,20 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
     return credentials.uri!
   }
 
+  if (!credentials.port) {
+    switch (credentials.type) {
+      case 'mysql':
+        credentials.port = 3306
+        break
+      case 'postgresql':
+        credentials.port = 5432
+        break
+      case 'sqlserver':
+        credentials.port = 1433
+        break
+    }
+  }
+
   return `${credentials.host}:${credentials.port}`
 }
 
