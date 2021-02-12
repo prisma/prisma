@@ -30,7 +30,7 @@
     "typescript": "4.1.3"
   },
   "scripts": {
-    "preinstall": "npx -y only-allow pnpm",
+    "preinstall": "npx only-allow pnpm",
     "setup": "ts-node scripts/setup.ts",
     "build": "ts-node scripts/setup.ts --build",
     "dry": "ts-node scripts/ci/publish.ts --dry-run",
