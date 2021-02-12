@@ -41,8 +41,12 @@ async function main() {
 
   // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  const packageRoot = localPath && path.join(localPath, '../../../../')
-
+  if(localPath){
+    // localPath = xxxx/custom-server/node_modules/prisma/build/index.js
+    // packageRoot = xxxx/custom-server/
+    const packageRoot = localPath && path.join(localPath, '../../../../')
+    process.env.PRISMA_GENERATE_IN_POSTINSTALL=packageRoot
+  }
   debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD, packageRoot })
   try {
     if (localPath) {
@@ -51,7 +55,7 @@ async function main() {
         'generate',
         '--postinstall',
         doubleQuote(getPostInstallTrigger()),
-      ], packageRoot)
+      ])
       return
     } 
     if (installedGlobally) {
