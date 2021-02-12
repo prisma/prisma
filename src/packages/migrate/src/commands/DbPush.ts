@@ -8,13 +8,11 @@ import {
   getSchemaDir,
   isCi,
   getCommandWithExecutor,
-  dropDatabase,
   link,
 } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'
-import execa from 'execa'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
@@ -55,7 +53,7 @@ ${chalk.bold('Options')}
            -h, --help   Display this help message
              --schema   Custom path to your Prisma schema
    --accept-data-loss   Ignore data loss warnings
-        --force-reset   Force dropping the database before push 
+        --force-reset   Force a reset of the database before push 
       --skip-generate   Skip triggering generators (e.g. Prisma Client)
 
 ${chalk.bold('Examples')}
@@ -121,16 +119,18 @@ ${chalk.bold('Examples')}
     await printDatasource(schemaPath)
 
     const dbInfo = await getDbInfo(schemaPath)
-    const schemaDir = (await getSchemaDir(schemaPath))!
 
     const migrate = new Migrate(schemaPath)
 
-    let wasDatabaseDropped = false
+    let wasDatabaseReset = false
 
     if (args['--force-reset']) {
       console.info()
-      await this.dropDb(dbInfo, schemaDir)
-      wasDatabaseDropped = true
+      await migrate.reset()
+      console.info(
+        `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+      )
+      wasDatabaseReset = true
     }
 
     // Automatically create the database if it doesn't exist
@@ -174,21 +174,24 @@ ${chalk.bold.redBright('All data will be lost.')}
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `To apply this unexecutable migration we need to drop the database, do you want to continue? ${chalk.red(
+        message: `To apply this unexecutable migration we need to reset the database, do you want to continue? ${chalk.red(
           'All data will be lost',
         )}.`,
       })
 
       if (!confirmation.value) {
-        console.info('Drop cancelled.')
+        console.info('Reset cancelled.')
         migrate.stop()
         process.exit(0)
         // For snapshot test, because exit() is mocked
         return ``
       }
 
-      await this.dropDb(dbInfo, schemaDir)
-      wasDatabaseDropped = true
+      await migrate.reset()
+      console.info(
+        `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+      )
+      wasDatabaseReset = true
     }
 
     if (migration.warnings && migration.warnings.length > 0) {
@@ -236,7 +239,7 @@ ${chalk.bold.redBright('All data will be lost.')}
     migrate.stop()
 
     if (
-      !wasDatabaseDropped &&
+      !wasDatabaseReset &&
       migration.warnings.length === 0 &&
       migration.executedSteps === 0
     ) {
@@ -264,49 +267,5 @@ ${chalk.bold.redBright('All data will be lost.')}
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPush.help}`)
     }
     return DbPush.help
-  }
-
-  private async dropDb(dbInfo, schemaDir) {
-    let result: execa.ExecaReturnValue<string> | undefined = undefined
-    try {
-      result = await dropDatabase(dbInfo.url, schemaDir)
-    } catch (e) {
-      let json
-      try {
-        json = JSON.parse(e.stdout)
-      } catch (e) {
-        console.error(
-          `Could not parse database drop engine response: ${e.stdout.slice(
-            0,
-            200,
-          )}`,
-        )
-      }
-
-      if (json.message) {
-        throw Error(json.message)
-      }
-
-      throw Error(e)
-    }
-
-    if (
-      result &&
-      result.exitCode === 0 &&
-      result.stderr.includes('The database was successfully dropped')
-    ) {
-      console.info(
-        `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully dropped.`,
-      )
-    } else {
-      // We should not arrive here normally
-      throw Error(
-        `An error occurred during the drop: ${JSON.stringify(
-          result,
-          undefined,
-          2,
-        )}`,
-      )
-    }
   }
 }

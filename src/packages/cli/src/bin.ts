@@ -89,7 +89,7 @@ import {
   MigrateReset,
   MigrateDeploy,
   DbPush,
-  DbDrop,
+  // DbDrop,
   DbSeed,
   DbCommand,
   handlePanic,
@@ -158,7 +158,7 @@ async function main(): Promise<number> {
       db: DbCommand.new({
         pull: Introspect.new(),
         push: DbPush.new(),
-        drop: DbDrop.new(),
+        // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
       introspect: Introspect.new(),
