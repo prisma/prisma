@@ -905,7 +905,7 @@ new PrismaClient({
 
       const transactionId = this.getTransactionId()
 
-      return Promise.all(
+      const requests = await Promise.all(
         promises.map((p) => {
           if (p.requestTransaction) {
             return p.requestTransaction(transactionId)
@@ -914,6 +914,8 @@ new PrismaClient({
           return p
         }),
       )
+
+      return Promise.all(requests.map((r) => r()))
     }
 
     async $transaction(promises: Array<any>): Promise<any> {
@@ -1500,107 +1502,109 @@ export class PrismaClientFetcher {
     transactionId?: number
     unpacker?: Unpacker
   }) {
-    if (this.hooks && this.hooks.beforeRequest) {
-      const query = String(document)
-      this.hooks.beforeRequest({
-        query,
-        path: dataPath,
-        rootField,
-        typeName,
-        document,
-        isList,
-        clientMethod,
-        args,
-      })
-    }
-    try {
-      /**
-       * If there's an engine hook, use it here
-       */
-      let data, elapsed
-      if (engineHook) {
-        const result = await engineHook(
-          {
+    return async () => {
+      if (this.hooks && this.hooks.beforeRequest) {
+        const query = String(document)
+        this.hooks.beforeRequest({
+          query,
+          path: dataPath,
+          rootField,
+          typeName,
+          document,
+          isList,
+          clientMethod,
+          args,
+        })
+      }
+      try {
+        /**
+         * If there's an engine hook, use it here
+         */
+        let data, elapsed
+        if (engineHook) {
+          const result = await engineHook(
+            {
+              document,
+              runInTransaction,
+            },
+            (params) => this.dataloader.request(params),
+          )
+          data = result.data
+          elapsed = result.elapsed
+        } else {
+          const result = await this.dataloader.request({
             document,
             runInTransaction,
-          },
-          (params) => this.dataloader.request(params),
-        )
-        data = result.data
-        elapsed = result.elapsed
-      } else {
-        const result = await this.dataloader.request({
+            headers,
+            transactionId,
+          })
+          data = result.data
+          elapsed = result.elapsed
+        }
+
+        /**
+         * Unpack
+         */
+        const unpackResult = this.unpack(
           document,
-          runInTransaction,
-          headers,
-          transactionId,
-        })
-        data = result.data
-        elapsed = result.elapsed
-      }
+          data,
+          dataPath,
+          rootField,
+          unpacker,
+        )
+        throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
+        if (process.env.PRISMA_CLIENT_GET_TIME) {
+          return { data: unpackResult, elapsed }
+        }
+        return unpackResult
+      } catch (e) {
+        debug(e)
+        let message = e.message
+        if (callsite) {
+          const { stack } = printStack({
+            callsite,
+            originalMethod: clientMethod,
+            onUs: e.isPanic,
+            showColors,
+          })
+          message = stack + '\n  ' + e.message
+        }
 
-      /**
-       * Unpack
-       */
-      const unpackResult = this.unpack(
-        document,
-        data,
-        dataPath,
-        rootField,
-        unpacker,
-      )
-      throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
-      }
-      return unpackResult
-    } catch (e) {
-      debug(e)
-      let message = e.message
-      if (callsite) {
-        const { stack } = printStack({
-          callsite,
-          originalMethod: clientMethod,
-          onUs: e.isPanic,
-          showColors,
-        })
-        message = stack + '\n  ' + e.message
-      }
+        message = this.sanitizeMessage(message)
+        // TODO: Do request with callsite instead, so we don't need to rethrow
+        if (e.code) {
+          throw new PrismaClientKnownRequestError(
+            message,
+            e.code,
+            this.prisma._clientVersion,
+            e.meta,
+          )
+        } else if (e.isPanic) {
+          throw new PrismaClientRustPanicError(
+            message,
+            this.prisma._clientVersion,
+          )
+        } else if (e instanceof PrismaClientUnknownRequestError) {
+          throw new PrismaClientUnknownRequestError(
+            message,
+            this.prisma._clientVersion,
+          )
+        } else if (e instanceof PrismaClientInitializationError) {
+          throw new PrismaClientInitializationError(
+            message,
+            this.prisma._clientVersion,
+          )
+        } else if (e instanceof PrismaClientRustPanicError) {
+          throw new PrismaClientRustPanicError(
+            message,
+            this.prisma._clientVersion,
+          )
+        }
 
-      message = this.sanitizeMessage(message)
-      // TODO: Do request with callsite instead, so we don't need to rethrow
-      if (e.code) {
-        throw new PrismaClientKnownRequestError(
-          message,
-          e.code,
-          this.prisma._clientVersion,
-          e.meta,
-        )
-      } else if (e.isPanic) {
-        throw new PrismaClientRustPanicError(
-          message,
-          this.prisma._clientVersion,
-        )
-      } else if (e instanceof PrismaClientUnknownRequestError) {
-        throw new PrismaClientUnknownRequestError(
-          message,
-          this.prisma._clientVersion,
-        )
-      } else if (e instanceof PrismaClientInitializationError) {
-        throw new PrismaClientInitializationError(
-          message,
-          this.prisma._clientVersion,
-        )
-      } else if (e instanceof PrismaClientRustPanicError) {
-        throw new PrismaClientRustPanicError(
-          message,
-          this.prisma._clientVersion,
-        )
+        e.clientVersion = this.prisma._clientVersion
+
+        throw e
       }
-
-      e.clientVersion = this.prisma._clientVersion
-
-      throw e
     }
   }
 
