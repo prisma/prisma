@@ -147,9 +147,6 @@ if (!process.env.SKIP_GENERATE) {
     })
     .finally(() => {
       debug(`postinstall trigger: ${getPostInstallTrigger()}`)
-      debug(`------------ env ------------`)
-      debug(process.env)
-      debug(`-----------------------------`)
     })
 }
 
