@@ -1,3 +1,4 @@
+// @ts-check
 const childProcess = require('child_process')
 const { promisify } = require('util')
 const fs = require('fs')
@@ -47,7 +48,7 @@ async function main() {
     const packageRoot = localPath && path.join(localPath, '../../../../')
     process.env.PRISMA_GENERATE_IN_POSTINSTALL=packageRoot
   }
-  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD, packageRoot })
+  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD, PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL })
   try {
     if (localPath) {
       await run('node', [
@@ -146,6 +147,9 @@ if (!process.env.SKIP_GENERATE) {
     })
     .finally(() => {
       debug(`postinstall trigger: ${getPostInstallTrigger()}`)
+      debug(`------------ env ------------`)
+      debug(process.env)
+      debug(`-----------------------------`)
     })
 }
 
