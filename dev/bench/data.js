@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613139098118,
+  "lastUpdate": 1613139515616,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5047,6 +5047,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.48%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "092429a9401330227650a9a281e5917b78df6cc9",
+          "message": "fix: printDatasource - add default port",
+          "timestamp": "2021-02-12T14:05:23Z",
+          "url": "https://github.com/prisma/prisma/pull/5627/commits/092429a9401330227650a9a281e5917b78df6cc9"
+        },
+        "date": 1613139514842,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±6.45%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
