@@ -1,4 +1,5 @@
 import { getTestClient } from '../../../../utils/getTestClient'
+import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
 
 // describe, because we need to run them sequentially
 describe('transaction', () => {
@@ -418,8 +419,3 @@ describe('transaction', () => {
       `)
   })
 })
-
-function sanitizeEvents(e: any[]) {
-  /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-  return e.map(({ duration, timestamp, ...event }) => event)
-}
