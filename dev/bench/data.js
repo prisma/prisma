@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613161568461,
+  "lastUpdate": 1613236495922,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5521,6 +5521,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±4.57%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "4646115abb25479f1dc9d603e3313fb4e00c1b66",
+          "message": "fix(deps): update dependency undici to v3.3.1",
+          "timestamp": "2021-02-13T16:20:47Z",
+          "url": "https://github.com/prisma/prisma/pull/5433/commits/4646115abb25479f1dc9d603e3313fb4e00c1b66"
+        },
+        "date": 1613236495115,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±8.60%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.21%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
