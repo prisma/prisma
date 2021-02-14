@@ -160,7 +160,6 @@ export async function generateClient({
     ? await getDotPrismaDir(outputDir)
     : outputDir
 
-  console.log({finalOutputDir, outputDir, generator});
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
