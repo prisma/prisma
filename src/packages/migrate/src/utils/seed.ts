@@ -5,6 +5,10 @@ import resolvePkg from 'resolve-pkg'
 import hasYarn from 'has-yarn'
 import chalk from 'chalk'
 import globalDirectories from 'global-dirs'
+import pkgUp from 'pkg-up'
+import { promisify } from 'util'
+
+const readFileAsync = promisify(fs.readFile)
 
 export function isPackageInstalledGlobally(
   packageName: string,
@@ -105,7 +109,9 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
 
       if (missingPkgs.length > 0) {
         const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
-        console.info(`We detected a seed file at \`prisma/seed.ts\` but it seems that you do not have the following dependencies installed:
+        console.info(`We detected a seed file at \`${
+          detected.ts
+        }\` but it seems that you do not have the following dependencies installed:
 ${missingPkgs.map((name) => `- ${name}`).join('\n')}
 
 To install them run: ${chalk.green(
@@ -113,8 +119,15 @@ To install them run: ${chalk.green(
         )}\n`)
       }
 
+      // Check package.json for a "ts-node" script (so users can customize flags)
+      const scripts = await getScriptsFromPackageJson()
+      let tsNodeCommand = 'ts-node'
+      if (scripts && scripts['ts-node']) {
+        tsNodeCommand = scripts['ts-node']
+      }
+
       console.info(`Running ${chalk.bold(`ts-node "${detected.ts}"`)} ...`)
-      return await execa('ts-node', [`"${detected.ts}"`], {
+      return await execa(tsNodeCommand, [`"${detected.ts}"`], {
         shell: true,
         stdio: 'inherit',
       })
@@ -131,5 +144,24 @@ To install them run: ${chalk.green(
         stdio: 'inherit',
       })
     }
+  }
+}
+
+export async function getScriptsFromPackageJson(
+  cwd: string = process.cwd(),
+): Promise<string | null> {
+  try {
+    const pkgJsonPath = await pkgUp({ cwd })
+
+    if (!pkgJsonPath) {
+      return null
+    }
+
+    const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
+    const pkgJson = JSON.parse(pkgJsonString)
+
+    return pkgJson.scripts
+  } catch {
+    return null
   }
 }
