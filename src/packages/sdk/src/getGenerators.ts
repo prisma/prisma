@@ -35,7 +35,7 @@ import { printConfigWarnings } from './utils/printConfigWarnings'
 
 import Debug from '@prisma/debug'
 import { missingDatasource } from './utils/missingDatasource'
-const debug = Debug('getGenerators')
+const debug = Debug('prisma:getGenerators')
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 

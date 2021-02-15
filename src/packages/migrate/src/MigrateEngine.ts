@@ -3,9 +3,9 @@ import { ChildProcess, spawn } from 'child_process'
 import Debug from '@prisma/debug'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
-const debugRpc = Debug('MigrateEngine:rpc')
-const debugStderr = Debug('MigrateEngine:stderr')
-const debugStdin = Debug('MigrateEngine:stdin')
+const debugRpc = Debug('prisma:migrateEngine:rpc')
+const debugStderr = Debug('prisma:migrateEngine:stderr')
+const debugStdin = Debug('prisma:migrateEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'

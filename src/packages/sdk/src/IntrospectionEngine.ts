@@ -2,10 +2,10 @@ import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import Debug from '@prisma/debug'
 import byline from './utils/byline'
-const debugCli = Debug('IntrospectionEngine:cli')
-const debugRpc = Debug('IntrospectionEngine:rpc')
-const debugStderr = Debug('IntrospectionEngine:stderr')
-const debugStdin = Debug('IntrospectionEngine:stdin')
+const debugCli = Debug('prisma:introspectionEngine:cli')
+const debugRpc = Debug('prisma:introspectionEngine:rpc')
+const debugStderr = Debug('prisma:introspectionEngine:stderr')
+const debugStdin = Debug('prisma:introspectionEngine:stdin')
 import fs from 'fs'
 import { now } from './utils/now'
 import { RustPanic, ErrorArea } from './panic'

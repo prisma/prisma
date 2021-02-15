@@ -22,7 +22,7 @@ import { flatMap } from './flatMap'
 import { getLatestTag } from './getLatestTag'
 import { getHash } from './getHash'
 
-const debug = Debug('download')
+const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)

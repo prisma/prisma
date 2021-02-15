@@ -9,7 +9,7 @@ import Debug from '@prisma/debug'
 import hasha from 'hasha'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
-const debug = Debug('downloadZip')
+const debug = Debug('prisma:downloadZip')
 const del = promisify(rimraf)
 
 export type DownloadResult = {
