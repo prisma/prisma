@@ -55,30 +55,11 @@ beforeEach(async () => {
     'none',
   ])
 
-  await new Promise(async (resolve, reject) => {
-    // Wait for Studio to be ready
-    let retryCount = 0
-    const tryFetch = async () => {
-      try {
-        let res = await sendRequest({
-          requestId: 1,
-          channel: 'prisma',
-          action: 'clientStart',
-          payload: {},
-        })
-        // if (res.status !== 200) {
-        //   console.log(await res.text())
-        //   throw new Error('Studio not ready')
-        // }
-        resolve(null)
-      } catch (e) {
-        if (retryCount < 10) {
-          tryFetch()
-        } else {
-          reject('Studio not ready')
-        }
-      }
-    }
+  await sendRequest({
+    requestId: 1,
+    channel: 'prisma',
+    action: 'clientStart',
+    payload: {},
   })
 })
 
