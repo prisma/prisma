@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613395442567,
+  "lastUpdate": 1613396591897,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6563,6 +6563,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.55%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "04456335dd7f4d7bcc91d5ed65eb5ed9cf128e1e",
+          "message": "fix(sdk): enable dotenv debug only if prisma or * in cli,client,migrate (#5658)\n\nCo-authored-by: Tim Suchanek <Tim.Suchanek@gmail.com>",
+          "timestamp": "2021-02-15T14:39:34+01:00",
+          "tree_id": "89d99be4ae7715cb32b4f6a1329b1f485a67bfe4",
+          "url": "https://github.com/prisma/prisma/commit/04456335dd7f4d7bcc91d5ed65eb5ed9cf128e1e"
+        },
+        "date": 1613396591237,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±6.05%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.74%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
