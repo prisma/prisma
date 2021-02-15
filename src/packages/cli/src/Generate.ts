@@ -12,6 +12,7 @@ import {
   highlightTS,
   isError,
   link,
+  logger,
   missingGeneratorMessage,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -115,9 +116,7 @@ export class Generate implements Command {
     const schemaPath = await getSchemaPath(args['--schema'])
     if (!schemaPath) {
       if (isPostinstall) {
-        console.error(`${chalk.yellow(
-          'warning',
-        )} The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
+        logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
 If you have a Prisma schema file in a custom path, you will need to run
 \`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
 If you do not have a Prisma schema file yet, you can ignore this message.`)
@@ -134,7 +133,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
       )
     }
 
-    console.log(
+    logger.log(
       chalk.dim(
         `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
       ),
@@ -204,7 +203,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    if (isPostinstall && printBreakingChangesMessage) {
+    if (isPostinstall && printBreakingChangesMessage && logger.should.warn) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
 Please run \`prisma generate\` manually.`
@@ -237,15 +236,16 @@ ${breakingChangesMessage}`
 
         const versionsOutOfSync =
           clientGeneratorVersion && pkg.version !== clientGeneratorVersion
-        const versionsWarning = versionsOutOfSync
-          ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(
-              `prisma@${pkg.version}`,
-            )} and ${chalk.bold(
-              `@prisma/client@${clientGeneratorVersion}`,
-            )} don't match.
+        const versionsWarning =
+          versionsOutOfSync && logger.should.warn
+            ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(
+                `prisma@${pkg.version}`,
+              )} and ${chalk.bold(
+                `@prisma/client@${clientGeneratorVersion}`,
+              )} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
-          : ''
+            : ''
 
         hint = `You can now start using Prisma Client in your code. Reference: ${link(
           'https://pris.ly/d/client',
@@ -263,9 +263,7 @@ ${chalk.dim('```')}${breakingChangesStr}${versionsWarning}`
 
       if (this.hasGeneratorErrored) {
         if (isPostinstall) {
-          console.error(`${chalk.blueBright(
-            'info',
-          )} The postinstall script automatically ran \`prisma generate\`, which failed.
+          logger.info(`The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
 Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           return ''

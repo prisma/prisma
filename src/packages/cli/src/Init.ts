@@ -1,18 +1,20 @@
 import {
-  Command,
   arg,
+  canConnectToDatabase,
+  Command,
   format,
-  HelpError,
-  uriToCredentials,
   getCommandWithExecutor,
+  HelpError,
+  link,
+  logger,
+  uriToCredentials,
 } from '@prisma/sdk'
-import { isError } from 'util'
+import chalk from 'chalk'
+import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
-import chalk from 'chalk'
+import { isError } from 'util'
 import { printError } from './prompt/utils/print'
-import { link, canConnectToDatabase } from '@prisma/sdk'
-import dotenv from 'dotenv'
 
 export const defaultSchema = (
   provider = 'postgresql',
@@ -31,14 +33,16 @@ generator client {
 
 export const defaultEnv = (
   url = 'postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public',
-comments = true) => {
-  let env = comments ? 
-`# Environment variables declared in this file are automatically made available to Prisma.
+  comments = true,
+) => {
+  let env = comments
+    ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
 # Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n` : "";
-env += `DATABASE_URL="${url}"`
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
+    : ''
+  env += `DATABASE_URL="${url}"`
   return env
 }
 
@@ -150,20 +154,28 @@ export class Init implements Command {
       path.join(prismaFolder, 'schema.prisma'),
       defaultSchema(provider),
     )
-    let warning;
+    let warning
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
       fs.writeFileSync(envPath, defaultEnv(url))
-    }  else {
-      const envFile = fs.readFileSync(envPath, { encoding: 'utf8'})
+    } else {
+      const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
       const config = dotenv.parse(envFile) // will return an object
-      if(Object.keys(config).includes("DATABASE_URL")){
-        warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(url, false)} but it already exists in ${chalk.bold(path.relative(outputDir, envPath))}`
-
+      if (Object.keys(config).includes('DATABASE_URL')) {
+        warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
+          url,
+          false,
+        )} but it already exists in ${chalk.bold(
+          path.relative(outputDir, envPath),
+        )}`
       } else {
-        fs.appendFileSync(envPath, `\n\n` +"# This text is inserted by `prisma init`:\n" + defaultEnv(url));
+        fs.appendFileSync(
+          envPath,
+          `\n\n` +
+            '# This text is inserted by `prisma init`:\n' +
+            defaultEnv(url),
+        )
       }
-
     }
 
     const steps = [
@@ -195,7 +207,7 @@ export class Init implements Command {
     return `
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
   You can now open it in your favorite editor.
-${warning ? '\n' + warning + '\n' : ''}
+${warning && logger.should.warn ? '\n' + warning + '\n' : ''}
 Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
