@@ -196,6 +196,7 @@ describe('download', () => {
     const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
     const targetPath = path.join(
       __dirname,
+      // @ts-ignore
       getBinaryName('query-engine', 'marvin'),
     )
     fs.copyFileSync(dummyPath, targetPath)

@@ -16,7 +16,12 @@ import plusxSync from './chmod'
 import { copy } from './copy'
 import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
-import { getCacheDir, getDownloadUrl } from './util'
+import {
+  getCacheDir,
+  getDownloadUrl,
+  getNapiName,
+  NAPI_QUERY_ENGINE_BASE,
+} from './util'
 import { cleanupCache } from './cleanupCache'
 import { flatMap } from './flatMap'
 import { getLatestTag } from './getLatestTag'
@@ -30,6 +35,7 @@ const readFile = promisify(fs.readFile)
 const channel = 'master'
 export interface BinaryDownloadConfiguration {
   'query-engine'?: string
+  libquery_engine_napi?: string
   'migration-engine'?: string
   'introspection-engine'?: string
   'prisma-fmt'?: string
@@ -50,6 +56,7 @@ export interface DownloadOptions {
 export type BinaryPaths = {
   'migration-engine'?: { [binaryTarget: string]: string } // key: target, value: path
   'query-engine'?: { [binaryTarget: string]: string }
+  'libquery-engine-napi'?: { [binaryTarget: string]: string }
   'introspection-engine'?: { [binaryTarget: string]: string }
   'prisma-fmt'?: { [binaryTarget: string]: string }
 }
@@ -64,7 +71,7 @@ const binaryToEnvVar = {
 type BinaryDownloadJob = {
   binaryName: string
   targetFolder: string
-  binaryTarget: string
+  binaryTarget: Platform
   fileName: string
   targetFilePath: string
   envVarPath: string | null
@@ -330,7 +337,10 @@ export async function checkVersionCommand(
   }
 }
 
-export function getBinaryName(binaryName: string, platform: string): string {
+export function getBinaryName(binaryName: string, platform: Platform): string {
+  if (binaryName === NAPI_QUERY_ENGINE_BASE) {
+    return `${getNapiName(platform, 'fs')}`
+  }
   const extension = platform === 'windows' ? '.exe' : ''
   return `${binaryName}-${platform}${extension}`
 }
@@ -499,7 +509,9 @@ function engineTypeToBinaryType(
   if (engineType === 'queryEngine') {
     return 'query-engine'
   }
-
+  if (engineType === 'libqueryEngineNapi') {
+    return 'libquery-engine-napi'
+  }
   if (engineType === 'prismaFmt') {
     return 'prisma-fmt'
   }
