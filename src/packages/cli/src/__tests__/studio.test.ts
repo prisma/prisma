@@ -58,14 +58,19 @@ beforeEach(async () => {
   await new Promise(async (resolve, reject) => {
     // Wait for Studio to be ready
     let retryCount = 0
-    const tryFetch = () => {
+    const tryFetch = async () => {
       try {
-        fetch(`http://localhost:${STUDIO_TEST_PORT}`).then((res) => {
-          if (res.status !== 200) {
-            throw new Error('Studio not ready')
-          }
-          resolve(null)
+        let res = await sendRequest({
+          requestId: 1,
+          channel: 'prisma',
+          action: 'clientStart',
+          payload: {},
         })
+        // if (res.status !== 200) {
+        //   console.log(await res.text())
+        //   throw new Error('Studio not ready')
+        // }
+        resolve(null)
       } catch (e) {
         if (retryCount < 10) {
           tryFetch()
@@ -74,13 +79,6 @@ beforeEach(async () => {
         }
       }
     }
-  })
-
-  await sendRequest({
-    requestId: 1,
-    channel: 'prisma',
-    action: 'clientStart',
-    payload: {},
   })
 })
 
