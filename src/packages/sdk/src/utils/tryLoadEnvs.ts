@@ -133,7 +133,7 @@ export function loadEnv(
     // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
     let enableDebug: true | undefined = undefined
 
-    if (debugEnv && (debugEnv.includes('prisma') || debugEnv === '*')) {
+    if (debugEnv && (debugEnv.startsWith('prisma') || debugEnv === '*')) {
       enableDebug = true
     }
 
