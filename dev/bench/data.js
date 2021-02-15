@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613381033154,
+  "lastUpdate": 1613381361714,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5953,6 +5953,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.95%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "df4f11b8114bf55b7dbaa36ad73e1ddd049e04ef",
+          "message": "fix(deps): update dependency undici to v3.3.3 (#5433)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-02-15T10:25:33+01:00",
+          "tree_id": "fc177d75dab733d3d445f4309dafe8b5ac898a42",
+          "url": "https://github.com/prisma/prisma/commit/df4f11b8114bf55b7dbaa36ad73e1ddd049e04ef"
+        },
+        "date": 1613381360878,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.38,
+            "range": "±4.58%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.87%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
