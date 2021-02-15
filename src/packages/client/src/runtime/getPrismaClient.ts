@@ -915,7 +915,20 @@ new PrismaClient({
         }),
       )
 
-      return Promise.all(requests.map((r) => r()))
+      return Promise.all(
+        requests.map((r) => {
+          if (Object.prototype.toString.call(r) === '[object Promise]') {
+            // console.log('promise')
+            return r
+          }
+          if (r && typeof r === 'function') {
+            // console.log('fun')
+            return r()
+          }
+          // console.log('lol')
+          return r
+        }),
+      )
     }
 
     async $transaction(promises: Array<any>): Promise<any> {
@@ -1456,7 +1469,7 @@ export class PrismaClientFetcher {
         const args = request.document.children[0].args?.args
           .map((a) => {
             if (a.value instanceof Args) {
-              return a.key + '-' + a.value.args.map((a) => a.key).join(',')
+              return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
             }
             return a.key
           })
@@ -1502,7 +1515,7 @@ export class PrismaClientFetcher {
     transactionId?: number
     unpacker?: Unpacker
   }) {
-    return async () => {
+    const cb = async () => {
       if (this.hooks && this.hooks.beforeRequest) {
         const query = String(document)
         this.hooks.beforeRequest({
@@ -1567,7 +1580,7 @@ export class PrismaClientFetcher {
             onUs: e.isPanic,
             showColors,
           })
-          message = stack + '\n  ' + e.message
+          message = `${stack}\n  ${e.message}`
         }
 
         message = this.sanitizeMessage(message)
@@ -1605,6 +1618,11 @@ export class PrismaClientFetcher {
 
         throw e
       }
+    }
+    if (transactionId) {
+      return cb
+    } else {
+      return cb()
     }
   }
 
