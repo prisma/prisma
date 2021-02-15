@@ -246,7 +246,7 @@ export function getSelectReturnType({
     actionName === 'updateMany' ||
     actionName === 'createMany'
   ) {
-    return `Promise<BatchPayload>`
+    return `PrismaPromise<BatchPayload>`
   }
 
   /**
