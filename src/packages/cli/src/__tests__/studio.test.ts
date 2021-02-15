@@ -24,6 +24,7 @@ const sendRequest = (message: any): Promise<any> => {
 let studio: Studio
 
 beforeEach(async () => {
+  jest.setTimeout(10000)
   // Before  every test, we'd like to reset the DB.
   // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
   rimraf.sync(path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'))
@@ -53,6 +54,27 @@ beforeEach(async () => {
     '--browser',
     'none',
   ])
+
+  await new Promise(async (resolve, reject) => {
+    // Wait for Studio to be ready
+    let retryCount = 0
+    const tryFetch = () => {
+      try {
+        fetch(`http://localhost:${STUDIO_TEST_PORT}`).then((res) => {
+          if (res.status !== 200) {
+            throw new Error('Studio not ready')
+          }
+          resolve(null)
+        })
+      } catch (e) {
+        if (retryCount < 10) {
+          tryFetch()
+        } else {
+          reject('Studio not ready')
+        }
+      }
+    }
+  })
 
   await sendRequest({
     requestId: 1,
