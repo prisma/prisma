@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613396591897,
+  "lastUpdate": 1613403415814,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6601,6 +6601,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "0ca2ac18b816ddd7af641867539e8cd53bd5734a",
+          "message": "test(migrate): add provider switch test",
+          "timestamp": "2021-02-15T16:33:39+01:00",
+          "tree_id": "a436709e9786a4fe83700c586ef35320c6a0add3",
+          "url": "https://github.com/prisma/prisma/commit/0ca2ac18b816ddd7af641867539e8cd53bd5734a"
+        },
+        "date": 1613403415039,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.48,
+            "range": "±6.17%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±2.25%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
