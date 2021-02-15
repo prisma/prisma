@@ -419,6 +419,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
+          TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
 
       - name: Upload coverage report
         if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
