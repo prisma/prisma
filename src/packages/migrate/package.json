@@ -43,7 +43,7 @@
     "pg": "8.5.1",
     "prettier": "2.2.1",
     "sqlite-async": "1.1.1",
-    "sqlite3": "5.0.0",
+    "sqlite3": "5.0.2",
     "tempy": "1.0.0",
     "ts-jest": "26.5.1",
     "typescript": "4.1.5"
