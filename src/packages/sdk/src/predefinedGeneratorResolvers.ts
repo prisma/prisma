@@ -1,11 +1,12 @@
-import resolvePkg from 'resolve-pkg'
-import chalk from 'chalk'
-import hasYarn from 'has-yarn'
-import execa from 'execa'
-import path from 'path'
-import fs from 'fs'
-import { getCommandWithExecutor } from './getCommandWithExecutor'
 import Debug from '@prisma/debug'
+import chalk from 'chalk'
+import execa from 'execa'
+import fs from 'fs'
+import hasYarn from 'has-yarn'
+import path from 'path'
+import resolvePkg from 'resolve-pkg'
+import { logger } from '.'
+import { getCommandWithExecutor } from './getCommandWithExecutor'
 const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
@@ -142,8 +143,8 @@ function checkYarnVersion() {
         const currentYarnVersion = `${major}.${minor}.${patch}`
         const minYarnVersion = '1.19.2'
         if (semverLt(currentYarnVersion, minYarnVersion)) {
-          console.error(
-            `${chalk.yellow('warning')} Your ${chalk.bold(
+          logger.warn(
+            `Your ${chalk.bold(
               'yarn',
             )} has version ${currentYarnVersion}, which is outdated. Please update it to ${chalk.bold(
               minYarnVersion,

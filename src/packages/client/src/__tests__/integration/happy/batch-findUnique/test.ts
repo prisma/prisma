@@ -22,6 +22,7 @@ afterAll(() => {
 test('batch findUnique', async () => {
   let users = await prisma.user.findMany()
   const queries: any[] = []
+  await new Promise((r) => setTimeout(r, 100))
   prisma.$on('query', (q) => {
     queries.push(q)
   })

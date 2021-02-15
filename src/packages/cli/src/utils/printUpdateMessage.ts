@@ -1,4 +1,4 @@
-import { drawBox, isCurrentBinInstalledGlobally } from '@prisma/sdk'
+import { drawBox, isCurrentBinInstalledGlobally, logger } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Check } from 'checkpoint-client'
 
@@ -67,27 +67,25 @@ export function makeUninstallCommand(
  * Users of `@prisma/cli` will be pointed to `prisma`
  */
 export function printPrismaCliUpdateWarning() {
-  console.warn(
-    `${chalk.bold.yellow('warn')} ${chalk.bold(
-      '@prisma/cli',
-    )} has been renamed to ${chalk.bold('prisma')}.
+  logger.warn(`${chalk.bold('@prisma/cli')} has been renamed to ${chalk.bold(
+    'prisma',
+  )}.
 Please uninstall ${chalk.bold('@prisma/cli')}: ${makeUninstallCommand(
-      '@prisma/cli',
-      'latest',
-      {
-        canBeGlobal: true,
-        canBeDev: false,
-      },
-    )}
+    '@prisma/cli',
+    'latest',
+    {
+      canBeGlobal: true,
+      canBeDev: false,
+    },
+  )}
 And install ${chalk.bold.greenBright('prisma')}: ${makeInstallCommand(
-      'prisma',
-      'latest',
-      {
-        canBeGlobal: true,
-        canBeDev: true,
-      },
-    )}`,
-  )
+    'prisma',
+    'latest',
+    {
+      canBeGlobal: true,
+      canBeDev: true,
+    },
+  )}`)
 }
 
 function makeInstallCommand(
