@@ -30,6 +30,7 @@ export function handleUnexecutableSteps(
 export async function handleWarnings(
   warnings: MigrationFeedback[],
   force = false,
+  createOnly = false,
 ): Promise<boolean | void> {
   if (warnings && warnings.length > 0) {
     console.log(
@@ -47,12 +48,13 @@ export async function handleWarnings(
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw new MigrateDevEnvNonInteractiveError()
       } else {
+        const message = createOnly
+          ? 'Are you sure you want create this migration?'
+          : 'Are you sure you want create and apply this migration?'
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
-          message: `Are you sure you want create and apply this migration? ${chalk.red(
-            'Some data will be lost',
-          )}.`,
+          message: `${message} ${chalk.red('Some data will be lost')}.`,
         })
 
         if (!confirmation.value) {
