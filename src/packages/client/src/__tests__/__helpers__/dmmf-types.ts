@@ -403,6 +403,19 @@ const dmmf: DMMF.Document = {
               "inputTypes": [
                 {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserOrderByInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
                   "location": "enumTypes",
                   "namespace": "prisma",
                   "type": "SortOrder"
@@ -675,7 +688,7 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOneWithoutPostsInput"
+                  "type": "UserCreateNestedOneWithoutPostsInput"
                 }
               ],
               "isNullable": false,
@@ -1031,7 +1044,7 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostCreateManyWithoutAuthorInput"
+                  "type": "PostCreateNestedManyWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -1077,7 +1090,7 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedCreateManyWithoutAuthorInput"
+                  "type": "PostUncheckedCreateNestedManyWithoutAuthorInput"
                 }
               ],
               "isNullable": false,
@@ -1681,12 +1694,12 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserWhereUniqueInput"
+                  "type": "UserCreateOrConnectWithoutPostsInput"
                 }
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connect"
+              "name": "connectOrCreate"
             },
             {
               "inputTypes": [
@@ -1694,15 +1707,15 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput"
+                  "type": "UserWhereUniqueInput"
                 }
               ],
               "isNullable": false,
               "isRequired": false,
-              "name": "connectOrCreate"
+              "name": "connect"
             }
           ],
-          "name": "UserCreateOneWithoutPostsInput"
+          "name": "UserCreateNestedOneWithoutPostsInput"
         },
         {
           "constraints": {
@@ -1777,6 +1790,32 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "UserCreateOrConnectWithoutPostsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpsertWithoutPostsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "UserWhereUniqueInput"
                 }
               ],
@@ -1802,32 +1841,6 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "update"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpsertWithoutPostsInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateOrConnectWithoutpostsInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate"
             }
           ],
           "name": "UserUpdateOneRequiredWithoutPostsInput"
@@ -1944,6 +1957,25 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput"
                 },
                 {
@@ -1956,28 +1988,9 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "connect"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate"
             }
           ],
-          "name": "PostCreateManyWithoutAuthorInput"
+          "name": "PostCreateNestedManyWithoutAuthorInput"
         },
         {
           "constraints": {
@@ -2022,6 +2035,25 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput"
                 },
                 {
@@ -2034,28 +2066,9 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "connect"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate"
             }
           ],
-          "name": "PostUncheckedCreateManyWithoutAuthorInput"
+          "name": "PostUncheckedCreateNestedManyWithoutAuthorInput"
         },
         {
           "constraints": {
@@ -2093,6 +2106,44 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "create"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert"
             },
             {
               "inputTypes": [
@@ -2226,44 +2277,6 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate"
             }
           ],
           "name": "PostUpdateManyWithoutAuthorInput"
@@ -2311,6 +2324,44 @@ const dmmf: DMMF.Document = {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateOrConnectWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "connectOrCreate"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "upsert"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "PostWhereUniqueInput"
                 },
                 {
@@ -2437,44 +2488,6 @@ const dmmf: DMMF.Document = {
               "isNullable": false,
               "isRequired": false,
               "name": "deleteMany"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpsertWithWhereUniqueWithoutAuthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "upsert"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                },
-                {
-                  "isList": true,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateOrConnectWithoutauthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "connectOrCreate"
             }
           ],
           "name": "PostUncheckedUpdateManyWithoutAuthorInput"
@@ -2869,7 +2882,54 @@ const dmmf: DMMF.Document = {
               "name": "create"
             }
           ],
-          "name": "UserCreateOrConnectWithoutpostsInput"
+          "name": "UserCreateOrConnectWithoutPostsInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateWithoutPostsInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedCreateWithoutPostsInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create"
+            }
+          ],
+          "name": "UserUpsertWithoutPostsInput"
         },
         {
           "constraints": {
@@ -2942,53 +3002,6 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "UserUncheckedUpdateWithoutPostsInput"
-        },
-        {
-          "constraints": {
-            "maxNumFields": null,
-            "minNumFields": null
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateWithoutPostsInput"
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedUpdateWithoutPostsInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateWithoutPostsInput"
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUncheckedCreateWithoutPostsInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create"
-            }
-          ],
-          "name": "UserUpsertWithoutPostsInput"
         },
         {
           "constraints": {
@@ -3107,7 +3120,67 @@ const dmmf: DMMF.Document = {
               "name": "create"
             }
           ],
-          "name": "PostCreateOrConnectWithoutauthorInput"
+          "name": "PostCreateOrConnectWithoutAuthorInput"
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereUniqueInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "where"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUpdateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedUpdateWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "update"
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateWithoutAuthorInput"
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostUncheckedCreateWithoutAuthorInput"
+                }
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "create"
+            }
+          ],
+          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput"
         },
         {
           "constraints": {
@@ -3322,66 +3395,6 @@ const dmmf: DMMF.Document = {
             }
           ],
           "name": "PostScalarWhereInput"
-        },
-        {
-          "constraints": {
-            "maxNumFields": null,
-            "minNumFields": null
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostWhereUniqueInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "where"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUpdateWithoutAuthorInput"
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedUpdateWithoutAuthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "update"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostCreateWithoutAuthorInput"
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "PostUncheckedCreateWithoutAuthorInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "create"
-            }
-          ],
-          "name": "PostUpsertWithWhereUniqueWithoutAuthorInput"
         },
         {
           "constraints": {
@@ -4022,36 +4035,6 @@ const dmmf: DMMF.Document = {
                   "name": "where"
                 }
               ],
-              "deprecation": {
-                "plannedRemovalVersion": "2.15",
-                "reason": "The `findOne` query has been deprecated and replaced with `findUnique`.",
-                "sinceVersion": "2.14"
-              },
-              "isNullable": true,
-              "name": "findOnePost",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post"
-              }
-            },
-            {
-              "args": [
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostWhereUniqueInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where"
-                }
-              ],
               "isNullable": true,
               "name": "findUniquePost",
               "outputType": {
@@ -4346,36 +4329,6 @@ const dmmf: DMMF.Document = {
                   "name": "where"
                 }
               ],
-              "deprecation": {
-                "plannedRemovalVersion": "2.15",
-                "reason": "The `findOne` query has been deprecated and replaced with `findUnique`.",
-                "sinceVersion": "2.14"
-              },
-              "isNullable": true,
-              "name": "findOneUser",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User"
-              }
-            },
-            {
-              "args": [
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserWhereUniqueInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where"
-                }
-              ],
               "isNullable": true,
               "name": "findUniqueUser",
               "outputType": {
@@ -4414,6 +4367,69 @@ const dmmf: DMMF.Document = {
               ],
               "isNullable": false,
               "name": "createOnePost",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post"
+              }
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where"
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedCreateInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create"
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostUncheckedUpdateInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update"
+                }
+              ],
+              "isNullable": false,
+              "name": "upsertOnePost",
               "outputType": {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -4498,69 +4514,6 @@ const dmmf: DMMF.Document = {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "PostWhereUniqueInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where"
-                },
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostCreateInput"
-                    },
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedCreateInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create"
-                },
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUpdateInput"
-                    },
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostUncheckedUpdateInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update"
-                }
-              ],
-              "isNullable": false,
-              "name": "upsertOnePost",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post"
-              }
-            },
-            {
-              "args": [
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "PostUpdateManyMutationInput"
                     },
                     {
@@ -4594,7 +4547,7 @@ const dmmf: DMMF.Document = {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload"
+                "type": "AffectedRowsOutput"
               }
             },
             {
@@ -4619,7 +4572,7 @@ const dmmf: DMMF.Document = {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload"
+                "type": "AffectedRowsOutput"
               }
             },
             {
@@ -4646,6 +4599,69 @@ const dmmf: DMMF.Document = {
               ],
               "isNullable": false,
               "name": "createOneUser",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User"
+              }
+            },
+            {
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where"
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedCreateInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "create"
+                },
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUpdateInput"
+                    },
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserUncheckedUpdateInput"
+                    }
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "update"
+                }
+              ],
+              "isNullable": false,
+              "name": "upsertOneUser",
               "outputType": {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -4730,69 +4746,6 @@ const dmmf: DMMF.Document = {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
-                      "type": "UserWhereUniqueInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "where"
-                },
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserCreateInput"
-                    },
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedCreateInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "create"
-                },
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUpdateInput"
-                    },
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "UserUncheckedUpdateInput"
-                    }
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "update"
-                }
-              ],
-              "isNullable": false,
-              "name": "upsertOneUser",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User"
-              }
-            },
-            {
-              "args": [
-                {
-                  "inputTypes": [
-                    {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
                       "type": "UserUpdateManyMutationInput"
                     },
                     {
@@ -4826,7 +4779,7 @@ const dmmf: DMMF.Document = {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload"
+                "type": "AffectedRowsOutput"
               }
             },
             {
@@ -4851,7 +4804,7 @@ const dmmf: DMMF.Document = {
                 "isList": false,
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
-                "type": "BatchPayload"
+                "type": "AffectedRowsOutput"
               }
             },
             {
@@ -5060,7 +5013,7 @@ const dmmf: DMMF.Document = {
               }
             }
           ],
-          "name": "BatchPayload"
+          "name": "AffectedRowsOutput"
         },
         {
           "fields": [
