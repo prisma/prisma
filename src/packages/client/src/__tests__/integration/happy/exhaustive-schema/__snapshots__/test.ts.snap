@@ -1620,7 +1620,7 @@ export namespace Prisma {
     **/
     createMany<T extends PostCreateManyArgs>(
       args?: SelectSubset<T, PostCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a Post.
@@ -1671,7 +1671,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends PostDeleteManyArgs>(
       args?: SelectSubset<T, PostDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Posts.
@@ -1692,7 +1692,7 @@ export namespace Prisma {
     **/
     updateMany<T extends PostUpdateManyArgs>(
       args: SelectSubset<T, PostUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one Post.
@@ -2536,7 +2536,7 @@ export namespace Prisma {
     **/
     createMany<T extends UserCreateManyArgs>(
       args?: SelectSubset<T, UserCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a User.
@@ -2587,7 +2587,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends UserDeleteManyArgs>(
       args?: SelectSubset<T, UserDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Users.
@@ -2608,7 +2608,7 @@ export namespace Prisma {
     **/
     updateMany<T extends UserUpdateManyArgs>(
       args: SelectSubset<T, UserUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one User.
@@ -3444,7 +3444,7 @@ export namespace Prisma {
     **/
     createMany<T extends MCreateManyArgs>(
       args?: SelectSubset<T, MCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a M.
@@ -3495,7 +3495,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends MDeleteManyArgs>(
       args?: SelectSubset<T, MDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Ms.
@@ -3516,7 +3516,7 @@ export namespace Prisma {
     **/
     updateMany<T extends MUpdateManyArgs>(
       args: SelectSubset<T, MUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one M.
@@ -4352,7 +4352,7 @@ export namespace Prisma {
     **/
     createMany<T extends NCreateManyArgs>(
       args?: SelectSubset<T, NCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a N.
@@ -4403,7 +4403,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends NDeleteManyArgs>(
       args?: SelectSubset<T, NDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Ns.
@@ -4424,7 +4424,7 @@ export namespace Prisma {
     **/
     updateMany<T extends NUpdateManyArgs>(
       args: SelectSubset<T, NUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one N.
@@ -5260,7 +5260,7 @@ export namespace Prisma {
     **/
     createMany<T extends OneOptionalCreateManyArgs>(
       args?: SelectSubset<T, OneOptionalCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a OneOptional.
@@ -5311,7 +5311,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends OneOptionalDeleteManyArgs>(
       args?: SelectSubset<T, OneOptionalDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more OneOptionals.
@@ -5332,7 +5332,7 @@ export namespace Prisma {
     **/
     updateMany<T extends OneOptionalUpdateManyArgs>(
       args: SelectSubset<T, OneOptionalUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one OneOptional.
@@ -6180,7 +6180,7 @@ export namespace Prisma {
     **/
     createMany<T extends ManyRequiredCreateManyArgs>(
       args?: SelectSubset<T, ManyRequiredCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a ManyRequired.
@@ -6231,7 +6231,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends ManyRequiredDeleteManyArgs>(
       args?: SelectSubset<T, ManyRequiredDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more ManyRequireds.
@@ -6252,7 +6252,7 @@ export namespace Prisma {
     **/
     updateMany<T extends ManyRequiredUpdateManyArgs>(
       args: SelectSubset<T, ManyRequiredUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one ManyRequired.
@@ -7100,7 +7100,7 @@ export namespace Prisma {
     **/
     createMany<T extends OptionalSide1CreateManyArgs>(
       args?: SelectSubset<T, OptionalSide1CreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a OptionalSide1.
@@ -7151,7 +7151,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends OptionalSide1DeleteManyArgs>(
       args?: SelectSubset<T, OptionalSide1DeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more OptionalSide1s.
@@ -7172,7 +7172,7 @@ export namespace Prisma {
     **/
     updateMany<T extends OptionalSide1UpdateManyArgs>(
       args: SelectSubset<T, OptionalSide1UpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one OptionalSide1.
@@ -8008,7 +8008,7 @@ export namespace Prisma {
     **/
     createMany<T extends OptionalSide2CreateManyArgs>(
       args?: SelectSubset<T, OptionalSide2CreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a OptionalSide2.
@@ -8059,7 +8059,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends OptionalSide2DeleteManyArgs>(
       args?: SelectSubset<T, OptionalSide2DeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more OptionalSide2s.
@@ -8080,7 +8080,7 @@ export namespace Prisma {
     **/
     updateMany<T extends OptionalSide2UpdateManyArgs>(
       args: SelectSubset<T, OptionalSide2UpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one OptionalSide2.
@@ -8886,7 +8886,7 @@ export namespace Prisma {
     **/
     createMany<T extends ACreateManyArgs>(
       args?: SelectSubset<T, ACreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a A.
@@ -8937,7 +8937,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends ADeleteManyArgs>(
       args?: SelectSubset<T, ADeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more As.
@@ -8958,7 +8958,7 @@ export namespace Prisma {
     **/
     updateMany<T extends AUpdateManyArgs>(
       args: SelectSubset<T, AUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one A.
@@ -9691,7 +9691,7 @@ export namespace Prisma {
     **/
     createMany<T extends BCreateManyArgs>(
       args?: SelectSubset<T, BCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a B.
@@ -9742,7 +9742,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends BDeleteManyArgs>(
       args?: SelectSubset<T, BDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Bs.
@@ -9763,7 +9763,7 @@ export namespace Prisma {
     **/
     updateMany<T extends BUpdateManyArgs>(
       args: SelectSubset<T, BUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one B.
@@ -10466,7 +10466,7 @@ export namespace Prisma {
     **/
     createMany<T extends CCreateManyArgs>(
       args?: SelectSubset<T, CCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a C.
@@ -10517,7 +10517,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends CDeleteManyArgs>(
       args?: SelectSubset<T, CDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Cs.
@@ -10538,7 +10538,7 @@ export namespace Prisma {
     **/
     updateMany<T extends CUpdateManyArgs>(
       args: SelectSubset<T, CUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one C.
@@ -11225,7 +11225,7 @@ export namespace Prisma {
     **/
     createMany<T extends DCreateManyArgs>(
       args?: SelectSubset<T, DCreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a D.
@@ -11276,7 +11276,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends DDeleteManyArgs>(
       args?: SelectSubset<T, DDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Ds.
@@ -11297,7 +11297,7 @@ export namespace Prisma {
     **/
     updateMany<T extends DUpdateManyArgs>(
       args: SelectSubset<T, DUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one D.
@@ -11976,7 +11976,7 @@ export namespace Prisma {
     **/
     createMany<T extends ECreateManyArgs>(
       args?: SelectSubset<T, ECreateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Delete a E.
@@ -12027,7 +12027,7 @@ export namespace Prisma {
     **/
     deleteMany<T extends EDeleteManyArgs>(
       args?: SelectSubset<T, EDeleteManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Update zero or more Es.
@@ -12048,7 +12048,7 @@ export namespace Prisma {
     **/
     updateMany<T extends EUpdateManyArgs>(
       args: SelectSubset<T, EUpdateManyArgs>
-    ): Promise<BatchPayload>
+    ): PrismaPromise<BatchPayload>
 
     /**
      * Create or update one E.
