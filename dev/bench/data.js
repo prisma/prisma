@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613394364310,
+  "lastUpdate": 1613395074381,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6453,6 +6453,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±1.62%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "40d32710c09741e005014c0d99f335a1feb22587",
+          "message": "fix(client): Fix #5616 (#5625)",
+          "timestamp": "2021-02-15T14:14:17+01:00",
+          "tree_id": "9012b060beec391ed48a14b971103bb4bc6a7f94",
+          "url": "https://github.com/prisma/prisma/commit/40d32710c09741e005014c0d99f335a1feb22587"
+        },
+        "date": 1613395073614,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±4.02%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.43%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
