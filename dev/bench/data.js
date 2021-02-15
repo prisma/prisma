@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613390085098,
+  "lastUpdate": 1613391128678,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6275,6 +6275,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.90%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1206e92bdcbf79dd49c9f1c6aef95f11bc6462fa",
+          "message": "chore(deps): update devdependencies (non-major) (#5566)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-02-15T13:08:25+01:00",
+          "tree_id": "ea64cc2cab3346f5dd9b9f2cf793f266157218d9",
+          "url": "https://github.com/prisma/prisma/commit/1206e92bdcbf79dd49c9f1c6aef95f11bc6462fa"
+        },
+        "date": 1613391127842,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±6.35%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.34%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
