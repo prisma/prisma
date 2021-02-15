@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613408938165,
+  "lastUpdate": 1613409398782,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6851,6 +6851,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±3.01%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4bd1d2850f1dc7c09054fd7c776c3707fc601b55",
+          "message": "test(migrate): add shadowdb test (#5667)\n\n* test(migrate): add shadowdb test\r\n\r\n* ci: fix gh actions env var",
+          "timestamp": "2021-02-15T18:12:55+01:00",
+          "tree_id": "844b3e386d61f063b3ef4723aa184b7fc5894bc2",
+          "url": "https://github.com/prisma/prisma/commit/4bd1d2850f1dc7c09054fd7c776c3707fc601b55"
+        },
+        "date": 1613409394890,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±5.33%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.79%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
