@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613388774182,
+  "lastUpdate": 1613389055072,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6165,6 +6165,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "114a898a2bce813106253ddba0eead084ca9c544",
+          "message": "chore: renovate separate esbuild",
+          "timestamp": "2021-02-15T12:33:59+01:00",
+          "tree_id": "86618f54d638f78676ca83fa887b6d3dd627df33",
+          "url": "https://github.com/prisma/prisma/commit/114a898a2bce813106253ddba0eead084ca9c544"
+        },
+        "date": 1613389054467,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±5.57%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.92%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
