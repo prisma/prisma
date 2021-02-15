@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613391291075,
+  "lastUpdate": 1613392297012,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6381,6 +6381,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.19,
             "range": "±3.19%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "61c25890411285d01c5d3df07283a79aa7e01cdb",
+          "message": "fix(*): add prisma to debug namespace (#5659)\n\nRelated\r\nhttps://github.com/prisma/prisma/pull/5658",
+          "timestamp": "2021-02-15T13:28:18+01:00",
+          "tree_id": "2fcd94d5bcbfe1cfb5be32b459f1b1938af36942",
+          "url": "https://github.com/prisma/prisma/commit/61c25890411285d01c5d3df07283a79aa7e01cdb"
+        },
+        "date": 1613392293480,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.44,
+            "range": "±5.33%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.16,
+            "range": "±3.04%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
