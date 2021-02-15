@@ -12,9 +12,13 @@ exports[`postgresql existingdb: create first migration 3`] = `Array []`;
 
 exports[`postgresql existingdb: create first migration 4`] = `Array []`;
 
-exports[`postgresql schema only (prompt yes) 2`] = `Array []`;
+exports[`postgresql schema only 2`] = `Array []`;
 
-exports[`postgresql schema only (prompt yes) 3`] = `Array []`;
+exports[`postgresql schema only 3`] = `Array []`;
+
+exports[`postgresql schema only with shadowdb 2`] = `Array []`;
+
+exports[`postgresql schema only with shadowdb 3`] = `Array []`;
 
 exports[`sqlite broken migration should fail 2`] = ``;
 
