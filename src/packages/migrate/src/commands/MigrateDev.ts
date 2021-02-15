@@ -237,6 +237,7 @@ ${chalk.bold('Examples')}
     const userCancelled = await handleWarnings(
       evaluateDataLossResult.warnings,
       args['--force'],
+      args['--create-only'],
     )
     if (userCancelled) {
       migrate.stop()
