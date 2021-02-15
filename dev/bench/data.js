@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613359443501,
+  "lastUpdate": 1613378324317,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -5695,6 +5695,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±5.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9180bc3bee2919d889b355b60be76f508086f9d2",
+          "message": "fix(client): allow xMany in $transactions (#5629)",
+          "timestamp": "2021-02-15T09:35:31+01:00",
+          "tree_id": "1296e95d263fd01f58a85e3b55bed62d2866716c",
+          "url": "https://github.com/prisma/prisma/commit/9180bc3bee2919d889b355b60be76f508086f9d2"
+        },
+        "date": 1613378323549,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.48,
+            "range": "±6.15%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±2.69%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
