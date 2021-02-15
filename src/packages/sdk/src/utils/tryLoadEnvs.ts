@@ -127,13 +127,21 @@ export function loadEnv(
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
+    const debugEnv = process.env.DEBUG
+
+    // Value needs to be null or undefined, false is truthy
+    // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
+    let enableDebug: true | undefined = undefined
+
+    if (debugEnv && (debugEnv.includes('prisma') || debugEnv === '*')) {
+      enableDebug = true
+    }
+
     return {
       dotenvResult: dotenvExpand(
         dotenv.config({
           path: envPath,
-          // Value needs to be null or undefined, false is truthy
-          // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
-          debug: Boolean(process.env.DEBUG) || undefined,
+          debug: enableDebug,
         }),
       ),
       message: chalk.dim(
