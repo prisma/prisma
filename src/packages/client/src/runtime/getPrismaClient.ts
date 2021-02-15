@@ -918,14 +918,11 @@ new PrismaClient({
       return Promise.all(
         requests.map((r) => {
           if (Object.prototype.toString.call(r) === '[object Promise]') {
-            // console.log('promise')
             return r
           }
           if (r && typeof r === 'function') {
-            // console.log('fun')
             return r()
           }
-          // console.log('lol')
           return r
         }),
       )
