@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613395074381,
+  "lastUpdate": 1613395288485,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -6491,6 +6491,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.43%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "4364cfbcef7b63c42fc59f12c492cb42cbcb8c0d",
+          "message": "fix(sdk): enable dotenv debug only if prisma or * in cli,client,migrate",
+          "timestamp": "2021-02-15T13:14:21Z",
+          "url": "https://github.com/prisma/prisma/pull/5658/commits/4364cfbcef7b63c42fc59f12c492cb42cbcb8c0d"
+        },
+        "date": 1613395287578,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.46,
+            "range": "±4.61%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±6.12%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
