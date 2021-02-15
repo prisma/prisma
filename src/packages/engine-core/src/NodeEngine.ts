@@ -40,7 +40,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 
-const debug = Debug('engine')
+const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
 export interface DatasourceOverwrite {

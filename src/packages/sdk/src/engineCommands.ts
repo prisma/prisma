@@ -6,7 +6,7 @@ import fs from 'fs'
 import { promisify } from 'util'
 import Debug from '@prisma/debug'
 import { resolveBinary, EngineType } from './resolveBinary'
-const debug = Debug('engineCommands')
+const debug = Debug('prisma:engineCommands')
 
 const unlink = promisify(fs.unlink)
 
