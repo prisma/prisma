@@ -7,7 +7,7 @@
     "eslint": "eslint"
   },
   "devDependencies": {
-    "@types/node": "14.14.25",
+    "@types/node": "14.14.28",
     "@types/benchmark": "2.1.0",
     "@typescript-eslint/eslint-plugin": "4.14.2",
     "@typescript-eslint/parser": "4.14.2",
