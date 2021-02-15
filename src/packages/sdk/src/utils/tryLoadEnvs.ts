@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { dotenvExpand } from '../dotenvExpand'
-const debug = Debug('tryLoadEnv')
+const debug = Debug('prisma:tryLoadEnv')
 
 type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
