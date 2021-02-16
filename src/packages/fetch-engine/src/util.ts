@@ -52,7 +52,7 @@ export async function getCacheDir(
   }
   return cacheDir
 }
-// libquery_engine_napi
+
 export function getDownloadUrl(
   channel: string,
   version: string,

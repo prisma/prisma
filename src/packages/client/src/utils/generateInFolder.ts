@@ -97,7 +97,6 @@ export async function generateInFolder({
   }
 
   const enginesPath = getEnginesPath()
-  console.log(enginesPath);
   await generateClient({
     binaryPaths: useNapi ? {
       libqueryEngineNapi:  {
