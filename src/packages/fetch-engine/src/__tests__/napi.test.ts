@@ -20,7 +20,7 @@ describe('download', () => {
     const baseDir = path.join(__dirname, 'all')
     await download({
       binaries: {
-        libquery_engine_napi: baseDir,
+        "libquery_engine_napi": baseDir,
       },
       binaryTargets: [
         'darwin',

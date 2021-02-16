@@ -35,7 +35,7 @@ const readFile = promisify(fs.readFile)
 const channel = 'master'
 export interface BinaryDownloadConfiguration {
   'query-engine'?: string
-  libquery_engine_napi?: string
+  'libquery_engine_napi'?: string
   'migration-engine'?: string
   'introspection-engine'?: string
   'prisma-fmt'?: string
@@ -64,6 +64,7 @@ export type BinaryPaths = {
 const binaryToEnvVar = {
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
+  'libquery-engine-napi': 'PRISMA_QUERY_ENGINE_NAPI_LIBRARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
@@ -510,7 +511,7 @@ function engineTypeToBinaryType(
     return 'query-engine'
   }
   if (engineType === 'libqueryEngineNapi') {
-    return 'libquery-engine-napi'
+    return 'libquery_engine_napi'
   }
   if (engineType === 'prismaFmt') {
     return 'prisma-fmt'
