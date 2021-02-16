@@ -4,8 +4,6 @@ const chalk = require('chalk')
 const { promisify } = require('util')
 
 const copyFile = promisify(fs.copyFile)
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
 
 async function main() {
   const before = Date.now()
@@ -28,14 +26,14 @@ async function main() {
     run('tsc --build tsconfig.runtime.json', true),
     run('tsc --build tsconfig.json', true),
     run(
-      'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
+      "esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10 --external:@prisma/engines",
       false,
     ),
   ])
 
   await Promise.all([
     run(
-      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
+      "esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10 --external:@prisma/engines",
       false,
     ),
     await run(
