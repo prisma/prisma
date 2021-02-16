@@ -77,7 +77,6 @@ export async function buildClient({
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const useNapi = generator?.config?.['engine'] === 'napi' 
-  console.log(binaryPaths);
   const client = new TSClient({
     document,
     runtimePath,
@@ -151,7 +150,6 @@ export async function generateClient({
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI = generator!.config['engine'] === 'napi'
-  console.log(binaryPaths)
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
