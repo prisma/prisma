@@ -1,11 +1,10 @@
 import Debug from '@prisma/debug'
-import { Platform, getos } from '@prisma/get-platform'
+import { Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import os from 'os'
 import path from 'path'
-import Debug from '@prisma/debug'
 const debug = Debug('prisma:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
