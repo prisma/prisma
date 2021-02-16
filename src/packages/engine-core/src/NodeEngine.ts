@@ -43,7 +43,7 @@ import {
   GetConfigResult,
 } from './Engine'
 
-const debug = Debug('engine')
+const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
 // eslint-disable-next-line

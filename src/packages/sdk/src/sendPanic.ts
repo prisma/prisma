@@ -14,7 +14,7 @@ import { RustPanic, ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
 import { IntrospectionEngine } from './IntrospectionEngine'
 
-const debug = Debug('sendPanic')
+const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 

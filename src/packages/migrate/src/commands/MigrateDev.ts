@@ -38,7 +38,7 @@ import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
 
-const debug = Debug('migrate:dev')
+const debug = Debug('prisma:migrate:dev')
 
 export class MigrateDev implements Command {
   public static new(): MigrateDev {
@@ -237,6 +237,7 @@ ${chalk.bold('Examples')}
     const userCancelled = await handleWarnings(
       evaluateDataLossResult.warnings,
       args['--force'],
+      args['--create-only'],
     )
     if (userCancelled) {
       migrate.stop()

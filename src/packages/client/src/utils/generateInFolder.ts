@@ -12,7 +12,7 @@ import { generateClient } from '../generation/generateClient'
 import { getPackedPackage } from '@prisma/sdk'
 import { getEnginesPath } from '@prisma/engines'
 import Debug from '@prisma/debug'
-const debug = Debug('generateInFolder')
+const debug = Debug('prisma:generateInFolder')
 import copy from '@timsuchanek/copy'
 import rimraf from 'rimraf'
 import { promisify } from 'util'

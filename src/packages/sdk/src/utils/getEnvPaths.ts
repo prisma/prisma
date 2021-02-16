@@ -5,7 +5,7 @@ import fs from 'fs'
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
-const debug = Debug('loadEnv')
+const debug = Debug('prisma:loadEnv')
 /**
  *  1. Search in project root
  *  1. Schema

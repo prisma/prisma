@@ -22,7 +22,7 @@ import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 
-const debug = Debug('migrate:status')
+const debug = Debug('prisma:migrate:status')
 
 export class MigrateStatus implements Command {
   public static new(): MigrateStatus {

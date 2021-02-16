@@ -5,7 +5,8 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import os from 'os'
 import path from 'path'
-const debug = Debug('cache-dir')
+import Debug from '@prisma/debug'
+const debug = Debug('prisma:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
