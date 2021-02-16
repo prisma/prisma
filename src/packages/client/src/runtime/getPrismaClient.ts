@@ -124,7 +124,6 @@ export interface PrismaClientOptions {
   __internal?: {
     debug?: boolean
     hooks?: Hooks
-    engineType?: 'napi' | 'uds' | 'tcp' 
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -418,7 +417,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(this._previewFeatures),
-          engineType: internal.engineType ?? 'tcp',
+          engineType: config.generator?.config?.engine === 'napi' ? 'napi' : 'tcp',
           activeProvider: config.activeProvider,
         }
 
