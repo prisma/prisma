@@ -5,7 +5,7 @@ datasource db {
 
 generator client {
   provider = "prisma-client-js"
-  engine   = "napi"
+  engine = "napi"
 }
 
 model Events {

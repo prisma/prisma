@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getPlatform, Platform } from '@prisma/get-platform'
 import {
   getConfig,
   getDMMF,
@@ -46,6 +46,7 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const useNapi = config.generators[0].config?.engine === 'napi'
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
 
   const dmmf = await getDMMF({
@@ -96,9 +97,16 @@ export async function generateInFolder({
   }
 
   const enginesPath = getEnginesPath()
-
+  console.log(enginesPath);
   await generateClient({
-    binaryPaths: {
+    binaryPaths: useNapi ? {
+      libqueryEngineNapi:  {
+        [platform]: path.join(
+          enginesPath,
+          getNapiName(platform, 'fs'),
+        ),
+      }
+    } : {
       queryEngine: {
         [platform]: path.join(
           enginesPath,
@@ -138,4 +146,31 @@ function getSchemaPath(projectDir: string): string {
   throw new Error(
     `Could not find any schema.prisma in ${projectDir} or sub directories.`,
   )
+}
+
+export const NAPI_QUERY_ENGINE_BASE = 'libquery_engine_napi'
+
+export function getNapiName(platform: Platform, type: 'url' | 'fs') {
+  const isUrl = type === 'url'
+  if (platform.includes('windows')) {
+    return isUrl
+      ? `query_engine_napi.dll.node`
+      : `query_engine_napi-${platform}.dll.node`
+  } else if (
+    platform.includes('linux') ||
+    platform.includes('debian') ||
+    platform.includes('rhel')
+  ) {
+    return isUrl
+      ? `${NAPI_QUERY_ENGINE_BASE}.so.node`
+      : `${NAPI_QUERY_ENGINE_BASE}-${platform}.so.node`
+  } else if (platform.includes('darwin')) {
+    return isUrl
+      ? `${NAPI_QUERY_ENGINE_BASE}.dylib.node`
+      : `${NAPI_QUERY_ENGINE_BASE}-${platform}.dylib.node`
+  } else {
+    throw new Error(
+      `NAPI is currently not supported on your platform: ${platform}`,
+    )
+  }
 }
