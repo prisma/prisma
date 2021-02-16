@@ -1,5 +1,3 @@
-import { NAPIEngine } from './NAPIEngine'
-
 export {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,

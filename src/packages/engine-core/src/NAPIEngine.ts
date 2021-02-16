@@ -1,20 +1,28 @@
 import { DMMF } from '@prisma/generator-helper'
-import {
+import fs from 'fs'
+import type {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
 } from './Engine'
-import fs from 'fs'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   RequestError,
 } from './errors'
-// TODO: use more elaborate logic
-const { QueryEngine: _QueryEngine } = require('../libquery_engine_napi.so.node')
+let _QueryEngine
+try {
+  const test = eval(
+    "require('@prisma/engines/libquery_engine_napi-debian-openssl-1.1.x.so.node')",
+  )
+  _QueryEngine = test.QueryEngine
+  console.log(_QueryEngine);
+} catch (e) {
+  // Shhhh
+}
 
 const QueryEngine: QueryEngineConstructor = _QueryEngine
 
@@ -138,7 +146,10 @@ export class NAPIEngine implements Engine {
     return this.startPromise
   }
   async stop(): Promise<void> {
-    return this.engine.disconnect()
+    return new Promise((res) => {
+      this.engine.disconnect()
+      res()
+    })
   }
   kill(signal: string): void {
     return this.engine.disconnect()
