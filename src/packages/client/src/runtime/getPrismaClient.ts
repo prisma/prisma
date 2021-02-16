@@ -424,11 +424,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
         debug({ clientVersion: config.clientVersion })
 
-        if(this._engineConfig.engineType === 'napi'){
-          this._engine = new NAPIEngine(this._engineConfig)
-        } else {
-          this._engine = new NodeEngine(this._engineConfig)
-        }
+        this._engine = this.getEngine()
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
         if (options.log) {
@@ -465,6 +461,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
+    }
+    private getEngine(){
+      if(this._engineConfig.engineType === 'napi'){
+        return new NAPIEngine(this._engineConfig)
+      } else {
+        return new NodeEngine(this._engineConfig)
+      }
     }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
@@ -528,7 +531,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     async _runDisconnect() {
       await this._engine.stop()
       delete this._connectionPromise
-      this._engine = new NAPIEngine(this._engineConfig)
+      this._engine = this.getEngine()
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
