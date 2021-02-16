@@ -1,4 +1,4 @@
-import { getErrorMessageWithLink } from '../Engine'
+import { getErrorMessageWithLink } from '../errors'
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
 
