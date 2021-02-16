@@ -76,7 +76,8 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-
+  const useNapi = generator?.config?.['engine'] === 'napi' 
+  console.log(binaryPaths);
   const client = new TSClient({
     document,
     runtimePath,
@@ -88,7 +89,7 @@ export async function buildClient({
       outputDir,
     ),
     generator,
-    platforms: Object.keys(binaryPaths.queryEngine!),
+    platforms: useNapi ? Object.keys(binaryPaths.libqueryEngineNapi!) : Object.keys(binaryPaths.queryEngine!),
     schemaDir,
     outputDir,
     clientVersion,
@@ -152,7 +153,8 @@ export async function generateClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
-
+  const useNAPI = generator!.config['engine'] === 'napi'
+  console.log(binaryPaths)
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
@@ -233,15 +235,19 @@ export async function generateClient({
       })
     }
   }
+  const enginePath = useNAPI
+    ? binaryPaths.libqueryEngineNapi
+    : binaryPaths.queryEngine
 
-  if (!binaryPaths.queryEngine) {
+  if (!enginePath) {
     throw new Error(
-      `Prisma Client needs \`queryEngine\` in the \`binaryPaths\` object.`,
+      `Prisma Client needs \`${
+        useNAPI ? 'libqueryEngineNapi' : 'queryEngine'
+      }\` in the \`binaryPaths\` object.`,
     )
   }
-
   if (transpile) {
-    for (const filePath of Object.values(binaryPaths.queryEngine)) {
+    for (const filePath of Object.values(enginePath)) {
       const fileName = path.basename(filePath)
       const target = path.join(finalOutputDir, fileName)
       const [sourceFileSize, targetFileSize] = await Promise.all([
