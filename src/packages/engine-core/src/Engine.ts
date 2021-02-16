@@ -25,6 +25,8 @@ export interface Engine {
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
+export type EngineType = 'uds' | 'tcp' | 'napi'
+
 export interface DatasourceOverwrite {
   name: string
   url: string
@@ -45,7 +47,7 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
-  useUds?: boolean
+  engineType?: EngineType
 
   clientVersion?: string
   enableExperimental?: string[]
