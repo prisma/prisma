@@ -14,7 +14,7 @@ import tempDir from 'temp-dir'
 import { getBar } from './log'
 import plusxSync from './chmod'
 import { copy } from './copy'
-import { getPlatform, Platform, platforms, getos } from '@prisma/get-platform'
+import { getPlatform, Platform, platforms, getos, NAPI_QUERY_ENGINE_FS_BASE, getNapiName } from '@prisma/get-platform'
 import { downloadZip } from './downloadZip'
 import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
@@ -30,6 +30,7 @@ const readFile = promisify(fs.readFile)
 const channel = 'master'
 export interface BinaryDownloadConfiguration {
   'query-engine'?: string
+  'libquery-engine-napi'?: string
   'migration-engine'?: string
   'introspection-engine'?: string
   'prisma-fmt'?: string
@@ -50,6 +51,7 @@ export interface DownloadOptions {
 export type BinaryPaths = {
   'migration-engine'?: { [binaryTarget: string]: string } // key: target, value: path
   'query-engine'?: { [binaryTarget: string]: string }
+  'libquery-engine-napi'?: { [binaryTarget: string]: string }
   'introspection-engine'?: { [binaryTarget: string]: string }
   'prisma-fmt'?: { [binaryTarget: string]: string }
 }
@@ -57,6 +59,7 @@ export type BinaryPaths = {
 const binaryToEnvVar = {
   'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
   'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
+  'libquery-engine-napi': 'PRISMA_QUERY_ENGINE_NAPI_LIBRARY',
   'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   'prisma-fmt': 'PRISMA_FMT_BINARY',
 }
@@ -64,7 +67,7 @@ const binaryToEnvVar = {
 type BinaryDownloadJob = {
   binaryName: string
   targetFolder: string
-  binaryTarget: string
+  binaryTarget: Platform
   fileName: string
   targetFilePath: string
   envVarPath: string | null
@@ -330,7 +333,10 @@ export async function checkVersionCommand(
   }
 }
 
-export function getBinaryName(binaryName: string, platform: string): string {
+export function getBinaryName(binaryName: string, platform: Platform): string {
+  if (binaryName === NAPI_QUERY_ENGINE_FS_BASE) {
+    return `${getNapiName(platform, 'fs')}`
+  }
   const extension = platform === 'windows' ? '.exe' : ''
   return `${binaryName}-${platform}${extension}`
 }
@@ -499,7 +505,9 @@ function engineTypeToBinaryType(
   if (engineType === 'queryEngine') {
     return 'query-engine'
   }
-
+  if (engineType === 'libqueryEngineNapi') {
+    return 'libquery_engine_napi'
+  }
   if (engineType === 'prismaFmt') {
     return 'prisma-fmt'
   }
