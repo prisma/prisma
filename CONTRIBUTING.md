@@ -69,7 +69,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 1. `cd src/packages/client`
 1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 1. `cd fixtures/blog`
-1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
+1. `export DB_URL=YOUR_DATABASE_URL`  
    For this step you might find our [docker-compose setup](./src/docker) helpful
 1. `npx prisma db push --preview-feature`
 1. `ts-node main`
