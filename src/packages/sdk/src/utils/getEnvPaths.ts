@@ -56,7 +56,7 @@ function getProjectRootEnvPath(
           return pkgPath
         }
       } catch (e) {
-        debug(`failed to load ${pkgPath}`)
+        debug(`skipping package.json at ${pkgPath}`)
       }
     }
   }, opts)
