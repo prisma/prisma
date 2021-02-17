@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613521149500,
+  "lastUpdate": 1613534206301,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -7823,6 +7823,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±2.90%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bot@renovateapp.com",
+            "name": "Renovate Bot",
+            "username": "renovate-bot"
+          },
+          "committer": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "distinct": true,
+          "id": "3822805c14aabe2f4e4077132c59b6e8cf5f4dc4",
+          "message": "chore(deps): update dependency @types/pg to v7.14.10",
+          "timestamp": "2021-02-17T03:53:15Z",
+          "tree_id": "b50fa74f141de7d1319d8487574fdeafd668f4bb",
+          "url": "https://github.com/prisma/prisma/commit/3822805c14aabe2f4e4077132c59b6e8cf5f4dc4"
+        },
+        "date": 1613534205474,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±4.00%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.31%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
