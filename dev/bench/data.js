@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613541181694,
+  "lastUpdate": 1613545757540,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -7929,6 +7929,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.67%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bot@renovateapp.com",
+            "name": "Renovate Bot",
+            "username": "renovate-bot"
+          },
+          "committer": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "distinct": true,
+          "id": "da11b1583a49473d6fac79ca693678625aa0ec3b",
+          "message": "chore(deps): update devdependencies (non-major)",
+          "timestamp": "2021-02-17T07:05:18Z",
+          "tree_id": "b8a62073b89f612655d0e612d1b62460eb4e2be1",
+          "url": "https://github.com/prisma/prisma/commit/da11b1583a49473d6fac79ca693678625aa0ec3b"
+        },
+        "date": 1613545756699,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±7.02%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.83%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
