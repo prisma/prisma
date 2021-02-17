@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613567036797,
+  "lastUpdate": 1613567850964,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -8281,6 +8281,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.76%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "aa431bca61007ce2d27dd140e15e08000994e69c",
+          "message": "chore(sdk): clean up debug logs (#5707)",
+          "timestamp": "2021-02-17T14:14:06+01:00",
+          "tree_id": "355e02ffadf525ad80b12e48144a479ba6d5f2f1",
+          "url": "https://github.com/prisma/prisma/commit/aa431bca61007ce2d27dd140e15e08000994e69c"
+        },
+        "date": 1613567849684,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.45,
+            "range": "±4.76%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±4.68%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
