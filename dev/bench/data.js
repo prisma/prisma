@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613570154774,
+  "lastUpdate": 1613570503511,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -8353,6 +8353,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.04%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "d8fa70cf9584bec69ea8ed1999124f67cbc77bf9",
+          "message": "feat(fetch-engine,generator-helper, get-platform): inital napi support",
+          "timestamp": "2021-02-17T13:14:10Z",
+          "url": "https://github.com/prisma/prisma/pull/5708/commits/d8fa70cf9584bec69ea8ed1999124f67cbc77bf9"
+        },
+        "date": 1613570502655,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±6.82%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±1.73%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
