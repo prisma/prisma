@@ -26,6 +26,7 @@ import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import { getTerminatedOptions } from '../utils/args'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -65,7 +66,7 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate reset --schema=./schema.prisma --preview-feature 
+  )} prisma migrate reset --schema=./schema.prisma --preview-feature
 
   Use --force to skip the confirmation prompt
   ${chalk.dim('$')} prisma migrate reset --force --preview-feature
@@ -186,7 +187,8 @@ The following migration(s) have been applied:\n\n${chalk(
       // Run seed if 1 or more seed files are present
       const detected = detectSeedFiles(schemaPath)
       if (detected.numberOfSeedFiles > 0) {
-        await tryToRunSeed(schemaPath)
+        const extraArgs = getTerminatedOptions(argv)
+        await tryToRunSeed(schemaPath, extraArgs)
       }
     }
 

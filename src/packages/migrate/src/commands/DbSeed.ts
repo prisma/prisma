@@ -12,6 +12,7 @@ import chalk from 'chalk'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { NoSchemaFoundError } from '../utils/errors'
 import { tryToRunSeed } from '../utils/seed'
+import { getTerminatedOptions } from '../utils/args'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -83,7 +84,8 @@ ${chalk.bold('Examples')}
       ),
     )
 
-    await tryToRunSeed(schemaPath)
+    const extraArgs = getTerminatedOptions(argv)
+    await tryToRunSeed(schemaPath, extraArgs)
 
     return `\n${
       process.platform === 'win32' ? '' : '🌱  '

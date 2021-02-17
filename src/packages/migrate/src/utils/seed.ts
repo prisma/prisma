@@ -64,8 +64,13 @@ export function detectSeedFiles(schemaPath) {
   return detected
 }
 
-export async function tryToRunSeed(schemaPath: string | null) {
+export async function tryToRunSeed(
+  schemaPath: string | null,
+  args: string[] = [],
+) {
   const detected = detectSeedFiles(schemaPath)
+
+  const argsString = args.length === 0 ? '' : ' ' + args.join(' ')
 
   if (detected.numberOfSeedFiles === 0) {
     throw new Error(`No seed file found.
@@ -80,8 +85,10 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \
     )
   } else {
     if (detected.js) {
-      console.info(`Running ${chalk.bold(`node "${detected.js}"`)} ...`)
-      return await execa('node', [`"${detected.js}"`], {
+      console.info(
+        `Running ${chalk.bold(`node "${detected.js}"${argsString}`)} ...`,
+      )
+      return await execa('node', [`"${detected.js}"`, ...args], {
         shell: true,
         stdio: 'inherit',
       })
@@ -113,20 +120,25 @@ To install them run: ${chalk.green(
         )}\n`)
       }
 
-      console.info(`Running ${chalk.bold(`ts-node "${detected.ts}"`)} ...`)
-      return await execa('ts-node', [`"${detected.ts}"`], {
+      const tsNodeArgs = [...args, `"${detected.ts}"`]
+      console.info(
+        `Running ${chalk.bold(`ts-node ${tsNodeArgs.join(' ')}`)} ...`,
+      )
+      return await execa('ts-node', tsNodeArgs, {
         shell: true,
         stdio: 'inherit',
       })
     } else if (detected.sh) {
-      console.info(`Running ${chalk.bold(`sh "${detected.sh}"`)} ...`)
-      return await execa('sh', [`"${detected.sh}"`], {
+      const shArgs = [`"${detected.sh}"`, ...args]
+      console.info(`Running ${chalk.bold(`sh ${shArgs.join(' ')}`)} ...`)
+      return await execa('sh', shArgs, {
         shell: true,
         stdio: 'inherit',
       })
     } else if (detected.go) {
-      console.info(`Running ${chalk.bold(`go run "${detected.go}"`)} ...`)
-      return await execa('go run', [`"${detected.go}"`], {
+      const goArgs = [`"${detected.go}"`, ...args]
+      console.info(`Running ${chalk.bold(`go run ${goArgs.join(' ')}`)} ...`)
+      return await execa('go run', goArgs, {
         shell: true,
         stdio: 'inherit',
       })

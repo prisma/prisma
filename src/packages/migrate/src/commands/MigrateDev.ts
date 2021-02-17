@@ -37,6 +37,7 @@ import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import { getTerminatedOptions } from '../utils/args'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -58,7 +59,7 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 ${chalk.dim(
   'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
 )}
-  
+
 ${chalk.bold('Usage')}
 
   ${chalk.dim('$')} prisma migrate dev [options] --preview-feature
@@ -216,7 +217,8 @@ ${chalk.bold('Examples')}
         const detected = detectSeedFiles(schemaPath)
         if (detected.numberOfSeedFiles > 0) {
           console.info() // empty line
-          await tryToRunSeed(schemaPath)
+          const extraArgs = getTerminatedOptions(argv)
+          await tryToRunSeed(schemaPath, extraArgs)
         }
       } catch (e) {
         console.error(e)

@@ -186,4 +186,27 @@ describe('seed', () => {
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
+
+  it.only('custom arguments to ts-node', async () => {
+    ctx.fixture('seed-sqlite')
+    ctx.fs.remove('prisma/seed.js')
+    // ctx.fs.remove('prisma/seed.ts')
+    ctx.fs.remove('prisma/seed.sh')
+    ctx.fs.remove('prisma/seed.go')
+
+    const result = DbSeed.new().parse([
+      '--preview-feature',
+      '--',
+      '--compiler-options',
+      `'{\"module\":\"CommonJS\"}'`,
+      '--noEmit',
+    ])
+
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
 })
