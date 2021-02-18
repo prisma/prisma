@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613626288134,
+  "lastUpdate": 1613635221803,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -8591,6 +8591,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.32%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "26f73b6da08a21a31123eebb4592e5bd45716c17",
+          "message": "fix(deps): update dependency is-ci to v3",
+          "timestamp": "2021-02-18T07:47:26Z",
+          "url": "https://github.com/prisma/prisma/pull/5720/commits/26f73b6da08a21a31123eebb4592e5bd45716c17"
+        },
+        "date": 1613635220906,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±3.83%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±4.06%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
