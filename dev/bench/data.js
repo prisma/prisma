@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613636870753,
+  "lastUpdate": 1613643941658,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -8663,6 +8663,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±2.73%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "b5ba6d86ad9af03756c81100f580309062d266c4",
+          "message": "fix(deps): update dependency checkpoint-client to v1.1.19",
+          "timestamp": "2021-02-18T10:18:51Z",
+          "url": "https://github.com/prisma/prisma/pull/5721/commits/b5ba6d86ad9af03756c81100f580309062d266c4"
+        },
+        "date": 1613643940823,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±6.22%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.61%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
