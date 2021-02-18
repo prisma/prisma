@@ -41,7 +41,7 @@ export type BinaryDownloadConfiguration = {
   [binary in EngineTypes]?: string
 }
 export type BinaryPaths = {
-  [binary in EngineTypes]?: { [binaryTarget: string]: string } // key: target, value: path
+  [binary in EngineTypes]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
