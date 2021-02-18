@@ -11,8 +11,9 @@ import {
 import chalk from 'chalk'
 import {
   BinaryDownloadConfiguration,
+  BinaryTypes,
   DownloadOptions,
-} from '@prisma/fetch-engine/dist/download'
+} from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
@@ -591,38 +592,38 @@ function engineTypeToBinaryType(
   engineType: EngineType,
 ): keyof BinaryDownloadConfiguration {
   if (engineType === 'introspectionEngine') {
-    return 'introspection-engine'
+    return BinaryTypes.introspectionEngine
   }
 
   if (engineType === 'migrationEngine') {
-    return 'migration-engine'
+    return BinaryTypes.migrationEngine
   }
 
   if (engineType === 'queryEngine') {
-    return 'query-engine'
+    return BinaryTypes.queryEngine
   }
 
   if (engineType === 'prismaFmt') {
-    return 'prisma-fmt'
+    return BinaryTypes.prismaFmt
   }
 
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
 function binaryTypeToEngineType(binaryType: string): string {
-  if (binaryType === 'introspection-engine') {
+  if (binaryType === BinaryTypes.introspectionEngine) {
     return 'introspectionEngine'
   }
 
-  if (binaryType === 'migration-engine') {
+  if (binaryType === BinaryTypes.migrationEngine) {
     return 'migrationEngine'
   }
 
-  if (binaryType === 'query-engine') {
+  if (binaryType === BinaryTypes.queryEngine) {
     return 'queryEngine'
   }
 
-  if (binaryType === 'prisma-fmt') {
+  if (binaryType === BinaryTypes.prismaFmt) {
     return 'prismaFmt'
   }
 

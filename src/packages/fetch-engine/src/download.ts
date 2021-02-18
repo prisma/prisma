@@ -1,26 +1,28 @@
-import fs from 'fs'
-import { promisify } from 'util'
-import chalk from 'chalk'
-
-// Packages
-import path from 'path'
 import Debug from '@prisma/debug'
-import makeDir from 'make-dir'
+import {
+  getNapiName,
+  getos,
+  getPlatform,
+  Platform,
+  platforms,
+} from '@prisma/get-platform'
+import chalk from 'chalk'
 import execa from 'execa'
+import fs from 'fs'
+import makeDir from 'make-dir'
 import pFilter from 'p-filter'
+import path from 'path'
 import tempDir from 'temp-dir'
-
-// Utils
-import { getBar } from './log'
+import { promisify } from 'util'
 import plusxSync from './chmod'
-import { copy } from './copy'
-import { getPlatform, Platform, platforms, getos, NAPI_QUERY_ENGINE_FS_BASE, getNapiName } from '@prisma/get-platform'
-import { downloadZip } from './downloadZip'
-import { getCacheDir, getDownloadUrl } from './util'
 import { cleanupCache } from './cleanupCache'
+import { copy } from './copy'
+import { downloadZip } from './downloadZip'
 import { flatMap } from './flatMap'
-import { getLatestTag } from './getLatestTag'
 import { getHash } from './getHash'
+import { getLatestTag } from './getLatestTag'
+import { getBar } from './log'
+import { getCacheDir, getDownloadUrl } from './util'
 
 const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
@@ -28,14 +30,19 @@ const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 
 const channel = 'master'
-export interface BinaryDownloadConfiguration {
-  'query-engine'?: string
-  'libquery-engine-napi'?: string
-  'migration-engine'?: string
-  'introspection-engine'?: string
-  'prisma-fmt'?: string
+export enum EngineTypes {
+  queryEngine = 'query-engine',
+  libqueryEngineNapi = 'libquery-engine-napi',
+  migrationEngine = 'migration-engine',
+  introspectionEngine = 'introspection-engine',
+  prismaFmt = 'prisma-fmt',
 }
-
+export type BinaryDownloadConfiguration = {
+  [binary in EngineTypes]?: string
+}
+export type BinaryPaths = {
+  [binary in EngineTypes]?: { [binaryTarget: string]: string } // key: target, value: path
+}
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
   binaryTargets?: Platform[]
@@ -48,20 +55,12 @@ export interface DownloadOptions {
   printVersion?: boolean
 }
 
-export type BinaryPaths = {
-  'migration-engine'?: { [binaryTarget: string]: string } // key: target, value: path
-  'query-engine'?: { [binaryTarget: string]: string }
-  'libquery-engine-napi'?: { [binaryTarget: string]: string }
-  'introspection-engine'?: { [binaryTarget: string]: string }
-  'prisma-fmt'?: { [binaryTarget: string]: string }
-}
-
-const binaryToEnvVar = {
-  'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
-  'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
-  'libquery-engine-napi': 'PRISMA_QUERY_ENGINE_NAPI_LIBRARY',
-  'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  'prisma-fmt': 'PRISMA_FMT_BINARY',
+const BINARY_TO_ENV_VAR = {
+  [EngineTypes.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [EngineTypes.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [EngineTypes.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_NAPI_LIBRARY',
+  [EngineTypes.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  [EngineTypes.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {
@@ -114,12 +113,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ([binaryName, targetFolder]: [string, string]) =>
       opts.binaryTargets.map((binaryTarget) => {
         const fileName = getBinaryName(binaryName, binaryTarget)
+        const targetFilePath =
+          binaryName === EngineTypes.libqueryEngineNapi
+            ? path.join(targetFolder, getNapiName(binaryTarget, 'fs'))
+            : path.join(targetFolder, fileName)
         return {
           binaryName,
           targetFolder,
           binaryTarget,
           fileName,
-          targetFilePath: path.join(targetFolder, fileName),
+          targetFilePath,
           envVarPath: getBinaryEnvVarPath(binaryName),
         }
       }),
@@ -307,7 +310,7 @@ async function binaryNeedsToBeDownloaded(
   }
 
   // 3. If same platform, always check --version
-  if (job.binaryTarget === nativePlatform) {
+  if (job.binaryTarget === nativePlatform && job.binaryName !== EngineTypes.libqueryEngineNapi) {
     const works = await checkVersionCommand(binaryPath)
     return !works
   }
@@ -334,8 +337,8 @@ export async function checkVersionCommand(
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
-  if (binaryName === NAPI_QUERY_ENGINE_FS_BASE) {
-    return `${getNapiName(platform, 'fs')}`
+  if (binaryName === EngineTypes.libqueryEngineNapi) {
+    return `${getNapiName(platform, 'url')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''
   return `${binaryName}-${platform}${extension}`
@@ -376,7 +379,7 @@ async function getCachedBinaryPath({
 }
 
 export function getBinaryEnvVarPath(binaryName: string): string | null {
-  const envVar = binaryToEnvVar[binaryName]
+  const envVar = BINARY_TO_ENV_VAR[binaryName]
   if (envVar && process.env[envVar]) {
     const envVarPath = path.resolve(
       process.cwd(),
@@ -494,24 +497,9 @@ function engineTypeToBinaryType(
   engineType: string,
   binaryTarget: string,
 ): string {
-  if (engineType === 'introspectionEngine') {
-    return 'introspection-engine'
+  if (EngineTypes[engineType]) {
+    return EngineTypes[engineType]
   }
-
-  if (engineType === 'migrationEngine') {
-    return 'migration-engine'
-  }
-
-  if (engineType === 'queryEngine') {
-    return 'query-engine'
-  }
-  if (engineType === 'libqueryEngineNapi') {
-    return 'libquery_engine_napi'
-  }
-  if (engineType === 'prismaFmt') {
-    return 'prisma-fmt'
-  }
-
   if (engineType === 'native') {
     return binaryTarget
   }

@@ -2,7 +2,6 @@
 
 import { Platform } from './platforms'
 
-export const NAPI_QUERY_ENGINE_FS_BASE = 'libquery-engine-napi'
 export const NAPI_QUERY_ENGINE_URL_BASE = 'libquery_engine_napi'
 
 export function getNapiName(platform: Platform, type: 'url' | 'fs') {
