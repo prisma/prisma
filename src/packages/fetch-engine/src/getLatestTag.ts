@@ -3,7 +3,6 @@ import chalk from 'chalk'
 import execa from 'execa'
 import fetch from 'node-fetch'
 import pMap from 'p-map'
-import { EngineTypes } from './download'
 import { getProxyAgent } from './getProxyAgent'
 import { getDownloadUrl } from './util'
 
@@ -66,7 +65,12 @@ export function getAllUrls(branch: string, commit: string): string[] {
     (p) => !excludedPlatforms.includes(p),
   )
   for (const platform of relevantPlatforms) {
-    for (const engine in EngineTypes) {
+    for (const engine of [
+      'query-engine',
+      'introspection-engine',
+      'migration-engine',
+      'prisma-fmt',
+    ]) {
       for (const extension of [
         '.gz',
         '.gz.sha256',
