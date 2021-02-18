@@ -1,4 +1,3 @@
-export { download } from './download'
-export { getLatestTag, urlExists, getAllUrls } from './getLatestTag'
+export * from './download'
+export { getAllUrls, getLatestTag, urlExists } from './getLatestTag'
 export { getProxyAgent } from './getProxyAgent'
-export { getBinaryName } from './download'

@@ -1,9 +1,12 @@
-import os from 'os'
-import makeDir from 'make-dir'
+import Debug from '@prisma/debug'
+import { getNapiName, Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
+import makeDir from 'make-dir'
+import os from 'os'
 import path from 'path'
-import Debug from '@prisma/debug'
+import { EngineTypes } from './download'
+
 const debug = Debug('prisma:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
@@ -53,12 +56,21 @@ export async function getCacheDir(
 export function getDownloadUrl(
   channel: string,
   version: string,
-  platform: string,
+  platform: Platform,
   binaryName: string,
   extension = '.gz',
 ): string {
-  const finalExtension = platform === 'windows' ? `.exe${extension}` : extension
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
+  const finalExtension =
+    platform === 'windows' && EngineTypes.libqueryEngineNapi !== binaryName
+      ? `.exe${extension}`
+      : extension
+  if (binaryName === EngineTypes.libqueryEngineNapi) {
+    binaryName = getNapiName(platform, 'url')
+    // Hard Code for Now
+    version = '28e77d62415dc0475af4c133d8b87d49caaa8f88'
+  }
+
   return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`
 }
