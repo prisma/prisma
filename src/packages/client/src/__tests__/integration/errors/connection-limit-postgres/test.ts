@@ -1,7 +1,7 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe.skip('connection-limit-postgres', () => {
-  expect.assertions(1)
+  // expect.assertions(1)
   const clients: any[] = []
 
   afterAll(async () => {
