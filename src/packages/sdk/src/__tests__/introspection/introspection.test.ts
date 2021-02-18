@@ -58,7 +58,6 @@ test('introspection basic', async () => {
   expect(databases).toMatchInlineSnapshot(`
     Array [
       "blog.db",
-      "blog.db",
     ]
   `)
 
