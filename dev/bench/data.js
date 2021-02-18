@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613643941658,
+  "lastUpdate": 1613644903488,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -8697,6 +8697,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.61%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "782bb56e4b83f17d6df8386d87f1aa4436ccba88",
+          "message": "fix(deps): update dependency checkpoint-client to v1.1.19 (#5721)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-02-18T11:34:00+01:00",
+          "tree_id": "19e943cecdd41baa25089e0d7f83a0eea99f800d",
+          "url": "https://github.com/prisma/prisma/commit/782bb56e4b83f17d6df8386d87f1aa4436ccba88"
+        },
+        "date": 1613644902390,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.17,
+            "range": "±3.93%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.06,
+            "range": "±2.88%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
