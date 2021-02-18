@@ -15,7 +15,7 @@ test('missing-table', async () => {
              6 const prisma = new PrismaClient()
              7 
           →  8 await expect(prisma.user.findMany()).reject
-            The table \`dev.User\` does not exist in the current database.
+            The table \`main.User\` does not exist in the current database.
         `)
 
   prisma.$disconnect()
