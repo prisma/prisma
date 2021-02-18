@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613657023528,
+  "lastUpdate": 1613665038433,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -9053,6 +9053,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.15%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "785b21b866f975be94b9afc47643b409b6154c81",
+          "message": "chore: disable flaky test (#5727)",
+          "timestamp": "2021-02-18T17:13:43+01:00",
+          "tree_id": "d33b2832d82ec7ce1d0cfaaa736b5c1d7e9db52d",
+          "url": "https://github.com/prisma/prisma/commit/785b21b866f975be94b9afc47643b409b6154c81"
+        },
+        "date": 1613665037563,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±5.33%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±4.86%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
