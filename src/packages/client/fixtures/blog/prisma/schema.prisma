@@ -2,8 +2,9 @@ datasource db {
   provider = "mysql"
   url      = env("DB_URL")
 }
+
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model Events {
@@ -20,6 +21,7 @@ model Events {
   organiser   User?                     @relation(fields: [organiserId], references: [id])
   attendees   User[]                    @relation("attendance")
 }
+
 model User {
   id              Int      @id @default(autoincrement())
   email           String   @unique
