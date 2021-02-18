@@ -1,10 +1,10 @@
+import { platforms } from '@prisma/get-platform'
+import chalk from 'chalk'
+import execa from 'execa'
 import fetch from 'node-fetch'
+import pMap from 'p-map'
 import { getProxyAgent } from './getProxyAgent'
 import { getDownloadUrl } from './util'
-import { platforms } from '@prisma/get-platform'
-import execa from 'execa'
-import pMap from 'p-map'
-import chalk from 'chalk'
 
 export async function getLatestTag(): Promise<any> {
   let branch = await getBranch()

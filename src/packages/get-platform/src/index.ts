@@ -1,4 +1,3 @@
-export { getPlatform, getos } from './getPlatform'
-export { Platform } from './platforms'
-export { mayBeCompatible } from './platforms'
-export { platforms } from './platforms'
+export * from './getNapiName'
+export { getos, getPlatform } from './getPlatform'
+export { mayBeCompatible, Platform, platforms } from './platforms'
