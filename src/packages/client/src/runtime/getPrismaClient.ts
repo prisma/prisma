@@ -462,7 +462,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return 'PrismaClient'
     }
     private getEngine(){
-      if(this._engineConfig.engineType === 'napi'){
+      if(this._engineConfig?.engineType === 'napi'){
         return new NAPIEngine(this._engineConfig)
       } else {
         return new NodeEngine(this._engineConfig)
