@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1613667480766,
+  "lastUpdate": 1613670976745,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -9163,6 +9163,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.59%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8ab544a8ad9404cb70b1015a657bf86db09f3eb3",
+          "message": "Update renovate.json",
+          "timestamp": "2021-02-18T18:52:31+01:00",
+          "tree_id": "5a4610a4ed29f3b08341575db2b69e2c93a03648",
+          "url": "https://github.com/prisma/prisma/commit/8ab544a8ad9404cb70b1015a657bf86db09f3eb3"
+        },
+        "date": 1613670975385,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±6.15%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.29%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
