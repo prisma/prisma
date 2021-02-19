@@ -37,6 +37,8 @@ import stripAnsi from 'strip-ansi'
 import { flatMap } from './utils/flatMap'
 import Decimal from 'decimal.js'
 import { isObject } from './utils/isObject'
+import { uniqueBy } from './utils/uniqueBy'
+import groupBy from 'lodash.groupby'
 
 const tab = 2
 
@@ -230,18 +232,42 @@ ${indent(this.children.map(String).join('\n'), tab)}
         missingArgsLegend += chalk.dim('.')
       }
 
-      const errorMessages = `${argErrors
-        .filter(
-          (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
-        )
-        .map((e) =>
-          this.printArgError(
-            e,
-            hasMissingArgsErrors,
-            errorFormat === 'minimal',
-          ),
-        ) // if no callsite is provided, just render the minimal error
-        .join('\n')}
+      const relevantArgErrors = argErrors.filter(
+        (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
+      )
+
+      const groupedById = groupBy(relevantArgErrors, (e) => e.id ?? 'no-id')
+
+      let errorMessages = ''
+      if (Object.values(groupedById).length > 1) {
+        errorMessages += Object.values(groupedById)
+          .map((errors, i) => {
+            return errors
+              .map((e) =>
+                this.printArgError(
+                  e,
+                  hasMissingArgsErrors,
+                  errorFormat === 'minimal',
+                  true,
+                  i === 0,
+                ),
+              )
+              .join('\n')
+          })
+          .join('\n')
+      } else {
+        errorMessages += relevantArgErrors
+          .map((e) =>
+            this.printArgError(
+              e,
+              hasMissingArgsErrors,
+              errorFormat === 'minimal',
+            ),
+          ) // if no callsite is provided, just render the minimal error
+          .join('\n')
+      }
+
+      errorMessages += `
 ${fieldErrors
   .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
   .join('\n')}`
@@ -388,9 +414,11 @@ ${errorMessages}${missingArgsLegend}\n`
     }
   }
   protected printArgError = (
-    { error, path }: ArgError,
+    { error, path, id }: ArgError,
     hasMissingItems: boolean,
     minimal: boolean,
+    isUnion = false,
+    isFirst = true,
   ) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(
@@ -515,10 +543,21 @@ ${errorMessages}${missingArgsLegend}\n`
       const forStr =
         path.length === 1 && path[0] === error.missingName
           ? ''
-          : ` for ${chalk.bold(`${path.join('.')}`)}`
-      return `Argument ${chalk.greenBright(
+          : ` in ${chalk.bold(`${path.join('.')}`)}`
+      if (isUnion) {
+        if (isFirst) {
+          return `Please either provide argument ${chalk.greenBright(
+            error.missingName,
+          )}${forStr}.`
+        } else {
+          return `Or provide argument ${chalk.greenBright(
+            error.missingName,
+          )}${forStr}.`
+        }
+      }
+      return `Please provide argument ${chalk.greenBright(
         error.missingName,
-      )}${forStr} is missing.`
+      )}${forStr}.`
     }
 
     if (error.type === 'atLeastOne') {
@@ -861,6 +900,7 @@ ${indent(value.toString(), 2)}
   public toString() {
     return this._toString(this.value, this.key)
   }
+  // TODO: memoize this function
   public collectErrors(): ArgError[] {
     if (!this.hasError) {
       return []
@@ -870,9 +910,14 @@ ${indent(value.toString(), 2)}
 
     // add the own arg
     if (this.error) {
+      const id =
+        typeof this.inputType?.type === 'object'
+          ? this.inputType.type.name
+          : undefined
       errors.push({
         error: this.error,
         path: [this.key],
+        id,
       })
     }
 
@@ -1390,11 +1435,51 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
    */
   let maybeArg: Arg | null = null
 
+  const argsWithErrors: { arg: Arg; errors: ArgError[] }[] = []
+
   for (const inputType of arg.inputTypes) {
     maybeArg = tryInferArgs(key, value, arg, inputType)
     if (maybeArg?.collectErrors().length === 0) {
       return maybeArg
     }
+    if (maybeArg && maybeArg?.collectErrors()) {
+      const argErrors = maybeArg?.collectErrors()
+      if (argErrors && argErrors.length > 0) {
+        argsWithErrors.push({ arg: maybeArg, errors: argErrors })
+      }
+    }
+  }
+
+  if (maybeArg?.hasError && argsWithErrors.length > 0) {
+    const argsWithoutInvalidNameErrors = argsWithErrors.filter(
+      ({ errors }) => !errors.some((e) => e.error.type === 'invalidName'),
+    )
+    // if there is no arg without an invalid name, just return the one with the least amount of errors
+    if (argsWithoutInvalidNameErrors.length === 0) {
+      argsWithoutInvalidNameErrors.sort((a, b) =>
+        a.errors.length < b.errors.length ? -1 : 1,
+      )
+      return argsWithoutInvalidNameErrors[0].arg
+    }
+
+    // otherwise take all the args without invalid name errors (the ones that fit on a structural typing level)
+
+    // TODO: faster hashing
+    const errors = uniqueBy(
+      argsWithoutInvalidNameErrors.flatMap((a, index) =>
+        a.errors.map((error) => ({ error, index })),
+      ),
+      (arg) =>
+        `${arg.error.path.filter((p: any) => p !== 0).join(',')}${
+          arg.error.error.type
+        }`,
+    )
+    const arg = argsWithoutInvalidNameErrors[0].arg
+
+    const finalErrors = errors.map((e) => e.error)
+
+    arg.collectErrors = () => finalErrors
+    return arg
   }
 
   return maybeArg
