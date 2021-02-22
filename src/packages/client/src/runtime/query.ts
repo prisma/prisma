@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
+import util from 'util'
 import {
   ArgError,
   AtLeastOneError,
@@ -912,7 +913,7 @@ ${indent(value.toString(), 2)}
     if (this.error) {
       const id =
         typeof this.inputType?.type === 'object'
-          ? this.inputType.type.name
+          ? `${this.inputType.type.name}${this.inputType.isList ? '[]' : ''}`
           : undefined
       errors.push({
         error: this.error,
@@ -1450,23 +1451,25 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
   }
 
-  if (maybeArg?.hasError && argsWithErrors.length > 0) {
-    const argsWithoutInvalidNameErrors = argsWithErrors.filter(
-      ({ errors }) => !errors.some((e) => e.error.type === 'invalidName'),
+  if (maybeArg?.hasError && argsWithErrors.length > 1) {
+    // group by max length of error paths
+    // we prefer the most specific path
+    const groupedByPathLength = groupBy(argsWithErrors, (a) =>
+      Math.max(...a.errors.map((e) => e.path.length)),
     )
-    // if there is no arg without an invalid name, just return the one with the least amount of errors
-    if (argsWithoutInvalidNameErrors.length === 0) {
-      argsWithoutInvalidNameErrors.sort((a, b) =>
-        a.errors.length < b.errors.length ? -1 : 1,
-      )
-      return argsWithoutInvalidNameErrors[0].arg
+    const longestPath = Math.max(
+      ...Object.keys(groupedByPathLength).map(Number),
+    )
+    const selectedArgs = groupedByPathLength[String(longestPath)]
+
+    // if only one for this path length, take that one
+    if (selectedArgs.length === 1) {
+      return selectedArgs[0].arg
     }
 
-    // otherwise take all the args without invalid name errors (the ones that fit on a structural typing level)
-
-    // TODO: faster hashing
+    // if more than one, unionize it
     const errors = uniqueBy(
-      argsWithoutInvalidNameErrors.flatMap((a, index) =>
+      selectedArgs.flatMap((a, index) =>
         a.errors.map((error) => ({ error, index })),
       ),
       (arg) =>
@@ -1474,11 +1477,12 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           arg.error.error.type
         }`,
     )
-    const arg = argsWithoutInvalidNameErrors[0].arg
+    const arg = selectedArgs[0].arg
 
     const finalErrors = errors.map((e) => e.error)
 
     arg.collectErrors = () => finalErrors
+    // END UNION
     return arg
   }
 
@@ -1550,6 +1554,7 @@ function tryInferArgs(
     if (isInputArgType(inputType.type)) {
       if (
         typeof value !== 'object' ||
+        Array.isArray(value) ||
         (inputType.location === 'inputObjectTypes' && !isObject(value))
       ) {
         return getInvalidTypeArg(key, value, arg, inputType)

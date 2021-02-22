@@ -161,7 +161,7 @@ describe('scalar where transformation', () => {
     `)
   })
 
-  test('MODELScalarWhereInput', () => {
+  test.only('MODELScalarWhereInput', () => {
     const select = {
       where: {
         AND: [
@@ -207,6 +207,82 @@ describe('scalar where transformation', () => {
       rootTypeName: 'mutation',
       rootField: 'updateManyPost',
     })
+
+    expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
+
+      Invalid \`prisma.updateManyPost()\` invocation:
+
+      {
+        where: {
+          AND: [
+            {
+              title: {
+              ~~~~~
+                equals: 'a@a.de',
+                gt: '0'
+              },
+              AND: [
+                {
+                  title: {
+                  ~~~~~
+                    equals: '5',
+                    not: '7'
+                  },
+                  OR: [
+                    {
+                      id: {
+                        not: '8'
+                      }
+                    },
+                    {
+                      id: {
+                        not: '9'
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              id: {
+                equals: '1',
+                gt: '0'
+              }
+            }
+          ]
+        },
+        data: {}
+      }
+
+      Unknown arg \`title\` in where.AND.0.title for type PostWhereInput. Did you mean \`id\`? Available args:
+      type PostWhereInput {
+        AND?: PostWhereInput | List<PostWhereInput>
+        OR?: List<PostWhereInput>
+        NOT?: PostWhereInput | List<PostWhereInput>
+        id?: StringFilter | String
+        name?: StringFilter | String
+        email?: StringFilter | String
+        createdAt?: DateTimeFilter | DateTime
+        updatedAt?: DateTimeFilter | DateTime
+        userId?: StringFilter | String
+        user?: UserRelationFilter | UserWhereInput
+      }
+      Unknown arg \`title\` in where.AND.0.AND.0.title for type PostWhereInput. Did you mean \`id\`? Available args:
+      type PostWhereInput {
+        AND?: PostWhereInput | List<PostWhereInput>
+        OR?: List<PostWhereInput>
+        NOT?: PostWhereInput | List<PostWhereInput>
+        id?: StringFilter | String
+        name?: StringFilter | String
+        email?: StringFilter | String
+        createdAt?: DateTimeFilter | DateTime
+        updatedAt?: DateTimeFilter | DateTime
+        userId?: StringFilter | String
+        user?: UserRelationFilter | UserWhereInput
+      }
+
+
+    `)
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       mutation {
