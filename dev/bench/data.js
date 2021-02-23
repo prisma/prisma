@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614066375594,
+  "lastUpdate": 1614068802505,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -10211,6 +10211,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±1.68%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eb9bb2b611597086e777bdd0ab5e47483a87b863",
+          "message": "chore(deps): update dependency esbuild to v0.8.50 (#5767)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-02-23T09:23:07+01:00",
+          "tree_id": "695b764df7b7a68a26060345ea9a3e2c602ab268",
+          "url": "https://github.com/prisma/prisma/commit/eb9bb2b611597086e777bdd0ab5e47483a87b863"
+        },
+        "date": 1614068801642,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±5.81%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.46%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
