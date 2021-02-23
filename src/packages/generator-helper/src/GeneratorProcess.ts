@@ -1,7 +1,7 @@
 import { ChildProcessByStdio, fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import byline from './byline'
-import { GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
+import { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 
@@ -154,7 +154,7 @@ export class GeneratorProcess {
       this.child!.kill()
     }
   }
-  getManifest(): Promise<GeneratorManifest | null> {
+  getManifest(config: GeneratorConfig): Promise<GeneratorManifest | null> {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
 
@@ -172,7 +172,7 @@ export class GeneratorProcess {
       this.sendMessage({
         jsonrpc: '2.0',
         method: 'getManifest',
-        params: {},
+        params: config,
         id: messageId,
       })
     })

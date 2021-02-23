@@ -155,11 +155,11 @@ export class NodeEngine implements Engine {
     enableDebugLogs,
     enableEngineDebugMode,
     dirname,
-    engineType,
+    useUds,
     activeProvider,
   }: EngineConfig) {
     this.dirname = dirname
-    this.useUds = engineType === 'uds'
+    this.useUds = useUds ?? false // === undefined ? process.platform !== 'win32' : useUds
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
@@ -1041,7 +1041,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
-
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors) {

@@ -24,9 +24,12 @@ import { fixBinaryTargets } from './util'
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
+const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
+
 type QueryEngineConfig = {
   datamodel: string
   datasourceOverrides?: Record<string, string>
+  logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
 }
 
 export interface QueryEngineConstructor {
@@ -45,6 +48,7 @@ export type QueryEngine = {
   query(request: any): Promise<string>
   sdlSchema(): Promise<string>
   serverInfo(): Promise<string> // ServerInfo
+  nextLogEvent(): Promise<string>
 }
 
 type ServerInfo = {
@@ -88,10 +92,10 @@ export class NAPIEngine implements Engine {
     this.config = config
     this.libQueryEnginePath =
       process.env.LIB_QUERY_ENGINE_PATH ?? config.prismaPath
-    ;(this.datasourceOverrides = config.datasources
+    this.datasourceOverrides = config.datasources
       ? this.convertDatasources(config.datasources)
-      : {}),
-      (this.loadEnginePromise = this.loadEngine())
+      : {}
+    this.loadEnginePromise = this.loadEngine()
     this.platformPromise = getPlatform()
   }
 
@@ -124,6 +128,7 @@ export class NAPIEngine implements Engine {
           this.engine = new this.QueryEngine({
             datamodel: this.datamodel,
             datasourceOverrides: this.datasourceOverrides,
+            logLevel: 'trace',
           })
           debug('napi engine instantiated')
         } catch (e) {
@@ -171,7 +176,6 @@ export class NAPIEngine implements Engine {
     if (this.startPromise) {
       return this.startPromise
     }
-
     this.startPromise = this.engine?.connect({ enableRawQueries: true })
     return this.startPromise
   }
@@ -243,10 +247,10 @@ export class NAPIEngine implements Engine {
       }
     }
   }
-  async requestBatch<T>(
+  async requestBatch(
     queries: string[],
-    transaction?: boolean,
-    numTry?: number,
+    transaction = false,
+    numTry = 1,
   ): Promise<any> {
     const variables = {}
     const body = {
@@ -255,6 +259,7 @@ export class NAPIEngine implements Engine {
     }
     const result = await this.engine!.query(body)
     const data = JSON.parse(result)
+
     if (data.errors) {
       if (data.errors.length === 1) {
         throw this.graphQLToJSError(data.errors[0])
@@ -265,7 +270,31 @@ export class NAPIEngine implements Engine {
         this.config.clientVersion!,
       )
     }
-    return data
+    try {
+      const { batchResult, errors } = data
+      if (Array.isArray(batchResult)) {
+        return batchResult.map((result) => {
+          if (result.errors) {
+            return this.graphQLToJSError(result.errors[0])
+          }
+          return {
+            data: result,
+          }
+        })
+      } else {
+        if (errors && errors.length === 1) {
+          throw new Error(errors[0].error)
+        }
+        throw new Error(JSON.stringify(data))
+      }
+    } catch (e) {
+      // retry
+      if (numTry <= MAX_REQUEST_RETRIES) {
+        return this.requestBatch(queries, transaction, numTry + 1)
+      }
+
+      throw e
+    }
   }
   private async getPlatform(): Promise<Platform> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

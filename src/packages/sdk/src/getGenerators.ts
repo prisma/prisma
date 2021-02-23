@@ -163,7 +163,7 @@ export async function getGenerators({
           generatorPath = paths.generatorPath
         }
 
-        const generatorInstance = new Generator(generatorPath, paths?.isNode)
+        const generatorInstance = new Generator(generatorPath, generator, paths?.isNode)
 
         await generatorInstance.init()
 

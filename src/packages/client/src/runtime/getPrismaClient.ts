@@ -417,7 +417,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(this._previewFeatures),
-          engineType: config.generator?.config?.engine === 'napi' ? 'napi' : 'tcp',
           activeProvider: config.activeProvider,
         }
 
@@ -462,7 +461,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return 'PrismaClient'
     }
     private getEngine(){
-      if(this._engineConfig?.engineType === 'napi'){
+      if(this._previewFeatures.includes('napi')){
         return new NAPIEngine(this._engineConfig)
       } else {
         return new NodeEngine(this._engineConfig)
@@ -1557,8 +1556,8 @@ export class PrismaClientFetcher {
             headers,
             transactionId,
           })
-          data = result.data
-          elapsed = result.elapsed
+          data = result?.data
+          elapsed = result?.elapsed
         }
 
         /**
@@ -1639,7 +1638,7 @@ export class PrismaClientFetcher {
     return message
   }
   unpack(document, data, path, rootField, unpacker?: Unpacker) {
-    if (data.data) {
+    if (data?.data) {
       data = data.data
     }
     // to lift up _all in count

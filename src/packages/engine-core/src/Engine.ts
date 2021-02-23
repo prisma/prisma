@@ -47,7 +47,7 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
-  engineType?: EngineType
+  useUds?: boolean
 
   clientVersion?: string
   enableExperimental?: string[]

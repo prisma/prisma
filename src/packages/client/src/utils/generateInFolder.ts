@@ -46,8 +46,8 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const useNapi = config.generators[0].config?.engine === 'napi'
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  const useNapi  = enablePreview.includes('napi')
 
   const dmmf = await getDMMF({
     datamodel,
