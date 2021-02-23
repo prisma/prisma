@@ -102,8 +102,9 @@ export const commonCodeTS = ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
+type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : never : never
+  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 `,
   ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
