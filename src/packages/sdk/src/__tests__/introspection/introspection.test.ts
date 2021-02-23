@@ -519,6 +519,8 @@ test('introspection basic', async () => {
         ],
         enums: [],
         sequences: [],
+        views: [],
+        procedures: [],
     }"
   `)
   engine.stop()
