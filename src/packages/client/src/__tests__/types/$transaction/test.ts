@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, User } from '@prisma/client'
 
 // tslint:disable
 
@@ -21,6 +21,12 @@ async function main() {
     prisma.$queryRaw`SELECT 1`,
     prisma.$executeRaw(''),
   ])
+  // Test Type Fallback
+  const txs = [
+    prisma.user.findMany(),
+    prisma.user.findFirst()
+  ]
+  const res: (User | User[] | null)[] = await prisma.$transaction(txs)
 }
 
 main().catch((e) => {
