@@ -112,9 +112,12 @@ export async function resolveDistro(): Promise<
   // https://github.com/retrohacker/getos/blob/master/os.json
   const osReleaseFile = '/etc/os-release'
   const alpineReleaseFile = '/etc/alpine-release'
+  const centosReleaseFile = '/etc/centos-release'
 
   if (await exists(alpineReleaseFile)) {
     return 'musl'
+  } else if (await exists(centosReleaseFile)) {
+    return 'rhel'
   } else if (await exists(osReleaseFile)) {
     return parseDistro(await readFile(osReleaseFile, 'utf-8'))
   } else {
