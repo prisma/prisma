@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614106045678,
+  "lastUpdate": 1614113321888,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -11055,6 +11055,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.63%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bot@renovateapp.com",
+            "name": "Renovate Bot",
+            "username": "renovate-bot"
+          },
+          "committer": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "distinct": true,
+          "id": "a70f4ee61e12027eb6311cb7ca0f7a60599537e8",
+          "message": "fix(deps): update engines to v2.18.0-19.4b759ce11aa29f91524e07e18b85f69a2d529992",
+          "timestamp": "2021-02-23T20:45:10Z",
+          "tree_id": "9710b9dbf82d2253600adb20f4755369134ec3a9",
+          "url": "https://github.com/prisma/prisma/commit/a70f4ee61e12027eb6311cb7ca0f7a60599537e8"
+        },
+        "date": 1614113320968,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±4.47%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.64%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
