@@ -333,8 +333,8 @@ mutation {
   createOnePost(data: {
     title: "string"
     author: {
-      "connect": {
-        "id": ""
+      connect: {
+        id: ""
       }
     }
   }) {
@@ -358,7 +358,6 @@ Invalid \`prisma.createOnePost()\` invocation:
   data: {
     title: 'string',
     author: {
-    ~~~~~~
       connect: {
         id: ''
       }
@@ -368,12 +367,15 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   authorId?: String | null,
-?   optionnal?: Float | null
+?   optionnal?: Float | null,
+?   categories?: {
+?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput,
+?     connectOrCreate?: CategoryCreateOrConnectWithoutPostsInput | CategoryCreateOrConnectWithoutPostsInput,
+?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput
+?   }
   }
 }
 
-Unknown arg \`author\` in data.author for type PostUncheckedCreateInput. Did you mean \`authorId\`?
 Argument published for data.published is missing.
 
 Note: Lines with + are required, lines with ? are optional.

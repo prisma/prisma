@@ -142,6 +142,9 @@ describe('json', () => {
         json: ['value1', 'value2'],
         jsonList: ['value1', 'value2'],
       },
+      where: {
+        id: 5,
+      },
     })
 
     expect(transformedDocument).toMatchInlineSnapshot(`
@@ -150,6 +153,9 @@ describe('json', () => {
           data: {
             json: "[\\"value1\\",\\"value2\\"]"
             jsonList: ["\\"value1\\"","\\"value2\\""]
+          }
+          where: {
+            id: 5
           }
         ) {
           id

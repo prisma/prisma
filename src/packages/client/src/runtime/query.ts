@@ -2,7 +2,6 @@ import chalk from 'chalk'
 import indent from 'indent-string'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
-import util from 'util'
 import {
   ArgError,
   AtLeastOneError,
@@ -38,8 +37,6 @@ import stripAnsi from 'strip-ansi'
 import { flatMap } from './utils/flatMap'
 import Decimal from 'decimal.js'
 import { isObject } from './utils/isObject'
-import { uniqueBy } from './utils/uniqueBy'
-import groupBy from 'lodash.groupby'
 
 const tab = 2
 
@@ -237,36 +234,15 @@ ${indent(this.children.map(String).join('\n'), tab)}
         (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
       )
 
-      const groupedById = groupBy(relevantArgErrors, (e) => e.id ?? 'no-id')
-
-      let errorMessages = ''
-      if (Object.values(groupedById).length > 1) {
-        errorMessages += Object.values(groupedById)
-          .map((errors, i) => {
-            return errors
-              .map((e) =>
-                this.printArgError(
-                  e,
-                  hasMissingArgsErrors,
-                  errorFormat === 'minimal',
-                  true,
-                  i === 0,
-                ),
-              )
-              .join('\n')
-          })
-          .join('\n')
-      } else {
-        errorMessages += relevantArgErrors
-          .map((e) =>
-            this.printArgError(
-              e,
-              hasMissingArgsErrors,
-              errorFormat === 'minimal',
-            ),
-          ) // if no callsite is provided, just render the minimal error
-          .join('\n')
-      }
+      let errorMessages = relevantArgErrors
+        .map((e) =>
+          this.printArgError(
+            e,
+            hasMissingArgsErrors,
+            errorFormat === 'minimal',
+          ),
+        ) // if no callsite is provided, just render the minimal error
+        .join('\n')
 
       errorMessages += `
 ${fieldErrors
@@ -418,8 +394,6 @@ ${errorMessages}${missingArgsLegend}\n`
     { error, path, id }: ArgError,
     hasMissingItems: boolean,
     minimal: boolean,
-    isUnion = false,
-    isFirst = true,
   ) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(
@@ -544,21 +518,10 @@ ${errorMessages}${missingArgsLegend}\n`
       const forStr =
         path.length === 1 && path[0] === error.missingName
           ? ''
-          : ` in ${chalk.bold(`${path.join('.')}`)}`
-      if (isUnion) {
-        if (isFirst) {
-          return `Please either provide argument ${chalk.greenBright(
-            error.missingName,
-          )}${forStr}.`
-        } else {
-          return `Or provide argument ${chalk.greenBright(
-            error.missingName,
-          )}${forStr}.`
-        }
-      }
-      return `Please provide argument ${chalk.greenBright(
+          : ` for ${chalk.bold(`${path.join('.')}`)}`
+      return `Argument ${chalk.greenBright(
         error.missingName,
-      )}${forStr}.`
+      )}${forStr} is missing.`
     }
 
     if (error.type === 'atLeastOne') {
@@ -1388,6 +1351,11 @@ function hasCorrectScalarType(
   if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
     return true
   }
+
+  if (graphQLType === 'List<String>' && expectedType === 'List<Json>') {
+    return true
+  }
+
   if (
     expectedType === 'List<String>' &&
     (graphQLType === 'List<String | UUID>' ||
@@ -1451,42 +1419,54 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
     }
   }
 
-  if (maybeArg?.hasError && argsWithErrors.length > 1) {
-    // group by max length of error paths
-    // we prefer the most specific path
-    const groupedByPathLength = groupBy(argsWithErrors, (a) =>
-      Math.max(...a.errors.map((e) => e.path.length)),
-    )
-    const longestPath = Math.max(
-      ...Object.keys(groupedByPathLength).map(Number),
-    )
-    const selectedArgs = groupedByPathLength[String(longestPath)]
+  if (maybeArg?.hasError && argsWithErrors.length > 0) {
+    const argsWithScores = argsWithErrors.map(({ arg, errors }) => {
+      const errorScores = errors.map((e) => {
+        let score = 1
 
-    // if only one for this path length, take that one
-    if (selectedArgs.length === 1) {
-      return selectedArgs[0].arg
-    }
+        if (e.error.type === 'invalidType') {
+          // Math.exp is important here so a big depth is exponentially punished
+          score = 2 * Math.exp(getDepth(e.error.providedValue))
+        }
 
-    // if more than one, unionize it
-    const errors = uniqueBy(
-      selectedArgs.flatMap((a, index) =>
-        a.errors.map((error) => ({ error, index })),
-      ),
-      (arg) =>
-        `${arg.error.path.filter((p: any) => p !== 0).join(',')}${
-          arg.error.error.type
-        }`,
-    )
-    const arg = selectedArgs[0].arg
+        return score
+      })
 
-    const finalErrors = errors.map((e) => e.error)
+      return {
+        score: errors.length + sum(errorScores),
+        arg,
+      }
+    })
 
-    arg.collectErrors = () => finalErrors
-    // END UNION
-    return arg
+    argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
+
+    // clog(argsWithScores)
+    // clog(argsWithScores[0].arg, { depth: 2 })
+
+    return argsWithScores[0].arg
   }
 
   return maybeArg
+}
+
+function getDepth(object: any): number {
+  let level = 1
+  if (!object || typeof object !== 'object') {
+    return level
+  }
+  for (const key in object) {
+    if (!object.hasOwnProperty(key)) continue
+
+    if (typeof object[key] === 'object') {
+      let depth = getDepth(object[key]) + 1
+      level = Math.max(depth, level)
+    }
+  }
+  return level
+}
+
+function sum(n: number[]): number {
+  return n.reduce((acc, curr) => acc + curr, 0)
 }
 
 /**

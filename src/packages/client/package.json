@@ -95,7 +95,6 @@
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
     "lint-staged": "10.5.4",
-    "lodash.groupby": "^4.6.0",
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
     "mssql": "6.3.1",

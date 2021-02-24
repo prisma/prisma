@@ -77,10 +77,12 @@ describe('where transformation', () => {
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
-        findManyUser(orderBy: {
-          email: asc
-          id: asc
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+            id: asc
+          }
+        ]) {
           id
           name
           email
@@ -95,10 +97,12 @@ describe('where transformation', () => {
     `)
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {
-        findManyUser(orderBy: {
-          email: asc
-          id: asc
-        }) {
+        findManyUser(orderBy: [
+          {
+            email: asc
+            id: asc
+          }
+        ]) {
           id
           name
           email
@@ -116,32 +120,32 @@ describe('where transformation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.users()\` invocation:
+                Invalid \`prisma.users()\` invocation:
 
-        {
-          orderBy: {
-            email: 'asc',
-            id: 'asc'
-          }
-          ~~~~~~~~~~~~~~~
-        }
+                {
+                  orderBy: {
+                    email: 'asc',
+                    id: 'asc'
+                  }
+                  ~~~~~~~~~~~~~~~
+                }
 
-        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-        type UserOrderByInput {
-          id?: SortOrder
-          name?: SortOrder
-          email?: SortOrder
-          status?: SortOrder
-          nicknames?: SortOrder
-          permissions?: SortOrder
-          favoriteTree?: SortOrder
-          locationId?: SortOrder
-          location?: LocationOrderByInput
-          someFloats?: SortOrder
-        }
+                Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+                type UserOrderByInput {
+                  id?: SortOrder
+                  name?: SortOrder
+                  email?: SortOrder
+                  status?: SortOrder
+                  nicknames?: SortOrder
+                  permissions?: SortOrder
+                  favoriteTree?: SortOrder
+                  locationId?: SortOrder
+                  location?: LocationOrderByInput
+                  someFloats?: SortOrder
+                }
 
 
-      `)
+            `)
     }
   })
 
@@ -195,9 +199,11 @@ describe('where transformation', () => {
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {
-        findManyUser(orderBy: {
-          id: null
-        }) {
+        findManyUser(orderBy: [
+          {
+            id: null
+          }
+        ]) {
           id
           name
           email
