@@ -11,7 +11,7 @@ import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import { tryLoadEnvs } from '@prisma/sdk'
+import { logger, tryLoadEnvs } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { AsyncResource } from 'async_hooks'
 import chalk from 'chalk'
@@ -420,7 +420,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           activeProvider: config.activeProvider,
         }
 
-        debug({ clientVersion: config.clientVersion })
+        debug(`clientVersion: ${config.clientVersion}`)
 
         this._engine = this.getEngine()
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
@@ -435,16 +435,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 : null
             if (level) {
               this.$on(level, (event) => {
-                const colorMap = {
-                  query: 'blue',
-                  info: 'cyan',
-                  warn: 'yellow',
-                  error: 'red',
-                }
-                console.error(
-                  chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                    (event.message || event.query),
-                )
+                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
               })
             }
           }
@@ -498,16 +489,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           if (eventType === 'query') {
             return callback({
               timestamp: event.timestamp,
-              query: fields.query,
-              params: fields.params,
-              duration: fields.duration_ms,
+              query: fields?.query ?? event.query,
+              params: fields?.params ?? event.params,
+              duration: fields?.duration_ms ?? event.duration,
               target: event.target,
             })
           } else {
             // warn, info, or error events
             return callback({
               timestamp: event.timestamp,
-              message: fields.message,
+              message: event.message,
               target: event.target,
             })
           }

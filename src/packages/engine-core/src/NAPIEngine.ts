@@ -3,9 +3,9 @@ import { getEnginesPath } from '@prisma/engines'
 import { DMMF } from '@prisma/generator-helper'
 import { getNapiName, getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
+import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import { promisify } from 'util'
 import type {
   DatasourceOverwrite,
   Engine,
@@ -21,17 +21,30 @@ import {
 } from './errors'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
-const debug = Debug('prisma:engine')
-const exists = promisify(fs.exists)
+const debug = Debug('prisma:client:napi')
 
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
-
+type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
+type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent
 type QueryEngineConfig = {
   datamodel: string
   datasourceOverrides?: Record<string, string>
-  logLevel: 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
+  logLevel: QueryEngineLogLevel
 }
-
+type QueryEngineLogEvent = {
+  level: string
+  module_path: string
+  message: string
+}
+type QueryEngineQueryEvent = {
+  level: 'info'
+  module_path: string
+  query: string
+  item_type: 'query'
+  params: string
+  duration_ms: string
+  result: string
+}
 export interface QueryEngineConstructor {
   new (config: QueryEngineConfig): QueryEngine
 }
@@ -42,7 +55,7 @@ type ConnectArgs = {
 
 export type QueryEngine = {
   connect(connectArgs: ConnectArgs): Promise<void>
-  disconnect(): void
+  disconnect(): Promise<void>
   getConfig(): Promise<GetConfigResult>
   dmmf(): Promise<DMMF.Document>
   query(request: any): Promise<string>
@@ -71,32 +84,126 @@ type RustRequestError = {
   message: string
   backtrace: string
 }
-
+function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
+  return event.level === 'info' && event['item_type'] === 'query'
+}
+const knownPlatforms: Platform[] = [
+  'native',
+  'darwin',
+  'debian-openssl-1.0.x',
+  'debian-openssl-1.1.x',
+  'linux-arm-openssl-1.0.x',
+  'linux-arm-openssl-1.1.x',
+  'rhel-openssl-1.0.x',
+  'rhel-openssl-1.1.x',
+  'linux-musl',
+  'linux-nixos',
+  'windows',
+  'freebsd11',
+  'freebsd12',
+  'openbsd',
+  'netbsd',
+  'arm',
+]
 export class NAPIEngine implements Engine {
   private engine?: QueryEngine
-  private startPromise?: Promise<void>
-  private loadEnginePromise?: Promise<void>
+  private setupPromise?: Promise<void>
+  private connectPromise?: Promise<void>
+  private stopPromise?: Promise<void>
 
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
-  platformPromise?: Promise<Platform>
-  libQueryEnginePath: any
-  incorrectlyPinnedBinaryTarget: any
-  dirname: any
-  clientVersion: any
+  private logEmitter: EventEmitter
+  libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
   datamodel: string
+  logQueries: boolean
+  connected: boolean
+
   constructor(config: EngineConfig) {
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
-    this.libQueryEnginePath =
-      process.env.LIB_QUERY_ENGINE_PATH ?? config.prismaPath
-    this.datasourceOverrides = config.datasources
-      ? this.convertDatasources(config.datasources)
+    this.connected = false
+    this.logQueries = config.logQueries ?? false
+    this.logEmitter = new EventEmitter()
+    this.datasourceOverrides = this.config.datasources
+      ? this.convertDatasources(this.config.datasources)
       : {}
-    this.loadEnginePromise = this.loadEngine()
-    this.platformPromise = getPlatform()
+
+    if (this.logQueries) {
+      process.env.LOG_QUERIES = 'y'
+    }
+    if(config.enableEngineDebugMode){
+      Debug.enable('*')
+    }
+    this.setupPromise = this.internalSetup()
+  }
+  private async internalSetup(): Promise<void> {
+    this.platform = await this.getPlatform()
+    this.libQueryEnginePath = await this.getLibQueryEnginePath()
+    return this.loadEngine()
+  }
+  private async getPlatform() {
+    if (this.platform) return this.platform
+    const platform = await getPlatform()
+    if (!knownPlatforms.includes(platform)) {
+      // TODO Update Error
+      throw new PrismaClientInitializationError(
+        `Unknown ${chalk.red(
+          'PRISMA_QUERY_ENGINE_BINARY',
+        )} ${chalk.redBright.bold(
+          this.platform,
+        )}. Possible binaryTargets: ${chalk.greenBright(
+          knownPlatforms.join(', '),
+        )} or a path to the query engine binary.
+You may have to run ${chalk.greenBright(
+          'prisma generate',
+        )} for your changes to take effect.`,
+        this.config.clientVersion!,
+      )
+    }
+    return platform
+  }
+  private async startLogger(): Promise<void> {
+    // eslint-disable-next-line no-constant-condition
+    while (this.connected) {
+      let rawEvent: null | string = null
+      try {
+        rawEvent = await this.engine!.nextLogEvent()
+      } catch (e) {
+        if (e.message.includes('not yet connected.')) {
+          // Most likely disconnect was called
+        } else {
+          throw new Error(e)
+        }
+      }
+      if (!rawEvent) {
+        break
+      }
+      let event: QueryEngineEvent
+      try {
+        event = JSON.parse(rawEvent)
+      } catch (e) {
+        throw new Error(rawEvent)
+      }
+      if (!event) {
+        break
+      }
+      event.level = event?.level.toLowerCase() ?? 'unknown'
+      if (isQueryEvent(event)) {
+        this.logEmitter.emit('query', {
+          timestamp: Date.now(),
+          query: event.query,
+          params: event.params,
+          duration: event.duration_ms,
+          target: event.module_path,
+        })
+      } else {
+        this.logEmitter.emit(event.level, event)
+      }
+      // Debug(`prisma:engine:${event.module_path.replace('::', ':')}(${event.level})`)(event['message'] ?? event)
+    }
   }
 
   private convertDatasources(
@@ -108,8 +215,7 @@ export class NAPIEngine implements Engine {
     }
     return obj
   }
-  private async loadEngine() {
-    if (this.loadEnginePromise) return this.loadEnginePromise
+  private async loadEngine(): Promise<void> {
     if (!this.engine) {
       if (!this.QueryEngine) {
         if (!this.libQueryEnginePath) {
@@ -128,9 +234,9 @@ export class NAPIEngine implements Engine {
           this.engine = new this.QueryEngine({
             datamodel: this.datamodel,
             datasourceOverrides: this.datasourceOverrides,
-            logLevel: 'trace',
+            logLevel: this.config.logLevel ?? 'off',
           })
-          debug('napi engine instantiated')
+          debug('N-API engine instantiated')
         } catch (e) {
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
@@ -170,30 +276,39 @@ export class NAPIEngine implements Engine {
     return str
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {}
-  async start(): Promise<void> {
-    await this.loadEngine()
-    if (this.startPromise) {
-      return this.startPromise
+  on(event: EngineEventType, listener: (args?: any) => any): void {
+    if (event === 'beforeExit') {
+      // TODO Implement
+      //this.beforeExitListener = listener
+    } else {
+      this.logEmitter.on(event, listener)
     }
-    this.startPromise = this.engine?.connect({ enableRawQueries: true })
-    return this.startPromise
   }
-  async stop(): Promise<void> {
-    return new Promise((res) => {
-      this.engine?.disconnect()
-      res()
+  async start(): Promise<void> {
+    await this.setupPromise
+    // This is very important
+    await new Promise((r) => process.nextTick(r))
+    if (this.connectPromise || this.connected) {
+      return this.connectPromise
+    }
+    this.connected = true
+    return this.engine?.connect({ enableRawQueries: true }).then(() => {
+      void this.startLogger()
     })
   }
+  async stop(): Promise<void> {
+    await new Promise((r) => process.nextTick(r))
+    await this.engine?.disconnect()
+  }
   kill(signal: string): void {
-    return this.engine?.disconnect()
+    void this.engine?.disconnect()
   }
   async getConfig(): Promise<GetConfigResult> {
-    await this.loadEngine()
+    await this.start()
     return this.engine!.getConfig()
   }
   async version(forceRun?: boolean): Promise<string> {
-    await this.loadEngine()
+    await this.start()
     const serverInfo: ServerInfo = JSON.parse(await this.engine!.serverInfo())
     return serverInfo.version
   }
@@ -219,8 +334,8 @@ export class NAPIEngine implements Engine {
     headers: Record<string, string>,
     numTry: number,
   ): Promise<T> {
-    await this.start()
     try {
+      await this.start()
       const data = JSON.parse(
         await this.engine!.query({ query, variables: {} }),
       )
@@ -252,6 +367,7 @@ export class NAPIEngine implements Engine {
     transaction = false,
     numTry = 1,
   ): Promise<any> {
+    await this.start()
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
@@ -296,23 +412,7 @@ export class NAPIEngine implements Engine {
       throw e
     }
   }
-  private async getPlatform(): Promise<Platform> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    if (this.platformPromise) {
-      return this.platformPromise
-    }
 
-    this.platformPromise = getPlatform()
-
-    return this.platformPromise
-  }
-  private getQueryEnginePath(
-    platform: Platform,
-    prefix: string = __dirname,
-  ): string {
-    const queryEnginePath = path.join(prefix, getNapiName(platform, 'fs'))
-    return queryEnginePath
-  }
   private async resolveEnginePath(): Promise<{
     enginePath: string
     searchedLocations: string[]
@@ -323,11 +423,10 @@ export class NAPIEngine implements Engine {
       return { enginePath: this.libQueryEnginePath, searchedLocations }
     }
 
-    this.platform =
-      this.platform ?? (await this.platformPromise) ?? (await getPlatform())
+    this.platform = this.platform ?? (await getPlatform())
 
     if (__filename.includes('NAPIEngine')) {
-      enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
+      enginePath = path.join(getEnginesPath(), getNapiName(this.platform, 'fs'))
       return { enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
@@ -338,30 +437,34 @@ export class NAPIEngine implements Engine {
       this.config.cwd, //cwdPath
     ]
 
-    if (this.dirname) {
-      searchLocations.push(this.dirname)
+    if (this.config.dirname) {
+      searchLocations.push(this.config.dirname)
     }
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Search for Query Engine in ${location}`)
-      enginePath = this.getQueryEnginePath(this.platform, location)
+      enginePath = path.join(location, getNapiName(this.platform, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
       }
     }
-    enginePath = this.getQueryEnginePath(this.platform)
+    enginePath = path.join(__dirname, getNapiName(this.platform, 'fs'))
 
     return { enginePath: enginePath ?? '', searchedLocations }
   }
   private async getLibQueryEnginePath(): Promise<string> {
+    const libPath = process.env.LIB_QUERY_ENGINE_PATH ?? this.config.prismaPath
+    if (libPath && fs.existsSync(libPath)) {
+      return libPath
+    }
+    this.platform = this.platform ?? (await getPlatform())
     const { enginePath, searchedLocations } = await this.resolveEnginePath()
-    await this.platformPromise
     // If path to query engine doesn't exist, throw
-    if (!(await exists(enginePath))) {
-      const pinnedStr = this.incorrectlyPinnedBinaryTarget
+    if (!fs.existsSync(enginePath)) {
+      const pinnedStr = this.platform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedBinaryTarget}`,
+            `${this.platform}`,
           )}\n`
         : ''
 
@@ -392,9 +495,9 @@ ${searchedLocations
       if (this.config.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
-        await this.platformPromise
+        this.platform = this.platform ?? (await getPlatform())
         if (
-          this.config.generator.binaryTargets.includes(this.platform!) ||
+          this.config.generator.binaryTargets.includes(this.platform) ||
           this.config.generator.binaryTargets.includes('native')
         ) {
           errorText += `
@@ -427,20 +530,9 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
       }
 
-      throw new PrismaClientInitializationError(errorText, this.clientVersion!)
+      throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
     }
-    // TODO Implement incorrectlyPinnedBinaryTarget
-    if (this.incorrectlyPinnedBinaryTarget) {
-      console.error(`${chalk.yellow(
-        'Warning:',
-      )} You pinned the platform ${chalk.bold(
-        this.incorrectlyPinnedBinaryTarget,
-      )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
-This means you should very likely pin the platform ${chalk.greenBright(
-        await this.getPlatform(),
-      )} instead.
-${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
-    }
+    this.platform = this.platform ?? (await getPlatform())
     return enginePath
   }
   private getFixedGenerator(): string {
