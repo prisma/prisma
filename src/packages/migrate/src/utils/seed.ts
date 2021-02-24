@@ -41,7 +41,7 @@ export function detectSeedFiles(schemaPath) {
     path.join(process.cwd(), 'prisma'),
   )
   if (schemaPath) {
-    parentDirectory = path.dirname(schemaPath)
+    parentDirectory = path.relative(process.cwd(), path.dirname(schemaPath))
   }
 
   const seedPath = path.join(parentDirectory, 'seed.')
@@ -122,11 +122,13 @@ To install them run: ${chalk.green(
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
       let tsNodeCommand = 'ts-node'
-      if (scripts && scripts['ts-node']) {
+      if (scripts?.['ts-node']) {
         tsNodeCommand = scripts['ts-node']
       }
 
-      console.info(`Running ${chalk.bold(`ts-node "${detected.ts}"`)} ...`)
+      console.info(
+        `Running ${chalk.bold(`${tsNodeCommand} "${detected.ts}"`)} ...`,
+      )
       return await execa(tsNodeCommand, [`"${detected.ts}"`], {
         shell: true,
         stdio: 'inherit',
@@ -147,9 +149,14 @@ To install them run: ${chalk.green(
   }
 }
 
-export async function getScriptsFromPackageJson(
-  cwd: string = process.cwd(),
-): Promise<string | null> {
+export async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
+  interface PkgJSON {
+    scripts: PkgJSONScripts
+  }
+  interface PkgJSONScripts {
+    [key: string]: string
+  }
+
   try {
     const pkgJsonPath = await pkgUp({ cwd })
 
@@ -158,9 +165,13 @@ export async function getScriptsFromPackageJson(
     }
 
     const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
-    const pkgJson = JSON.parse(pkgJsonString)
 
-    return pkgJson.scripts
+    const pkgJson: PkgJSON = JSON.parse(pkgJsonString)
+
+    // Pick and return only items we need
+    const { 'ts-node': tsnode } = pkgJson.scripts
+
+    return { 'ts-node': tsnode }
   } catch {
     return null
   }
