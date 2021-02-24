@@ -54,6 +54,8 @@ beforeEach(async () => {
     'none',
   ])
 
+  await new Promise((r) => setTimeout(() => r(null), 2000))
+
   await sendRequest({
     requestId: 1,
     channel: 'prisma',
@@ -193,7 +195,7 @@ it('can respond to `update` queries', async () => {
   expect(res).toMatchSnapshot()
 })
 
-it.skip('can respond to `delete` queries', async () => {
+it('can respond to `delete` queries', async () => {
   const res = await sendRequest({
     requestId: 1,
     channel: 'prisma',

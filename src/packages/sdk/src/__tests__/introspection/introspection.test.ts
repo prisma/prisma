@@ -58,7 +58,6 @@ test('introspection basic', async () => {
   expect(databases).toMatchInlineSnapshot(`
     Array [
       "blog.db",
-      "blog.db",
     ]
   `)
 
@@ -520,6 +519,8 @@ test('introspection basic', async () => {
         ],
         enums: [],
         sequences: [],
+        views: [],
+        procedures: [],
     }"
   `)
   engine.stop()

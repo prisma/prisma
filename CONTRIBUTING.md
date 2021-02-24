@@ -69,25 +69,37 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 1. `cd src/packages/client`
 1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 1. `cd fixtures/blog`
-1. `export DB_URL=YOUR_POSTGRES_DB_URL`  
+1. `export DB_URL=YOUR_DATABASE_URL`  
    For this step you might find our [docker-compose setup](./src/docker) helpful
 1. `npx prisma db push --preview-feature`
 1. `ts-node main`
 
 ### Integration tests
+We have two kinds of integration tests:
+1. Testing basic query functionality - located in [src/tests/src/__tests__/integration](./src/packages/tests/src/__tests__/integration)
+2. Testing the client in mini projects - located in [src/client/src/__tests__/integration](./src/packages/client/src/__tests__/integration)
 
-#### Running integration tests for Prisma Client JS
-
-The integration tests for Prisma Client js are located in [src/**tests**/integration](./src/packages/client/src/__tests__/integration).
-
-Start the test databases (see [readme](./src/docker) for various ways to run these)
+To run any of these, start the test databases (see [readme](./src/docker) for various ways to run these)
 
 1. `cd src/docker`
 1. `docker-compose up -d`
 
+#### General client integration tests (`./tests`)
+
+The integration tests consisting of mini project are located in [src/tests/src/__tests__/integration](./src/packages/tests/src/__tests__/integration)
+
 Start the tests
 
-1. `cd src/packages/cli`
+1. `cd src/packages/tests`
+2. `pnpm run test`
+
+#### Prisma Client folder-based integration tests (`./client`)
+
+The integration tests consisting of mini project are located in [src/client/src/__tests__/integration](./src/packages/client/src/__tests__/integration)
+
+Start the tests
+
+1. `cd src/packages/client`
 2. `pnpm run test integration`
 
 Notes:

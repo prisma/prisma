@@ -9,7 +9,7 @@ const debug = Debug('prisma:loadEnv')
 /**
  *  1. Search in project root
  *  1. Schema
- *    1. Search location from schema arg --schema
+ *    1. Search location from schema arg `--schema`
  *    1. Search location from pkgJSON `"prisma": {"schema": "/path/to/schema.prisma"}`
  *    1. Search default location `./prisma/.env`
  *    1. Search cwd `./.env`
@@ -52,10 +52,11 @@ function getProjectRootEnvPath(
       try {
         const pkg = require(pkgPath)
         if (pkg['name'] !== '.prisma/client') {
+          debug(`project root found at ${pkgPath}`)
           return pkgPath
         }
       } catch (e) {
-        debug(e)
+        debug(`skipping package.json at ${pkgPath}`)
       }
     }
   }, opts)
