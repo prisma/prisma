@@ -1426,7 +1426,25 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
         if (e.error.type === 'invalidType') {
           // Math.exp is important here so a big depth is exponentially punished
-          score = 2 * Math.exp(getDepth(e.error.providedValue))
+          score = 2 * Math.exp(getDepth(e.error.providedValue)) + 1
+        }
+
+        if (e.error.type === 'missingArg') {
+          if (
+            arg.inputType &&
+            isInputArgType(arg.inputType.type) &&
+            arg.inputType.type.name.includes('Unchecked')
+          ) {
+            score += 1
+          }
+        }
+
+        if (e.error.type === 'invalidName') {
+          if (isInputArgType(e.error.originalType)) {
+            if (e.error.originalType.name.includes('Unchecked')) {
+              score += 1
+            }
+          }
         }
 
         return score
@@ -1435,6 +1453,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       return {
         score: errors.length + sum(errorScores),
         arg,
+        errors,
       }
     })
 

@@ -317,8 +317,17 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   authorId?: String | null,
-?   optionnal?: Float | null
+?   optionnal?: Float | null,
+?   author?: {
+?     create?: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput,
+?     connectOrCreate?: UserCreateOrConnectWithoutPostsInput,
+?     connect?: UserWhereUniqueInput
+?   },
+?   categories?: {
+?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput,
+?     connectOrCreate?: CategoryCreateOrConnectWithoutPostsInput | CategoryCreateOrConnectWithoutPostsInput,
+?     connect?: CategoryWhereUniqueInput | CategoryWhereUniqueInput
+?   }
   }
 }
 
