@@ -161,7 +161,7 @@ describe('scalar where transformation', () => {
     `)
   })
 
-  test.only('MODELScalarWhereInput', () => {
+  test('MODELScalarWhereInput', () => {
     const select = {
       where: {
         AND: [

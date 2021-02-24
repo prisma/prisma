@@ -161,7 +161,6 @@ importers:
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
       '@types/js-levenshtein': 1.1.0
-      '@types/lodash.groupby': 4.6.6
       '@types/mssql': 6.0.7
       '@types/node': 12.20.4
       '@types/pg': 7.14.10
@@ -222,7 +221,6 @@ importers:
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
       '@types/js-levenshtein': 1.1.0
-      '@types/lodash.groupby': ^4.6.6
       '@types/mssql': 6.0.7
       '@types/node': 12.20.4
       '@types/pg': 7.14.10
@@ -1997,16 +1995,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-cxWFQVseBm6O9Gbw1IWb8r6OS4OhSt3hPZLkFApLjM8TEXROBuQGLAH2i2gZpcXdLBIrpXuTDhH7Vbm1iXmNGA==
-  /@types/lodash.groupby/4.6.6:
-    dependencies:
-      '@types/lodash': 4.14.168
-    dev: true
-    resolution:
-      integrity: sha512-kwg3T7Ia63KtDNoQQR8hKrLHCAgrH4I44l5uEMuA6JCbj7DiSccaV4tNV1vbjtAOpX990SolVthJCmBVtRVRgw==
-  /@types/lodash/4.14.168:
-    dev: true
-    resolution:
-      integrity: sha512-oVfRvqHV/V6D1yifJbVRU3TMp8OT6o6BG+U9MkwuJ3U8/CsDHvalRpsxBqivn71ztOFZBTfJMvETbqHiaNSj7Q==
   /@types/minimist/1.2.1:
     dev: true
     resolution:
@@ -8634,7 +8622,7 @@ packages:
       bs-logger: 0.2.6
       buffer-from: 1.1.1
       fast-json-stable-stringify: 2.1.0
-      jest: 26.6.3
+      jest: 26.6.3_ts-node@9.1.1
       jest-util: 26.6.2
       json5: 2.2.0
       lodash: 4.17.20
