@@ -121,15 +121,18 @@ To install them run: ${chalk.green(
 
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
-      let tsNodeCommand = 'ts-node'
+      let tsNodeCommand = `ts-node`
+      let tsArgs = `-p -e "declare var require: any; const __seed = require('./${detected.ts}'); Object.keys(__seed)?.indexOf('default') !== -1 ? __seed.default() : 'Executing as script'"`
+
       if (scripts?.['ts-node']) {
         tsNodeCommand = scripts['ts-node']
+        tsArgs = `"${detected.ts}"`
       }
 
       console.info(
         `Running ${chalk.bold(`${tsNodeCommand} "${detected.ts}"`)} ...`,
       )
-      return await execa(tsNodeCommand, [`"${detected.ts}"`], {
+      return await execa(tsNodeCommand, [tsArgs], {
         shell: true,
         stdio: 'inherit',
       })
