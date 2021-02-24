@@ -1440,9 +1440,6 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
 
     argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
 
-    // clog(argsWithScores)
-    // clog(argsWithScores[0].arg, { depth: 2 })
-
     return argsWithScores[0].arg
   }
 
