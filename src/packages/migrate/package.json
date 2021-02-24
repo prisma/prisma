@@ -16,12 +16,12 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.18.0-6.43e73b6d61a0d707a4b605daa6169624acc33b74",
+    "@prisma/engines-version": "2.18.0-19.4b759ce11aa29f91524e07e18b85f69a2d529992",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
     "@types/jest": "26.0.20",
-    "@types/node": "12.20.1",
+    "@types/node": "12.20.4",
     "@types/pg": "7.14.10",
     "@types/prompts": "2.0.9",
     "@types/sqlite3": "3.1.7",

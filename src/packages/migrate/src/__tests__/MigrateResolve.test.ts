@@ -158,7 +158,7 @@ describe('sqlite', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             P3011
 
-            Migration \`does_not_exist\` cannot be rolled back because it was never applied to the database.
+            Migration \`does_not_exist\` cannot be rolled back because it was never applied to the database. Hint: did you pass in the whole migration name? (example: "20201231000000_initial_migration")
 
           `)
   })

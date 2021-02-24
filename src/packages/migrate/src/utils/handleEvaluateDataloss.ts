@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import prompt from 'prompts'
-import { isCi } from '@prisma/sdk'
+import { isCi, getCommandWithExecutor } from '@prisma/sdk'
 import { MigrationFeedback } from '../types'
 import { MigrateDevEnvNonInteractiveError } from './errors'
 
@@ -22,7 +22,14 @@ export function handleUnexecutableSteps(
     if (createOnly) {
       console.error(`${messages.join('\n')}\n`)
     } else {
-      throw new Error(`${messages.join('\n')}\n`)
+      throw new Error(`${messages.join('\n')}
+
+You can use ${getCommandWithExecutor(
+        'prisma migrate dev --create-only --preview-feature',
+      )} to create the migration file, and manually modify it to address the underlying issue(s).
+Then run ${getCommandWithExecutor(
+        'prisma migrate dev --preview-feature',
+      )} to apply it and verify it works.\n`)
     }
   }
 }
