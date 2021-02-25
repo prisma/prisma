@@ -34,48 +34,48 @@ describe('download', () => {
         'linux-musl',
       ],
     })
-    const files = getFiles(baseDir)
+    const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))
     expect(files).toMatchInlineSnapshot(`
       Array [
         Object {
           "name": ".gitkeep",
-          "size": 0,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-darwin.dylib.node",
-          "size": 21457856,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-debian-openssl-1.0.x.so.node",
-          "size": 23197768,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-debian-openssl-1.1.x.so.node",
-          "size": 23172880,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-linux-arm-openssl-1.0.x.so.node",
-          "size": 24212576,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-linux-arm-openssl-1.1.x.so.node",
-          "size": 24950552,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-linux-musl.so.node",
-          "size": 23361432,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-rhel-openssl-1.0.x.so.node",
-          "size": 23175344,
+          "size": "X",
         },
         Object {
           "name": "libquery_engine_napi-rhel-openssl-1.1.x.so.node",
-          "size": 23170840,
+          "size": "X",
         },
         Object {
           "name": "query_engine_napi-windows.dll.node",
-          "size": 17845248,
+          "size": "X",
         },
       ]
     `)
