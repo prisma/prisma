@@ -230,10 +230,11 @@ ${indent(this.children.map(String).join('\n'), tab)}
         missingArgsLegend += chalk.dim('.')
       }
 
-      const errorMessages = `${argErrors
-        .filter(
-          (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
-        )
+      const relevantArgErrors = argErrors.filter(
+        (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
+      )
+
+      let errorMessages = relevantArgErrors
         .map((e) =>
           this.printArgError(
             e,
@@ -241,7 +242,9 @@ ${indent(this.children.map(String).join('\n'), tab)}
             errorFormat === 'minimal',
           ),
         ) // if no callsite is provided, just render the minimal error
-        .join('\n')}
+        .join('\n')
+
+      errorMessages += `
 ${fieldErrors
   .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
   .join('\n')}`
@@ -388,7 +391,7 @@ ${errorMessages}${missingArgsLegend}\n`
     }
   }
   protected printArgError = (
-    { error, path }: ArgError,
+    { error, path, id }: ArgError,
     hasMissingItems: boolean,
     minimal: boolean,
   ) => {
@@ -861,6 +864,7 @@ ${indent(value.toString(), 2)}
   public toString() {
     return this._toString(this.value, this.key)
   }
+  // TODO: memoize this function
   public collectErrors(): ArgError[] {
     if (!this.hasError) {
       return []
@@ -870,9 +874,14 @@ ${indent(value.toString(), 2)}
 
     // add the own arg
     if (this.error) {
+      const id =
+        typeof this.inputType?.type === 'object'
+          ? `${this.inputType.type.name}${this.inputType.isList ? '[]' : ''}`
+          : undefined
       errors.push({
         error: this.error,
         path: [this.key],
+        id,
       })
     }
 
@@ -1342,6 +1351,11 @@ function hasCorrectScalarType(
   if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
     return true
   }
+
+  if (graphQLType === 'List<String>' && expectedType === 'List<Json>') {
+    return true
+  }
+
   if (
     expectedType === 'List<String>' &&
     (graphQLType === 'List<String | UUID>' ||
@@ -1390,14 +1404,103 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
    */
   let maybeArg: Arg | null = null
 
+  const argsWithErrors: { arg: Arg; errors: ArgError[] }[] = []
+
   for (const inputType of arg.inputTypes) {
     maybeArg = tryInferArgs(key, value, arg, inputType)
     if (maybeArg?.collectErrors().length === 0) {
       return maybeArg
     }
+    if (maybeArg && maybeArg?.collectErrors()) {
+      const argErrors = maybeArg?.collectErrors()
+      if (argErrors && argErrors.length > 0) {
+        argsWithErrors.push({ arg: maybeArg, errors: argErrors })
+      }
+    }
+  }
+
+  if (maybeArg?.hasError && argsWithErrors.length > 0) {
+    const argsWithScores = argsWithErrors.map(({ arg, errors }) => {
+      const errorScores = errors.map((e) => {
+        let score = 1
+
+        if (e.error.type === 'invalidType') {
+          // Math.exp is important here so a big depth is exponentially punished
+          score = 2 * Math.exp(getDepth(e.error.providedValue)) + 1
+        }
+
+        score += Math.log(e.path.length)
+
+        if (e.error.type === 'missingArg') {
+          if (
+            arg.inputType &&
+            isInputArgType(arg.inputType.type) &&
+            arg.inputType.type.name.includes('Unchecked')
+          ) {
+            score *= 2
+          }
+        }
+
+        if (e.error.type === 'invalidName') {
+          if (isInputArgType(e.error.originalType)) {
+            if (e.error.originalType.name.includes('Unchecked')) {
+              score *= 2
+            }
+          }
+        }
+
+        // we use (1 / path.length) to make sure that this only makes a difference
+        // in the cases, where the rest is the same
+        return score
+      })
+
+      return {
+        score: errors.length + sum(errorScores),
+        arg,
+        errors,
+      }
+    })
+
+    // because Node 10's sort has a different order for sorting than Node 11+
+    let scoresEqual = true
+    const currentScore = argsWithScores[0].score
+    for (const { score } of argsWithScores) {
+      if (score !== currentScore) {
+        scoresEqual = false
+        break
+      }
+    }
+
+    if (!scoresEqual) {
+      argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
+    }
+
+    return argsWithScores[0].arg
   }
 
   return maybeArg
+}
+
+function getDepth(object: any): number {
+  let level = 1
+  if (!object || typeof object !== 'object') {
+    return level
+  }
+  for (const key in object) {
+    if (!Object.prototype.hasOwnProperty.call(object, key)) {
+      continue
+    }
+
+    if (typeof object[key] === 'object') {
+      const depth = getDepth(object[key]) + 1
+      level = Math.max(depth, level)
+    }
+  }
+  return level
+}
+
+function sum(n: number[]): number {
+  return n.reduce((acc, curr) => acc + curr, 0)
 }
 
 /**
@@ -1465,6 +1568,7 @@ function tryInferArgs(
     if (isInputArgType(inputType.type)) {
       if (
         typeof value !== 'object' ||
+        Array.isArray(value) ||
         (inputType.location === 'inputObjectTypes' && !isObject(value))
       ) {
         return getInvalidTypeArg(key, value, arg, inputType)

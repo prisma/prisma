@@ -2,6 +2,7 @@ import { DMMF } from './dmmf-types'
 
 export interface ArgError {
   path: string[]
+  id?: string
   error: InvalidArgError
 }
 

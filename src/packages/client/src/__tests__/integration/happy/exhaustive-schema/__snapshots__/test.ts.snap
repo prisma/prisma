@@ -2028,7 +2028,7 @@ export namespace Prisma {
     /**
      * The data needed to create a Post.
     **/
-    data: XOR<PostUncheckedCreateInput, PostCreateInput>
+    data: XOR<PostCreateInput, PostUncheckedCreateInput>
   }
 
 
@@ -2056,7 +2056,7 @@ export namespace Prisma {
     /**
      * The data needed to update a Post.
     **/
-    data: XOR<PostUncheckedUpdateInput, PostUpdateInput>
+    data: XOR<PostUpdateInput, PostUncheckedUpdateInput>
     /**
      * Choose, which Post to update.
     **/
@@ -2068,7 +2068,7 @@ export namespace Prisma {
    * Post updateMany
    */
   export type PostUpdateManyArgs = {
-    data: XOR<PostUncheckedUpdateManyInput, PostUpdateManyMutationInput>
+    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyInput>
     where?: PostWhereInput
   }
 
@@ -2092,11 +2092,11 @@ export namespace Prisma {
     /**
      * In case the Post found by the \`where\` argument doesn't exist, create a new Post with this data.
     **/
-    create: XOR<PostUncheckedCreateInput, PostCreateInput>
+    create: XOR<PostCreateInput, PostUncheckedCreateInput>
     /**
      * In case the Post was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<PostUncheckedUpdateInput, PostUpdateInput>
+    update: XOR<PostUpdateInput, PostUncheckedUpdateInput>
   }
 
 
@@ -2944,7 +2944,7 @@ export namespace Prisma {
     /**
      * The data needed to create a User.
     **/
-    data: XOR<UserUncheckedCreateInput, UserCreateInput>
+    data: XOR<UserCreateInput, UserUncheckedCreateInput>
   }
 
 
@@ -2972,7 +2972,7 @@ export namespace Prisma {
     /**
      * The data needed to update a User.
     **/
-    data: XOR<UserUncheckedUpdateInput, UserUpdateInput>
+    data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
     /**
      * Choose, which User to update.
     **/
@@ -2984,7 +2984,7 @@ export namespace Prisma {
    * User updateMany
    */
   export type UserUpdateManyArgs = {
-    data: XOR<UserUncheckedUpdateManyInput, UserUpdateManyMutationInput>
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
     where?: UserWhereInput
   }
 
@@ -3008,11 +3008,11 @@ export namespace Prisma {
     /**
      * In case the User found by the \`where\` argument doesn't exist, create a new User with this data.
     **/
-    create: XOR<UserUncheckedCreateInput, UserCreateInput>
+    create: XOR<UserCreateInput, UserUncheckedCreateInput>
     /**
      * In case the User was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<UserUncheckedUpdateInput, UserUpdateInput>
+    update: XOR<UserUpdateInput, UserUncheckedUpdateInput>
   }
 
 
@@ -3852,7 +3852,7 @@ export namespace Prisma {
     /**
      * The data needed to create a M.
     **/
-    data: XOR<MUncheckedCreateInput, MCreateInput>
+    data: XOR<MCreateInput, MUncheckedCreateInput>
   }
 
 
@@ -3880,7 +3880,7 @@ export namespace Prisma {
     /**
      * The data needed to update a M.
     **/
-    data: XOR<MUncheckedUpdateInput, MUpdateInput>
+    data: XOR<MUpdateInput, MUncheckedUpdateInput>
     /**
      * Choose, which M to update.
     **/
@@ -3892,7 +3892,7 @@ export namespace Prisma {
    * M updateMany
    */
   export type MUpdateManyArgs = {
-    data: XOR<MUncheckedUpdateManyInput, MUpdateManyMutationInput>
+    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyInput>
     where?: MWhereInput
   }
 
@@ -3916,11 +3916,11 @@ export namespace Prisma {
     /**
      * In case the M found by the \`where\` argument doesn't exist, create a new M with this data.
     **/
-    create: XOR<MUncheckedCreateInput, MCreateInput>
+    create: XOR<MCreateInput, MUncheckedCreateInput>
     /**
      * In case the M was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<MUncheckedUpdateInput, MUpdateInput>
+    update: XOR<MUpdateInput, MUncheckedUpdateInput>
   }
 
 
@@ -4760,7 +4760,7 @@ export namespace Prisma {
     /**
      * The data needed to create a N.
     **/
-    data: XOR<NUncheckedCreateInput, NCreateInput>
+    data: XOR<NCreateInput, NUncheckedCreateInput>
   }
 
 
@@ -4788,7 +4788,7 @@ export namespace Prisma {
     /**
      * The data needed to update a N.
     **/
-    data: XOR<NUncheckedUpdateInput, NUpdateInput>
+    data: XOR<NUpdateInput, NUncheckedUpdateInput>
     /**
      * Choose, which N to update.
     **/
@@ -4800,7 +4800,7 @@ export namespace Prisma {
    * N updateMany
    */
   export type NUpdateManyArgs = {
-    data: XOR<NUncheckedUpdateManyInput, NUpdateManyMutationInput>
+    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyInput>
     where?: NWhereInput
   }
 
@@ -4824,11 +4824,11 @@ export namespace Prisma {
     /**
      * In case the N found by the \`where\` argument doesn't exist, create a new N with this data.
     **/
-    create: XOR<NUncheckedCreateInput, NCreateInput>
+    create: XOR<NCreateInput, NUncheckedCreateInput>
     /**
      * In case the N was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<NUncheckedUpdateInput, NUpdateInput>
+    update: XOR<NUpdateInput, NUncheckedUpdateInput>
   }
 
 
@@ -5668,7 +5668,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OneOptional.
     **/
-    data: XOR<OneOptionalUncheckedCreateInput, OneOptionalCreateInput>
+    data: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
   }
 
 
@@ -5696,7 +5696,7 @@ export namespace Prisma {
     /**
      * The data needed to update a OneOptional.
     **/
-    data: XOR<OneOptionalUncheckedUpdateInput, OneOptionalUpdateInput>
+    data: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
     /**
      * Choose, which OneOptional to update.
     **/
@@ -5708,7 +5708,7 @@ export namespace Prisma {
    * OneOptional updateMany
    */
   export type OneOptionalUpdateManyArgs = {
-    data: XOR<OneOptionalUncheckedUpdateManyInput, OneOptionalUpdateManyMutationInput>
+    data: XOR<OneOptionalUpdateManyMutationInput, OneOptionalUncheckedUpdateManyInput>
     where?: OneOptionalWhereInput
   }
 
@@ -5732,11 +5732,11 @@ export namespace Prisma {
     /**
      * In case the OneOptional found by the \`where\` argument doesn't exist, create a new OneOptional with this data.
     **/
-    create: XOR<OneOptionalUncheckedCreateInput, OneOptionalCreateInput>
+    create: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
     /**
      * In case the OneOptional was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<OneOptionalUncheckedUpdateInput, OneOptionalUpdateInput>
+    update: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
   }
 
 
@@ -6588,7 +6588,7 @@ export namespace Prisma {
     /**
      * The data needed to create a ManyRequired.
     **/
-    data: XOR<ManyRequiredUncheckedCreateInput, ManyRequiredCreateInput>
+    data: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
   }
 
 
@@ -6616,7 +6616,7 @@ export namespace Prisma {
     /**
      * The data needed to update a ManyRequired.
     **/
-    data: XOR<ManyRequiredUncheckedUpdateInput, ManyRequiredUpdateInput>
+    data: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
     /**
      * Choose, which ManyRequired to update.
     **/
@@ -6628,7 +6628,7 @@ export namespace Prisma {
    * ManyRequired updateMany
    */
   export type ManyRequiredUpdateManyArgs = {
-    data: XOR<ManyRequiredUncheckedUpdateManyInput, ManyRequiredUpdateManyMutationInput>
+    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyInput>
     where?: ManyRequiredWhereInput
   }
 
@@ -6652,11 +6652,11 @@ export namespace Prisma {
     /**
      * In case the ManyRequired found by the \`where\` argument doesn't exist, create a new ManyRequired with this data.
     **/
-    create: XOR<ManyRequiredUncheckedCreateInput, ManyRequiredCreateInput>
+    create: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
     /**
      * In case the ManyRequired was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<ManyRequiredUncheckedUpdateInput, ManyRequiredUpdateInput>
+    update: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
   }
 
 
@@ -7508,7 +7508,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OptionalSide1.
     **/
-    data: XOR<OptionalSide1UncheckedCreateInput, OptionalSide1CreateInput>
+    data: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
   }
 
 
@@ -7536,7 +7536,7 @@ export namespace Prisma {
     /**
      * The data needed to update a OptionalSide1.
     **/
-    data: XOR<OptionalSide1UncheckedUpdateInput, OptionalSide1UpdateInput>
+    data: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
     /**
      * Choose, which OptionalSide1 to update.
     **/
@@ -7548,7 +7548,7 @@ export namespace Prisma {
    * OptionalSide1 updateMany
    */
   export type OptionalSide1UpdateManyArgs = {
-    data: XOR<OptionalSide1UncheckedUpdateManyInput, OptionalSide1UpdateManyMutationInput>
+    data: XOR<OptionalSide1UpdateManyMutationInput, OptionalSide1UncheckedUpdateManyInput>
     where?: OptionalSide1WhereInput
   }
 
@@ -7572,11 +7572,11 @@ export namespace Prisma {
     /**
      * In case the OptionalSide1 found by the \`where\` argument doesn't exist, create a new OptionalSide1 with this data.
     **/
-    create: XOR<OptionalSide1UncheckedCreateInput, OptionalSide1CreateInput>
+    create: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
     /**
      * In case the OptionalSide1 was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<OptionalSide1UncheckedUpdateInput, OptionalSide1UpdateInput>
+    update: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
   }
 
 
@@ -8416,7 +8416,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OptionalSide2.
     **/
-    data: XOR<OptionalSide2UncheckedCreateInput, OptionalSide2CreateInput>
+    data: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
   }
 
 
@@ -8444,7 +8444,7 @@ export namespace Prisma {
     /**
      * The data needed to update a OptionalSide2.
     **/
-    data: XOR<OptionalSide2UncheckedUpdateInput, OptionalSide2UpdateInput>
+    data: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
     /**
      * Choose, which OptionalSide2 to update.
     **/
@@ -8456,7 +8456,7 @@ export namespace Prisma {
    * OptionalSide2 updateMany
    */
   export type OptionalSide2UpdateManyArgs = {
-    data: XOR<OptionalSide2UncheckedUpdateManyInput, OptionalSide2UpdateManyMutationInput>
+    data: XOR<OptionalSide2UpdateManyMutationInput, OptionalSide2UncheckedUpdateManyInput>
     where?: OptionalSide2WhereInput
   }
 
@@ -8480,11 +8480,11 @@ export namespace Prisma {
     /**
      * In case the OptionalSide2 found by the \`where\` argument doesn't exist, create a new OptionalSide2 with this data.
     **/
-    create: XOR<OptionalSide2UncheckedCreateInput, OptionalSide2CreateInput>
+    create: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
     /**
      * In case the OptionalSide2 was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<OptionalSide2UncheckedUpdateInput, OptionalSide2UpdateInput>
+    update: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
   }
 
 
@@ -9277,7 +9277,7 @@ export namespace Prisma {
     /**
      * The data needed to create a A.
     **/
-    data: XOR<AUncheckedCreateInput, ACreateInput>
+    data: XOR<ACreateInput, AUncheckedCreateInput>
   }
 
 
@@ -9301,7 +9301,7 @@ export namespace Prisma {
     /**
      * The data needed to update a A.
     **/
-    data: XOR<AUncheckedUpdateInput, AUpdateInput>
+    data: XOR<AUpdateInput, AUncheckedUpdateInput>
     /**
      * Choose, which A to update.
     **/
@@ -9313,7 +9313,7 @@ export namespace Prisma {
    * A updateMany
    */
   export type AUpdateManyArgs = {
-    data: XOR<AUncheckedUpdateManyInput, AUpdateManyMutationInput>
+    data: XOR<AUpdateManyMutationInput, AUncheckedUpdateManyInput>
     where?: AWhereInput
   }
 
@@ -9333,11 +9333,11 @@ export namespace Prisma {
     /**
      * In case the A found by the \`where\` argument doesn't exist, create a new A with this data.
     **/
-    create: XOR<AUncheckedCreateInput, ACreateInput>
+    create: XOR<ACreateInput, AUncheckedCreateInput>
     /**
      * In case the A was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<AUncheckedUpdateInput, AUpdateInput>
+    update: XOR<AUpdateInput, AUncheckedUpdateInput>
   }
 
 
@@ -10082,7 +10082,7 @@ export namespace Prisma {
     /**
      * The data needed to create a B.
     **/
-    data: XOR<BUncheckedCreateInput, BCreateInput>
+    data: XOR<BCreateInput, BUncheckedCreateInput>
   }
 
 
@@ -10106,7 +10106,7 @@ export namespace Prisma {
     /**
      * The data needed to update a B.
     **/
-    data: XOR<BUncheckedUpdateInput, BUpdateInput>
+    data: XOR<BUpdateInput, BUncheckedUpdateInput>
     /**
      * Choose, which B to update.
     **/
@@ -10118,7 +10118,7 @@ export namespace Prisma {
    * B updateMany
    */
   export type BUpdateManyArgs = {
-    data: XOR<BUncheckedUpdateManyInput, BUpdateManyMutationInput>
+    data: XOR<BUpdateManyMutationInput, BUncheckedUpdateManyInput>
     where?: BWhereInput
   }
 
@@ -10138,11 +10138,11 @@ export namespace Prisma {
     /**
      * In case the B found by the \`where\` argument doesn't exist, create a new B with this data.
     **/
-    create: XOR<BUncheckedCreateInput, BCreateInput>
+    create: XOR<BCreateInput, BUncheckedCreateInput>
     /**
      * In case the B was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<BUncheckedUpdateInput, BUpdateInput>
+    update: XOR<BUpdateInput, BUncheckedUpdateInput>
   }
 
 
@@ -10857,7 +10857,7 @@ export namespace Prisma {
     /**
      * The data needed to create a C.
     **/
-    data: XOR<CUncheckedCreateInput, CCreateInput>
+    data: XOR<CCreateInput, CUncheckedCreateInput>
   }
 
 
@@ -10881,7 +10881,7 @@ export namespace Prisma {
     /**
      * The data needed to update a C.
     **/
-    data: XOR<CUncheckedUpdateInput, CUpdateInput>
+    data: XOR<CUpdateInput, CUncheckedUpdateInput>
     /**
      * Choose, which C to update.
     **/
@@ -10893,7 +10893,7 @@ export namespace Prisma {
    * C updateMany
    */
   export type CUpdateManyArgs = {
-    data: XOR<CUncheckedUpdateManyInput, CUpdateManyMutationInput>
+    data: XOR<CUpdateManyMutationInput, CUncheckedUpdateManyInput>
     where?: CWhereInput
   }
 
@@ -10913,11 +10913,11 @@ export namespace Prisma {
     /**
      * In case the C found by the \`where\` argument doesn't exist, create a new C with this data.
     **/
-    create: XOR<CUncheckedCreateInput, CCreateInput>
+    create: XOR<CCreateInput, CUncheckedCreateInput>
     /**
      * In case the C was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<CUncheckedUpdateInput, CUpdateInput>
+    update: XOR<CUpdateInput, CUncheckedUpdateInput>
   }
 
 
@@ -11616,7 +11616,7 @@ export namespace Prisma {
     /**
      * The data needed to create a D.
     **/
-    data: XOR<DUncheckedCreateInput, DCreateInput>
+    data: XOR<DCreateInput, DUncheckedCreateInput>
   }
 
 
@@ -11640,7 +11640,7 @@ export namespace Prisma {
     /**
      * The data needed to update a D.
     **/
-    data: XOR<DUncheckedUpdateInput, DUpdateInput>
+    data: XOR<DUpdateInput, DUncheckedUpdateInput>
     /**
      * Choose, which D to update.
     **/
@@ -11652,7 +11652,7 @@ export namespace Prisma {
    * D updateMany
    */
   export type DUpdateManyArgs = {
-    data: XOR<DUncheckedUpdateManyInput, DUpdateManyMutationInput>
+    data: XOR<DUpdateManyMutationInput, DUncheckedUpdateManyInput>
     where?: DWhereInput
   }
 
@@ -11672,11 +11672,11 @@ export namespace Prisma {
     /**
      * In case the D found by the \`where\` argument doesn't exist, create a new D with this data.
     **/
-    create: XOR<DUncheckedCreateInput, DCreateInput>
+    create: XOR<DCreateInput, DUncheckedCreateInput>
     /**
      * In case the D was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<DUncheckedUpdateInput, DUpdateInput>
+    update: XOR<DUpdateInput, DUncheckedUpdateInput>
   }
 
 
@@ -12367,7 +12367,7 @@ export namespace Prisma {
     /**
      * The data needed to create a E.
     **/
-    data: XOR<EUncheckedCreateInput, ECreateInput>
+    data: XOR<ECreateInput, EUncheckedCreateInput>
   }
 
 
@@ -12391,7 +12391,7 @@ export namespace Prisma {
     /**
      * The data needed to update a E.
     **/
-    data: XOR<EUncheckedUpdateInput, EUpdateInput>
+    data: XOR<EUpdateInput, EUncheckedUpdateInput>
     /**
      * Choose, which E to update.
     **/
@@ -12403,7 +12403,7 @@ export namespace Prisma {
    * E updateMany
    */
   export type EUpdateManyArgs = {
-    data: XOR<EUncheckedUpdateManyInput, EUpdateManyMutationInput>
+    data: XOR<EUpdateManyMutationInput, EUncheckedUpdateManyInput>
     where?: EWhereInput
   }
 
@@ -12423,11 +12423,11 @@ export namespace Prisma {
     /**
      * In case the E found by the \`where\` argument doesn't exist, create a new E with this data.
     **/
-    create: XOR<EUncheckedCreateInput, ECreateInput>
+    create: XOR<ECreateInput, EUncheckedCreateInput>
     /**
      * In case the E was found with the provided \`where\` argument, update it with this data.
     **/
-    update: XOR<EUncheckedUpdateInput, EUpdateInput>
+    update: XOR<EUpdateInput, EUncheckedUpdateInput>
   }
 
 
@@ -12712,7 +12712,7 @@ export namespace Prisma {
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
     published?: BoolFilter | boolean
-    author?: XOR<UserWhereInput, UserRelationFilter>
+    author?: XOR<UserRelationFilter, UserWhereInput>
     authorId?: IntFilter | number
   }
 
@@ -12987,7 +12987,7 @@ export namespace Prisma {
     OR?: Enumerable<ManyRequiredWhereInput>
     NOT?: Enumerable<ManyRequiredWhereInput>
     id?: IntFilter | number
-    one?: XOR<OneOptionalWhereInput, OneOptionalRelationFilter> | null
+    one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -13050,7 +13050,7 @@ export namespace Prisma {
     OR?: Enumerable<OptionalSide1WhereInput>
     NOT?: Enumerable<OptionalSide1WhereInput>
     id?: IntFilter | number
-    opti?: XOR<OptionalSide2WhereInput, OptionalSide2RelationFilter> | null
+    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
     optionalSide2Id?: IntNullableFilter | number | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -13113,7 +13113,7 @@ export namespace Prisma {
     OR?: Enumerable<OptionalSide2WhereInput>
     NOT?: Enumerable<OptionalSide2WhereInput>
     id?: IntFilter | number
-    opti?: XOR<OptionalSide1WhereInput, OptionalSide1RelationFilter> | null
+    opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -14932,7 +14932,7 @@ export namespace Prisma {
   }
 
   export type UserCreateNestedOneWithoutPostsInput = {
-    create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
+    create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
     connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     connect?: UserWhereUniqueInput
   }
@@ -14954,11 +14954,11 @@ export namespace Prisma {
   }
 
   export type UserUpdateOneRequiredWithoutPostsInput = {
-    create?: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
+    create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
     connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     upsert?: UserUpsertWithoutPostsInput
     connect?: UserWhereUniqueInput
-    update?: XOR<UserUncheckedUpdateWithoutPostsInput, UserUpdateWithoutPostsInput>
+    update?: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -14970,14 +14970,14 @@ export namespace Prisma {
   }
 
   export type PostCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
   }
 
   export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
@@ -15020,7 +15020,7 @@ export namespace Prisma {
   }
 
   export type PostUpdateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
@@ -15034,7 +15034,7 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostUncheckedCreateWithoutAuthorInput>, Enumerable<PostCreateWithoutAuthorInput>>
+    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
@@ -15048,13 +15048,13 @@ export namespace Prisma {
   }
 
   export type NCreateNestedManyWithoutMInput = {
-    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
   }
 
   export type NUpdateManyWithoutMInput = {
-    create?: XOR<Enumerable<NUncheckedCreateWithoutMInput>, Enumerable<NCreateWithoutMInput>>
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
@@ -15067,13 +15067,13 @@ export namespace Prisma {
   }
 
   export type MCreateNestedManyWithoutNInput = {
-    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
   }
 
   export type MUpdateManyWithoutNInput = {
-    create?: XOR<Enumerable<MUncheckedCreateWithoutNInput>, Enumerable<MCreateWithoutNInput>>
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
@@ -15086,21 +15086,21 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateNestedManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
   }
 
   export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
   }
 
   export type ManyRequiredUpdateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
@@ -15114,7 +15114,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>, Enumerable<ManyRequiredCreateWithoutOneInput>>
+    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
@@ -15128,67 +15128,67 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateNestedOneWithoutManyInput = {
-    create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
+    create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     connect?: OneOptionalWhereUniqueInput
   }
 
   export type OneOptionalUpdateOneWithoutManyInput = {
-    create?: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
+    create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     upsert?: OneOptionalUpsertWithoutManyInput
     connect?: OneOptionalWhereUniqueInput
     disconnect?: boolean
     delete?: boolean
-    update?: XOR<OneOptionalUncheckedUpdateWithoutManyInput, OneOptionalUpdateWithoutManyInput>
+    update?: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
   }
 
   export type OptionalSide2CreateNestedOneWithoutOptiInput = {
-    create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
+    create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     connect?: OptionalSide2WhereUniqueInput
   }
 
   export type OptionalSide2UpdateOneWithoutOptiInput = {
-    create?: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
+    create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide2UpsertWithoutOptiInput
     connect?: OptionalSide2WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
-    update?: XOR<OptionalSide2UncheckedUpdateWithoutOptiInput, OptionalSide2UpdateWithoutOptiInput>
+    update?: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide1CreateNestedOneWithoutOptiInput = {
-    create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
   }
 
   export type OptionalSide1UncheckedCreateNestedOneWithoutOptiInput = {
-    create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
   }
 
   export type OptionalSide1UpdateOneWithoutOptiInput = {
-    create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
-    update?: XOR<OptionalSide1UncheckedUpdateWithoutOptiInput, OptionalSide1UpdateWithoutOptiInput>
+    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
-    create?: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
     connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
-    update?: XOR<OptionalSide1UncheckedUpdateWithoutOptiInput, OptionalSide1UpdateWithoutOptiInput>
+    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
   export type BigIntFieldUpdateOperationsInput = {
@@ -15578,12 +15578,12 @@ export namespace Prisma {
 
   export type UserCreateOrConnectWithoutPostsInput = {
     where: UserWhereUniqueInput
-    create: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
+    create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
   }
 
   export type UserUpsertWithoutPostsInput = {
-    update: XOR<UserUncheckedUpdateWithoutPostsInput, UserUpdateWithoutPostsInput>
-    create: XOR<UserUncheckedCreateWithoutPostsInput, UserCreateWithoutPostsInput>
+    update: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
+    create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
   }
 
   export type UserUpdateWithoutPostsInput = {
@@ -15636,7 +15636,7 @@ export namespace Prisma {
 
   export type PostCreateOrConnectWithoutAuthorInput = {
     where: PostWhereUniqueInput
-    create: XOR<PostUncheckedCreateWithoutAuthorInput, PostCreateWithoutAuthorInput>
+    create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
   }
 
   export type PostCreateManyAuthorInputEnvelope = {
@@ -15646,18 +15646,18 @@ export namespace Prisma {
 
   export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
-    update: XOR<PostUncheckedUpdateWithoutAuthorInput, PostUpdateWithoutAuthorInput>
-    create: XOR<PostUncheckedCreateWithoutAuthorInput, PostCreateWithoutAuthorInput>
+    update: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
+    create: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput>
   }
 
   export type PostUpdateWithWhereUniqueWithoutAuthorInput = {
     where: PostWhereUniqueInput
-    data: XOR<PostUncheckedUpdateWithoutAuthorInput, PostUpdateWithoutAuthorInput>
+    data: XOR<PostUpdateWithoutAuthorInput, PostUncheckedUpdateWithoutAuthorInput>
   }
 
   export type PostUpdateManyWithWhereWithoutAuthorInput = {
     where: PostScalarWhereInput
-    data: XOR<PostUncheckedUpdateManyWithoutPostsInput, PostUpdateManyMutationInput>
+    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutPostsInput>
   }
 
   export type PostScalarWhereInput = {
@@ -15705,23 +15705,23 @@ export namespace Prisma {
 
   export type NCreateOrConnectWithoutMInput = {
     where: NWhereUniqueInput
-    create: XOR<NUncheckedCreateWithoutMInput, NCreateWithoutMInput>
+    create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
   }
 
   export type NUpsertWithWhereUniqueWithoutMInput = {
     where: NWhereUniqueInput
-    update: XOR<NUncheckedUpdateWithoutMInput, NUpdateWithoutMInput>
-    create: XOR<NUncheckedCreateWithoutMInput, NCreateWithoutMInput>
+    update: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
+    create: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput>
   }
 
   export type NUpdateWithWhereUniqueWithoutMInput = {
     where: NWhereUniqueInput
-    data: XOR<NUncheckedUpdateWithoutMInput, NUpdateWithoutMInput>
+    data: XOR<NUpdateWithoutMInput, NUncheckedUpdateWithoutMInput>
   }
 
   export type NUpdateManyWithWhereWithoutMInput = {
     where: NScalarWhereInput
-    data: XOR<NUncheckedUpdateManyWithoutNInput, NUpdateManyMutationInput>
+    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutNInput>
   }
 
   export type NScalarWhereInput = {
@@ -15776,23 +15776,23 @@ export namespace Prisma {
 
   export type MCreateOrConnectWithoutNInput = {
     where: MWhereUniqueInput
-    create: XOR<MUncheckedCreateWithoutNInput, MCreateWithoutNInput>
+    create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
   }
 
   export type MUpsertWithWhereUniqueWithoutNInput = {
     where: MWhereUniqueInput
-    update: XOR<MUncheckedUpdateWithoutNInput, MUpdateWithoutNInput>
-    create: XOR<MUncheckedCreateWithoutNInput, MCreateWithoutNInput>
+    update: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
+    create: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput>
   }
 
   export type MUpdateWithWhereUniqueWithoutNInput = {
     where: MWhereUniqueInput
-    data: XOR<MUncheckedUpdateWithoutNInput, MUpdateWithoutNInput>
+    data: XOR<MUpdateWithoutNInput, MUncheckedUpdateWithoutNInput>
   }
 
   export type MUpdateManyWithWhereWithoutNInput = {
     where: MScalarWhereInput
-    data: XOR<MUncheckedUpdateManyWithoutMInput, MUpdateManyMutationInput>
+    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutMInput>
   }
 
   export type MScalarWhereInput = {
@@ -15847,7 +15847,7 @@ export namespace Prisma {
 
   export type ManyRequiredCreateOrConnectWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
-    create: XOR<ManyRequiredUncheckedCreateWithoutOneInput, ManyRequiredCreateWithoutOneInput>
+    create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
   }
 
   export type ManyRequiredCreateManyOneInputEnvelope = {
@@ -15857,18 +15857,18 @@ export namespace Prisma {
 
   export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
-    update: XOR<ManyRequiredUncheckedUpdateWithoutOneInput, ManyRequiredUpdateWithoutOneInput>
-    create: XOR<ManyRequiredUncheckedCreateWithoutOneInput, ManyRequiredCreateWithoutOneInput>
+    update: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
+    create: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput>
   }
 
   export type ManyRequiredUpdateWithWhereUniqueWithoutOneInput = {
     where: ManyRequiredWhereUniqueInput
-    data: XOR<ManyRequiredUncheckedUpdateWithoutOneInput, ManyRequiredUpdateWithoutOneInput>
+    data: XOR<ManyRequiredUpdateWithoutOneInput, ManyRequiredUncheckedUpdateWithoutOneInput>
   }
 
   export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
     where: ManyRequiredScalarWhereInput
-    data: XOR<ManyRequiredUncheckedUpdateManyWithoutManyInput, ManyRequiredUpdateManyMutationInput>
+    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutManyInput>
   }
 
   export type ManyRequiredScalarWhereInput = {
@@ -15924,12 +15924,12 @@ export namespace Prisma {
 
   export type OneOptionalCreateOrConnectWithoutManyInput = {
     where: OneOptionalWhereUniqueInput
-    create: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
+    create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
   }
 
   export type OneOptionalUpsertWithoutManyInput = {
-    update: XOR<OneOptionalUncheckedUpdateWithoutManyInput, OneOptionalUpdateWithoutManyInput>
-    create: XOR<OneOptionalUncheckedCreateWithoutManyInput, OneOptionalCreateWithoutManyInput>
+    update: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
+    create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
   }
 
   export type OneOptionalUpdateWithoutManyInput = {
@@ -15996,12 +15996,12 @@ export namespace Prisma {
 
   export type OptionalSide2CreateOrConnectWithoutOptiInput = {
     where: OptionalSide2WhereUniqueInput
-    create: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
+    create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
   }
 
   export type OptionalSide2UpsertWithoutOptiInput = {
-    update: XOR<OptionalSide2UncheckedUpdateWithoutOptiInput, OptionalSide2UpdateWithoutOptiInput>
-    create: XOR<OptionalSide2UncheckedCreateWithoutOptiInput, OptionalSide2CreateWithoutOptiInput>
+    update: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
+    create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
   }
 
   export type OptionalSide2UpdateWithoutOptiInput = {
@@ -16068,12 +16068,12 @@ export namespace Prisma {
 
   export type OptionalSide1CreateOrConnectWithoutOptiInput = {
     where: OptionalSide1WhereUniqueInput
-    create: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
   }
 
   export type OptionalSide1UpsertWithoutOptiInput = {
-    update: XOR<OptionalSide1UncheckedUpdateWithoutOptiInput, OptionalSide1UpdateWithoutOptiInput>
-    create: XOR<OptionalSide1UncheckedCreateWithoutOptiInput, OptionalSide1CreateWithoutOptiInput>
+    update: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+    create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
   }
 
   export type OptionalSide1UpdateWithoutOptiInput = {

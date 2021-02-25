@@ -1,0 +1,33 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["groupBy"]
+  binaryTargets   = ["native"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DB_URL")
+}
+
+model Organization {
+  id       String    @id @default(uuid())
+  fullName String
+  operator Operator?
+  accounts Account[]
+}
+
+model Operator {
+  id             String       @id @default(uuid())
+  prefix         String       @unique
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  accounts       Account[]
+}
+
+model Account {
+  id             String       @id @default(uuid())
+  operatorId     String
+  organizationId String
+  operator       Operator     @relation(fields: [operatorId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}

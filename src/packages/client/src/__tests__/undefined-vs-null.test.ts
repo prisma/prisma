@@ -46,13 +46,7 @@ describe('select validation', () => {
           }
         }
 
-        Argument id: Got invalid value null on prisma.updateOnePost. Provided null, expected String or StringFieldUpdateOperationsInput:
-        type StringFieldUpdateOperationsInput {
-          set?: String
-        }
-        type StringFieldUpdateOperationsInput {
-          set?: String
-        }
+        Argument id for data.id must not be null. Please use undefined instead.
 
 
       `)
@@ -79,20 +73,20 @@ describe('select validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-                                                Invalid \`prisma.createOnePost()\` invocation:
+                                                        Invalid \`prisma.createOnePost()\` invocation:
 
-                                                {
-                                                  data: {
-                                                    published: true,
-                                                    title: null
-                                                           ~~~~
-                                                  }
-                                                }
+                                                        {
+                                                          data: {
+                                                            published: true,
+                                                            title: null
+                                                                   ~~~~
+                                                          }
+                                                        }
 
-                                                Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
+                                                        Argument title: Got invalid value null on prisma.createOnePost. Provided null, expected String.
 
 
-                                    `)
+                                          `)
     }
   })
 })
