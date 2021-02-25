@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614256709531,
+  "lastUpdate": 1614257516880,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -11603,6 +11603,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.41%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8468964e65ea718f27e3185c2028af25ab500729",
+          "message": "fix: union type validation (#5752)",
+          "timestamp": "2021-02-25T13:48:16+01:00",
+          "tree_id": "13639e2a94cdb44658831de2761242a06249c47d",
+          "url": "https://github.com/prisma/prisma/commit/8468964e65ea718f27e3185c2028af25ab500729"
+        },
+        "date": 1614257515946,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±9.10%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
