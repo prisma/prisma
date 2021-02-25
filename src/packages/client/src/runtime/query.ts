@@ -1429,24 +1429,28 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
           score = 2 * Math.exp(getDepth(e.error.providedValue)) + 1
         }
 
+        score += Math.log(e.path.length)
+
         if (e.error.type === 'missingArg') {
           if (
             arg.inputType &&
             isInputArgType(arg.inputType.type) &&
             arg.inputType.type.name.includes('Unchecked')
           ) {
-            score += 1
+            score *= 2
           }
         }
 
         if (e.error.type === 'invalidName') {
           if (isInputArgType(e.error.originalType)) {
             if (e.error.originalType.name.includes('Unchecked')) {
-              score += 1
+              score *= 2
             }
           }
         }
 
+        // we use (1 / path.length) to make sure that this only makes a difference
+        // in the cases, where the rest is the same
         return score
       })
 
@@ -1457,7 +1461,19 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       }
     })
 
-    argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
+    // because Node 10's sort has a different order for sorting than Node 11+
+    let scoresEqual = true
+    let currentScore = argsWithScores[0].score
+    for (const { score } of argsWithScores) {
+      if (score !== currentScore) {
+        scoresEqual = false
+        break
+      }
+    }
+
+    if (!scoresEqual) {
+      argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
+    }
 
     return argsWithScores[0].arg
   }
