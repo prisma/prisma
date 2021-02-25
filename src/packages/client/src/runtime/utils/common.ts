@@ -93,7 +93,7 @@ export const GraphQLScalarToJSTypeTable = {
   Json: 'JsonValue',
   Bytes: 'Buffer',
   Decimal: ['Decimal', 'number', 'string'],
-  BigInt: ['BigInt', 'number'],
+  BigInt: ['bigint', 'number'],
 }
 
 export const JSOutputTypeToInputType = {
