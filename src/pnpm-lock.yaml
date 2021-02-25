@@ -2,6 +2,7 @@ importers:
   .:
     devDependencies:
       '@sindresorhus/slugify': 1.1.0
+      '@slack/webhook': 6.0.0_debug@4.3.1
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
       '@types/node': 12.20.4
@@ -23,6 +24,7 @@ importers:
       typescript: 4.1.5
     specifiers:
       '@sindresorhus/slugify': 1.1.0
+      '@slack/webhook': ^6.0.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
       '@types/node': 12.20.4
@@ -1865,6 +1867,26 @@ packages:
     dev: true
     resolution:
       integrity: sha512-MZPUxrmFubI36XS1DI3qmI0YdN1gks62JtFZvxR67ljjSNCeK6U08Zx4msEWOXuofgqUt6zPHSi1H9fbjR/NRA==
+  /@slack/types/1.10.0:
+    dev: true
+    engines:
+      node: '>= 8.9.0'
+      npm: '>= 5.5.1'
+    resolution:
+      integrity: sha512-tA7GG7Tj479vojfV3AoxbckalA48aK6giGjNtgH6ihpLwTyHE3fIgRrvt8TWfLwW8X8dyu7vgmAsGLRG7hWWOg==
+  /@slack/webhook/6.0.0_debug@4.3.1:
+    dependencies:
+      '@slack/types': 1.10.0
+      '@types/node': 12.20.4
+      axios: 0.21.1_debug@4.3.1
+    dev: true
+    engines:
+      node: '>= 12.13.0'
+      npm: '>= 6.12.0'
+    peerDependencies:
+      debug: '*'
+    resolution:
+      integrity: sha512-2fohfhLI9lkAmOSWt1R457JBsB3iFNqahu4GqdFZRtcp/bT+xeG/kPn/hQa78JS74poRjWTt5G/qJjNaWMGOEQ==
   /@szmarczak/http-timer/1.1.2:
     dependencies:
       defer-to-connect: 1.1.3
