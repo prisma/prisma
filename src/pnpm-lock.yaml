@@ -48,13 +48,13 @@ importers:
     dependencies:
       '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
     devDependencies:
-      '@prisma/client': 'link:../client'
-      '@prisma/debug': 'link:../debug'
-      '@prisma/fetch-engine': 'link:../fetch-engine'
-      '@prisma/generator-helper': 'link:../generator-helper'
-      '@prisma/get-platform': 'link:../get-platform'
-      '@prisma/migrate': 'link:../migrate'
-      '@prisma/sdk': 'link:../sdk'
+      '@prisma/client': link:../client
+      '@prisma/debug': link:../debug
+      '@prisma/fetch-engine': link:../fetch-engine
+      '@prisma/generator-helper': link:../generator-helper
+      '@prisma/get-platform': link:../get-platform
+      '@prisma/migrate': link:../migrate
+      '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.355.0
       '@prisma/studio-server': 0.355.0
       '@timsuchanek/copy': 1.4.5
@@ -368,8 +368,8 @@ importers:
       undici: 3.3.3
   packages/fetch-engine:
     dependencies:
-      '@prisma/debug': 'link:../debug'
-      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/debug': link:../debug
+      '@prisma/get-platform': link:../get-platform
       chalk: 4.1.0
       execa: 5.0.0
       find-cache-dir: 3.3.1
@@ -446,7 +446,7 @@ importers:
       typescript: 4.2.2
   packages/generator-helper:
     dependencies:
-      '@prisma/debug': 'link:../debug'
+      '@prisma/debug': link:../debug
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.0
       cross-spawn: 7.0.3
@@ -467,7 +467,7 @@ importers:
       ts-node: 9.1.1_typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': 'workspace:*'
+      '@prisma/debug': workspace:*
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -488,7 +488,7 @@ importers:
       typescript: 4.2.2
   packages/get-platform:
     dependencies:
-      '@prisma/debug': 'link:../debug'
+      '@prisma/debug': link:../debug
     devDependencies:
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -505,7 +505,7 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': 'workspace:*'
+      '@prisma/debug': workspace:*
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.2
@@ -522,8 +522,8 @@ importers:
       typescript: 4.2.2
   packages/migrate:
     dependencies:
-      '@prisma/debug': 'link:../debug'
-      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/debug': link:../debug
+      '@prisma/get-platform': link:../get-platform
       '@sindresorhus/slugify': 1.1.0
       diff: 4.0.2
       execa: 5.0.0
@@ -620,7 +620,7 @@ importers:
       typescript: 4.2.2
   packages/react-prisma:
     devDependencies:
-      '@prisma/client': 'link:../client'
+      '@prisma/client': link:../client
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.1_dd080f2a8fb4d0ac76cfb4c7062ee728
@@ -638,7 +638,7 @@ importers:
       ts-jest: 26.5.1_jest@26.6.3+typescript@4.1.5
       typescript: 4.1.5
     specifiers:
-      '@prisma/client': 'workspace:*'
+      '@prisma/client': workspace:*
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.1
@@ -763,10 +763,10 @@ importers:
       url-parse: ^1.4.7
   packages/tests:
     devDependencies:
-      '@prisma/client': 'link:../client'
-      '@prisma/get-platform': 'link:../get-platform'
-      '@prisma/migrate': 'link:../migrate'
-      '@prisma/sdk': 'link:../sdk'
+      '@prisma/client': link:../client
+      '@prisma/get-platform': link:../get-platform
+      '@prisma/migrate': link:../migrate
+      '@prisma/sdk': link:../sdk
       '@sindresorhus/slugify': 1.1.0
       '@types/jest': 26.0.14
       '@types/mssql': 6.0.7
@@ -799,10 +799,10 @@ importers:
       typescript: 4.0.3
       verror: 1.10.0
     specifiers:
-      '@prisma/client': 'workspace:*'
-      '@prisma/get-platform': 'workspace:*'
-      '@prisma/migrate': 'workspace:*'
-      '@prisma/sdk': 'workspace:*'
+      '@prisma/client': workspace:*
+      '@prisma/get-platform': workspace:*
+      '@prisma/migrate': workspace:*
+      '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': ^1.1.0
       '@types/jest': 26.0.14
       '@types/mssql': ^6.0.5
@@ -7378,7 +7378,7 @@ packages:
       request-promise-core: 1.1.4_request@2.88.2
       stealthy-require: 1.1.1
       tough-cookie: 2.5.0
-    deprecated: 'request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142'
+    deprecated: request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142
     dev: true
     engines:
       node: '>=0.12.0'
@@ -7408,7 +7408,7 @@ packages:
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
       uuid: 3.4.0
-    deprecated: 'request has been deprecated, see https://github.com/request/request/issues/3142'
+    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
     dev: true
     engines:
       node: '>= 6'
@@ -7460,7 +7460,7 @@ packages:
     resolution:
       integrity: sha512-+1lzwXehGCXSeryaISr6WujZzowloigEofRB+dj75y9RRa/obVcYgbHJd53tdYw8pvZj8GojXaaENws8Ktw/hQ==
   /resolve-url/0.2.1:
-    deprecated: 'https://github.com/lydell/resolve-url#deprecated'
+    deprecated: https://github.com/lydell/resolve-url#deprecated
     dev: true
     resolution:
       integrity: sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
@@ -8705,7 +8705,7 @@ packages:
     resolution:
       integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   /urix/0.1.0:
-    deprecated: 'Please see https://github.com/lydell/urix#deprecated'
+    deprecated: Please see https://github.com/lydell/urix#deprecated
     dev: true
     resolution:
       integrity: sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
