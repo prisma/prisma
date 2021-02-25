@@ -18,13 +18,6 @@ function normalizeMs(str) {
   return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
-function normalizeSeedPath(str) {
-  return str.replace(
-    /Running node "(.+).../g,
-    'Running node "/path/from/snapshotSerializer.ts" ...',
-  )
-}
-
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -37,10 +30,8 @@ const serializer = {
         ? value.message
         : ''
     return normalizeDbUrl(
-      normalizeSeedPath(
-        normalizeMs(
-          normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
-        ),
+      normalizeMs(
+        normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
       ),
     )
   },
