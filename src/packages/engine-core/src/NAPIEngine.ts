@@ -25,7 +25,10 @@ const debug = Debug('prisma:client:napi')
 
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent
+type QueryEngineEvent =
+  | QueryEngineLogEvent
+  | QueryEngineQueryEvent
+  | QueryEngineDisconnectionEvent
 type QueryEngineConfig = {
   datamodel: string
   datasourceOverrides?: Record<string, string>
@@ -45,6 +48,10 @@ type QueryEngineQueryEvent = {
   duration_ms: string
   result: string
 }
+type QueryEngineDisconnectionEvent = {
+  level: 'info'
+  message: 'disconnected'
+}
 export interface QueryEngineConstructor {
   new (config: QueryEngineConfig): QueryEngine
 }
@@ -60,7 +67,7 @@ export type QueryEngine = {
   dmmf(): Promise<DMMF.Document>
   query(request: any): Promise<string>
   sdlSchema(): Promise<string>
-  serverInfo(): Promise<string> // ServerInfo
+  serverInfo(): Promise<string>
   nextLogEvent(): Promise<string>
 }
 
@@ -87,6 +94,11 @@ type RustRequestError = {
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event.level === 'info' && event['item_type'] === 'query'
 }
+function isDisconnectionEvent(
+  event: QueryEngineEvent,
+): event is QueryEngineDisconnectionEvent {
+  return event.level === 'info' && event['message'] === 'disconnected'
+}
 const knownPlatforms: Platform[] = [
   'native',
   'darwin',
@@ -110,6 +122,7 @@ export class NAPIEngine implements Engine {
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
   private stopPromise?: Promise<void>
+  private loggerPromise?: Promise<void>
 
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
@@ -134,7 +147,7 @@ export class NAPIEngine implements Engine {
     if (this.logQueries) {
       process.env.LOG_QUERIES = 'y'
     }
-    if(config.enableEngineDebugMode){
+    if (config.enableEngineDebugMode) {
       Debug.enable('*')
     }
     this.setupPromise = this.internalSetup()
@@ -165,32 +178,22 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
+
   private async startLogger(): Promise<void> {
     // eslint-disable-next-line no-constant-condition
-    while (this.connected) {
-      let rawEvent: null | string = null
-      try {
-        rawEvent = await this.engine!.nextLogEvent()
-      } catch (e) {
-        if (e.message.includes('not yet connected.')) {
-          // Most likely disconnect was called
-        } else {
-          throw new Error(e)
-        }
-      }
-      if (!rawEvent) {
-        break
-      }
-      let event: QueryEngineEvent
+    while (true) {
+      const rawEvent = await this.engine!.nextLogEvent()
+      let event: QueryEngineEvent | null = null
       try {
         event = JSON.parse(rawEvent)
+        if (!event) return
       } catch (e) {
         throw new Error(rawEvent)
       }
-      if (!event) {
-        break
-      }
       event.level = event?.level.toLowerCase() ?? 'unknown'
+      if (isDisconnectionEvent(event)) {
+        return
+      }
       if (isQueryEvent(event)) {
         this.logEmitter.emit('query', {
           timestamp: Date.now(),
@@ -202,7 +205,6 @@ You may have to run ${chalk.greenBright(
       } else {
         this.logEmitter.emit(event.level, event)
       }
-      // Debug(`prisma:engine:${event.module_path.replace('::', ':')}(${event.level})`)(event['message'] ?? event)
     }
   }
 
@@ -291,14 +293,15 @@ You may have to run ${chalk.greenBright(
     if (this.connectPromise || this.connected) {
       return this.connectPromise
     }
-    this.connected = true
-    return this.engine?.connect({ enableRawQueries: true }).then(() => {
-      void this.startLogger()
-    })
+    await this.engine?.connect({ enableRawQueries: true })
+    if (!this.loggerPromise) {
+      this.loggerPromise = this.startLogger()
+    }
   }
   async stop(): Promise<void> {
     await new Promise((r) => process.nextTick(r))
     await this.engine?.disconnect()
+    await this.loggerPromise
   }
   kill(signal: string): void {
     void this.engine?.disconnect()
@@ -530,7 +533,10 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
       }
 
-      throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
+      throw new PrismaClientInitializationError(
+        errorText,
+        this.config.clientVersion!,
+      )
     }
     this.platform = this.platform ?? (await getPlatform())
     return enginePath

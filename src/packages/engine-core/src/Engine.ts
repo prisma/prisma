@@ -25,8 +25,6 @@ export interface Engine {
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
-export type EngineType = 'uds' | 'tcp' | 'napi'
-
 export interface DatasourceOverwrite {
   name: string
   url: string
