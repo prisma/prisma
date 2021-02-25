@@ -70,15 +70,17 @@ Invalid \`prisma.user()\` invocation:
 
 {
   data: {
-+   personaId: Int
+    likedArticles: {
+?     create?: ArticleCreateWithoutLikedByInput | ArticleCreateWithoutLikedByInput[] | ArticleUncheckedCreateWithoutLikedByInput | ArticleUncheckedCreateWithoutLikedByInput[],
+?     connectOrCreate?: ArticleCreateOrConnectWithoutLikedByInput | ArticleCreateOrConnectWithoutLikedByInput[],
+?     connect?: ArticleWhereUniqueInput | ArticleWhereUniqueInput[]
+    }
   }
 }
 
-Unknown arg \`likedArticles\` in data.likedArticles for type UserUncheckedCreateInput.
-Unknown arg \`persona\` in data.persona for type UserUncheckedCreateInput. Did you mean \`personaId\`?
-Argument personaId for data.personaId is missing.
+Argument data.likedArticles.connect of type ArticleWhereUniqueInput needs at least one argument. Available args are listed in green.
 
-Note: Lines with + are required
+Note: Lines with ? are optional.
 
 `;
 

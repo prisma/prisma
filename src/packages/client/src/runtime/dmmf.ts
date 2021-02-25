@@ -26,6 +26,11 @@ export class DMMFClass implements DMMF.Document {
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
     this.datamodel = datamodel
     this.schema = schema
+
+    const type = this.schema.inputObjectTypes.prisma.find(
+      (t) => t.name === 'OperatorCreateNestedOneWithoutAccountsInput',
+    )
+
     this.mappings = mappings
     this.enumMap = this.getEnumMap()
     this.datamodelEnumMap = this.getDatamodelEnumMap()
