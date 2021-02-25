@@ -17,7 +17,6 @@
         "@prisma/engines-version",
         "@prisma/studio",
         "@prisma/studio-server",
-        "esbuild",
         "checkpoint-client",
         "sqlite3"
       ],
@@ -39,10 +38,6 @@
       "automerge": "true",
       "packagePatterns": ["^@types/"],
       "updateTypes": ["patch", "minor"]
-    },
-    {
-      "groupName": "esbuild",
-      "packageNames": ["esbuild"]
     },
     {
       "groupName": "engines",
