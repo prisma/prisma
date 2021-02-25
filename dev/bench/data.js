@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614265475046,
+  "lastUpdate": 1614265646320,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -12159,6 +12159,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "885583a1267c77260d4767cf68833792500448ff",
+          "message": "feat(fetch-engine): remove hardcoded napi version (#5841)",
+          "timestamp": "2021-02-25T16:01:21+01:00",
+          "tree_id": "8e1ef8746ba5f02c6f5b9f1692d66f9e7c84cfcd",
+          "url": "https://github.com/prisma/prisma/commit/885583a1267c77260d4767cf68833792500448ff"
+        },
+        "date": 1614265645104,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±8.51%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.07%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
