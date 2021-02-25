@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614264077915,
+  "lastUpdate": 1614264388296,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -12091,6 +12091,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±2.69%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "28532cd767a17b3d8c2aa421481a6be76eadcc7d",
+          "message": "feat(fetch-engine): remove hardcoded napi version",
+          "timestamp": "2021-02-25T14:08:37Z",
+          "url": "https://github.com/prisma/prisma/pull/5841/commits/28532cd767a17b3d8c2aa421481a6be76eadcc7d"
+        },
+        "date": 1614264387307,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.34,
+            "range": "±10.42%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±1.67%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
