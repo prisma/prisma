@@ -3,24 +3,29 @@ import { PrismaClient, Prisma } from '@prisma/client'
 async function main() {
   const prisma = new PrismaClient()
 
+  const bint: bigint = BigInt(0)
+
   const a: null | {
     id: string
     email: string
     name: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: bigint
     // serial: number
     // sSerial: number
     // bSerial: number
     inc_int: number
     inc_sInt: number
-    inc_bInt: BigInt
+    inc_bInt: bigint
   } = await prisma.a.findFirst({
     where: {
-      inc_bInt: 123,
+      inc_bInt: {
+        in: [bint],
+      },
     },
   })
+
   const b = await prisma.b.findFirst({
     where: {
       decFloat: new Prisma.Decimal('1.23'),

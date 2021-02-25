@@ -472,10 +472,10 @@ export type A = {
   name: string | null
   int: number
   sInt: number
-  bInt: BigInt
+  bInt: bigint
   inc_int: number
   inc_sInt: number
-  inc_bInt: BigInt
+  inc_bInt: bigint
 }
 
 /**
@@ -8556,10 +8556,10 @@ export namespace Prisma {
   export type ASumAggregateOutputType = {
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: bigint
     inc_int: number
     inc_sInt: number
-    inc_bInt: BigInt
+    inc_bInt: bigint
   }
 
   export type AMinAggregateOutputType = {
@@ -8568,10 +8568,10 @@ export namespace Prisma {
     name: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: bigint
     inc_int: number
     inc_sInt: number
-    inc_bInt: BigInt
+    inc_bInt: bigint
   }
 
   export type AMaxAggregateOutputType = {
@@ -8580,10 +8580,10 @@ export namespace Prisma {
     name: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: bigint
     inc_int: number
     inc_sInt: number
-    inc_bInt: BigInt
+    inc_bInt: bigint
   }
 
   export type ACountAggregateOutputType = {
@@ -8748,10 +8748,10 @@ export namespace Prisma {
     name: string | null
     int: number
     sInt: number
-    bInt: BigInt
+    bInt: bigint
     inc_int: number
     inc_sInt: number
-    inc_bInt: BigInt
+    inc_bInt: bigint
     count: ACountAggregateOutputType | null
     avg: AAvgAggregateOutputType | null
     sum: ASumAggregateOutputType | null
@@ -13176,10 +13176,10 @@ export namespace Prisma {
     name?: StringNullableFilter | string | null
     int?: IntFilter | number
     sInt?: IntFilter | number
-    bInt?: BigIntFilter | BigInt | number
+    bInt?: BigIntFilter | bigint | number
     inc_int?: IntFilter | number
     inc_sInt?: IntFilter | number
-    inc_bInt?: BigIntFilter | BigInt | number
+    inc_bInt?: BigIntFilter | bigint | number
   }
 
   export type AOrderByInput = {
@@ -13208,10 +13208,10 @@ export namespace Prisma {
     name?: StringNullableWithAggregatesFilter | string | null
     int?: IntWithAggregatesFilter | number
     sInt?: IntWithAggregatesFilter | number
-    bInt?: BigIntWithAggregatesFilter | BigInt | number
+    bInt?: BigIntWithAggregatesFilter | bigint | number
     inc_int?: IntWithAggregatesFilter | number
     inc_sInt?: IntWithAggregatesFilter | number
-    inc_bInt?: BigIntWithAggregatesFilter | BigInt | number
+    inc_bInt?: BigIntWithAggregatesFilter | bigint | number
   }
 
   export type BWhereInput = {
@@ -14219,10 +14219,10 @@ export namespace Prisma {
     name?: string | null
     int: number
     sInt: number
-    bInt: BigInt | number
+    bInt: bigint | number
     inc_int?: number
     inc_sInt?: number
-    inc_bInt?: BigInt | number
+    inc_bInt?: bigint | number
   }
 
   export type AUncheckedCreateInput = {
@@ -14231,10 +14231,10 @@ export namespace Prisma {
     name?: string | null
     int: number
     sInt: number
-    bInt: BigInt | number
+    bInt: bigint | number
     inc_int?: number
     inc_sInt?: number
-    inc_bInt?: BigInt | number
+    inc_bInt?: bigint | number
   }
 
   export type AUpdateInput = {
@@ -14243,10 +14243,10 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    bInt?: BigIntFieldUpdateOperationsInput | bigint | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type AUncheckedUpdateInput = {
@@ -14255,10 +14255,10 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    bInt?: BigIntFieldUpdateOperationsInput | bigint | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type ACreateManyInput = {
@@ -14267,10 +14267,10 @@ export namespace Prisma {
     name?: string | null
     int: number
     sInt: number
-    bInt: BigInt | number
+    bInt: bigint | number
     inc_int?: number
     inc_sInt?: number
-    inc_bInt?: BigInt | number
+    inc_bInt?: bigint | number
   }
 
   export type AUpdateManyMutationInput = {
@@ -14279,10 +14279,10 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    bInt?: BigIntFieldUpdateOperationsInput | bigint | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type AUncheckedUpdateManyInput = {
@@ -14291,10 +14291,10 @@ export namespace Prisma {
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
-    bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    bInt?: BigIntFieldUpdateOperationsInput | bigint | number
     inc_int?: IntFieldUpdateOperationsInput | number
     inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | BigInt | number
+    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type BCreateInput = {
@@ -14865,25 +14865,25 @@ export namespace Prisma {
   }
 
   export type BigIntFilter = {
-    equals?: BigInt | number
-    in?: Enumerable<BigInt> | Enumerable<number>
-    notIn?: Enumerable<BigInt> | Enumerable<number>
-    lt?: BigInt | number
-    lte?: BigInt | number
-    gt?: BigInt | number
-    gte?: BigInt | number
-    not?: NestedBigIntFilter | BigInt | number
+    equals?: bigint | number
+    in?: Enumerable<bigint> | Enumerable<number>
+    notIn?: Enumerable<bigint> | Enumerable<number>
+    lt?: bigint | number
+    lte?: bigint | number
+    gt?: bigint | number
+    gte?: bigint | number
+    not?: NestedBigIntFilter | bigint | number
   }
 
   export type BigIntWithAggregatesFilter = {
-    equals?: BigInt | number
-    in?: Enumerable<BigInt> | Enumerable<number>
-    notIn?: Enumerable<BigInt> | Enumerable<number>
-    lt?: BigInt | number
-    lte?: BigInt | number
-    gt?: BigInt | number
-    gte?: BigInt | number
-    not?: NestedBigIntWithAggregatesFilter | BigInt | number
+    equals?: bigint | number
+    in?: Enumerable<bigint> | Enumerable<number>
+    notIn?: Enumerable<bigint> | Enumerable<number>
+    lt?: bigint | number
+    lte?: bigint | number
+    gt?: bigint | number
+    gte?: bigint | number
+    not?: NestedBigIntWithAggregatesFilter | bigint | number
     count?: NestedIntFilter
     avg?: NestedFloatFilter
     sum?: NestedBigIntFilter
@@ -15192,11 +15192,11 @@ export namespace Prisma {
   }
 
   export type BigIntFieldUpdateOperationsInput = {
-    set?: BigInt | number
-    increment?: BigInt | number
-    decrement?: BigInt | number
-    multiply?: BigInt | number
-    divide?: BigInt | number
+    set?: bigint | number
+    increment?: bigint | number
+    decrement?: bigint | number
+    multiply?: bigint | number
+    divide?: bigint | number
   }
 
   export type DecimalFieldUpdateOperationsInput = {
@@ -15477,25 +15477,25 @@ export namespace Prisma {
   }
 
   export type NestedBigIntFilter = {
-    equals?: BigInt | number
-    in?: Enumerable<BigInt> | Enumerable<number>
-    notIn?: Enumerable<BigInt> | Enumerable<number>
-    lt?: BigInt | number
-    lte?: BigInt | number
-    gt?: BigInt | number
-    gte?: BigInt | number
-    not?: NestedBigIntFilter | BigInt | number
+    equals?: bigint | number
+    in?: Enumerable<bigint> | Enumerable<number>
+    notIn?: Enumerable<bigint> | Enumerable<number>
+    lt?: bigint | number
+    lte?: bigint | number
+    gt?: bigint | number
+    gte?: bigint | number
+    not?: NestedBigIntFilter | bigint | number
   }
 
   export type NestedBigIntWithAggregatesFilter = {
-    equals?: BigInt | number
-    in?: Enumerable<BigInt> | Enumerable<number>
-    notIn?: Enumerable<BigInt> | Enumerable<number>
-    lt?: BigInt | number
-    lte?: BigInt | number
-    gt?: BigInt | number
-    gte?: BigInt | number
-    not?: NestedBigIntWithAggregatesFilter | BigInt | number
+    equals?: bigint | number
+    in?: Enumerable<bigint> | Enumerable<number>
+    notIn?: Enumerable<bigint> | Enumerable<number>
+    lt?: bigint | number
+    lte?: bigint | number
+    gt?: bigint | number
+    gte?: bigint | number
+    not?: NestedBigIntWithAggregatesFilter | bigint | number
     count?: NestedIntFilter
     avg?: NestedFloatFilter
     sum?: NestedBigIntFilter
