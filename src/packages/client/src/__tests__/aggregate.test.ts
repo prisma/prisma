@@ -1,5 +1,5 @@
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
 
 export const recommender = /* GraphQL */ `
 datasource db {
@@ -19,10 +19,10 @@ model Article {
 }
 
 model Link {
-  id Int @id
+  id        Int      @id
   articleId Int
-  article Article @relation(fields: [articleId], references: [id])
-  postedAt DateTime
+  article   Article  @relation(fields: [articleId], references: [id])
+  postedAt  DateTime
 }
 
 model User {
@@ -30,14 +30,15 @@ model User {
   name          String
   email         String    @unique
   likedArticles Article[]
-  age Int?
-  personaId Int
-  persona Persona @relation(fields: [personaId])
+  age           Int?
+  personaId     Int
+  persona       Persona   @relation(fields: [personaId], references: [id])
 }
 
 model Persona {
-  id Int @id
+  id          Int     @id
   isDeveloper Boolean
+  User        User[]
 }
 `
 
