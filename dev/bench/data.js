@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614269863684,
+  "lastUpdate": 1614272664350,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -12443,6 +12443,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±1.95%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "6240a64f8ced9f25cab678da1bb0f853615d599f",
+          "message": "fix(client): Fix #5750 - bigint",
+          "timestamp": "2021-02-25T16:56:10Z",
+          "url": "https://github.com/prisma/prisma/pull/5842/commits/6240a64f8ced9f25cab678da1bb0f853615d599f"
+        },
+        "date": 1614272663402,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±7.00%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.60%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
