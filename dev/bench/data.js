@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614277218600,
+  "lastUpdate": 1614277405950,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -12587,6 +12587,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±3.32%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "243c6b009ea86d531209cfee6b9d1bfe3015992b",
+          "message": "chore(deps): pin dependency @slack/webhook to 6.0.0",
+          "timestamp": "2021-02-25T18:17:05Z",
+          "url": "https://github.com/prisma/prisma/pull/5849/commits/243c6b009ea86d531209cfee6b9d1bfe3015992b"
+        },
+        "date": 1614277405064,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±12.15%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.57%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
