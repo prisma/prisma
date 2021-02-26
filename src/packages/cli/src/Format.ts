@@ -73,10 +73,6 @@ export class Format implements Command {
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    await getDMMF({
-      datamodel: schema,
-    })
-
     let output = await formatSchema({
       schemaPath,
     })
