@@ -46,15 +46,15 @@ importers:
       typescript: 4.2.2
   packages/cli:
     dependencies:
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
     devDependencies:
-      '@prisma/client': link:../client
-      '@prisma/debug': link:../debug
-      '@prisma/fetch-engine': link:../fetch-engine
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': link:../get-platform
-      '@prisma/migrate': link:../migrate
-      '@prisma/sdk': link:../sdk
+      '@prisma/client': 'link:../client'
+      '@prisma/debug': 'link:../debug'
+      '@prisma/fetch-engine': 'link:../fetch-engine'
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/migrate': 'link:../migrate'
+      '@prisma/sdk': 'link:../sdk'
       '@prisma/studio': 0.355.0
       '@prisma/studio-server': 0.355.0
       '@timsuchanek/copy': 1.4.5
@@ -98,14 +98,14 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/client': workspace:*
-      '@prisma/debug': workspace:*
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/fetch-engine': workspace:*
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
-      '@prisma/migrate': workspace:*
-      '@prisma/sdk': workspace:*
+      '@prisma/client': 'workspace:*'
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/fetch-engine': 'workspace:*'
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
+      '@prisma/migrate': 'workspace:*'
+      '@prisma/sdk': 'workspace:*'
       '@prisma/studio': 0.355.0
       '@prisma/studio-server': 0.355.0
       '@timsuchanek/copy': 1.4.5
@@ -150,15 +150,15 @@ importers:
       typescript: 4.2.2
   packages/client:
     dependencies:
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
     devDependencies:
-      '@prisma/debug': link:../debug
-      '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': link:../get-platform
-      '@prisma/migrate': link:../migrate
-      '@prisma/sdk': link:../sdk
+      '@prisma/debug': 'link:../debug'
+      '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/migrate': 'link:../migrate'
+      '@prisma/sdk': 'link:../sdk'
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
@@ -185,7 +185,7 @@ importers:
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       js-levenshtein: 1.1.6
       klona: 2.0.4
       lint-staged: 10.5.4
@@ -211,14 +211,14 @@ importers:
       tsd: 0.14.0
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
-      '@prisma/engine-core': workspace:*
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
-      '@prisma/migrate': workspace:*
-      '@prisma/sdk': workspace:*
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engine-core': 'workspace:*'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
+      '@prisma/migrate': 'workspace:*'
+      '@prisma/sdk': 'workspace:*'
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
       '@types/jest': 26.0.20
@@ -310,10 +310,10 @@ importers:
       typescript: 4.2.2
   packages/engine-core:
     dependencies:
-      '@prisma/debug': link:../debug
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': link:../get-platform
+      '@prisma/debug': 'link:../debug'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
       execa: 5.0.0
       get-stream: 6.0.0
@@ -339,10 +339,10 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.2
@@ -368,8 +368,8 @@ importers:
       undici: 3.3.3
   packages/fetch-engine:
     dependencies:
-      '@prisma/debug': link:../debug
-      '@prisma/get-platform': link:../get-platform
+      '@prisma/debug': 'link:../debug'
+      '@prisma/get-platform': 'link:../get-platform'
       chalk: 4.1.0
       execa: 5.0.0
       find-cache-dir: 3.3.1
@@ -386,7 +386,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.0
     devDependencies:
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
       '@types/find-cache-dir': 3.2.0
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -407,9 +407,9 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/get-platform': workspace:*
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/get-platform': 'workspace:*'
       '@types/find-cache-dir': 3.2.0
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -446,7 +446,7 @@ importers:
       typescript: 4.2.2
   packages/generator-helper:
     dependencies:
-      '@prisma/debug': link:../debug
+      '@prisma/debug': 'link:../debug'
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.0
       cross-spawn: 7.0.3
@@ -460,14 +460,14 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.20.0
       eslint-plugin-jest: 24.1.5_eslint@7.20.0+typescript@4.2.2
       eslint-plugin-prettier: 3.3.1_90376326e593b529cca0740deb6f3b7f
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       ts-node: 9.1.1_typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
+      '@prisma/debug': 'workspace:*'
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -488,7 +488,7 @@ importers:
       typescript: 4.2.2
   packages/get-platform:
     dependencies:
-      '@prisma/debug': link:../debug
+      '@prisma/debug': 'link:../debug'
     devDependencies:
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -505,7 +505,7 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
+      '@prisma/debug': 'workspace:*'
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.2
@@ -522,8 +522,8 @@ importers:
       typescript: 4.2.2
   packages/migrate:
     dependencies:
-      '@prisma/debug': link:../debug
-      '@prisma/get-platform': link:../get-platform
+      '@prisma/debug': 'link:../debug'
+      '@prisma/get-platform': 'link:../get-platform'
       '@sindresorhus/slugify': 1.1.0
       diff: 4.0.2
       execa: 5.0.0
@@ -539,9 +539,9 @@ importers:
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
     devDependencies:
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/sdk': link:../sdk
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/sdk': 'link:../sdk'
       '@types/diff': 4.0.2
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -571,11 +571,11 @@ importers:
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
-      '@prisma/engines-version': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
-      '@prisma/sdk': workspace:*
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engines-version': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
+      '@prisma/sdk': 'workspace:*'
       '@sindresorhus/slugify': ^1.1.0
       '@types/diff': 4.0.2
       '@types/jest': 26.0.20
@@ -620,7 +620,7 @@ importers:
       typescript: 4.2.2
   packages/react-prisma:
     devDependencies:
-      '@prisma/client': link:../client
+      '@prisma/client': 'link:../client'
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.1_dd080f2a8fb4d0ac76cfb4c7062ee728
@@ -638,7 +638,7 @@ importers:
       ts-jest: 26.5.1_jest@26.6.3+typescript@4.1.5
       typescript: 4.1.5
     specifiers:
-      '@prisma/client': workspace:*
+      '@prisma/client': 'workspace:*'
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
       '@typescript-eslint/eslint-plugin': 4.15.1
@@ -657,12 +657,12 @@ importers:
       typescript: 4.1.5
   packages/sdk:
     dependencies:
-      '@prisma/debug': link:../debug
-      '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/fetch-engine': link:../fetch-engine
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': link:../get-platform
+      '@prisma/debug': 'link:../debug'
+      '@prisma/engine-core': 'link:../engine-core'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/fetch-engine': 'link:../fetch-engine'
+      '@prisma/generator-helper': 'link:../generator-helper'
+      '@prisma/get-platform': 'link:../get-platform'
       '@timsuchanek/copy': 1.4.5
       archiver: 4.0.2
       arg: 5.0.0
@@ -703,19 +703,19 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.20.0
       eslint-plugin-jest: 24.1.5_eslint@7.20.0+typescript@4.2.2
       eslint-plugin-prettier: 3.3.1_90376326e593b529cca0740deb6f3b7f
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
       ts-jest: 26.5.2_jest@26.6.3+typescript@4.2.2
       ts-node: 9.1.1_typescript@4.2.2
       typescript: 4.2.2
     specifiers:
-      '@prisma/debug': workspace:*
-      '@prisma/engine-core': workspace:*
-      '@prisma/engines': 2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac
-      '@prisma/fetch-engine': workspace:*
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
+      '@prisma/debug': 'workspace:*'
+      '@prisma/engine-core': 'workspace:*'
+      '@prisma/engines': 2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7
+      '@prisma/fetch-engine': 'workspace:*'
+      '@prisma/generator-helper': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
       '@timsuchanek/copy': ^1.4.5
       '@types/jest': 26.0.20
       '@types/node': 12.20.4
@@ -763,10 +763,10 @@ importers:
       url-parse: ^1.4.7
   packages/tests:
     devDependencies:
-      '@prisma/client': link:../client
-      '@prisma/get-platform': link:../get-platform
-      '@prisma/migrate': link:../migrate
-      '@prisma/sdk': link:../sdk
+      '@prisma/client': 'link:../client'
+      '@prisma/get-platform': 'link:../get-platform'
+      '@prisma/migrate': 'link:../migrate'
+      '@prisma/sdk': 'link:../sdk'
       '@sindresorhus/slugify': 1.1.0
       '@types/jest': 26.0.14
       '@types/mssql': 6.0.7
@@ -799,10 +799,10 @@ importers:
       typescript: 4.0.3
       verror: 1.10.0
     specifiers:
-      '@prisma/client': workspace:*
-      '@prisma/get-platform': workspace:*
-      '@prisma/migrate': workspace:*
-      '@prisma/sdk': workspace:*
+      '@prisma/client': 'workspace:*'
+      '@prisma/get-platform': 'workspace:*'
+      '@prisma/migrate': 'workspace:*'
+      '@prisma/sdk': 'workspace:*'
       '@sindresorhus/slugify': ^1.1.0
       '@types/jest': 26.0.14
       '@types/mssql': ^6.0.5
@@ -1281,43 +1281,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-xvV1kKbhfUqFVuZ8Cyo+JPpipAHHAV3kcDBftiduK8EICXmTFddryy3P7NfZt8Pv37rA9nEJBKCCkglCPt/Xjw==
-  /@jest/core/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/reporters': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/transform': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.28
-      ansi-escapes: 4.3.1
-      chalk: 4.1.0
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      jest-changed-files: 26.6.2
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-haste-map: 26.6.2
-      jest-message-util: 26.6.2
-      jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
-      jest-resolve-dependencies: 26.6.3
-      jest-runner: 26.6.3_ts-node@9.1.1
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      jest-watcher: 26.6.2
-      micromatch: 4.0.2
-      p-each-series: 2.2.0
-      rimraf: 3.0.2
-      slash: 3.0.0
-      strip-ansi: 6.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-xvV1kKbhfUqFVuZ8Cyo+JPpipAHHAV3kcDBftiduK8EICXmTFddryy3P7NfZt8Pv37rA9nEJBKCCkglCPt/Xjw==
   /@jest/environment/26.6.2:
     dependencies:
       '@jest/fake-timers': 26.6.2
@@ -1418,20 +1381,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-YHlVIjP5nfEyjlrSr8t/YdNfU/1XEt7c5b4OxcXCjyRhjzLYu/rO69/WHPuYcbCWkz8kAeZVZp2N2+IOLLEPGw==
-  /@jest/test-sequencer/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/test-result': 26.6.2
-      graceful-fs: 4.2.6
-      jest-haste-map: 26.6.2
-      jest-runner: 26.6.3_ts-node@9.1.1
-      jest-runtime: 26.6.3_ts-node@9.1.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-YHlVIjP5nfEyjlrSr8t/YdNfU/1XEt7c5b4OxcXCjyRhjzLYu/rO69/WHPuYcbCWkz8kAeZVZp2N2+IOLLEPGw==
   /@jest/transform/26.6.2:
     dependencies:
       '@babel/core': 7.13.1
@@ -1522,18 +1471,18 @@ packages:
     dev: true
     resolution:
       integrity: sha512-AVOCq+Mn4HISp8h4nle3ip3K8hnC7ns83pJSslozblAJILvPZ62fEee30aM3jWClnNGEIkfChB2qbe8lDELCBw==
-  /@prisma/engines-version/2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac:
+  /@prisma/engines-version/2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7:
     resolution:
-      integrity: sha512-woAjqvPdf1kSSQD+a1MSp38Aem2HidlWnqC7+A1Rb/nUVhGYhXxUGv6NnK2N/ZxqU0K61HBg0cRalpYfpQuW2w==
+      integrity: sha512-gZHTaWommCO59UH1jiSCCnmq/fDwko52PuKQoTQXbpQj5uNqzb9Re4OCkGt/HiRaFO5c3YmV5/Ni32Woy0JlOA==
   /@prisma/engines/2.17.0-35.3c463ebd78b1d21d8fdacdd27899e280cf686223:
     dev: true
     requiresBuild: true
     resolution:
       integrity: sha512-FKjVD6NYbGiQhwas3hA2uMpNchz+Mf3tv5qA8Ci9cAkKHGqt3jWjjUAK9juVBqeOcv4OPimQYMrkRX6SvaxBjg==
-  /@prisma/engines/2.18.0-28.95c9a25408ef1ee25719a406bf71e56164e952ac:
+  /@prisma/engines/2.18.0-30.812239f77c8fd489d5ec6b7d6f689b6015f6d6b7:
     requiresBuild: true
     resolution:
-      integrity: sha512-2RPtZ4FWUBh2OR5Y5AUMxJQjooOjW2whQzOhmG9lKkB0YkQFGDdZEqf0JD7SSbXa9BGmGvO4LiDW6mzhQrIakA==
+      integrity: sha512-f4jEFUV7HTPkes0GQo/FLzcu28BdxZ2+ULCT4w++dybpfuUnCCA54xQWaUzZmPW1bhPBM5LgsjqLCoQavSOj1w==
   /@prisma/fetch-engine/2.17.0:
     dependencies:
       '@prisma/debug': 2.17.0
@@ -5322,29 +5271,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-GF9noBSa9t08pSyl3CY4frMrqp+aQXFGFkf5hEPbh/pIUFYWMK6ZLTfbmadxJVcJrdRoChlWQsA2VkJcDFK8hg==
-  /jest-cli/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/core': 26.6.3_ts-node@9.1.1
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      chalk: 4.1.0
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      import-local: 3.0.2
-      is-ci: 2.0.0
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      prompts: 2.4.0
-      yargs: 15.4.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-GF9noBSa9t08pSyl3CY4frMrqp+aQXFGFkf5hEPbh/pIUFYWMK6ZLTfbmadxJVcJrdRoChlWQsA2VkJcDFK8hg==
   /jest-config/26.6.3:
     dependencies:
       '@babel/core': 7.13.1
@@ -5365,37 +5291,6 @@ packages:
       jest-validate: 26.6.2
       micromatch: 4.0.2
       pretty-format: 26.6.2
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '>=9.0.0'
-    peerDependenciesMeta:
-      ts-node:
-        optional: true
-    resolution:
-      integrity: sha512-t5qdIj/bCj2j7NFVHb2nFB4aUdfucDn3JRKgrZnplb8nieAirAzRSHP8uDEd+qV6ygzg9Pz4YG7UTJf94LPSyg==
-  /jest-config/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@babel/core': 7.13.1
-      '@jest/test-sequencer': 26.6.3_ts-node@9.1.1
-      '@jest/types': 26.6.2
-      babel-jest: 26.6.3_@babel+core@7.13.1
-      chalk: 4.1.0
-      deepmerge: 4.2.2
-      glob: 7.1.6
-      graceful-fs: 4.2.6
-      jest-environment-jsdom: 26.6.2
-      jest-environment-node: 26.6.2
-      jest-get-type: 26.3.0
-      jest-jasmine2: 26.6.3_ts-node@9.1.1
-      jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      micromatch: 4.0.2
-      pretty-format: 26.6.2
-      ts-node: 9.1.1_typescript@4.2.2
     dev: true
     engines:
       node: '>= 10.14.2'
@@ -5534,33 +5429,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-kPKUrQtc8aYwBV7CqBg5pu+tmYXlvFlSFYn18ev4gPFtrRzB15N2gW/Roew3187q2w2eHuu0MU9TJz6w0/nPEg==
-  /jest-jasmine2/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@babel/traverse': 7.13.0
-      '@jest/environment': 26.6.2
-      '@jest/source-map': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.28
-      chalk: 4.1.0
-      co: 4.6.0
-      expect: 26.6.2
-      is-generator-fn: 2.1.0
-      jest-each: 26.6.2
-      jest-matcher-utils: 26.6.2
-      jest-message-util: 26.6.2
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      pretty-format: 26.6.2
-      throat: 5.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-kPKUrQtc8aYwBV7CqBg5pu+tmYXlvFlSFYn18ev4gPFtrRzB15N2gW/Roew3187q2w2eHuu0MU9TJz6w0/nPEg==
   /jest-leak-detector/26.6.2:
     dependencies:
       jest-get-type: 26.3.0
@@ -5677,35 +5545,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-atgKpRHnaA2OvByG/HpGA4g6CSPS/1LK0jK3gATJAoptC1ojltpmVlYC3TYgdmGp+GLuhzpH30Gvs36szSL2JQ==
-  /jest-runner/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/environment': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.28
-      chalk: 4.1.0
-      emittery: 0.7.2
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-docblock: 26.0.0
-      jest-haste-map: 26.6.2
-      jest-leak-detector: 26.6.2
-      jest-message-util: 26.6.2
-      jest-resolve: 26.6.2
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-util: 26.6.2
-      jest-worker: 26.6.2
-      source-map-support: 0.5.19
-      throat: 5.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-atgKpRHnaA2OvByG/HpGA4g6CSPS/1LK0jK3gATJAoptC1ojltpmVlYC3TYgdmGp+GLuhzpH30Gvs36szSL2JQ==
   /jest-runtime/26.6.3:
     dependencies:
       '@jest/console': 26.6.2
@@ -5739,43 +5578,6 @@ packages:
     engines:
       node: '>= 10.14.2'
     hasBin: true
-    resolution:
-      integrity: sha512-lrzyR3N8sacTAMeonbqpnSka1dHNux2uk0qqDXVkMv2c/A3wYnvQ4EXuI013Y6+gSKSCxdaczvf4HF0mVXHRdw==
-  /jest-runtime/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/environment': 26.6.2
-      '@jest/fake-timers': 26.6.2
-      '@jest/globals': 26.6.2
-      '@jest/source-map': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/transform': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/yargs': 15.0.13
-      chalk: 4.1.0
-      cjs-module-lexer: 0.6.0
-      collect-v8-coverage: 1.0.1
-      exit: 0.1.2
-      glob: 7.1.6
-      graceful-fs: 4.2.6
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-haste-map: 26.6.2
-      jest-message-util: 26.6.2
-      jest-mock: 26.6.2
-      jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      slash: 3.0.0
-      strip-bom: 4.0.0
-      yargs: 15.4.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
     resolution:
       integrity: sha512-lrzyR3N8sacTAMeonbqpnSka1dHNux2uk0qqDXVkMv2c/A3wYnvQ4EXuI013Y6+gSKSCxdaczvf4HF0mVXHRdw==
   /jest-serializer/26.6.2:
@@ -5880,19 +5682,6 @@ packages:
     engines:
       node: '>= 10.14.2'
     hasBin: true
-    resolution:
-      integrity: sha512-lGS5PXGAzR4RF7V5+XObhqz2KZIDUA1yD0DG6pBVmy10eh0ZIXQImRuzocsI/N2XZ1GrLFwTS27In2i2jlpq1Q==
-  /jest/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/core': 26.6.3_ts-node@9.1.1
-      import-local: 3.0.2
-      jest-cli: 26.6.3_ts-node@9.1.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
     resolution:
       integrity: sha512-lGS5PXGAzR4RF7V5+XObhqz2KZIDUA1yD0DG6pBVmy10eh0ZIXQImRuzocsI/N2XZ1GrLFwTS27In2i2jlpq1Q==
   /js-levenshtein/1.1.6:
@@ -7589,7 +7378,7 @@ packages:
       request-promise-core: 1.1.4_request@2.88.2
       stealthy-require: 1.1.1
       tough-cookie: 2.5.0
-    deprecated: request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142
+    deprecated: 'request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142'
     dev: true
     engines:
       node: '>=0.12.0'
@@ -7619,7 +7408,7 @@ packages:
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
       uuid: 3.4.0
-    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
+    deprecated: 'request has been deprecated, see https://github.com/request/request/issues/3142'
     dev: true
     engines:
       node: '>= 6'
@@ -7671,7 +7460,7 @@ packages:
     resolution:
       integrity: sha512-+1lzwXehGCXSeryaISr6WujZzowloigEofRB+dj75y9RRa/obVcYgbHJd53tdYw8pvZj8GojXaaENws8Ktw/hQ==
   /resolve-url/0.2.1:
-    deprecated: https://github.com/lydell/resolve-url#deprecated
+    deprecated: 'https://github.com/lydell/resolve-url#deprecated'
     dev: true
     resolution:
       integrity: sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
@@ -8916,7 +8705,7 @@ packages:
     resolution:
       integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   /urix/0.1.0:
-    deprecated: Please see https://github.com/lydell/urix#deprecated
+    deprecated: 'Please see https://github.com/lydell/urix#deprecated'
     dev: true
     resolution:
       integrity: sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
