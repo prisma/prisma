@@ -180,7 +180,7 @@ export class Init implements Command {
 
     const steps = [
       `Run ${chalk.green(
-        getCommandWithExecutor('prisma introspect'),
+        getCommandWithExecutor('prisma db pull'),
       )} to turn your database schema into a Prisma data model.`,
       `Run ${chalk.green(
         getCommandWithExecutor('prisma generate'),

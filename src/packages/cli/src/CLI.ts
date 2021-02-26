@@ -114,7 +114,6 @@ export class CLI implements Command {
     ${chalk.bold('Commands')}
 
                 init   Setup Prisma for your app
-          introspect   Get the datamodel of your database
             generate   Generate artifacts (e.g. Prisma Client)
               studio   Open Prisma Studio
               format   Format your schema
@@ -132,9 +131,6 @@ export class CLI implements Command {
       Setup a new Prisma project
       ${chalk.dim('$')} prisma init
 
-      Introspect an existing database
-      ${chalk.dim('$')} prisma introspect
-
       Generate artifacts (e.g. Prisma Client)
       ${chalk.dim('$')} prisma generate
 
@@ -144,6 +140,9 @@ export class CLI implements Command {
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
       ${chalk.dim('$')} prisma migrate dev --preview-feature
   
+      Introspect an existing database
+      ${chalk.dim('$')} prisma db pull
+
       Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push --preview-feature
   `)
