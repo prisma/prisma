@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614351746904,
+  "lastUpdate": 1614353255079,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13529,6 +13529,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±3.31%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e72fb11e9096241c0102204142f735f612dea76f",
+          "message": "refactor(cli,migrate): rename introspect to db pull (#5867)\n\nCloses https://github.com/prisma/prisma/issues/5836",
+          "timestamp": "2021-02-26T16:23:29+01:00",
+          "tree_id": "4fb0e756f33daab8f223d67e94f1b008f7cc03c5",
+          "url": "https://github.com/prisma/prisma/commit/e72fb11e9096241c0102204142f735f612dea76f"
+        },
+        "date": 1614353254016,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±8.00%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±3.05%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
