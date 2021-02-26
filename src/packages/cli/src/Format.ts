@@ -76,6 +76,10 @@ export class Format implements Command {
     let output = await formatSchema({
       schemaPath,
     })
+    
+    await getDMMF({
+      datamodel: schema,
+    })
 
     output = output.trimEnd() + os.EOL
 
