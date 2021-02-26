@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614349730132,
+  "lastUpdate": 1614349760850,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13313,6 +13313,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±4.50%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jason.kuhrt@dialogue.co",
+            "name": "Jason Kuhrt",
+            "username": "jasonkuhrt"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "91cc7443f859416434afd3ab39da5da9279538b6",
+          "message": "feat: allow nexus-prisma generator again (#5853)",
+          "timestamp": "2021-02-26T15:21:00+01:00",
+          "tree_id": "42c892fd160036b0ab53ac98671f6a4caccac219",
+          "url": "https://github.com/prisma/prisma/commit/91cc7443f859416434afd3ab39da5da9279538b6"
+        },
+        "date": 1614349759826,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.33,
+            "range": "±6.80%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±1.38%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
