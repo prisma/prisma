@@ -25,10 +25,7 @@ const debug = Debug('prisma:client:napi')
 
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-type QueryEngineEvent =
-  | QueryEngineLogEvent
-  | QueryEngineQueryEvent
-  | QueryEngineDisconnectionEvent
+type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent
 type QueryEngineConfig = {
   datamodel: string
   datasourceOverrides?: Record<string, string>
@@ -48,10 +45,7 @@ type QueryEngineQueryEvent = {
   duration_ms: string
   result: string
 }
-type QueryEngineDisconnectionEvent = {
-  level: 'info'
-  message: 'disconnected'
-}
+
 export interface QueryEngineConstructor {
   new (
     config: QueryEngineConfig,
@@ -97,11 +91,7 @@ type RustRequestError = {
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event.level === 'info' && event['item_type'] === 'query'
 }
-function isDisconnectionEvent(
-  event: QueryEngineEvent,
-): event is QueryEngineDisconnectionEvent {
-  return event.level === 'info' && event['message'] === 'disconnected'
-}
+
 const knownPlatforms: Platform[] = [
   'native',
   'darwin',
