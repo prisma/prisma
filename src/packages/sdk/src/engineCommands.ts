@@ -1,11 +1,15 @@
 import chalk from 'chalk'
 import execa from 'execa'
-import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
 import Debug from '@prisma/debug'
 import { resolveBinary, EngineType } from './resolveBinary'
+import {
+  DMMF,
+  DataSource,
+  GeneratorConfig,
+} from '../node_modules/@prisma/generator-helper'
 const debug = Debug('prisma:engineCommands')
 
 const unlink = promisify(fs.unlink)

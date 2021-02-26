@@ -4,7 +4,7 @@ import {
   DataSource,
   DMMF,
   GeneratorConfig,
-} from '@prisma/generator-helper'
+} from '../../node_modules/@prisma/generator-helper'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'

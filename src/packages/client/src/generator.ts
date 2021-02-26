@@ -1,9 +1,9 @@
-import { generatorHandler } from '@prisma/generator-helper'
 import Debug from '@prisma/debug'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
 import { enginesVersion } from '@prisma/engines-version'
 import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
+import { generatorHandler } from '../node_modules/@prisma/generator-helper'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators

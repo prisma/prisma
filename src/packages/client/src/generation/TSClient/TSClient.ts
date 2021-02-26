@@ -9,7 +9,7 @@ import { DatasourceOverwrite } from './../extractSqliteSources'
 
 import { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
 import { klona } from 'klona'
-import { getEnvPaths } from '@prisma/sdk'
+import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
 import { Generatable } from './Generatable'
 import { escapeJson, ExportCollector } from './helpers'
 import { Enum } from './Enum'
@@ -175,7 +175,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap).reduce((acc, model) => {
-      if(this.dmmf.outputTypeMap[model.name]){
+      if (this.dmmf.outputTypeMap[model.name]) {
         acc.push(new Model(model, this.dmmf, this.options.generator, collector))
       }
       return acc
