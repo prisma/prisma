@@ -17,9 +17,7 @@ export class Dev implements Command {
       If you want to generate the Prisma Client, use ${chalk.green(
         'prisma generate',
       )} (or ${chalk.green('prisma generate --watch')})
-      If you want to update your schema, use ${chalk.green(
-        'prisma introspect',
-      )}.
+      If you want to update your schema, use ${chalk.green('prisma db pull')}.
       If you want to migrate your database, use ${chalk.green(
         'prisma migrate',
       )}.

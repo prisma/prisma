@@ -274,7 +274,7 @@ You have 2 options
 
 1. To keep the database structure change run: 
 - ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma introspect'),
+        getCommandWithExecutor('prisma db pull'),
       )} to update your schema with the change.
 - ${chalk.bold.greenBright(
         getCommandWithExecutor('prisma migrate dev --preview-feature'),
