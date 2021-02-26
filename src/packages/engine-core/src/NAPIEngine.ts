@@ -53,7 +53,10 @@ type QueryEngineDisconnectionEvent = {
   message: 'disconnected'
 }
 export interface QueryEngineConstructor {
-  new (config: QueryEngineConfig): QueryEngine
+  new (
+    config: QueryEngineConfig,
+    logger: (err: string, log: string) => void,
+  ): QueryEngine
 }
 
 type ConnectArgs = {
@@ -121,12 +124,9 @@ export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
-  private loggerPromise?: Promise<void>
-
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
   private logEmitter: EventEmitter
-  private fetchingLogEvent?: Promise<string>
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -180,40 +180,6 @@ You may have to run ${chalk.greenBright(
     return platform
   }
 
-  private async startLogger(): Promise<void> {
-    // eslint-disable-next-line no-constant-condition
-    while (this.connected) {
-      debug(`fetching next log event`)
-      this.fetchingLogEvent = this.engine!.nextLogEvent()
-      const rawEvent = await this.fetchingLogEvent
-      debug(`received next log event`)
-      let event: QueryEngineEvent | null = null
-      try {
-        event = JSON.parse(rawEvent)
-        if (!event) return
-      } catch (e) {
-        throw new Error(rawEvent)
-      }
-      event.level = event?.level.toLowerCase() ?? 'unknown'
-      if (isDisconnectionEvent(event)) {
-        debug('disconnection event received')
-        this.connected = false
-        return
-      }
-      if (isQueryEvent(event)) {
-        this.logEmitter.emit('query', {
-          timestamp: Date.now(),
-          query: event.query,
-          params: event.params,
-          duration: event.duration_ms,
-          target: event.module_path,
-        })
-      } else {
-        this.logEmitter.emit(event.level, event)
-      }
-    }
-  }
-
   private convertDatasources(
     datasources: DatasourceOverwrite[],
   ): Record<string, string> {
@@ -228,7 +194,7 @@ You may have to run ${chalk.greenBright(
       if (!this.QueryEngine) {
         if (!this.libQueryEnginePath) {
           this.libQueryEnginePath = await this.getLibQueryEnginePath()
-          debug(`using ${this.libQueryEnginePath }`)
+          debug(`using ${this.libQueryEnginePath}`)
         }
         try {
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
@@ -239,11 +205,36 @@ You may have to run ${chalk.greenBright(
       }
       if (this.QueryEngine) {
         try {
-          this.engine = new this.QueryEngine({
-            datamodel: this.datamodel,
-            datasourceOverrides: this.datasourceOverrides,
-            logLevel: this.config.logLevel ?? 'off',
-          })
+          this.engine = new this.QueryEngine(
+            {
+              datamodel: this.datamodel,
+              datasourceOverrides: this.datasourceOverrides,
+              logLevel: this.config.logLevel ?? 'off',
+            },
+            (err, log) => {
+              if (err) throw new Error(err)
+              debug(`received next log event`)
+              let event: QueryEngineEvent | null = null
+              try {
+                event = JSON.parse(log)
+                if (!event) return
+              } catch (e) {
+                throw new Error(e)
+              }
+              event.level = event?.level.toLowerCase() ?? 'unknown'
+              if (isQueryEvent(event)) {
+                this.logEmitter.emit('query', {
+                  timestamp: Date.now(),
+                  query: event.query,
+                  params: event.params,
+                  duration: event.duration_ms,
+                  target: event.module_path,
+                })
+              } else {
+                this.logEmitter.emit(event.level, event)
+              }
+            },
+          )
         } catch (e) {
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
@@ -285,7 +276,7 @@ You may have to run ${chalk.greenBright(
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      // TODO Implement
+      // TODO
       //this.beforeExitListener = listener
     } else {
       this.logEmitter.on(event, listener)
@@ -293,33 +284,16 @@ You may have to run ${chalk.greenBright(
   }
   async start(): Promise<void> {
     await this.setupPromise
-    // This is very important
-    await new Promise((r) => process.nextTick(r))
     if (this.connectPromise || this.connected) {
       return this.connectPromise
     }
-    this.connected = true
-    await this.engine?.connect({ enableRawQueries: true })
+    await this.engine?.connect({ enableRawQueries: true }).then(() => {
+      this.connected = true
+    })
     debug(`connect called`)
-
-    if (!this.loggerPromise && this.config.logLevel) {
-      this.loggerPromise = this.startLogger()
-    }
   }
   async stop(): Promise<void> {
-    debug('attempting to disconnect')
-    setImmediate(() => this.connected = false)
-
-    if(this.fetchingLogEvent){
-      debug(`waiting for fetchingLogEvent`)
-
-      await this.fetchingLogEvent
-    }
-    setImmediate(() => this.connected = false)
     await this.engine?.disconnect()
-    debug('disconnect called waiting logger to disconnect')
-    await this.loggerPromise
-    debug('all disconnected')
   }
   kill(signal: string): void {
     debug(`disconnect called with kill signal ${signal}`)
