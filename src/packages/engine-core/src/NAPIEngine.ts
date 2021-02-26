@@ -121,12 +121,12 @@ export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
-  private stopPromise?: Promise<void>
   private loggerPromise?: Promise<void>
 
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
   private logEmitter: EventEmitter
+  private fetchingLogEvent?: Promise<string>
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -146,6 +146,7 @@ export class NAPIEngine implements Engine {
 
     if (this.logQueries) {
       process.env.LOG_QUERIES = 'y'
+      this.config.logLevel = 'info'
     }
     if (config.enableEngineDebugMode) {
       Debug.enable('*')
@@ -181,8 +182,11 @@ You may have to run ${chalk.greenBright(
 
   private async startLogger(): Promise<void> {
     // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const rawEvent = await this.engine!.nextLogEvent()
+    while (this.connected) {
+      debug(`fetching next log event`)
+      this.fetchingLogEvent = this.engine!.nextLogEvent()
+      const rawEvent = await this.fetchingLogEvent
+      debug(`received next log event`)
       let event: QueryEngineEvent | null = null
       try {
         event = JSON.parse(rawEvent)
@@ -192,6 +196,7 @@ You may have to run ${chalk.greenBright(
       }
       event.level = event?.level.toLowerCase() ?? 'unknown'
       if (isDisconnectionEvent(event)) {
+        debug('disconnection event received')
         this.connected = false
         return
       }
@@ -223,7 +228,7 @@ You may have to run ${chalk.greenBright(
       if (!this.QueryEngine) {
         if (!this.libQueryEnginePath) {
           this.libQueryEnginePath = await this.getLibQueryEnginePath()
-          debug({ libQueryEnginePath: this.libQueryEnginePath })
+          debug(`using ${this.libQueryEnginePath }`)
         }
         try {
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
@@ -239,8 +244,6 @@ You may have to run ${chalk.greenBright(
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.config.logLevel ?? 'off',
           })
-          const serverInfo = await this.engine.serverInfo()
-          debug(`N-API engine instantiated: ${serverInfo}`)
         } catch (e) {
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
@@ -296,17 +299,30 @@ You may have to run ${chalk.greenBright(
       return this.connectPromise
     }
     this.connected = true
-    this.engine?.connect({ enableRawQueries: true })
-    if (!this.loggerPromise) {
+    await this.engine?.connect({ enableRawQueries: true })
+    debug(`connect called`)
+
+    if (!this.loggerPromise && this.config.logLevel) {
       this.loggerPromise = this.startLogger()
     }
   }
   async stop(): Promise<void> {
-    await new Promise((r) => process.nextTick(r))
+    debug('attempting to disconnect')
+    setImmediate(() => this.connected = false)
+
+    if(this.fetchingLogEvent){
+      debug(`waiting for fetchingLogEvent`)
+
+      await this.fetchingLogEvent
+    }
+    setImmediate(() => this.connected = false)
     await this.engine?.disconnect()
+    debug('disconnect called waiting logger to disconnect')
     await this.loggerPromise
+    debug('all disconnected')
   }
   kill(signal: string): void {
+    debug(`disconnect called with kill signal ${signal}`)
     void this.engine?.disconnect()
   }
   async getConfig(): Promise<GetConfigResult> {
