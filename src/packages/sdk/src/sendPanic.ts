@@ -99,9 +99,11 @@ export async function sendPanic(
 }
 
 function getCommand(): string {
+  // don't send url
   if (process.argv[2] === 'introspect') {
-    // don't send url
     return 'introspect'
+  } else if (process.argv[2] === 'db' && process.argv[3] === 'pull') {
+    return 'db pull'
   }
   return process.argv.slice(2).join(' ')
 }

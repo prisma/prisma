@@ -89,6 +89,7 @@ import {
   MigrateReset,
   MigrateDeploy,
   DbPush,
+  DbPull,
   // DbDrop,
   DbSeed,
   DbCommand,
@@ -97,7 +98,6 @@ import {
 
 import { CLI } from './CLI'
 import { Init } from './Init'
-import { Introspect } from './Introspect'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
@@ -156,12 +156,12 @@ async function main(): Promise<number> {
         deploy: MigrateDeploy.new(),
       }),
       db: DbCommand.new({
-        pull: Introspect.new(),
+        pull: DbPull.new(),
         push: DbPush.new(),
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
-      introspect: Introspect.new(),
+      introspect: DbPull.new(),
       dev: Dev.new(),
       studio: Studio.new(aliases),
       generate: Generate.new(),
