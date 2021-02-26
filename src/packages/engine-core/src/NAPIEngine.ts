@@ -192,6 +192,7 @@ You may have to run ${chalk.greenBright(
       }
       event.level = event?.level.toLowerCase() ?? 'unknown'
       if (isDisconnectionEvent(event)) {
+        this.connected = false
         return
       }
       if (isQueryEvent(event)) {
@@ -238,7 +239,8 @@ You may have to run ${chalk.greenBright(
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.config.logLevel ?? 'off',
           })
-          debug('N-API engine instantiated')
+          const serverInfo = await this.engine.serverInfo()
+          debug(`N-API engine instantiated: ${serverInfo}`)
         } catch (e) {
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
@@ -293,7 +295,8 @@ You may have to run ${chalk.greenBright(
     if (this.connectPromise || this.connected) {
       return this.connectPromise
     }
-    await this.engine?.connect({ enableRawQueries: true })
+    this.connected = true
+    this.engine?.connect({ enableRawQueries: true })
     if (!this.loggerPromise) {
       this.loggerPromise = this.startLogger()
     }
