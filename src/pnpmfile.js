@@ -6,7 +6,7 @@ module.exports = {
     readPackage,
   },
 }
-const log = 'hi'
+
 fs.appendFileSync(path.join(__dirname, 'logs.txt'), `hell\n`)
 
 function readPackage(pkg, context) {
