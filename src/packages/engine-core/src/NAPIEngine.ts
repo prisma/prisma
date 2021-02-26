@@ -287,10 +287,8 @@ You may have to run ${chalk.greenBright(
     if (this.connectPromise || this.connected) {
       return this.connectPromise
     }
-    await this.engine?.connect({ enableRawQueries: true }).then(() => {
-      this.connected = true
-    })
-    debug(`connect called`)
+    this.connected = true
+    return this.engine?.connect({ enableRawQueries: true })
   }
   async stop(): Promise<void> {
     await this.engine?.disconnect()
