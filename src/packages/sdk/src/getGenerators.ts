@@ -502,11 +502,7 @@ async function validateGenerators(
   4. Run ${chalk.green('prisma generate')} again.
       `)
     }
-    if (generator.provider === 'nexus-prisma') {
-      throw new Error(
-        '`nexus-prisma` is no longer a generator. You can read more at https://pris.ly/nexus-prisma-upgrade-0.4',
-      )
-    }
+
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
