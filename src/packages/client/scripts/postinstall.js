@@ -16,19 +16,6 @@ function debug(message, ...optionalParams) {
   }
 }
 
-/**
- * This replicates the exception of `fs.mkdir` with native the
- * `recusive` option when run on an invalid drive under Windows.
- **/
-function permissionError(pth) {
-  const error = new Error(`operation not permitted, mkdir '${pth}'`)
-  error.code = 'EPERM'
-  error.errno = -4048
-  error.path = pth
-  error.syscall = 'mkdir'
-  return error
-}
-
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
@@ -42,13 +29,18 @@ async function main() {
 
   // this is needed, so that the Generate command does not fail in postinstall
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  if(localPath){
+  if (localPath) {
     // localPath = xxxx/custom-server/node_modules/prisma/build/index.js
     // packageRoot = xxxx/custom-server/
     const packageRoot = localPath && path.join(localPath, '../../../../')
-    process.env.PRISMA_GENERATE_IN_POSTINSTALL=packageRoot
+    process.env.PRISMA_GENERATE_IN_POSTINSTALL = packageRoot
   }
-  debug({ localPath, installedGlobally, init_cwd: process.env.INIT_CWD, PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL })
+  debug({
+    localPath,
+    installedGlobally,
+    init_cwd: process.env.INIT_CWD,
+    PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL,
+  })
   try {
     if (localPath) {
       await run('node', [
@@ -58,7 +50,7 @@ async function main() {
         doubleQuote(getPostInstallTrigger()),
       ])
       return
-    } 
+    }
     if (installedGlobally) {
       await run('prisma', [
         'generate',
@@ -150,10 +142,10 @@ if (!process.env.SKIP_GENERATE) {
     })
 }
 
-function run(cmd, params, cwd=process.cwd()) {
+function run(cmd, params, cwd = process.cwd()) {
   const child = childProcess.spawn(cmd, params, {
     stdio: ['pipe', 'inherit', 'inherit'],
-    cwd
+    cwd,
   })
 
   return new Promise((resolve, reject) => {
@@ -221,7 +213,7 @@ async function makeDir(input) {
 
       if (error.code === 'ENOENT') {
         if (path.dirname(pth) === pth) {
-          throw permissionError(pth)
+          throw new Error(`operation not permitted, mkdir '${pth}'`)
         }
 
         if (error.message.includes('null bytes')) {
