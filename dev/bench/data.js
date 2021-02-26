@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614349000314,
+  "lastUpdate": 1614349293715,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13211,6 +13211,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.31%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "54bec1282989c3d367c3ce3e22c7fe187780caaa",
+          "message": "chore(deps): update devdependencies (non-major)",
+          "timestamp": "2021-02-26T14:12:25Z",
+          "url": "https://github.com/prisma/prisma/pull/5814/commits/54bec1282989c3d367c3ce3e22c7fe187780caaa"
+        },
+        "date": 1614349292787,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±8.80%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±4.06%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
