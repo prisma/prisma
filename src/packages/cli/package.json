@@ -74,12 +74,12 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.20",
     "@types/ws": "7.4.0",
-    "@typescript-eslint/eslint-plugin": "4.15.1",
-    "@typescript-eslint/parser": "4.15.1",
+    "@typescript-eslint/eslint-plugin": "4.15.2",
+    "@typescript-eslint/parser": "4.15.2",
     "chalk": "4.1.0",
     "checkpoint-client": "1.1.19",
     "dotenv": "8.2.0",
-    "esbuild": "0.8.51",
+    "esbuild": "0.8.52",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.20.0",
     "eslint-config-prettier": "7.2.0",
@@ -109,8 +109,8 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.0",
-    "ts-jest": "26.5.1",
-    "typescript": "4.1.5"
+    "ts-jest": "26.5.2",
+    "typescript": "4.2.2"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",

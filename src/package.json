@@ -28,7 +28,7 @@
     "redis-lock": "0.1.4",
     "semver": "7.3.4",
     "ts-node": "9.1.1",
-    "typescript": "4.1.5"
+    "typescript": "4.2.2"
   },
   "scripts": {
     "preinstall": "npx only-allow@1.0.0 pnpm",
