@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614356241236,
+  "lastUpdate": 1614357263844,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13635,6 +13635,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.72%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Tim.Suchanek@gmail.com",
+            "name": "Tim Suchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a664ccd84e73e43291b9d87d2f9ebc0e6eb1e518",
+          "message": "chore: bump engines (#5872)",
+          "timestamp": "2021-02-26T17:30:49+01:00",
+          "tree_id": "aa600bbf75f7d6882f04bcf7f730636d57244f1d",
+          "url": "https://github.com/prisma/prisma/commit/a664ccd84e73e43291b9d87d2f9ebc0e6eb1e518"
+        },
+        "date": 1614357262771,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±8.47%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.56%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
