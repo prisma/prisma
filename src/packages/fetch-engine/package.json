@@ -20,8 +20,8 @@
     "@types/node": "12.20.4",
     "@types/node-fetch": "2.5.8",
     "@types/progress": "2.0.3",
-    "@typescript-eslint/eslint-plugin": "4.15.1",
-    "@typescript-eslint/parser": "4.15.1",
+    "@typescript-eslint/eslint-plugin": "4.15.2",
+    "@typescript-eslint/parser": "4.15.2",
     "del": "6.0.0",
     "eslint": "7.20.0",
     "eslint-config-prettier": "7.2.0",
@@ -32,8 +32,8 @@
     "lint-staged": "10.5.4",
     "prettier": "2.2.1",
     "strip-ansi": "6.0.0",
-    "ts-jest": "26.5.1",
-    "typescript": "4.1.5"
+    "ts-jest": "26.5.2",
+    "typescript": "4.2.2"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

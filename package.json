@@ -9,8 +9,8 @@
   "devDependencies": {
     "@types/benchmark": "2.1.0",
     "@types/node": "14.14.31",
-    "@typescript-eslint/eslint-plugin": "4.15.1",
-    "@typescript-eslint/parser": "4.15.1",
+    "@typescript-eslint/eslint-plugin": "4.15.2",
+    "@typescript-eslint/parser": "4.15.2",
     "arg": "5.0.0",
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
@@ -25,7 +25,7 @@
     "p-map": "4.0.0",
     "staged-git-files": "1.2.0",
     "ts-node": "9.1.1",
-    "typescript": "4.1.5"
+    "typescript": "4.2.2"
   },
   "husky": {
     "hooks": {
