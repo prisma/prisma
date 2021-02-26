@@ -110,7 +110,7 @@ export async function buildClient({
 }
 
 async function getDotPrismaDir(outputDir: string): Promise<string> {
-  if(outputDir.endsWith('node_modules/@prisma/client')){
+  if (outputDir.endsWith('node_modules/@prisma/client')) {
     return path.join(outputDir, '../../.prisma/client')
   }
   if (
@@ -159,7 +159,6 @@ export async function generateClient({
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir
-
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
