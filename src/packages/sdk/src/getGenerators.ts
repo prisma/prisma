@@ -598,7 +598,9 @@ function engineTypeToBinaryType(
   if (engineType === 'queryEngine') {
     return EngineTypes.queryEngine
   }
-
+  if (engineType === 'libqueryEngineNapi') {
+    return EngineTypes.libqueryEngineNapi
+  }
   if (engineType === 'prismaFmt') {
     return EngineTypes.prismaFmt
   }
@@ -614,7 +616,9 @@ function binaryTypeToEngineType(binaryType: string): string {
   if (binaryType === EngineTypes.migrationEngine) {
     return 'migrationEngine'
   }
-
+  if (binaryType === EngineTypes.libqueryEngineNapi) {
+    return 'libqueryEngineNapi'
+  }
   if (binaryType === EngineTypes.queryEngine) {
     return 'queryEngine'
   }
