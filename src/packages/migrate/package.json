@@ -25,8 +25,8 @@
     "@types/pg": "7.14.10",
     "@types/prompts": "2.0.9",
     "@types/sqlite3": "3.1.7",
-    "@typescript-eslint/eslint-plugin": "4.15.1",
-    "@typescript-eslint/parser": "4.15.1",
+    "@typescript-eslint/eslint-plugin": "4.15.2",
+    "@typescript-eslint/parser": "4.15.2",
     "chalk": "4.1.0",
     "del": "6.0.0",
     "eslint": "7.20.0",
@@ -45,8 +45,8 @@
     "sqlite-async": "1.1.1",
     "sqlite3": "5.0.0",
     "tempy": "1.0.0",
-    "ts-jest": "26.5.1",
-    "typescript": "4.1.5"
+    "ts-jest": "26.5.2",
+    "typescript": "4.2.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
