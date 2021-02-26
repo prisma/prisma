@@ -140,7 +140,7 @@ export class CLI implements Command {
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
       ${chalk.dim('$')} prisma migrate dev --preview-feature
   
-      Introspect an existing database
+      Pull the schema from an existing database, updating the Prisma schema
       ${chalk.dim('$')} prisma db pull
 
       Push the Prisma schema state to the database
