@@ -87,9 +87,6 @@ export async function getDMMF({
     if (enableExperimental) {
       enableExperimental = enableExperimental
         .filter((f) => {
-          if(f === 'napi'){
-            return false
-          }
           const removeMessage = removedFeatureFlagMap[f]
           if (removeMessage) {
             if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
