@@ -9,7 +9,7 @@ import { DatasourceOverwrite } from './../extractSqliteSources'
 
 import { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
 import { klona } from 'klona'
-import { getEnvPaths } from '@prisma/sdk'
+import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
 import { Generatable } from './Generatable'
 import { escapeJson, ExportCollector } from './helpers'
 import { Enum } from './Enum'
