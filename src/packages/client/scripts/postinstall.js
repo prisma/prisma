@@ -11,7 +11,7 @@ const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
 
 function debug(message, ...optionalParams) {
-  if (process.env.DEBUG && process.env.DEBUG.includes('postinstall')) {
+  if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
     console.log(message, ...optionalParams)
   }
 }
