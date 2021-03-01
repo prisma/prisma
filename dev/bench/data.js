@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614599465009,
+  "lastUpdate": 1614600637605,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -14207,6 +14207,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.92%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "c370aceeee5a6aa9b0eccf03a3875a2db91c679e",
+          "message": "fix(cli): format using output from format for getDMMF",
+          "timestamp": "2021-03-01T10:29:07Z",
+          "url": "https://github.com/prisma/prisma/pull/5905/commits/c370aceeee5a6aa9b0eccf03a3875a2db91c679e"
+        },
+        "date": 1614600636628,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±6.44%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.05%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
