@@ -2,10 +2,8 @@ const execa = require('execa')
 const fs = require('fs')
 const chalk = require('chalk')
 const { promisify } = require('util')
-
+const esbuild = require('esbuild')
 const copyFile = promisify(fs.copyFile)
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
 
 async function main() {
   const before = Date.now()
@@ -27,21 +25,31 @@ async function main() {
   await Promise.all([
     run('tsc --build tsconfig.runtime.json', true),
     run('tsc --build tsconfig.json', true),
-    run(
-      'esbuild src/generator.ts --outfile=generator-build/index.js --bundle --platform=node --target=node10',
-      false,
-    ),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      target: 'node10',
+      outfile: 'generator-build/index.js',
+      entryPoints: ['src/generator.ts'],
+    }),
   ])
 
   await Promise.all([
-    run(
-      'esbuild src/runtime/index.ts --outdir=runtime --bundle --platform=node --target=node10',
-      false,
-    ),
-    await run(
-      'esbuild src/runtime/index-browser.ts --format=cjs --outdir=runtime --bundle --target=chrome58,firefox57,safari11,edge16',
-      false,
-    ),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      target: 'node10',
+      outdir: 'runtime',
+      entryPoints: ['src/runtime/index.ts'],
+    }),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      format: 'cjs',
+      target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
+      outdir: 'runtime',
+      entryPoints: ['src/runtime/index-browser.ts'],
+    }),
     run('rollup -c'),
   ])
 

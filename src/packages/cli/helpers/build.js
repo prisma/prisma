@@ -4,6 +4,7 @@ const chalk = require('chalk')
 const copy = require('@timsuchanek/copy')
 const makeDir = require('make-dir')
 const path = require('path')
+const esbuild = require('esbuild')
 const { promisify } = require('util')
 const copyFile = promisify(fs.copyFile)
 const lineReplace = require('line-replace')
@@ -16,18 +17,30 @@ async function main() {
   await Promise.all([
     run('node ./scripts/copy-prisma-client.js'),
     run('tsc --build tsconfig.build.json', true),
-    run(
-      'esbuild src/bin.ts --outfile=build/index.js --bundle --platform=node --target=node10 --external:@prisma/engines',
-      false,
-    ),
-    run(
-      'esbuild scripts/preinstall.js --outfile=preinstall/index.js --bundle --platform=node --target=node10 --minify',
-      false,
-    ),
-    run(
-      'esbuild scripts/install.js --outfile=install/index.js --bundle --platform=node --target=node10 --minify',
-      false,
-    ),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      target: 'node10',
+      outfile: 'build/index.js',
+      entryPoints: ['src/bin.ts'],
+      external: ['@prisma/engines'],
+    }),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      minify: true,
+      target: ['node10'],
+      outfile: 'preinstall/index.js',
+      entryPoints: ['scripts/preinstall.js'],
+    }),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      minify: true,
+      target: ['node10'],
+      outfile: 'install/index.js',
+      entryPoints: ['scripts/install.js'],
+    }),
     copy({
       from: path.join(
         require.resolve('@prisma/studio/package.json'),
