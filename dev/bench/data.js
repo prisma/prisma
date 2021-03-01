@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614602468539,
+  "lastUpdate": 1614603061883,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -14347,6 +14347,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±3.73%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4f36aafa5ecc21a8c14702c39e820c1d220b5388",
+          "message": "fix(client, cli): esbuild using incorrect versions (#5904)",
+          "timestamp": "2021-03-01T13:47:22+01:00",
+          "tree_id": "e14c7015ea7cc2177a87c577b452451748cc9c59",
+          "url": "https://github.com/prisma/prisma/commit/4f36aafa5ecc21a8c14702c39e820c1d220b5388"
+        },
+        "date": 1614603060808,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±8.02%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.90%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
