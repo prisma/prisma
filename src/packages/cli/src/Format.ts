@@ -78,7 +78,7 @@ export class Format implements Command {
     })
     
     await getDMMF({
-      datamodel: schema,
+      datamodel: output,
     })
 
     output = output.trimEnd() + os.EOL
