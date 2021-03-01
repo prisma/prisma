@@ -13,6 +13,10 @@ const clientVersion = pkg.version
 
 generatorHandler({
   onManifest(config) {
+    if (debugEnabled) {
+      console.log('client:generator:generatorHandler:onManifest');
+      console.log(config);
+    }
     const requiredEngine = config?.previewFeatures?.includes('napi') ? 'libqueryEngineNapi' : 'queryEngine'
     return {
       defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
