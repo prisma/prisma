@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614601177115,
+  "lastUpdate": 1614602061194,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -14275,6 +14275,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d5de7209bd5d91fcbf6bcfc5b02ec6eab4c7f22",
+          "message": "fix(cli): format using output from format for getDMMF (#5905)",
+          "timestamp": "2021-03-01T13:30:19+01:00",
+          "tree_id": "44bd6ecdf11ff58a20601e47629bcc5065b7afaa",
+          "url": "https://github.com/prisma/prisma/commit/1d5de7209bd5d91fcbf6bcfc5b02ec6eab4c7f22"
+        },
+        "date": 1614602060116,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±4.43%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±1.91%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
