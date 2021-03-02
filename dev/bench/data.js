@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614686241118,
+  "lastUpdate": 1614687540520,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -14975,6 +14975,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.41%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "9b4d57bba5432b6465432b33f08b8d166677073c",
+          "message": "fix(deps): update engines to v2.18.0-34.da6fafb57b24e0b61ca20960c64e2d41f9e8cff1",
+          "timestamp": "2021-03-02T11:51:36Z",
+          "url": "https://github.com/prisma/prisma/pull/5942/commits/9b4d57bba5432b6465432b33f08b8d166677073c"
+        },
+        "date": 1614687539465,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±1.27%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
