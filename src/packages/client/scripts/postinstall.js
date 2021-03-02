@@ -15,6 +15,39 @@ function debug(message, ...optionalParams) {
     console.log(message, ...optionalParams)
   }
 }
+/**
+ * Adds `package.json` to the end of a path if it doesn't already exist'
+ * @param {string} pth
+ */
+function addPackageJSON(pth){
+  if(pth.endsWith('package.json')) return pth
+  return path.join(pth, 'package.json')
+}
+
+/**
+ * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
+ * @param {string} startPath - Path to Start At
+ * @param {number} limit - Find Up limit
+ * @returns {string | null} 
+ */
+function findPackageRoot(startPath, limit = 10){
+  if(!startPath || !fs.existsSync(startPath)) return null
+  let  currentPath = startPath
+  // Limit traversal
+  for(let i = 0; i < limit; i++){
+    const pkgPath = addPackageJSON(currentPath)
+    if(fs.existsSync(pkgPath)){
+      try {
+        const pkg = require(pkgPath)
+        if(pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)){
+          return pkgPath.replace('package.json', '')
+        }
+      } catch {}
+    }
+    currentPath = path.join(currentPath, '../')
+  }
+  return null
+}
 
 async function main() {
   if (process.env.INIT_CWD) {
@@ -28,13 +61,14 @@ async function main() {
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
   // this is needed, so that the Generate command does not fail in postinstall
+
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
-  if (localPath && fs.existsSync(localPath) && localPath.endsWith('node_modules/prisma/build/index.js')) {
-    // localPath = xxxx/custom-server/node_modules/prisma/build/index.js
-    // packageRoot = xxxx/custom-server/
-    const packageRoot = path.join(localPath, '../../../../')
-    process.env.PRISMA_GENERATE_IN_POSTINSTALL = packageRoot
-  }
+
+  // this is needed, so we can find the correct schemas in yarn workspace projects
+  const root = findPackageRoot(localPath)
+
+  process.env.PRISMA_GENERATE_IN_POSTINSTALL = root ? root : 'true'
+  
   debug({
     localPath,
     installedGlobally,
