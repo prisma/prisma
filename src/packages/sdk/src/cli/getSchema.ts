@@ -14,9 +14,12 @@ const readFile = promisify(fs.readFile)
 
 export async function getSchemaPath(
   schemaPathFromArgs?: string,
+  opts: { cwd: string } = {
+    cwd: process.cwd(),
+  },
 ): Promise<string | null> {
   return getSchemaPathInternal(schemaPathFromArgs, {
-    cwd: process.cwd(),
+    cwd: opts.cwd,
   })
 }
 
