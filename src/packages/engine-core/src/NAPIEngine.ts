@@ -493,7 +493,7 @@ You already added the platform${
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
-Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
+Please create an issue at https://github.com/prisma/prisma/issues/new`
           errorText += ``
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
