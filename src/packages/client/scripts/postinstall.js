@@ -1,3 +1,4 @@
+// @ts-check
 const childProcess = require('child_process')
 const { promisify } = require('util')
 const fs = require('fs')
@@ -8,6 +9,45 @@ const exec = promisify(childProcess.exec)
 const copyFile = promisify(fs.copyFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
+
+function debug(message, ...optionalParams) {
+  if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
+    console.log(message, ...optionalParams)
+  }
+}
+/**
+ * Adds `package.json` to the end of a path if it doesn't already exist'
+ * @param {string} pth
+ */
+function addPackageJSON(pth){
+  if(pth.endsWith('package.json')) return pth
+  return path.join(pth, 'package.json')
+}
+
+/**
+ * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
+ * @param {string} startPath - Path to Start At
+ * @param {number} limit - Find Up limit
+ * @returns {string | null} 
+ */
+function findPackageRoot(startPath, limit = 10){
+  if(!startPath || !fs.existsSync(startPath)) return null
+  let  currentPath = startPath
+  // Limit traversal
+  for(let i = 0; i < limit; i++){
+    const pkgPath = addPackageJSON(currentPath)
+    if(fs.existsSync(pkgPath)){
+      try {
+        const pkg = require(pkgPath)
+        if(pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)){
+          return pkgPath.replace('package.json', '')
+        }
+      } catch {}
+    }
+    currentPath = path.join(currentPath, '../')
+  }
+  return null
+}
 
 async function main() {
   if (process.env.INIT_CWD) {
@@ -21,8 +61,20 @@ async function main() {
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
   // this is needed, so that the Generate command does not fail in postinstall
+
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
 
+  // this is needed, so we can find the correct schemas in yarn workspace projects
+  const root = findPackageRoot(localPath)
+
+  process.env.PRISMA_GENERATE_IN_POSTINSTALL = root ? root : 'true'
+  
+  debug({
+    localPath,
+    installedGlobally,
+    init_cwd: process.env.INIT_CWD,
+    PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL,
+  })
   try {
     if (localPath) {
       await run('node', [
@@ -33,7 +85,6 @@ async function main() {
       ])
       return
     }
-
     if (installedGlobally) {
       await run('prisma', [
         'generate',
@@ -47,6 +98,7 @@ async function main() {
     if (e && e !== 1) {
       console.error(e)
     }
+    debug(e)
   }
 
   if (!localPath && !installedGlobally) {
@@ -97,32 +149,37 @@ Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
 }
 
 if (!process.env.SKIP_GENERATE) {
-  main().catch((e) => {
-    if (e.stderr) {
-      if (e.stderr.includes(`Can't find schema.prisma`)) {
-        console.error(
-          `${c.yellow('warning')} @prisma/client needs a ${c.bold(
-            'schema.prisma',
-          )} to function, but couldn't find it.
+  main()
+    .catch((e) => {
+      if (e.stderr) {
+        if (e.stderr.includes(`Can't find schema.prisma`)) {
+          console.error(
+            `${c.yellow('warning')} @prisma/client needs a ${c.bold(
+              'schema.prisma',
+            )} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma init')}.
         Once you created it, run ${c.bold('prisma generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
           './prisma',
         )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
-        )
+          )
+        } else {
+          console.error(e.stderr)
+        }
       } else {
-        console.error(e.stderr)
+        console.error(e)
       }
-    } else {
-      console.error(e)
-    }
-    process.exit(0)
-  })
+      process.exit(0)
+    })
+    .finally(() => {
+      debug(`postinstall trigger: ${getPostInstallTrigger()}`)
+    })
 }
 
-function run(cmd, params) {
+function run(cmd, params, cwd = process.cwd()) {
   const child = childProcess.spawn(cmd, params, {
     stdio: ['pipe', 'inherit', 'inherit'],
+    cwd,
   })
 
   return new Promise((resolve, reject) => {
@@ -190,7 +247,7 @@ async function makeDir(input) {
 
       if (error.code === 'ENOENT') {
         if (path.dirname(pth) === pth) {
-          throw permissionError(pth)
+          throw new Error(`operation not permitted, mkdir '${pth}'`)
         }
 
         if (error.message.includes('null bytes')) {

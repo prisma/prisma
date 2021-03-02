@@ -102,7 +102,10 @@ export class Generate implements Command {
     })
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
-
+    let cwd = process.cwd()
+    if(isPostinstall && isPostinstall !== 'true'){
+      cwd = isPostinstall
+    }
     if (isError(args)) {
       return this.help(args.message)
     }
@@ -113,7 +116,7 @@ export class Generate implements Command {
 
     const watchMode = args['--watch'] || false
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    const schemaPath = await getSchemaPath(args['--schema'], {cwd})
     if (!schemaPath) {
       if (isPostinstall) {
         logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.

@@ -1,23 +1,23 @@
-import copy from '@timsuchanek/copy'
 import {
   BinaryPaths,
   DataSource,
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
+import { getVersion } from '@prisma/sdk/dist/engineCommands'
+import copy from '@timsuchanek/copy'
+import chalk from 'chalk'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
-import chalk from 'chalk'
+import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
-import { getPrismaClientDMMF } from './getDMMF'
 import { resolveDatasources } from '../utils/resolveDatasources'
 import { extractSqliteSources } from './extractSqliteSources'
-import { TSClient, TS, JS } from './TSClient'
-import { getVersion } from '@prisma/sdk/dist/engineCommands'
-import pkgUp from 'pkg-up'
+import { getPrismaClientDMMF } from './getDMMF'
+import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
 
 const remove = promisify(fs.unlink)
@@ -110,6 +110,9 @@ export async function buildClient({
 }
 
 async function getDotPrismaDir(outputDir: string): Promise<string> {
+  if (outputDir.endsWith('node_modules/@prisma/client')) {
+    return path.join(outputDir, '../../.prisma/client')
+  }
   if (
     process.env.INIT_CWD &&
     process.env.npm_lifecycle_event === 'postinstall' &&
