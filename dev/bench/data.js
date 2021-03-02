@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614683610439,
+  "lastUpdate": 1614686241118,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -14937,6 +14937,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.98%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "465cd5db5715c3167641e91738b6a94fbdf05505",
+          "message": "fix: postinstall trigger in yarn workspace (#5550)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2021-03-02T12:51:32+01:00",
+          "tree_id": "8c1685dbf13534947d74e4f5ad7fc2b6242ad4b4",
+          "url": "https://github.com/prisma/prisma/commit/465cd5db5715c3167641e91738b6a94fbdf05505"
+        },
+        "date": 1614686240125,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±2.90%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.41%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
