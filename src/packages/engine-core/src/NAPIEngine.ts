@@ -123,6 +123,7 @@ export class NAPIEngine implements Engine {
   datamodel: string
   logQueries: boolean
   connected: boolean
+  beforeExitListener?: (args?: any) => any
 
   constructor(config: EngineConfig) {
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
@@ -203,7 +204,6 @@ You may have to run ${chalk.greenBright(
             },
             (err, log) => {
               if (err) throw new Error(err)
-              debug(`received next log event`)
               let event: QueryEngineEvent | null = null
               try {
                 event = JSON.parse(log)
@@ -266,10 +266,18 @@ You may have to run ${chalk.greenBright(
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      // TODO
-      //this.beforeExitListener = listener
+      this.beforeExitListener = listener
     } else {
       this.logEmitter.on(event, listener)
+    }
+  }
+  async emitExit() {
+    if (this.beforeExitListener) {
+      try {
+        await this.beforeExitListener()
+      } catch (e) {
+        console.error(e)
+      }
     }
   }
   async start(): Promise<void> {
@@ -281,11 +289,14 @@ You may have to run ${chalk.greenBright(
     return this.engine?.connect({ enableRawQueries: true })
   }
   async stop(): Promise<void> {
+    await this.emitExit()
     await this.engine?.disconnect()
   }
   kill(signal: string): void {
     debug(`disconnect called with kill signal ${signal}`)
-    void this.engine?.disconnect()
+    void this.emitExit().then(() => {
+      void this.engine?.disconnect()
+    })
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()

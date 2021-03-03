@@ -291,7 +291,6 @@ generator gen {
       skipDownload,
       binaryPathsOverride,
     })
-    debug({ binaryPathsByVersion })
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
         const engineVersion = getEngineVersionForGenerator(
@@ -299,7 +298,6 @@ generator gen {
           version,
         )
         const binaryPaths = binaryPathsByVersion[engineVersion]
-        debug({ binaryPaths })
         // pick only the engines that we need for this generator
         const generatorBinaryPaths = pick(
           binaryPaths,
