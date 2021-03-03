@@ -21,12 +21,9 @@ ${
 }Manage your database schema and lifecycle during development.
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db is currently in Preview (${link('https://pris.ly/d/preview')}).
+    `Some Prisma db commands are currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
 
 ${chalk.bold('Flag')}
 
