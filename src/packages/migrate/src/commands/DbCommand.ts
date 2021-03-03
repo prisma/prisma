@@ -20,18 +20,13 @@ ${
   process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
 }Manage your database schema and lifecycle during development.
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Some Prisma db commands are currently in Preview (${link('https://pris.ly/d/preview')}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-
 ${chalk.bold('Flag')}
 
   --preview-feature   Run preview Prisma commands
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db [command] [options] --preview-feature
+  ${chalk.dim('$')} prisma db [command] [options]
 
 ${chalk.bold('Options')}
 
