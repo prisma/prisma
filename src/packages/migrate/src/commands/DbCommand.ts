@@ -20,10 +20,6 @@ ${
   process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
 }Manage your database schema and lifecycle during development.
 
-${chalk.bold('Flag')}
-
-  --preview-feature   Run preview Prisma commands
-
 ${chalk.bold('Usage')}
 
   ${chalk.dim('$')} prisma db [command] [options]
