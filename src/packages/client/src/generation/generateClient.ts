@@ -152,7 +152,7 @@ export async function generateClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
-  const useNAPI = generator?.previewFeatures.includes('napi')
+  const useNAPI = generator?.previewFeatures?.includes('napi')
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
