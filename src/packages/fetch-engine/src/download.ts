@@ -310,7 +310,10 @@ async function binaryNeedsToBeDownloaded(
   }
 
   // 3. If same platform, always check --version
-  if (job.binaryTarget === nativePlatform && job.binaryName !== EngineTypes.libqueryEngineNapi) {
+  if (
+    job.binaryTarget === nativePlatform &&
+    job.binaryName !== EngineTypes.libqueryEngineNapi
+  ) {
     const works = await checkVersionCommand(binaryPath)
     return !works
   }
