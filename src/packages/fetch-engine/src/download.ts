@@ -58,7 +58,7 @@ export interface DownloadOptions {
 const BINARY_TO_ENV_VAR = {
   [EngineTypes.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
   [EngineTypes.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [EngineTypes.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_NAPI_LIBRARY',
+  [EngineTypes.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_LIBRARY',
   [EngineTypes.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   [EngineTypes.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
