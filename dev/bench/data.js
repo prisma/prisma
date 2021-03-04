@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614852613148,
+  "lastUpdate": 1614855781782,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -15955,6 +15955,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.41%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "ee23d1c8e71f3e5eb6c97ad774197eca2d802536",
+          "message": "chore(deps): update dependency sqlite3 to v5.0.2",
+          "timestamp": "2021-03-04T10:24:17Z",
+          "url": "https://github.com/prisma/prisma/pull/5672/commits/ee23d1c8e71f3e5eb6c97ad774197eca2d802536"
+        },
+        "date": 1614855780563,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±5.36%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.94%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
