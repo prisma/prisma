@@ -3,18 +3,21 @@ import {
   GeneratorProcess,
   GeneratorManifest,
   BinaryPaths,
+  GeneratorConfig,
 } from '@prisma/generator-helper'
 
 export class Generator {
   private generatorProcess: GeneratorProcess
   public manifest: GeneratorManifest | null = null
+  public config: GeneratorConfig
   public options?: GeneratorOptions
-  constructor(executablePath: string, isNode?: boolean) {
+  constructor(executablePath: string, config: GeneratorConfig, isNode?: boolean) {
+    this.config = config
     this.generatorProcess = new GeneratorProcess(executablePath, isNode)
   }
   async init(): Promise<void> {
     await this.generatorProcess.init()
-    this.manifest = await this.generatorProcess.getManifest()
+    this.manifest = await this.generatorProcess.getManifest(this.config)
   }
   stop(): void {
     this.generatorProcess.stop()

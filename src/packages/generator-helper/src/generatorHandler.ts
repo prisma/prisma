@@ -1,9 +1,9 @@
-import { GeneratorOptions, GeneratorManifest, JsonRPC } from './types'
+import { GeneratorOptions, GeneratorManifest, JsonRPC, GeneratorConfig } from './types'
 import byline from './byline'
 
 export interface Handler {
   onGenerate(options: GeneratorOptions): Promise<any>
-  onManifest?(): GeneratorManifest
+  onManifest?(config: GeneratorConfig): GeneratorManifest
 }
 
 export function generatorHandler(handler: Handler): void {
@@ -34,7 +34,7 @@ export function generatorHandler(handler: Handler): void {
     if (json.method === 'getManifest') {
       if (handler.onManifest) {
         try {
-          const manifest = handler.onManifest()
+          const manifest = handler.onManifest(json.params)
           respond({
             jsonrpc: '2.0',
             result: {

@@ -1,4 +1,4 @@
-import { getPlatform } from '@prisma/get-platform'
+import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   getConfig,
   getDMMF,
@@ -47,6 +47,7 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  const useNapi  = enablePreview.includes('napi')
 
   const dmmf = await getDMMF({
     datamodel,
@@ -96,9 +97,15 @@ export async function generateInFolder({
   }
 
   const enginesPath = getEnginesPath()
-
   await generateClient({
-    binaryPaths: {
+    binaryPaths: useNapi ? {
+      libqueryEngineNapi:  {
+        [platform]: path.join(
+          enginesPath,
+          getNapiName(platform, 'fs'),
+        ),
+      }
+    } : {
       queryEngine: {
         [platform]: path.join(
           enginesPath,

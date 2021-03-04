@@ -11,9 +11,8 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const res = await prisma.user.findMany()
-
-  prisma.$disconnect()
+  const users = await prisma.user.findMany()
+  console.log(users);
 }
 
 main().catch((e) => {

@@ -9,3 +9,4 @@ prisma
 schema-inferrer-bin
 query-engine-*
 sandbox
+*.node
