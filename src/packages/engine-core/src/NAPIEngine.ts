@@ -178,11 +178,7 @@ You may have to run ${chalk.greenBright(
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
         } catch (e) {
           throw new PrismaClientInitializationError(
-            `Unable to load NAPI Library ${
-              this?.libQueryEnginePath
-                ? `from ${chalk.dim(this.libQueryEnginePath)}`
-                : `as the path to library was undefined`
-            }`,
+            `Unable to load NAPI Library from ${chalk.dim(this.libQueryEnginePath)}`,
             this.config.clientVersion!,
           )
         }
