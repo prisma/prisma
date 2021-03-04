@@ -76,7 +76,7 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-  const useNapi = generator?.previewFeatures.includes('napi')
+  const useNapi = generator?.previewFeatures?.includes('napi')
   const client = new TSClient({
     document,
     runtimePath,
