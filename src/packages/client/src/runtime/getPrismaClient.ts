@@ -125,6 +125,7 @@ export interface PrismaClientOptions {
   __internal?: {
     debug?: boolean
     hooks?: Hooks
+    useUds?: boolean
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -418,6 +419,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           flags: [],
           clientVersion: config.clientVersion,
           enableExperimental: mapPreviewFeatures(this._previewFeatures),
+          useUds: internal.useUds,
           activeProvider: config.activeProvider,
         }
 

@@ -1,7 +1,12 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { DMMF } from '@prisma/generator-helper'
-import { getNapiName, getPlatform, Platform } from '@prisma/get-platform'
+import {
+  getNapiName,
+  getPlatform,
+  Platform,
+  platforms,
+} from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
@@ -92,24 +97,7 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event.level === 'info' && event['item_type'] === 'query'
 }
 
-const knownPlatforms: Platform[] = [
-  'native',
-  'darwin',
-  'debian-openssl-1.0.x',
-  'debian-openssl-1.1.x',
-  'linux-arm-openssl-1.0.x',
-  'linux-arm-openssl-1.1.x',
-  'rhel-openssl-1.0.x',
-  'rhel-openssl-1.1.x',
-  'linux-musl',
-  'linux-nixos',
-  'windows',
-  'freebsd11',
-  'freebsd12',
-  'openbsd',
-  'netbsd',
-  'arm',
-]
+const knownPlatforms: Platform[] = [...platforms, 'native']
 export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
@@ -136,7 +124,7 @@ export class NAPIEngine implements Engine {
       : {}
 
     if (this.logQueries) {
-      process.env.LOG_QUERIES = 'y'
+      process.env.LOG_QUERIES = 'true'
       this.config.logLevel = 'info'
     }
     if (config.enableEngineDebugMode) {
@@ -153,7 +141,6 @@ export class NAPIEngine implements Engine {
     if (this.platform) return this.platform
     const platform = await getPlatform()
     if (!knownPlatforms.includes(platform)) {
-      // TODO Update Error
       throw new PrismaClientInitializationError(
         `Unknown ${chalk.red(
           'PRISMA_QUERY_ENGINE_BINARY',
@@ -190,8 +177,14 @@ You may have to run ${chalk.greenBright(
         try {
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
         } catch (e) {
-          // How should we handle this
-          throw new Error(e)
+          throw new PrismaClientInitializationError(
+            `Unable to load NAPI Library ${
+              this?.libQueryEnginePath
+                ? `from ${chalk.dim(this.libQueryEnginePath)}`
+                : `as the path to library was undefined`
+            }`,
+            this.config.clientVersion!,
+          )
         }
       }
       if (this.QueryEngine) {
@@ -449,7 +442,7 @@ You may have to run ${chalk.greenBright(
     return { enginePath: enginePath ?? '', searchedLocations }
   }
   private async getLibQueryEnginePath(): Promise<string> {
-    const libPath = process.env.LIB_QUERY_ENGINE_PATH ?? this.config.prismaPath
+    const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
     if (libPath && fs.existsSync(libPath)) {
       return libPath
     }
