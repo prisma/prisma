@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614851007584,
+  "lastUpdate": 1614852613148,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -15917,6 +15917,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.59%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a94d31bed042136afbf0be0f7c77baadde2aad25",
+          "message": "feat(*): initial n-api implementation (#5681)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\nCo-authored-by: timsuchanek <tim.suchanek@gmail.com>",
+          "timestamp": "2021-03-04T11:05:36+01:00",
+          "tree_id": "fd290a0d1f1eaabde7e233aced9875cb120c676c",
+          "url": "https://github.com/prisma/prisma/commit/a94d31bed042136afbf0be0f7c77baadde2aad25"
+        },
+        "date": 1614852612083,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.44,
+            "range": "±4.64%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.41%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
