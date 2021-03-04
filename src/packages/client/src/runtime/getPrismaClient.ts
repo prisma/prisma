@@ -3,13 +3,16 @@ import {
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
-  NodeEngine,
-} from '@prisma/engine-core/dist/NodeEngine'
+  Engine,
+} from '@prisma/engine-core/dist/Engine'
+import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
+import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
 import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import { tryLoadEnvs } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import logger from '@prisma/sdk/dist/logger'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { AsyncResource } from 'async_hooks'
 import chalk from 'chalk'
@@ -298,7 +301,7 @@ const aggregateKeys = {
 export function getPrismaClient(config: GetPrismaClientOptions): any {
   class NewPrismaClient {
     _dmmf: DMMFClass
-    _engine: NodeEngine
+    _engine: Engine
     _fetcher: PrismaClientFetcher
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
@@ -420,9 +423,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           activeProvider: config.activeProvider,
         }
 
-        debug({ clientVersion: config.clientVersion })
+        debug(`clientVersion: ${config.clientVersion}`)
 
-        this._engine = new NodeEngine(this._engineConfig)
+        this._engine = this.getEngine()
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
         if (options.log) {
@@ -435,16 +438,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 : null
             if (level) {
               this.$on(level, (event) => {
-                const colorMap = {
-                  query: 'blue',
-                  info: 'cyan',
-                  warn: 'yellow',
-                  error: 'red',
-                }
-                console.error(
-                  chalk[colorMap[level]](`prisma:${level}`.padEnd(13)) +
-                    (event.message || event.query),
-                )
+                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
               })
             }
           }
@@ -459,6 +453,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
+    }
+    private getEngine(){
+      if(this._previewFeatures.includes('napi')){
+        return new NAPIEngine(this._engineConfig)
+      } else {
+        return new NodeEngine(this._engineConfig)
+      }
     }
     $use(cb: Middleware)
     $use(namespace: 'all', cb: Middleware)
@@ -491,16 +492,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           if (eventType === 'query') {
             return callback({
               timestamp: event.timestamp,
-              query: fields.query,
-              params: fields.params,
-              duration: fields.duration_ms,
+              query: fields?.query ?? event.query,
+              params: fields?.params ?? event.params,
+              duration: fields?.duration_ms ?? event.duration,
               target: event.target,
             })
           } else {
             // warn, info, or error events
             return callback({
               timestamp: event.timestamp,
-              message: fields.message,
+              message: event.message,
               target: event.target,
             })
           }
@@ -522,7 +523,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     async _runDisconnect() {
       await this._engine.stop()
       delete this._connectionPromise
-      this._engine = new NodeEngine(this._engineConfig)
+      this._engine = this.getEngine()
       delete this._disconnectionPromise
       delete this._getConfigPromise
     }
@@ -1443,7 +1444,8 @@ export class PrismaClientFetcher {
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine.requestBatch(queries, runTransaction)
+        return this.prisma._engine
+          .requestBatch(queries, runTransaction)
       },
       singleLoader: (request) => {
         const query = String(request.document)
@@ -1548,8 +1550,8 @@ export class PrismaClientFetcher {
             headers,
             transactionId,
           })
-          data = result.data
-          elapsed = result.elapsed
+          data = result?.data
+          elapsed = result?.elapsed
         }
 
         /**
@@ -1630,7 +1632,7 @@ export class PrismaClientFetcher {
     return message
   }
   unpack(document, data, path, rootField, unpacker?: Unpacker) {
-    if (data.data) {
+    if (data?.data) {
       data = data.data
     }
     // to lift up _all in count

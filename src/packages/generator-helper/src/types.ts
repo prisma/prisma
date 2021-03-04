@@ -81,6 +81,7 @@ export type GeneratorOptions = {
 
 export type EngineType =
   | 'queryEngine'
+  | 'libqueryEngineNapi'
   | 'migrationEngine'
   | 'introspectionEngine'
   | 'prismaFmt'

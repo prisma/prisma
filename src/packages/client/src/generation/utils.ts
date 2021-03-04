@@ -1,3 +1,5 @@
+import { Platform } from '@prisma/get-platform'
+import { getNapiName } from '@prisma/get-platform/dist/getNapiName'
 import indent from 'indent-string'
 import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
@@ -280,7 +282,7 @@ export function getSelectReturnType({
       isList,
     )}>> : CheckSelect<T, Prisma__${name}Client<${getType(
       name,
-      isList
+      isList,
     )} | null >, Prisma__${name}Client<${getType(
       getPayloadName(name) + '<T>',
       isList,
@@ -362,4 +364,23 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
+}
+export function buildNFTEngineAnnotations(
+  isNAPI: boolean,
+  platforms: Platform[],
+  cwdDirname: string,
+) {
+  const getName = (p: Platform) =>
+    isNAPI ? getNapiName(p, 'fs') : `query-engine-${p}`
+  return `${
+    platforms
+      ? platforms
+          .map(
+            (p) => `path.join(__dirname, '${getName(p)}');
+path.join(process.cwd(), './${path.join(cwdDirname, getName(p))}');
+`,
+          )
+          .join('\n')
+      : ''
+  }`
 }

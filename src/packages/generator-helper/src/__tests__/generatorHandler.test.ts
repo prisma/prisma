@@ -69,7 +69,7 @@ describe('generatorHandler', () => {
       path.join(__dirname, 'minimal-executable'),
     )
     await generator.init()
-    const manifest = await generator.getManifest()
+    const manifest = await generator.getManifest(stubOptions.generator)
     expect(manifest).toMatchInlineSnapshot(`
       Object {
         "defaultOutput": "default-output",
@@ -97,7 +97,7 @@ describe('generatorHandler', () => {
       path.join(__dirname, 'failing-executable'),
     )
     await generator.init()
-    await expect(generator.getManifest()).rejects.toThrow()
+    await expect(generator.getManifest(stubOptions.generator)).rejects.toThrow()
     await expect(generator.generate(stubOptions)).rejects.toThrow()
     generator.stop()
   })

@@ -1,9 +1,10 @@
 import chalk from 'chalk'
 
 export const tags = {
-  error: chalk.red('error(prisma)'),
-  warn: chalk.yellow('warn(prisma)'),
-  info: chalk.blue('info(prisma)'),
+  error: chalk.red('prisma:error'),
+  warn: chalk.yellow('prisma:warn'),
+  info: chalk.cyan('prisma:info'),
+  query: chalk.blue('prisma:query'),
 }
 export const should = {
   warn: !process.env.PRISMA_DISABLE_WARNINGS,
@@ -21,4 +22,7 @@ export function info(message: any, ...optionalParams: any[]) {
 }
 export function error(message: any, ...optionalParams: any[]) {
   console.error(`${tags.error} ${message}`, ...optionalParams)
+}
+export function query(message: any, ...optionalParams: any[]) {
+  console.log(`${tags.query} ${message}`, ...optionalParams)
 }
