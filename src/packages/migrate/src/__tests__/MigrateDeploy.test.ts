@@ -15,26 +15,18 @@ const ctx = Context.new().add(consoleContext()).assemble()
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse(['--preview-feature'])
+    const result = MigrateDeploy.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-          `)
-  })
-  it('should fail if no flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDeploy.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-            Please provide the --preview-feature flag to use this command.
           `)
   })
   it('should fail if experimental flag', async () => {
     ctx.fixture('empty')
     const result = MigrateDeploy.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now in Preview.
-            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+            Prisma Migrate was Experimental and is now Generally Available.
+            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
           `)
   })
   it('should fail if early access flag', async () => {
@@ -50,10 +42,7 @@ describe('common', () => {
 describe('sqlite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDeploy.new().parse([
-      '--schema=./prisma/empty.prisma',
-      '--preview-feature',
-    ])
+    const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `No pending migrations to apply.`,
     )
@@ -77,7 +66,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration')
     fs.remove('prisma/dev.db')
 
-    const result = MigrateDeploy.new().parse(['--preview-feature'])
+    const result = MigrateDeploy.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
             The following migration have been applied:
 
@@ -89,7 +78,7 @@ describe('sqlite', () => {
           `)
 
     // Second time should do nothing (already applied)
-    const resultBis = MigrateDeploy.new().parse(['--preview-feature'])
+    const resultBis = MigrateDeploy.new().parse([])
     await expect(resultBis).resolves.toMatchInlineSnapshot(
       `No pending migrations to apply.`,
     )
@@ -117,7 +106,7 @@ describe('sqlite', () => {
   it('should throw if database is not empty', async () => {
     ctx.fixture('existing-db-1-migration-conflict')
 
-    const result = MigrateDeploy.new().parse(['--preview-feature'])
+    const result = MigrateDeploy.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
             P3005
 

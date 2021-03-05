@@ -35,12 +35,12 @@ Please provide the ${chalk.green(
 export class ExperimentalFlagWithNewMigrateError extends Error {
   constructor() {
     super(
-      `Prisma Migrate was Experimental and is now in Preview.
+      `Prisma Migrate was Experimental and is now Generally Available.
 ${chalk.yellow(
-  'WARNING this new iteration has some breaking changes',
-)} to use it it's recommended to read the documentation first and replace the ${chalk.red(
+  'WARNING this new version has some breaking changes',
+)} to use it it's recommended to read the documentation first and remove the ${chalk.red(
         '--experimental',
-      )} flag with ${chalk.green('--preview-feature')}.`,
+      )} flag.`,
     )
   }
 }

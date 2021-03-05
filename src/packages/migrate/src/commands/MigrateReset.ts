@@ -35,18 +35,9 @@ export class MigrateReset implements Command {
   private static help = format(`
 Reset your database and apply all migrations, all data will be lost
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma's migration functionality is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).`,
-  )}
-${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate reset [options] --preview-feature
+  ${chalk.dim('$')} prisma migrate reset [options]
 
 ${chalk.bold('Options')}
 
@@ -59,15 +50,13 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
-  ${chalk.dim('$')} prisma migrate reset --preview-feature
+  ${chalk.dim('$')} prisma migrate reset
 
   Specify a schema
-  ${chalk.dim(
-    '$',
-  )} prisma migrate reset --schema=./schema.prisma --preview-feature 
+  ${chalk.dim('$')} prisma migrate reset --schema=./schema.prisma 
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma migrate reset --force --preview-feature
+  ${chalk.dim('$')} prisma migrate reset --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -79,7 +68,6 @@ ${chalk.bold('Examples')}
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
       '--experimental': Boolean,
-      '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
       '--schema': String,
       '--telemetry-information': String,
@@ -99,10 +87,6 @@ ${chalk.bold('Examples')}
 
     if (args['--early-access-feature']) {
       throw new EarlyAccessFeatureFlagWithNewMigrateError()
-    }
-
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

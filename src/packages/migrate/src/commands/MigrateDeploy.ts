@@ -13,7 +13,6 @@ import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import {
-  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
@@ -33,18 +32,9 @@ export class MigrateDeploy implements Command {
   private static help = format(`
 Apply pending migrations to update the database schema in production/staging
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma's migration functionality is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).`,
-  )}
-${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate deploy [options] --preview-feature
+  ${chalk.dim('$')} prisma migrate deploy [options]
 
 ${chalk.bold('Options')}
 
@@ -54,12 +44,10 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Deploy your pending migrations to your production/staging database
-  ${chalk.dim('$')} prisma migrate deploy --preview-feature
+  ${chalk.dim('$')} prisma migrate deploy
 
   Specify a schema
-  ${chalk.dim(
-    '$',
-  )} prisma migrate deploy --schema=./schema.prisma --preview-feature
+  ${chalk.dim('$')} prisma migrate deploy --schema=./schema.prisma
 
 `)
 
@@ -70,7 +58,6 @@ ${chalk.bold('Examples')}
         '--help': Boolean,
         '-h': '--help',
         '--experimental': Boolean,
-        '--preview-feature': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -92,10 +79,6 @@ ${chalk.bold('Examples')}
 
     if (args['--early-access-feature']) {
       throw new EarlyAccessFeatureFlagWithNewMigrateError()
-    }
-
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

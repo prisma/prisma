@@ -116,9 +116,9 @@ export class CLI implements Command {
                 init   Setup Prisma for your app
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
-              studio   Open Prisma Studio
+             migrate   Migrate your database
+              studio   Browse your data with Prisma Studio
               format   Format your schema
-             migrate   Migrate your database ${chalk.dim('(Preview)')}
 
     ${chalk.bold('Flags')}
 
@@ -136,7 +136,7 @@ export class CLI implements Command {
       ${chalk.dim('$')} prisma studio
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma migrate dev --preview-feature
+      ${chalk.dim('$')} prisma migrate dev
   
       Pull the schema from an existing database, updating the Prisma schema
       ${chalk.dim('$')} prisma db pull
