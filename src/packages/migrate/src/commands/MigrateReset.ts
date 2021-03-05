@@ -56,7 +56,6 @@ ${chalk.bold('Options')}
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
-
 ${chalk.bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
