@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614965611360,
+  "lastUpdate": 1614968613133,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -16281,6 +16281,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±4.19%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "6ac5151af1ab52a0efe39215dc8d7b154354d73e",
+          "message": "feat(migrate,cli): Migrate GA - remove --preview-feature flag",
+          "timestamp": "2021-03-05T18:12:05Z",
+          "url": "https://github.com/prisma/prisma/pull/5992/commits/6ac5151af1ab52a0efe39215dc8d7b154354d73e"
+        },
+        "date": 1614968611769,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±10.30%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.37%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
