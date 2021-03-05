@@ -115,12 +115,10 @@ export class CLI implements Command {
 
                 init   Setup Prisma for your app
             generate   Generate artifacts (e.g. Prisma Client)
+                  db   Manage your database schema and lifecycle
               studio   Open Prisma Studio
               format   Format your schema
              migrate   Migrate your database ${chalk.dim('(Preview)')}
-                  db   Manage your database schema and lifecycle ${chalk.dim(
-                    '(Preview)',
-                  )}
 
     ${chalk.bold('Flags')}
 

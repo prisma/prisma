@@ -26,34 +26,38 @@ export class Studio implements Command {
   }
 
   private static help = format(`
-    Browse your data with Prisma Studio
+Browse your data with Prisma Studio
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma studio
+  ${chalk.dim('$')} prisma studio [options]
 
-    ${chalk.bold('Options')}
+${chalk.bold('Options')}
 
-      -h, --help        Display this help message
-      -p, --port        Port to start Studio on
-      -b, --browser     Browser to open Studio in
+  -h, --help        Display this help message
+  -p, --port        Port to start Studio on
+  -b, --browser     Browser to open Studio in
+  --schema          Custom path to your Prisma schema
 
-    ${chalk.bold('Examples')}
+${chalk.bold('Examples')}
 
-      Start Studio on the default port
-      ${chalk.dim('$')} prisma studio
+  Start Studio on the default port
+    ${chalk.dim('$')} prisma studio
 
-      Start Studio on a custom port
-      ${chalk.dim('$')} prisma studio --port 5555
+  Start Studio on a custom port
+    ${chalk.dim('$')} prisma studio --port 5555
 
-      Start Studio in a specific browser
-      ${chalk.dim('$')} prisma studio --port 5555 --browser firefox
-      ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555
+  Start Studio in a specific browser
+    ${chalk.dim('$')} prisma studio --port 5555 --browser firefox
+    ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555
 
-      Start Studio without opening in a browser
-      ${chalk.dim('$')} prisma studio --port 5555 --browser none
-      ${chalk.dim('$')} BROWSER=none prisma studio --port 5555
-  `)
+  Start Studio without opening in a browser
+    ${chalk.dim('$')} prisma studio --port 5555 --browser none
+    ${chalk.dim('$')} BROWSER=none prisma studio --port 5555
+
+  Specify a schema
+    ${chalk.dim('$')} prisma studio --schema=./schema.prisma
+`)
 
   private constructor(private readonly providerAliases: ProviderAliases) {
     this.providerAliases = providerAliases
