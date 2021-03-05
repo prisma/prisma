@@ -20,16 +20,26 @@ export class Validate implements Command {
   }
 
   private static help = format(`
-    Validate a Prisma schema.
+Validate a Prisma schema.
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    With an existing Prisma schema
-      ${chalk.dim('$')} prisma validate
+  ${chalk.dim('$')} prisma validate [options]
 
-    Or specify a Prisma schema path
-      ${chalk.dim('$')} prisma validate --schema=./schema.prisma
-  `)
+${chalk.bold('Options')}
+
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+
+${chalk.bold('Examples')}
+
+  With an existing Prisma schema
+    ${chalk.dim('$')} prisma validate
+
+  Or specify a Prisma schema path
+    ${chalk.dim('$')} prisma validate --schema=./schema.prisma
+
+`)
 
   public async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {

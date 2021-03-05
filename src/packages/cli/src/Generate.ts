@@ -34,20 +34,30 @@ export class Generate implements Command {
   }
 
   private static help = format(`
-    Generate artifacts (e.g. Prisma Client)
+Generate artifacts (e.g. Prisma Client)
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    With an existing Prisma schema
-      ${chalk.dim('$')} prisma generate
+  ${chalk.dim('$')} prisma generate [options]
 
-    Or specify a schema:
-      ${chalk.dim('$')} prisma generate --schema=./schema.prisma
+${chalk.bold('Options')}
 
-    ${chalk.bold('Flag')}
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+     --watch   Watch the Prisma schema and rerun after a change
 
-      --watch    Watch the Prisma schema and rerun after a change
-  `)
+${chalk.bold('Examples')}
+
+  With an existing Prisma schema
+    ${chalk.dim('$')} prisma generate
+
+  Or specify a schema
+    ${chalk.dim('$')} prisma generate --schema=./schema.prisma
+
+  Watch Prisma schema file and rerun after each change
+    ${chalk.dim('$')} prisma generate --watch
+
+`)
 
   private logText = ''
   private hasGeneratorErrored = false
@@ -103,7 +113,7 @@ export class Generate implements Command {
 
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
-    if(isPostinstall && isPostinstall !== 'true'){
+    if (isPostinstall && isPostinstall !== 'true') {
       cwd = isPostinstall
     }
     if (isError(args)) {
@@ -116,7 +126,7 @@ export class Generate implements Command {
 
     const watchMode = args['--watch'] || false
 
-    const schemaPath = await getSchemaPath(args['--schema'], {cwd})
+    const schemaPath = await getSchemaPath(args['--schema'], { cwd })
     if (!schemaPath) {
       if (isPostinstall) {
         logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.

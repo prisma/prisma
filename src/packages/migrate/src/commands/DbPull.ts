@@ -32,19 +32,27 @@ Pull the state from the database to the Prisma schema using introspection
 
 ${chalk.bold('Usage')}
 
+  ${chalk.dim('$')} prisma db pull [options]
+
+${chalk.bold('Options')}
+
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+     --force   Ignore current Prisma schema file
+     --print   Print the introspected Prisma schema to stdout
+
+${chalk.bold('Examples')}
+
 With an existing Prisma schema
   ${chalk.dim('$')} prisma db pull
 
 Or specify a Prisma schema path
   ${chalk.dim('$')} prisma db pull --schema=./schema.prisma
 
-Instead of saving the result to the filesystem, you can also print it
+Instead of saving the result to the filesystem, you can also print it to stdout
   ${chalk.dim('$')} prisma db pull --print
 
-${chalk.bold('Flag')}
-
-  --force     Ignore current Prisma schema file
-  `)
+`)
 
   private printUrlAsDatasource(url: string): string {
     const provider = databaseTypeToConnectorType(uriToCredentials(url).type)

@@ -24,25 +24,30 @@ type IncorrectFieldTypes = Array<{
   remoteField: DMMF.Field
 }>
 
-/**
- * $ prisma version
- */
 export class Doctor implements Command {
   static new(): Doctor {
     return new Doctor()
   }
 
-  // static help template
   private static help = format(`
-    Check, if the schema and the database are in sync.
+Check, if the schema and the database are in sync.
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    With an existing schema.prisma:
-      ${chalk.dim('$')} prisma doctor
+  ${chalk.dim('$')} prisma doctor [options]
 
-    Or specify a schema:
-      ${chalk.dim('$')} prisma doctor --schema=./schema.prisma
+${chalk.bold('Options')}
+
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+
+${chalk.bold('Examples')}
+
+  With an existing schema.prisma
+    ${chalk.dim('$')} prisma doctor
+
+  Or specify a schema
+    ${chalk.dim('$')} prisma doctor --schema=./schema.prisma
 
   `)
 
