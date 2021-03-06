@@ -265,7 +265,7 @@ Please make sure they have the same version.`
         )}
 ${chalk.dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}'
+import PrismaClient from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${chalk.dim('```')}${breakingChangesStr}${versionsWarning}`
       }
