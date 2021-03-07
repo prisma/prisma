@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1614983870356,
+  "lastUpdate": 1615114047088,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -16383,6 +16383,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.99%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "aa98b48c453ba66393e4d4a68713d5015d0343a4",
+          "message": "chore(deps): update dependency rollup-plugin-dts to v3",
+          "timestamp": "2021-03-07T10:26:49Z",
+          "url": "https://github.com/prisma/prisma/pull/6002/commits/aa98b48c453ba66393e4d4a68713d5015d0343a4"
+        },
+        "date": 1615114044772,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±8.91%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.72%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
