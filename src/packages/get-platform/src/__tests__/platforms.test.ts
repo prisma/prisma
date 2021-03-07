@@ -1,9 +1,9 @@
 import { mayBeCompatible, Platform } from '../platforms'
 
 type TestUnit = {
-    platformA: Platform,
-    platformB: Platform,
-    result: boolean
+  platformA: Platform
+  platformB: Platform
+  result: boolean
 }
 
 const tests: Array<TestUnit> = [
@@ -26,7 +26,7 @@ const tests: Array<TestUnit> = [
     platformA: 'freebsd11',
     platformB: `linux-musl`,
     result: false,
-  }
+  },
 ]
 
 describe('mayBeCompatible', () => {
