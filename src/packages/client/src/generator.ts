@@ -4,7 +4,7 @@ import { generatorHandler } from '@prisma/generator-helper'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
 import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
-const debugEnabled = Debug.enabled('prisma-client:generator')
+const debug = Debug('prisma:client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
 
@@ -13,8 +13,11 @@ const clientVersion = pkg.version
 
 generatorHandler({
   onManifest(config) {
-    const requiredEngine = config?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
-    ? 'libqueryEngineNapi' : 'queryEngine'
+    const requiredEngine =
+      config?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
+        ? 'libqueryEngineNapi'
+        : 'queryEngine'
+    debug(`requiredEngine: ${requiredEngine}`)
     return {
       defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
       prettyName: 'Prisma Client',
@@ -24,10 +27,9 @@ generatorHandler({
     }
   },
   async onGenerate(options) {
-    if (debugEnabled) {
-      console.log('__dirname', __dirname)
-      console.log(eval(`__dirname`)) // tslint:disable-line
-    }
+    // TODO @timsuchanek Any idea what this is for?
+    debug('__dirname', __dirname)
+    debug(eval(`__dirname`)) // tslint:disable-line
 
     return generateClient({
       datamodel: options.datamodel,

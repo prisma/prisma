@@ -455,7 +455,7 @@ You may have to run ${chalk.greenBright(
           )}\n`
         : ''
 
-      let errorText = `Query engine binary for current platform "${chalk.bold(
+      let errorText = `Query engine library for current platform "${chalk.bold(
         this.platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
