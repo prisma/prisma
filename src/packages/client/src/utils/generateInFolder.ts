@@ -1,21 +1,18 @@
+import Debug from '@prisma/debug'
+import { getEnginesPath, ensureBinariesExist } from '@prisma/engines'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
-  getConfig,
-  getDMMF,
-  extractPreviewFeatures,
-  mapPreviewFeatures,
+  extractPreviewFeatures, getConfig,
+  getDMMF, getPackedPackage, mapPreviewFeatures
 } from '@prisma/sdk'
+import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import { generateClient } from '../generation/generateClient'
-import { getPackedPackage } from '@prisma/sdk'
-import { getEnginesPath } from '@prisma/engines'
-import Debug from '@prisma/debug'
-const debug = Debug('prisma:generateInFolder')
-import copy from '@timsuchanek/copy'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
+import { generateClient } from '../generation/generateClient'
+const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
@@ -97,6 +94,7 @@ export async function generateInFolder({
   }
 
   const enginesPath = getEnginesPath()
+  await ensureBinariesExist()
   await generateClient({
     binaryPaths: useNapi
       ? {

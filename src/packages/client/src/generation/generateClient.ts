@@ -2,7 +2,7 @@ import {
   BinaryPaths,
   DataSource,
   DMMF,
-  GeneratorConfig,
+  GeneratorConfig
 } from '@prisma/generator-helper'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import copy from '@timsuchanek/copy'
@@ -259,8 +259,12 @@ export async function generateClient({
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
-        await copyFile(filePath, target)
-        continue
+        if(fs.existsSync(filePath)){
+          await copyFile(filePath, target)
+          continue
+        } else {
+          throw new Error(`File at ${filePath} is required but was not present`)
+        }
       }
 
       // If target !== source size, they're definitely different, copy it

@@ -4,7 +4,7 @@ import {
   getos,
   getPlatform,
   Platform,
-  platforms,
+  platforms
 } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
@@ -289,10 +289,12 @@ async function binaryNeedsToBeDownloaded(
       const sha256Cache = await getHash(cachedFile)
       if (sha256File === sha256Cache) {
         if (!targetExists) {
+          debug(`copying ${cachedFile} to ${job.targetFilePath}`)
           await copy(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
+          debug(`overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`)
           await copy(cachedFile, job.targetFilePath)
         }
         return false
@@ -306,6 +308,7 @@ async function binaryNeedsToBeDownloaded(
 
   // If there is no cache and the file doesn't exist, we for sure need to download it
   if (!targetExists) {
+    debug(`file ${binaryPath} does not exist and must be downloaded`)
     return true
   }
 
