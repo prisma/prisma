@@ -340,7 +340,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
         const useDebug = internal.debug === true
         if (useDebug) {
-          Debug.enable('prisma-client')
+          Debug.enable('prisma:client')
         }
 
         if (internal.hooks) {
@@ -457,7 +457,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return 'PrismaClient'
     }
     private getEngine() {
-      if (this._previewFeatures.includes('napi')) {
+      if (
+        this._previewFeatures.includes('napi') ||
+        process.env.NAPI === 'true'
+      ) {
         return new NAPIEngine(this._engineConfig)
       } else {
         return new NodeEngine(this._engineConfig)
@@ -1078,7 +1081,7 @@ new PrismaClient({
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
-      if (Debug.enabled('prisma-client')) {
+      if (Debug.enabled('prisma:client')) {
         const query = String(document)
         debug(`Prisma Client call:`)
         debug(
