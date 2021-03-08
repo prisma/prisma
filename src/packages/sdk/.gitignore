@@ -6,6 +6,7 @@ dmmf.json
 introspection-engine*
 migration-engine*
 prisma-fmt*
+libquery*
 write-test
 sandbox
 failed-*
