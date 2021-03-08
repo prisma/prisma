@@ -1,8 +1,8 @@
-import { generatorHandler } from '@prisma/generator-helper'
 import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines-version'
+import { generatorHandler } from '@prisma/generator-helper'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
-import { enginesVersion } from '@prisma/engines-version'
 import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
 const debugEnabled = Debug.enabled('prisma-client:generator')
 
@@ -13,9 +13,8 @@ const clientVersion = pkg.version
 
 generatorHandler({
   onManifest(config) {
-    const requiredEngine = config?.previewFeatures?.includes('napi')
-      ? 'libqueryEngineNapi'
-      : 'queryEngine'
+    const requiredEngine = config?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
+    ? 'libqueryEngineNapi' : 'queryEngine'
     return {
       defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
       prettyName: 'Prisma Client',
