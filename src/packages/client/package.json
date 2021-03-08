@@ -76,12 +76,12 @@
     "arg": "5.0.0",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
-    "esbuild": "0.8.54",
+    "esbuild": "0.8.57",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.21.0",
     "eslint-config-prettier": "7.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.1.5",
+    "eslint-plugin-jest": "24.1.9",
     "eslint-plugin-prettier": "3.3.1",
     "execa": "5.0.0",
     "flat-map-polyfill": "0.3.8",
@@ -111,10 +111,10 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
-    "ts-jest": "26.5.2",
+    "ts-jest": "26.5.3",
     "ts-node": "9.1.1",
     "tsd": "0.14.0",
-    "typescript": "4.2.2"
+    "typescript": "4.2.3"
   },
   "peerDependencies": {
     "prisma": "*"

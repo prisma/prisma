@@ -37,14 +37,14 @@
     "eslint": "7.21.0",
     "eslint-config-prettier": "7.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.1.5",
+    "eslint-plugin-jest": "24.1.9",
     "eslint-plugin-prettier": "3.3.1",
     "jest": "26.6.3",
     "lint-staged": "10.5.4",
     "prettier": "2.2.1",
-    "ts-jest": "26.5.2",
+    "ts-jest": "26.5.3",
     "ts-node": "9.1.1",
-    "typescript": "4.2.2"
+    "typescript": "4.2.3"
   },
   "files": [
     "!**/__tests__",
