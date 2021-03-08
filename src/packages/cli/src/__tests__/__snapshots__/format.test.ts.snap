@@ -2,7 +2,7 @@
 
 exports[`format should add a trailing EOL 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
 }
 
