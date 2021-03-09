@@ -403,19 +403,6 @@ const dmmf: DMMF.Document = {
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserOrderByInput"
-                }
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author"
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "enumTypes",
                   "namespace": "prisma",
                   "type": "SortOrder"
