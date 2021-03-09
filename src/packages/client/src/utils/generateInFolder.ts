@@ -1,9 +1,12 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath, ensureBinariesExist } from '@prisma/engines'
+import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
-  extractPreviewFeatures, getConfig,
-  getDMMF, getPackedPackage, mapPreviewFeatures
+  extractPreviewFeatures,
+  getConfig,
+  getDMMF,
+  getPackedPackage,
+  mapPreviewFeatures,
 } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
@@ -39,12 +42,14 @@ export async function generateInFolder({
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)
   }
+  await ensureBinariesExist()
+
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi  = enablePreview.includes('napi') || process.env.NAPI === 'true'
+  const useNapi = enablePreview.includes('napi') || process.env.NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
@@ -94,7 +99,6 @@ export async function generateInFolder({
   }
 
   const enginesPath = getEnginesPath()
-  await ensureBinariesExist()
   await generateClient({
     binaryPaths: useNapi
       ? {
