@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
 import {
   DatasourceOverwrite,
+  Engine,
   EngineConfig,
   EngineEventType,
-  Engine,
 } from '@prisma/engine-core/dist/Engine'
 import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
 import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
@@ -11,11 +11,10 @@ import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
-import logger from '@prisma/sdk/dist/logger'
+import * as logger from '@prisma/sdk/dist/logger'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
+import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
-import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
@@ -438,7 +437,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 : null
             if (level) {
               this.$on(level, (event) => {
-                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
+                logger.log(
+                  `${logger.tags[level] ?? ''}`,
+                  event.message || event.query,
+                )
               })
             }
           }
@@ -454,8 +456,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
-    private getEngine(){
-      if(this._previewFeatures.includes('napi')){
+    private getEngine() {
+      if (this._previewFeatures.includes('napi')) {
         return new NAPIEngine(this._engineConfig)
       } else {
         return new NodeEngine(this._engineConfig)
@@ -501,7 +503,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             // warn, info, or error events
             return callback({
               timestamp: event.timestamp,
-              message: event.message,
+              message: fields?.message ?? event.message,
               target: event.target,
             })
           }
@@ -1444,8 +1446,7 @@ export class PrismaClientFetcher {
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine
-          .requestBatch(queries, runTransaction)
+        return this.prisma._engine.requestBatch(queries, runTransaction)
       },
       singleLoader: (request) => {
         const query = String(request.document)
