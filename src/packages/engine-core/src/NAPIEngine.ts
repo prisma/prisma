@@ -120,7 +120,7 @@ export class NAPIEngine implements Engine {
     this.config = config
     this.connected = false
     this.logQueries = config.logQueries ?? false
-    this.logLevel = config.logLevel ?? 'off'
+    this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = new EventEmitter()
     this.datasourceOverrides = this.config.datasources
       ? this.convertDatasources(this.config.datasources)
