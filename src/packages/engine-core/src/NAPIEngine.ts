@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
+import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
 import { DMMF } from '@prisma/generator-helper'
 import {
   getNapiName,
@@ -134,6 +134,7 @@ export class NAPIEngine implements Engine {
   }
   private async internalSetup(): Promise<void> {
     this.platform = await this.getPlatform()
+    await ensureBinariesExist()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     return this.loadEngine()
   }
