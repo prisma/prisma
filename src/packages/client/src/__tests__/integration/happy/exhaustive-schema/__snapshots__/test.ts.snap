@@ -1395,7 +1395,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
     **/
-    orderBy?: Enumerable<PostOrderByInput>
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1941,7 +1941,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
     **/
-    orderBy?: Enumerable<PostOrderByInput>
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -1990,7 +1990,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
     **/
-    orderBy?: Enumerable<PostOrderByInput>
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2295,7 +2295,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
     **/
-    orderBy?: Enumerable<UserOrderByInput>
+    orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2857,7 +2857,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
     **/
-    orderBy?: Enumerable<UserOrderByInput>
+    orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2906,7 +2906,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
     **/
-    orderBy?: Enumerable<UserOrderByInput>
+    orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3205,7 +3205,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
     **/
-    orderBy?: Enumerable<MOrderByInput>
+    orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3765,7 +3765,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
     **/
-    orderBy?: Enumerable<MOrderByInput>
+    orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3814,7 +3814,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
     **/
-    orderBy?: Enumerable<MOrderByInput>
+    orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4113,7 +4113,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
     **/
-    orderBy?: Enumerable<NOrderByInput>
+    orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4673,7 +4673,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
     **/
-    orderBy?: Enumerable<NOrderByInput>
+    orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4722,7 +4722,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
     **/
-    orderBy?: Enumerable<NOrderByInput>
+    orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5021,7 +5021,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
     **/
-    orderBy?: Enumerable<OneOptionalOrderByInput>
+    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5581,7 +5581,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
     **/
-    orderBy?: Enumerable<OneOptionalOrderByInput>
+    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5630,7 +5630,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
     **/
-    orderBy?: Enumerable<OneOptionalOrderByInput>
+    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5939,7 +5939,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
-    orderBy?: Enumerable<ManyRequiredOrderByInput>
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6501,7 +6501,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
-    orderBy?: Enumerable<ManyRequiredOrderByInput>
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6550,7 +6550,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
     **/
-    orderBy?: Enumerable<ManyRequiredOrderByInput>
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6859,7 +6859,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide1OrderByInput>
+    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7421,7 +7421,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide1OrderByInput>
+    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7470,7 +7470,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide1OrderByInput>
+    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7769,7 +7769,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide2OrderByInput>
+    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8329,7 +8329,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide2OrderByInput>
+    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8378,7 +8378,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
     **/
-    orderBy?: Enumerable<OptionalSide2OrderByInput>
+    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8665,7 +8665,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
     **/
-    orderBy?: Enumerable<AOrderByInput>
+    orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9198,7 +9198,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
     **/
-    orderBy?: Enumerable<AOrderByInput>
+    orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9243,7 +9243,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
     **/
-    orderBy?: Enumerable<AOrderByInput>
+    orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9478,7 +9478,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
     **/
-    orderBy?: Enumerable<BOrderByInput>
+    orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10003,7 +10003,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
     **/
-    orderBy?: Enumerable<BOrderByInput>
+    orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10048,7 +10048,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
     **/
-    orderBy?: Enumerable<BOrderByInput>
+    orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10265,7 +10265,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
     **/
-    orderBy?: Enumerable<COrderByInput>
+    orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10778,7 +10778,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
     **/
-    orderBy?: Enumerable<COrderByInput>
+    orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10823,7 +10823,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
     **/
-    orderBy?: Enumerable<COrderByInput>
+    orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11026,7 +11026,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
     **/
-    orderBy?: Enumerable<DOrderByInput>
+    orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11537,7 +11537,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
     **/
-    orderBy?: Enumerable<DOrderByInput>
+    orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11582,7 +11582,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
     **/
-    orderBy?: Enumerable<DOrderByInput>
+    orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11781,7 +11781,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
     **/
-    orderBy?: Enumerable<EOrderByInput>
+    orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12288,7 +12288,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
     **/
-    orderBy?: Enumerable<EOrderByInput>
+    orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12333,7 +12333,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
     **/
-    orderBy?: Enumerable<EOrderByInput>
+    orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12716,6 +12716,20 @@ export namespace Prisma {
     authorId?: IntFilter | number
   }
 
+  export type PostOrderByWithRelationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    published?: SortOrder
+    author?: UserOrderByWithRelationInput
+    authorId?: SortOrder
+  }
+
+  export type PostWhereUniqueInput = {
+    id?: number
+  }
+
   export type PostOrderByInput = {
     id?: SortOrder
     createdAt?: SortOrder
@@ -12723,10 +12737,6 @@ export namespace Prisma {
     content?: SortOrder
     published?: SortOrder
     authorId?: SortOrder
-  }
-
-  export type PostWhereUniqueInput = {
-    id?: number
   }
 
   export type PostScalarWhereWithAggregatesInput = {
@@ -12762,6 +12772,29 @@ export namespace Prisma {
     posts?: PostListRelationFilter
   }
 
+  export type UserOrderByWithRelationInput = {
+    id?: SortOrder
+    email?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+    posts?: PostOrderByAggregateInput
+  }
+
+  export type UserWhereUniqueInput = {
+    id?: number
+    email?: string
+  }
+
   export type UserOrderByInput = {
     id?: SortOrder
     email?: SortOrder
@@ -12777,11 +12810,6 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-  }
-
-  export type UserWhereUniqueInput = {
-    id?: number
-    email?: string
   }
 
   export type UserScalarWhereWithAggregatesInput = {
@@ -12824,8 +12852,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type MOrderByInput = {
+  export type MOrderByWithRelationInput = {
     id?: SortOrder
+    n?: NOrderByAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -12842,6 +12871,22 @@ export namespace Prisma {
 
   export type MWhereUniqueInput = {
     id?: number
+  }
+
+  export type MOrderByInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type MScalarWhereWithAggregatesInput = {
@@ -12883,8 +12928,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type NOrderByInput = {
+  export type NOrderByWithRelationInput = {
     id?: SortOrder
+    m?: MOrderByAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -12901,6 +12947,22 @@ export namespace Prisma {
 
   export type NWhereUniqueInput = {
     id?: number
+  }
+
+  export type NOrderByInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type NScalarWhereWithAggregatesInput = {
@@ -12942,8 +13004,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type OneOptionalOrderByInput = {
+  export type OneOptionalOrderByWithRelationInput = {
     id?: SortOrder
+    many?: ManyRequiredOrderByAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -12960,6 +13023,22 @@ export namespace Prisma {
 
   export type OneOptionalWhereUniqueInput = {
     id?: number
+  }
+
+  export type OneOptionalOrderByInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type OneOptionalScalarWhereWithAggregatesInput = {
@@ -13002,8 +13081,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type ManyRequiredOrderByInput = {
+  export type ManyRequiredOrderByWithRelationInput = {
     id?: SortOrder
+    one?: OneOptionalOrderByWithRelationInput
     oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -13021,6 +13101,23 @@ export namespace Prisma {
 
   export type ManyRequiredWhereUniqueInput = {
     id?: number
+  }
+
+  export type ManyRequiredOrderByInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type ManyRequiredScalarWhereWithAggregatesInput = {
@@ -13064,8 +13161,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type OptionalSide1OrderByInput = {
+  export type OptionalSide1OrderByWithRelationInput = {
     id?: SortOrder
+    opti?: OptionalSide2OrderByWithRelationInput
     optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -13083,6 +13181,23 @@ export namespace Prisma {
 
   export type OptionalSide1WhereUniqueInput = {
     id?: number
+  }
+
+  export type OptionalSide1OrderByInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type OptionalSide1ScalarWhereWithAggregatesInput = {
@@ -13125,8 +13240,9 @@ export namespace Prisma {
     optionalBoolean?: BoolNullableFilter | boolean | null
   }
 
-  export type OptionalSide2OrderByInput = {
+  export type OptionalSide2OrderByWithRelationInput = {
     id?: SortOrder
+    opti?: OptionalSide1OrderByWithRelationInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -13143,6 +13259,22 @@ export namespace Prisma {
 
   export type OptionalSide2WhereUniqueInput = {
     id?: number
+  }
+
+  export type OptionalSide2OrderByInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
   }
 
   export type OptionalSide2ScalarWhereWithAggregatesInput = {
@@ -13179,7 +13311,7 @@ export namespace Prisma {
     inc_bInt?: BigIntFilter | bigint | number
   }
 
-  export type AOrderByInput = {
+  export type AOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
     name?: SortOrder
@@ -13194,6 +13326,18 @@ export namespace Prisma {
   export type AWhereUniqueInput = {
     id?: string
     email?: string
+  }
+
+  export type AOrderByInput = {
+    id?: SortOrder
+    email?: SortOrder
+    name?: SortOrder
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
   }
 
   export type AScalarWhereWithAggregatesInput = {
@@ -13222,7 +13366,7 @@ export namespace Prisma {
     numFloat?: DecimalFilter | Decimal | number | string
   }
 
-  export type BOrderByInput = {
+  export type BOrderByWithRelationInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
@@ -13232,6 +13376,14 @@ export namespace Prisma {
 
   export type BWhereUniqueInput = {
     id?: string
+  }
+
+  export type BOrderByInput = {
+    id?: SortOrder
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
   }
 
   export type BScalarWhereWithAggregatesInput = {
@@ -13258,7 +13410,7 @@ export namespace Prisma {
     uuid?: StringFilter | string
   }
 
-  export type COrderByInput = {
+  export type COrderByWithRelationInput = {
     id?: SortOrder
     char?: SortOrder
     vChar?: SortOrder
@@ -13270,6 +13422,16 @@ export namespace Prisma {
 
   export type CWhereUniqueInput = {
     id?: string
+  }
+
+  export type COrderByInput = {
+    id?: SortOrder
+    char?: SortOrder
+    vChar?: SortOrder
+    text?: SortOrder
+    bit?: SortOrder
+    vBit?: SortOrder
+    uuid?: SortOrder
   }
 
   export type CScalarWhereWithAggregatesInput = {
@@ -13297,7 +13459,7 @@ export namespace Prisma {
     jsonb?: JsonFilter
   }
 
-  export type DOrderByInput = {
+  export type DOrderByWithRelationInput = {
     id?: SortOrder
     bool?: SortOrder
     byteA?: SortOrder
@@ -13308,6 +13470,15 @@ export namespace Prisma {
 
   export type DWhereUniqueInput = {
     id?: string
+  }
+
+  export type DOrderByInput = {
+    id?: SortOrder
+    bool?: SortOrder
+    byteA?: SortOrder
+    xml?: SortOrder
+    json?: SortOrder
+    jsonb?: SortOrder
   }
 
   export type DScalarWhereWithAggregatesInput = {
@@ -13332,7 +13503,7 @@ export namespace Prisma {
     ts?: DateTimeFilter | Date | string
   }
 
-  export type EOrderByInput = {
+  export type EOrderByWithRelationInput = {
     id?: SortOrder
     date?: SortOrder
     time?: SortOrder
@@ -13341,6 +13512,13 @@ export namespace Prisma {
 
   export type EWhereUniqueInput = {
     id?: string
+  }
+
+  export type EOrderByInput = {
+    id?: SortOrder
+    date?: SortOrder
+    time?: SortOrder
+    ts?: SortOrder
   }
 
   export type EScalarWhereWithAggregatesInput = {
@@ -14736,6 +14914,10 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
+  export type PostOrderByAggregateInput = {
+    count: SortOrder
+  }
+
   export type IntNullableWithAggregatesFilter = {
     equals?: number | null
     in?: Enumerable<number> | null
@@ -14834,16 +15016,28 @@ export namespace Prisma {
     none?: NWhereInput
   }
 
+  export type NOrderByAggregateInput = {
+    count: SortOrder
+  }
+
   export type MListRelationFilter = {
     every?: MWhereInput
     some?: MWhereInput
     none?: MWhereInput
   }
 
+  export type MOrderByAggregateInput = {
+    count: SortOrder
+  }
+
   export type ManyRequiredListRelationFilter = {
     every?: ManyRequiredWhereInput
     some?: ManyRequiredWhereInput
     none?: ManyRequiredWhereInput
+  }
+
+  export type ManyRequiredOrderByAggregateInput = {
+    count: SortOrder
   }
 
   export type OneOptionalRelationFilter = {
