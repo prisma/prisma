@@ -121,7 +121,7 @@ function stringifyInputTypes(
         noEnumerable,
       )
       if (acc.length > 0) {
-        return `XOR<${currentStringified}, ${acc}>`
+        return `XOR<${acc}, ${currentStringified}>`
       }
 
       return currentStringified

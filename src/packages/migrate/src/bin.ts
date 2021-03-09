@@ -51,6 +51,7 @@ import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
 import { DbPush } from './commands/DbPush'
+import { DbPull } from './commands/DbPull'
 import { DbDrop } from './commands/DbDrop'
 import { DbSeed } from './commands/DbSeed'
 import { handlePanic } from './utils/handlePanic'
@@ -70,6 +71,7 @@ async function main(): Promise<number> {
     status: MigrateStatus.new(),
     resolve: MigrateResolve.new(),
     // for convenient debugging
+    pull: DbPull.new(),
     push: DbPush.new(),
     drop: DbDrop.new(),
     seed: DbSeed.new(),

@@ -31,7 +31,7 @@ Invalid \`prisma.artists()\` invocation:
   }
 }
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
 type PlaylistTrackWhereInput {
   AND?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   OR?: List<PlaylistTrackWhereInput>
@@ -79,7 +79,7 @@ Invalid \`prisma.users()\` invocation:
   }
 }
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
 type PlaylistTrackWhereInput {
   AND?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   OR?: List<PlaylistTrackWhereInput>
@@ -127,7 +127,7 @@ Invalid \`prisma.users()\` invocation:
   }
 }
 
-Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.0.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
+Unknown arg \`Tracks\` in where.Albums.some.Tracks.some.AND.Playlists.some.Tracks for type PlaylistTrackWhereInput. Did you mean \`Track\`? Available args:
 type PlaylistTrackWhereInput {
   AND?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   OR?: List<PlaylistTrackWhereInput>

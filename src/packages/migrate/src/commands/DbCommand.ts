@@ -20,21 +20,9 @@ ${
   process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
 }Manage your database schema and lifecycle during development.
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db is currently in Preview (${link('https://pris.ly/d/preview')}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
-${chalk.bold('Flag')}
-
-  --preview-feature   Run preview Prisma commands
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db [command] [options] --preview-feature
+  ${chalk.dim('$')} prisma db [command] [options]
 
 ${chalk.bold('Options')}
 
@@ -42,13 +30,16 @@ ${chalk.bold('Options')}
     --schema   Custom path to your Prisma schema
 
 ${chalk.bold('Commands')}
-
+        pull   Pull the state from the database to the Prisma schema using introspection
         push   Push the state from Prisma schema to the database during prototyping ${chalk.dim(
           '(preview)',
         )}
         seed   Seed your database ${chalk.dim('(preview)')} 
 
 ${chalk.bold('Examples')}
+
+  Using prisma db pull
+  ${chalk.dim('$')} prisma db pull
 
   Using prisma db push
   ${chalk.dim('$')} prisma db push --preview-feature

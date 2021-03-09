@@ -13,7 +13,6 @@ import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
-  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
@@ -36,19 +35,10 @@ Run "prisma migrate status" to identify if you need to use resolve.
 Read more about resolving migration history issues: ${link(
     'https://pris.ly/d/migrate-resolve',
   )}
-
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma's migration functionality is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).`,
-  )}
-${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-  
+ 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate resolve [options] --preview-feature
+  ${chalk.dim('$')} prisma migrate resolve [options]
   
 ${chalk.bold('Options')}
 
@@ -62,17 +52,17 @@ ${chalk.bold('Examples')}
   Update migrations table, recording a specific migration as applied 
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --applied 20201231000000_add_users_table --preview-feature
+  )} prisma migrate resolve --applied 20201231000000_add_users_table
 
   Update migrations table, recording a specific migration as rolled back
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --preview-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table
 
   Specify a schema
   ${chalk.dim(
     '$',
-  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma --preview-feature
+  )} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -84,7 +74,6 @@ ${chalk.bold('Examples')}
         '--applied': String,
         '--rolled-back': String,
         '--experimental': Boolean,
-        '--preview-feature': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -106,10 +95,6 @@ ${chalk.bold('Examples')}
 
     if (args['--early-access-feature']) {
       throw new EarlyAccessFeatureFlagWithNewMigrateError()
-    }
-
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -134,12 +119,12 @@ ${chalk.bold('Examples')}
         `--applied or --rolled-back must be part of the command like:
 ${chalk.bold.green(
   getCommandWithExecutor(
-    'prisma migrate resolve --applied 20201231000000_example --preview-feature',
+    'prisma migrate resolve --applied 20201231000000_example',
   ),
 )}
 ${chalk.bold.green(
   getCommandWithExecutor(
-    'prisma migrate resolve --rolled-back 20201231000000_example --preview-feature',
+    'prisma migrate resolve --rolled-back 20201231000000_example',
   ),
 )}`,
       )
@@ -157,7 +142,7 @@ ${chalk.bold.green(
         throw new Error(
           `--applied value must be a string like ${chalk.bold.green(
             getCommandWithExecutor(
-              'prisma migrate resolve --applied 20201231000000_example --preview-feature',
+              'prisma migrate resolve --applied 20201231000000_example',
             ),
           )}`,
         )
@@ -181,7 +166,7 @@ ${chalk.bold.green(
         throw new Error(
           `--rolled-back value must be a string like ${chalk.bold.green(
             getCommandWithExecutor(
-              'prisma migrate resolve --rolled-back 20201231000000_example --preview-feature',
+              'prisma migrate resolve --rolled-back 20201231000000_example',
             ),
           )}`,
         )

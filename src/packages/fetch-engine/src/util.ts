@@ -68,8 +68,6 @@ export function getDownloadUrl(
       : extension
   if (binaryName === EngineTypes.libqueryEngineNapi) {
     binaryName = getNapiName(platform, 'url')
-    // Hard Code for Now
-    version = '28e77d62415dc0475af4c133d8b87d49caaa8f88'
   }
 
   return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`

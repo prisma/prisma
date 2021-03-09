@@ -1,41 +1,40 @@
-import fs from 'fs'
-import pMap from 'p-map'
-import path from 'path'
-import {
-  GeneratorOptions,
-  GeneratorConfig,
-  EngineType,
-  BinaryPaths,
-  GeneratorManifest,
-} from '@prisma/generator-helper'
-import chalk from 'chalk'
+import Debug from '@prisma/debug'
+import { fixBinaryTargets, printGeneratorConfig } from '@prisma/engine-core'
+import { enginesVersion } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
-  EngineTypes,
+  download,
   DownloadOptions,
+  EngineTypes,
 } from '@prisma/fetch-engine'
-import { download } from '@prisma/fetch-engine'
-import { getPlatform, Platform } from '@prisma/get-platform'
-import { printGeneratorConfig, fixBinaryTargets } from '@prisma/engine-core'
-
-import { getConfig, getDMMF } from './engineCommands'
-import makeDir from 'make-dir'
-import { pick } from './pick'
-import { Generator } from './Generator'
-import { resolveOutput } from './resolveOutput'
 import {
-  predefinedGeneratorResolvers,
+  BinaryPaths,
+  EngineType,
+  GeneratorConfig,
+  GeneratorManifest,
+  GeneratorOptions,
+} from '@prisma/generator-helper'
+import { getPlatform, Platform } from '@prisma/get-platform'
+import chalk from 'chalk'
+import fs from 'fs'
+import makeDir from 'make-dir'
+import pMap from 'p-map'
+import path from 'path'
+import { getConfig, getDMMF } from './engineCommands'
+import { Generator } from './Generator'
+import { engineVersions } from './getAllVersions'
+import { pick } from './pick'
+import {
   GeneratorPaths,
+  predefinedGeneratorResolvers,
 } from './predefinedGeneratorResolvers'
-import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { resolveOutput } from './resolveOutput'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
-import { engineVersions } from './getAllVersions'
-import { enginesVersion } from '@prisma/engines'
+import { missingDatasource } from './utils/missingDatasource'
+import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
-import Debug from '@prisma/debug'
-import { missingDatasource } from './utils/missingDatasource'
 const debug = Debug('prisma:getGenerators')
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
@@ -163,7 +162,11 @@ export async function getGenerators({
           generatorPath = paths.generatorPath
         }
 
-        const generatorInstance = new Generator(generatorPath, paths?.isNode)
+        const generatorInstance = new Generator(
+          generatorPath,
+          generator,
+          paths?.isNode,
+        )
 
         await generatorInstance.init()
 
@@ -279,7 +282,7 @@ generator gen {
         }
       }
     }
-
+    debug({ neededVersions })
     const binaryPathsByVersion = await getBinaryPathsByVersion({
       neededVersions,
       platform,
@@ -288,7 +291,6 @@ generator gen {
       skipDownload,
       binaryPathsOverride,
     })
-
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
         const engineVersion = getEngineVersionForGenerator(
@@ -301,7 +303,7 @@ generator gen {
           binaryPaths,
           generator.manifest.requiresEngines,
         )
-
+        debug({ generatorBinaryPaths })
         generator.setBinaryPaths(generatorBinaryPaths)
 
         // in case cli engine version !== client engine version
@@ -502,11 +504,7 @@ async function validateGenerators(
   4. Run ${chalk.green('prisma generate')} again.
       `)
     }
-    if (generator.provider === 'nexus-prisma') {
-      throw new Error(
-        '`nexus-prisma` is no longer a generator. You can read more at https://pris.ly/nexus-prisma-upgrade-0.4',
-      )
-    }
+
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
@@ -602,7 +600,9 @@ function engineTypeToBinaryType(
   if (engineType === 'queryEngine') {
     return EngineTypes.queryEngine
   }
-
+  if (engineType === 'libqueryEngineNapi') {
+    return EngineTypes.libqueryEngineNapi
+  }
   if (engineType === 'prismaFmt') {
     return EngineTypes.prismaFmt
   }
@@ -618,7 +618,9 @@ function binaryTypeToEngineType(binaryType: string): string {
   if (binaryType === EngineTypes.migrationEngine) {
     return 'migrationEngine'
   }
-
+  if (binaryType === EngineTypes.libqueryEngineNapi) {
+    return 'libqueryEngineNapi'
+  }
   if (binaryType === EngineTypes.queryEngine) {
     return 'queryEngine'
   }

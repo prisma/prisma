@@ -62,10 +62,10 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db push --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --preview-feature --schema=./schema.prisma
+  ${chalk.dim('$')} prisma db push --schema=./schema.prisma --preview-feature
 
   Ignore data loss warnings
-  ${chalk.dim('$')} prisma db push --preview-feature --accept-data-loss
+  ${chalk.dim('$')} prisma db push --accept-data-loss --preview-feature
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {

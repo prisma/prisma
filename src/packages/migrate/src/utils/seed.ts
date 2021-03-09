@@ -129,9 +129,7 @@ To install them run: ${chalk.green(
         tsArgs = `"${detected.ts}"`
       }
 
-      console.info(
-        `Running ${chalk.bold(`${tsNodeCommand} "${detected.ts}"`)} ...`,
-      )
+      console.info(`Running ${chalk.bold(`${tsNodeCommand} ${tsArgs}`)} ...`)
       return await execa(tsNodeCommand, [tsArgs], {
         shell: true,
         stdio: 'inherit',

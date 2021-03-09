@@ -22,15 +22,24 @@ export class Format implements Command {
   }
 
   private static help = format(`
-    Format a Prisma schema.
+Format a Prisma schema.
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    With an existing Prisma schema
-      ${chalk.dim('$')} prisma format
+  ${chalk.dim('$')} prisma format [options]
 
-    Or specify a Prisma schema path
-      ${chalk.dim('$')} prisma format --schema=./schema.prisma
+${chalk.bold('Options')}
+
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+
+${chalk.bold('Examples')}
+
+With an existing Prisma schema
+  ${chalk.dim('$')} prisma format
+
+Or specify a Prisma schema path
+  ${chalk.dim('$')} prisma format --schema=./schema.prisma
 
   `)
 
@@ -73,12 +82,12 @@ export class Format implements Command {
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    await getDMMF({
-      datamodel: schema,
-    })
-
     let output = await formatSchema({
       schemaPath,
+    })
+
+    await getDMMF({
+      datamodel: output,
     })
 
     output = output.trimEnd() + os.EOL

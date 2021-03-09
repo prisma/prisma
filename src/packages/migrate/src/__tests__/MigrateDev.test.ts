@@ -38,7 +38,7 @@ describe('common', () => {
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -46,7 +46,7 @@ describe('common', () => {
   })
   it('should fail if old migrate', async () => {
     ctx.fixture('old-migrate')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
 
@@ -54,20 +54,12 @@ describe('common', () => {
             https://pris.ly/d/migrate-upgrade
           `)
   })
-  it('should fail if no flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-            Please provide the --preview-feature flag to use this command.
-          `)
-  })
   it('should fail if experimental flag', async () => {
     ctx.fixture('empty')
     const result = MigrateDev.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now in Preview.
-            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+            Prisma Migrate was Experimental and is now Generally Available.
+            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
           `)
   })
   it('should fail if early access flag', async () => {
@@ -80,7 +72,7 @@ describe('common', () => {
   })
   it('dev should error in unattended environment', async () => {
     ctx.fixture('transition-db-push-migrate')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Prisma Migrate has detected that the environment is non-interactive, which is not supported.
 
@@ -97,10 +89,7 @@ describe('common', () => {
 describe('sqlite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse([
-      '--schema=./prisma/empty.prisma',
-      '--preview-feature',
-    ])
+    const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Already in sync, no schema change or pending migration was found.`,
     )
@@ -119,10 +108,7 @@ describe('sqlite', () => {
 
   it('invalid schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse([
-      '--schema=./prisma/invalid.prisma',
-      '--preview-feature',
-    ])
+    const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Schema Parsing P1012
 
@@ -148,7 +134,7 @@ describe('sqlite', () => {
 
   it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--name=first', '--preview-feature'])
+    const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -179,7 +165,7 @@ describe('sqlite', () => {
       'xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end_this_should_be_truncated',
     ])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -206,7 +192,7 @@ describe('sqlite', () => {
   //   const result = MigrateDev.new().parse([
   //     '--name=first',
   //     '--force',
-  //     '--preview-feature',
+  //
   //   ])
 
   //   await expect(result).resolves.toMatchInlineSnapshot(
@@ -232,7 +218,7 @@ describe('sqlite', () => {
   it('snapshot of sql', async () => {
     ctx.fixture('schema-only-sqlite')
 
-    const result = MigrateDev.new().parse(['--name=first', '--preview-feature'])
+    const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -261,18 +247,15 @@ describe('sqlite', () => {
 
     prompt.inject(['some-Draft'])
 
-    const draftResult = MigrateDev.new().parse([
-      '--create-only',
-      '--preview-feature',
-    ])
+    const draftResult = MigrateDev.new().parse(['--create-only'])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
             Prisma Migrate created the following migration without applying it 20201231000000_some_draft
 
-            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+            You can now edit it and apply it by running prisma migrate dev.
           `)
 
-    const applyResult = MigrateDev.new().parse(['--preview-feature'])
+    const applyResult = MigrateDev.new().parse([])
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -311,13 +294,12 @@ describe('sqlite', () => {
     const draftResult = MigrateDev.new().parse([
       '--schema=./prisma/empty.prisma',
       '--create-only',
-      '--preview-feature',
     ])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
             Prisma Migrate created the following migration without applying it 20201231000000_some_empty_draft
 
-            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+            You can now edit it and apply it by running prisma migrate dev.
           `)
 
     expect(
@@ -341,16 +323,15 @@ describe('sqlite', () => {
     const draftResult = MigrateDev.new().parse([
       '--create-only',
       '--name=first',
-      '--preview-feature',
     ])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
             Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+            You can now edit it and apply it by running prisma migrate dev.
           `)
 
-    const applyResult = MigrateDev.new().parse(['--preview-feature'])
+    const applyResult = MigrateDev.new().parse([])
 
     await expect(applyResult).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -385,7 +366,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -412,7 +393,7 @@ describe('sqlite', () => {
 
     prompt.inject([new Error()])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -433,7 +414,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -463,7 +444,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y', 'new-change'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -494,7 +475,7 @@ describe('sqlite', () => {
     ctx.fixture('broken-migration')
 
     try {
-      await MigrateDev.new().parse(['--preview-feature'])
+      await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.message).toContain(
         'Database error: Error querying the database: near "BROKEN": syntax error',
@@ -517,7 +498,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-failed-migration')
 
     try {
-      await MigrateDev.new().parse(['--preview-feature'])
+      await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
@@ -539,7 +520,7 @@ describe('sqlite', () => {
   it('existing-db-1-migration edit migration with broken sql', async () => {
     ctx.fixture('existing-db-1-migration')
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Already in sync, no schema change or pending migration was found.`,
     )
@@ -551,7 +532,7 @@ describe('sqlite', () => {
     )
 
     try {
-      await MigrateDev.new().parse(['--preview-feature'])
+      await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
@@ -575,7 +556,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft', async () => {
     ctx.fixture('existing-db-1-draft')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -598,7 +579,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unapplied draft + 1 schema change', async () => {
     ctx.fixture('existing-db-1-draft-1-change')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -626,7 +607,7 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unexecutable schema change', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
@@ -634,8 +615,8 @@ describe('sqlite', () => {
 
               • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-            You can use prisma migrate dev --create-only --preview-feature to create the migration file, and manually modify it to address the underlying issue(s).
-            Then run prisma migrate dev --preview-feature to apply it and verify it works.
+            You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+            Then run prisma migrate dev to apply it and verify it works.
 
           `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -651,15 +632,12 @@ describe('sqlite', () => {
 
   it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = MigrateDev.new().parse([
-      '--preview-feature',
-      '--create-only',
-    ])
+    const result = MigrateDev.new().parse(['--create-only'])
 
     await expect(result).resolves.toMatchInlineSnapshot(`
             Prisma Migrate created the following migration without applying it 20201231000000_
 
-            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+            You can now edit it and apply it by running prisma migrate dev.
           `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -677,7 +655,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
@@ -696,10 +674,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                                                                                                                                              ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -708,7 +686,7 @@ describe('sqlite', () => {
 
     prompt.inject([new Error()])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`Migration cancelled.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -720,10 +698,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                      ⚠️  There will be data loss when applying the migration:
+                                                                                                                                                                                                                                                                              ⚠️  There will be data loss when applying the migration:
 
-                                                                                                                                                                                                                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -731,7 +709,6 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse([
       '--schema=./prisma/provider-array.prisma',
-      '--preview-feature',
     ])
 
     await expect(result).rejects.toMatchInlineSnapshot(`UserFacingError`)
@@ -757,7 +734,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -776,7 +753,7 @@ describe('sqlite', () => {
         └─ 20201231000000_draft/
           └─ migration.sql
 
-      Running node "/path/from/snapshotSerializer.ts" ...
+      Running node "prisma/seed.js" ...
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
@@ -789,7 +766,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--skip-seed', '--preview-feature'])
+    const result = MigrateDev.new().parse(['--skip-seed'])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -819,7 +796,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -838,7 +815,7 @@ describe('sqlite', () => {
         └─ 20201231000000_draft/
           └─ migration.sql
 
-      Running node "/path/from/snapshotSerializer.ts" ...
+      Running node "prisma/seed.js" ...
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
@@ -854,7 +831,7 @@ describe('sqlite', () => {
 
     prompt.inject(['y'])
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -887,7 +864,7 @@ describe('sqlite', () => {
     ctx.fixture('provider-switch-postgresql-to-sqlite')
 
     try {
-      await MigrateDev.new().parse(['--preview-feature'])
+      await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.code).toEqual('P3014')
       expect(e.message).toContain('P3014')
@@ -947,7 +924,7 @@ describe('postgresql', () => {
   it('schema only', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
@@ -969,10 +946,7 @@ describe('postgresql', () => {
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-postgresql')
 
-    const result = MigrateDev.new().parse([
-      '--schema=./prisma/shadowdb.prisma',
-      '--preview-feature',
-    ])
+    const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
@@ -993,7 +967,7 @@ describe('postgresql', () => {
 
   it('create first migration', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateDev.new().parse(['--preview-feature'])
+    const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -1016,7 +990,7 @@ describe('postgresql', () => {
   it('create first migration with nativeTypes', async () => {
     ctx.fixture('nativeTypes-postgresql')
 
-    const result = MigrateDev.new().parse(['--name=first', '--preview-feature'])
+    const result = MigrateDev.new().parse(['--name=first'])
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
@@ -1042,7 +1016,6 @@ describe('postgresql', () => {
   //   const result = MigrateDev.new().parse([
   //     '--name=first',
   //     '--force',
-  //     '--preview-feature',
   //   ])
 
   //   await expect(result).resolves.toMatchInlineSnapshot(
@@ -1069,16 +1042,15 @@ describe('postgresql', () => {
     const draftResult = MigrateDev.new().parse([
       '--create-only',
       '--name=first',
-      '--preview-feature',
     ])
 
     await expect(draftResult).resolves.toMatchInlineSnapshot(`
             Prisma Migrate created the following migration without applying it 20201231000000_first
 
-            You can now edit it and apply it by running prisma migrate dev --preview-feature.
+            You can now edit it and apply it by running prisma migrate dev.
           `)
 
-    const applyResult = MigrateDev.new().parse(['--preview-feature'])
+    const applyResult = MigrateDev.new().parse([])
     await expect(applyResult).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
     )
@@ -1107,7 +1079,7 @@ describe('postgresql', () => {
 
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-postgresql')
-    const result = MigrateDev.new().parse(['--name=first', '--preview-feature'])
+    const result = MigrateDev.new().parse(['--name=first'])
 
     await expect(result).resolves.toMatchInlineSnapshot(
       `Everything is now in sync.`,
@@ -1129,7 +1101,7 @@ describe('postgresql', () => {
 
   // it('real-world-grading-app: compare snapshot', async () => {
   //   ctx.fixture('real-world-grading-app')
-  //   const result = MigrateDev.new().parse(['--preview-feature'])
+  //   const result = MigrateDev.new().parse([])
 
   //   await expect(result).resolves.toMatchInlineSnapshot()
   //   expect(ctx.mocked['console.info'].mock.calls.join('\n'))

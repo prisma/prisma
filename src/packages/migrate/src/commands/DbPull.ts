@@ -16,35 +16,43 @@ import {
   IntrospectionSchemaVersion,
   uriToCredentials,
 } from '@prisma/sdk'
-import { formatms } from './utils/formatms'
+import { formatms } from '../utils/formatms'
 import fs from 'fs'
 import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
-import { printDatasources } from './prompt/utils/printDatasources'
-import { removeDatasource } from './utils/removeDatasource'
+import { printDatasources } from '../utils/printDatasources'
+import { removeDatasource } from '../utils/removeDatasource'
 
-export class Introspect implements Command {
-  public static new(): Introspect {
-    return new Introspect()
+export class DbPull implements Command {
+  public static new(): DbPull {
+    return new DbPull()
   }
 
   private static help = format(`
-    Introspect a database and save the result to a Prisma schema.
+Pull the state from the database to the Prisma schema using introspection
 
-    ${chalk.bold('Usage')}
+${chalk.bold('Usage')}
 
-    With an existing Prisma schema
-      ${chalk.dim('$')} prisma introspect
+  ${chalk.dim('$')} prisma db pull [options]
 
-    Or specify a Prisma schema path
-      ${chalk.dim('$')} prisma introspect --schema=./schema.prisma
+${chalk.bold('Options')}
 
-    Instead of saving the result to the filesystem, you can also print it
-      ${chalk.dim('$')} prisma introspect --print
+  -h, --help   Display this help message
+    --schema   Custom path to your Prisma schema
+     --force   Ignore current Prisma schema file
+     --print   Print the introspected Prisma schema to stdout
 
-    ${chalk.bold('Flag')}
+${chalk.bold('Examples')}
 
-      --force     Ignore current Prisma schema file
-  `)
+With an existing Prisma schema
+  ${chalk.dim('$')} prisma db pull
+
+Or specify a Prisma schema path
+  ${chalk.dim('$')} prisma db pull --schema=./schema.prisma
+
+Instead of saving the result to the filesystem, you can also print it to stdout
+  ${chalk.dim('$')} prisma db pull --print
+
+`)
 
   private printUrlAsDatasource(url: string): string {
     const provider = databaseTypeToConnectorType(uriToCredentials(url).type)
@@ -93,7 +101,7 @@ export class Introspect implements Command {
           `The ${chalk.redBright(
             '--experimental-reintrospection',
           )} flag has been removed and is now the default behavior of ${chalk.greenBright(
-            'prisma introspect',
+            'prisma db pull',
           )}.`,
         )
       }
@@ -183,7 +191,7 @@ export class Introspect implements Command {
           )} ${url ? chalk.underline(url) : ''}
 
 ${chalk.bold(
-  'prisma introspect',
+  'prisma db pull',
 )} could not create any models in your ${chalk.bold(
             'schema.prisma',
           )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
@@ -200,7 +208,7 @@ ${chalk.bold('To fix this, you have two options:')}
           )} points to a database that is not empty (it must contain at least one table).
 
 Then you can run ${chalk.green(
-            getCommandWithExecutor('prisma introspect'),
+            getCommandWithExecutor('prisma db pull'),
           )} again. 
 `)
         }
@@ -369,10 +377,8 @@ ${
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${Introspect.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPull.help}`)
     }
-    return Introspect.help
+    return DbPull.help
   }
 }

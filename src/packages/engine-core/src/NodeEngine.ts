@@ -1,10 +1,6 @@
 import { getEnginesPath } from '@prisma/engines'
-import {
-  ConnectorType,
-  DataSource,
-  GeneratorConfig,
-} from '@prisma/generator-helper'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
+import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import { ChildProcessByStdio, spawn } from 'child_process'
 import { Readable } from 'stream'
@@ -26,7 +22,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
   RequestError,
-} from './Engine'
+} from './errors'
 import {
   convertLog,
   isRustError,
@@ -39,70 +35,27 @@ import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
+import {
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from './Engine'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
-
-export interface DatasourceOverwrite {
-  name: string
-  url: string
-}
 
 // eslint-disable-next-line
 const logger = (...args) => {
   // console.log(chalk.red.bold('logger '), ...args)
 }
 
-export interface EngineConfig {
-  cwd?: string
-  dirname?: string
-  datamodelPath: string
-  enableDebugLogs?: boolean
-  enableEngineDebugMode?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
-  prismaPath?: string
-  fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
-  generator?: GeneratorConfig
-  datasources?: DatasourceOverwrite[]
-  showColors?: boolean
-  logQueries?: boolean
-  logLevel?: 'info' | 'warn'
-  env?: Record<string, string>
-  flags?: string[]
-  useUds?: boolean
-
-  clientVersion?: string
-  enableExperimental?: string[]
-  engineEndpoint?: string
-  activeProvider?: string
-}
-
-type GetConfigResult = {
-  datasources: DataSource[]
-  generators: GeneratorConfig[]
-}
-
 /**
  * Node.js based wrapper to run the Prisma binary
  */
 
-const knownPlatforms: Platform[] = [
-  'native',
-  'darwin',
-  'debian-openssl-1.0.x',
-  'debian-openssl-1.1.x',
-  'linux-arm-openssl-1.0.x',
-  'linux-arm-openssl-1.1.x',
-  'rhel-openssl-1.0.x',
-  'rhel-openssl-1.1.x',
-  'linux-musl',
-  'linux-nixos',
-  'windows',
-  'freebsd11',
-  'freebsd12',
-  'openbsd',
-  'netbsd',
-  'arm',
-]
+const knownPlatforms: Platform[] = [...platforms, 'native']
 
 export type Deferred = {
   resolve: () => void
@@ -113,7 +66,6 @@ export type StopDeferred = {
   resolve: (code: number | null) => void
   reject: (err: Error) => void
 }
-export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
 const engines: NodeEngine[] = []
 const socketPaths: string[] = []
@@ -121,7 +73,7 @@ const socketPaths: string[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class NodeEngine {
+export class NodeEngine implements Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -348,7 +300,7 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  async getPlatform(): Promise<Platform> {
+  private async getPlatform(): Promise<Platform> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     if (this.platformPromise) {
       return this.platformPromise
@@ -477,7 +429,7 @@ You already added the platform${
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
-Please create an issue at https://github.com/prisma/prisma-client-js/issues/new`
+Please create an issue at https://github.com/prisma/prisma/issues/new`
           errorText += ``
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
@@ -532,7 +484,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return printGeneratorConfig(fixedGenerator)
   }
 
-  printDatasources(): string {
+  private printDatasources(): string {
     if (this.datasources) {
       return JSON.stringify(this.datasources)
     }
@@ -920,7 +872,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   /**
    * Use the port 0 trick to get a new port
    */
-  protected getFreePort(): Promise<number> {
+  private getFreePort(): Promise<number> {
     return new Promise((resolve, reject) => {
       const server = net.createServer((s) => s.end(''))
       server.unref()
@@ -948,7 +900,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.getConfigPromise
   }
 
-  async _getConfig(): Promise<GetConfigResult> {
+  private async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
     const env = await this.getEngineEnvVars()
@@ -1072,7 +1024,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         // Rust engine returns time in microseconds and we want it in miliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
-
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors) {

@@ -18,7 +18,7 @@ dist/
 .pnpm-store
 
 .vscode
-!.vscode/launch.json
+!.vscode/launch.json.default
 coverage
 
 .eslintcache

@@ -8,7 +8,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -48,7 +48,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -88,7 +88,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -124,12 +124,12 @@ exports[`should succeed and keep changes to valid schema and output warnings whe
 Prisma schema loaded from prisma/reintrospection.prisma
 generator client {
   provider = "prisma-client-js"
-  output = "***"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model AwesomeUser {
@@ -170,12 +170,12 @@ model AwesomeProfile {
 exports[`should succeed when schema is invalid and using --force 3`] = `
 generator client {
   provider = "prisma-client-js"
-  output = "***"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {

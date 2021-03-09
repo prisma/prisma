@@ -13,12 +13,6 @@ You can join us on [Slack](https://slack.prisma.io) and here on [GitHub Discussi
 
 If you have found a **bug** or have a **feature request** then please create an issue in this repository (please search first in case a similar issue already exists).
 
-## Do not force push to your pull request branch
-
-Please do not force push to your PR's branch after you have created your PR, as doing so makes it harder for us to review your work.
-PRs will always be squashed by us when we merge your work.
-Commit as many times as you need in your pull request branch.
-
 ## Code
 
 Prisma consists of a mono-repo for all TypeScript code.
@@ -273,7 +267,7 @@ ts-node scripts/graph-dependencies.ts
 
 ## Legal
 
-Pull Request authors must sign the Prisma CLA, it will show up in an automated comment after you create a PR.
+Pull Request authors must sign the [Prisma CLA](https://cla-assistant.io/prisma/prisma), it will show up in an automated comment after you create a PR.
 
 If you cannot or do not want to sign this CLA (e.g. your employment contract for your employer may not allow this), you should not submit a PR.
 Open an issue and someone else can do the work.

@@ -11,14 +11,14 @@ model Article {
   content String
   date    DateTime
   likedBy User[]
-  link Link?
+  link    Link?
 }
 
 model Link {
-  id Int @id
+  id        Int      @id
   articleId Int
-  article Article @relation(fields: [articleId], references: [id])
-  postedAt DateTime
+  article   Article  @relation(fields: [articleId], references: [id])
+  postedAt  DateTime
 }
 
 model User {
@@ -26,12 +26,13 @@ model User {
   name          String
   email         String    @unique
   likedArticles Article[]
-  personaId Int
-  persona Persona @relation(fields: [personaId])
+  personaId     Int
+  persona       Persona   @relation(fields: [personaId], references: [id])
 }
 
 model Persona {
-  id Int @id
+  id          Int     @id
   isDeveloper Boolean
+  User        User[]
 }
 `

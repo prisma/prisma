@@ -9,7 +9,7 @@ import { DatasourceOverwrite } from './../extractSqliteSources'
 
 import { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
 import { klona } from 'klona'
-import { getEnvPaths } from '@prisma/sdk'
+import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
 import { Generatable } from './Generatable'
 import { escapeJson, ExportCollector } from './helpers'
 import { Enum } from './Enum'
@@ -17,6 +17,8 @@ import { PrismaClientClass } from './PrismaClient'
 import { Model } from './Model'
 import { InputType } from './Input'
 import { commonCodeJS, commonCodeTS } from './common'
+import { buildNFTEngineAnnotations } from '../utils'
+import { Platform } from '@prisma/get-platform'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -139,17 +141,11 @@ Object.assign(exports, Prisma)
  * In order to make \`ncc\` and \`@vercel/nft\` happy.
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
-${
-  this.options.platforms
-    ? this.options.platforms
-        .map(
-          (p) => `path.join(__dirname, 'query-engine-${p}');
-path.join(process.cwd(), './${path.join(cwdDirname, `query-engine-${p}`)}');
-`,
-        )
-        .join('\n')
-    : ''
-}
+${buildNFTEngineAnnotations(
+  this.options.generator?.previewFeatures?.includes('napi') ?? false,
+  this.options.platforms as Platform[],
+  cwdDirname,
+)}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
@@ -175,7 +171,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap).reduce((acc, model) => {
-      if(this.dmmf.outputTypeMap[model.name]){
+      if (this.dmmf.outputTypeMap[model.name]) {
         acc.push(new Model(model, this.dmmf, this.options.generator, collector))
       }
       return acc
@@ -310,7 +306,7 @@ class PrismaClient {
   constructor() {
     throw new Error(
       \`PrismaClient is unable to be run in the browser.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma-client-js/issues\`,
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
     )
   }
 }
