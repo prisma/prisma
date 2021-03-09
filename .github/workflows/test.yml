@@ -96,7 +96,8 @@ jobs:
   tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
-
+    env:
+      NAPI: "true"
     strategy:
       fail-fast: false
       matrix:
@@ -169,6 +170,8 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
+    env:
+      NAPI: "true"
     timeout-minutes: 10
     runs-on: ubuntu-20.04
 
@@ -221,6 +224,8 @@ jobs:
   # CLIENT (without types test)
   #
   client:
+    env:
+      NAPI: "true"
     timeout-minutes: 20
     runs-on: ubuntu-20.04
 
@@ -282,7 +287,8 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
-
+    env:
+      NAPI: "true"
     strategy:
       fail-fast: false
       matrix:
