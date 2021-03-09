@@ -162,7 +162,7 @@ jobs:
       - name: Upload coverage report
         working-directory: src/packages/tests
         run: |
-          bash <(curl -s https://codecov.io/bash) -F tests-integration -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F tests-integration-${{ matrix.database }} -f ./src/__tests__/coverage/clover.xml
 
   #
   # CLI-COMMANDS
@@ -213,7 +213,7 @@ jobs:
       - name: Upload coverage report
         working-directory: src/packages/cli
         run: |
-          bash <(curl -s https://codecov.io/bash) -F cli -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F cli-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
   #
   # CLIENT (without types test)
@@ -274,7 +274,7 @@ jobs:
       - name: Upload coverage report
         working-directory: src/packages/client
         run: |
-          bash <(curl -s https://codecov.io/bash) -F client -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F client-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
   #
   # CLIENT (types tests only)
@@ -375,10 +375,9 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/sdk
         run: |
-          bash <(curl -s https://codecov.io/bash) -F sdk -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F sdk-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
   #
   # MIGRATE
@@ -437,10 +436,9 @@ jobs:
           TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/migrate
         run: |
-          bash <(curl -s https://codecov.io/bash) -F migrate -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F migrate-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
   #
   # All the other packages!
@@ -492,10 +490,9 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/debug
         run: |
-          bash <(curl -s https://codecov.io/bash) -F debug -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F debug-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
         name: "engine-core"
@@ -506,10 +503,9 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/engine-core
         run: |
-          bash <(curl -s https://codecov.io/bash) -F engine-core -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F engine-core-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
         name: "fetch-engine"
@@ -520,10 +516,9 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/fetch-engine
         run: |
-          bash <(curl -s https://codecov.io/bash) -F fetch-engine -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F fetch-engine-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
         name: "generator-helper"
@@ -534,10 +529,9 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/generator-helper
         run: |
-          bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F generator-helper-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
 
       - run: pnpm run test
         name: "get-platform"
@@ -548,7 +542,6 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
         working-directory: src/packages/get-platform
         run: |
-          bash <(curl -s https://codecov.io/bash) -F get-platform -f ./src/__tests__/coverage/clover.xml
+          bash <(curl -s https://codecov.io/bash) -F get-platform-${{ matrix.os }} -f ./src/__tests__/coverage/clover.xml
