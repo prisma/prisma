@@ -30,7 +30,7 @@ describe('common', () => {
   })
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -38,7 +38,7 @@ describe('common', () => {
   })
   it('should fail if old migrate', async () => {
     ctx.fixture('old-migrate')
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
 
@@ -46,20 +46,12 @@ describe('common', () => {
             https://pris.ly/d/migrate-upgrade
           `)
   })
-  it('should fail if no flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateReset.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-            Please provide the --preview-feature flag to use this command.
-          `)
-  })
   it('should fail if experimental flag', async () => {
     ctx.fixture('empty')
     const result = MigrateReset.new().parse(['--experimental'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now in Preview.
-            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+            Prisma Migrate was Experimental and is now Generally Available.
+            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
           `)
   })
   it('should fail if early access flag', async () => {
@@ -78,7 +70,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -102,7 +94,7 @@ describe('reset', () => {
   it('should work (--force)', async () => {
     ctx.fixture('reset')
 
-    const result = MigrateReset.new().parse(['--preview-feature', '--force'])
+    const result = MigrateReset.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -126,7 +118,7 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = MigrateReset.new().parse(['--preview-feature', '--force'])
+    const result = MigrateReset.new().parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -154,7 +146,7 @@ describe('reset', () => {
 
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -175,7 +167,7 @@ describe('reset', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -193,7 +185,7 @@ describe('reset', () => {
 
   it('reset should error in unattended environment', async () => {
     ctx.fixture('reset')
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
             Prisma Migrate has detected that the environment is non-interactive. It is recommended to run this command in an interactive environment.
 
@@ -209,7 +201,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
             More than one seed file was found in \`prisma\` directory.
             This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
@@ -223,10 +215,7 @@ describe('reset', () => {
     ctx.fixture('seed-sqlite')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse([
-      '--skip-seed',
-      '--preview-feature',
-    ])
+    const result = MigrateReset.new().parse(['--skip-seed'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -241,7 +230,7 @@ describe('reset', () => {
     ctx.fs.remove('prisma/seed.go')
     prompt.inject(['y']) // simulate user yes input
 
-    const result = MigrateReset.new().parse(['--preview-feature'])
+    const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),

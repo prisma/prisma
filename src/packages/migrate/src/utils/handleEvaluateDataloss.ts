@@ -25,10 +25,10 @@ export function handleUnexecutableSteps(
       throw new Error(`${messages.join('\n')}
 
 You can use ${getCommandWithExecutor(
-        'prisma migrate dev --create-only --preview-feature',
+        'prisma migrate dev --create-only',
       )} to create the migration file, and manually modify it to address the underlying issue(s).
 Then run ${getCommandWithExecutor(
-        'prisma migrate dev --preview-feature',
+        'prisma migrate dev',
       )} to apply it and verify it works.\n`)
     }
   }

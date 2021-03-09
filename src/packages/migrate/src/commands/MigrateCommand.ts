@@ -5,6 +5,7 @@ import {
   format,
   HelpError,
   isError,
+  logger,
   link,
   unknownCommand,
 } from '@prisma/sdk'
@@ -18,19 +19,10 @@ export class MigrateCommand implements Command {
 
   private static help = format(`
 Update the database schema with migrations
-
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma's migration functionality is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).`,
-  )}
-${chalk.dim(
-  'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
   
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate [command] [options] --preview-feature
+  ${chalk.dim('$')} prisma migrate [command] [options]
 
 ${chalk.bold('Commands for development')}
 
@@ -52,21 +44,19 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
-  ${chalk.dim('$')} prisma migrate dev --preview-feature
+  ${chalk.dim('$')} prisma migrate dev
 
   Reset your database and apply all migrations
-  ${chalk.dim('$')} prisma migrate reset --preview-feature
+  ${chalk.dim('$')} prisma migrate reset
 
   Apply pending migrations to the database in production/staging
-  ${chalk.dim('$')} prisma migrate deploy --preview-feature
+  ${chalk.dim('$')} prisma migrate deploy
 
   Check the status of migrations in the production/staging database
-  ${chalk.dim('$')} prisma migrate status --preview-feature
+  ${chalk.dim('$')} prisma migrate status
 
   Specify a schema
-  ${chalk.dim(
-    '$',
-  )} prisma migrate status --schema=./schema.prisma --preview-feature
+  ${chalk.dim('$')} prisma migrate status --schema=./schema.prisma
 
 `)
 
@@ -98,18 +88,24 @@ ${chalk.bold('Examples')}
 
     if (['up', 'save', 'down'].includes(args._[0])) {
       throw new Error(
-        `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
-Read more about how to upgrade: https://pris.ly/d/migrate-upgrade`,
+        `The current command "${
+          args._[0]
+        }" doesn't exist in the new version of Prisma Migrate.
+Read more about how to upgrade: ${link('https://pris.ly/d/migrate-upgrade')}`,
       )
     }
 
+    if (args['--preview-feature']) {
+      logger.warn(`Prisma Migrate was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
+    }
+
+    const filteredArgs = args._.filter((item) => item !== '--preview-feature')
+
     // check if we have that subcommand
-    const cmd = this.cmds[args._[0]]
+    const cmd = this.cmds[filteredArgs[0]]
     if (cmd) {
-      const argsForCmd = args['--preview-feature']
-        ? [...args._.slice(1), `--preview-feature`]
-        : args._.slice(1)
-      return cmd.parse(argsForCmd)
+      return cmd.parse(filteredArgs.slice(1))
     }
 
     return unknownCommand(MigrateCommand.help, args._[0])
