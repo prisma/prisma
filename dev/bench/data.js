@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615302232982,
+  "lastUpdate": 1615302731577,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -17699,6 +17699,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.2,
             "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "3b89d3c8049048da49e1657ff5e4a2a47618a61f",
+          "message": "test: update jest config",
+          "timestamp": "2021-03-09T16:08:37+01:00",
+          "tree_id": "afec1460e00f978898c5a4f011a0dfe5dac624cd",
+          "url": "https://github.com/prisma/prisma/commit/3b89d3c8049048da49e1657ff5e4a2a47618a61f"
+        },
+        "date": 1615302730295,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.63,
+            "range": "±4.45%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.2,
+            "range": "±1.33%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
