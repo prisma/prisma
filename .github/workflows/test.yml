@@ -159,6 +159,11 @@ jobs:
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
+      - name: Upload coverage report
+        working-directory: src/packages/tests
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F tests-integration -f ./src/__tests__/coverage/clover.xml
+
   #
   # CLI-COMMANDS
   #
@@ -204,6 +209,11 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Upload coverage report
+        working-directory: src/packages/cli
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F cli -f ./src/__tests__/coverage/clover.xml
 
   #
   # CLIENT (without types test)
@@ -310,6 +320,11 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Upload coverage report
+        working-directory: src/packages/client
+        run: |
+          bash <(curl -s https://codecov.io/bash) -F client-types -f ./src/__tests__/coverage/clover.xml
 
   #
   # SDK
