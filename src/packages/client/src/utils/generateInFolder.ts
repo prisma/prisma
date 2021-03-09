@@ -47,7 +47,7 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi  = enablePreview.includes('napi')
+  const useNapi = enablePreview.includes('napi')
 
   const dmmf = await getDMMF({
     datamodel,
@@ -98,21 +98,20 @@ export async function generateInFolder({
 
   const enginesPath = getEnginesPath()
   await generateClient({
-    binaryPaths: useNapi ? {
-      libqueryEngineNapi:  {
-        [platform]: path.join(
-          enginesPath,
-          getNapiName(platform, 'fs'),
-        ),
-      }
-    } : {
-      queryEngine: {
-        [platform]: path.join(
-          enginesPath,
-          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-        ),
-      },
-    },
+    binaryPaths: useNapi
+      ? {
+          libqueryEngineNapi: {
+            [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
+          },
+        }
+      : {
+          queryEngine: {
+            [platform]: path.join(
+              enginesPath,
+              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+            ),
+          },
+        },
     datamodel,
     dmmf,
     ...config,

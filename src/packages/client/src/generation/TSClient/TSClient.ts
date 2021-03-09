@@ -141,7 +141,11 @@ Object.assign(exports, Prisma)
  * In order to make \`ncc\` and \`@vercel/nft\` happy.
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
-${buildNFTEngineAnnotations(this.options.generator?.previewFeatures?.includes('napi') ?? false, this.options.platforms as Platform[], cwdDirname)}
+${buildNFTEngineAnnotations(
+  this.options.generator?.previewFeatures?.includes('napi') ?? false,
+  this.options.platforms as Platform[],
+  cwdDirname,
+)}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
@@ -167,7 +171,7 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
 
     const commonCode = commonCodeTS(this.options)
     const models = Object.values(this.dmmf.modelMap).reduce((acc, model) => {
-      if(this.dmmf.outputTypeMap[model.name]){
+      if (this.dmmf.outputTypeMap[model.name]) {
         acc.push(new Model(model, this.dmmf, this.options.generator, collector))
       }
       return acc
