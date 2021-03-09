@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615232172139,
+  "lastUpdate": 1615280216365,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -17037,6 +17037,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±1.03%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5485400e3509f17841d30034547d211f637ccc3c",
+          "message": "chore(deps): update dependency rollup-plugin-dts to v3 (#6002)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-03-09T09:53:24+01:00",
+          "tree_id": "24ade0ebff85ec1d9e63db79929504d15d0dff4a",
+          "url": "https://github.com/prisma/prisma/commit/5485400e3509f17841d30034547d211f637ccc3c"
+        },
+        "date": 1615280213791,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.48,
+            "range": "±4.05%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.39%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
