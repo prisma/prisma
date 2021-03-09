@@ -42,7 +42,6 @@ export async function generateInFolder({
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)
   }
-  await ensureBinariesExist()
 
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')

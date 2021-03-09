@@ -1,8 +1,9 @@
+import { ensureBinariesExist } from '@prisma/engines'
 import {
   BinaryPaths,
   DataSource,
   DMMF,
-  GeneratorConfig
+  GeneratorConfig,
 } from '@prisma/generator-helper'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
 import copy from '@timsuchanek/copy'
@@ -154,6 +155,8 @@ export async function generateClient({
   engineVersion,
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
+  await ensureBinariesExist()
+
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
     generator?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
@@ -259,7 +262,7 @@ export async function generateClient({
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
-        if(fs.existsSync(filePath)){
+        if (fs.existsSync(filePath)) {
           await copyFile(filePath, target)
           continue
         } else {
