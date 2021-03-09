@@ -110,6 +110,8 @@ export class NAPIEngine implements Engine {
   datasourceOverrides: Record<string, string>
   datamodel: string
   logQueries: boolean
+  logLevel: QueryEngineLogLevel
+
   connected: boolean
   beforeExitListener?: (args?: any) => any
 
@@ -118,6 +120,7 @@ export class NAPIEngine implements Engine {
     this.config = config
     this.connected = false
     this.logQueries = config.logQueries ?? false
+    this.logLevel = config.logLevel ?? 'off'
     this.logEmitter = new EventEmitter()
     this.datasourceOverrides = this.config.datasources
       ? this.convertDatasources(this.config.datasources)
@@ -125,7 +128,7 @@ export class NAPIEngine implements Engine {
 
     if (this.logQueries) {
       process.env.LOG_QUERIES = 'true'
-      this.config.logLevel = 'info'
+      this.logLevel = 'info'
     }
     if (config.enableEngineDebugMode) {
       Debug.enable('*')
@@ -192,7 +195,7 @@ You may have to run ${chalk.greenBright(
             {
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
-              logLevel: this.config.logLevel ?? 'off',
+              logLevel: this.logLevel,
             },
             (err, log) => {
               if (err) throw new Error(err)
