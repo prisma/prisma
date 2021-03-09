@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615302731577,
+  "lastUpdate": 1615303486170,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -17739,6 +17739,40 @@ window.BENCHMARK_DATA = {
             "range": "±1.33%",
             "unit": "ops/sec",
             "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "8c46a69af231974a783fc32cb78bf34762552f17",
+          "message": "chore: cleanup gh cov",
+          "timestamp": "2021-03-09T15:08:47Z",
+          "url": "https://github.com/prisma/prisma/pull/6030/commits/8c46a69af231974a783fc32cb78bf34762552f17"
+        },
+        "date": 1615303485012,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.62,
+            "range": "±6.53%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.2,
+            "range": "±0.92%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
           }
         ]
       }
