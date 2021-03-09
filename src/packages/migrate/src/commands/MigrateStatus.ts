@@ -13,7 +13,6 @@ import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import {
-  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'
@@ -32,18 +31,9 @@ export class MigrateStatus implements Command {
   private static help = format(`
 Check the status of your database migrations
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma's migration functionality is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).`,
-  )}
-  ${chalk.dim(
-    'When using any of the commands below you need to explicitly opt-in via the --preview-feature flag.',
-  )}
-  
   ${chalk.bold('Usage')}
 
-    ${chalk.dim('$')} prisma migrate status [options] --preview-feature
+    ${chalk.dim('$')} prisma migrate status [options]
     
   ${chalk.bold('Options')}
 
@@ -53,12 +43,10 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
   ${chalk.bold('Examples')}
 
   Check the status of your database migrations
-  ${chalk.dim('$')} prisma migrate status --preview-feature
+  ${chalk.dim('$')} prisma migrate status
 
   Specify a schema
-  ${chalk.dim(
-    '$',
-  )} prisma migrate status --schema=./schema.prisma --preview-feature
+  ${chalk.dim('$')} prisma migrate status --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -68,7 +56,6 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
         '--help': Boolean,
         '-h': '--help',
         '--experimental': Boolean,
-        '--preview-feature': Boolean,
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
@@ -90,10 +77,6 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 
     if (args['--early-access-feature']) {
       throw new EarlyAccessFeatureFlagWithNewMigrateError()
-    }
-
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -161,10 +144,10 @@ ${e.message}`)
 ${unappliedMigrations.join('\n')}
 
 To apply migrations in development run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate dev --preview-feature`),
+          getCommandWithExecutor(`prisma migrate dev`),
         )}.
 To apply migrations in production run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate deploy --preview-feature`),
+          getCommandWithExecutor(`prisma migrate deploy`),
         )}.`,
       )
     } else if (diagnoseResult.history?.diagnostic === 'historiesDiverge') {
@@ -201,9 +184,7 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`
 
 If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "${migrationId}":
 ${chalk.bold.greenBright(
-  getCommandWithExecutor(
-    `prisma migrate resolve --applied "${migrationId}" --preview-feature`,
-  ),
+  getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`),
 )}
 
 Read more about how to baseline an existing production database:
@@ -224,7 +205,7 @@ https://pris.ly/d/migrate-baseline`
 ${failedMigrations.join('\n')}
 
 During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate dev --preview-feature`),
+          getCommandWithExecutor(`prisma migrate dev`),
         )}.\n`,
       )
 
@@ -241,14 +222,14 @@ ${chalk.grey(diagnoseResult.drift.rollback)}`)
 - If you rolled back the migration(s) manually:
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --rolled-back "${failedMigrations[0]}" --preview-feature`,
+    `prisma migrate resolve --rolled-back "${failedMigrations[0]}"`,
   ),
 )}
 
 - If you fixed the database manually (hotfix):
 ${chalk.bold.greenBright(
   getCommandWithExecutor(
-    `prisma migrate resolve --applied "${failedMigrations[0]}" --preview-feature`,
+    `prisma migrate resolve --applied "${failedMigrations[0]}"`,
   ),
 )}
 
@@ -277,13 +258,13 @@ You have 2 options
         getCommandWithExecutor('prisma db pull'),
       )} to update your schema with the change.
 - ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma migrate dev --preview-feature'),
+        getCommandWithExecutor('prisma migrate dev'),
       )} to create a new migration matching the change.
       
 2. You corrected the change in a migration but applied it to the database without using Migrate (hotfix):
 - ${chalk.bold.greenBright(
         getCommandWithExecutor(
-          `prisma migrate resolve --applied "${migrationId}" --preview-feature`,
+          `prisma migrate resolve --applied "${migrationId}"`,
         ),
       )} to create a new migration matching the change.`
     } else {

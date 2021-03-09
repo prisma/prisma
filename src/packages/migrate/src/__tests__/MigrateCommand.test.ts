@@ -51,23 +51,12 @@ it('dev with --preview-feature flag', async () => {
         `)
 })
 
-it('dev without --preview-feature flag', async () => {
-  await expect(
-    MigrateCommand.new({
-      dev: MigrateDev.new(),
-    }).parse(['dev']),
-  ).rejects.toMatchInlineSnapshot(`
-          This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-          Please provide the --preview-feature flag to use this command.
-        `)
-})
-
 describe('legacy', () => {
   it('experimental flag', async () => {
     await expect(MigrateCommand.new({}).parse(['--experimental'])).rejects
       .toMatchInlineSnapshot(`
-            Prisma Migrate was Experimental and is now in Preview.
-            WARNING this new iteration has some breaking changes to use it it's recommended to read the documentation first and replace the --experimental flag with --preview-feature.
+            Prisma Migrate was Experimental and is now Generally Available.
+            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
           `)
   })
 
