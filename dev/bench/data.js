@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615300936798,
+  "lastUpdate": 1615302232982,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -17661,6 +17661,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±2.80%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "6240003cc6d893a6958f9b9d44af46dc110d8f6c",
+          "message": "chore: cov update for gh",
+          "timestamp": "2021-03-09T16:00:57+01:00",
+          "tree_id": "3bf84aa0f52b4943439c6ebeeab003c2f186a990",
+          "url": "https://github.com/prisma/prisma/commit/6240003cc6d893a6958f9b9d44af46dc110d8f6c"
+        },
+        "date": 1615302231799,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.63,
+            "range": "±6.29%",
+            "unit": "ops/sec",
+            "extra": "8 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.2,
+            "range": "±1.75%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
