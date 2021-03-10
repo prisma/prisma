@@ -14,7 +14,6 @@
     "@typescript-eslint/parser": "4.16.1",
     "arg": "5.0.0",
     "benchmark": "2.1.4",
-    "boxen": "5.0.0",
     "chalk": "4.1.0",
     "eslint": "7.21.0",
     "eslint-config-prettier": "7.2.0",
