@@ -6,6 +6,7 @@ import rimraf from 'rimraf'
 
 import { Studio } from '../Studio'
 
+process.env.NAPI = ''
 const STUDIO_TEST_PORT = 5678
 
 // silencium
