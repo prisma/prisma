@@ -16,7 +16,7 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.0",
     "eslint": "7.21.0",
-    "eslint-config-prettier": "7.2.0",
+    "eslint-config-prettier": "8.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.2.0",
     "eslint-plugin-prettier": "3.3.1",

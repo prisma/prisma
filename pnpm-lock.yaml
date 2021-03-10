@@ -7,10 +7,10 @@ devDependencies:
   benchmark: 2.1.4
   chalk: 4.1.0
   eslint: 7.21.0
-  eslint-config-prettier: 7.2.0_eslint@7.21.0
+  eslint-config-prettier: 8.1.0_eslint@7.21.0
   eslint-plugin-eslint-comments: 3.2.0_eslint@7.21.0
   eslint-plugin-jest: 24.2.0_eslint@7.21.0+typescript@4.2.3
-  eslint-plugin-prettier: 3.3.1_89e7f0daad470a5602ab49dfc5447533
+  eslint-plugin-prettier: 3.3.1_328fff7ca4342e26ba070884b05a404a
   execa: 5.0.0
   globby: 11.0.2
   husky: 4.3.8
@@ -486,7 +486,7 @@ packages:
       node: '>=0.8.0'
     resolution:
       integrity: sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
-  /eslint-config-prettier/7.2.0_eslint@7.21.0:
+  /eslint-config-prettier/8.1.0_eslint@7.21.0:
     dependencies:
       eslint: 7.21.0
     dev: true
@@ -494,7 +494,7 @@ packages:
     peerDependencies:
       eslint: '>=7.0.0'
     resolution:
-      integrity: sha512-rV4Qu0C3nfJKPOAhFujFxB7RMP+URFyQqqOZW9DMRD7ZDTFyjaIlETU3xzHELt++4ugC0+Jm084HQYkkJe+Ivg==
+      integrity: sha512-oKMhGv3ihGbCIimCAjqkdzx2Q+jthoqnXSP+d86M9tptwugycmTFdVR4IpLgq2c4SHifbwO90z2fQ8/Aio73yw==
   /eslint-plugin-eslint-comments/3.2.0_eslint@7.21.0:
     dependencies:
       escape-string-regexp: 1.0.5
@@ -519,10 +519,10 @@ packages:
       typescript: '*'
     resolution:
       integrity: sha512-PZ6+/cOldZxpGF3rVYX6Y+83AUAI4jofdtyVrjimVHgXHfPBC5UKVTn92f6aFFV9HuD8xa1WNqY5s3kgfSzROQ==
-  /eslint-plugin-prettier/3.3.1_89e7f0daad470a5602ab49dfc5447533:
+  /eslint-plugin-prettier/3.3.1_328fff7ca4342e26ba070884b05a404a:
     dependencies:
       eslint: 7.21.0
-      eslint-config-prettier: 7.2.0_eslint@7.21.0
+      eslint-config-prettier: 8.1.0_eslint@7.21.0
       prettier: 2.2.1
       prettier-linter-helpers: 1.0.0
     dev: true
@@ -1505,7 +1505,7 @@ specifiers:
   benchmark: 2.1.4
   chalk: 4.1.0
   eslint: 7.21.0
-  eslint-config-prettier: 7.2.0
+  eslint-config-prettier: 8.1.0
   eslint-plugin-eslint-comments: 3.2.0
   eslint-plugin-jest: 24.2.0
   eslint-plugin-prettier: 3.3.1
