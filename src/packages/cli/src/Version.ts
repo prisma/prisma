@@ -84,7 +84,7 @@ export class Version implements Command {
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
       [
         'Default·Engines·Hash',
-         packageJson.dependencies['@prisma/engines'].split(".").pop()
+        packageJson.dependencies['@prisma/engines'].split(".").pop()
       ],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
