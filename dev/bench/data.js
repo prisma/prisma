@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615368106978,
+  "lastUpdate": 1615368269819,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -18255,6 +18255,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±4.69%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6a392f0ec310ecaae585116989fb5cfe488adf30",
+          "message": "chore: replace cleanup-runs gh action (#6043)",
+          "timestamp": "2021-03-10T10:20:41+01:00",
+          "tree_id": "09837dabbacac192f1f9a178adf1cd18ed12e8db",
+          "url": "https://github.com/prisma/prisma/commit/6a392f0ec310ecaae585116989fb5cfe488adf30"
+        },
+        "date": 1615368268639,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±2.56%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.09%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
