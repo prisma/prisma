@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615368792357,
+  "lastUpdate": 1615369085116,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -18365,6 +18365,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "c4d53219f386c8c41f7f13e2a0cadf4fc89f6515",
+          "message": "chore(deps): update dependency eslint-config-prettier to v8",
+          "timestamp": "2021-03-10T09:30:12Z",
+          "url": "https://github.com/prisma/prisma/pull/6044/commits/c4d53219f386c8c41f7f13e2a0cadf4fc89f6515"
+        },
+        "date": 1615369083222,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±7.40%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±4.04%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
