@@ -42,17 +42,16 @@ env:
   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
-  # From https://github.com/marketplace/actions/workflow-run-cleanup-action
+  # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
+    continue-on-error: true
     runs-on: ubuntu-20.04
-    steps:
-      - uses: rokroskar/workflow-run-cleanup-action@master
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+    steps:
+      - uses: fkirc/skip-duplicate-actions@v3.3.0
 
   #
   # Linting
