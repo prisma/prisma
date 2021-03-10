@@ -13,7 +13,7 @@ export function getLogLevel(
   return log.reduce<LogLevel | undefined>((acc, curr) => {
     const currentLevel = typeof curr === 'string' ? curr : curr.level
     if (currentLevel === 'query') {
-      return acc
+      return 'info'
     }
     if (!acc) {
       return currentLevel
