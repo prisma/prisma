@@ -4,7 +4,7 @@ import {
   getos,
   getPlatform,
   Platform,
-  platforms
+  platforms,
 } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
@@ -294,7 +294,9 @@ async function binaryNeedsToBeDownloaded(
         }
         const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
-          debug(`overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`)
+          debug(
+            `overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`,
+          )
           await copy(cachedFile, job.targetFilePath)
         }
         return false
