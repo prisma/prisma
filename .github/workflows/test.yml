@@ -42,17 +42,16 @@ env:
   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
 jobs:
-  # From https://github.com/marketplace/actions/workflow-run-cleanup-action
+  # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
+    continue-on-error: true
     runs-on: ubuntu-20.04
-    steps:
-      - uses: rokroskar/workflow-run-cleanup-action@master
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+    steps:
+      - uses: fkirc/skip-duplicate-actions@v3.3.0
 
   #
   # Linting
@@ -159,10 +158,11 @@ jobs:
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
-      - name: Upload coverage report
-        working-directory: src/packages/tests
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F tests-integration -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
+          flags: tests-integration,${{ matrix.database }}
+          name: tests-integration-${{ matrix.database }}
 
   #
   # CLI-COMMANDS
@@ -210,10 +210,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        working-directory: src/packages/cli
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F cli -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/cli/src/__tests__/coverage/clover.xml
+          flags: cli,${{ matrix.os }}
+          name: cli-${{ matrix.os }}
 
   #
   # CLIENT (without types test)
@@ -230,8 +231,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 5 # For codecov
           
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
           
@@ -271,11 +270,11 @@ jobs:
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
-      - name: Upload coverage report
-        working-directory: src/packages/client
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F client -f ./src/__tests__/coverage/clover.xml
-
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }}
+          name: client-${{ matrix.os }}
   #
   # CLIENT (types tests only)
   #
@@ -321,10 +320,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        working-directory: src/packages/client
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F client-types -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          flags: client-types,${{ matrix.os }}
+          name: client-types-${{ matrix.os }}
 
   #
   # SDK
@@ -341,8 +341,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 5 # For codecov
           
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
@@ -374,11 +372,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/sdk
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F sdk -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/sdk/src/__tests__/coverage/clover.xml
+          flags: sdk,${{ matrix.os }}
+          name: sdk-${{ matrix.os }}
 
   #
   # MIGRATE
@@ -395,8 +393,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 5 # For codecov
           
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
        
@@ -436,12 +432,11 @@ jobs:
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
           TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/migrate
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F migrate -f ./src/__tests__/coverage/clover.xml
-
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/migrate/src/__tests__/coverage/clover.xml
+          flags: migrate,${{ matrix.os }}
+          name: migrate-${{ matrix.os }}
   #
   # All the other packages!
   #
@@ -457,8 +452,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 5 # For codecov
           
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
@@ -491,11 +484,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/debug
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F debug -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/debug/src/__tests__/coverage/clover.xml
+          flags: debug,${{ matrix.os }}
+          name: debug-${{ matrix.os }}
 
       - run: pnpm run test
         name: "engine-core"
@@ -505,11 +498,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/engine-core
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F engine-core -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/engine-core/src/__tests__/coverage/clover.xml
+          flags: engine-core,${{ matrix.os }}
+          name: engine-core-${{ matrix.os }}
 
       - run: pnpm run test
         name: "fetch-engine"
@@ -519,11 +512,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/fetch-engine
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F fetch-engine -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/fetch-engine/src/__tests__/coverage/clover.xml
+          flags: fetch-engine,${{ matrix.os }}
+          name: fetch-engine-${{ matrix.os }}
 
       - run: pnpm run test
         name: "generator-helper"
@@ -533,11 +526,11 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/generator-helper
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F generator-helper -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/generator-helper/src/__tests__/coverage/clover.xml
+          flags: generator-helper,${{ matrix.os }}
+          name: generator-helper-${{ matrix.os }}
 
       - run: pnpm run test
         name: "get-platform"
@@ -547,8 +540,8 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Upload coverage report
-        if: ${{ !contains(github.actor, 'bot') && matrix.os == 'ubuntu-20.04' }}
-        working-directory: src/packages/get-platform
-        run: |
-          bash <(curl -s https://codecov.io/bash) -F get-platform -f ./src/__tests__/coverage/clover.xml
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/get-platform/src/__tests__/coverage/clover.xml
+          flags: get-platform,${{ matrix.os }}
+          name: get-platform-${{ matrix.os }}

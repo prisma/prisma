@@ -68,9 +68,6 @@ export namespace EngineArgs {
   export interface MarkMigrationRolledBackInput {
     migrationName: string
   }
-  export interface ApplyScriptInput {
-    script: string
-  }
   export interface DiagnoseMigrationHistoryInput {
     migrationsDirectoryPath: string
     /// Whether creating shadow/temporary databases is allowed.
