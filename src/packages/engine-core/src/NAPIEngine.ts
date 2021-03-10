@@ -5,7 +5,7 @@ import {
   getNapiName,
   getPlatform,
   Platform,
-  platforms,
+  platforms
 } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
@@ -16,13 +16,13 @@ import type {
   Engine,
   EngineConfig,
   EngineEventType,
-  GetConfigResult,
+  GetConfigResult
 } from './Engine'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
-  RequestError,
+  RequestError
 } from './errors'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
@@ -116,14 +116,15 @@ export class NAPIEngine implements Engine {
   beforeExitListener?: (args?: any) => any
 
   constructor(config: EngineConfig) {
+    config.dirname && process.chdir(config.dirname)
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.connected = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = new EventEmitter()
-    this.datasourceOverrides = this.config.datasources
-      ? this.convertDatasources(this.config.datasources)
+    this.datasourceOverrides = config.datasources
+      ? this.convertDatasources(config.datasources)
       : {}
 
     if (this.logQueries) {
@@ -323,7 +324,7 @@ You may have to run ${chalk.greenBright(
     query: string,
     headers: Record<string, string>,
     numTry: number,
-  ): Promise<T> {
+  ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
       const data = JSON.parse(
@@ -339,7 +340,7 @@ You may have to run ${chalk.greenBright(
           this.config.clientVersion!,
         )
       }
-      return data
+      return { data, elapsed: 0 }
     } catch (e) {
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -385,6 +386,7 @@ You may have to run ${chalk.greenBright(
           }
           return {
             data: result,
+            elapsed: 0,
           }
         })
       } else {
