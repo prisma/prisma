@@ -5,7 +5,7 @@ import {
   getNapiName,
   getPlatform,
   Platform,
-  platforms
+  platforms,
 } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
@@ -16,13 +16,13 @@ import type {
   Engine,
   EngineConfig,
   EngineEventType,
-  GetConfigResult
+  GetConfigResult,
 } from './Engine'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
-  RequestError
+  RequestError,
 } from './errors'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
