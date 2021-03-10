@@ -360,53 +360,6 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
   migrate.stop()
 })
 
-it('applyScript - existing-db-1-migration', async () => {
-  ctx.fixture('existing-db-1-migration')
-  const schemaPath = (await getSchemaPath())!
-  const migrate = new Migrate(schemaPath)
-  const result = migrate.engine.applyScript({
-    script: `create table teams (
-      id int primary key not null,
-      name varchar(50) not null unique
-    );
-    insert into teams (id, name) values (1, 'a');
-    insert into teams (id, name) values (2, 'b');`,
-  })
-
-  await expect(result).resolves.toMatchInlineSnapshot(`Object {}`)
-
-  const datamodel = migrate.getDatamodel()
-  const pushResult = migrate.engine.schemaPush({
-    force: false,
-    schema: datamodel,
-  })
-
-  await expect(pushResult).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 0,
-            unexecutable: Array [],
-            warnings: Array [
-              You are about to drop the \`teams\` table, which is not empty (2 rows).,
-            ],
-          }
-        `)
-
-  migrate.stop()
-})
-
-it('applyScript - error', async () => {
-  ctx.fixture('existing-db-1-migration')
-  const schemaPath = (await getSchemaPath())!
-  const migrate = new Migrate(schemaPath)
-  const result = migrate.engine.applyScript({
-    script: `InCORRECT SQL;;;`,
-  })
-
-  await expect(result).rejects.toThrow()
-
-  migrate.stop()
-})
-
 it('listMigrationDirectories - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
