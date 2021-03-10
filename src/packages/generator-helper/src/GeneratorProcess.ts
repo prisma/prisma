@@ -1,7 +1,12 @@
 import { ChildProcessByStdio, fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import byline from './byline'
-import { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
+import {
+  GeneratorConfig,
+  GeneratorManifest,
+  GeneratorOptions,
+  JsonRPC,
+} from './types'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 

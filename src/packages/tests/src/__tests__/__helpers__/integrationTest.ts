@@ -409,9 +409,7 @@ function makeDatasourceBlock(providerName: string, url: string) {
 /**
  * Create Prisma schema enabled features array of strings.
  */
-function renderPreviewFeatures(
-  featureMatrix: PreviewFeature[] | undefined,
-) {
+function renderPreviewFeatures(featureMatrix: PreviewFeature[] | undefined) {
   if (featureMatrix) {
     return `previewFeatures = [${featureMatrix.map(
       (feature) => `"` + feature + `"`,

@@ -14,7 +14,7 @@ const stat = promisify(fs.stat)
 export async function cleanupCache(n = 5): Promise<void> {
   try {
     const rootCacheDir = await getRootCacheDir()
-    if(!rootCacheDir){
+    if (!rootCacheDir) {
       debug('no rootCacheDir found')
       return
     }

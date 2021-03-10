@@ -11,7 +11,11 @@ export class Generator {
   public manifest: GeneratorManifest | null = null
   public config: GeneratorConfig
   public options?: GeneratorOptions
-  constructor(executablePath: string, config: GeneratorConfig, isNode?: boolean) {
+  constructor(
+    executablePath: string,
+    config: GeneratorConfig,
+    isNode?: boolean,
+  ) {
     this.config = config
     this.generatorProcess = new GeneratorProcess(executablePath, isNode)
   }
