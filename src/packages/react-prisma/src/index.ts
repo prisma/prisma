@@ -3,9 +3,9 @@ import { unstable_getCacheForType, Wakeable } from 'react'
 import { PrismaClient as PrismaClientConstructor, dmmf } from '.prisma/client'
 
 enum STATUS {
- Pending,
- Resolved,
- Rejected
+  Pending,
+  Resolved,
+  Rejected,
 }
 
 const { Pending, Resolved, Rejected } = STATUS

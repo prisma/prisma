@@ -13,7 +13,6 @@ import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import {
-  PreviewFlagError,
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
 } from '../utils/flagErrors'

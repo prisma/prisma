@@ -57,7 +57,6 @@ const logger = (...args) => {
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
 
-
 export type Deferred = {
   resolve: () => void
   reject: (err: Error) => void
