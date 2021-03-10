@@ -19876,24 +19876,6 @@ Object {
                 Object {
                   "isList": false,
                   "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
                   "type": "String",
                 },
                 Object {
@@ -19961,24 +19943,6 @@ Object {
             "minNumFields": null,
           },
           "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
             Object {
               "inputTypes": Array [
                 Object {
@@ -20314,6 +20278,27 @@ Object {
                 Object {
                   "isList": false,
                   "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "StringFieldUpdateOperationsInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
                   "type": "Int",
                 },
               ],
@@ -20371,27 +20356,6 @@ Object {
             },
           ],
           "name": "IntFieldUpdateOperationsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "String",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "StringFieldUpdateOperationsInput",
         },
         Object {
           "constraints": Object {
