@@ -131,10 +131,6 @@ export class Migrate {
     })
   }
 
-  public applyScript({ script }: { script: string }): Promise<void> {
-    return this.engine.applyScript({ script })
-  }
-
   public applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
     return this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,

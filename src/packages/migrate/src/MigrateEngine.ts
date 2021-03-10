@@ -92,10 +92,6 @@ export class MigrateEngine {
   ): Promise<void> {
     return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
   }
-  // Apply a script without writing to the migrations table. This is currently used for correcting drift.
-  public applyScript(args: EngineArgs.ApplyScriptInput): Promise<void> {
-    return this.runCommand(this.getRPCPayload('applyScript', args))
-  }
   public diagnoseMigrationHistory(
     args: EngineArgs.DiagnoseMigrationHistoryInput,
   ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
