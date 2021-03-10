@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "lint": "ts-node scripts/lint.ts",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "precommit-all": "ts-node scripts/lint.ts --staged",
@@ -13,6 +14,7 @@
     "@typescript-eslint/parser": "4.16.1",
     "arg": "5.0.0",
     "benchmark": "2.1.4",
+    "boxen": "5.0.0",
     "chalk": "4.1.0",
     "eslint": "7.21.0",
     "eslint-config-prettier": "7.2.0",
@@ -23,9 +25,11 @@
     "globby": "11.0.2",
     "husky": "4.3.8",
     "p-map": "4.0.0",
+    "prettier": "2.2.1",
     "staged-git-files": "1.2.0",
     "ts-node": "9.1.1",
-    "typescript": "4.2.3"
+    "typescript": "4.2.3",
+    "which-pm-runs": "1.0.0"
   },
   "husky": {
     "hooks": {
