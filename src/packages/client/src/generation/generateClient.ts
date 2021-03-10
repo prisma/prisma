@@ -88,7 +88,9 @@ export async function buildClient({
       outputDir,
     ),
     generator,
-    platforms: useNapi ? Object.keys(binaryPaths.libqueryEngineNapi!) : Object.keys(binaryPaths.queryEngine!),
+    platforms: useNapi
+      ? Object.keys(binaryPaths.libqueryEngineNapi!)
+      : Object.keys(binaryPaths.queryEngine!),
     schemaDir,
     outputDir,
     clientVersion,

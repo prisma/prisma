@@ -178,7 +178,9 @@ You may have to run ${chalk.greenBright(
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
         } catch (e) {
           throw new PrismaClientInitializationError(
-            `Unable to load NAPI Library from ${chalk.dim(this.libQueryEnginePath)}`,
+            `Unable to load NAPI Library from ${chalk.dim(
+              this.libQueryEnginePath,
+            )}`,
             this.config.clientVersion!,
           )
         }
@@ -438,7 +440,8 @@ You may have to run ${chalk.greenBright(
     return { enginePath: enginePath ?? '', searchedLocations }
   }
   private async getLibQueryEnginePath(): Promise<string> {
-    const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
+    const libPath =
+      process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
     if (libPath && fs.existsSync(libPath)) {
       return libPath
     }
