@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615369085116,
+  "lastUpdate": 1615369397704,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -18399,6 +18399,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±4.04%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0501c7b58565342abb80ba47b655a3edf90f1edd",
+          "message": "chore(deps): update dependency eslint-config-prettier to v8 (#6044)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-03-10T10:39:30+01:00",
+          "tree_id": "a5e402e769abf140875573fb0b16f9b56dac6928",
+          "url": "https://github.com/prisma/prisma/commit/0501c7b58565342abb80ba47b655a3edf90f1edd"
+        },
+        "date": 1615369396567,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±4.57%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.92%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
