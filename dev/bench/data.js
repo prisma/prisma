@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615464653442,
+  "lastUpdate": 1615470335946,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19265,6 +19265,40 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.06%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "committer": {
+            "name": "prisma",
+            "username": "prisma"
+          },
+          "id": "f6b9757f39dddb6ab952632927f4c36b498b7c08",
+          "message": "fix(client): add BigInt to serializeRawParemeters",
+          "timestamp": "2021-03-11T13:36:13Z",
+          "url": "https://github.com/prisma/prisma/pull/6059/commits/f6b9757f39dddb6ab952632927f4c36b498b7c08"
+        },
+        "date": 1615470334349,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±6.63%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±4.70%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
