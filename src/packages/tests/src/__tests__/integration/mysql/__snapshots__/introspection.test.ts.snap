@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`introspection: create bigint data: datamodel 1`] = `
-generator client {
+foo generator client {
   provider = "prisma-client-js"
   output = "***"
 }
