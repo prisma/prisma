@@ -78,7 +78,8 @@ export async function buildClient({
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const useNapi =
-    generator?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
+    generator?.previewFeatures?.includes('napi') ||
+    process.env.PRISMA_FORCE_NAPI === 'true'
   const client = new TSClient({
     document,
     runtimePath,
@@ -159,7 +160,8 @@ export async function generateClient({
 
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
-    generator?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
+    generator?.previewFeatures?.includes('napi') ||
+    process.env.PRISMA_FORCE_NAPI === 'true'
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 

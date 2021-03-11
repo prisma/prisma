@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
+import { getEnginesPath } from '@prisma/engines'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -48,7 +48,8 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi = enablePreview.includes('napi') || process.env.NAPI === 'true'
+  const useNapi =
+    enablePreview.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
