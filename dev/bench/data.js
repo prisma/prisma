@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615480298325,
+  "lastUpdate": 1615483344133,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19409,6 +19409,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8637ed2385d45062cb050c9fd7332bf499f3e180",
+          "message": "fix(migrate): improve readability of data loss warnings (#6068)\n\nhttps://github.com/prisma/prisma/issues/6056",
+          "timestamp": "2021-03-11T18:18:30+01:00",
+          "tree_id": "71c577840603cd3d78b988f56fec9a0780b264e0",
+          "url": "https://github.com/prisma/prisma/commit/8637ed2385d45062cb050c9fd7332bf499f3e180"
+        },
+        "date": 1615483342839,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±5.48%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±3.71%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
