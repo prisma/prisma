@@ -83,7 +83,7 @@ export class Version implements Command {
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
       [
-        'Default·Engines·Hash',
+        'Default Engines Hash',
         packageJson.dependencies['@prisma/engines'].split(".").pop()
       ],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
