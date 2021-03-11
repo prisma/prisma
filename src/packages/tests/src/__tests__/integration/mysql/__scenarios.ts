@@ -4,7 +4,7 @@ export const scenarios = [
   {
     name: 'findUnique where PK',
     up: `
-        create table teams (
+        create table teamsasdfadf (
           id int primary key not null,
           name varchar(50) not null unique
         );
