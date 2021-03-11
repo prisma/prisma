@@ -44,7 +44,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
-
+    checkTypeScriptVersion()
     if (debugEnabled) {
       console.log({ prismaClientDir })
     }
@@ -155,7 +155,37 @@ function checkYarnVersion() {
     }
   }
 }
-
+/**
+ * Warn, if typescript is below `4.1.0` or if it is not install locally or globally
+ */
+function checkTypeScriptVersion() {
+  const minVersion = '4.1.0'
+  try {
+    const output = execa.sync('tsc', ['-v'], {
+      preferLocal: true,
+    })
+    if (output.stdout) {
+      const currentVersion = output.stdout.split(' ')[1]
+      if (semverLt(currentVersion, minVersion)) {
+        logger.warn(
+          `Your ${chalk.bold(
+            'typescipt',
+          )} version ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+            minVersion,
+          )} or ${chalk.bold('newer')} in order to use Prisma.`,
+        )
+      }
+    }
+  } catch (e) {
+    logger.error(
+      `You do not have ${chalk.bold(
+        'typescript',
+      )} installed. Please install at least version ${chalk.bold(
+        minVersion,
+      )} or ${chalk.bold('newer')} in order to use Prisma.`,
+    )
+  }
+}
 /**
  * Returns true, if semver version `a` is lower than `b`
  * Note: This obviously doesn't support the full semver spec.
