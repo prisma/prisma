@@ -459,7 +459,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private getEngine() {
       if (
         this._previewFeatures.includes('napi') ||
-        process.env.NAPI === 'true'
+        process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
         return new NAPIEngine(this._engineConfig)
       } else {
@@ -1000,7 +1000,7 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      (params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).clientMethod = clientMethod
       ;(params as InternalRequestParams).callsite = callsite
       ;(params as InternalRequestParams).headers = headers
       ;(params as InternalRequestParams).unpacker = unpacker

@@ -14,7 +14,8 @@ const clientVersion = pkg.version
 generatorHandler({
   onManifest(config) {
     const requiredEngine =
-      config?.previewFeatures?.includes('napi') || process.env.NAPI === 'true'
+      config?.previewFeatures?.includes('napi') ||
+      process.env.PRISMA_FORCE_NAPI === 'true'
         ? 'libqueryEngineNapi'
         : 'queryEngine'
     debug(`requiredEngine: ${requiredEngine}`)
