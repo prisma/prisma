@@ -11,7 +11,7 @@ process.setMaxListeners(200)
 
 process.env.SKIP_GENERATE = 'true'
 
-const engine = new IntrospectionEngine()
+let engine = new IntrospectionEngine()
 
 /**
  * A potentially async value
@@ -323,6 +323,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
+  engine = new IntrospectionEngine()
   const introspectionResult = await engine.introspect(schemaBase)
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
