@@ -40,11 +40,7 @@ export async function handleWarnings(
   createOnly = false,
 ): Promise<boolean | void> {
   if (warnings && warnings.length > 0) {
-    console.log(
-      chalk.bold(
-        `\n⚠️  There will be data loss when applying the migration:\n`,
-      ),
-    )
+    console.log(chalk.bold(`\n⚠️  Warnings:\n`))
     for (const warning of warnings) {
       console.log(chalk(`  • ${warning.message}`))
     }
