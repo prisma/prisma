@@ -89,7 +89,7 @@ test('transaction', async () => {
       }),
     ])
   } catch (e) {
-    if (!e.message.includes('P2002')) {
+    if (!(e.code === 'P2002' || e.message.includes('P2002'))) {
       throw new Error(e)
     }
   }
