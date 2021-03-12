@@ -37,7 +37,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
     "build": "node helpers/build.js",
-    "test": "jest",
+    "test": "node helper/patchJest.js && jest",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
@@ -45,7 +45,8 @@
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "prepublishOnly": "pnpm run build",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "patch-package": "patch-package"
   },
   "files": [
     "README.md",
@@ -97,11 +98,13 @@
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
     "mssql": "6.3.1",
+    "patch-package": "^6.4.6",
     "pg": "8.5.1",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "prettier": "2.2.1",
     "replace-string": "3.1.0",
+    "resolve-from": "^5.0.0",
     "rimraf": "3.0.2",
     "rollup": "2.41.2",
     "rollup-plugin-dts": "3.0.1",
