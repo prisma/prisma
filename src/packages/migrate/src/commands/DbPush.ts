@@ -252,11 +252,11 @@ ${chalk.bold.redBright('All data will be lost.')}
           Date.now() - before,
         )}`,
       )
+    }
 
-      // Run if not skipped
-      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-        await migrate.tryToRunGenerate()
-      }
+    // Run if not skipped
+    if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+      await migrate.tryToRunGenerate()
     }
 
     return ``
