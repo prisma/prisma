@@ -1,4 +1,3 @@
-import { ensureBinariesExist } from '@prisma/engines'
 import {
   BinaryPaths,
   DataSource,
@@ -156,8 +155,6 @@ export async function generateClient({
   engineVersion,
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  await ensureBinariesExist()
-
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
     generator?.previewFeatures?.includes('napi') ||
