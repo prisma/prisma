@@ -101,6 +101,7 @@ export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
+  private currentQuery?: Promise<any>
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
   private logEmitter: EventEmitter
@@ -274,6 +275,7 @@ You may have to run ${chalk.greenBright(
     }
   }
   async emitExit() {
+    await this.currentQuery
     if (this.beforeExitListener) {
       try {
         await this.beforeExitListener()
@@ -291,14 +293,21 @@ You may have to run ${chalk.greenBright(
     return this.engine?.connect({ enableRawQueries: true })
   }
   async stop(): Promise<void> {
-    await this.emitExit()
-    await this.engine?.disconnect()
+    if (this.connected) {
+      await this.emitExit()
+      await this.engine?.disconnect()
+      this.connected = false
+    }
   }
   kill(signal: string): void {
     debug(`disconnect called with kill signal ${signal}`)
-    void this.emitExit().then(() => {
-      void this.engine?.disconnect()
-    })
+    if (this.connected) {
+      void this.emitExit().then(() => {
+        void this.engine?.disconnect().then(() => {
+          this.connected = false
+        })
+      })
+    }
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()
@@ -337,9 +346,8 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      const data = this.parseEngineResponse<any>(
-        await this.engine!.query({ query, variables: {} }),
-      )
+      this.currentQuery = this.engine!.query({ query, variables: {} })
+      const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
           throw this.graphQLToJSError(data.errors[0])
@@ -374,7 +382,8 @@ You may have to run ${chalk.greenBright(
       batch: queries.map((query) => ({ query, variables })),
       transaction,
     }
-    const result = await this.engine!.query(body)
+    this.currentQuery = this.engine!.query(body)
+    const result = await this.currentQuery
     const data = this.parseEngineResponse<any>(result)
 
     if (data.errors) {
