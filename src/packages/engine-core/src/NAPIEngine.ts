@@ -101,6 +101,7 @@ export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
+  private disconnectPromise?: Promise<void>
   private currentQuery?: Promise<any>
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
@@ -116,7 +117,6 @@ export class NAPIEngine implements Engine {
   beforeExitListener?: (args?: any) => any
 
   constructor(config: EngineConfig) {
-    config.dirname && process.chdir(config.dirname)
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.connected = false
@@ -137,9 +137,11 @@ export class NAPIEngine implements Engine {
     this.setupPromise = this.internalSetup()
   }
   private async internalSetup(): Promise<void> {
+    debug('internalSetup')
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
-    return this.loadEngine()
+    const loadEngines = this.loadEngine()
+    return loadEngines
   }
   private async getPlatform() {
     if (this.platform) return this.platform
@@ -182,6 +184,7 @@ You may have to run ${chalk.greenBright(
     return obj
   }
   private async loadEngine(): Promise<void> {
+    debug('loadEngine')
     if (!this.engine) {
       if (!this.QueryEngine) {
         if (!this.libQueryEnginePath) {
@@ -276,6 +279,7 @@ You may have to run ${chalk.greenBright(
   }
   async emitExit() {
     await this.currentQuery
+    debug('emitExit')
     if (this.beforeExitListener) {
       try {
         await this.beforeExitListener()
@@ -287,30 +291,41 @@ You may have to run ${chalk.greenBright(
   async start(): Promise<void> {
     await this.setupPromise
     if (this.connectPromise || this.connected) {
+      debug('already started')
       return this.connectPromise
     }
+    debug('start')
     this.connected = true
-    return this.engine?.connect({ enableRawQueries: true })
+    this.connectPromise = this.engine?.connect({ enableRawQueries: true })
+    return this.connectPromise
   }
   async stop(): Promise<void> {
-    if (this.connected) {
-      await this.emitExit()
-      await this.engine?.disconnect()
-      this.connected = false
-    }
+    await this.start()
+    debug('stop')
+    if (this.disconnectPromise) return this.disconnectPromise
+    // eslint-disable-next-line no-async-promise-executor
+    this.disconnectPromise = new Promise(async (res) => {
+      if (this.connected) {
+        await this.emitExit()
+        this.connected = false
+        await this.engine?.disconnect()
+      }
+      res()
+    })
+    return this.disconnectPromise
   }
   kill(signal: string): void {
     debug(`disconnect called with kill signal ${signal}`)
-    if (this.connected) {
-      void this.emitExit().then(() => {
-        void this.engine?.disconnect().then(() => {
-          this.connected = false
-        })
+    if (this.connected && !this.disconnectPromise) {
+      this.disconnectPromise = this.emitExit().then(() => {
+        this.connected = false
+        void this.engine?.disconnect()
       })
     }
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()
+    debug('getConfig')
     return this.parseEngineResponse<GetConfigResult>(
       await this.engine!.getConfig(),
     )
@@ -325,6 +340,7 @@ You may have to run ${chalk.greenBright(
   private graphQLToJSError(
     error: RequestError,
   ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+    debug('graphQLToJSError')
     if (error.user_facing_error.error_code) {
       return new PrismaClientKnownRequestError(
         error.user_facing_error.message,
@@ -346,6 +362,7 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
+      debug('request')
       this.currentQuery = this.engine!.query({ query, variables: {} })
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
@@ -377,6 +394,7 @@ You may have to run ${chalk.greenBright(
     numTry = 1,
   ): Promise<any> {
     await this.start()
+    debug('requestBatch')
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
