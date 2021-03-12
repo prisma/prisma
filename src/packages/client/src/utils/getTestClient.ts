@@ -1,3 +1,4 @@
+import { ensureBinariesExist } from '@prisma/engines'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -30,6 +31,7 @@ export async function getTestClient(
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
   }
+  await ensureBinariesExist()
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
