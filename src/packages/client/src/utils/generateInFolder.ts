@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
+import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -33,6 +33,7 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
 }: GenerateInFolderOptions): Promise<number> {
+  await ensureBinariesExist()
   const before = performance.now()
   if (!projectDir) {
     throw new Error(
