@@ -138,10 +138,10 @@ export class NAPIEngine implements Engine {
   }
   private async internalSetup(): Promise<void> {
     debug('internalSetup')
+    if (this.setupPromise) return this.setupPromise
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
-    const loadEngines = this.loadEngine()
-    return loadEngines
+    return this.loadEngine()
   }
   private async getPlatform() {
     if (this.platform) return this.platform
@@ -290,36 +290,54 @@ You may have to run ${chalk.greenBright(
   }
   async start(): Promise<void> {
     await this.setupPromise
-    if (this.connectPromise || this.connected) {
-      debug('already started')
+    await this.disconnectPromise
+
+    if (this.connectPromise) {
+      debug('already starting')
       return this.connectPromise
     }
-    debug('start')
-    this.connected = true
-    this.connectPromise = this.engine?.connect({ enableRawQueries: true })
-    return this.connectPromise
+    if (!this.connected) {
+      // eslint-disable-next-line no-async-promise-executor
+      this.connectPromise = new Promise(async (res) => {
+        debug('starting')
+        await this.engine?.connect({ enableRawQueries: true })
+        debug('started')
+        res()
+      })
+      return this.connectPromise
+    }
   }
+
   async stop(): Promise<void> {
-    await this.start()
+    await this.connectPromise
     debug('stop')
-    if (this.disconnectPromise) return this.disconnectPromise
+    if (this.disconnectPromise) {
+      debug('disconnect already called')
+      return this.disconnectPromise
+    }
     // eslint-disable-next-line no-async-promise-executor
     this.disconnectPromise = new Promise(async (res) => {
       if (this.connected) {
         await this.emitExit()
-        this.connected = false
+        debug('disconnect called')
         await this.engine?.disconnect()
+        this.connected = false
+        debug('disconnect resolved')
       }
       res()
     })
     return this.disconnectPromise
   }
   kill(signal: string): void {
-    debug(`disconnect called with kill signal ${signal}`)
     if (this.connected && !this.disconnectPromise) {
-      this.disconnectPromise = this.emitExit().then(() => {
+      // eslint-disable-next-line no-async-promise-executor
+      this.disconnectPromise = new Promise(async (res) => {
+        await this.emitExit()
+        debug(`disconnect called with kill signal ${signal}`)
+        await this.engine?.disconnect()
         this.connected = false
-        void this.engine?.disconnect()
+        debug(`disconnect resolved`)
+        res()
       })
     }
   }
@@ -362,7 +380,10 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      debug('request')
+      debug(`request: ${this.connected}`)
+      if (!this.connected) {
+        await this.start()
+      }
       this.currentQuery = this.engine!.query({ query, variables: {} })
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
