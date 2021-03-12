@@ -425,6 +425,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         debug(`clientVersion: ${config.clientVersion}`)
 
         this._engine = this.getEngine()
+        void this._getActiveProvider()
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
         if (options.log) {
@@ -447,7 +448,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         this._bootstrapClient()
-        void this._getActiveProvider()
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e

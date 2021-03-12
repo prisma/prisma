@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { DMMF } from '@prisma/generator-helper'
 import {
   getNapiName,
   getPlatform,
@@ -65,8 +64,8 @@ type ConnectArgs = {
 export type QueryEngine = {
   connect(connectArgs: ConnectArgs): Promise<void>
   disconnect(): Promise<void>
-  getConfig(): Promise<GetConfigResult>
-  dmmf(): Promise<DMMF.Document>
+  getConfig(): Promise<string>
+  dmmf(): Promise<string>
   query(request: any): Promise<string>
   sdlSchema(): Promise<string>
   serverInfo(): Promise<string>
@@ -161,7 +160,17 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
-
+  private parseEngineResponse<T>(response: string): T {
+    try {
+      const config = JSON.parse(response)
+      return config as T
+    } catch (err) {
+      throw new PrismaClientUnknownRequestError(
+        `Unable to JSON.parse response from engine`,
+        this.config.clientVersion!,
+      )
+    }
+  }
   private convertDatasources(
     datasources: DatasourceOverwrite[],
   ): Record<string, string> {
@@ -199,13 +208,11 @@ You may have to run ${chalk.greenBright(
             },
             (err, log) => {
               if (err) throw new Error(err)
-              let event: QueryEngineEvent | null = null
-              try {
-                event = JSON.parse(log)
-                if (!event) return
-              } catch (e) {
-                throw new Error(e)
-              }
+              const event = this.parseEngineResponse<QueryEngineEvent | null>(
+                log,
+              )
+              if (!event) return
+
               event.level = event?.level.toLowerCase() ?? 'unknown'
               if (isQueryEvent(event)) {
                 this.logEmitter.emit('query', {
@@ -295,11 +302,15 @@ You may have to run ${chalk.greenBright(
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()
-    return this.engine!.getConfig()
+    return this.parseEngineResponse<GetConfigResult>(
+      await this.engine!.getConfig(),
+    )
   }
   async version(forceRun?: boolean): Promise<string> {
     await this.start()
-    const serverInfo: ServerInfo = JSON.parse(await this.engine!.serverInfo())
+    const serverInfo = this.parseEngineResponse<ServerInfo>(
+      await this.engine!.serverInfo(),
+    )
     return serverInfo.version
   }
   private graphQLToJSError(
@@ -326,7 +337,7 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      const data = JSON.parse(
+      const data = this.parseEngineResponse<any>(
         await this.engine!.query({ query, variables: {} }),
       )
       if (data.errors) {
@@ -364,7 +375,7 @@ You may have to run ${chalk.greenBright(
       transaction,
     }
     const result = await this.engine!.query(body)
-    const data = JSON.parse(result)
+    const data = this.parseEngineResponse<any>(result)
 
     if (data.errors) {
       if (data.errors.length === 1) {
@@ -434,7 +445,7 @@ You may have to run ${chalk.greenBright(
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
-      debug(`Search for Query Engine in ${location}`)
+      debug(`Search for Query Engine Library in ${location}`)
       enginePath = path.join(location, getNapiName(this.platform, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
