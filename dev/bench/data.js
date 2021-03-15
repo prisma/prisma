@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615817374735,
+  "lastUpdate": 1615822453835,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19941,6 +19941,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±1.92%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ee53fc23146f5002eb08f257f32d68271dcab54a",
+          "message": "fix(deps): update engines to v2.19.0-34.5c31e641cc9f5e16a838ae05489f82c43cb4b8a9 (#6118)\n\n* fix(deps): update engines to v2.19.0-34.5c31e641cc9f5e16a838ae05489f82c43cb4b8a9\r\n\r\n* test(client/sdk): update snapshots\r\n\r\n* chore: update lock\r\n\r\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-03-15T16:30:37+01:00",
+          "tree_id": "014058976164af30f93791a9909f92ece9f54662",
+          "url": "https://github.com/prisma/prisma/commit/ee53fc23146f5002eb08f257f32d68271dcab54a"
+        },
+        "date": 1615822452641,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±6.61%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.62%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
