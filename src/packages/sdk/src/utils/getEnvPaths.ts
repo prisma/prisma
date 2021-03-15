@@ -50,7 +50,7 @@ function getProjectRootEnvPath(
     const pkgPath = path.join(dir, 'package.json')
     if (findUp.exists(pkgPath)) {
       try {
-        const pkg = require(pkgPath)
+        const pkg = JSON.parse(fs.readFileSync(pkgPath))
         if (pkg['name'] !== '.prisma/client') {
           debug(`project root found at ${pkgPath}`)
           return pkgPath
