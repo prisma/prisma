@@ -20,7 +20,7 @@ test('client-version-error', async () => {
                ~~~~~~~~~~
              })
 
-      Unknown arg \`invalidArg\` in invalidArg for type User. Did you mean \`where\`? Available args:
+      Unknown arg \`invalidArg\` in invalidArg for type UserWithAggregations. Did you mean \`where\`? Available args:
       type findManyUser {
         where?: UserWhereInput
         orderBy?: List<UserOrderByInput> | UserOrderByInput
