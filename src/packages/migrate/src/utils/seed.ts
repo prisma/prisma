@@ -52,10 +52,9 @@ export function detectSeedFiles(schemaPath) {
     js: '',
     ts: '',
     sh: '',
-    go: '',
   }
 
-  const extensions = ['js', 'ts', 'sh', 'go']
+  const extensions = ['js', 'ts', 'sh']
   for (const extension of extensions) {
     const fullPath = seedPath + extension
     if (!fs.existsSync(fullPath)) {
@@ -73,14 +72,14 @@ export async function tryToRunSeed(schemaPath: string | null) {
 
   if (detected.numberOfSeedFiles === 0) {
     throw new Error(`No seed file found.
-Create a \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\` file in the prisma directory.`)
+Create a \`seed.ts\`, \`.js\` or \`.sh\` file in the prisma directory.`)
   } else if (detected.numberOfSeedFiles > 1) {
     throw new Error(
       `More than one seed file was found in \`${path.relative(
         process.cwd(),
         path.dirname(detected.seedPath),
       )}\` directory.
-This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.`,
+This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
     )
   } else {
     if (detected.js) {
@@ -136,12 +135,6 @@ To install them run: ${chalk.green(
     } else if (detected.sh) {
       console.info(`Running ${chalk.bold(`sh "${detected.sh}"`)} ...`)
       return await execa('sh', [`"${detected.sh}"`], {
-        shell: true,
-        stdio: 'inherit',
-      })
-    } else if (detected.go) {
-      console.info(`Running ${chalk.bold(`go run "${detected.go}"`)} ...`)
-      return await execa('go run', [`"${detected.go}"`], {
         shell: true,
         stdio: 'inherit',
       })
