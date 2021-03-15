@@ -19,9 +19,7 @@ test('raw-transaction: queryRaw', async () => {
     client.$disconnect()
   }
   if (process.env.PRISMA_FORCE_NAPI) {
-    expect(warnings).toMatchInlineSnapshot(`
-    Array []
-  `)
+    expect(warnings).toMatchInlineSnapshot(`Array []`)
   } else {
     expect(warnings).toMatchInlineSnapshot(`
       Array [
