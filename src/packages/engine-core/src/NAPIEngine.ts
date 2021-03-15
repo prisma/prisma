@@ -132,7 +132,8 @@ export class NAPIEngine implements Engine {
       this.logLevel = 'info'
     }
     if (config.enableEngineDebugMode) {
-      Debug.enable('*')
+      this.logLevel = 'debug'
+      // Debug.enable('*')
     }
     this.setupPromise = this.internalSetup()
   }
