@@ -1,4 +1,5 @@
 import { Input } from '../../__helpers__/integrationTest'
+import { Decimal } from 'decimal.js'
 
 export const scenarios = [
   {
@@ -1397,7 +1398,7 @@ export const scenarios = [
     },
     expect: [
       {
-        distance: 12.213,
+        distance: new Decimal('12.213'),
         id: 1,
       },
     ],
@@ -1415,7 +1416,7 @@ export const scenarios = [
       return client.exercises.findUnique({ where: { distance: 12.213 } })
     },
     expect: {
-      distance: 12.213,
+      distance: new Decimal('12.213'),
       id: 1,
     },
   },
@@ -1435,7 +1436,7 @@ export const scenarios = [
       return client.exercises.findUnique({ where: { distance: 12.3 } })
     },
     expect: {
-      distance: 12.3,
+      distance: new Decimal('12.3'),
       id: 2,
     },
   },
