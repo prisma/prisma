@@ -1560,8 +1560,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "UserWithAggregations",
+                "namespace": "model",
+                "type": "User",
               },
             },
             Object {
@@ -1979,31 +1979,6 @@ Object {
             },
           ],
           "name": "Mutation",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "email",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-          ],
-          "name": "UserWithAggregations",
         },
         Object {
           "fields": Array [
@@ -7928,8 +7903,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "PostWithAggregations",
+                "namespace": "model",
+                "type": "Post",
               },
             },
             Object {
@@ -8222,8 +8197,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "UserWithAggregations",
+                "namespace": "model",
+                "type": "User",
               },
             },
             Object {
@@ -8516,8 +8491,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "User1WithAggregations",
+                "namespace": "model",
+                "type": "User1",
               },
             },
             Object {
@@ -8810,8 +8785,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "User2WithAggregations",
+                "namespace": "model",
+                "type": "User2",
               },
             },
             Object {
@@ -9930,73 +9905,6 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "author",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "authorId",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "title",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "published",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": true,
-              "name": "_count",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "PostCountOutputType",
-              },
-            },
-          ],
-          "name": "PostWithAggregations",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
               "isNullable": true,
               "name": "count",
               "outputType": Object {
@@ -10052,136 +9960,6 @@ Object {
             },
           ],
           "name": "AggregatePost",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "email",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostWhereInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": true,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostOrderByInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostOrderByInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "orderBy",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "cursor",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Int",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "take",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Int",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "skip",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": true,
-                      "location": "enumTypes",
-                      "namespace": "prisma",
-                      "type": "PostScalarFieldEnum",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "distinct",
-                },
-              ],
-              "isNullable": true,
-              "name": "posts",
-              "outputType": Object {
-                "isList": true,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": true,
-              "name": "_count",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "UserCountOutputType",
-              },
-            },
-          ],
-          "name": "UserWithAggregations",
         },
         Object {
           "fields": Array [
@@ -10247,51 +10025,6 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "firstName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "lastName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "isAdmin",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-          ],
-          "name": "User1WithAggregations",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
               "isNullable": true,
               "name": "count",
               "outputType": Object {
@@ -10347,51 +10080,6 @@ Object {
             },
           ],
           "name": "AggregateUser1",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "firstName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "lastName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "isAdmin",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-          ],
-          "name": "User2WithAggregations",
         },
         Object {
           "fields": Array [
@@ -10467,21 +10155,6 @@ Object {
             },
           ],
           "name": "AffectedRowsOutput",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "author",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-          ],
-          "name": "PostCountOutputType",
         },
         Object {
           "fields": Array [
@@ -10677,21 +10350,6 @@ Object {
             },
           ],
           "name": "PostMaxAggregateOutputType",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "posts",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-          ],
-          "name": "UserCountOutputType",
         },
         Object {
           "fields": Array [
@@ -16891,8 +16549,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "PostWithAggregations",
+                "namespace": "model",
+                "type": "Post",
               },
             },
             Object {
@@ -17185,8 +16843,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "UserWithAggregations",
+                "namespace": "model",
+                "type": "User",
               },
             },
             Object {
@@ -17479,8 +17137,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "User1WithAggregations",
+                "namespace": "model",
+                "type": "User1",
               },
             },
             Object {
@@ -17773,8 +17431,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "User2WithAggregations",
+                "namespace": "model",
+                "type": "User2",
               },
             },
             Object {
@@ -18893,73 +18551,6 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "author",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "authorId",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "title",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "published",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": true,
-              "name": "_count",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "PostCountOutputType",
-              },
-            },
-          ],
-          "name": "PostWithAggregations",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
               "isNullable": true,
               "name": "count",
               "outputType": Object {
@@ -19015,136 +18606,6 @@ Object {
             },
           ],
           "name": "AggregatePost",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "email",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostWhereInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "where",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": true,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostOrderByInput",
-                    },
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostOrderByInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "orderBy",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "inputObjectTypes",
-                      "namespace": "prisma",
-                      "type": "PostWhereUniqueInput",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "cursor",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Int",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "take",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Int",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "skip",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": true,
-                      "location": "enumTypes",
-                      "namespace": "prisma",
-                      "type": "PostScalarFieldEnum",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "distinct",
-                },
-              ],
-              "isNullable": true,
-              "name": "posts",
-              "outputType": Object {
-                "isList": true,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "Post",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": true,
-              "name": "_count",
-              "outputType": Object {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "UserCountOutputType",
-              },
-            },
-          ],
-          "name": "UserWithAggregations",
         },
         Object {
           "fields": Array [
@@ -19210,51 +18671,6 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "firstName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "lastName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "isAdmin",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-          ],
-          "name": "User1WithAggregations",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
               "isNullable": true,
               "name": "count",
               "outputType": Object {
@@ -19310,51 +18726,6 @@ Object {
             },
           ],
           "name": "AggregateUser1",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "firstName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "lastName",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "isAdmin",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Boolean",
-              },
-            },
-          ],
-          "name": "User2WithAggregations",
         },
         Object {
           "fields": Array [
@@ -19430,21 +18801,6 @@ Object {
             },
           ],
           "name": "AffectedRowsOutput",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "author",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-          ],
-          "name": "PostCountOutputType",
         },
         Object {
           "fields": Array [
@@ -19640,21 +18996,6 @@ Object {
             },
           ],
           "name": "PostMaxAggregateOutputType",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "posts",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-          ],
-          "name": "UserCountOutputType",
         },
         Object {
           "fields": Array [
@@ -20127,11 +19468,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `88457436`;
+exports[`getDMMF big schema 1`] = `86501474`;
 
-exports[`getDMMF chinook introspected schema 1`] = `707824`;
+exports[`getDMMF chinook introspected schema 1`] = `680637`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `707824`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `680637`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -21485,8 +20826,8 @@ Object {
               "outputType": Object {
                 "isList": true,
                 "location": "outputObjectTypes",
-                "namespace": "prisma",
-                "type": "AWithAggregations",
+                "namespace": "model",
+                "type": "A",
               },
             },
             Object {
@@ -21904,31 +21245,6 @@ Object {
             },
           ],
           "name": "Mutation",
-        },
-        Object {
-          "fields": Array [
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "id",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Int",
-              },
-            },
-            Object {
-              "args": Array [],
-              "isNullable": false,
-              "name": "name",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "String",
-              },
-            },
-          ],
-          "name": "AWithAggregations",
         },
         Object {
           "fields": Array [
