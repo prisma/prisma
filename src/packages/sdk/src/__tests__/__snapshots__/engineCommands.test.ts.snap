@@ -2208,7 +2208,6 @@ Object {
     "models": Array [
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
@@ -2369,7 +2368,6 @@ Object {
       },
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
@@ -2451,7 +2449,6 @@ Object {
       },
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
@@ -11174,7 +11171,6 @@ Object {
     "models": Array [
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
@@ -11335,7 +11331,6 @@ Object {
       },
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
@@ -11417,7 +11412,6 @@ Object {
       },
       Object {
         "dbName": null,
-        "documentation": "",
         "fields": Array [
           Object {
             "default": Object {
