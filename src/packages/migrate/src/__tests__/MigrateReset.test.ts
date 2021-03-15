@@ -204,7 +204,7 @@ describe('reset', () => {
     const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
             More than one seed file was found in \`prisma\` directory.
-            This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
+            This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.
           `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -227,7 +227,6 @@ describe('reset', () => {
     // ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     ctx.fs.remove('prisma/seed.sh')
-    ctx.fs.remove('prisma/seed.go')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
