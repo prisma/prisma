@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615817048032,
+  "lastUpdate": 1615817374735,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19903,6 +19903,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±4.34%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "me@christopherbonhage.com",
+            "name": "Christopher Bonhage",
+            "username": "meeq"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0c134467d160c3f0e64431c4bd2b1b86e60be0a4",
+          "message": "fix: Webpack \"Critical Dependency\" warning in runtime (#6107)",
+          "timestamp": "2021-03-15T15:01:39+01:00",
+          "tree_id": "8a5f8d54eb033709b6555faaff619287fa5d0807",
+          "url": "https://github.com/prisma/prisma/commit/0c134467d160c3f0e64431c4bd2b1b86e60be0a4"
+        },
+        "date": 1615817373582,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±3.46%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.92%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
