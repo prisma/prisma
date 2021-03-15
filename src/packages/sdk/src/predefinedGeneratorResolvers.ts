@@ -177,13 +177,7 @@ function checkTypeScriptVersion() {
       }
     }
   } catch (e) {
-    logger.error(
-      `You do not have ${chalk.bold(
-        'typescript',
-      )} installed. Please install at least version ${chalk.bold(
-        minVersion,
-      )} or ${chalk.bold('newer')} in order to use Prisma.`,
-    )
+    // They do not have TS installed to just pass
   }
 }
 /**
