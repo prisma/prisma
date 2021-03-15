@@ -194,12 +194,21 @@ You may have to run ${chalk.greenBright(
         try {
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
         } catch (e) {
-          throw new PrismaClientInitializationError(
-            `Unable to load NAPI Library from ${chalk.dim(
-              this.libQueryEnginePath,
-            )}`,
-            this.config.clientVersion!,
-          )
+          if (fs.existsSync(this.libQueryEnginePath)) {
+            throw new PrismaClientInitializationError(
+              `Unable to load NAPI Library from ${chalk.dim(
+                this.libQueryEnginePath,
+              )}, Library may be corrupt`,
+              this.config.clientVersion!,
+            )
+          } else {
+            throw new PrismaClientInitializationError(
+              `Unable to load NAPI Library from ${chalk.dim(
+                this.libQueryEnginePath,
+              )}, It does not exist`,
+              this.config.clientVersion!,
+            )
+          }
         }
       }
       if (this.QueryEngine) {
