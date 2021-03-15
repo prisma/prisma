@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615816052539,
+  "lastUpdate": 1615817048032,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19865,6 +19865,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.69%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d8e823e3bf35eda63919f0de037cd3bcebad3a83",
+          "message": "chore(cli): warn if unsupported/missing typescript version (#6060)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2021-03-15T15:00:19+01:00",
+          "tree_id": "0b4028c1b1861f07207b1c38a688ff74de58b640",
+          "url": "https://github.com/prisma/prisma/commit/d8e823e3bf35eda63919f0de037cd3bcebad3a83"
+        },
+        "date": 1615817043435,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±10.28%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±4.34%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
