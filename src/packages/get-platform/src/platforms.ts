@@ -33,23 +33,3 @@ export const platforms: Array<Platform> = [
   'netbsd',
   'arm',
 ]
-
-export function mayBeCompatible(
-  platformA: Platform,
-  platformB: Platform,
-): boolean {
-  if (platformA.startsWith('freebsd') || platformB.startsWith('freebsd')) {
-    return false
-  }
-  if (platformA === 'native' || platformB === 'native') {
-    return true
-  }
-  if (platformA === 'darwin' || platformB === 'darwin') {
-    return false
-  }
-  if (platformA === 'windows' || platformB === 'windows') {
-    return false
-  }
-
-  return true
-}
