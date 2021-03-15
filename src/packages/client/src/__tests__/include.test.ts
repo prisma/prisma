@@ -56,12 +56,13 @@ describe('include validation', () => {
         {
           include: {
         ?   author?: true,
-        ?   categories?: true
+        ?   categories?: true,
+        ?   _count?: true
           }
         }
 
 
-        The \`include\` statement for type Post must not be empty. Available options are listed in green.
+        The \`include\` statement for type PostWithAggregations must not be empty. Available options are listed in green.
 
       `)
     }
@@ -106,7 +107,7 @@ describe('include validation', () => {
         }
 
 
-        NoRelations does not have any relation and therefore can't have an \`include\` statement.
+        NoRelationsWithAggregations does not have any relation and therefore can't have an \`include\` statement.
 
       `)
     }
@@ -142,7 +143,7 @@ describe('include validation', () => {
         }
 
 
-        Unknown field \`asd\` for include statement on model NoRelations.
+        Unknown field \`asd\` for include statement on model NoRelationsWithAggregations.
         This model has no relations, so you can't use include with it.
 
       `)
@@ -262,12 +263,13 @@ describe('include validation', () => {
             id: true,
             ~~
         ?   author?: true,
-        ?   categories?: true
+        ?   categories?: true,
+        ?   _count?: true
           }
         }
 
 
-        Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
+        Invalid scalar field \`id\` for include statement on model PostWithAggregations. Available options are listed in green.
         Note, that include statements only accept relation fields.
 
       `)
@@ -301,12 +303,13 @@ describe('include validation', () => {
             mauthor: true,
             ~~~~~~~
         ?   author?: true,
-        ?   categories?: true
+        ?   categories?: true,
+        ?   _count?: true
           }
         }
 
 
-        Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
+        Unknown field \`mauthor\` for include statement on model PostWithAggregations. Available options are listed in green. Did you mean \`author\`?
 
       `)
     }
