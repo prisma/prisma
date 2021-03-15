@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615814921756,
+  "lastUpdate": 1615815791367,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19789,6 +19789,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±1.33%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ce83a5f6d478b6937319e8d53455fc5067389367",
+          "message": "fix(migrate): remove .go seed (#6114)",
+          "timestamp": "2021-03-15T14:39:26+01:00",
+          "tree_id": "7fe24822cfb01169b6114ab37dc5a7b0f2694eb0",
+          "url": "https://github.com/prisma/prisma/commit/ce83a5f6d478b6937319e8d53455fc5067389367"
+        },
+        "date": 1615815790066,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±9.59%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.15%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
