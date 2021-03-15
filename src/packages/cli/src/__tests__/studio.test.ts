@@ -1,12 +1,10 @@
 import fs from 'fs'
 import http from 'http'
-import path from 'path'
 import fetch from 'node-fetch'
+import path from 'path'
 import rimraf from 'rimraf'
-
 import { Studio } from '../Studio'
 
-process.env.PRISMA_FORCE_NAPI = ''
 const STUDIO_TEST_PORT = 5678
 
 // silencium
@@ -25,6 +23,8 @@ const sendRequest = (message: any): Promise<any> => {
 let studio: Studio
 
 beforeEach(async () => {
+  process.env.PRISMA_FORCE_NAPI = ''
+
   // Before  every test, we'd like to reset the DB.
   // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
   rimraf.sync(path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'))
@@ -67,6 +67,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await studio.instance?.stop()
+  process.env.PRISMA_FORCE_NAPI = 'true'
 })
 
 it('launches client correctly', async () => {
