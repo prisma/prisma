@@ -169,15 +169,15 @@ function checkTypeScriptVersion() {
       if (semverLt(currentVersion, minVersion)) {
         logger.warn(
           `Your ${chalk.bold(
-            'typescipt',
-          )} version ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+            'typescript',
+          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
             minVersion,
-          )} or ${chalk.bold('newer')} in order to use Prisma.`,
+          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
         )
       }
     }
   } catch (e) {
-    // They do not have TS installed to just pass
+    // They do not have TS installed, we ignore (example: JS project)
   }
 }
 /**
