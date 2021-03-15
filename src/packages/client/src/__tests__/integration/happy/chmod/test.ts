@@ -27,5 +27,5 @@ test('chmod', async () => {
 
   await prisma.user.findMany()
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
