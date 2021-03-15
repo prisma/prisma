@@ -42,7 +42,6 @@
     "precommit": "lint-staged"
   },
   "files": [
-    "!**/__tests__",
     "README.md",
     "dist"
   ],

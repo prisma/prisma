@@ -47,7 +47,6 @@
     "typescript": "4.2.3"
   },
   "files": [
-    "!**/__tests__",
     "README.md",
     "dist"
   ],
