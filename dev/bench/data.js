@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615822453835,
+  "lastUpdate": 1615827236181,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19979,6 +19979,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.62%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "cfc33d8a5c7bd73f6efb4e1ae6835650b8ec538e",
+          "message": "fix(get-platform): remove unused code mayBeCompatible",
+          "timestamp": "2021-03-15T17:50:01+01:00",
+          "tree_id": "1b98c78a0fcc01f20e1caa09f9dcd9df53979a42",
+          "url": "https://github.com/prisma/prisma/commit/cfc33d8a5c7bd73f6efb4e1ae6835650b8ec538e"
+        },
+        "date": 1615827235116,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±6.59%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±3.09%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
