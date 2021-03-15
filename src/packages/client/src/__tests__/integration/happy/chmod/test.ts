@@ -6,7 +6,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 test('chmod', async () => {
   await generateTestClient()
   const platform = await getPlatform()
-  if (process.env.PRISMA_FORCE_NAPI) {
+  if (!process.env.PRISMA_FORCE_NAPI) {
     const binaryPath = path.join(
       __dirname,
       'node_modules/.prisma/client',
