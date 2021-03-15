@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615799625054,
+  "lastUpdate": 1615805480968,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -19713,6 +19713,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "daf4791fa2229f7a9cfb3876212cc7cb94efc30f",
+          "message": "fix(client): add BigInt to serializeRawParemeters (#6059)",
+          "timestamp": "2021-03-15T11:47:38+01:00",
+          "tree_id": "f4c034a0e0fc77b2201890a94fe134b10d87786b",
+          "url": "https://github.com/prisma/prisma/commit/daf4791fa2229f7a9cfb3876212cc7cb94efc30f"
+        },
+        "date": 1615805479940,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±9.25%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.72%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
