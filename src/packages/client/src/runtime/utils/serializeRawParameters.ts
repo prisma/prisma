@@ -1,5 +1,5 @@
 export function serializeRawParameters(data: any): string {
-  return JSON.stringify(replaceDates(data))
+  return JSON.stringify(serializeBigInt(replaceDates(data)))
 }
 
 /**
@@ -31,6 +31,39 @@ export function replaceDates(data: any): any {
     let tmp
     for (tmp = new Array(k); k--; ) {
       tmp[k] = replaceDates(data[k])
+    }
+    return tmp
+  }
+
+  return data
+}
+
+/**
+ * Serializes BigInt as a string https://github.com/prisma/prisma/issues/5823
+ * @param data parameters
+ */
+export function serializeBigInt(data: any): any {
+  const type = Object.prototype.toString.call(data)
+
+  if (type === '[object BigInt]') {
+    return data.toString()
+  }
+
+  if (type === '[object Object]') {
+    const tmp = {}
+    for (const key in data) {
+      if (key !== '__proto__') {
+        tmp[key] = serializeBigInt(data[key])
+      }
+    }
+    return tmp
+  }
+
+  if (type === '[object Array]') {
+    let k = data.length
+    let tmp
+    for (tmp = new Array(k); k--; ) {
+      tmp[k] = serializeBigInt(data[k])
     }
     return tmp
   }

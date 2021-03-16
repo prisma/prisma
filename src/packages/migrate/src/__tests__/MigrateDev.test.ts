@@ -90,9 +90,7 @@ describe('sqlite', () => {
   it('empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/empty.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Already in sync, no schema change or pending migration was found.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -101,6 +99,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+      Already in sync, no schema change or pending migration was found.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -136,9 +135,7 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(fs.exists('prisma/migrations/migration_lock.toml')).toEqual('file')
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -153,6 +150,8 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_first/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -167,9 +166,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -182,6 +179,8 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -220,9 +219,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
 
     const baseDir = path.join('prisma', 'migrations')
     const migrationDirList = fs.list(baseDir)
@@ -257,9 +254,7 @@ describe('sqlite', () => {
 
     const applyResult = MigrateDev.new().parse([])
 
-    await expect(applyResult).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect(
       (fs.list('prisma/migrations')?.length || 0) > 0,
@@ -281,6 +276,7 @@ describe('sqlite', () => {
         └─ 20201231000000_some_draft/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -333,9 +329,7 @@ describe('sqlite', () => {
 
     const applyResult = MigrateDev.new().parse([])
 
-    await expect(applyResult).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
     expect(
       (fs.list('prisma/migrations')?.length || 0) > 0,
     ).toMatchInlineSnapshot(`true`)
@@ -356,6 +350,7 @@ describe('sqlite', () => {
         └─ 20201231000000_first/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -368,9 +363,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -382,6 +375,8 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -416,9 +411,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -433,6 +426,7 @@ describe('sqlite', () => {
         └─ 20201231000000_draft/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -446,9 +440,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -466,6 +458,8 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_new_change/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -521,9 +515,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-migration')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Already in sync, no schema change or pending migration was found.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
 
     // Edit with broken SQL
     fs.write(
@@ -546,6 +538,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Already in sync, no schema change or pending migration was found.
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -558,9 +551,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-draft')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -572,6 +563,7 @@ describe('sqlite', () => {
         └─ 20201231000000_draft/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -581,9 +573,7 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-draft-1-change')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -600,6 +590,8 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -611,14 +603,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-            ⚠️ We found changes that cannot be executed:
+                                                                        ⚠️ We found changes that cannot be executed:
 
-              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-            You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-            Then run prisma migrate dev to apply it and verify it works.
+                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                        Then run prisma migrate dev to apply it and verify it works.
 
-          `)
+                                                            `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -656,9 +648,7 @@ describe('sqlite', () => {
     prompt.inject(['y'])
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -670,14 +660,16 @@ describe('sqlite', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                              ⚠️  There will be data loss when applying the migration:
+                              ⚠️  Warnings:
 
-                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                    `)
+                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -698,10 +690,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                              ⚠️  There will be data loss when applying the migration:
+                              ⚠️  Warnings:
 
-                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                    `)
+                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -736,9 +728,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -755,6 +745,7 @@ describe('sqlite', () => {
 
       Running node "prisma/seed.js" ...
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -768,9 +759,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse(['--skip-seed'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -785,6 +774,7 @@ describe('sqlite', () => {
         └─ 20201231000000_draft/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
@@ -798,9 +788,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -817,6 +805,7 @@ describe('sqlite', () => {
 
       Running node "prisma/seed.js" ...
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
@@ -833,9 +822,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -851,12 +838,13 @@ describe('sqlite', () => {
           └─ migration.sql
 
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join())
       .toMatchInlineSnapshot(`
       Error: More than one seed file was found in \`prisma\` directory.
-      This command only supports one seed file: Use \`seed.ts\`, \`.js\`, \`.sh\` or \`.go\`.
+      This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.
     `)
   })
 
@@ -925,9 +913,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -940,6 +926,8 @@ describe('postgresql', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
   })
 
@@ -947,9 +935,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -962,6 +948,8 @@ describe('postgresql', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
   })
 
@@ -969,9 +957,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateDev.new().parse([])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -982,6 +968,8 @@ describe('postgresql', () => {
       migrations/
         └─ 20201231000000_/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -991,9 +979,7 @@ describe('postgresql', () => {
     ctx.fixture('nativeTypes-postgresql')
 
     const result = MigrateDev.new().parse(['--name=first'])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -1005,6 +991,8 @@ describe('postgresql', () => {
       migrations/
         └─ 20201231000000_first/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -1051,9 +1039,7 @@ describe('postgresql', () => {
           `)
 
     const applyResult = MigrateDev.new().parse([])
-    await expect(applyResult).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(applyResult).resolves.toMatchInlineSnapshot(``)
 
     expect(
       (fs.list('prisma/migrations')?.length || 0) > 0,
@@ -1072,6 +1058,7 @@ describe('postgresql', () => {
         └─ 20201231000000_first/
           └─ migration.sql
 
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -1081,9 +1068,7 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     const result = MigrateDev.new().parse(['--name=first'])
 
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Everything is now in sync.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -1094,6 +1079,8 @@ describe('postgresql', () => {
       migrations/
         └─ 20201231000000_first/
           └─ migration.sql
+
+      Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

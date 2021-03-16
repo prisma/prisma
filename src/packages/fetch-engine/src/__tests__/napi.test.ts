@@ -3,8 +3,11 @@ import fs from 'fs'
 import path from 'path'
 import { cleanupCache } from '../cleanupCache'
 import { download } from '../download'
+import { enginesVersion } from '@prisma/engines-version'
 
-jest.setTimeout(80000)
+const CURRENT_BINARIES_HASH = enginesVersion
+
+jest.setTimeout(30000)
 
 describe('download', () => {
   beforeEach(async () => {
@@ -13,11 +16,13 @@ describe('download', () => {
     await del(__dirname + '/**/*engine*')
     await del(__dirname + '/**/prisma-fmt*')
   })
+
   afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
 
   test('download all napi libraries & cache them', async () => {
     // Channel and Version are currently hardcoded
     const baseDir = path.join(__dirname, 'all')
+
     await download({
       binaries: {
         'libquery-engine-napi': baseDir,
@@ -33,8 +38,11 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
+      version: CURRENT_BINARIES_HASH,
     })
+
     const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))
+
     expect(files).toMatchInlineSnapshot(`
       Array [
         Object {
