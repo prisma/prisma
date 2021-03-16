@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - benchmark/package-size
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
@@ -18,6 +19,7 @@ on:
       - "src/.dockerignore"
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
+
 jobs:
   benchmark:
     name: all
