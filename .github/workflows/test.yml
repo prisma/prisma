@@ -40,7 +40,6 @@ on:
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-  PRISMA_FORCE_NAPI: "true"
 
 jobs:
   # From https://github.com/marketplace/actions/skip-duplicate-actions
@@ -96,8 +95,6 @@ jobs:
   tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
-    env:
-      PRISMA_FORCE_NAPI: "true"
     strategy:
       fail-fast: false
       matrix:
@@ -170,8 +167,6 @@ jobs:
   # CLI-COMMANDS
   #
   cli-commands:
-    env:
-      PRISMA_FORCE_NAPI: "true"
     timeout-minutes: 10
     runs-on: ubuntu-20.04
 
@@ -224,8 +219,6 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    env:
-      PRISMA_FORCE_NAPI: "true"
     timeout-minutes: 20
     runs-on: ubuntu-20.04
 
@@ -287,8 +280,6 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
-    env:
-      PRISMA_FORCE_NAPI: "true"
     strategy:
       fail-fast: false
       matrix:
