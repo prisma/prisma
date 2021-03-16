@@ -20245,14 +20245,14 @@ window.BENCHMARK_DATA = {
             "name": "@prisma/client size",
             "value": 5.5,
             "range": "±0.00%",
-            "unit": "M/pkg",
+            "unit": "MB",
             "extra": "1 samples"
           },
           {
             "name": ".prisma/client size",
             "value": 29,
             "range": "±0.00%",
-            "unit": "M/pkg",
+            "unit": "MB",
             "extra": "1 samples"
           }
         ]
