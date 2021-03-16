@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615895459034,
+  "lastUpdate": 1615900429841,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20171,6 +20171,37 @@ window.BENCHMARK_DATA = {
             "range": "±2.78%",
             "unit": "ops/sec",
             "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "distinct": true,
+          "id": "9e317b8390a30022dcff0c936ced46909b9510d3",
+          "message": "test(client): benchmark package size",
+          "timestamp": "2021-03-16T16:10:53+03:00",
+          "tree_id": "4a459623d63a174e77bfe9ab1ce0bbef8bf46161",
+          "url": "https://github.com/prisma/prisma/commit/9e317b8390a30022dcff0c936ced46909b9510d3"
+        },
+        "date": 1615900428714,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±7.24%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
           }
         ]
       }
