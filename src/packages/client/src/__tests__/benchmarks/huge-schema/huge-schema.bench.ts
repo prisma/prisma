@@ -57,6 +57,6 @@ function getSize(packageName: string): { size: string; unit: string } {
   const match = regex.exec(str)
   const pkgSize = { size: match[1], unit: match[3] }
   console.log(
-    `${packageName} size x ${pkgSize.size} ${pkgSize.unit}/pkg ±0.00% (1 runs sampled)`,
+    `${packageName} size x ${pkgSize.size} ${pkgSize.unit}B ±0.00% (1 runs sampled)`,
   )
 }
