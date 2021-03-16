@@ -1270,7 +1270,7 @@ export const scenarios = [
       return client.migrate.create({ data: { version: 1 } })
     },
     expect: {
-      version: 1,
+      version: BigInt(1),
     },
   },
   {

@@ -6,7 +6,6 @@ import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 import { getTestClient } from '@prisma/client/dist/utils/getTestClient'
-import { serializeBigInt } from '@prisma/client/src/runtime/utils/serializeRawParameters'
 
 process.setMaxListeners(200)
 
@@ -256,7 +255,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
       await state.prisma.$connect()
 
       const result = await scenario.do(state.prisma)
-      expect(result).toEqual(serializeBigInt(scenario.expect))
+      expect(result).toEqual(scenario.expect)
 
       await teardownScenario(state)
     },
