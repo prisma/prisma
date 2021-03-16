@@ -1,10 +1,10 @@
 import { getGenerator, getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { omit } from '../../omit'
-import { promisify } from 'util'
-import stripAnsi from 'strip-ansi'
 import rimraf from 'rimraf'
+import stripAnsi from 'strip-ansi'
+import { promisify } from 'util'
+import { omit } from '../../omit'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
@@ -43,7 +43,19 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    expect(manifest).toMatchInlineSnapshot(`
+    if (process.env.PRISMA_FORCE_NAPI) {
+      expect(manifest).toMatchInlineSnapshot(`
+      Object {
+        defaultOutput: @prisma/client,
+        prettyName: Prisma Client,
+        requiresEngineVersion: ENGINE_VERSION_TEST,
+        requiresEngines: Array [
+          libqueryEngineNapi,
+        ],
+      }
+    `)
+    } else {
+      expect(manifest).toMatchInlineSnapshot(`
       Object {
         defaultOutput: @prisma/client,
         prettyName: Prisma Client,
@@ -53,6 +65,7 @@ describe('generator', () => {
         ],
       }
     `)
+    }
 
     expect(omit(generator.options!.generator, ['output']))
       .toMatchInlineSnapshot(`
