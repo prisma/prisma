@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615847210311,
+  "lastUpdate": 1615894484504,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20093,6 +20093,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±4.33%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b1f8a82c2aae61dfd7f2868fa45b6aa3971d1285",
+          "message": "fix(*): NAPI fixes + tests (#6016)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\nCo-authored-by: timsuchanek <tim.suchanek@gmail.com>",
+          "timestamp": "2021-03-16T12:31:13+01:00",
+          "tree_id": "db6b4ad9c6fbc1cd65b199cbc3922d5771e8f0e6",
+          "url": "https://github.com/prisma/prisma/commit/b1f8a82c2aae61dfd7f2868fa45b6aa3971d1285"
+        },
+        "date": 1615894483380,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±8.58%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.99%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
