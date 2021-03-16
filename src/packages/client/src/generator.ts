@@ -28,8 +28,6 @@ generatorHandler({
     }
   },
   async onGenerate(options) {
-    // TODO @timsuchanek Any idea what this is for?
-
     return generateClient({
       datamodel: options.datamodel,
       datamodelPath: options.schemaPath,
