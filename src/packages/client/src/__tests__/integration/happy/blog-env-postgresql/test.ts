@@ -248,7 +248,7 @@ test('Blog fixture: Postgres', async () => {
     where: { id: resultJsonArray.id },
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
   await tearDownPostgres(SetupParams.connectionString).catch((e) => {
     console.log(e)
   })

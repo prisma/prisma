@@ -6,7 +6,7 @@ on:
     branches:
       - master
     paths-ignore:
-      # Any update here needs to be done for 
+      # Any update here needs to be done for
       # - `pull_request` see below
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
@@ -21,8 +21,8 @@ on:
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
   pull_request:
-   paths-ignore:
-      # Any update here needs to be done for 
+    paths-ignore:
+      # Any update here needs to be done for
       # - `push`see before
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
@@ -78,7 +78,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: "12"
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -95,7 +95,6 @@ jobs:
   tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
-
     strategy:
       fail-fast: false
       matrix:
@@ -104,7 +103,7 @@ jobs:
           - postgres
           - mysql
           - mariadb
-          - mssql 
+          - mssql
         node: [12]
 
     steps:
@@ -112,7 +111,7 @@ jobs:
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
-          
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -231,9 +230,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-          
+
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
-          
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -281,7 +280,6 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
-
     strategy:
       fail-fast: false
       matrix:
@@ -289,7 +287,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-          
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -341,7 +339,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-          
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -393,9 +391,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-          
+
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
-       
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -452,7 +450,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-          
+
       # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
       - name: Cache node modules
         uses: actions/cache@v2
@@ -511,7 +509,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          
+
       - uses: codecov/codecov-action@v1
         with:
           files: ./src/packages/fetch-engine/src/__tests__/coverage/clover.xml
