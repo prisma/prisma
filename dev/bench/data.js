@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615900969338,
+  "lastUpdate": 1615902151955,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20238,6 +20238,58 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.56%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 29,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "distinct": true,
+          "id": "6481429901563cda27ee556becccb9b481698f2a",
+          "message": "fix units",
+          "timestamp": "2021-03-16T16:38:44+03:00",
+          "tree_id": "fd53401a12977f8c2b95983347c8158b27279cf5",
+          "url": "https://github.com/prisma/prisma/commit/6481429901563cda27ee556becccb9b481698f2a"
+        },
+        "date": 1615902150814,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±8.17%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.03%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
