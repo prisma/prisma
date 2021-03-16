@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615900429841,
+  "lastUpdate": 1615900969338,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20202,6 +20202,58 @@ window.BENCHMARK_DATA = {
             "range": "±7.24%",
             "unit": "ops/sec",
             "extra": "6 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "william@ordino.ai",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "distinct": true,
+          "id": "01d7861ac69a799e38ec3c09696f5bb9272e91f5",
+          "message": "fix missing import",
+          "timestamp": "2021-03-16T16:19:02+03:00",
+          "tree_id": "91af30f8f94b11e67fd91d6be344ab17d106d4f5",
+          "url": "https://github.com/prisma/prisma/commit/01d7861ac69a799e38ec3c09696f5bb9272e91f5"
+        },
+        "date": 1615900968143,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±5.65%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.56%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "M/pkg",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 29,
+            "range": "±0.00%",
+            "unit": "M/pkg",
+            "extra": "1 samples"
           }
         ]
       }
