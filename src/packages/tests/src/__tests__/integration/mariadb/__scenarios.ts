@@ -1515,7 +1515,7 @@ export const scenarios = [
       return client.migrate.create({ data: { version: 1 } })
     },
     expect: {
-      version: 1n,
+      version: 1,
     },
   },
   {
