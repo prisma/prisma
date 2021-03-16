@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615902151955,
+  "lastUpdate": 1615911427091,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20306,6 +20306,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "12a935c394484e53a992130f871a3fbdc0ad7f1e",
+          "message": "test(cli): increase version timeout",
+          "timestamp": "2021-03-16T17:13:25+01:00",
+          "tree_id": "17ca6ddf5de97a76df892c3e45c83ea0681e03a8",
+          "url": "https://github.com/prisma/prisma/commit/12a935c394484e53a992130f871a3fbdc0ad7f1e"
+        },
+        "date": 1615911425728,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±5.32%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.00%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
           }
         ]
       }
