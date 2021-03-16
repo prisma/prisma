@@ -29,8 +29,6 @@ generatorHandler({
   },
   async onGenerate(options) {
     // TODO @timsuchanek Any idea what this is for?
-    debug('__dirname', __dirname)
-    debug(eval(`__dirname`)) // tslint:disable-line
 
     return generateClient({
       datamodel: options.datamodel,

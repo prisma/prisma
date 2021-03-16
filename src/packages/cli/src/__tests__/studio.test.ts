@@ -67,7 +67,6 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await studio.instance?.stop()
-  process.env.PRISMA_FORCE_NAPI = 'true'
 })
 
 it('launches client correctly', async () => {

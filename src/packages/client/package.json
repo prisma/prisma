@@ -45,8 +45,7 @@
     "postinstall": "node scripts/postinstall.js",
     "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "prepublishOnly": "pnpm run build",
-    "precommit": "lint-staged",
-    "patch-package": "patch-package"
+    "precommit": "lint-staged"
   },
   "files": [
     "README.md",
@@ -98,7 +97,6 @@
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
     "mssql": "6.3.1",
-    "patch-package": "^6.4.6",
     "pg": "8.5.1",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
