@@ -1,6 +1,11 @@
 import chalk from 'chalk'
 import execa from 'execa'
-import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import {
+  DMMF,
+  DataSource,
+  GeneratorConfig,
+  EncryptorConfig,
+} from '@prisma/generator-helper'
 import tmpWrite from 'temp-write'
 import fs from 'fs'
 import { promisify } from 'util'
@@ -15,6 +20,7 @@ const MAX_BUFFER = 1_000_000_000
 export interface ConfigMetaFormat {
   datasources: DataSource[]
   generators: GeneratorConfig[]
+  encryptors: EncryptorConfig[]
   warnings: string[]
 }
 

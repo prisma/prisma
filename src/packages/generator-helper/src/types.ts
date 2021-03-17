@@ -40,6 +40,13 @@ export interface GeneratorConfig {
   previewFeatures: string[]
 }
 
+export interface EncryptorConfig {
+  name: string
+  provider: string
+  token: string
+  config: Dictionary<string>
+}
+
 export interface EnvValue {
   fromEnvVar: null | string
   value: string

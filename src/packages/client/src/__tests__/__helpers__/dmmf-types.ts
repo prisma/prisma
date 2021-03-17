@@ -8,6 +8,21 @@ const dmmf: DMMF.Document = {
         dbName: null,
         fields: [
           {
+            attributes: [
+              {
+                arguments: [],
+                name: 'id',
+              },
+              {
+                arguments: [
+                  {
+                    name: '',
+                    value: 'autoincrement()',
+                  },
+                ],
+                name: 'default',
+              },
+            ],
             default: {
               args: [],
               name: 'autoincrement',
@@ -25,6 +40,7 @@ const dmmf: DMMF.Document = {
             type: 'Int',
           },
           {
+            attributes: [],
             hasDefaultValue: false,
             isGenerated: false,
             isId: false,
@@ -42,6 +58,7 @@ const dmmf: DMMF.Document = {
             type: 'User',
           },
           {
+            attributes: [],
             hasDefaultValue: false,
             isGenerated: false,
             isId: false,
@@ -55,6 +72,7 @@ const dmmf: DMMF.Document = {
             type: 'Int',
           },
           {
+            attributes: [],
             hasDefaultValue: false,
             isGenerated: false,
             isId: false,
@@ -68,6 +86,17 @@ const dmmf: DMMF.Document = {
             type: 'String',
           },
           {
+            attributes: [
+              {
+                arguments: [
+                  {
+                    name: '',
+                    value: 'false',
+                  },
+                ],
+                name: 'default',
+              },
+            ],
             default: false,
             hasDefaultValue: true,
             isGenerated: false,
@@ -93,6 +122,21 @@ const dmmf: DMMF.Document = {
         dbName: null,
         fields: [
           {
+            attributes: [
+              {
+                arguments: [],
+                name: 'id',
+              },
+              {
+                arguments: [
+                  {
+                    name: '',
+                    value: 'autoincrement()',
+                  },
+                ],
+                name: 'default',
+              },
+            ],
             default: {
               args: [],
               name: 'autoincrement',
@@ -110,6 +154,12 @@ const dmmf: DMMF.Document = {
             type: 'Int',
           },
           {
+            attributes: [
+              {
+                arguments: [],
+                name: 'unique',
+              },
+            ],
             hasDefaultValue: false,
             isGenerated: false,
             isId: false,
@@ -123,6 +173,7 @@ const dmmf: DMMF.Document = {
             type: 'String',
           },
           {
+            attributes: [],
             hasDefaultValue: false,
             isGenerated: false,
             isId: false,

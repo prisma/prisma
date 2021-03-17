@@ -1,0 +1,16 @@
+query {
+  findManyPost {
+    id
+    createdAt
+    updatedAt
+    published
+    title
+    content
+    authorId
+    author {
+      id
+      email
+      name
+    }
+  }
+}

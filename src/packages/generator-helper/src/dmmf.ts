@@ -84,7 +84,18 @@ export namespace DMMF {
     relationOnDelete?: string
     relationName?: string
     documentation?: string
+    attributes: Attribute[]
     [key: string]: any // safe net for additional new props
+  }
+
+  export interface Attribute {
+    name: string
+    arguments: Argument[]
+  }
+
+  export interface Argument {
+    name: string
+    value: string
   }
 
   export interface FieldDefault {

@@ -101,6 +101,7 @@ Object {
       },
     },
   ],
+  "encryptors": Array [],
   "generators": Array [],
   "warnings": Array [],
 }
@@ -121,6 +122,7 @@ Object {
       },
     },
   ],
+  "encryptors": Array [],
   "generators": Array [],
   "warnings": Array [],
 }
@@ -141,6 +143,7 @@ Object {
       },
     },
   ],
+  "encryptors": Array [],
   "generators": Array [],
   "warnings": Array [],
 }
@@ -161,6 +164,7 @@ Object {
       },
     },
   ],
+  "encryptors": Array [],
   "generators": Array [
     Object {
       "binaryTargets": Array [
@@ -185,6 +189,17 @@ Object {
       "dbName": "users",
       "fields": Array [
         Object {
+          "attributes": Array [
+            Object {
+              "arguments": Array [
+                Object {
+                  "name": "",
+                  "value": "autoincrement()",
+                },
+              ],
+              "name": "default",
+            },
+          ],
           "default": Object {
             "args": Array [],
             "name": "autoincrement",
@@ -202,6 +217,12 @@ Object {
           "type": "Int",
         },
         Object {
+          "attributes": Array [
+            Object {
+              "arguments": Array [],
+              "name": "unique",
+            },
+          ],
           "hasDefaultValue": false,
           "isGenerated": false,
           "isId": false,
@@ -235,6 +256,17 @@ Object {
         "dbName": "users",
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -252,6 +284,12 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "unique",
+              },
+            ],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2185,6 +2223,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -2202,6 +2251,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2223,6 +2273,7 @@ Object {
             "type": "User",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2236,6 +2287,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2249,6 +2301,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -2287,6 +2350,21 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "id",
+              },
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -2304,6 +2382,12 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "unique",
+              },
+            ],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2317,6 +2401,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2345,6 +2430,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -2362,6 +2458,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2375,6 +2472,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2388,6 +2486,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -2426,6 +2535,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -2443,6 +2563,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2456,6 +2577,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -2469,6 +2591,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -10831,6 +10964,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -10848,6 +10992,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -10869,6 +11014,7 @@ Object {
             "type": "User",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -10882,6 +11028,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -10895,6 +11042,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -10933,6 +11091,21 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "id",
+              },
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -10950,6 +11123,12 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "unique",
+              },
+            ],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -10963,6 +11142,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -10991,6 +11171,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -11008,6 +11199,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -11021,6 +11213,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -11034,6 +11227,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -11072,6 +11276,17 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "autoincrement()",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": Object {
               "args": Array [],
               "name": "autoincrement",
@@ -11089,6 +11304,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -11102,6 +11318,7 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
@@ -11115,6 +11332,17 @@ Object {
             "type": "String",
           },
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [
+                  Object {
+                    "name": "",
+                    "value": "false",
+                  },
+                ],
+                "name": "default",
+              },
+            ],
             "default": false,
             "hasDefaultValue": true,
             "isGenerated": false,
@@ -19468,11 +19696,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `86501474`;
+exports[`getDMMF big schema 1`] = `86884818`;
 
-exports[`getDMMF chinook introspected schema 1`] = `680637`;
+exports[`getDMMF chinook introspected schema 1`] = `683003`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `680637`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `683003`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -19515,6 +19743,12 @@ Object {
       "dbName": null,
       "fields": Array [
         Object {
+          "attributes": Array [
+            Object {
+              "arguments": Array [],
+              "name": "id",
+            },
+          ],
           "hasDefaultValue": false,
           "isGenerated": false,
           "isId": true,
@@ -19528,6 +19762,7 @@ Object {
           "type": "Int",
         },
         Object {
+          "attributes": Array [],
           "hasDefaultValue": false,
           "isGenerated": false,
           "isId": false,
@@ -19561,6 +19796,12 @@ Object {
         "dbName": null,
         "fields": Array [
           Object {
+            "attributes": Array [
+              Object {
+                "arguments": Array [],
+                "name": "id",
+              },
+            ],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": true,
@@ -19574,6 +19815,7 @@ Object {
             "type": "Int",
           },
           Object {
+            "attributes": Array [],
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": false,
