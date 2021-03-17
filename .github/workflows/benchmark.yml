@@ -18,6 +18,7 @@ on:
       - "src/.dockerignore"
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
+
 jobs:
   benchmark:
     name: all
