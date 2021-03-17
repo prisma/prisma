@@ -198,6 +198,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
         const options: GeneratorOptions = {
           datamodel,
           datasources: config.datasources,
+          encryptors: config.encryptors,
           generator,
           dmmf,
           otherGenerators: skipIndex(generatorConfigs, index),

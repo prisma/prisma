@@ -41,6 +41,7 @@ generatorHandler({
       clientVersion,
       transpile: true,
       activeProvider: options.datasources[0]?.activeProvider,
+      encryptors: options.encryptors,
     })
   },
 })

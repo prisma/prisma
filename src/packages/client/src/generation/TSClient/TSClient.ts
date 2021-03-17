@@ -1,4 +1,4 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import { EncryptorConfig, GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import path from 'path'
 import { DMMFClass } from '../../runtime/dmmf'
@@ -29,6 +29,7 @@ export interface TSClientOptions {
   browser?: boolean
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
+  encryptors: EncryptorConfig[]
   platforms?: string[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaDir: string
@@ -39,9 +40,11 @@ export interface TSClientOptions {
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
   protected readonly dmmfString: string
+  protected encryptors: EncryptorConfig[]
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFClass(klona(options.document))
+    this.encryptors = options.encryptors
   }
   public toJS(): string {
     const {
@@ -112,6 +115,7 @@ const dmmfString = ${JSON.stringify(this.dmmfString)}
 // DMMFClass introduces circular references in the dmmf object
 const dmmf = JSON.parse(dmmfString)
 exports.Prisma.dmmf = JSON.parse(dmmfString)
+exports.Prisma.config = ${JSON.stringify({ encryptors: this.encryptors })}
 
 /**
  * Create the Client
@@ -265,6 +269,8 @@ export type BatchPayload = {
  * DMMF
  */
 export const dmmf: runtime.DMMF.Document;
+
+export const config: any;
 `,
   2,
 )}}`

@@ -30,6 +30,7 @@ const stubOptions: GeneratorOptions = {
       },
     },
   },
+  encryptors: [],
   generator: {
     config: {},
     name: 'some-generator',

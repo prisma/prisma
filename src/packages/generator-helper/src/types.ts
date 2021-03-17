@@ -77,6 +77,7 @@ export type BinaryPaths = {
 
 export type GeneratorOptions = {
   generator: GeneratorConfig
+  encryptors: EncryptorConfig[]
   otherGenerators: GeneratorConfig[]
   schemaPath: string
   dmmf: DMMF.Document

@@ -2,6 +2,7 @@ import {
   BinaryPaths,
   DataSource,
   DMMF,
+  EncryptorConfig,
   GeneratorConfig,
 } from '@prisma/generator-helper'
 import { getVersion } from '@prisma/sdk/dist/engineCommands'
@@ -52,6 +53,7 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  encryptors: EncryptorConfig[]
 }
 
 export interface BuildClientResult {
@@ -70,6 +72,7 @@ export async function buildClient({
   generator,
   dmmf,
   datasources,
+  encryptors,
   engineVersion,
   clientVersion,
   projectRoot,
@@ -89,6 +92,7 @@ export async function buildClient({
       schemaDir,
       outputDir,
     ),
+    encryptors,
     generator,
     platforms: useNapi
       ? Object.keys(binaryPaths.libqueryEngineNapi!)
@@ -154,6 +158,7 @@ export async function generateClient({
   clientVersion,
   engineVersion,
   activeProvider,
+  encryptors,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
@@ -185,6 +190,7 @@ export async function generateClient({
     engineVersion,
     projectRoot,
     activeProvider,
+    encryptors,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
