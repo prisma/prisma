@@ -24,5 +24,6 @@ it('should error with exit code 1 with incorrect schema', async () => {
 function cleanSnapshot(str: string): string {
   return str
     .replace(/\d+ms/g, 'XXms')
+    .replace(/\d+s/g, 'XXs')
     .replace(/\(version:.+\)/g, '(version: 0.0.0)')
 }

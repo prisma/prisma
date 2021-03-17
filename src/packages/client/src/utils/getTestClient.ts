@@ -1,21 +1,22 @@
-import { parse } from 'stacktrace-parser'
-import path from 'path'
+import { ensureBinariesExist } from '@prisma/engines'
 import {
-  getRelativeSchemaPath,
-  getConfig,
   extractPreviewFeatures,
-  mapPreviewFeatures,
+  getConfig,
   getEnvPaths,
+  getRelativeSchemaPath,
+  mapPreviewFeatures,
   printConfigWarnings,
 } from '@prisma/sdk'
-import { getDMMF } from '../generation/getDMMF'
-import { promisify } from 'util'
 import fs from 'fs'
-import {
-  GetPrismaClientOptions,
-  getPrismaClient,
-} from '../runtime/getPrismaClient'
+import path from 'path'
+import { parse } from 'stacktrace-parser'
+import { promisify } from 'util'
 import { extractSqliteSources } from '../generation/extractSqliteSources'
+import { getDMMF } from '../generation/getDMMF'
+import {
+  getPrismaClient,
+  GetPrismaClientOptions,
+} from '../runtime/getPrismaClient'
 import { generateInFolder } from './generateInFolder'
 const readFile = promisify(fs.readFile)
 
@@ -30,6 +31,7 @@ export async function getTestClient(
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
   }
+  await ensureBinariesExist()
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
@@ -46,7 +48,6 @@ export async function getTestClient(
     enableExperimental,
   })
   const outputDir = schemaDir
-
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
 
   const options: GetPrismaClientOptions = {

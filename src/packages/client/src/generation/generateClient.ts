@@ -76,7 +76,9 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-  const useNapi = generator?.previewFeatures?.includes('napi')
+  const useNapi =
+    generator?.previewFeatures?.includes('napi') ||
+    process.env.PRISMA_FORCE_NAPI === 'true'
   const client = new TSClient({
     document,
     runtimePath,
@@ -154,7 +156,9 @@ export async function generateClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
-  const useNAPI = generator?.previewFeatures?.includes('napi')
+  const useNAPI =
+    generator?.previewFeatures?.includes('napi') ||
+    process.env.PRISMA_FORCE_NAPI === 'true'
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
@@ -257,8 +261,12 @@ export async function generateClient({
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
-        await copyFile(filePath, target)
-        continue
+        if (fs.existsSync(filePath)) {
+          await copyFile(filePath, target)
+          continue
+        } else {
+          throw new Error(`File at ${filePath} is required but was not present`)
+        }
       }
 
       // If target !== source size, they're definitely different, copy it
