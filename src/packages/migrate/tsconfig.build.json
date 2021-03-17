@@ -6,9 +6,9 @@
   "exclude": [
     "dist",
     "build",
+    "src/__tests__",
     "fixtures",
     "fixtures_old",
-    "src/__tests__",
     "tmp"
   ]
 }
