@@ -8,12 +8,14 @@ const usage = chalk`
 {bold Usage}
 \t{dim pnpm bump-engines 2.19.0-39.c1455d0b443d66b0d9db9bcb1bb9ee0d5bbc511d}
 \t{dim pnpm bump-engines latest}
+\t{dim pnpm bump-engines integration}
 `
 
 async function main() {
   const version = argv._[0]
   if (!version) {
-    throw new Error(`No Version Found\n${usage}`)
+    console.error(`No Version Found\n${usage}`)
+    process.exit(1)
   }
   await run(
     path.join(__dirname, '..'),
