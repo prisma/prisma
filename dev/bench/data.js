@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1615917315711,
+  "lastUpdate": 1615969033709,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -20418,6 +20418,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±2.94%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b9f5a80e0b5470e28e8bc02bcc03901cc7b0143e",
+          "message": "chore(deps): update fkirc/skip-duplicate-actions action to v3.4.0 (#6133)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-03-17T09:13:45+01:00",
+          "tree_id": "6ff29ba6f350ced82c9ff74ece2002361a9b6210",
+          "url": "https://github.com/prisma/prisma/commit/b9f5a80e0b5470e28e8bc02bcc03901cc7b0143e"
+        },
+        "date": 1615969032555,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.33,
+            "range": "±2.80%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.78%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
