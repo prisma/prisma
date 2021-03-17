@@ -81,7 +81,6 @@
     "prepublishOnly": "pnpm run build"
   },
   "files": [
-    "!**/__tests__",
     "README.md",
     "dist"
   ],

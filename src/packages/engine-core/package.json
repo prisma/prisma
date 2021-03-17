@@ -54,7 +54,6 @@
     "undici": "3.3.3"
   },
   "files": [
-    "!**/__tests__",
     "README.md",
     "dist"
   ],

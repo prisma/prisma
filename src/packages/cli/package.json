@@ -52,7 +52,6 @@
       "build/**/*",
       "runtime/**/*",
       "prisma-client/**/*",
-      "download-build/**/*",
       "node_modules/@prisma/engines/**/*",
       "node_modules/@prisma/engines/*"
     ]
