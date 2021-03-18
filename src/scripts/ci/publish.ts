@@ -510,7 +510,7 @@ async function getAllVersions(
 }
 
 async function getNextMinorStable(): Promise<string | null> {
-  const remoteVersion = await runResult('.', `npm info @prisma/cli version`)
+  const remoteVersion = await runResult('.', `npm info prisma version`)
 
   return increaseMinor(remoteVersion)
 }
@@ -891,7 +891,11 @@ function intersection<T>(arr1: T[], arr2: T[]): T[] {
 
 // Parent "version updating function", uses `patch` and `patchVersion`
 async function newVersion(pkg: Package, prisma2Version: string) {
-  const isPrisma2OrPhoton = ['@prisma/cli', '@prisma/client'].includes(pkg.name)
+  const isPrisma2OrPhoton = [
+    '@prisma/cli',
+    'prisma',
+    '@prisma/client',
+  ].includes(pkg.name)
   return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
 }
 
@@ -971,7 +975,7 @@ async function publishPackages(
   releaseVersion?: string,
   patchBranch?: string,
 ): Promise<void> {
-  // we need to release a new @prisma/cli in all cases.
+  // we need to release a new `prisma` CLI in all cases.
   // if there is a change in prisma-client-js, it will also use this new version
 
   const publishStr = dryRun
@@ -1013,7 +1017,7 @@ async function publishPackages(
       chalk.red.bold(
         `\nThis will ${chalk.underline(
           'release',
-        )} a new version of @prisma/cli on latest: ${chalk.underline(
+        )} a new version of prisma CLI on latest: ${chalk.underline(
           prisma2Version,
         )}`,
       ),
