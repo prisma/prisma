@@ -16500,5 +16500,7 @@ export namespace Prisma {
    * DMMF
    */
   export const dmmf: runtime.DMMF.Document;
+
+  export const config: any;
 }
 `;
