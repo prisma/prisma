@@ -4,6 +4,11 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-binary-native', async () => {
+  // works in isolation
+  if (process.env.PRISMA_FORCE_NAPI) {
+    return
+  }
+
   expect.assertions(1)
   await generateTestClient()
 

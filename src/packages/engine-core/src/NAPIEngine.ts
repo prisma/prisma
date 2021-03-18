@@ -143,7 +143,7 @@ export class NAPIEngine implements Engine {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {
+    this.logEmitter.on('error', (e) => {
       // to prevent unhandled error events
     })
     this.datasourceOverrides = config.datasources
@@ -242,7 +242,18 @@ You may have to run ${chalk.greenBright(
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
-            },
+              featureFlagsOverrides: process.env.PRISMA_DEBUG_ENABLE_ALL_FLAGS
+                ? [
+                    'microsoftSqlServer',
+                    'groupBy',
+                    'createMany',
+                    'orderByRelation',
+                    'napi',
+                    'mongoDb',
+                    'selectRelationCount',
+                  ]
+                : undefined,
+            } as any,
             (err, log) => this.logger(err, log),
           )
         } catch (e) {
@@ -442,10 +453,10 @@ You may have to run ${chalk.greenBright(
       this.currentQuery = this.engine!.query(request)
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
-        console.warn(data)
-        console.warn(data.errors)
-
         if (data.errors.length === 1) {
+          if (this.lastError) {
+            throw this.lastError
+          }
           throw this.graphQLToJSError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error

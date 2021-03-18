@@ -1216,9 +1216,11 @@ function hookProcess(handler: string, exit = false) {
   })
 }
 
-hookProcess('beforeExit')
-hookProcess('exit')
-hookProcess('SIGINT', true)
-hookProcess('SIGUSR1', true)
-hookProcess('SIGUSR2', true)
-hookProcess('SIGTERM', true)
+if (!process.env.PRISMA_FORCE_NAPI) {
+  hookProcess('beforeExit')
+  hookProcess('exit')
+  hookProcess('SIGINT', true)
+  hookProcess('SIGUSR1', true)
+  hookProcess('SIGUSR2', true)
+  hookProcess('SIGTERM', true)
+}
