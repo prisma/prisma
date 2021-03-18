@@ -543,3 +543,25 @@ jobs:
           files: ./src/packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }}
           name: get-platform-${{ matrix.os }}
+
+  # Other jobs are defined above.
+  # https://github.com/marketplace/actions/merge-me
+  merge-me:
+    name: Automerge Renovate PR
+    needs:
+      - lint
+      - tests-integration
+      - cli-commands
+      - client
+      - client-types
+      - sdk
+      - migrate
+      - others
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge me!
+        uses: ridedott/merge-me-action@v2
+        with:
+          GITHUB_LOGIN: renovate[bot]
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DISABLED_FOR_MANUAL_CHANGES: 'true'
