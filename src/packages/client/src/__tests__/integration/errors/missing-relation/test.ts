@@ -4,7 +4,6 @@ test('missing-relation', async () => {
   expect.assertions(2)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
-
   try {
     await prisma.post.findMany({
       include: {
