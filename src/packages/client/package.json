@@ -1,6 +1,6 @@
 {
   "name": "@prisma/client",
-  "version": "2.11.0-dev.20",
+  "version": "0.0.0",
   "description": "Prisma Client is an auto-generated, type-safe and modern JavaScript/TypeScript ORM for Node.js that's tailored to your data. Supports MySQL, PostgreSQL, MariaDB, SQLite databases.",
   "keywords": [
     "orm",
@@ -37,7 +37,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
     "build": "node helpers/build.js",
-    "test": "jest",
+    "test": "node helpers/patchJest.js && jest",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.19.0-37.c1455d0b443d66b0d9db9bcb1bb9ee0d5bbc511d",
+    "@prisma/engines": "2.20.0-8.c21eb9152ae57c9b72c1001461d44e3bc926c627",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
@@ -69,19 +69,19 @@
     "@types/jest": "26.0.20",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.7",
-    "@types/node": "12.20.5",
+    "@types/node": "12.20.6",
     "@types/pg": "7.14.11",
-    "@typescript-eslint/eslint-plugin": "4.17.0",
-    "@typescript-eslint/parser": "4.17.0",
+    "@typescript-eslint/eslint-plugin": "4.18.0",
+    "@typescript-eslint/parser": "4.18.0",
     "arg": "5.0.0",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
-    "esbuild": "0.9.2",
+    "esbuild": "0.9.3",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.22.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.3.1",
+    "eslint-plugin-jest": "24.3.2",
     "eslint-plugin-prettier": "3.3.1",
     "execa": "5.0.0",
     "flat-map-polyfill": "0.3.8",
@@ -102,8 +102,9 @@
     "pluralize": "8.0.0",
     "prettier": "2.2.1",
     "replace-string": "3.1.0",
+    "resolve-from": "5.0.0",
     "rimraf": "3.0.2",
-    "rollup": "2.41.2",
+    "rollup": "2.41.4",
     "rollup-plugin-dts": "3.0.1",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
@@ -125,7 +126,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.19.0-37.c1455d0b443d66b0d9db9bcb1bb9ee0d5bbc511d"
+    "@prisma/engines-version": "2.20.0-8.c21eb9152ae57c9b72c1001461d44e3bc926c627"
   },
   "lint-staged": {
     "*.ts": [

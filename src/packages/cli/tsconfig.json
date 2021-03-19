@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "incremental": true
   },
-  "exclude": ["**/tmp-*"]
+  "exclude": ["scripts", "src/__tests__", "**/tmp-*"]
 }

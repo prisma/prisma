@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { DMMF } from '@prisma/generator-helper'
 import {
   getNapiName,
   getPlatform,
@@ -65,8 +64,8 @@ type ConnectArgs = {
 export type QueryEngine = {
   connect(connectArgs: ConnectArgs): Promise<void>
   disconnect(): Promise<void>
-  getConfig(): Promise<GetConfigResult>
-  dmmf(): Promise<DMMF.Document>
+  getConfig(): Promise<string>
+  dmmf(): Promise<string>
   query(request: any): Promise<string>
   sdlSchema(): Promise<string>
   serverInfo(): Promise<string>
@@ -102,6 +101,8 @@ export class NAPIEngine implements Engine {
   private engine?: QueryEngine
   private setupPromise?: Promise<void>
   private connectPromise?: Promise<void>
+  private disconnectPromise?: Promise<void>
+  private currentQuery?: Promise<any>
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
   private logEmitter: EventEmitter
@@ -110,6 +111,8 @@ export class NAPIEngine implements Engine {
   datasourceOverrides: Record<string, string>
   datamodel: string
   logQueries: boolean
+  logLevel: QueryEngineLogLevel
+
   connected: boolean
   beforeExitListener?: (args?: any) => any
 
@@ -118,21 +121,25 @@ export class NAPIEngine implements Engine {
     this.config = config
     this.connected = false
     this.logQueries = config.logQueries ?? false
+    this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = new EventEmitter()
-    this.datasourceOverrides = this.config.datasources
-      ? this.convertDatasources(this.config.datasources)
+    this.datasourceOverrides = config.datasources
+      ? this.convertDatasources(config.datasources)
       : {}
 
     if (this.logQueries) {
       process.env.LOG_QUERIES = 'true'
-      this.config.logLevel = 'info'
+      this.logLevel = 'info'
     }
     if (config.enableEngineDebugMode) {
-      Debug.enable('*')
+      this.logLevel = 'debug'
+      // Debug.enable('*')
     }
     this.setupPromise = this.internalSetup()
   }
   private async internalSetup(): Promise<void> {
+    debug('internalSetup')
+    if (this.setupPromise) return this.setupPromise
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     return this.loadEngine()
@@ -157,7 +164,17 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
-
+  private parseEngineResponse<T>(response: string): T {
+    try {
+      const config = JSON.parse(response)
+      return config as T
+    } catch (err) {
+      throw new PrismaClientUnknownRequestError(
+        `Unable to JSON.parse response from engine`,
+        this.config.clientVersion!,
+      )
+    }
+  }
   private convertDatasources(
     datasources: DatasourceOverwrite[],
   ): Record<string, string> {
@@ -168,6 +185,7 @@ You may have to run ${chalk.greenBright(
     return obj
   }
   private async loadEngine(): Promise<void> {
+    debug('loadEngine')
     if (!this.engine) {
       if (!this.QueryEngine) {
         if (!this.libQueryEnginePath) {
@@ -177,12 +195,21 @@ You may have to run ${chalk.greenBright(
         try {
           this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
         } catch (e) {
-          throw new PrismaClientInitializationError(
-            `Unable to load NAPI Library from ${chalk.dim(
-              this.libQueryEnginePath,
-            )}`,
-            this.config.clientVersion!,
-          )
+          if (fs.existsSync(this.libQueryEnginePath)) {
+            throw new PrismaClientInitializationError(
+              `Unable to load NAPI Library from ${chalk.dim(
+                this.libQueryEnginePath,
+              )}, Library may be corrupt`,
+              this.config.clientVersion!,
+            )
+          } else {
+            throw new PrismaClientInitializationError(
+              `Unable to load NAPI Library from ${chalk.dim(
+                this.libQueryEnginePath,
+              )}, It does not exist`,
+              this.config.clientVersion!,
+            )
+          }
         }
       }
       if (this.QueryEngine) {
@@ -191,17 +218,15 @@ You may have to run ${chalk.greenBright(
             {
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
-              logLevel: this.config.logLevel ?? 'off',
+              logLevel: this.logLevel,
             },
             (err, log) => {
               if (err) throw new Error(err)
-              let event: QueryEngineEvent | null = null
-              try {
-                event = JSON.parse(log)
-                if (!event) return
-              } catch (e) {
-                throw new Error(e)
-              }
+              const event = this.parseEngineResponse<QueryEngineEvent | null>(
+                log,
+              )
+              if (!event) return
+
               event.level = event?.level.toLowerCase() ?? 'unknown'
               if (isQueryEvent(event)) {
                 this.logEmitter.emit('query', {
@@ -263,6 +288,8 @@ You may have to run ${chalk.greenBright(
     }
   }
   async emitExit() {
+    await this.currentQuery
+    debug('emitExit')
     if (this.beforeExitListener) {
       try {
         await this.beforeExitListener()
@@ -273,34 +300,75 @@ You may have to run ${chalk.greenBright(
   }
   async start(): Promise<void> {
     await this.setupPromise
-    if (this.connectPromise || this.connected) {
+    await this.disconnectPromise
+
+    if (this.connectPromise) {
+      debug('already starting')
       return this.connectPromise
     }
-    this.connected = true
-    return this.engine?.connect({ enableRawQueries: true })
+    if (!this.connected) {
+      // eslint-disable-next-line no-async-promise-executor
+      this.connectPromise = new Promise(async (res) => {
+        debug('starting')
+        await this.engine?.connect({ enableRawQueries: true })
+        debug('started')
+        res()
+      })
+      return this.connectPromise
+    }
   }
+
   async stop(): Promise<void> {
-    await this.emitExit()
-    await this.engine?.disconnect()
+    await this.connectPromise
+    debug('stop')
+    if (this.disconnectPromise) {
+      debug('disconnect already called')
+      return this.disconnectPromise
+    }
+    // eslint-disable-next-line no-async-promise-executor
+    this.disconnectPromise = new Promise(async (res) => {
+      if (this.connected) {
+        await this.emitExit()
+        debug('disconnect called')
+        await this.engine?.disconnect()
+        this.connected = false
+        debug('disconnect resolved')
+      }
+      res()
+    })
+    return this.disconnectPromise
   }
   kill(signal: string): void {
-    debug(`disconnect called with kill signal ${signal}`)
-    void this.emitExit().then(() => {
-      void this.engine?.disconnect()
-    })
+    if (this.connected && !this.disconnectPromise) {
+      // eslint-disable-next-line no-async-promise-executor
+      this.disconnectPromise = new Promise(async (res) => {
+        await this.emitExit()
+        debug(`disconnect called with kill signal ${signal}`)
+        await this.engine?.disconnect()
+        this.connected = false
+        debug(`disconnect resolved`)
+        res()
+      })
+    }
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()
-    return this.engine!.getConfig()
+    debug('getConfig')
+    return this.parseEngineResponse<GetConfigResult>(
+      await this.engine!.getConfig(),
+    )
   }
   async version(forceRun?: boolean): Promise<string> {
     await this.start()
-    const serverInfo: ServerInfo = JSON.parse(await this.engine!.serverInfo())
+    const serverInfo = this.parseEngineResponse<ServerInfo>(
+      await this.engine!.serverInfo(),
+    )
     return serverInfo.version
   }
   private graphQLToJSError(
     error: RequestError,
   ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
+    debug('graphQLToJSError')
     if (error.user_facing_error.error_code) {
       return new PrismaClientKnownRequestError(
         error.user_facing_error.message,
@@ -319,12 +387,15 @@ You may have to run ${chalk.greenBright(
     query: string,
     headers: Record<string, string>,
     numTry: number,
-  ): Promise<T> {
+  ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      const data = JSON.parse(
-        await this.engine!.query({ query, variables: {} }),
-      )
+      debug(`request: ${this.connected}`)
+      if (!this.connected) {
+        await this.start()
+      }
+      this.currentQuery = this.engine!.query({ query, variables: {} })
+      const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
           throw this.graphQLToJSError(data.errors[0])
@@ -335,7 +406,7 @@ You may have to run ${chalk.greenBright(
           this.config.clientVersion!,
         )
       }
-      return data
+      return { data, elapsed: 0 }
     } catch (e) {
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -354,13 +425,15 @@ You may have to run ${chalk.greenBright(
     numTry = 1,
   ): Promise<any> {
     await this.start()
+    debug('requestBatch')
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
       transaction,
     }
-    const result = await this.engine!.query(body)
-    const data = JSON.parse(result)
+    this.currentQuery = this.engine!.query(body)
+    const result = await this.currentQuery
+    const data = this.parseEngineResponse<any>(result)
 
     if (data.errors) {
       if (data.errors.length === 1) {
@@ -381,6 +454,7 @@ You may have to run ${chalk.greenBright(
           }
           return {
             data: result,
+            elapsed: 0,
           }
         })
       } else {
@@ -429,7 +503,7 @@ You may have to run ${chalk.greenBright(
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
-      debug(`Search for Query Engine in ${location}`)
+      debug(`Search for Query Engine Library in ${location}`)
       enginePath = path.join(location, getNapiName(this.platform, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
@@ -455,7 +529,7 @@ You may have to run ${chalk.greenBright(
           )}\n`
         : ''
 
-      let errorText = `Query engine binary for current platform "${chalk.bold(
+      let errorText = `Query engine library for current platform "${chalk.bold(
         this.platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.

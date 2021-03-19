@@ -340,7 +340,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
         const useDebug = internal.debug === true
         if (useDebug) {
-          Debug.enable('prisma-client')
+          Debug.enable('prisma:client')
         }
 
         if (internal.hooks) {
@@ -425,6 +425,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         debug(`clientVersion: ${config.clientVersion}`)
 
         this._engine = this.getEngine()
+        void this._getActiveProvider()
         this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
 
         if (options.log) {
@@ -447,7 +448,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         this._bootstrapClient()
-        void this._getActiveProvider()
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
@@ -457,7 +457,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return 'PrismaClient'
     }
     private getEngine() {
-      if (this._previewFeatures.includes('napi')) {
+      if (
+        this._previewFeatures.includes('napi') ||
+        process.env.PRISMA_FORCE_NAPI === 'true'
+      ) {
         return new NAPIEngine(this._engineConfig)
       } else {
         return new NodeEngine(this._engineConfig)
@@ -997,7 +1000,7 @@ new PrismaClient({
 
       // No, we won't copy the whole object here just to make it easier to do TypeScript
       // as it would be much slower
-      (params as InternalRequestParams).clientMethod = clientMethod
+      ;(params as InternalRequestParams).clientMethod = clientMethod
       ;(params as InternalRequestParams).callsite = callsite
       ;(params as InternalRequestParams).headers = headers
       ;(params as InternalRequestParams).unpacker = unpacker
@@ -1078,7 +1081,7 @@ new PrismaClient({
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
-      if (Debug.enabled('prisma-client')) {
+      if (Debug.enabled('prisma:client')) {
         const query = String(document)
         debug(`Prisma Client call:`)
         debug(

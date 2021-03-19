@@ -1,21 +1,21 @@
+import Debug from '@prisma/debug'
+import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
+  extractPreviewFeatures,
   getConfig,
   getDMMF,
-  extractPreviewFeatures,
+  getPackedPackage,
   mapPreviewFeatures,
 } from '@prisma/sdk'
+import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import { generateClient } from '../generation/generateClient'
-import { getPackedPackage } from '@prisma/sdk'
-import { getEnginesPath } from '@prisma/engines'
-import Debug from '@prisma/debug'
-const debug = Debug('prisma:generateInFolder')
-import copy from '@timsuchanek/copy'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
+import { generateClient } from '../generation/generateClient'
+const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
@@ -33,6 +33,7 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
 }: GenerateInFolderOptions): Promise<number> {
+  await ensureBinariesExist()
   const before = performance.now()
   if (!projectDir) {
     throw new Error(
@@ -42,12 +43,14 @@ export async function generateInFolder({
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)
   }
+
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi = enablePreview.includes('napi')
+  const useNapi =
+    enablePreview.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
