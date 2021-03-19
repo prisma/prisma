@@ -128,7 +128,7 @@ export async function generateInFolder({
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
-    activeProvider: 'sqlite',
+    activeProvider: config.datasources[0].activeProvider,
   })
 
   const time = performance.now() - before

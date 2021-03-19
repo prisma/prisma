@@ -49,7 +49,7 @@ export async function getTestClient(
   })
   const outputDir = schemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
-
+  const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientOptions = {
     document,
     generator,
@@ -59,12 +59,11 @@ export async function getTestClient(
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
-    sqliteDatasourceOverrides: extractSqliteSources(
-      datamodel,
-      schemaDir,
-      outputDir,
-    ),
-    activeProvider: config.datasources[0].activeProvider,
+    sqliteDatasourceOverrides:
+      activeProvider === 'sqlite'
+        ? extractSqliteSources(datamodel, schemaDir, outputDir)
+        : undefined,
+    activeProvider,
   }
 
   return getPrismaClient(options)

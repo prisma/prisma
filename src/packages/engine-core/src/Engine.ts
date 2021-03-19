@@ -27,7 +27,8 @@ export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
 export interface DatasourceOverwrite {
   name: string
-  url: string
+  url?: string
+  env?: string
 }
 
 export interface EngineConfig {
