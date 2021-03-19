@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616157363123,
+  "lastUpdate": 1616157379455,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21052,6 +21052,58 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 29,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1d0045fe60dc1992173f3f5be84b24129f0d45a3",
+          "message": "feat(version): Show default Engines hash in --version (#5996)\n\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-03-19T13:32:57+01:00",
+          "tree_id": "c39fbdacd91e526248fd751936ebd88ccea73eb3",
+          "url": "https://github.com/prisma/prisma/commit/1d0045fe60dc1992173f3f5be84b24129f0d45a3"
+        },
+        "date": 1616157376385,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.34,
+            "range": "±11.69%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.16,
+            "range": "±3.63%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
