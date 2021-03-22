@@ -1,8 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
-import Decimal from 'decimal.js'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-scalar-list-test'
@@ -106,5 +105,5 @@ test('scalar-list filter', async () => {
   })
   expect(result.length).toBe(1)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

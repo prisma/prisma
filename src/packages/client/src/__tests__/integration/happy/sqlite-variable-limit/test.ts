@@ -20,7 +20,7 @@ test('sqlite-variable-limit', async () => {
     },
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 // async function compressFile(filename) {

@@ -15,8 +15,8 @@ beforeAll(async () => {
   })
 })
 
-afterAll(() => {
-  prisma.$disconnect()
+afterAll(async () => {
+  await prisma.$disconnect()
 })
 
 test('batch findUnique', async () => {

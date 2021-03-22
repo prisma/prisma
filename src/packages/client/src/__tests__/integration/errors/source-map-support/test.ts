@@ -20,5 +20,5 @@ test('source-map-support', async () => {
       }),
   ).rejects.toMatchSnapshot()
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

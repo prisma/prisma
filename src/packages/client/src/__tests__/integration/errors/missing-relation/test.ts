@@ -16,7 +16,7 @@ test('missing-relation', async () => {
       'Application logic invariant error: received null value for field author which may not be null',
     )
   } finally {
-    prisma.$disconnect()
+    await prisma.$disconnect()
   }
 })
 

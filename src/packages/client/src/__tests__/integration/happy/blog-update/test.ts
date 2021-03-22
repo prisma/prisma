@@ -162,5 +162,5 @@ test('blog-update', async () => {
   await prisma.user.deleteMany()
   await prisma.post.deleteMany()
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

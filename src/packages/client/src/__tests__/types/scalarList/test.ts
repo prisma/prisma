@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 // tslint:disable
 
@@ -61,7 +61,7 @@ async function main() {
     },
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 }
 
 main().catch((e) => {

@@ -1,7 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
+import { getTestClient } from '../../../../utils/getTestClient'
 const copyFile = promisify(fs.copyFile)
 
 test('atomic-operations', async () => {
@@ -76,5 +76,5 @@ test('atomic-operations', async () => {
     countFloat: 0.0,
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

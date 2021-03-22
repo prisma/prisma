@@ -21,5 +21,5 @@ test('object-transaction object', async () => {
     `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
   )
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

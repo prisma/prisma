@@ -21,7 +21,7 @@ test('enums', async () => {
 
   await prisma.user.findMany({})
 
-  await prisma.$disconnect()
+  await await prisma.$disconnect()
 
   await new Promise((r) => setTimeout(r, 100))
 
