@@ -40,8 +40,6 @@ on:
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
   GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-  PRISMA_FORCE_NAPI: "true"
-  PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
 
 jobs:
   # From https://github.com/marketplace/actions/skip-duplicate-actions
@@ -276,6 +274,120 @@ jobs:
           files: ./src/packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }}
           name: client-${{ matrix.os }}
+  #
+  # CLIENT (with NAPI Enabled)
+  #
+  client-napi:
+    timeout-minutes: 20
+    runs-on: ubuntu-20.04
+    env:
+      PRISMA_FORCE_NAPI: "true"
+      PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-20.04]
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts
+        working-directory: src/packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
+
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }}
+          name: client-${{ matrix.os }}
+  #
+  # CLIENT (types tests only with NAPI Enabled)
+  #
+  client-types-napi:
+    timeout-minutes: 10
+    runs-on: ubuntu-20.04
+    env:
+      PRISMA_FORCE_NAPI: "true"
+      PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test src/__tests__/types/types.test.ts
+        working-directory: src/packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          flags: client-types,${{ matrix.os }}
+          name: client-types-${{ matrix.os }}
+  
   #
   # CLIENT (types tests only)
   #
