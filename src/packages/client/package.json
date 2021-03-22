@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10.4"
+    "node": ">=10.16"
   },
   "homepage": "https://www.prisma.io",
   "repository": "git@github.com:prisma/prisma.git",
