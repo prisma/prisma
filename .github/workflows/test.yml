@@ -162,7 +162,82 @@ jobs:
           files: ./src/packages/tests/src/__tests__/coverage/clover.xml
           flags: tests-integration,${{ matrix.database }}
           name: tests-integration-${{ matrix.database }}
+  #
+  # TESTS-INTEGRATION-NAPI
+  #
+  tests-integration-napi:
+    timeout-minutes: 20
+    runs-on: ubuntu-20.04
+    env:
+      PRISMA_FORCE_NAPI: "true"
+      PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
+    strategy:
+      fail-fast: false
+      matrix:
+        database:
+          - sqlite
+          - postgres
+          - mysql
+          - mariadb
+          - mssql
+        node: [12]
 
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
+        if: matrix.database != 'sqlite'
+
+      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
+        if: ${{ matrix.database == 'sqlite' }}
+        working-directory: src/packages/tests
+
+      # temp
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
+      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
+        working-directory: src/packages/tests
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
+          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
+          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
+          flags: tests-integration,${{ matrix.database }}
+          name: tests-integration-${{ matrix.database }}
   #
   # CLI-COMMANDS
   #
