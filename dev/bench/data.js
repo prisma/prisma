@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616494956573,
+  "lastUpdate": 1616528518967,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21364,6 +21364,58 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 43,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "bot@renovateapp.com",
+            "name": "Renovate Bot",
+            "username": "renovate-bot"
+          },
+          "committer": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "distinct": true,
+          "id": "dc8838b7d6bb8d0aa1952dc75baa16a73e77d5d8",
+          "message": "fix(deps): update engines to v2.20.0-13.358f7e57dc995e7466914b5178adb05b4cb11fe7",
+          "timestamp": "2021-03-23T19:38:17Z",
+          "tree_id": "73f3fa7b52de117b22f4f4b79351c3eecfca1aa8",
+          "url": "https://github.com/prisma/prisma/commit/dc8838b7d6bb8d0aa1952dc75baa16a73e77d5d8"
+        },
+        "date": 1616528517656,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.31,
+            "range": "±5.91%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±0.81%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
