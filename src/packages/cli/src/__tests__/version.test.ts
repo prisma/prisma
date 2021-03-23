@@ -44,7 +44,7 @@ describe('version', () => {
       const envVar = engineEnvVarMap[engine]
       delete process[envVar]
     }
-  }, 10000)
+  }, 15000)
 })
 
 function cleanSnapshot(str: string): string {
