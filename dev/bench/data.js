@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616407382743,
+  "lastUpdate": 1616494956573,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21325,6 +21325,58 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client size",
             "value": 29,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc49a180315196b1ef9115d5b4969937d20a76c1",
+          "message": "fix(deps): update engines to v2.20.0-12.64d2ea05f0cae2391264c3e4b75fe777f3f6b5c3 (#6191)\n\n* fix(deps): update engines to v2.20.0-12.64d2ea05f0cae2391264c3e4b75fe777f3f6b5c3\r\n\r\n* test(migrate): update tests\r\n\r\n* test(client): update test, remove stack line\r\n\r\n* test(cli): increase timeout for version test\r\n\r\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-03-23T11:18:32+01:00",
+          "tree_id": "bcd62031731c6b5a26bf2e812fa21e8a204748f6",
+          "url": "https://github.com/prisma/prisma/commit/cc49a180315196b1ef9115d5b4969937d20a76c1"
+        },
+        "date": 1616494954779,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.3,
+            "range": "±6.51%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 43,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
