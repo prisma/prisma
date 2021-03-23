@@ -300,7 +300,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
     })
   } catch (e) {
     expect(e.message).toContain(
-      'Database error: Error accessing result set, column not found: KAPUTT',
+      'Error accessing result set, column not found: KAPUTT',
     )
   }
 
