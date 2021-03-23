@@ -12,10 +12,11 @@ const usage = chalk`
 `
 
 async function main() {
-  const version = argv._[0]
+  let version = argv._[0]
   if (!version) {
     console.error(`No Version Found\n${usage}`)
-    process.exit(1)
+    console.log(chalk`Defaulting to {dim latest}`)
+    version = 'latest'
   }
   await run(
     path.join(__dirname, '..'),
