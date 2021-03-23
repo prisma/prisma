@@ -40,6 +40,11 @@ type QueryEngineConfig = {
   datamodel: string
   datasourceOverrides?: Record<string, string>
   logLevel: QueryEngineLogLevel
+  telemetry?: QueryEngineTelemetry
+}
+type QueryEngineTelemetry = {
+  enabled: Boolean
+  endpoint: string
 }
 type QueryEngineLogEvent = {
   level: string
@@ -75,12 +80,28 @@ type ConnectArgs = {
   enableRawQueries: boolean
 }
 
+export type QueryEngineRequest = {
+  query: string
+  variables: Object
+}
+export type QueryEngineRequestHeaders = {
+  traceparent?: string
+}
+
+export type QueryEngineBatchRequest = {
+  batch: QueryEngineRequest[]
+  transaction: boolean
+}
+
 export type QueryEngine = {
   connect(connectArgs: ConnectArgs): Promise<void>
   disconnect(): Promise<void>
   getConfig(): Promise<string>
   dmmf(): Promise<string>
-  query(request: any): Promise<string>
+  query(
+    request: QueryEngineRequest | QueryEngineBatchRequest,
+    headers: QueryEngineRequestHeaders,
+  ): Promise<string>
   sdlSchema(): Promise<string>
   serverInfo(): Promise<string>
   nextLogEvent(): Promise<string>
@@ -450,7 +471,7 @@ You may have to run ${chalk.greenBright(
       }
       const request = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(request)
+      this.currentQuery = this.engine!.query(request, {})
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -491,7 +512,7 @@ You may have to run ${chalk.greenBright(
       transaction,
     }
     this.lastQuery = JSON.stringify(request)
-    this.currentQuery = this.engine!.query(request)
+    this.currentQuery = this.engine!.query(request, {})
     const result = await this.currentQuery
     const data = this.parseEngineResponse<any>(result)
 
