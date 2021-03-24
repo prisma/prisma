@@ -28,6 +28,5 @@ migrations
 try-getDmmf.ts
 write-test
 prisma-client-*.tgz
-sandbox
 *.tsbuildinfo
 pnpm-lock.yaml
