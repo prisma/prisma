@@ -167,7 +167,7 @@ function checkTypeScriptVersion() {
     if (output.stdout) {
       const currentVersion = output.stdout.split(' ')[1]
       if (semverLt(currentVersion, minVersion)) {
-        logger.error(
+        throw new Error(
           `Your ${chalk.bold(
             'typescript',
           )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
@@ -175,7 +175,6 @@ function checkTypeScriptVersion() {
           )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
         )
       }
-      process.exit(1)
     }
   } catch (e) {
     // They do not have TS installed, we ignore (example: JS project)
