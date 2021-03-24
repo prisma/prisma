@@ -136,12 +136,6 @@ ${chalk.bold('Examples')}
     const studio = new StudioServer({
       schemaPath,
       port,
-      prismaClient: {
-        generator: {
-          version: enginesVersion,
-          providerAliases: this.providerAliases,
-        },
-      },
       binaryPaths: {
         queryEngine: queryEnginePath,
       },
