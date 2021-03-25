@@ -20,5 +20,3 @@ describe('getPackedPackage', () => {
     }
   })
 })
-
-// getPackedPackage('@prisma/client', path.join(__dirname, '../prisma-client'))
