@@ -7,13 +7,17 @@ describe('getPackedPackage', () => {
     const outputDir = '/tmp/some-prisma-target-folder'
     const packageDir = 'foo`touch /tmp/getPackedPackage-exploit`'
 
-    await getPackedPackage(
-      '@prisma/client',
-      path.join(__dirname, outputDir),
-      packageDir,
-    )
-
-    expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)
+    try {
+      await getPackedPackage(
+        '@prisma/client',
+        path.join(__dirname, outputDir),
+        packageDir,
+      )
+    } catch (e) {
+      //
+    } finally {
+      expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)
+    }
   })
 })
 
