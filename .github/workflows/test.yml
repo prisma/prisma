@@ -168,12 +168,12 @@ jobs:
   #
   cli-commands:
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -220,12 +220,12 @@ jobs:
   #
   client:
     timeout-minutes: 20
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -329,12 +329,12 @@ jobs:
   #
   sdk:
     timeout-minutes: 5
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -381,12 +381,12 @@ jobs:
   #
   migrate:
     timeout-minutes: 7
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -440,12 +440,12 @@ jobs:
   #
   others:
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
