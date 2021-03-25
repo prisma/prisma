@@ -158,6 +158,8 @@ export class NAPIEngine implements Engine {
   serverInfo?: ServerInfo
 
   constructor(config: EngineConfig) {
+    console.log('hello mello')
+    console.log(config.cwd, config.dirname)
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.connected = false
@@ -274,6 +276,7 @@ You may have to run ${chalk.greenBright(
                     'selectRelationCount',
                   ]
                 : undefined,
+              configDir: this.config.cwd,
             } as any,
             (err, log) => this.logger(err, log),
           )
