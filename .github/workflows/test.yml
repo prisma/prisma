@@ -168,7 +168,7 @@ jobs:
   #
   cli-commands:
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -220,7 +220,7 @@ jobs:
   #
   client:
     timeout-minutes: 20
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -329,7 +329,7 @@ jobs:
   #
   sdk:
     timeout-minutes: 5
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -381,7 +381,7 @@ jobs:
   #
   migrate:
     timeout-minutes: 7
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
@@ -440,7 +440,7 @@ jobs:
   #
   others:
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
