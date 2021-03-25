@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616605805049,
+  "lastUpdate": 1616672228870,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21572,6 +21572,58 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.13,
             "range": "±3.22%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 43,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "24645773+Iamshankhadeep@users.noreply.github.com",
+            "name": "Shankhadeep Dey",
+            "username": "Iamshankhadeep"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4e5f93f457b2de08b9f654c6012d154c9ac263fc",
+          "message": "test(cli): adding more test for prisma format (#6234)",
+          "timestamp": "2021-03-25T12:33:51+01:00",
+          "tree_id": "eac56a6e306ddb75c5fd571907dbc21ab7e5b21f",
+          "url": "https://github.com/prisma/prisma/commit/4e5f93f457b2de08b9f654c6012d154c9ac263fc"
+        },
+        "date": 1616672227263,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.3,
+            "range": "±6.76%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±2.40%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
