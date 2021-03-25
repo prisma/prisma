@@ -173,7 +173,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -225,7 +225,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -334,7 +334,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -386,7 +386,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -445,7 +445,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
