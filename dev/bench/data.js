@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616681483084,
+  "lastUpdate": 1616691155112,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21689,6 +21689,58 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client size",
             "value": 43,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "32f0954d582f3678639ad5b56baf74845a4c3602",
+          "message": "fix(deps): update engines to v2.20.0-17.7c0577afe6a4bdc4cb153e4e22dc136442300aa1 (#6247)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-03-25T17:48:36+01:00",
+          "tree_id": "b72026874baf23973144c19c8d01eda129f8cbc4",
+          "url": "https://github.com/prisma/prisma/commit/32f0954d582f3678639ad5b56baf74845a4c3602"
+        },
+        "date": 1616691153723,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.25,
+            "range": "±5.66%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±3.92%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
