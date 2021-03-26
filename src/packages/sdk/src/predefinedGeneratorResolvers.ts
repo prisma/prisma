@@ -126,7 +126,7 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
     cwd: baseDir,
     stdio: 'inherit',
     env: {
-      SKIP_GENERATE: 'true',
+      PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
     },
   })
 }

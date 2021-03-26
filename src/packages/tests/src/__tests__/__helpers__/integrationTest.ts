@@ -9,7 +9,7 @@ import { getTestClient } from '@prisma/client/dist/utils/getTestClient'
 
 process.setMaxListeners(200)
 
-process.env.SKIP_GENERATE = 'true'
+process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
 
 const engine = new IntrospectionEngine()
 
