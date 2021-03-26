@@ -167,7 +167,7 @@ function checkTypeScriptVersion() {
     if (output.stdout) {
       const currentVersion = output.stdout.split(' ')[1]
       if (semverLt(currentVersion, minVersion)) {
-        logger.warn(
+        throw new Error(
           `Your ${chalk.bold(
             'typescript',
           )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
