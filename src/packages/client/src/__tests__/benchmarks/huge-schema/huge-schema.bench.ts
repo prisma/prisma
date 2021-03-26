@@ -42,20 +42,21 @@ suite
   .on('complete', () => {
     getSize('@prisma/client')
     getSize('.prisma/client')
-    getSize('.prisma/client/query-engine*')
     getSize('.prisma/client/index.d.ts')
     getSize('.prisma/client/index.js')
+    // For GitHub CI
+    getSize('.prisma/client/query-engine-debian-openssl-1.1.x')
   })
   .run()
 
 const regex = new RegExp(/([\d]{1,99}([.]\d{1,99})?)(\w)/)
 
 function getSize(packageName: string): { size: string; unit: string } {
-  const listFiles = execa.sync('ls', ['-la', `./node_modules/${packageName}`], {
-    stdout: 'pipe',
-    cwd: __dirname,
-  })
-  console.log(listFiles)
+  // const listFiles = execa.sync('ls', ['-la', `./node_modules/${packageName}`], {
+  //   stdout: 'pipe',
+  //   cwd: __dirname,
+  // })
+  // console.log(listFiles)
 
   const output = execa.sync('du', ['-sh', `./node_modules/${packageName}`], {
     stdout: 'pipe',
