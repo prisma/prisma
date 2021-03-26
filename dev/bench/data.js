@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616770803446,
+  "lastUpdate": 1616770932049,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21942,6 +21942,58 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fae3baca6eef74c2fcff149f1c707f1612796975",
+          "message": "chore(deps): pin dependency @types/shell-quote to 1.7.0 (#6265)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>",
+          "timestamp": "2021-03-26T15:57:59+01:00",
+          "tree_id": "6cc1dcb54632a4cb6757b3e6f9ac22885b718fcd",
+          "url": "https://github.com/prisma/prisma/commit/fae3baca6eef74c2fcff149f1c707f1612796975"
+        },
+        "date": 1616770930269,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.26,
+            "range": "±7.29%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.80%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.6,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
