@@ -30,3 +30,4 @@ write-test
 prisma-client-*.tgz
 *.tsbuildinfo
 pnpm-lock.yaml
+*.zip
