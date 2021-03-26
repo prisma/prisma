@@ -19,13 +19,16 @@ on:
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
 
+env:
+  PRISMA_TELEMETRY_INFORMATION: "prisma benchmark.yml"
+
 jobs:
   benchmark:
     name: all
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Cache node modules
         uses: actions/cache@v2
         env:
