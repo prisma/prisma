@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616770710910,
+  "lastUpdate": 1616770799929,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21838,6 +21838,58 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 5.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "37967706+paularah@users.noreply.github.com",
+            "name": "Paul Arah",
+            "username": "paularah"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "94e7050ea3e8ec3ce0696b3044d0f82903b66b7e",
+          "message": "test(client): added test for unix domain sockets (#6194)",
+          "timestamp": "2021-03-26T15:56:47+01:00",
+          "tree_id": "5b89d5dc5af2447db7bb76e7f09ff3e70475d8ff",
+          "url": "https://github.com/prisma/prisma/commit/94e7050ea3e8ec3ce0696b3044d0f82903b66b7e"
+        },
+        "date": 1616770798727,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.31,
+            "range": "±5.42%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±3.93%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.6,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
