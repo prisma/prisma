@@ -51,11 +51,11 @@ suite
 const regex = new RegExp(/([\d]{1,99}([.]\d{1,99})?)(\w)/)
 
 function getSize(packageName: string): { size: string; unit: string } {
-  // const listFiles = execa.sync('ls', ['-la', `./node_modules/${packageName}`], {
-  //   stdout: 'pipe',
-  //   cwd: __dirname,
-  // })
-  // console.log(listFiles)
+  const listFiles = execa.sync('ls', ['-la', `./node_modules/${packageName}`], {
+    stdout: 'pipe',
+    cwd: __dirname,
+  })
+  console.log(listFiles)
 
   const output = execa.sync('du', ['-sh', `./node_modules/${packageName}`], {
     stdout: 'pipe',
