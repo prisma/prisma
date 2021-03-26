@@ -4,8 +4,6 @@ const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
 const debug = Debug('prisma:preinstall')
-const pkg = require('../package.json')
-const pkgName = pkg.name
 
 const BOLD = '\u001b[1m'
 const WHITE_BRIGHT = '\u001b[37;1m'
@@ -89,7 +87,7 @@ function parsePackageManagerName(userAgent) {
 }
 
 export function main() {
-  if (pkgName === '@prisma/cli') {
+  if (__dirname.includes(`@prisma${path.sep}cli`)) {
     console.error(
       drawBox({
         str: `
@@ -106,7 +104,7 @@ export function main() {
       )}
   
       # Install new CLI
-      ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}
+      ${white(`npm install prisma --save-dev`)}
   
       # Invoke via npx
       ${white('npx prisma --help')}
