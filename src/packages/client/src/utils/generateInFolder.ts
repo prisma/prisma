@@ -116,14 +116,11 @@ export async function generateInFolder({
         },
       }
 
-  console.log({ binaryPaths })
-
   const res = await download({
     binaries: {
       'libquery-engine-napi': enginesPath,
     },
   })
-  console.log(res)
 
   await generateClient({
     binaryPaths,
