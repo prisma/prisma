@@ -41,16 +41,6 @@ async function main() {
       outfile: 'install/index.js',
       entryPoints: ['scripts/install.js'],
     }),
-    copy({
-      from: path.join(
-        require.resolve('@prisma/studio/package.json'),
-        '../build',
-      ),
-      to: './build/public',
-      recursive: true,
-      parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true,
-    }),
     copyFile(
       path.join(
         require.resolve('checkpoint-client/package.json'),
@@ -65,16 +55,6 @@ async function main() {
   ])
 
   await Promise.all([
-    copy({
-      from: path.join(
-        require.resolve('@prisma/studio/package.json'),
-        '../build',
-      ),
-      to: './dist/public',
-      recursive: true,
-      parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true,
-    }),
     replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n'),
   ])
 
