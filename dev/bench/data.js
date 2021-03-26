@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1616770799929,
+  "lastUpdate": 1616770803446,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -21890,6 +21890,58 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 5.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "24645773+Iamshankhadeep@users.noreply.github.com",
+            "name": "Shankhadeep Dey",
+            "username": "Iamshankhadeep"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c27149108fdc95e8dab5604ac92b5d0563ece527",
+          "message": "fix(sdk): fail if typescript version is less than 4.1 (#6215)",
+          "timestamp": "2021-03-26T15:56:05+01:00",
+          "tree_id": "797cbac6cbdb6b812e94c674ac96d501b491fe63",
+          "url": "https://github.com/prisma/prisma/commit/c27149108fdc95e8dab5604ac92b5d0563ece527"
+        },
+        "date": 1616770799543,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.26,
+            "range": "±7.24%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.43%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 5.5,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
