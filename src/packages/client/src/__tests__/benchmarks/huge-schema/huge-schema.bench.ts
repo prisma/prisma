@@ -45,7 +45,7 @@ suite
     getSize('./node_modules/.prisma/client/index.d.ts')
     getSize('./node_modules/.prisma/client/index.js')
     // For GitHub CI
-    getSize('.prisma/client/query-engine-debian-openssl-1.1.x')
+    getSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
     // getSize('./node_modules/.prisma/client/query-engine-darwin')
 
     // Zip .prisma/client and @prisma/client and check size
