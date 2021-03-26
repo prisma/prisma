@@ -9,6 +9,7 @@ import makeDir from 'make-dir'
 import { promisify } from 'util'
 import rimraf from 'rimraf'
 import readPkgUp from 'read-pkg-up'
+import { quote } from 'shell-quote'
 import { hasYarn } from './utils/hasYarn'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
@@ -50,12 +51,15 @@ export async function getPackedPackage(
   // Check if yarn is available.
   const isYarn = await hasYarn(packageDir)
 
-  const packCMD = isYarn
-    ? `yarn pack -f ${archivePath}`
-    : `npm pack ${packageDir}`
+  const packCmd = isYarn
+    ? ['yarn', 'pack', '-f', archivePath]
+    : ['npm', 'pack', packageDir]
+
+  // shell-quote args
+  const escapedCmd = quote(packCmd)
 
   // pack into a .tgz in a tmp dir
-  await execa.command(packCMD, {
+  await execa.command(escapedCmd, {
     shell: true,
     cwd: isYarn ? packageDir : tmpDir, // for npm pack it outputs a file to the cwd
   })
