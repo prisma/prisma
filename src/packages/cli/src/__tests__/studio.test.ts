@@ -35,16 +35,7 @@ beforeEach(async () => {
 
   // Clean up Client generation directory
   rimraf.sync(path.join(__dirname, '../prisma-client'))
-  studio = Studio.new({
-    // providerAliases
-    'prisma-client-js': {
-      generatorPath: `node --max-old-space-size=8096 "${path.join(
-        __dirname,
-        '../../../client/generator-build/index.js',
-      )}"`,
-      outputPath: path.join(__dirname, '../prisma-client/'),
-    },
-  })
+  studio = Studio.new()
 
   await studio.parse([
     '--schema',

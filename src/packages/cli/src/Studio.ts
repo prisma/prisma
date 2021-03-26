@@ -8,7 +8,6 @@ import {
   HelpError,
   isError,
   logger,
-  ProviderAliases,
 } from '@prisma/sdk'
 import StudioServer from '@prisma/studio-server'
 import chalk from 'chalk'
@@ -21,8 +20,8 @@ const packageJson = require('../package.json') // eslint-disable-line @typescrip
 export class Studio implements Command {
   public instance?: StudioServer
 
-  public static new(providerAliases: ProviderAliases): Studio {
-    return new Studio(providerAliases)
+  public static new(): Studio {
+    return new Studio()
   }
 
   private static help = format(`
@@ -58,10 +57,6 @@ ${chalk.bold('Examples')}
   Specify a schema
     ${chalk.dim('$')} prisma studio --schema=./schema.prisma
 `)
-
-  private constructor(private readonly providerAliases: ProviderAliases) {
-    this.providerAliases = providerAliases
-  }
 
   /**
    * Parses arguments passed to this command, and starts Studio
@@ -128,10 +123,6 @@ ${chalk.bold('Examples')}
         : eval(
             `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
           )
-    const staticAssetDir =
-      process.env.NODE_ENV === 'production'
-        ? path.resolve(__dirname, './public')
-        : path.resolve(__dirname, '../dist/public')
 
     const studio = new StudioServer({
       schemaPath,
@@ -139,7 +130,6 @@ ${chalk.bold('Examples')}
       binaryPaths: {
         queryEngine: queryEnginePath,
       },
-      staticAssetDir,
       versions: {
         prisma2: packageJson.version,
         queryEngine: enginesVersion,
