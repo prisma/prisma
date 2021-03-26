@@ -52,7 +52,72 @@ function prismaIsInstalledGlobally() {
 const b = (str) => BOLD + str + RESET
 const white = (str) => WHITE_BRIGHT + str + RESET
 
+/**
+ * Get the package manager name currently being used.
+ *
+ */
+function getPackageManagerName() {
+  const userAgent = process.env.npm_config_user_agent
+  if (!userAgent) return null
+
+  const name = parsePackageManagerName(userAgent)
+  if (!name) return null
+
+  return name
+}
+
+/**
+ * Parse package manager name from useragent. If parsing fails, `null` is returned.
+ */
+function parsePackageManagerName(userAgent) {
+  let packageManager = null
+
+  // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
+  // References:
+  // - https://pnpm.js.org/en/3.6/only-allow-pnpm
+  // - https://github.com/cameronhunter/npm-config-user-agent-parser
+  if (userAgent) {
+    const matchResult = userAgent.match(/^([^\/]+)\/.+/)
+    if (matchResult) {
+      packageManager = matchResult[1].trim()
+    }
+  }
+
+  return packageManager
+}
+
 export function main() {
+  if (__dirname.includes(`@prisma${path.sep}cli`)) {
+    console.error(
+      drawBox({
+        str: `
+  The package ${white('@prisma/cli')} has been renamed to ${white('prisma')}.
+  
+  Please uninstall ${white('@prisma/cli')} first.
+  Then install ${white('prisma')} to continue using ${b('Prisma CLI')}:
+  
+      # Uninstall old CLI
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? 'yarn remove @prisma/cli'
+          : 'npm uninstall @prisma/cli',
+      )}
+  
+      # Install new CLI
+      ${white(`npm install prisma --save-dev`)}
+  
+      # Invoke via npx
+      ${white('npx prisma --help')}
+  
+  Learn more here: https://github.com/prisma/prisma/releases/tag/2.16.0
+  `,
+        verticalPadding: 1,
+        horizontalPadding: 3,
+      }),
+    )
+    process.exit(1)
+  }
+
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
   debug(`Node Version: ${nodeMajorVersion}`)
