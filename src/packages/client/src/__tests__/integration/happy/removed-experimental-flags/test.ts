@@ -36,5 +36,5 @@ test('removed-experimental-flags', async () => {
     sum: { age: 800 },
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

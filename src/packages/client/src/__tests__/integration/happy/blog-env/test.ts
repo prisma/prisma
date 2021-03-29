@@ -1,5 +1,5 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import { PrismaClientInitializationError } from '../../../../runtime'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('blog-env', async () => {
   const env = require('./env.json')
@@ -16,6 +16,6 @@ test('blog-env', async () => {
       throw e
     }
   } finally {
-    prisma.$disconnect()
+    await prisma.$disconnect()
   }
 })

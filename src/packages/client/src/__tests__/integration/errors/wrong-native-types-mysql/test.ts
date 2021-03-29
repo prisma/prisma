@@ -1,7 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 // We WANT to be able to do the async function without an await
 /* eslint-disable @typescript-eslint/require-await */
@@ -47,7 +47,7 @@ test('wrong-native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', as
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
@@ -79,7 +79,7 @@ test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => 
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText', async () => {
@@ -114,7 +114,7 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
     `The provided value for the column is too long for the column's type. Column: char`,
   )
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => {
@@ -149,7 +149,7 @@ test('wrong-native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async 
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, LongBlob', async () => {
@@ -197,5 +197,5 @@ test('wrong-native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, Medium
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

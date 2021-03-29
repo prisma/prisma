@@ -1,7 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 // We WANT to be able to do the async function without an await
 /* eslint-disable @typescript-eslint/require-await */
@@ -48,7 +48,7 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async () => {
@@ -82,7 +82,7 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async () => {
@@ -118,7 +118,7 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
           ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(4), cause: Some(Error { kind: ConversionError("Unexpected character for bits input. Expected only 1 and 0."), original_code: None, original_message: None }) }) })
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
@@ -155,7 +155,7 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
@@ -187,5 +187,5 @@ test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
 
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
