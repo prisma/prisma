@@ -1,9 +1,7 @@
-const Debug = require('@prisma/debug')
 const path = require('path')
 const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
-const debug = Debug('prisma:preinstall')
 
 const BOLD = '\u001b[1m'
 const WHITE_BRIGHT = '\u001b[37;1m'
@@ -120,7 +118,6 @@ export function main() {
 
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
-  debug(`Node Version: ${nodeMajorVersion}`)
   if (nodeMajorVersion < 10) {
     console.error(
       drawBox({
@@ -141,7 +138,6 @@ export function main() {
   }
 
   const installedGlobally = prismaIsInstalledGlobally()
-  debug({ installedGlobally })
   if (!installedGlobally) {
     process.exit(0)
   }
