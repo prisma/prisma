@@ -1,14 +1,10 @@
 import fs from 'fs'
-import http from 'http'
 import fetch from 'node-fetch'
+import execa, { ExecaChildProcess } from 'execa'
 import path from 'path'
 import rimraf from 'rimraf'
-import { Studio } from '../Studio'
 
 const STUDIO_TEST_PORT = 5678
-
-// silencium
-console.log = () => null
 
 const sendRequest = (message: any): Promise<any> => {
   return fetch(`http://127.0.0.1:${STUDIO_TEST_PORT}/api`, {
@@ -20,12 +16,16 @@ const sendRequest = (message: any): Promise<any> => {
   }).then((res) => res.json())
 }
 
-let studio: Studio
+let studio: ExecaChildProcess
+
+beforeAll(async () => {
+  await execa('pnpm', ['run', 'build'])
+})
 
 beforeEach(async () => {
   process.env.PRISMA_FORCE_NAPI = ''
 
-  // Before  every test, we'd like to reset the DB.
+  // Before every test, we'd like to reset the DB.
   // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
   rimraf.sync(path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'))
   fs.copyFileSync(
@@ -34,43 +34,31 @@ beforeEach(async () => {
   )
 
   // Clean up Client generation directory
-  rimraf.sync(path.join(__dirname, '../prisma-client'))
-  studio = Studio.new()
-
-  await studio.parse([
-    '--schema',
-    path.join(__dirname, './fixtures/studio-test-project/schema.prisma'),
-    '--port',
-    `${STUDIO_TEST_PORT}`,
-    '--browser',
-    'none',
+  // rimraf.sync(path.join(__dirname, '../prisma-client'))
+  studio = execa('node', [
+    './build/index.js',
+    'studio',
+    `--schema=${path.join(
+      __dirname,
+      './fixtures/studio-test-project/schema.prisma',
+    )}`,
+    `--port=${STUDIO_TEST_PORT}`,
+    '--browser=none',
   ])
 
-  await new Promise((r) => setTimeout(() => r(null), 2000))
+  // Uncomment to debug
+  // studio.stdout?.on('data', (d) => d.toString())
 
-  await sendRequest({
-    requestId: 1,
-    channel: 'prisma',
-    action: 'clientStart',
-    payload: {},
-  })
+  await new Promise((r) => setTimeout(() => r(null), 2000))
 })
 
 afterEach(async () => {
-  await studio.instance?.stop()
+  await studio.kill()
 })
 
-it('launches client correctly', async () => {
-  await new Promise<void>((res, rej) => {
-    http.get(`http://localhost:${STUDIO_TEST_PORT}`, (response) => {
-      try {
-        expect(response.statusCode).toEqual(200)
-        res()
-      } catch (e) {
-        rej(e)
-      }
-    })
-  })
+it('can start up correctly', async () => {
+  const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}`)
+  expect(res.status).toEqual(200)
 })
 
 it('can respond to `findMany` queries', async () => {

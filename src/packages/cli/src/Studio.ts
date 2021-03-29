@@ -124,12 +124,18 @@ ${chalk.bold('Examples')}
             `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
           )
 
+    const staticAssetDir =
+      process.env.NODE_ENV === 'production'
+        ? path.resolve(__dirname, './public')
+        : path.resolve(__dirname, '../build/public')
+
     const studio = new StudioServer({
       schemaPath,
       port,
       binaryPaths: {
         queryEngine: queryEnginePath,
       },
+      staticAssetDir,
       versions: {
         prisma2: packageJson.version,
         queryEngine: enginesVersion,
