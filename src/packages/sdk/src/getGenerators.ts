@@ -10,7 +10,6 @@ import {
 import {
   BinaryPaths,
   EngineType,
-  EnvValue,
   GeneratorConfig,
   GeneratorManifest,
   GeneratorOptions,
@@ -34,6 +33,7 @@ import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { parseEnvValue } from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
 const debug = Debug('prisma:getGenerators')
@@ -54,29 +54,6 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-}
-/**
- * Gets the string value of the provider (i.e its name).
- *
- * - If the provider is just a string value then this will be returned
- * - If the provider is an env var it will be resolve and returned.
- * - If the env var is present but can't be resolved an error will be thrown
- */
-export function getProviderValue(provider: EnvValue) {
-  if (provider.fromEnvVar) {
-    const value = process.env[provider.fromEnvVar]
-    if (!value) {
-      throw new Error(
-        `Attempted to load provider value using \`env(${
-          provider.fromEnvVar
-        })\` but it was not present. Please insure that ${chalk.dim(
-          provider.fromEnvVar,
-        )} is present in your Environment Variables`,
-      )
-    }
-    return value
-  }
-  return provider.value
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -170,11 +147,11 @@ export async function getGenerators({
     const generators = await pMap(
       generatorConfigs,
       async (generator, index) => {
-        let generatorPath = getProviderValue(generator.provider)
+        let generatorPath = parseEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
 
         // as of now mostly used by studio
-        const providerValue = getProviderValue(generator.provider)
+        const providerValue = parseEnvValue(generator.provider)
         if (aliases && aliases[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
@@ -246,7 +223,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     // Generators can say in their "requiresGenerators" property in the manifest, which other generators they depend on
     // This has mostly been introduced for 3rd party generators, which rely on `prisma-client-js`.
     const generatorProviders: string[] = generatorConfigs.map((g) =>
-      getProviderValue(g.provider),
+      parseEnvValue(g.provider),
     )
 
     for (const g of generators) {
@@ -514,7 +491,7 @@ async function validateGenerators(
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (getProviderValue(generator.provider) === 'photonjs') {
+    if (parseEnvValue(generator.provider) === 'photonjs') {
       throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
         'provider = "prisma-client-js"',

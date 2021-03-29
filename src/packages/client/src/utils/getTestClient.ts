@@ -7,7 +7,7 @@ import {
   mapPreviewFeatures,
   printConfigWarnings,
 } from '@prisma/sdk'
-import { getProviderValue } from '@prisma/sdk'
+import { parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
@@ -41,7 +41,7 @@ export async function getTestClient(
   }
 
   const generator = config.generators.find(
-    (g) => getProviderValue(g.provider) === 'prisma-client-js',
+    (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
   const document = await getDMMF({

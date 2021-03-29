@@ -35,12 +35,7 @@ export {
 } from './engineCommands'
 export { Generator } from './Generator'
 export { getCommandWithExecutor } from './getCommandWithExecutor'
-export {
-  getGenerator,
-  getGenerators,
-  getProviderValue,
-  ProviderAliases,
-} from './getGenerators'
+export { getGenerator, getGenerators, ProviderAliases } from './getGenerators'
 export { getPackedPackage } from './getPackedPackage'
 export {
   highlightDatamodel,
@@ -74,6 +69,8 @@ export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { parseEnvValue } from './utils/parseEnvValue'
+
 export {
   Position,
   trimBlocksFromSchema,

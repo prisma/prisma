@@ -1,4 +1,4 @@
-import { getProviderValue } from '@prisma/sdk/dist/getGenerators'
+import { parseEnvValue } from '@prisma/sdk'
 import {
   getSchemaPathSync,
   getGenerators,
@@ -198,7 +198,7 @@ export class Migrate {
         : ''
       const name = generator.manifest
         ? generator.manifest.prettyName
-        : getProviderValue(generator.options!.generator.provider)
+        : parseEnvValue(generator.options!.generator.provider)
 
       logUpdate(`Running generate... - ${name}`)
 

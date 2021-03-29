@@ -7,7 +7,6 @@ import {
   Generator,
   getCommandWithExecutor,
   getGenerators,
-  getProviderValue,
   getSchemaPath,
   HelpError,
   highlightTS,
@@ -15,6 +14,7 @@ import {
   link,
   logger,
   missingGeneratorMessage,
+  parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -171,8 +171,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         const jsClient = generators.find(
           (g) =>
             g.options &&
-            getProviderValue(g.options.generator.provider) ===
-              'prisma-client-js',
+            parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -233,8 +232,7 @@ Please run \`prisma generate\` manually.`
       const prismaClientJSGenerator = generators?.find(
         (g) =>
           g.options?.generator.provider &&
-          getProviderValue(g.options?.generator.provider) ===
-            'prisma-client-js',
+          parseEnvValue(g.options?.generator.provider) === 'prisma-client-js',
       )
       let hint = ''
       if (prismaClientJSGenerator) {
