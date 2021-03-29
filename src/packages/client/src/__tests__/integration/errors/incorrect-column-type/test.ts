@@ -24,5 +24,5 @@ test('incorrect-column-type', async () => {
           → 15 await expect(prisma.user.findMany()).reject
             Attempted to serialize scalar '123' with incompatible type 'String'
         `)
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

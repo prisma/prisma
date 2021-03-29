@@ -1,4 +1,4 @@
-import { getGenerator, getPackedPackage } from '@prisma/sdk'
+import { getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -45,26 +45,26 @@ describe('generator', () => {
 
     if (process.env.PRISMA_FORCE_NAPI) {
       expect(manifest).toMatchInlineSnapshot(`
-      Object {
-        defaultOutput: @prisma/client,
-        prettyName: Prisma Client,
-        requiresEngineVersion: ENGINE_VERSION_TEST,
-        requiresEngines: Array [
-          libqueryEngineNapi,
-        ],
-      }
-    `)
+              Object {
+                defaultOutput: @prisma/client,
+                prettyName: Prisma Client,
+                requiresEngineVersion: ENGINE_VERSION_TEST,
+                requiresEngines: Array [
+                  libqueryEngineNapi,
+                ],
+              }
+          `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
-      Object {
-        defaultOutput: @prisma/client,
-        prettyName: Prisma Client,
-        requiresEngineVersion: ENGINE_VERSION_TEST,
-        requiresEngines: Array [
-          queryEngine,
-        ],
-      }
-    `)
+              Object {
+                defaultOutput: @prisma/client,
+                prettyName: Prisma Client,
+                requiresEngineVersion: ENGINE_VERSION_TEST,
+                requiresEngines: Array [
+                  queryEngine,
+                ],
+              }
+          `)
     }
 
     expect(omit(generator.options!.generator, ['output']))
@@ -74,12 +74,18 @@ describe('generator', () => {
         config: Object {},
         name: client,
         previewFeatures: Array [],
-        provider: prisma-client-js,
+        provider: Object {
+          fromEnvVar: null,
+          value: prisma-client-js,
+        },
       }
     `)
 
     expect(
-      path.relative(__dirname, generator.options!.generator.output!),
+      path.relative(
+        __dirname,
+        parseEnvValue(generator.options!.generator.output!),
+      ),
     ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 
     await generator.generate()

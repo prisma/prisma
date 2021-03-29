@@ -87,7 +87,10 @@ describe('getGenerators', () => {
         "config": Object {},
         "name": "gen",
         "previewFeatures": Array [],
-        "provider": "predefined-generator",
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
       }
     `)
 

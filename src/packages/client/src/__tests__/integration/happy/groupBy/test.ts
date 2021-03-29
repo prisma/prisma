@@ -7,8 +7,8 @@ beforeAll(async () => {
   prisma = new PrismaClient()
 })
 
-afterAll(() => {
-  prisma.$disconnect()
+afterAll(async () => {
+  await prisma.$disconnect()
 })
 
 test('groupBy email', async () => {

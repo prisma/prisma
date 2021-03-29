@@ -190,7 +190,7 @@ ${chalk.bold('Examples')}
     // If database was reset we want to run the seed if not skipped
     if (
       devDiagnostic.action.tag === 'reset' &&
-      !process.env.MIGRATE_SKIP_SEED &&
+      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
       !args['--skip-seed']
     ) {
       // Run seed if 1 or more seed files are present
@@ -293,7 +293,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     }
 
     // Run if not skipped
-    if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
       console.info() // empty line
     }

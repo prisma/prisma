@@ -1,5 +1,8 @@
-const assert = require('assert')
-const crypto = require('crypto')
+import assert from 'assert'
+import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 function clean(array: any[]) {
@@ -14,6 +17,13 @@ function clean(array: any[]) {
     }
   })
 }
+
+beforeAll(() => {
+  fs.copyFileSync(
+    path.join(__dirname, 'dev.db'),
+    path.join(__dirname, 'dev2.db'),
+  )
+})
 
 test('transaction', async () => {
   await generateTestClient()

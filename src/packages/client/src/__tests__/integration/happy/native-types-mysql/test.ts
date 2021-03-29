@@ -1,8 +1,8 @@
-import { getTestClient } from '../../../../utils/getTestClient'
-import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
+import path from 'path'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-native-types'
@@ -41,7 +41,7 @@ test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async ()
 
   expect(e).toEqual(data)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
@@ -101,7 +101,7 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
 
   expect(data).toEqual(b)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText', async () => {
@@ -134,7 +134,7 @@ test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText'
 
   expect(c).toEqual(data)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => {
@@ -173,7 +173,7 @@ test('native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => 
     }
   `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, LongBlob', async () => {
@@ -208,5 +208,5 @@ test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, 
 
   expect(e).toEqual(data)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

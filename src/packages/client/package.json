@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10.4"
+    "node": ">=10.16"
   },
   "homepage": "https://www.prisma.io",
   "repository": "git@github.com:prisma/prisma.git",
@@ -59,10 +59,11 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.20.0-17.7c0577afe6a4bdc4cb153e4e22dc136442300aa1",
+    "@prisma/engines": "2.20.0-25.1083b6e4dda228c8ef7542ede1bde33dd50eb5db",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/fetch-engine": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.5",
@@ -126,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.20.0-17.7c0577afe6a4bdc4cb153e4e22dc136442300aa1"
+    "@prisma/engines-version": "2.20.0-25.1083b6e4dda228c8ef7542ede1bde33dd50eb5db"
   },
   "lint-staged": {
     "*.ts": [

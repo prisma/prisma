@@ -35,7 +35,10 @@ const stubOptions: GeneratorOptions = {
     name: 'some-generator',
     output: null,
     binaryTargets: [],
-    provider: '',
+    provider: {
+      value: '',
+      fromEnvVar: null,
+    },
     previewFeatures: [],
   },
   otherGenerators: [],

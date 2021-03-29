@@ -4,6 +4,10 @@ import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
 // describe, because we need to run them sequentially
 describe('transaction', () => {
   test('queryRaw', async () => {
+    // works in isolation
+    if (process.env.PRISMA_FORCE_NAPI) {
+      return
+    }
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
@@ -64,6 +68,10 @@ describe('transaction', () => {
   })
 
   test('queryRaw & updateMany 1', async () => {
+    // works in isolation
+    if (process.env.PRISMA_FORCE_NAPI) {
+      return
+    }
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
@@ -142,6 +150,10 @@ describe('transaction', () => {
   })
 
   test('queryRaw & updateMany 2', async () => {
+    // works in isolation
+    if (process.env.PRISMA_FORCE_NAPI) {
+      return
+    }
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
@@ -220,6 +232,10 @@ describe('transaction', () => {
   })
 
   test('executeRaw', async () => {
+    // works in isolation
+    if (process.env.PRISMA_FORCE_NAPI) {
+      return
+    }
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
@@ -274,6 +290,10 @@ describe('transaction', () => {
   })
 
   test('queryRaw & executeRaw in separate transactions', async () => {
+    // works in isolation
+    if (process.env.PRISMA_FORCE_NAPI) {
+      return
+    }
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
