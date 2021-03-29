@@ -9,7 +9,7 @@ import chalk from 'chalk'
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
 export function parseEnvValue(provider: EnvValue) {
-  if (provider.fromEnvVar) {
+  if (provider.fromEnvVar && provider.fromEnvVar !== 'null') {
     const value = process.env[provider.fromEnvVar]
     if (!value) {
       throw new Error(
