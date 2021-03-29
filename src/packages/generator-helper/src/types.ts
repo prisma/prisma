@@ -34,7 +34,7 @@ export interface GeneratorConfig {
   name: string
   output: string | null
   isCustomOutput?: boolean
-  provider: string
+  provider: EnvValue
   config: Dictionary<string>
   binaryTargets: string[] // check if new commit is there
   previewFeatures: string[]
