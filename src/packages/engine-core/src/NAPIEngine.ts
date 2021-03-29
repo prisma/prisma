@@ -158,8 +158,6 @@ export class NAPIEngine implements Engine {
   serverInfo?: ServerInfo
 
   constructor(config: EngineConfig) {
-    console.log('hello mello')
-    console.log(config.cwd, config.dirname)
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.connected = false
