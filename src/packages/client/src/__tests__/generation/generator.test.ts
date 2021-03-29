@@ -1,4 +1,4 @@
-import { getGenerator, getPackedPackage } from '@prisma/sdk'
+import { getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -79,7 +79,10 @@ describe('generator', () => {
     `)
 
     expect(
-      path.relative(__dirname, generator.options!.generator.output!),
+      path.relative(
+        __dirname,
+        parseEnvValue(generator.options!.generator.output!),
+      ),
     ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 
     await generator.generate()

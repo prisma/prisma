@@ -72,7 +72,7 @@ ${chalk.bold('Examples')}
           ? chalk.dim(
               ` to .${path.sep}${path.relative(
                 process.cwd(),
-                generator.options!.generator.output!,
+                parseEnvValue(generator.options!.generator.output!),
               )}`,
             )
           : ''
@@ -241,7 +241,9 @@ Please run \`prisma generate\` manually.`
           ? prefixRelativePathIfNecessary(
               path.relative(
                 process.cwd(),
-                prismaClientJSGenerator.options.generator.output!,
+                parseEnvValue(
+                  prismaClientJSGenerator.options.generator.output!,
+                ),
               ),
             )
           : '@prisma/client'

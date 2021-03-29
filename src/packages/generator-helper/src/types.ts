@@ -32,7 +32,7 @@ export type Dictionary<T> = { [key: string]: T }
 
 export interface GeneratorConfig {
   name: string
-  output: string | null
+  output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
   config: Dictionary<string>

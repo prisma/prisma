@@ -173,10 +173,16 @@ export async function getGenerators({
 
         // resolve output path
         if (generator.output) {
-          generator.output = path.resolve(baseDir, generator.output)
+          generator.output = {
+            value: path.resolve(baseDir, parseEnvValue(generator.output)),
+            fromEnvVar: null,
+          }
           generator.isCustomOutput = true
         } else if (paths) {
-          generator.output = paths.outputPath
+          generator.output = {
+            value: paths.outputPath,
+            fromEnvVar: null,
+          }
         } else {
           if (
             !generatorInstance.manifest ||
@@ -190,10 +196,13 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             )
           }
 
-          generator.output = await resolveOutput({
-            defaultOutput: generatorInstance.manifest.defaultOutput,
-            baseDir,
-          })
+          generator.output = {
+            value: await resolveOutput({
+              defaultOutput: generatorInstance.manifest.defaultOutput,
+              baseDir,
+            }),
+            fromEnvVar: 'null',
+          }
         }
 
         const options: GeneratorOptions = {

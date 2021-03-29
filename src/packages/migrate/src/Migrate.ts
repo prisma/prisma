@@ -192,7 +192,7 @@ export class Migrate {
         ? chalk.dim(
             ` to .${path.sep}${path.relative(
               process.cwd(),
-              generator.options!.generator.output,
+              parseEnvValue(generator.options!.generator.output),
             )}`,
           )
         : ''
