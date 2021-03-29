@@ -491,7 +491,7 @@ You may have to run ${chalk.greenBright(
     }
     const searchLocations: string[] = [
       eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.config.generator?.output ?? eval('__dirname'), // Custom Generator Path
+      this.config.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
       path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.config.datamodelPath), // Datamodel Dir
       this.config.cwd, //cwdPath

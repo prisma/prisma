@@ -1,3 +1,4 @@
+import { parseEnvValue } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
@@ -34,7 +35,7 @@ if (require.main === module) {
         datamodelPath: options.schemaPath,
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
-        outputDir: options.generator.output!,
+        outputDir: parseEnvValue(options.generator.output!),
         copyRuntime: Boolean(options.generator.config.copyRuntime),
         dmmf: options.dmmf,
         generator: options.generator,
