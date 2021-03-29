@@ -14,7 +14,7 @@ async function run(cwd: string, cmd: string): Promise<void> {
       shell: true,
       env: {
         ...process.env,
-        SKIP_GENERATE: 'true',
+        PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
       },
     })
   } catch (e) {
