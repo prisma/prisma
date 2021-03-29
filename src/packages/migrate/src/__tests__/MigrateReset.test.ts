@@ -1,4 +1,4 @@
-process.env.MIGRATE_SKIP_GENERATE = '1'
+process.env.PRISMA_MIGRATE_SKIP_GENERATEENERATE = '1'
 process.env.GITHUB_ACTIONS = '1'
 
 import prompt from 'prompts'
