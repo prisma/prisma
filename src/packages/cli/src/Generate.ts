@@ -7,6 +7,7 @@ import {
   Generator,
   getCommandWithExecutor,
   getGenerators,
+  getProviderValue,
   getSchemaPath,
   HelpError,
   highlightTS,
@@ -169,7 +170,9 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
           (g) =>
-            g.options && g.options.generator.provider === 'prisma-client-js',
+            g.options &&
+            getProviderValue(g.options.generator.provider) ===
+              'prisma-client-js',
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -228,7 +231,10 @@ Please run \`prisma generate\` manually.`
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
-        (g) => g.options?.generator.provider === 'prisma-client-js',
+        (g) =>
+          g.options?.generator.provider &&
+          getProviderValue(g.options?.generator.provider) ===
+            'prisma-client-js',
       )
       let hint = ''
       if (prismaClientJSGenerator) {

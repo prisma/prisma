@@ -11,6 +11,7 @@ import {
   getConfig,
   tryLoadEnvs,
   getEnvPaths,
+  getProviderValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -223,7 +224,9 @@ async function main(): Promise<number> {
         schemaPreviewFeatures = generator.previewFeatures
       }
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) => gen.provider)
+      schemaGeneratorsProviders = config.generators.map((gen) =>
+        getProviderValue(gen.provider),
+      )
     } catch (e) {
       //
       debug(e)

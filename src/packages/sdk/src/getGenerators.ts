@@ -55,6 +55,13 @@ export type GetGeneratorOptions = {
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
 }
+/**
+ * Gets the string value of the provider (i.e its name).
+ *
+ * - If the provider is just a string value then this will be returned
+ * - If the provider is an env var it will be resolve and returned.
+ * - If the env var is present but can't be resolved an error will be thrown
+ */
 export function getProviderValue(provider: EnvValue) {
   if (provider.fromEnvVar) {
     const value = process.env[provider.fromEnvVar]
