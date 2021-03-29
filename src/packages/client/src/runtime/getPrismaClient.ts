@@ -350,7 +350,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
         predefinedDatasources = predefinedDatasources.map((d) => ({
           name: d.name,
-          url: 'file:' + path.resolve(config.dirname, d.url),
+          url: 'file:' + path.resolve(config.dirname, d.url!),
         }))
 
         const thedatasources = options.datasources || {}

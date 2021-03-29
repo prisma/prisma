@@ -6,7 +6,9 @@ export {
   unpack,
   PrismaClientValidationError,
 } from './query'
-export { default as debugLib } from '@prisma/debug'
+import { Debug } from '@prisma/debug'
+const debugLib = Debug
+export { debugLib }
 
 export {
   Engine,
@@ -29,4 +31,5 @@ export {
 
 export { warnEnvConflicts } from './warnEnvConflicts'
 
-export { default as Decimal } from 'decimal.js'
+import Decimal from 'decimal.js'
+export { Decimal }
