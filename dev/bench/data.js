@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1617023404835,
+  "lastUpdate": 1617025022675,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -22807,6 +22807,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 6.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9236149dc6308c231617962e5be638d5032b650f",
+          "message": "fix: napi tests (#6146)\n\nCo-authored-by: Tim Suchanek <Tim.Suchanek@gmail.com>\r\nCo-authored-by: timsuchanek <tim.suchanek@gmail.com>",
+          "timestamp": "2021-03-29T15:32:44+02:00",
+          "tree_id": "0c66ef064c317797f00cbc39eece8c72b2271aa4",
+          "url": "https://github.com/prisma/prisma/commit/9236149dc6308c231617962e5be638d5032b650f"
+        },
+        "date": 1617025020395,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.2,
+            "range": "±13.84%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
