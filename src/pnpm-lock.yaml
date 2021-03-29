@@ -5,7 +5,7 @@ importers:
       '@slack/webhook': 6.0.0_debug@4.3.1
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
-      '@types/node': 12.20.6
+      '@types/node': 12.20.7
       '@types/redis': 2.8.28
       arg: 5.0.0
       batching-toposort: 1.2.0
@@ -27,7 +27,7 @@ importers:
       '@slack/webhook': 6.0.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
-      '@types/node': 12.20.6
+      '@types/node': 12.20.7
       '@types/redis': 2.8.28
       arg: 5.0.0
       batching-toposort: 1.2.0
@@ -58,7 +58,7 @@ importers:
       '@prisma/studio': 0.359.0
       '@prisma/studio-server': 0.359.0_typescript@4.2.3
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 26.0.21
+      '@types/jest': 26.0.22
       '@types/ws': 7.4.0
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
@@ -109,7 +109,7 @@ importers:
       '@prisma/studio': 0.359.0
       '@prisma/studio-server': 0.359.0
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 26.0.21
+      '@types/jest': 26.0.22
       '@types/ws': 7.4.0
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
@@ -161,10 +161,10 @@ importers:
       '@prisma/sdk': link:../sdk
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
-      '@types/jest': 26.0.21
+      '@types/jest': 26.0.22
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.7
-      '@types/node': 12.20.6
+      '@types/node': 12.20.7
       '@types/pg': 7.14.11
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
@@ -222,10 +222,10 @@ importers:
       '@prisma/sdk': workspace:*
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.5
-      '@types/jest': 26.0.21
+      '@types/jest': 26.0.22
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.7
-      '@types/node': 12.20.6
+      '@types/node': 12.20.7
       '@types/pg': 7.14.11
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
@@ -277,8 +277,8 @@ importers:
       debug: 4.3.2
       ms: 2.1.3
     devDependencies:
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
       eslint: 7.22.0
@@ -293,8 +293,8 @@ importers:
       ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.3
       typescript: 4.2.3
     specifiers:
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
       debug: 4.3.2
@@ -325,8 +325,8 @@ importers:
       terminal-link: 2.1.1
       undici: 3.3.3
     devDependencies:
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
       eslint: 7.22.0
@@ -345,8 +345,8 @@ importers:
       '@prisma/engines': 2.20.0-22.dbbf2c38ad16933bc49afa065c06c45ba891cda4
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
       chalk: ^4.0.0
@@ -390,8 +390,8 @@ importers:
     devDependencies:
       '@prisma/engines-version': 2.20.0-22.dbbf2c38ad16933bc49afa065c06c45ba891cda4
       '@types/find-cache-dir': 3.2.0
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@types/node-fetch': 2.5.8
       '@types/progress': 2.0.3
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
@@ -413,8 +413,8 @@ importers:
       '@prisma/engines-version': 2.20.0-22.dbbf2c38ad16933bc49afa065c06c45ba891cda4
       '@prisma/get-platform': workspace:*
       '@types/find-cache-dir': 3.2.0
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@types/node-fetch': 2.5.8
       '@types/progress': 2.0.3
       '@typescript-eslint/eslint-plugin': 4.19.0
@@ -453,8 +453,8 @@ importers:
       chalk: 4.1.0
       cross-spawn: 7.0.3
     devDependencies:
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
       eslint: 7.22.0
@@ -471,8 +471,8 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@types/cross-spawn': ^6.0.1
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
       chalk: ^4.0.0
@@ -492,8 +492,8 @@ importers:
     dependencies:
       '@prisma/debug': link:../debug
     devDependencies:
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0_f26dcf5ec38a04241b14c26bc931244e
       '@typescript-eslint/parser': 4.19.0_eslint@7.22.0+typescript@4.2.3
       eslint: 7.22.0
@@ -508,8 +508,8 @@ importers:
       typescript: 4.2.3
     specifiers:
       '@prisma/debug': workspace:*
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@typescript-eslint/eslint-plugin': 4.19.0
       '@typescript-eslint/parser': 4.19.0
       eslint: 7.22.0
@@ -545,8 +545,8 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
       '@types/diff': 4.0.2
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@types/pg': 7.14.11
       '@types/prompts': 2.0.9
       '@types/sqlite3': 3.1.7
@@ -580,8 +580,8 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': ^1.1.0
       '@types/diff': 4.0.2
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@types/pg': 7.14.11
       '@types/prompts': 2.0.9
       '@types/sqlite3': 3.1.7
@@ -721,8 +721,8 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@timsuchanek/copy': ^1.4.5
-      '@types/jest': 26.0.21
-      '@types/node': 12.20.6
+      '@types/jest': 26.0.22
+      '@types/node': 12.20.7
       '@types/shell-quote': 1.7.0
       '@types/tar': 4.0.4
       '@typescript-eslint/eslint-plugin': 4.19.0
@@ -1923,6 +1923,13 @@ packages:
     dev: true
     resolution:
       integrity: sha512-ab9TyM/69yg7eew9eOwKMUmvIZAKEGZYlq/dhe5/0IMUd/QLJv5ldRMdddSn+u22N13FP3s5jYyktxuBwY0kDA==
+  /@types/jest/26.0.22:
+    dependencies:
+      jest-diff: 26.6.2
+      pretty-format: 26.6.2
+    dev: true
+    resolution:
+      integrity: sha512-eeWwWjlqxvBxc4oQdkueW5OF/gtfSceKk4OnOAGlUSwS/liBRtZppbJuz1YkgbrbfGOoeBHun9fOvXnjNwrSOw==
   /@types/js-levenshtein/1.1.0:
     dev: true
     resolution:
@@ -1966,6 +1973,10 @@ packages:
   /@types/node/12.20.6:
     resolution:
       integrity: sha512-sRVq8d+ApGslmkE9e3i+D3gFGk7aZHAT+G4cIpIEdLJYPsWiSPwcAnJEjddLQQDqV3Ra2jOclX/Sv6YrvGYiWA==
+  /@types/node/12.20.7:
+    dev: true
+    resolution:
+      integrity: sha512-gWL8VUkg8VRaCAUgG9WmhefMqHmMblxe2rVpMF86nZY/+ZysU+BkAp+3cz03AixWDSSz0ks5WX59yAhv/cDwFA==
   /@types/node/14.14.35:
     dev: true
     resolution:
