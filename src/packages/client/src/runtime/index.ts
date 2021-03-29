@@ -6,9 +6,6 @@ export {
   unpack,
   PrismaClientValidationError,
 } from './query'
-import { Debug } from '@prisma/debug'
-const debugLib = Debug
-export { debugLib }
 
 export {
   Engine,
