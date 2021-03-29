@@ -19,8 +19,8 @@ function debug(message, ...optionalParams) {
  * Adds `package.json` to the end of a path if it doesn't already exist'
  * @param {string} pth
  */
-function addPackageJSON(pth){
-  if(pth.endsWith('package.json')) return pth
+function addPackageJSON(pth) {
+  if (pth.endsWith('package.json')) return pth
   return path.join(pth, 'package.json')
 }
 
@@ -28,18 +28,18 @@ function addPackageJSON(pth){
  * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
  * @param {string} startPath - Path to Start At
  * @param {number} limit - Find Up limit
- * @returns {string | null} 
+ * @returns {string | null}
  */
-function findPackageRoot(startPath, limit = 10){
-  if(!startPath || !fs.existsSync(startPath)) return null
-  let  currentPath = startPath
+function findPackageRoot(startPath, limit = 10) {
+  if (!startPath || !fs.existsSync(startPath)) return null
+  let currentPath = startPath
   // Limit traversal
-  for(let i = 0; i < limit; i++){
+  for (let i = 0; i < limit; i++) {
     const pkgPath = addPackageJSON(currentPath)
-    if(fs.existsSync(pkgPath)){
+    if (fs.existsSync(pkgPath)) {
       try {
         const pkg = require(pkgPath)
-        if(pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)){
+        if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
       } catch {}
@@ -68,7 +68,7 @@ async function main() {
   const root = findPackageRoot(localPath)
 
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = root ? root : 'true'
-  
+
   debug({
     localPath,
     installedGlobally,
@@ -148,7 +148,7 @@ Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
   }
 }
 
-if (!process.env.SKIP_GENERATE) {
+if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
   main()
     .catch((e) => {
       if (e.stderr) {

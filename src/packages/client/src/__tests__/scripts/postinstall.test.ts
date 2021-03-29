@@ -1,5 +1,5 @@
 // Prevent postinstall script from running
-process.env.SKIP_GENERATE = 'true'
+process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
 
 import {
   getPostInstallTrigger,
