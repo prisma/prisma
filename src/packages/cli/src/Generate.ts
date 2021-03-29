@@ -14,6 +14,7 @@ import {
   link,
   logger,
   missingGeneratorMessage,
+  parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -71,7 +72,7 @@ ${chalk.bold('Examples')}
           ? chalk.dim(
               ` to .${path.sep}${path.relative(
                 process.cwd(),
-                generator.options!.generator.output!,
+                parseEnvValue(generator.options!.generator.output!),
               )}`,
             )
           : ''
@@ -169,7 +170,8 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         // Only used for CLI output, ie Go client doesn't want JS example output
         const jsClient = generators.find(
           (g) =>
-            g.options && g.options.generator.provider === 'prisma-client-js',
+            g.options &&
+            parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -228,7 +230,9 @@ Please run \`prisma generate\` manually.`
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
-        (g) => g.options?.generator.provider === 'prisma-client-js',
+        (g) =>
+          g.options?.generator.provider &&
+          parseEnvValue(g.options?.generator.provider) === 'prisma-client-js',
       )
       let hint = ''
       if (prismaClientJSGenerator) {
@@ -237,7 +241,9 @@ Please run \`prisma generate\` manually.`
           ? prefixRelativePathIfNecessary(
               path.relative(
                 process.cwd(),
-                prismaClientJSGenerator.options.generator.output!,
+                parseEnvValue(
+                  prismaClientJSGenerator.options.generator.output!,
+                ),
               ),
             )
           : '@prisma/client'

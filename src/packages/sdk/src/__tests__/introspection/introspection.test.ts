@@ -104,7 +104,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"DBGENERATED\\": \\"'1970-01-01 00:00:00'\\"
+                  \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
                 },
                 \\"constraint_name\\": null
               },
@@ -131,7 +131,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": false
+                  \\"Value\\": false
                 },
                 \\"constraint_name\\": null
               },
@@ -147,7 +147,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": \\"\\"
+                  \\"Value\\": \\"\\"
                 },
                 \\"constraint_name\\": null
               },
@@ -163,7 +163,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"DBGENERATED\\": \\"'1970-01-01 00:00:00'\\"
+                  \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
                 },
                 \\"constraint_name\\": null
               },
@@ -225,7 +225,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": 0
+                  \\"Value\\": 0
                 },
                 \\"constraint_name\\": null
               },
@@ -241,7 +241,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": 0.0
+                  \\"Value\\": 0.0
                 },
                 \\"constraint_name\\": null
               },
@@ -257,7 +257,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": 0.0
+                  \\"Value\\": 0.0
                 },
                 \\"constraint_name\\": null
               },
@@ -273,7 +273,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": \\"\\"
+                  \\"Value\\": \\"\\"
                 },
                 \\"constraint_name\\": null
               },
@@ -311,7 +311,7 @@ test('introspection basic', async () => {
               },
               \\"default\\": {
                 \\"kind\\": {
-                  \\"VALUE\\": \\"USER\\"
+                  \\"Value\\": \\"USER\\"
                 },
                 \\"constraint_name\\": null
               },
