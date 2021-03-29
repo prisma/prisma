@@ -48,5 +48,5 @@ test('middlewares-manipulation', async () => {
     },
   ])
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

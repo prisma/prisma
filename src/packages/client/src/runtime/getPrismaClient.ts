@@ -346,15 +346,37 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         if (internal.hooks) {
           this._hooks = internal.hooks
         }
+        let cwd = path.resolve(config.dirname, config.relativePath)
 
-        let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
-        predefinedDatasources = predefinedDatasources.map((d) => ({
-          name: d.name,
-          url: 'file:' + path.resolve(config.dirname, d.url),
-        }))
+        if (!fs.existsSync(cwd)) {
+          cwd = config.dirname
+        }
+        const sqliteDatasourceOverrides =
+          config.sqliteDatasourceOverrides?.reduce((acc, d) => {
+            if (d.env) {
+              let urlFromEnv = process.env[d.env!]
+              if (urlFromEnv) {
+                if (urlFromEnv.startsWith('file:')) {
+                  urlFromEnv = urlFromEnv.slice(5)
+                } else if (urlFromEnv.startsWith('sqlite:')) {
+                  urlFromEnv = urlFromEnv.slice(7)
+                }
+                acc.push({
+                  name: d.name,
+                  url: 'file:' + path.resolve(config.dirname, urlFromEnv),
+                })
+              }
+            } else if (d.url) {
+              const url = 'file:' + path.resolve(config.dirname, d.url)
+              acc.push({
+                name: d.name,
+                url,
+              })
+            }
+            return acc
+          }, [] as DatasourceOverwrite[]) ?? []
 
         const thedatasources = options.datasources || {}
-
         const inputDatasources = Object.entries(thedatasources)
           /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
           .filter(([_, source]) => {
@@ -366,7 +388,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }))
 
         const datasources = mergeBy(
-          predefinedDatasources,
+          sqliteDatasourceOverrides,
           inputDatasources,
           (source: any) => source.name,
         )
@@ -384,12 +406,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         this._dmmf = new DMMFClass(config.document)
-
-        let cwd = path.resolve(config.dirname, config.relativePath)
-
-        if (!fs.existsSync(cwd)) {
-          cwd = config.dirname
-        }
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 

@@ -4,7 +4,6 @@ test('missing-relation', async () => {
   expect.assertions(2)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
-
   try {
     await prisma.post.findMany({
       include: {
@@ -12,12 +11,10 @@ test('missing-relation', async () => {
       },
     })
   } catch (e) {
-    expect(e.message).toContain('PANIC in')
+    expect(e.message).toContain('PANIC')
     expect(e.message).toContain(
       'Application logic invariant error: received null value for field author which may not be null',
     )
-  } finally {
-    prisma.$disconnect()
   }
 })
 

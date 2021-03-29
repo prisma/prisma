@@ -36,6 +36,7 @@
     "build": "ts-node scripts/setup.ts --build",
     "dry": "ts-node scripts/ci/publish.ts --dry-run",
     "publish-all": "ts-node scripts/ci/publish.ts --publish",
+    "bump-engines": "ts-node scripts/bump-engines.ts",
     "test": "ts-node scripts/ci/publish.ts --test",
     "all": "ts-node scripts/ci/all.ts",
     "status": "ts-node scripts/ci/publish.ts --status",

@@ -139,5 +139,5 @@ test('aggregations', async () => {
         `)
   }
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

@@ -7,6 +7,6 @@ test('disconnect-race', async () => {
   await prisma.user.findMany()
   prisma.$disconnect()
   const a = await prisma.user.findMany()
-  prisma.$disconnect()
+  await prisma.$disconnect()
   expect(a).toMatchInlineSnapshot(`Array []`)
 })

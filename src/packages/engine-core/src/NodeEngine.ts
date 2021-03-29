@@ -162,6 +162,7 @@ export class NodeEngine implements Engine {
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
     this.activeProvider = activeProvider
+    initHooks()
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -1216,9 +1217,17 @@ function hookProcess(handler: string, exit = false) {
   })
 }
 
-hookProcess('beforeExit')
-hookProcess('exit')
-hookProcess('SIGINT', true)
-hookProcess('SIGUSR1', true)
-hookProcess('SIGUSR2', true)
-hookProcess('SIGTERM', true)
+let hooksInitialized = false
+function initHooks() {
+  if (!hooksInitialized) {
+    if (!process.env.PRISMA_FORCE_NAPI) {
+      hookProcess('beforeExit')
+      hookProcess('exit')
+      hookProcess('SIGINT', true)
+      hookProcess('SIGUSR1', true)
+      hookProcess('SIGUSR2', true)
+      hookProcess('SIGTERM', true)
+    }
+    hooksInitialized = false
+  }
+}

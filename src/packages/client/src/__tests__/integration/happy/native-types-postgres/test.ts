@@ -1,8 +1,8 @@
-import { getTestClient } from '../../../../utils/getTestClient'
-import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
 import Decimal from 'decimal.js'
+import path from 'path'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-native-types-tests'
@@ -62,7 +62,7 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
 
   expect(data).toEqual(a)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async () => {
@@ -125,7 +125,7 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
 
   expect(b).toEqual(data)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async () => {
@@ -167,7 +167,7 @@ test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async ()
     }
   `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
@@ -202,7 +202,7 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
 
   expect(d).toEqual(data)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 test('native-types-postgres E: Date, Time, Timestamp', async () => {
@@ -235,5 +235,5 @@ test('native-types-postgres E: Date, Time, Timestamp', async () => {
     }
   `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

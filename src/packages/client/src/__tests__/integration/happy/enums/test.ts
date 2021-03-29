@@ -1,6 +1,10 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('enums', async () => {
+  // works in isolation
+  if (process.env.PRISMA_FORCE_NAPI) {
+    return
+  }
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient({
     log: [
@@ -17,7 +21,7 @@ test('enums', async () => {
 
   await prisma.user.findMany({})
 
-  await prisma.$disconnect()
+  await await prisma.$disconnect()
 
   await new Promise((r) => setTimeout(r, 100))
 

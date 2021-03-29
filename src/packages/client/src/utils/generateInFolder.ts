@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -98,23 +99,31 @@ export async function generateInFolder({
       `Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`,
     )
   }
-
   const enginesPath = getEnginesPath()
-  await generateClient({
-    binaryPaths: useNapi
-      ? {
-          libqueryEngineNapi: {
-            [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
-          },
-        }
-      : {
-          queryEngine: {
-            [platform]: path.join(
-              enginesPath,
-              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-            ),
-          },
+
+  const binaryPaths = useNapi
+    ? {
+        libqueryEngineNapi: {
+          [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
         },
+      }
+    : {
+        queryEngine: {
+          [platform]: path.join(
+            enginesPath,
+            `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+          ),
+        },
+      }
+
+  const res = await download({
+    binaries: {
+      'libquery-engine-napi': enginesPath,
+    },
+  })
+
+  await generateClient({
+    binaryPaths,
     datamodel,
     dmmf,
     ...config,
@@ -128,7 +137,7 @@ export async function generateInFolder({
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
-    activeProvider: 'sqlite',
+    activeProvider: config.datasources[0].activeProvider,
   })
 
   const time = performance.now() - before

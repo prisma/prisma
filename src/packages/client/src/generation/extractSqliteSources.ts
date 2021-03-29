@@ -2,7 +2,8 @@ import { absolutizeRelativePath } from '../utils/resolveDatasources'
 
 export interface DatasourceOverwrite {
   name: string
-  url: string
+  url?: string
+  env?: string
 }
 
 // only extract sqlite sources that don't use env vars
@@ -14,7 +15,7 @@ export function extractSqliteSources(
 ): DatasourceOverwrite[] {
   const overrides: DatasourceOverwrite[] = []
   const lines = datamodel.split('\n').filter((l) => !l.trim().startsWith('//'))
-  const lineRegex = /\s*url\s+=\s*"(file:[^\/].*)"/
+  const lineRegex = /\s*url\s*=\s*("(file|sqlite):([^\/].*)"|env\("(\w+)"\))/
   const startRegex = /\s*datasource\s*(\w+)\s*{/
 
   lines.forEach((line, index) => {
@@ -47,10 +48,22 @@ export function extractSqliteSources(
 
       const startMatch = startRegex.exec(startLine)
       if (startMatch) {
-        overrides.push({
-          name: startMatch[1],
-          url: absolutizeRelativePath(match[1], cwd, outputDir, absolutePaths),
-        })
+        if (match[4]) {
+          overrides.push({
+            name: startMatch[1],
+            env: match[4],
+          })
+        } else {
+          overrides.push({
+            name: startMatch[1],
+            url: absolutizeRelativePath(
+              match[3],
+              cwd,
+              outputDir,
+              absolutePaths,
+            ),
+          })
+        }
       } else {
         throw new Error(
           `Could not parse datamodel, line ${

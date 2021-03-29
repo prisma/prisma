@@ -1,7 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
-import { migrateDb } from '../../__helpers__/migrateDb'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-json-postgres'
@@ -45,5 +45,5 @@ test('postgres-json-list', async () => {
 
   expect(data).toEqual(user)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
