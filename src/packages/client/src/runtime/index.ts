@@ -28,5 +28,4 @@ export {
 
 export { warnEnvConflicts } from './warnEnvConflicts'
 
-import Decimal from 'decimal.js'
-export { Decimal }
+export { default as Decimal } from 'decimal.js'
