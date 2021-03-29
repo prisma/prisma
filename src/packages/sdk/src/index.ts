@@ -35,7 +35,12 @@ export {
 } from './engineCommands'
 export { Generator } from './Generator'
 export { getCommandWithExecutor } from './getCommandWithExecutor'
-export { getGenerator, getGenerators, ProviderAliases } from './getGenerators'
+export {
+  getGenerator,
+  getGenerators,
+  getProviderValue,
+  ProviderAliases,
+} from './getGenerators'
 export { getPackedPackage } from './getPackedPackage'
 export {
   highlightDatamodel,
