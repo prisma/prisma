@@ -352,7 +352,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           cwd = config.dirname
         }
         const sqliteDatasourceOverrides =
-          config.sqliteDatasourceOverrides?.reduce((acc, d) => {
+          config.sqliteDatasourceOverrides?.map((d) => {
             if (d.env) {
               let urlFromEnv = process.env[d.env!]
               if (urlFromEnv) {
@@ -361,19 +361,18 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
                 } else if (urlFromEnv.startsWith('sqlite:')) {
                   urlFromEnv = urlFromEnv.slice(7)
                 }
-                acc.push({
+                return {
                   name: d.name,
-                  url: 'file:' + path.resolve(config.dirname, urlFromEnv),
-                })
+                  url: 'file:' + path.resolve(cwd, urlFromEnv),
+                }
               }
             } else if (d.url) {
-              const url = 'file:' + path.resolve(config.dirname, d.url)
-              acc.push({
+              const url = 'file:' + path.resolve(cwd, d.url)
+              return {
                 name: d.name,
                 url,
-              })
+              }
             }
-            return acc
           }, [] as DatasourceOverwrite[]) ?? []
 
         const thedatasources = options.datasources || {}
