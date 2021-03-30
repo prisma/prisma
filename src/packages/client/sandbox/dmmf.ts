@@ -4,7 +4,7 @@ const datamodel = /* prisma */ `
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["uncheckedScalarInputs", "createMany"]
+  previewFeatures = ["uncheckedScalarInputs", "createMany", "selectRelationCount"]
 }
 
 datasource db {
@@ -106,7 +106,10 @@ enum Role {
 `
 
 async function main() {
-  const dmmf = await getDMMF({ datamodel })
+  const dmmf = await getDMMF({
+    datamodel,
+    enableExperimental: ['selectRelationCount'],
+  })
   console.log(dmmf)
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   console.log(config)

@@ -43,6 +43,7 @@ import { SchemaOutputType } from './SchemaOutput'
 
 export class Model implements Generatable {
   protected outputType?: OutputType
+  protected type: DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   constructor(
     protected readonly model: DMMF.Model,
@@ -50,8 +51,8 @@ export class Model implements Generatable {
     protected readonly generator?: GeneratorConfig,
     protected readonly collector?: ExportCollector,
   ) {
-    const outputType = dmmf.outputTypeMap[model.name]
-    this.outputType = new OutputType(dmmf, outputType)
+    this.type = dmmf.outputTypeMap[model.name]
+    this.outputType = new OutputType(dmmf, this.type)
     this.mapping = dmmf.mappings.modelOperations.find(
       (m) => m.model === model.name,
     )!
@@ -91,7 +92,7 @@ export class Model implements Generatable {
         argsTypes.push(
           new ArgsType(
             field.args,
-            model,
+            this.type,
             action as DMMF.ModelAction,
             this.collector,
           ),
@@ -99,7 +100,7 @@ export class Model implements Generatable {
       }
     }
 
-    argsTypes.push(new ArgsType([], model))
+    argsTypes.push(new ArgsType([], this.type))
 
     return argsTypes
   }
@@ -127,7 +128,7 @@ export type ${groupByArgsName} = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.groupBy, arg)
+      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
       return new InputField(arg, false, arg.name === 'by').toTS()
     })
     .concat(
@@ -256,14 +257,14 @@ export type ${aggregateArgsName} = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
-      arg.comment = getArgFieldJSDoc(model, DMMF.ModelAction.aggregate, arg)
+      arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
       return new InputField(arg).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
         let data = ''
         const comment = getArgFieldJSDoc(
-          model,
+          this.type,
           DMMF.ModelAction.aggregate,
           f.name,
         )
@@ -535,7 +536,10 @@ export class Prisma__${name}Client<T> implements PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields
-    .filter((f) => f.outputType.location === 'outputObjectTypes')
+    .filter(
+      (f) =>
+        f.outputType.location === 'outputObjectTypes' && f.name !== '_count',
+    )
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `

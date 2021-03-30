@@ -11,23 +11,19 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const users = await prisma.user.findMany()
-
-  const select = Prisma.validator<Prisma.UserSelect>()({
-    id: true,
-    age: true,
-  })
-
-  // this result is now properly typed:
-  // { id: string, age: number }[]
-  const result = await prisma.user.findMany({
-    select,
+  const users = await prisma.user.findMany({
+    select: {
+      _count: {
+        select: {
+          eventsAttending: true,
+        },
+      },
+    },
   })
 
   // maybe I want to use the same selection set in a second query:
   const result2 = await prisma.user.findUnique({
     where: { id: 'x' },
-    select,
   })
 
   console.log(users)
