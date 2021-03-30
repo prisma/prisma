@@ -30,12 +30,19 @@ if (require.main === module) {
       }
     },
     async onGenerate(options) {
+      // CLI versions < 2.20.0 still send a string
+      // CLIs >= 2.20.0 send an `EnvValue`
+      const outputDir =
+        typeof options.generator.output === 'string'
+          ? options.generator.output
+          : parseEnvValue(options.generator.output!)
+
       return generateClient({
         datamodel: options.datamodel,
         datamodelPath: options.schemaPath,
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
-        outputDir: parseEnvValue(options.generator.output!),
+        outputDir,
         copyRuntime: Boolean(options.generator.config.copyRuntime),
         dmmf: options.dmmf,
         generator: options.generator,
