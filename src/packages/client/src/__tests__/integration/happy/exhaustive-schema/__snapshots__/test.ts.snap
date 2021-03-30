@@ -1294,6 +1294,210 @@ export namespace Prisma {
     url?: string
   }
 
+  /**
+   * Count Types
+   */
+
+
+  /**
+   * Count Type UserCountOutputType
+   */
+
+
+  export type UserCountOutputType = {
+    posts: number
+  }
+
+  export type UserCountOutputTypeSelect = {
+    posts?: boolean
+  }
+
+  export type UserCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | UserCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? UserCountOutputType
+    : S extends undefined
+    ? never
+    : S extends UserCountOutputTypeArgs
+    ?'include' extends U
+    ? UserCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof UserCountOutputType ?UserCountOutputType [P]
+  : 
+     never
+  } 
+    : UserCountOutputType
+  : UserCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the UserCountOutputType
+    **/
+    select?: UserCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type MCountOutputType
+   */
+
+
+  export type MCountOutputType = {
+    n: number
+  }
+
+  export type MCountOutputTypeSelect = {
+    n?: boolean
+  }
+
+  export type MCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | MCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? MCountOutputType
+    : S extends undefined
+    ? never
+    : S extends MCountOutputTypeArgs
+    ?'include' extends U
+    ? MCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof MCountOutputType ?MCountOutputType [P]
+  : 
+     never
+  } 
+    : MCountOutputType
+  : MCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * MCountOutputType without action
+   */
+  export type MCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the MCountOutputType
+    **/
+    select?: MCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type NCountOutputType
+   */
+
+
+  export type NCountOutputType = {
+    m: number
+  }
+
+  export type NCountOutputTypeSelect = {
+    m?: boolean
+  }
+
+  export type NCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | NCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? NCountOutputType
+    : S extends undefined
+    ? never
+    : S extends NCountOutputTypeArgs
+    ?'include' extends U
+    ? NCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof NCountOutputType ?NCountOutputType [P]
+  : 
+     never
+  } 
+    : NCountOutputType
+  : NCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * NCountOutputType without action
+   */
+  export type NCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the NCountOutputType
+    **/
+    select?: NCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type OneOptionalCountOutputType
+   */
+
+
+  export type OneOptionalCountOutputType = {
+    many: number
+  }
+
+  export type OneOptionalCountOutputTypeSelect = {
+    many?: boolean
+  }
+
+  export type OneOptionalCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? OneOptionalCountOutputType
+    : S extends undefined
+    ? never
+    : S extends OneOptionalCountOutputTypeArgs
+    ?'include' extends U
+    ? OneOptionalCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof OneOptionalCountOutputType ?OneOptionalCountOutputType [P]
+  : 
+     never
+  } 
+    : OneOptionalCountOutputType
+  : OneOptionalCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * OneOptionalCountOutputType without action
+   */
+  export type OneOptionalCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the OneOptionalCountOutputType
+    **/
+    select?: OneOptionalCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Models
+   */
 
   /**
    * Model Post
@@ -2417,10 +2621,12 @@ export namespace Prisma {
     boolean?: boolean
     optionalBoolean?: boolean
     posts?: boolean | PostFindManyArgs
+    _count?: boolean | UserCountOutputTypeArgs
   }
 
   export type UserInclude = {
     posts?: boolean | PostFindManyArgs
+    _count?: boolean | UserCountOutputTypeArgs
   }
 
   export type UserGetPayload<
@@ -2435,14 +2641,18 @@ export namespace Prisma {
     ? User  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'posts'
-        ? Array < PostGetPayload<S['include'][P]>>  : never
+        ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? UserCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof User ?User [P]
   : 
           P extends 'posts'
-        ? Array < PostGetPayload<S['select'][P]>>  : never
+        ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? UserCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : User
   : User
@@ -3325,10 +3535,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | MCountOutputTypeArgs
   }
 
   export type MInclude = {
     n?: boolean | NFindManyArgs
+    _count?: boolean | MCountOutputTypeArgs
   }
 
   export type MGetPayload<
@@ -3343,14 +3555,18 @@ export namespace Prisma {
     ? M  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'n'
-        ? Array < NGetPayload<S['include'][P]>>  : never
+        ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? MCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof M ?M [P]
   : 
           P extends 'n'
-        ? Array < NGetPayload<S['select'][P]>>  : never
+        ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? MCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : M
   : M
@@ -4233,10 +4449,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | NCountOutputTypeArgs
   }
 
   export type NInclude = {
     m?: boolean | MFindManyArgs
+    _count?: boolean | NCountOutputTypeArgs
   }
 
   export type NGetPayload<
@@ -4251,14 +4469,18 @@ export namespace Prisma {
     ? N  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'm'
-        ? Array < MGetPayload<S['include'][P]>>  : never
+        ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? NCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof N ?N [P]
   : 
           P extends 'm'
-        ? Array < MGetPayload<S['select'][P]>>  : never
+        ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? NCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : N
   : N
@@ -5141,10 +5363,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
   export type OneOptionalInclude = {
     many?: boolean | ManyRequiredFindManyArgs
+    _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
   export type OneOptionalGetPayload<
@@ -5159,14 +5383,18 @@ export namespace Prisma {
     ? OneOptional  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['include'][P]>>  : never
+        ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof OneOptional ?OneOptional [P]
   : 
           P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['select'][P]>>  : never
+        ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : OneOptional
   : OneOptional
