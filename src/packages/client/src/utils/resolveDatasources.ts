@@ -8,24 +8,6 @@ export function resolveDatasources(
   absolutePaths?: boolean,
 ): DataSource[] {
   return datasources.map((datasource) => {
-    if (datasource.activeProvider === 'sqlite') {
-      if (datasource.url.fromEnvVar === null) {
-        return {
-          ...datasource,
-          url: {
-            fromEnvVar: null,
-            value: absolutizeRelativePath(
-              datasource.url.value,
-              cwd,
-              outputDir,
-              absolutePaths,
-            ),
-          },
-        }
-      } else {
-        return datasource
-      }
-    }
     return datasource
   })
 }
