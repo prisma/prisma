@@ -266,8 +266,6 @@ You may have to run ${chalk.greenBright(
               featureFlagsOverrides: process.env.PRISMA_DEBUG_ENABLE_ALL_FLAGS
                 ? [
                     'microsoftSqlServer',
-                    'groupBy',
-                    'createMany',
                     'orderByRelation',
                     'napi',
                     'mongoDb',

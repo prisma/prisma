@@ -319,10 +319,6 @@ ${indent(
     }
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
-    const groupByEnabled = (this.generator?.previewFeatures ?? []).includes(
-      'groupBy',
-    )
-
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
@@ -348,7 +344,7 @@ ${indent(
 
 ${this.getAggregationTypes()}
 
-${groupByEnabled ? this.getGroupByTypes() : ''}
+${this.getGroupByTypes()}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
@@ -396,8 +392,6 @@ export class ModelDelegate implements Generatable {
         key !== 'groupBy' &&
         value,
     )
-    const previewFeatures = this.generator?.previewFeatures ?? []
-    const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
@@ -442,12 +436,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
       name,
     )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
 
-${
-  groupByEnabled
-    ? `${indent(
-        getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model),
-        TAB_SIZE,
-      )}
+${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
     HasSelectOrTake extends Or<
@@ -506,10 +495,8 @@ ${
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-        name,
-      )}<T> : Promise<InputErrors>`
-    : ``
-}
+      name,
+    )}<T> : Promise<InputErrors>
 }
 
 /**

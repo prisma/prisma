@@ -101,8 +101,6 @@ class CountDelegate implements Generatable {
         key !== 'groupBy' &&
         value,
     )
-    const previewFeatures = this.generator?.previewFeatures ?? []
-    const groupByEnabled = previewFeatures.includes('groupBy')
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
@@ -147,12 +145,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
       name,
     )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
 
-${
-  groupByEnabled
-    ? `${indent(
-        getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model),
-        TAB_SIZE,
-      )}
+${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
     HasSelectOrTake extends Or<
@@ -211,10 +204,8 @@ ${
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-        name,
-      )}<T> : Promise<InputErrors>`
-    : ``
-}
+      name,
+    )}<T> : Promise<InputErrors>
 }
 
 /**
