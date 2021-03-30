@@ -28,7 +28,6 @@ const {
   PrismaClientValidationError,
   warnEnvConflicts,
   getPrismaClient,
-  debugLib,
   sqltag,
   empty,
   join,
@@ -37,7 +36,6 @@ const {
 } = require('${runtimePath}')
 
 const path = require('path')
-const debug = debugLib('prisma-client')
 `
 }
 

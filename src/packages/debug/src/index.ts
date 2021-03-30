@@ -16,6 +16,7 @@ export default function Debug(namespace: string): DebugLib.Debugger {
 
   return debug
 }
+export { Debug }
 
 Debug.enable = (namespace: string): void => {
   DebugNode.enable(namespace)
