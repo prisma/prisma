@@ -11,6 +11,7 @@ import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { buildNFTEngineAnnotations } from '../utils'
 import { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
+import { Count } from './Count'
 import { Enum } from './Enum'
 import { Generatable } from './Generatable'
 import { escapeJson, ExportCollector } from './helpers'
@@ -191,6 +192,10 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
       new Enum(type, false, collector).toTS(),
     )
 
+    const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
+      .filter((t) => t.name.endsWith('CountOutputType'))
+      .map((t) => new Count(t, this.dmmf, this.options.generator, collector))
+
     const code = `
 /**
  * Client
@@ -232,6 +237,15 @@ export type Datasource = {
   url?: string
 }
 
+/**
+ * Count Types
+ */
+
+${countTypes.map((t) => t.toTS()).join('\n')}
+
+/**
+ * Models
+ */
 ${models.map((model) => model.toTS()).join('\n')}
 
 /**
