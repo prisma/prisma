@@ -102,7 +102,7 @@ test('resolveDatasources', () => {
         ],
         url: Object {
           fromEnvVar: null,
-          value: ../../../../prisma/db.db,
+          value: file:db.db,
         },
       },
       Object {
@@ -114,7 +114,7 @@ test('resolveDatasources', () => {
         ],
         url: Object {
           fromEnvVar: null,
-          value: ../../../../prisma/some-dir/db.db,
+          value: file:./some-dir/db.db,
         },
       },
       Object {
@@ -156,11 +156,11 @@ test('serializeDatasources', () => {
     [
       {
         "name": "db",
-        "url": "../../../../prisma/db.db"
+        "url": "file:db.db"
       },
       {
         "name": "db2",
-        "url": "../../../../prisma/some-dir/db.db"
+        "url": "file:./some-dir/db.db"
       },
       {
         "name": "db3",
