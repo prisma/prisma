@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.21.0-1.89b1b736b1b049dad86bd2c65c2679cb469af72c",
+    "@prisma/engines": "2.20.0-26.60ba6551f29b17d7d6ce479e5733c70d9c00860e",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
