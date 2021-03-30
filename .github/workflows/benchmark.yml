@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - fix/generation-benchmark
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below

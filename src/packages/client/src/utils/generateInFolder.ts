@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -115,12 +114,6 @@ export async function generateInFolder({
           ),
         },
       }
-
-  const res = await download({
-    binaries: {
-      'libquery-engine-napi': enginesPath,
-    },
-  })
 
   await generateClient({
     binaryPaths,
