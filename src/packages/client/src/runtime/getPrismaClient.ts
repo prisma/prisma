@@ -1368,15 +1368,6 @@ new PrismaClient({
         }
 
         delegate.groupBy = (args) => {
-          if (!this._previewFeatures.includes('groupBy')) {
-            throw new Error(`To use "groupBy", please add "groupBy" to the previewFeatures attribute in the generator block:
-generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["groupBy"]
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-}
-`)
-          }
           let unpacker: Unpacker | undefined = undefined
 
           /**

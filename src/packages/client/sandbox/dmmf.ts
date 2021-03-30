@@ -4,7 +4,7 @@ const datamodel = /* prisma */ `
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["uncheckedScalarInputs", "createMany", "selectRelationCount"]
+  previewFeatures = ["uncheckedScalarInputs", "selectRelationCount"]
 }
 
 datasource db {

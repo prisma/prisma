@@ -175,6 +175,8 @@ export class NodeEngine implements Engine {
       'connectOrCreate',
       'uncheckedScalarInputs',
       'nativeTypes',
+      'createMany',
+      'groupBy',
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
