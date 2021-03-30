@@ -319,10 +319,6 @@ ${indent(
     }
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
-    const groupByEnabled = (this.generator?.previewFeatures ?? []).includes(
-      'groupBy',
-    )
-
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
@@ -348,7 +344,7 @@ ${indent(
 
 ${this.getAggregationTypes()}
 
-${groupByEnabled ? this.getGroupByTypes() : ''}
+${this.getGroupByTypes()}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
