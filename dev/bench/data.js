@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1617110793520,
+  "lastUpdate": 1617111205659,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -24001,6 +24001,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±10.79%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tim.suchanek@gmail.com",
+            "name": "timsuchanek",
+            "username": "timsuchanek"
+          },
+          "committer": {
+            "email": "tim.suchanek@gmail.com",
+            "name": "timsuchanek",
+            "username": "timsuchanek"
+          },
+          "distinct": true,
+          "id": "a7bdd64e35dda315271c5eda458ff00fac21f21d",
+          "message": "chore: fix tests",
+          "timestamp": "2021-03-30T15:29:38+02:00",
+          "tree_id": "33f67c15cb09c489c3df72ef72c473f5b12d925d",
+          "url": "https://github.com/prisma/prisma/commit/a7bdd64e35dda315271c5eda458ff00fac21f21d"
+        },
+        "date": 1617111204297,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.29,
+            "range": "±6.94%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.74%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
