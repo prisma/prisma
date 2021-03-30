@@ -21,7 +21,7 @@ const sendRequest = (message: any): Promise<any> => {
 }
 
 let studio: Studio
-describe.skip('studio', () => {
+describe('studio', () => {
   beforeEach(async () => {
     process.env.PRISMA_FORCE_NAPI = ''
 
