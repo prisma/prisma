@@ -60,15 +60,39 @@ export async function getDMMF({
       maxBuffer: MAX_BUFFER,
     }
 
-    const getMessage = (flag: string) =>
-      `${chalk.blueBright(
+    const removedFeatureFlagMap = {
+      insensitiveFilters: `${chalk.blueBright(
         'info',
-      )} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
-
+      )} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
+      atomicNumberOperations: `${chalk.blueBright(
+        'info',
+      )} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`,
+      connectOrCreate: `${chalk.blueBright(
+        'info',
+      )} The preview flag "connectOrCreate" is not needed anymore, please remove it from your schema.prisma`,
+      transaction: `${chalk.blueBright(
+        'info',
+      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
+      transactionApi: `${chalk.blueBright(
+        'info',
+      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
+      uncheckedScalarInputs: `${chalk.blueBright(
+        'info',
+      )} The preview flag "uncheckedScalarInputs" is not needed anymore, please remove it from your schema.prisma`,
+      nativeTypes: `${chalk.blueBright(
+        'info',
+      )} The preview flag "nativeTypes" is not needed anymore, please remove it from your schema.prisma`,
+      createMany: `${chalk.blueBright(
+        'info',
+      )} The preview flag "createMany" is not needed anymore, please remove it from your schema.prisma`,
+      groupBy: `${chalk.blueBright(
+        'info',
+      )} The preview flag "groupBy" is not needed anymore, please remove it from your schema.prisma`,
+    }
     if (enableExperimental) {
       enableExperimental = enableExperimental
         .filter((f) => {
-          const removeMessage = getMessage(f)
+          const removeMessage = removedFeatureFlagMap[f]
           if (removeMessage) {
             if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
               console.log(removeMessage)
