@@ -5,7 +5,7 @@
   "private": true,
   "license": "MIT",
   "engines": {
-    "node": ">=10.13"
+    "node": ">=10.16"
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.0",
