@@ -3268,7 +3268,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "email",
               "outputType": Object {
                 "isList": false,
@@ -3293,7 +3293,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -3308,7 +3308,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -3323,7 +3323,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -3348,7 +3348,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14146,7 +14146,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "title",
               "outputType": Object {
                 "isList": false,
@@ -14156,7 +14156,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "published",
               "outputType": Object {
                 "isList": false,
@@ -14181,7 +14181,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14191,7 +14191,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -14206,7 +14206,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14216,7 +14216,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -14231,7 +14231,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14241,7 +14241,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -14276,7 +14276,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14286,7 +14286,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -14331,7 +14331,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "email",
               "outputType": Object {
                 "isList": false,
@@ -14356,7 +14356,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14371,7 +14371,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14386,7 +14386,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14411,7 +14411,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14446,7 +14446,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "firstName",
               "outputType": Object {
                 "isList": false,
@@ -14456,7 +14456,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "lastName",
               "outputType": Object {
                 "isList": false,
@@ -14466,7 +14466,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "isAdmin",
               "outputType": Object {
                 "isList": false,
@@ -14491,7 +14491,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14506,7 +14506,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14521,7 +14521,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14566,7 +14566,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14621,7 +14621,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "firstName",
               "outputType": Object {
                 "isList": false,
@@ -14631,7 +14631,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "lastName",
               "outputType": Object {
                 "isList": false,
@@ -14641,7 +14641,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "isAdmin",
               "outputType": Object {
                 "isList": false,
@@ -14666,7 +14666,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14681,7 +14681,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14696,7 +14696,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -14741,7 +14741,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25559,7 +25559,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "title",
               "outputType": Object {
                 "isList": false,
@@ -25569,7 +25569,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "published",
               "outputType": Object {
                 "isList": false,
@@ -25594,7 +25594,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25604,7 +25604,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -25619,7 +25619,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25629,7 +25629,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -25644,7 +25644,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25654,7 +25654,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -25689,7 +25689,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25699,7 +25699,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "authorId",
               "outputType": Object {
                 "isList": false,
@@ -25744,7 +25744,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "email",
               "outputType": Object {
                 "isList": false,
@@ -25769,7 +25769,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25784,7 +25784,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25799,7 +25799,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25824,7 +25824,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25859,7 +25859,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "firstName",
               "outputType": Object {
                 "isList": false,
@@ -25869,7 +25869,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "lastName",
               "outputType": Object {
                 "isList": false,
@@ -25879,7 +25879,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "isAdmin",
               "outputType": Object {
                 "isList": false,
@@ -25904,7 +25904,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25919,7 +25919,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25934,7 +25934,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -25979,7 +25979,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -26034,7 +26034,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "firstName",
               "outputType": Object {
                 "isList": false,
@@ -26044,7 +26044,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "lastName",
               "outputType": Object {
                 "isList": false,
@@ -26054,7 +26054,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "isAdmin",
               "outputType": Object {
                 "isList": false,
@@ -26079,7 +26079,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -26094,7 +26094,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -26109,7 +26109,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -26154,7 +26154,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -26201,11 +26201,11 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `111854388`;
+exports[`getDMMF big schema 1`] = `111819080`;
 
-exports[`getDMMF chinook introspected schema 1`] = `809504`;
+exports[`getDMMF chinook introspected schema 1`] = `809458`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `809504`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `809458`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -29180,7 +29180,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "name",
               "outputType": Object {
                 "isList": false,
@@ -29205,7 +29205,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -29220,7 +29220,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -29235,7 +29235,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
@@ -29260,7 +29260,7 @@ Object {
           "fields": Array [
             Object {
               "args": Array [],
-              "isNullable": false,
+              "isNullable": true,
               "name": "id",
               "outputType": Object {
                 "isList": false,
