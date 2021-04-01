@@ -706,7 +706,6 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 
       const publishOrder = filterPublishOrder(getPublishOrder(packages), [
         '@prisma/tests',
-        '@prisma/migrate',
       ])
 
       if (!dryRun) {
