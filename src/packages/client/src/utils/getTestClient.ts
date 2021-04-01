@@ -45,6 +45,7 @@ export async function getTestClient(
   )
   const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
   if (enableExperimental.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+    // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine-napi': getEnginesPath(),

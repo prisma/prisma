@@ -100,6 +100,7 @@ export async function generateInFolder({
   }
   const enginesPath = getEnginesPath()
   if (useNapi || process.env.PRISMA_FORCE_NAPI) {
+    // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine-napi': enginesPath,
