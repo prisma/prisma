@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1617195716529,
+  "lastUpdate": 1617279569353,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -24561,6 +24561,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.17,
             "range": "±2.59%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "fcc0c72d6b932727d23a6a8942dfbc050064e117",
+          "message": "fix(engine-core): napi error message (#6358)",
+          "timestamp": "2021-04-01T14:16:03+02:00",
+          "tree_id": "6400aefdc6cc9c9b8ecb0ced1e0dd5b99a1d9208",
+          "url": "https://github.com/prisma/prisma/commit/fcc0c72d6b932727d23a6a8942dfbc050064e117"
+        },
+        "date": 1617279567793,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.31,
+            "range": "±8.42%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.16,
+            "range": "±2.95%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
