@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
-import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
+import { getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -33,7 +34,6 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
 }: GenerateInFolderOptions): Promise<number> {
-  await ensureBinariesExist()
   const before = performance.now()
   if (!projectDir) {
     throw new Error(
@@ -99,7 +99,13 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-
+  if (useNapi || process.env.PRISMA_FORCE_NAPI) {
+    await download({
+      binaries: {
+        'libquery-engine-napi': enginesPath,
+      },
+    })
+  }
   const binaryPaths = useNapi
     ? {
         libqueryEngineNapi: {

@@ -1,24 +1,25 @@
-import { ensureBinariesExist } from '@prisma/engines'
+import { getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import {
   extractPreviewFeatures,
   getConfig,
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
+  parseEnvValue,
   printConfigWarnings,
 } from '@prisma/sdk'
-import { parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
-import { extractSqliteSources } from '../generation/extractSqliteSources'
 import { getDMMF } from '../generation/getDMMF'
 import {
   getPrismaClient,
   GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
 import { generateInFolder } from './generateInFolder'
+
 const readFile = promisify(fs.readFile)
 
 /**
@@ -32,7 +33,6 @@ export async function getTestClient(
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
   }
-  await ensureBinariesExist()
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
@@ -44,6 +44,13 @@ export async function getTestClient(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
+  if (enableExperimental.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+    await download({
+      binaries: {
+        'libquery-engine-napi': getEnginesPath(),
+      },
+    })
+  }
   const document = await getDMMF({
     datamodel,
     enableExperimental,
@@ -60,10 +67,6 @@ export async function getTestClient(
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
-    sqliteDatasourceOverrides:
-      activeProvider === 'sqlite'
-        ? extractSqliteSources(datamodel, schemaDir, outputDir)
-        : undefined,
     activeProvider,
   }
 
