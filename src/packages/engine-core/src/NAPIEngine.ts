@@ -194,12 +194,12 @@ export class NAPIEngine implements Engine {
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
         `Unknown ${chalk.red(
-          'PRISMA_QUERY_ENGINE_BINARY',
+          'PRISMA_QUERY_ENGINE_LIBRARY',
         )} ${chalk.redBright.bold(
           this.platform,
         )}. Possible binaryTargets: ${chalk.greenBright(
           knownPlatforms.join(', '),
-        )} or a path to the query engine binary.
+        )} or a path to the query engine library.
 You may have to run ${chalk.greenBright(
           'prisma generate',
         )} for your changes to take effect.`,
