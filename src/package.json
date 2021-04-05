@@ -24,7 +24,7 @@
     "node-fetch": "2.6.1",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
-    "redis": "3.0.2",
+    "redis": "3.1.0",
     "redis-lock": "0.1.4",
     "semver": "7.3.5",
     "ts-node": "9.1.1",
