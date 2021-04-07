@@ -33,6 +33,7 @@ import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
 import { parseEnvValue } from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
@@ -136,6 +137,13 @@ export async function getGenerators({
   if (dmmf.datamodel.models.length === 0) {
     throw new Error(missingModelMessage)
   }
+
+  // if (
+  //   config.datasources.some((d) => d.provider.includes('mongodb')) &&
+  //   !experimentalFeatures.includes('mongodb')
+  // ) {
+  //   throw new Error(mongoFeatureFlagMissingMessage)
+  // }
 
   const generatorConfigs = overrideGenerators || config.generators
 
