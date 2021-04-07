@@ -100,7 +100,7 @@ Please try to install it by hand with ${chalk.bold.greenBright(
 
     if (!prismaClientDir) {
       throw new Error(
-        `Could not resolve @prisma/client. 
+        `Could not resolve @prisma/client.
 Please try to install it with ${chalk.bold.greenBright(
           'npm install @prisma/client',
         )} and rerun ${chalk.bold(
