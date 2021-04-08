@@ -10,36 +10,36 @@ on:
       # - `pull_request` see below
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".vscode/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
-      - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "*.bench.ts"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - '*.md'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - 'src/.buildkite/**'
+      - 'src/.dockerignore'
+      - '*.bench.ts'
+      - 'src/scripts/ci/publish.ts'
+      - 'src/graphs/**'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
       # - `push`see before
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".vscode/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
-      - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "*.bench.ts"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - '*.md'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - 'src/.buildkite/**'
+      - 'src/.dockerignore'
+      - '*.bench.ts'
+      - 'src/scripts/ci/publish.ts'
+      - 'src/graphs/**'
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
-  GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 jobs:
   # From https://github.com/marketplace/actions/skip-duplicate-actions
@@ -78,7 +78,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: '12'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -169,8 +169,8 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
     env:
-      PRISMA_FORCE_NAPI: "true"
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
+      PRISMA_FORCE_NAPI: 'true'
+      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -357,8 +357,8 @@ jobs:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
     env:
-      PRISMA_FORCE_NAPI: "true"
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: "true"
+      PRISMA_FORCE_NAPI: 'true'
+      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -402,7 +402,7 @@ jobs:
           files: ./src/packages/client/src/__tests__/coverage/clover.xml
           flags: client-types,${{ matrix.os }}
           name: client-types-${{ matrix.os }}
-  
+
   #
   # CLIENT (types tests only)
   #
@@ -604,7 +604,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "debug"
+        name: 'debug'
         working-directory: src/packages/debug
         env:
           CI: true
@@ -618,7 +618,7 @@ jobs:
           name: debug-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "engine-core"
+        name: 'engine-core'
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -632,7 +632,7 @@ jobs:
           name: engine-core-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "fetch-engine"
+        name: 'fetch-engine'
         working-directory: src/packages/fetch-engine
         env:
           CI: true
@@ -646,7 +646,7 @@ jobs:
           name: fetch-engine-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "generator-helper"
+        name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
           CI: true
@@ -660,7 +660,7 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "get-platform"
+        name: 'get-platform'
         working-directory: src/packages/get-platform
         env:
           CI: true
