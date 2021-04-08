@@ -1513,39 +1513,39 @@ export namespace Prisma {
   }
 
   export type PostAvgAggregateOutputType = {
-    id: number
-    authorId: number
+    id: number | null
+    authorId: number | null
   }
 
   export type PostSumAggregateOutputType = {
-    id: number
-    authorId: number
+    id: number | null
+    authorId: number | null
   }
 
   export type PostMinAggregateOutputType = {
-    id: number
+    id: number | null
     createdAt: Date | null
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number
+    authorId: number | null
   }
 
   export type PostMaxAggregateOutputType = {
-    id: number
+    id: number | null
     createdAt: Date | null
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number
+    authorId: number | null
   }
 
   export type PostCountAggregateOutputType = {
     id: number
-    createdAt: number | null
-    title: number | null
-    content: number | null
-    published: number | null
+    createdAt: number
+    title: number
+    content: number
+    published: number
     authorId: number
     _all: number
   }
@@ -2361,27 +2361,27 @@ export namespace Prisma {
   }
 
   export type UserAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type UserSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type UserMinAggregateOutputType = {
-    id: number
+    id: number | null
     email: string | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -2392,11 +2392,11 @@ export namespace Prisma {
   }
 
   export type UserMaxAggregateOutputType = {
-    id: number
+    id: number | null
     email: string | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -2408,19 +2408,19 @@ export namespace Prisma {
 
   export type UserCountAggregateOutputType = {
     id: number
-    email: number | null
+    email: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -3283,26 +3283,26 @@ export namespace Prisma {
   }
 
   export type MAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type MSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type MMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -3313,10 +3313,10 @@ export namespace Prisma {
   }
 
   export type MMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -3329,17 +3329,17 @@ export namespace Prisma {
   export type MCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -4197,26 +4197,26 @@ export namespace Prisma {
   }
 
   export type NAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type NSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type NMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4227,10 +4227,10 @@ export namespace Prisma {
   }
 
   export type NMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4243,17 +4243,17 @@ export namespace Prisma {
   export type NCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -5111,26 +5111,26 @@ export namespace Prisma {
   }
 
   export type OneOptionalAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OneOptionalSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OneOptionalMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -5141,10 +5141,10 @@ export namespace Prisma {
   }
 
   export type OneOptionalMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -5157,17 +5157,17 @@ export namespace Prisma {
   export type OneOptionalCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -6025,29 +6025,29 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type ManyRequiredSumAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type ManyRequiredMinAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6058,11 +6058,11 @@ export namespace Prisma {
   }
 
   export type ManyRequiredMaxAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6074,19 +6074,19 @@ export namespace Prisma {
 
   export type ManyRequiredCountAggregateOutputType = {
     id: number
-    oneOptionalId: number | null
+    oneOptionalId: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -6945,29 +6945,29 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide1SumAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide1MinAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6978,11 +6978,11 @@ export namespace Prisma {
   }
 
   export type OptionalSide1MaxAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6994,19 +6994,19 @@ export namespace Prisma {
 
   export type OptionalSide1CountAggregateOutputType = {
     id: number
-    optionalSide2Id: number | null
+    optionalSide2Id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -7865,26 +7865,26 @@ export namespace Prisma {
   }
 
   export type OptionalSide2AvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide2SumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide2MinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -7895,10 +7895,10 @@ export namespace Prisma {
   }
 
   export type OptionalSide2MaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -7911,17 +7911,17 @@ export namespace Prisma {
   export type OptionalSide2CountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -8773,51 +8773,51 @@ export namespace Prisma {
   }
 
   export type AAvgAggregateOutputType = {
-    int: number
-    sInt: number
-    bInt: number
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: number
+    int: number | null
+    sInt: number | null
+    bInt: number | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: number | null
   }
 
   export type ASumAggregateOutputType = {
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type AMinAggregateOutputType = {
     id: string | null
     email: string | null
     name: string | null
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type AMaxAggregateOutputType = {
     id: string | null
     email: string | null
     name: string | null
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type ACountAggregateOutputType = {
-    id: number | null
-    email: number | null
-    name: number | null
+    id: number
+    email: number
+    name: number
     int: number
     sInt: number
     bInt: number
@@ -9618,37 +9618,37 @@ export namespace Prisma {
   }
 
   export type BAvgAggregateOutputType = {
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BSumAggregateOutputType = {
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BMinAggregateOutputType = {
     id: string | null
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BMaxAggregateOutputType = {
     id: string | null
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BCountAggregateOutputType = {
-    id: number | null
+    id: number
     float: number
     dFloat: number
     decFloat: number
@@ -10441,13 +10441,13 @@ export namespace Prisma {
   }
 
   export type CCountAggregateOutputType = {
-    id: number | null
-    char: number | null
-    vChar: number | null
-    text: number | null
-    bit: number | null
-    vBit: number | null
-    uuid: number | null
+    id: number
+    char: number
+    vChar: number
+    text: number
+    bit: number
+    vBit: number
+    uuid: number
     _all: number
   }
 
@@ -11210,12 +11210,12 @@ export namespace Prisma {
   }
 
   export type DCountAggregateOutputType = {
-    id: number | null
-    bool: number | null
-    byteA: number | null
-    xml: number | null
-    json: number | null
-    jsonb: number | null
+    id: number
+    bool: number
+    byteA: number
+    xml: number
+    json: number
+    jsonb: number
     _all: number
   }
 
@@ -11969,10 +11969,10 @@ export namespace Prisma {
   }
 
   export type ECountAggregateOutputType = {
-    id: number | null
-    date: number | null
-    time: number | null
-    ts: number | null
+    id: number
+    date: number
+    time: number
+    ts: number
     _all: number
   }
 

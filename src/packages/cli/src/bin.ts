@@ -21,6 +21,8 @@ const commandArray = process.argv.slice(2)
 
 import Debug from '@prisma/debug'
 
+process.removeAllListeners('warning')
+
 const debug = Debug('prisma:cli')
 process.on('uncaughtException', (e) => {
   debug(e)
