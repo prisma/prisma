@@ -13,6 +13,10 @@ You can join us on [Slack](https://slack.prisma.io) and here on [GitHub Discussi
 
 If you have found a **bug** or have a **feature request** then please create an issue in this repository (please search first in case a similar issue already exists).
 
+## Testing
+
+Want to write a test? Please have a look at our [TESTING.md](./TESTING.md).
+
 ## Code
 
 Prisma consists of a mono-repo for all TypeScript code.

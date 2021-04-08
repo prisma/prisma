@@ -106,17 +106,33 @@ export async function createDatabase(
   migrationEnginePath =
     migrationEnginePath || (await resolveBinary('migration-engine'))
 
-  return await execa(
-    migrationEnginePath,
-    ['cli', '--datasource', connectionString, 'create-database'],
-    {
-      cwd,
-      env: {
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
+  try {
+    return await execa(
+      migrationEnginePath,
+      ['cli', '--datasource', connectionString, 'create-database'],
+      {
+        cwd,
+        env: {
+          RUST_BACKTRACE: '1',
+          RUST_LOG: 'info',
+        },
       },
-    },
-  )
+    )
+  } catch (e) {
+    let error
+
+    if (e.stdout) {
+      try {
+        error = JSON.parse(e.stdout.trim())
+      } catch (e) {}
+    }
+
+    if (error?.message) {
+      throw new Error(error.message)
+    }
+
+    throw new Error(e.stderr ?? "Can't create database")
+  }
 }
 
 export async function dropDatabase(

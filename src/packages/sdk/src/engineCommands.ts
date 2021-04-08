@@ -218,12 +218,14 @@ export async function getConfig({
     }
   }
 
+  // engineArgs is temporary until we officially add the mongoDb preview flag.
+  const engineArgs = ['--enable-experimental=mongoDb']
   const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
   try {
     const result = await execa(
       queryEnginePath,
-      ['cli', 'get-config', ...args],
+      [...engineArgs, 'cli', 'get-config', ...args],
       {
         cwd,
         env: {
