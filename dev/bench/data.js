@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1617778195053,
+  "lastUpdate": 1617883169854,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -11519,6 +11519,86 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client/index.js size",
             "value": 2.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "884917293de796ecad8fc7df327e62d9b42213aa",
+          "message": "fix(deps): update engines to v2.21.0-4.2b4ae74c1849602a9359b4367e2314eed3f1ba18 (#6343)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: William Luke <william@ordino.ai>\r\nCo-authored-by: timsuchanek <tim.suchanek@gmail.com>",
+          "timestamp": "2021-04-08T13:56:39+02:00",
+          "tree_id": "a87d403a2821bcfc6140bbade564d899d06efa15",
+          "url": "https://github.com/prisma/prisma/commit/884917293de796ecad8fc7df327e62d9b42213aa"
+        },
+        "date": 1617883168655,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±6.19%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.17,
+            "range": "±3.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.5,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
