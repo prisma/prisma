@@ -5,7 +5,7 @@ import path from 'path'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
-  if (credentials.type === 'mongo') {
+  if (credentials.type === 'mongodb') {
     return credentials.uri!
   }
   const url = new URL(type + '//', true)
@@ -83,7 +83,7 @@ export function uriToCredentials(
   // needed, as the URL implementation adds empty strings
   const exists = (str): boolean => str && str.length > 0
 
-  if (type === 'mongo') {
+  if (type === 'mongodb') {
     return {
       type,
       uri: connectionString, // todo: set authsource as database if not provided explicitly
@@ -140,7 +140,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
       return 'postgresql:'
     case 'mysql':
       return 'mysql:'
-    case 'mongo':
+    case 'mongodb':
       return 'mongodb:'
     case 'sqlite':
       return 'sqlite:'
@@ -155,7 +155,7 @@ function protocolToDatabaseType(protocol: string): ConnectorType {
     case 'postgres:':
       return 'postgresql'
     case 'mongodb:':
-      return 'mongo'
+      return 'mongodb'
     case 'mysql:':
       return 'mysql'
     case 'file:':

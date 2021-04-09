@@ -12,6 +12,7 @@ async function main() {
       email: 'max@gmail.com',
     },
   })
+  // const user = await client.user.findMany()
   console.log(user)
   console.timeEnd('create')
 }

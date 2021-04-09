@@ -20,6 +20,8 @@ const sendRequest = (message: any): Promise<any> => {
   }).then((res) => res.json())
 }
 
+jest.setTimeout(20000)
+
 let studio: Studio
 describe('studio', () => {
   beforeEach(async () => {

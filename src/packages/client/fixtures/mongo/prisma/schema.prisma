@@ -1,6 +1,6 @@
 datasource db {
   provider = "mongodb"
-  url      = "mongodb://localhost:27017/mydb"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -8,7 +8,7 @@ generator client {
 }
 
 model User {
-  id    String @id @default(dbgenerated("")) @map("_id") @db.ObjectId
+  id    String @id @default(dbgenerated()) @map("_id") @db.ObjectId
   email String @unique
 }
 
