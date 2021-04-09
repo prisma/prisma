@@ -31,6 +31,7 @@ async function main() {
       target: 'node10',
       outfile: 'generator-build/index.js',
       entryPoints: ['src/generator.ts'],
+      external: ['_http_common']
     }),
   ])
 
@@ -41,6 +42,7 @@ async function main() {
       target: 'node10',
       outdir: 'runtime',
       entryPoints: ['src/runtime/index.ts'],
+      external: ['_http_common']
     }),
     esbuild.build({
       platform: 'node',
@@ -49,6 +51,7 @@ async function main() {
       target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
       outdir: 'runtime',
       entryPoints: ['src/runtime/index-browser.ts'],
+      external: ['_http_common']
     }),
     run('rollup -c'),
   ])
