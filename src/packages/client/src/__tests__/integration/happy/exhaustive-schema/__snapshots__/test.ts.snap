@@ -13015,7 +13015,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-    posts?: PostOrderByAggregateInput
+    posts?: PostOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = {
@@ -13082,7 +13082,7 @@ export namespace Prisma {
 
   export type MOrderByWithRelationInput = {
     id?: SortOrder
-    n?: NOrderByAggregateInput
+    n?: NOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -13158,7 +13158,7 @@ export namespace Prisma {
 
   export type NOrderByWithRelationInput = {
     id?: SortOrder
-    m?: MOrderByAggregateInput
+    m?: MOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -13234,7 +13234,7 @@ export namespace Prisma {
 
   export type OneOptionalOrderByWithRelationInput = {
     id?: SortOrder
-    many?: ManyRequiredOrderByAggregateInput
+    many?: ManyRequiredOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15142,7 +15142,7 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
-  export type PostOrderByAggregateInput = {
+  export type PostOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15244,7 +15244,7 @@ export namespace Prisma {
     none?: NWhereInput
   }
 
-  export type NOrderByAggregateInput = {
+  export type NOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15254,7 +15254,7 @@ export namespace Prisma {
     none?: MWhereInput
   }
 
-  export type MOrderByAggregateInput = {
+  export type MOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15264,7 +15264,7 @@ export namespace Prisma {
     none?: ManyRequiredWhereInput
   }
 
-  export type ManyRequiredOrderByAggregateInput = {
+  export type ManyRequiredOrderByRelationAggregateInput = {
     count: SortOrder
   }
 

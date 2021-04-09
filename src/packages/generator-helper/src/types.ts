@@ -47,7 +47,7 @@ export interface EnvValue {
 
 export type ConnectorType =
   | 'mysql'
-  | 'mongo'
+  | 'mongodb'
   | 'sqlite'
   | 'postgresql'
   | 'sqlserver'

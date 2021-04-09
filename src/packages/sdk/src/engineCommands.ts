@@ -218,8 +218,8 @@ export async function getConfig({
     }
   }
 
-  // engineArgs is temporary until we officially add the mongoDb preview flag.
-  const engineArgs = ['--enable-experimental=mongoDb']
+  const engineArgs = []
+
   const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
   try {

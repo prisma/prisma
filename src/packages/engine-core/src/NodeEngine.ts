@@ -329,7 +329,7 @@ You may have to run ${chalk.greenBright(
 
   private handlePanic(): void {
     this.child?.kill()
-    if (this.currentRequestPromise) {
+    if (this.currentRequestPromise?.cancel) {
       this.currentRequestPromise.cancel()
     }
   }
