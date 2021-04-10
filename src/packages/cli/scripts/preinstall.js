@@ -94,10 +94,18 @@ export function main() {
       )}
   
       # Install new CLI
-      ${white(`npm install prisma --save-dev`)}
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? `yarn add prisma --dev`
+          : `npm install prisma --save-dev`
+      )}
   
       # Invoke via npx
-      ${white('npx prisma --help')}
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? `yarn prisma --help`
+          : 'npx prisma --help'
+      )}
   
   Learn more here: https://github.com/prisma/prisma/releases/tag/2.16.0
   `,
