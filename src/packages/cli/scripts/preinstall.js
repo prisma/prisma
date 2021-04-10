@@ -97,14 +97,14 @@ export function main() {
       ${white(
         getPackageManagerName() === 'yarn'
           ? `yarn add prisma --dev`
-          : `npm install prisma --save-dev`
+          : `npm install prisma --save-dev`,
       )}
   
       # Invoke via npx
       ${white(
         getPackageManagerName() === 'yarn'
           ? `yarn prisma --help`
-          : 'npx prisma --help'
+          : 'npx prisma --help',
       )}
   
   Learn more here: https://github.com/prisma/prisma/releases/tag/2.16.0
