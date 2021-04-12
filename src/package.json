@@ -1,6 +1,6 @@
 {
   "name": "prisma2-dev-environment",
-  "version": "1.0.8",
+  "version": "1.0.10",
   "main": "index.js",
   "private": true,
   "license": "MIT",
@@ -24,11 +24,12 @@
     "node-fetch": "2.6.1",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
+    "p-retry": "4.5.0",
     "redis": "3.1.0",
     "redis-lock": "0.1.4",
     "semver": "7.3.5",
     "ts-node": "9.1.1",
-    "typescript": "4.2.3"
+    "typescript": "4.2.4"
   },
   "scripts": {
     "preinstall": "node ../scripts/only-allow-pnpm.js pnpm",

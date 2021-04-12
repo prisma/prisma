@@ -237,7 +237,9 @@ You may have to run ${chalk.greenBright(
           debug(`using ${this.libQueryEnginePath}`)
         }
         try {
-          this.QueryEngine = require(this.libQueryEnginePath).QueryEngine
+          // this require needs to be resolved at runtime, tell webpack to ignore it
+          this.QueryEngine = require(/* webpackIgnore: true */
+          this.libQueryEnginePath).QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
             throw new PrismaClientInitializationError(
