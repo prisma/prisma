@@ -3,8 +3,7 @@
 set -ex
 
 # Thanks to https://gist.github.com/sj26/88e1c6584397bb7c13bd11108a579746
-# Retry a command up to a specific numer of times until it exits successfully,
-# with exponential back off.
+# Retry a command up to a specific numer of times until it exits successfully
 #
 #  $ retry 5 echo Hello
 #  Hello
@@ -23,8 +22,14 @@ function retry {
   local count=0
   until "$@"; do
     exit=$?
-    wait=$((2 ** $count))
-    count=$(($count + 20))
+    
+    if [ $count == 0 ]; then
+      wait=20
+    else
+      wait=$((2 * $wait))
+    fi
+    
+    count=$(($count + 1))
     if [ $count -lt $retries ]; then
       echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
       sleep $wait
