@@ -14,6 +14,7 @@ import { cloneOrPull } from '../setup'
 import { unique } from './unique'
 import pMap from 'p-map'
 import slugify from '@sindresorhus/slugify'
+import pRetry from 'p-retry'
 import { IncomingWebhook } from '@slack/webhook'
 
 export type Commit = {
@@ -1074,10 +1075,20 @@ async function publishPackages(
 
       const prismaDeps = [...pkg.uses, ...pkg.usesDev]
       if (prismaDeps.length > 0) {
-        await run(
-          pkgDir,
-          `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
-          dryRun,
+        await pRetry(
+          async () => {
+            await run(
+              pkgDir,
+              `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
+              dryRun,
+            )
+          },
+          {
+            retries: 6,
+            onFailedAttempt: (e) => {
+              console.error(e)
+            },
+          },
         )
       }
 
