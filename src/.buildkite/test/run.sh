@@ -43,7 +43,7 @@ function retry {
 
 npm i --silent -g pnpm@5.15.1 --unsafe-perm
 
-retry 5 pnpm i --no-prefer-frozen-lockfile
+retry 6 pnpm i --no-prefer-frozen-lockfile
 
 # Only run lint for job 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
@@ -55,7 +55,7 @@ npm -v
 
 cd src
 
-retry 5 pnpm i --no-prefer-frozen-lockfile
+retry 6 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 

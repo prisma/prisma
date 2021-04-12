@@ -43,7 +43,7 @@ function retry {
 
 npm i --silent -g pnpm@5.15.1 --unsafe-perm
 
-retry 5 pnpm i --no-prefer-frozen-lockfile
+retry 6 pnpm i --no-prefer-frozen-lockfile
 pnpm run lint
 
 cd src
@@ -56,7 +56,7 @@ fi
 node -v
 npm -v
 
-retry 5 pnpm i --no-prefer-frozen-lockfile
+retry 6 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
