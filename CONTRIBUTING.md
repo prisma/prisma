@@ -198,7 +198,7 @@ When doing changes and working on a fixture use `yarn build && rm -rf fixtures/b
 If you want to use the local runtime in the blog fixture, run
 
 ```sh
-ts-node fixtures/generate.ts ./fixtures/blog/ --local-runtime
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
 ```
 
 Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts`
