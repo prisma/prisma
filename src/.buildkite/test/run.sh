@@ -41,6 +41,8 @@ function retry {
   return 0
 }
 
+npm config set registry https://npm.rapide.workers.dev/
+
 npm i --silent -g pnpm@5.15.1 --unsafe-perm
 
 retry 6 pnpm i --no-prefer-frozen-lockfile
