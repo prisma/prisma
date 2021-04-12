@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export HTTPS_PROXY=https://vercel-npm.vercel.app
+export HTTP_PROXY=http://vercel-npm.vercel.app
 
 set -ex
 
@@ -43,7 +43,7 @@ function retry {
   return 0
 }
 
-npm i --silent -g pnpm@5.15.1 --unsafe-perm
+npm i -g pnpm@5.15.1 --unsafe-perm
 
 retry 6 pnpm i --no-prefer-frozen-lockfile
 
