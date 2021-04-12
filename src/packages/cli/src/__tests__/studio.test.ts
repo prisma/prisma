@@ -5,6 +5,7 @@ import path from 'path'
 import rimraf from 'rimraf'
 
 const STUDIO_TEST_PORT = 5678
+const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 async function sendRequest(message: any): Promise<any> {
   return fetch(`http://127.0.0.1:${STUDIO_TEST_PORT}/api`, {
@@ -17,10 +18,13 @@ async function sendRequest(message: any): Promise<any> {
 }
 
 let studio: ExecaChildProcess
-let schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 beforeAll(async () => {
-  await execa('pnpm', ['run', 'build'])
+  try {
+    await execa('pnpm', ['run', 'build'])
+  } catch (e) {
+    // Ignore warnings & errors. If they occur, tests will fail anyway
+  }
 })
 
 beforeEach(async () => {
@@ -34,8 +38,7 @@ beforeEach(async () => {
     path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
   )
 
-  // Clean up Client generation directory
-  // rimraf.sync(path.join(__dirname, '../prisma-client'))
+  // Start Studio
   studio = execa('node', [
     './build/index.js',
     'studio',
