@@ -117,11 +117,10 @@ ${chalk.bold('Examples')}
     const extension = platform === 'windows' ? '.exe' : ''
     const queryEnginePath =
       process.env.NODE_ENV === 'production'
-        ? eval(
-            `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
-          )
-        : eval(
-            `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
+        ? path.join(__dirname, `../query-engine-${platform}${extension}`)
+        : path.join(
+            __dirname,
+            `../node_modules/@prisma/engines/query-engine-${platform}${extension}`,
           )
 
     const staticAssetDir =
@@ -132,10 +131,10 @@ ${chalk.bold('Examples')}
     const studio = new StudioServer({
       schemaPath,
       port,
+      staticAssetDir,
       binaryPaths: {
         queryEngine: queryEnginePath,
       },
-      staticAssetDir,
       versions: {
         prisma2: packageJson.version,
         queryEngine: enginesVersion,

@@ -35,6 +35,9 @@ async function main() {
   await Promise.all([
     run('node ./helpers/copy-prisma-client.js'),
     run('tsc --build tsconfig.build.json', true),
+  ])
+
+  await Promise.all([
     esbuild.build({
       platform: 'node',
       bundle: true,
