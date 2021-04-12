@@ -2,7 +2,7 @@ import { Dictionary } from './common'
 
 export type ConnectorType =
   | 'mysql'
-  | 'mongo'
+  | 'mongodb'
   | 'sqlite'
   | 'postgresql'
   | 'sqlserver'

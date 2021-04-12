@@ -4,8 +4,9 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "masterIssue": true,
-  "reviewers": ["@jolg42", "@timsuchanek", "@williamluke4"],
+  "reviewers": ["@jolg42", "@williamluke4"],
   "rebaseWhen": "conflicted",
+  "ignoreDeps": ["esbuild", "sqlite3"],
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -17,8 +18,7 @@
         "@prisma/engines-version",
         "@prisma/studio",
         "@prisma/studio-server",
-        "checkpoint-client",
-        "sqlite3"
+        "checkpoint-client"
       ],
       "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
     },
@@ -63,8 +63,7 @@
       "groupName": "react-prisma",
       "paths": ["src/packages/react-prisma/**"],
       "rangeStrategy": "replace",
-      "schedule": ["before 9am on Monday"],
-      "reviewers": ["@timsuchanek"]
+      "schedule": ["before 9am on Monday"]
     }
   ]
 }

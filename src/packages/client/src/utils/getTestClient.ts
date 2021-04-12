@@ -1,23 +1,25 @@
-import { ensureBinariesExist } from '@prisma/engines'
+import { getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import {
   extractPreviewFeatures,
   getConfig,
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
+  parseEnvValue,
   printConfigWarnings,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
-import { extractSqliteSources } from '../generation/extractSqliteSources'
 import { getDMMF } from '../generation/getDMMF'
 import {
   getPrismaClient,
   GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
 import { generateInFolder } from './generateInFolder'
+
 const readFile = promisify(fs.readFile)
 
 /**
@@ -31,7 +33,6 @@ export async function getTestClient(
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
   }
-  await ensureBinariesExist()
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
@@ -40,16 +41,24 @@ export async function getTestClient(
   }
 
   const generator = config.generators.find(
-    (g) => g.provider === 'prisma-client-js',
+    (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
+  if (enableExperimental.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+    // This is required as the NAPI library is not downloaded by default
+    await download({
+      binaries: {
+        'libquery-engine-napi': getEnginesPath(),
+      },
+    })
+  }
   const document = await getDMMF({
     datamodel,
     enableExperimental,
   })
   const outputDir = schemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
-
+  const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientOptions = {
     document,
     generator,
@@ -59,12 +68,7 @@ export async function getTestClient(
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
-    sqliteDatasourceOverrides: extractSqliteSources(
-      datamodel,
-      schemaDir,
-      outputDir,
-    ),
-    activeProvider: config.datasources[0].activeProvider,
+    activeProvider,
   }
 
   return getPrismaClient(options)

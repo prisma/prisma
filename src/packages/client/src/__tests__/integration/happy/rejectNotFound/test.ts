@@ -66,7 +66,7 @@ for (const constructorKey of Object.keys(cases.constructor)) {
         } catch (error) {
           expect(error).toMatchSnapshot()
         }
-        prisma.$disconnect()
+        await prisma.$disconnect()
       })
     }
   }

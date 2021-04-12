@@ -92,5 +92,5 @@ test('uncheckedScalarInputs validation', async () => {
     `)
   }
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

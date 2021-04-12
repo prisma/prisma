@@ -84,11 +84,6 @@ export async function buildClient({
     runtimePath,
     browser,
     datasources: resolveDatasources(datasources, schemaDir, outputDir),
-    sqliteDatasourceOverrides: extractSqliteSources(
-      datamodel,
-      schemaDir,
-      outputDir,
-    ),
     generator,
     platforms: useNapi
       ? Object.keys(binaryPaths.libqueryEngineNapi!)

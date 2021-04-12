@@ -69,17 +69,17 @@ it('can respond to `findMany` queries', async () => {
     payload: {
       data: {
         query: `
-          prisma.with_all_field_types.findMany({
-            select: {
-              id: true,
-              string: true,
-              int: true,
-              float: true,
-              datetime: true,
-              relation: true,
-              relation_list: true,
-            }
-          })`,
+            prisma.with_all_field_types.findMany({
+              select: {
+                id: true,
+                string: true,
+                int: true,
+                float: true,
+                datetime: true,
+                relation: true,
+                relation_list: true,
+              }
+            })`,
       },
     },
   })
@@ -95,34 +95,34 @@ it('can respond to `create` queries', async () => {
     payload: {
       data: {
         query: `
-          prisma.with_all_field_types.create({
-            data: {
-              id: 3,
-              string: "",
-              int: 0,
-              float: 0.0,
-              datetime: "2020-08-03T00:00:00.000Z",
-              relation: {
-                connect: {
-                  id: 3
+            prisma.with_all_field_types.create({
+              data: {
+                id: 3,
+                string: "",
+                int: 0,
+                float: 0.0,
+                datetime: "2020-08-03T00:00:00.000Z",
+                relation: {
+                  connect: {
+                    id: 3
+                  }
+                },
+                relation_list: {
+                  connect: {
+                    id: 3
+                  }
                 }
               },
-              relation_list: {
-                connect: {
-                  id: 3
-                }
+              select: {
+                id: true,
+                string: true,
+                int: true,
+                float: true,
+                datetime: true,
+                relation: true,
+                relation_list: true,
               }
-            },
-            select: {
-              id: true,
-              string: true,
-              int: true,
-              float: true,
-              datetime: true,
-              relation: true,
-              relation_list: true,
-            }
-          })`,
+            })`,
       },
     },
   })
@@ -138,36 +138,36 @@ it('can respond to `update` queries', async () => {
     payload: {
       data: {
         query: `
-          prisma.with_all_field_types.update({
-            where: {
-              id: 1
-            },
-            data: {
-              string: "Changed String",
-              int: 100,
-              float: 100.5,
-              datetime: "2025-08-03T00:00:00.000Z",
-              relation: {
-                connect: {
-                  id: 3
+            prisma.with_all_field_types.update({
+              where: {
+                id: 1
+              },
+              data: {
+                string: "Changed String",
+                int: 100,
+                float: 100.5,
+                datetime: "2025-08-03T00:00:00.000Z",
+                relation: {
+                  connect: {
+                    id: 3
+                  }
+                },
+                relation_list: {
+                  connect: {
+                    id: 3
+                  }
                 }
               },
-              relation_list: {
-                connect: {
-                  id: 3
-                }
+              select: {
+                id: true,
+                string: true,
+                int: true,
+                float: true,
+                datetime: true,
+                relation: true,
+                relation_list: true,
               }
-            },
-            select: {
-              id: true,
-              string: true,
-              int: true,
-              float: true,
-              datetime: true,
-              relation: true,
-              relation_list: true,
-            }
-          })`,
+            })`,
       },
     },
   })
@@ -183,18 +183,18 @@ it('can respond to `delete` queries', async () => {
     payload: {
       data: {
         query: `
-          prisma.with_all_field_types.delete({
-            where: { id: 2 },
-            select: {
-              id: true,
-              string: true,
-              int: true,
-              float: true,
-              datetime: true,
-              relation: true,
-              relation_list: true,
-            }
-          })`,
+            prisma.with_all_field_types.delete({
+              where: { id: 2 },
+              select: {
+                id: true,
+                string: true,
+                int: true,
+                float: true,
+                datetime: true,
+                relation: true,
+                relation_list: true,
+              }
+            })`,
       },
     },
   })

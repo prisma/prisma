@@ -3,7 +3,7 @@ import indent from 'indent-string'
 
 export type ConnectorType =
   | 'mysql'
-  | 'mongo'
+  | 'mongodb'
   | 'sqlite'
   | 'postgresql'
   | 'sqlserver'

@@ -1,11 +1,11 @@
+import Debug from '@prisma/debug'
+import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import execa from 'execa'
-import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import tmpWrite from 'temp-write'
 import fs from 'fs'
+import tmpWrite from 'temp-write'
 import { promisify } from 'util'
-import Debug from '@prisma/debug'
-import { resolveBinary, EngineType } from './resolveBinary'
+import { EngineType, resolveBinary } from './resolveBinary'
 const debug = Debug('prisma:engineCommands')
 
 const unlink = promisify(fs.unlink)
@@ -59,31 +59,22 @@ export async function getDMMF({
       },
       maxBuffer: MAX_BUFFER,
     }
+    const getMessage = (flag: string) =>
+      `${chalk.blueBright(
+        'info',
+      )} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
 
     const removedFeatureFlagMap = {
-      insensitiveFilters: `${chalk.blueBright(
-        'info',
-      )} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
-      atomicNumberOperations: `${chalk.blueBright(
-        'info',
-      )} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`,
-      connectOrCreate: `${chalk.blueBright(
-        'info',
-      )} The preview flag "connectOrCreate" is not needed anymore, please remove it from your schema.prisma`,
-      transaction: `${chalk.blueBright(
-        'info',
-      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
-      transactionApi: `${chalk.blueBright(
-        'info',
-      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
-      uncheckedScalarInputs: `${chalk.blueBright(
-        'info',
-      )} The preview flag "uncheckedScalarInputs" is not needed anymore, please remove it from your schema.prisma`,
-      nativeTypes: `${chalk.blueBright(
-        'info',
-      )} The preview flag "nativeTypes" is not needed anymore, please remove it from your schema.prisma`,
+      insensitiveFilters: getMessage('insensitiveFilters'),
+      atomicNumberOperations: getMessage('atomicNumberOperations'),
+      connectOrCreate: getMessage('connectOrCreate'),
+      transaction: getMessage('transaction'),
+      transactionApi: getMessage('transactionApi'),
+      uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
+      nativeTypes: getMessage('nativeTypes'),
+      createMany: getMessage('createMany'),
+      groupBy: getMessage('groupBy'),
     }
-
     if (enableExperimental) {
       enableExperimental = enableExperimental
         .filter((f) => {
@@ -106,6 +97,8 @@ export async function getDMMF({
               'aggregations',
               'nativeTypes',
               'atomicNumberOperations',
+              'createMany',
+              'groupBy',
             ].includes(e),
         )
     }
@@ -225,12 +218,14 @@ export async function getConfig({
     }
   }
 
+  const engineArgs = []
+
   const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
   try {
     const result = await execa(
       queryEnginePath,
-      ['cli', 'get-config', ...args],
+      [...engineArgs, 'cli', 'get-config', ...args],
       {
         cwd,
         env: {

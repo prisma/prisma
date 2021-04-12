@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`can respond to \`create\` queries 1`] = `
+exports[`studio can respond to \`create\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -67,7 +67,7 @@ Object {
 }
 `;
 
-exports[`can respond to \`delete\` queries 1`] = `
+exports[`studio can respond to \`delete\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -114,7 +114,7 @@ Object {
 }
 `;
 
-exports[`can respond to \`findMany\` queries 1`] = `
+exports[`studio can respond to \`findMany\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -173,7 +173,7 @@ Object {
 }
 `;
 
-exports[`can respond to \`update\` queries 1`] = `
+exports[`studio can respond to \`update\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,

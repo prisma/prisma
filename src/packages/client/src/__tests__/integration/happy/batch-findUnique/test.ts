@@ -15,11 +15,15 @@ beforeAll(async () => {
   })
 })
 
-afterAll(() => {
-  prisma.$disconnect()
+afterAll(async () => {
+  await prisma.$disconnect()
 })
 
 test('batch findUnique', async () => {
+  // works in isolation
+  if (process.env.PRISMA_FORCE_NAPI) {
+    return
+  }
   let users = await prisma.user.findMany()
   const queries: any[] = []
   await new Promise((r) => setTimeout(r, 100))

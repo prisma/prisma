@@ -9,15 +9,15 @@ import { InputField } from './Input'
 export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
-    protected readonly model: DMMF.Model,
+    protected readonly type: DMMF.OutputType,
     protected readonly action?: DMMF.ModelAction,
     protected readonly collector?: ExportCollector,
   ) {}
   public toTS(): string {
     const { action, args } = this
-    const { name } = this.model
+    const { name } = this.type
     for (const arg of args) {
-      arg.comment = getArgFieldJSDoc(this.model, action, arg)
+      arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
     const selectName = getSelectName(name)
@@ -44,7 +44,9 @@ export class ArgsType implements Generatable {
       },
     ]
 
-    const hasRelationField = this.model.fields.some((f) => f.kind === 'object')
+    const hasRelationField = this.type.fields.some(
+      (f) => f.outputType.location === 'outputObjectTypes',
+    )
 
     if (hasRelationField) {
       const includeName = getIncludeName(name)

@@ -11,6 +11,7 @@ import {
   getConfig,
   tryLoadEnvs,
   getEnvPaths,
+  parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -20,6 +21,8 @@ const commandArray = process.argv.slice(2)
 
 import Debug from '@prisma/debug'
 
+process.removeAllListeners('warning')
+
 const debug = Debug('prisma:cli')
 process.on('uncaughtException', (e) => {
   debug(e)
@@ -27,16 +30,6 @@ process.on('uncaughtException', (e) => {
 process.on('unhandledRejection', (e) => {
   debug(e)
 })
-
-// If running via `ts-node`, treat NODE_ENV as development
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-if (process[Symbol.for('ts-node.register.instance')]) {
-  process.env.NODE_ENV = 'development'
-} else {
-  // react: psst 🙊
-  process.env.NODE_ENV = 'production'
-}
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
@@ -212,7 +205,9 @@ async function main(): Promise<number> {
         schemaPreviewFeatures = generator.previewFeatures
       }
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) => gen.provider)
+      schemaGeneratorsProviders = config.generators.map((gen) =>
+        parseEnvValue(gen.provider),
+      )
     } catch (e) {
       //
       debug(e)

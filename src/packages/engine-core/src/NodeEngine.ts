@@ -162,6 +162,7 @@ export class NodeEngine implements Engine {
     this.flags = flags ?? []
     this.enableExperimental = enableExperimental ?? []
     this.activeProvider = activeProvider
+    initHooks()
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -174,6 +175,8 @@ export class NodeEngine implements Engine {
       'connectOrCreate',
       'uncheckedScalarInputs',
       'nativeTypes',
+      'createMany',
+      'groupBy',
     ]
     const removedFlagsUsed = this.enableExperimental.filter((e) =>
       removedFlags.includes(e),
@@ -326,7 +329,7 @@ You may have to run ${chalk.greenBright(
 
   private handlePanic(): void {
     this.child?.kill()
-    if (this.currentRequestPromise) {
+    if (this.currentRequestPromise?.cancel) {
       this.currentRequestPromise.cancel()
     }
   }
@@ -354,7 +357,7 @@ You may have to run ${chalk.greenBright(
     }
     const searchLocations: string[] = [
       eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.generator?.output ?? eval('__dirname'), // Custom Generator Path
+      this.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
       path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.datamodelPath), // Datamodel Dir
       this.cwd, //cwdPath
@@ -1216,9 +1219,17 @@ function hookProcess(handler: string, exit = false) {
   })
 }
 
-hookProcess('beforeExit')
-hookProcess('exit')
-hookProcess('SIGINT', true)
-hookProcess('SIGUSR1', true)
-hookProcess('SIGUSR2', true)
-hookProcess('SIGTERM', true)
+let hooksInitialized = false
+function initHooks() {
+  if (!hooksInitialized) {
+    if (!process.env.PRISMA_FORCE_NAPI) {
+      hookProcess('beforeExit')
+      hookProcess('exit')
+      hookProcess('SIGINT', true)
+      hookProcess('SIGUSR1', true)
+      hookProcess('SIGUSR2', true)
+      hookProcess('SIGTERM', true)
+    }
+    hooksInitialized = false
+  }
+}

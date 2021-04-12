@@ -255,7 +255,7 @@ ${chalk.bold.redBright('All data will be lost.')}
     }
 
     // Run if not skipped
-    if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
     }
 

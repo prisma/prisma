@@ -4,7 +4,7 @@ const fs = require('fs')
 const path = require('path')
 import { getTestClient } from '../../../../utils/getTestClient'
 
-jest.setTimeout(20000)
+jest.setTimeout(50000)
 
 test('sqlite-variable-limit', async () => {
   const PrismaClient = await getTestClient()
@@ -20,7 +20,7 @@ test('sqlite-variable-limit', async () => {
     },
   })
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
 
 // async function compressFile(filename) {

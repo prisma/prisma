@@ -100,6 +100,15 @@ services:
     ports:
       - '1433:1433'
 
+  mongo:
+    image: mongo:4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+    ports:
+      - '27017:27017'
+
 volumes:
   postgres:
   postgres_isolated:

@@ -1,7 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
 import { promisify } from 'util'
+import { getTestClient } from '../../../../utils/getTestClient'
 const copyFile = promisify(fs.copyFile)
 
 test('uncheckedScalarInputs', async () => {
@@ -37,5 +37,5 @@ test('uncheckedScalarInputs', async () => {
   await prisma.user.deleteMany()
   await prisma.post.deleteMany()
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })
