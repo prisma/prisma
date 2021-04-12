@@ -132,8 +132,11 @@ ${chalk.bold('Examples')}
       schemaPath,
       port,
       staticAssetDir,
-      binaryPaths: {
+      binaryPathsOverride: {
         queryEngine: queryEnginePath,
+      },
+      resolveOverride: {
+        prismaClient: path.resolve(__dirname, '../prisma-client'),
       },
       versions: {
         prisma2: packageJson.version,

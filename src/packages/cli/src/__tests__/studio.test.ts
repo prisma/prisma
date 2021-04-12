@@ -1,8 +1,8 @@
 import fs from 'fs'
 import fetch from 'node-fetch'
-import execa, { ExecaChildProcess } from 'execa'
 import path from 'path'
 import rimraf from 'rimraf'
+import { Studio } from '../Studio'
 
 const STUDIO_TEST_PORT = 5678
 const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
@@ -17,11 +17,7 @@ async function sendRequest(message: any): Promise<any> {
   }).then((res) => res.json())
 }
 
-let studio: ExecaChildProcess
-
-beforeAll(async () => {
-  await execa('pnpm', ['run', 'build'])
-})
+let studio: Studio
 
 beforeEach(async () => {
   process.env.PRISMA_FORCE_NAPI = ''
@@ -34,26 +30,27 @@ beforeEach(async () => {
     path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
   )
 
-  // Start Studio
-  studio = execa('node', [
-    './build/index.js',
-    'studio',
-    `--schema=${path.join(
-      __dirname,
-      './fixtures/studio-test-project/schema.prisma',
-    )}`,
-    `--port=${STUDIO_TEST_PORT}`,
-    '--browser=none',
+  // Clean up Client generation directory
+  rimraf.sync(path.join(__dirname, '../prisma-client'))
+  studio = Studio.new()
+
+  await studio.parse([
+    '--schema',
+    path.join(__dirname, './fixtures/studio-test-project/schema.prisma'),
+    '--port',
+    `${STUDIO_TEST_PORT}`,
+    '--browser',
+    'none',
   ])
 
-  // Uncomment to debug
-  // studio.stdout?.on('data', (d) => d.toString())
+  // Give Studio time to start
+  await new Promise((r) => setTimeout(() => r(null), 2000))
 
   await new Promise((r) => setTimeout(() => r(null), 2000))
 })
 
 afterEach(async () => {
-  await studio.kill()
+  await studio.instance?.stop()
 })
 
 it('can start up correctly', async () => {
