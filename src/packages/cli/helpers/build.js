@@ -45,7 +45,7 @@ async function main() {
       plugins: [prismaClientPlugin],
       outfile: 'build/index.js',
       entryPoints: ['src/bin.ts'],
-      external: ['@prisma/engines', '@prisma/studio', '_http_common'],
+      external: ['@prisma/engines', '_http_common'],
     }),
     esbuild.build({
       platform: 'node',
