@@ -6,7 +6,7 @@ import rimraf from 'rimraf'
 
 const STUDIO_TEST_PORT = 5678
 
-const sendRequest = (message: any): Promise<any> => {
+async function sendRequest(message: any): Promise<any> {
   return fetch(`http://127.0.0.1:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',
     headers: {
@@ -17,6 +17,7 @@ const sendRequest = (message: any): Promise<any> => {
 }
 
 let studio: ExecaChildProcess
+let schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 beforeAll(async () => {
   await execa('pnpm', ['run', 'build'])
@@ -68,6 +69,7 @@ it('can respond to `findMany` queries', async () => {
     action: 'clientRequest',
     payload: {
       data: {
+        schemaHash,
         query: `
             prisma.with_all_field_types.findMany({
               select: {
@@ -94,6 +96,7 @@ it('can respond to `create` queries', async () => {
     action: 'clientRequest',
     payload: {
       data: {
+        schemaHash,
         query: `
             prisma.with_all_field_types.create({
               data: {
@@ -137,6 +140,7 @@ it('can respond to `update` queries', async () => {
     action: 'clientRequest',
     payload: {
       data: {
+        schemaHash,
         query: `
             prisma.with_all_field_types.update({
               where: {
@@ -182,6 +186,7 @@ it('can respond to `delete` queries', async () => {
     action: 'clientRequest',
     payload: {
       data: {
+        schemaHash,
         query: `
             prisma.with_all_field_types.delete({
               where: { id: 2 },
