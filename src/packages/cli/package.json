@@ -80,10 +80,10 @@
     "dotenv": "8.2.0",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.23.0",
+    "eslint": "7.24.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.3.4",
+    "eslint-plugin-jest": "24.3.5",
     "eslint-plugin-prettier": "3.3.1",
     "execa": "5.0.0",
     "fast-deep-equal": "3.1.3",
@@ -109,7 +109,7 @@
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
     "ts-jest": "26.5.4",
-    "typescript": "4.2.3"
+    "typescript": "4.2.4"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
