@@ -7,7 +7,6 @@ import {
   getSchemaPath,
   HelpError,
   isError,
-  logger,
 } from '@prisma/sdk'
 import StudioServer from '@prisma/studio-server'
 import chalk from 'chalk'
@@ -36,6 +35,7 @@ ${chalk.bold('Options')}
   -h, --help        Display this help message
   -p, --port        Port to start Studio on
   -b, --browser     Browser to open Studio in
+  -n, --hostname    Hostname to bind the Express server to
   --schema          Custom path to your Prisma schema
 
 ${chalk.bold('Examples')}
@@ -71,8 +71,9 @@ ${chalk.bold('Examples')}
       '-p': '--port',
       '--browser': String,
       '-b': '--browser',
+      '--hostname': String,
+      '-n': '--hostname',
       '--schema': String,
-      '--experimental': Boolean,
       '--telemetry-information': String,
     })
 
@@ -82,12 +83,6 @@ ${chalk.bold('Examples')}
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--experimental']) {
-      logger.warn(
-        ` --experimental is no longer required for this command as Studio is now Generally Available.`,
-      )
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -110,6 +105,7 @@ ${chalk.bold('Examples')}
       ),
     )
 
+    const hostname = args['--hostname']
     const port =
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
@@ -130,6 +126,7 @@ ${chalk.bold('Examples')}
 
     const studio = new StudioServer({
       schemaPath,
+      hostname,
       port,
       staticAssetDir,
       binaryPathsOverride: {
