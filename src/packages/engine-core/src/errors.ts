@@ -119,7 +119,7 @@ export interface ErrorWithLinkInput {
   version: string
   engineVersion?: string
   database?: ConnectorType
-  query: string
+  query?: string
   platform?: string
   title: string
   description?: string
@@ -134,7 +134,7 @@ export function getErrorMessageWithLink({
   database,
   query,
 }: ErrorWithLinkInput) {
-  const gotLogs = getLogs(6000 - query.length)
+  const gotLogs = getLogs(6000 - (query?.length ?? 0))
   const logs = normalizeLogs(stripAnsi(gotLogs))
   const moreInfo = description
     ? `# Description\n\`\`\`\n${description}\n\`\`\``
