@@ -20,11 +20,7 @@ async function sendRequest(message: any): Promise<any> {
 let studio: ExecaChildProcess
 
 beforeAll(async () => {
-  try {
-    await execa('pnpm', ['run', 'build'])
-  } catch (e) {
-    // Ignore warnings & errors. If they occur, tests will fail anyway
-  }
+  await execa('pnpm', ['run', 'build'])
 })
 
 beforeEach(async () => {
