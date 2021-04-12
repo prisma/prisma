@@ -75,7 +75,7 @@
     "@typescript-eslint/eslint-plugin": "4.21.0",
     "@typescript-eslint/parser": "4.21.0",
     "chalk": "4.1.0",
-    "checkpoint-client": "1.1.19",
+    "checkpoint-client": "1.1.20",
     "dotenv": "8.2.0",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
@@ -127,7 +127,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.21.0-29.79262860905c1dfba320f6bd4c964ea99ad567a9"
+    "@prisma/engines": "2.21.0-30.e7dd59d4679ca506559afeb798660d19c631a93c"
   },
   "lint-staged": {
     "*.ts": [
