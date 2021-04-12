@@ -417,8 +417,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         // Append the mongodb experimental flag if the provider is mongodb
         if (config.activeProvider === 'mongodb') {
           const enableExperimental = this._engineConfig.enableExperimental
-            ? this._engineConfig.enableExperimental.concat('mongoDb')
-            : ['mongoDb']
+            ? this._engineConfig.enableExperimental.concat('mongodb')
+            : ['mongodb']
           this._engineConfig.enableExperimental = enableExperimental
         }
 
