@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export HTTP_PROXY=http://vercel-npm.vercel.app
+HTTP_PROXY=http://vercel-npm.vercel.app
 
 set -ex
 
