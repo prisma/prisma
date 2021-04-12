@@ -68,6 +68,8 @@ cd ../..
 
 pnpm run test
 
+npm config set registry https://registry.npmjs.org
+
 # disable printing with +x and return as before just after
 set +x
 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
