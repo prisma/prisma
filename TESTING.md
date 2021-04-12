@@ -36,7 +36,7 @@ In the `prisma/prisma` repository we have a few places where you can write tests
 - **`sdk`**
     - Convert credentials to connection string and back
     - Dotenv expansion
-    - Engine commands (`getDMMF`, `getCconfig`) (snapshots)
+    - Engine commands (`getDMMF`, `getConfig`) (snapshots)
     - getGenerators (central function for generation)
     - introspection (snapshots)
 - **`tests`**
@@ -45,7 +45,7 @@ In the `prisma/prisma` repository we have a few places where you can write tests
         - mariadb
         - mssql
         - mysql
-        - postgesql
+        - postgresql
         - sqlite
     - While these tests also test the client itself, they're rather just our base to make sure that basic query engine functionality actually works in the Prisma Client
     - When you want to test very specific queries for a new feature, you can write an integration test in the `client` package, as that's usually easier
