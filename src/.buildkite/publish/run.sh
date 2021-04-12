@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HTTPS_PROXY=https://vercel-npm.vercel.app
+
 set -ex
 
 # Thanks to https://gist.github.com/sj26/88e1c6584397bb7c13bd11108a579746
@@ -41,11 +43,10 @@ function retry {
   return 0
 }
 
-npm config set registry https://npm.rapide.workers.dev/
-
 npm i --silent -g pnpm@5.15.1 --unsafe-perm
 
 retry 6 pnpm i --no-prefer-frozen-lockfile
+
 pnpm run lint
 
 cd src
@@ -67,8 +68,6 @@ pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
 cd ../..
 
 pnpm run test
-
-npm config set registry https://registry.npmjs.org
 
 # disable printing with +x and return as before just after
 set +x

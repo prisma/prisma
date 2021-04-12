@@ -1,5 +1,7 @@
 #!/bin/bash
 
+HTTPS_PROXY=https://vercel-npm.vercel.app
+
 set -ex
 
 # Thanks to https://gist.github.com/sj26/88e1c6584397bb7c13bd11108a579746
@@ -40,8 +42,6 @@ function retry {
   done
   return 0
 }
-
-npm config set registry https://npm.rapide.workers.dev/
 
 npm i --silent -g pnpm@5.15.1 --unsafe-perm
 
