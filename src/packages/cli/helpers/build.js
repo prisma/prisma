@@ -9,24 +9,6 @@ const { promisify } = require('util')
 const copyFile = promisify(fs.copyFile)
 const lineReplace = require('line-replace')
 
-let prismaClientPlugin = {
-  name: 'prisma-client-plugin',
-  setup(build) {
-    // Redirect all imports from `@prisma/client*` to `../prisma-client*`. This is needed because of Studio.
-    build.onResolve({ filter: /^@prisma\/client/ }, (args) => {
-      return {
-        path: require.resolve(
-          path.resolve(
-            __dirname,
-            '../',
-            args.path.replace('@prisma/client', 'prisma-client'),
-          ),
-        ),
-      }
-    })
-  },
-}
-
 async function main() {
   const before = Date.now()
 
@@ -42,7 +24,6 @@ async function main() {
       platform: 'node',
       bundle: true,
       target: 'node10',
-      plugins: [prismaClientPlugin],
       outfile: 'build/index.js',
       entryPoints: ['src/bin.ts'],
       external: ['@prisma/engines', '_http_common'],
