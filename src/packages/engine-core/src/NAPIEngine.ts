@@ -266,7 +266,7 @@ You may have to run ${chalk.greenBright(
                 'microsoftSqlServer',
                 'orderByRelation',
                 'napi',
-                // 'mongoDb',
+                // 'mongodb',
                 'selectRelationCount',
               ]
             : undefined
