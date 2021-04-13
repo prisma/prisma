@@ -489,7 +489,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it.skip('existingdb: has a failed migration', async () => {
+  it('existingdb: has a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
 
     try {
@@ -498,7 +498,7 @@ describe('sqlite', () => {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
-        'failed to apply cleanly to a temporary database.',
+        'failed to apply cleanly to the shadow database.',
       )
     }
 
@@ -512,7 +512,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it.skip('existing-db-1-migration edit migration with broken sql', async () => {
+  it('existing-db-1-migration edit migration with broken sql', async () => {
     ctx.fixture('existing-db-1-migration')
 
     const result = MigrateDev.new().parse([])
@@ -530,7 +530,7 @@ describe('sqlite', () => {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
-        'failed to apply cleanly to a temporary database.',
+        'failed to apply cleanly to the shadow database.',
       )
     }
 
