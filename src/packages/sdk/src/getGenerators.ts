@@ -138,12 +138,12 @@ export async function getGenerators({
     throw new Error(missingModelMessage)
   }
 
-  // if (
-  //   config.datasources.some((d) => d.provider.includes('mongodb')) &&
-  //   !experimentalFeatures.includes('mongodb')
-  // ) {
-  //   throw new Error(mongoFeatureFlagMissingMessage)
-  // }
+  if (
+    config.datasources.some((d) => d.provider.includes('mongodb')) &&
+    !experimentalFeatures.includes('mongodb')
+  ) {
+    throw new Error(mongoFeatureFlagMissingMessage)
+  }
 
   const generatorConfigs = overrideGenerators || config.generators
 
