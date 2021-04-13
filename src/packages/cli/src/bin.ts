@@ -94,7 +94,7 @@ import { Init } from './Init'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
-import { ProviderAliases, isCurrentBinInstalledGlobally } from '@prisma/sdk'
+import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
@@ -107,17 +107,6 @@ import {
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
 import { detectPrisma1 } from './detectPrisma1'
-
-// aliases are only used by @prisma/studio, but not for users anymore,
-// as they have to ship their own version of @prisma/client
-const aliases: ProviderAliases = {
-  'prisma-client-js': {
-    generatorPath: `node --max-old-space-size=8096 "${eval(
-      `require('path').join(__dirname, '../prisma-client/generator-build/index.js')`,
-    )}"`, // all evals are here for ncc
-    outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
-  },
-}
 
 // because chalk ...
 if (process.env.NO_COLOR) {
@@ -156,7 +145,7 @@ async function main(): Promise<number> {
       }),
       introspect: DbPull.new(),
       dev: Dev.new(),
-      studio: Studio.new(aliases),
+      studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),

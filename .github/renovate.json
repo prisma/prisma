@@ -16,7 +16,6 @@
       "excludePackageNames": [
         "@prisma/engines",
         "@prisma/engines-version",
-        "@prisma/studio",
         "@prisma/studio-server",
         "checkpoint-client"
       ],
@@ -49,7 +48,7 @@
     {
       "groupName": "Studio",
       "automerge": "true",
-      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
+      "packageNames": ["@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
       "reviewers": ["@madebysid"]
     },

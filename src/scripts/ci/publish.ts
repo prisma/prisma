@@ -673,7 +673,7 @@ async function publish() {
       // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
       const latestStudioVersion = await runResult(
         '.',
-        'npm info @prisma/studio version',
+        'npm info @prisma/studio-server version',
       )
       console.log(
         `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
@@ -684,7 +684,7 @@ async function publish() {
       await run('.', 'git checkout master')
       await run(
         '.',
-        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion}`,
+        `pnpm update  -r @prisma/studio-server@${latestStudioVersion}`,
       )
     }
 
