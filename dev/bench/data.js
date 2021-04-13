@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1618319826979,
+  "lastUpdate": 1618326300364,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13572,6 +13572,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±3.39%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "5408c57d30c2261f6427456b25ce3db5092e5101",
+          "message": "chore: remove legacy code",
+          "timestamp": "2021-04-13T17:01:51+02:00",
+          "tree_id": "386a0ab504e19106622de2485a18e9b49f6855ac",
+          "url": "https://github.com/prisma/prisma/commit/5408c57d30c2261f6427456b25ce3db5092e5101"
+        },
+        "date": 1618326298935,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.45,
+            "range": "±4.99%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.16,
+            "range": "±1.37%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
