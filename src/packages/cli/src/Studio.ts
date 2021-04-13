@@ -116,7 +116,7 @@ ${chalk.bold('Examples')}
       `../../query-engine-${platform}${extension}`,
     )
 
-    const staticAssetDir = path.resolve(__dirname, './public')
+    const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const studio = new StudioServer({
       schemaPath,
