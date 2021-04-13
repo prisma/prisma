@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1618326300364,
+  "lastUpdate": 1618326316006,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -13652,6 +13652,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±1.37%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "joel.galeran@gmail.com",
+            "name": "Joël",
+            "username": "Jolg42"
+          },
+          "distinct": true,
+          "id": "ee4551e62d661eb04c871c9283a92d2846d6653b",
+          "message": "test(migrate): revert skipped tests\n\nSkipped in https://github.com/prisma/prisma/pull/6449",
+          "timestamp": "2021-04-13T17:01:19+02:00",
+          "tree_id": "0d172e9fd6254d1e71934760a29bd218e057b8a8",
+          "url": "https://github.com/prisma/prisma/commit/ee4551e62d661eb04c871c9283a92d2846d6653b"
+        },
+        "date": 1618326311367,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±3.50%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.47%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
