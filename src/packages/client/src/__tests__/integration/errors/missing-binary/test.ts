@@ -58,7 +58,7 @@ test('missing-binary', async () => {
                           /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
 
 
-                        To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
+                        To solve this problem, add the platform "TEST_PLATFORM" to the "binaryTargets" attribute in the "generator" block in the "schema.prisma" file:
                         generator client {
                           provider      = "prisma-client-js"
                           binaryTargets = ["native"]
@@ -89,7 +89,7 @@ test('missing-binary', async () => {
               /client/src/__tests__/integration/errors/missing-binary/node_modules/.prisma/client
 
 
-            To solve this problem, add the platform "TEST_PLATFORM" to the "generator" block in the "schema.prisma" file:
+            To solve this problem, add the platform "TEST_PLATFORM" to the "binaryTargets" attribute in the "generator" block in the "schema.prisma" file:
             generator client {
               provider      = "prisma-client-js"
               binaryTargets = ["native"]
