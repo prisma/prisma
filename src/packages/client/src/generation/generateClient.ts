@@ -249,7 +249,7 @@ export async function generateClient({
     if (process.env.NETLIFY) await makeDir('/tmp/prisma-engines')
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
-      console.log(
+      console.warn(
         `.env: ${process.env.NETLIFY}`,
         `binary: ${binaryTarget}`,
         `path: ${filePath}`,
