@@ -246,9 +246,12 @@ export async function generateClient({
     )
   }
   if (transpile) {
-    for (const filePath of Object.values(enginePath)) {
+    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
-      const target = path.join(finalOutputDir, fileName)
+      const target =
+        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
+          ? path.join('/tmp/prisma-engines', fileName)
+          : path.join(finalOutputDir, fileName)
       const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
         fileSize(target),
