@@ -246,6 +246,8 @@ export async function generateClient({
     )
   }
   if (transpile) {
+    if (process.env.NETLIFY) await makeDir('/tmp/prisma-engines')
+
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
       const target =
