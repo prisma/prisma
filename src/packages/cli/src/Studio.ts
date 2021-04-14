@@ -111,18 +111,12 @@ ${chalk.bold('Examples')}
     const browser = args['--browser'] || process.env.BROWSER
     const platform = await getPlatform()
     const extension = platform === 'windows' ? '.exe' : ''
-    const queryEnginePath =
-      process.env.NODE_ENV === 'production'
-        ? path.join(__dirname, `../query-engine-${platform}${extension}`)
-        : path.join(
-            __dirname,
-            `../node_modules/@prisma/engines/query-engine-${platform}${extension}`,
-          )
+    const queryEnginePath = path.join(
+      require.resolve('@prisma/engines'),
+      `../../query-engine-${platform}${extension}`,
+    )
 
-    const staticAssetDir =
-      process.env.NODE_ENV === 'production'
-        ? path.resolve(__dirname, './public')
-        : path.resolve(__dirname, '../build/public')
+    const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const studio = new StudioServer({
       schemaPath,
