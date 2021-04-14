@@ -427,6 +427,11 @@ type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
  */
 type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 
+/**
+ * Exclude all keys with underscores
+ */
+type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
+
 ${
   !hideFetcher
     ? `class PrismaClientFetcher {

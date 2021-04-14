@@ -6,6 +6,7 @@
   "masterIssue": true,
   "reviewers": ["@jolg42", "@williamluke4"],
   "rebaseWhen": "conflicted",
+  "ignoreDeps": ["esbuild", "sqlite3"],
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -15,11 +16,8 @@
       "excludePackageNames": [
         "@prisma/engines",
         "@prisma/engines-version",
-        "@prisma/studio",
         "@prisma/studio-server",
-        "esbuild",
-        "checkpoint-client",
-        "sqlite3"
+        "checkpoint-client"
       ],
       "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
     },
@@ -30,7 +28,6 @@
       "excludePackageNames": [
         "@prisma/engines",
         "@prisma/engines-version",
-        "esbuild",
         "checkpoint-client"
       ],
       "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
@@ -51,7 +48,7 @@
     {
       "groupName": "Studio",
       "automerge": "true",
-      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
+      "packageNames": ["@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
       "reviewers": ["@madebysid"]
     },

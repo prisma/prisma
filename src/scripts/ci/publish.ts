@@ -14,6 +14,7 @@ import { cloneOrPull } from '../setup'
 import { unique } from './unique'
 import pMap from 'p-map'
 import slugify from '@sindresorhus/slugify'
+import pRetry from 'p-retry'
 import { IncomingWebhook } from '@slack/webhook'
 
 export type Commit = {
@@ -672,7 +673,7 @@ async function publish() {
       // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
       const latestStudioVersion = await runResult(
         '.',
-        'npm info @prisma/studio version',
+        'npm info @prisma/studio-server version',
       )
       console.log(
         `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
@@ -683,7 +684,7 @@ async function publish() {
       await run('.', 'git checkout master')
       await run(
         '.',
-        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion}`,
+        `pnpm update  -r @prisma/studio-server@${latestStudioVersion}`,
       )
     }
 
@@ -1074,10 +1075,20 @@ async function publishPackages(
 
       const prismaDeps = [...pkg.uses, ...pkg.usesDev]
       if (prismaDeps.length > 0) {
-        await run(
-          pkgDir,
-          `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
-          dryRun,
+        await pRetry(
+          async () => {
+            await run(
+              pkgDir,
+              `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
+              dryRun,
+            )
+          },
+          {
+            retries: 6,
+            onFailedAttempt: (e) => {
+              console.error(e)
+            },
+          },
         )
       }
 

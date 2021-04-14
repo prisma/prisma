@@ -446,7 +446,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
     OrderByArg extends True extends HasSelectOrTake
       ? { orderBy: ${groupByArgsName}['orderBy'] }
       : { orderBy?: ${groupByArgsName}['orderBy'] },
-    OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+    OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
     ByFields extends TupleToUnion<T['by']>,
     ByValid extends Has<ByFields, OrderFields>,
     HavingFields extends GetHavingFields<T['having']>,

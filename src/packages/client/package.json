@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.21.0-27.bed4885a5cb646dde85fcb8094563122c7ac0d8e",
+    "@prisma/engines": "2.21.0-37.40a9cd77605c069799870e8237fdfb90dacc13af",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -72,17 +72,17 @@
     "@types/mssql": "6.0.7",
     "@types/node": "12.20.7",
     "@types/pg": "7.14.11",
-    "@typescript-eslint/eslint-plugin": "4.21.0",
-    "@typescript-eslint/parser": "4.21.0",
+    "@typescript-eslint/eslint-plugin": "4.22.0",
+    "@typescript-eslint/parser": "4.22.0",
     "arg": "5.0.0",
     "chalk": "4.1.0",
     "decimal.js": "10.2.1",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.23.0",
-    "eslint-config-prettier": "8.1.0",
+    "eslint": "7.24.0",
+    "eslint-config-prettier": "8.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.3.4",
+    "eslint-plugin-jest": "24.3.5",
     "eslint-plugin-prettier": "3.3.1",
     "execa": "5.0.0",
     "flat-map-polyfill": "0.3.8",
@@ -98,14 +98,14 @@
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
     "mssql": "6.3.1",
-    "pg": "8.5.1",
+    "pg": "8.6.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "prettier": "2.2.1",
     "replace-string": "3.1.0",
     "resolve-from": "5.0.0",
     "rimraf": "3.0.2",
-    "rollup": "2.44.0",
+    "rollup": "2.45.2",
     "rollup-plugin-dts": "3.0.1",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
@@ -116,7 +116,7 @@
     "ts-jest": "26.5.4",
     "ts-node": "9.1.1",
     "tsd": "0.14.0",
-    "typescript": "4.2.3"
+    "typescript": "4.2.4"
   },
   "peerDependencies": {
     "prisma": "*"
@@ -127,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.21.0-27.bed4885a5cb646dde85fcb8094563122c7ac0d8e"
+    "@prisma/engines-version": "2.21.0-37.40a9cd77605c069799870e8237fdfb90dacc13af"
   },
   "lint-staged": {
     "*.ts": [
