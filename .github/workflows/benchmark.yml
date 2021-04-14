@@ -14,7 +14,7 @@ on:
       - "docs/**"
       - "examples/**"
       - "LICENSE"
-      - 'CODEOWNERS'
+      - '.github/CODEOWNERS'
       - "src/.buildkite/**"
       - "src/.dockerignore"
       - "src/scripts/ci/publish.ts"
