@@ -1,7 +1,8 @@
 'use strict'
 import isRegexp from 'is-regexp'
 import isObj from 'is-obj'
-import getOwnEnumPropSymbols from 'get-own-enumerable-property-symbols'
+const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols')
+  .default
 
 // Fork of https://github.com/yeoman/stringify-object/blob/master/index.js
 // with possibility to overwrite the whole key-value pair (options.transformLine)
