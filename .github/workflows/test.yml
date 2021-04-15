@@ -39,7 +39,6 @@ on:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
-  GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
 
 jobs:
   # From https://github.com/marketplace/actions/skip-duplicate-actions
