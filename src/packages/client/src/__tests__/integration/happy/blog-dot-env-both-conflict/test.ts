@@ -6,7 +6,6 @@ test('blog-dot-env-both-conflict', async () => {
   await generateTestClient()
   require('./node_modules/@prisma/client')
   expect(spy.mock.calls.join('\n')).toMatchInlineSnapshot(`
-    .env: undefined,binary: TEST_PLATFORM,path: /home/millsp/Work/prisma/src/node_modules/.pnpm/@prisma+engines@2.21.0-37.40a9cd77605c069799870e8237fdfb90dacc13af/node_modules/@prisma/engines/query-engine-TEST_PLATFORM
     warn(prisma) Conflict for env var SQLITE_URL_FROM_DOT_ENV_FILE in src/__tests__/integration/happy/blog-dot-env-both-conflict/.env and src/__tests__/integration/happy/blog-dot-env-both-conflict/prisma/.env
     Env vars from src/__tests__/integration/happy/blog-dot-env-both-conflict/prisma/.env overwrite the ones from src/__tests__/integration/happy/blog-dot-env-both-conflict/.env
           
