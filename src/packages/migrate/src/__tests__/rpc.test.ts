@@ -113,9 +113,7 @@ it('diagnoseMigrationHistory - optInToShadowDatabase true - existing-db-1-migrat
 
   await expect(result).resolves.toMatchInlineSnapshot(`
           Object {
-            drift: null,
             editedMigrationNames: Array [],
-            errorInUnappliedMigration: null,
             failedMigrationNames: Array [],
             hasMigrationsTable: true,
             history: null,
@@ -135,9 +133,7 @@ it('diagnoseMigrationHistory - optInToShadowDatabase false - existing-db-1-migra
 
   await expect(result).resolves.toMatchInlineSnapshot(`
           Object {
-            drift: null,
             editedMigrationNames: Array [],
-            errorInUnappliedMigration: null,
             failedMigrationNames: Array [],
             hasMigrationsTable: true,
             history: null,
