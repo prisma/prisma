@@ -113,9 +113,7 @@ it('diagnoseMigrationHistory - optInToShadowDatabase true - existing-db-1-migrat
 
   await expect(result).resolves.toMatchInlineSnapshot(`
           Object {
-            drift: null,
             editedMigrationNames: Array [],
-            errorInUnappliedMigration: null,
             failedMigrationNames: Array [],
             hasMigrationsTable: true,
             history: null,
@@ -135,9 +133,7 @@ it('diagnoseMigrationHistory - optInToShadowDatabase false - existing-db-1-migra
 
   await expect(result).resolves.toMatchInlineSnapshot(`
           Object {
-            drift: null,
             editedMigrationNames: Array [],
-            errorInUnappliedMigration: null,
             failedMigrationNames: Array [],
             hasMigrationsTable: true,
             history: null,
@@ -291,7 +287,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
       result.generatedMigrationName!,
       'migration.sql',
     ),
-    'SELECT KAPUTT',
+    'SELECT SOMETHING_THAT_DOES_NOT_WORK',
   )
 
   try {
@@ -299,9 +295,7 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
       migrationsDirectoryPath: migrate.migrationsDirectoryPath,
     })
   } catch (e) {
-    expect(e.message).toContain(
-      'Error accessing result set, column not found: KAPUTT',
-    )
+    expect(e.message).toContain('no such column: SOMETHING_THAT_DOES_NOT_WORK')
   }
 
   const resultMarkRolledBacked = migrate.engine.markMigrationRolledBack({
