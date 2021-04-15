@@ -251,12 +251,6 @@ export async function generateClient({
     }
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
-      console.warn(
-        `.env: ${process.env.NETLIFY}`,
-        `binary: ${binaryTarget}`,
-        `path: ${filePath}`,
-      )
-
       const fileName = path.basename(filePath)
       const target =
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
