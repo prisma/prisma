@@ -50,49 +50,21 @@ export async function canConnectToDatabase(
     }
   }
 
-  migrationEnginePath =
-    migrationEnginePath || (await resolveBinary('migration-engine'))
-  try {
-    await execa(
-      migrationEnginePath,
-      ['cli', '--datasource', connectionString, 'can-connect-to-database'],
-      {
-        cwd,
-        env: {
-          RUST_BACKTRACE: '1',
-          RUST_LOG: 'info',
-        },
-      },
-    )
+  await execaCommand({
+    connectionString,
+    cwd,
+    migrationEnginePath,
+    engineCommandName: 'can-connect-to-database',
+  })
 
-    return true
-  } catch (e) {
-    if (e.stdout) {
-      let json: CommandErrorJson
-      try {
-        json = JSON.parse(e.stdout)
-      } catch (e) {
-        throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
-      }
-
-      return {
-        code: json.error_code,
-        message: json.message,
-        meta: json.meta,
-      }
-    } else if (e.stderr) {
-      throw new Error(`Migration engine error:\n${e.stderr}`)
-    } else {
-      throw new Error(`Migration engine exited.`)
-    }
-  }
+  return true
 }
 
 export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | false> {
+): Promise<execa.ExecaReturnValue | false | ConnectionError> {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
@@ -103,13 +75,48 @@ export async function createDatabase(
     return false
   }
 
+  return await execaCommand({
+    connectionString,
+    cwd,
+    migrationEnginePath,
+    engineCommandName: 'create-database',
+  })
+}
+
+export async function dropDatabase(
+  connectionString: string,
+  cwd = process.cwd(),
+  migrationEnginePath?: string,
+): Promise<execa.ExecaReturnValue | ConnectionError> {
+  return await execaCommand({
+    connectionString,
+    cwd,
+    migrationEnginePath,
+    engineCommandName: 'drop-database',
+  })
+}
+
+export async function execaCommand({
+  connectionString,
+  cwd,
+  migrationEnginePath,
+  engineCommandName,
+}: {
+  connectionString: string
+  cwd: string
+  migrationEnginePath?: string
+  engineCommandName:
+    | 'create-database'
+    | 'drop-database'
+    | 'can-connect-to-database'
+}) {
   migrationEnginePath =
     migrationEnginePath || (await resolveBinary('migration-engine'))
 
   try {
     return await execa(
       migrationEnginePath,
-      ['cli', '--datasource', connectionString, 'create-database'],
+      ['cli', '--datasource', connectionString, engineCommandName],
       {
         cwd,
         env: {
@@ -119,40 +126,43 @@ export async function createDatabase(
       },
     )
   } catch (e) {
-    let error
-
     if (e.stdout) {
-      try {
-        error = JSON.parse(e.stdout.trim())
-      } catch (e) {}
+      if (engineCommandName === 'can-connect-to-database') {
+        let json: CommandErrorJson
+        try {
+          json = JSON.parse(e.stdout.trim())
+        } catch (e) {
+          throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
+        }
+
+        return {
+          code: json.error_code,
+          message: json.message,
+          meta: json.meta,
+        }
+      } else if (engineCommandName === 'create-database') {
+        let error
+
+        try {
+          error = JSON.parse(e.stdout.trim())
+        } catch (e) {}
+
+        if (error?.message) {
+          throw new Error(error.message)
+        }
+      }
     }
 
-    if (error?.message) {
-      throw new Error(error.message)
-    }
+    if (e.stderr) {
+      throw new Error(`Migration engine error:\n${e.stderr}`)
+    } else {
+      if (engineCommandName === 'can-connect-to-database') {
+        throw new Error("Can't create database")
+      }
 
-    throw new Error(e.stderr ?? "Can't create database")
+      throw new Error(`Migration engine exited.`)
+    }
   }
-}
-
-export async function dropDatabase(
-  connectionString: string,
-  cwd = process.cwd(),
-  migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue> {
-  migrationEnginePath =
-    migrationEnginePath || (await resolveBinary('migration-engine'))
-  return await execa(
-    migrationEnginePath,
-    ['cli', '--datasource', connectionString, 'drop-database'],
-    {
-      cwd,
-      env: {
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
-      },
-    },
-  )
 }
 
 async function doesSqliteDbExist(
