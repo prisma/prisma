@@ -1231,6 +1231,6 @@ function initHooks() {
       hookProcess('SIGUSR2', true)
       hookProcess('SIGTERM', true)
     }
-    hooksInitialized = false
+    hooksInitialized = true
   }
 }
