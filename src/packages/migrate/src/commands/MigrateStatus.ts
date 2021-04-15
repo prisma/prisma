@@ -192,7 +192,6 @@ https://pris.ly/d/migrate-baseline`
       }
     } else if (diagnoseResult.failedMigrationNames.length > 0) {
       //         - This is the **recovering from a partially failed migration** case.
-      //         - Look at `drift.DriftDetected.rollback`. If present: display the rollback script
       //         - Inform the user that they can "close the case" and mark the failed migration as fixed by calling `prisma migrate resolve`.
       //             - `prisma migrate resolve --rolled-back <migration-name>` if the migration was rolled back
       //             - `prisma migrate resolve --applied <migration-name>` if the migration was rolled forward (and completed successfully)
@@ -208,14 +207,6 @@ During development if the failed migration(s) have not been deployed to a produc
           getCommandWithExecutor(`prisma migrate dev`),
         )}.\n`,
       )
-
-      if (
-        diagnoseResult.drift?.diagnostic === 'driftDetected' &&
-        diagnoseResult.drift.rollback
-      ) {
-        console.info(`Prisma Migrate generated a script to do a manual rollback
-${chalk.grey(diagnoseResult.drift.rollback)}`)
-      }
 
       return `The failed migration(s) can be marked as rolled back or applied:
       
@@ -235,38 +226,6 @@ ${chalk.bold.greenBright(
 
 Read more about how to resolve migration issues in a production database:
 https://pris.ly/d/migrate-resolve`
-    } else if (
-      diagnoseResult.drift?.diagnostic === 'driftDetected' &&
-      diagnoseResult.history?.diagnostic === 'databaseIsBehind'
-    ) {
-      //         - Display the rollback script as an account of the contents of the drift.
-      //         - Inform the user about scenarios
-      //             - *User wants the changes in their local history:* tell the user they can reintrospect and call prisma migrate to create a new migration matching the detected changes
-      //             - *User committed the changes in a migration and applied them outside of prisma migrate:* mark a migration that isn't applied yet as applied (hotfix case).
-      //                 - Say they may want to `prisma migrate resolve --applied <migration-name>`, where `migration-name` is one of the migrations in `unappliedMigrations` in the `diagnoseMigrationHistory` result.
-
-      const migrationId = diagnoseResult.history.unappliedMigrationNames
-
-      return `The current database schema is not in sync with your Prisma schema.
-This is the script to roll back manually:
-${chalk.grey(diagnoseResult.drift.rollback)}
-
-You have 2 options
-
-1. To keep the database structure change run: 
-- ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma db pull'),
-      )} to update your schema with the change.
-- ${chalk.bold.greenBright(
-        getCommandWithExecutor('prisma migrate dev'),
-      )} to create a new migration matching the change.
-      
-2. You corrected the change in a migration but applied it to the database without using Migrate (hotfix):
-- ${chalk.bold.greenBright(
-        getCommandWithExecutor(
-          `prisma migrate resolve --applied "${migrationId}"`,
-        ),
-      )} to create a new migration matching the change.`
     } else {
       console.info() // empty line
       if (unappliedMigrations.length > 0) {
