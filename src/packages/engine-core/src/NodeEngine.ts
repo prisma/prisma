@@ -361,6 +361,7 @@ You may have to run ${chalk.greenBright(
       path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.datamodelPath), // Datamodel Dir
       this.cwd, //cwdPath
+      '/tmp/prisma-engines',
     ]
 
     if (this.dirname) {
