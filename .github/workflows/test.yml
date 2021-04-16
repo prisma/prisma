@@ -52,12 +52,44 @@ jobs:
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.0
 
+  # Determine which tests to run based on file changes
+  determine-tests-to-run:
+    name: Determine which tests to run
+    runs-on: ubuntu-20.04
+    needs: cleanup-runs
+    
+    # outputs:
+    #   teststorun: ${{ steps.teststorun.outputs.teststorun }}
+    
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2
+      - id: files
+        uses: jitterbit/get-changed-files@v1
+        with:
+          format: 'json'
+      - id: teststorun
+        run: |
+          echo "All:"
+          echo "${{ steps.files.outputs.all }}"
+          echo "Added:"
+          echo "${{ steps.files.outputs.added }}"
+          echo "Removed:"
+          echo "${{ steps.files.outputs.removed }}"
+          echo "Renamed:"
+          echo "${{ steps.files.outputs.renamed }}"
+          echo "Modified:"
+          echo "${{ steps.files.outputs.modified }}"
+          echo "Added+Modified:"
+          echo "${{ steps.files.outputs.added_modified }}"
+          
   #
   # Linting
   #
   lint:
     timeout-minutes: 7
     runs-on: ubuntu-20.04
+    needs: determine-tests-to-run
 
     steps:
       - uses: actions/checkout@v2
