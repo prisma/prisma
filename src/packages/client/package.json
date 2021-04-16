@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "rollup": "2.45.2",
     "rollup-plugin-dts": "3.0.1",
-    "sort-keys": "4.2.0",
+    "sort-keys": "5.0.0",
     "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
