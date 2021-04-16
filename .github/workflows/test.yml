@@ -126,6 +126,8 @@ jobs:
   tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+    needs: determine-tests-to-run
+    
     strategy:
       fail-fast: false
       matrix:
@@ -193,12 +195,15 @@ jobs:
           files: ./src/packages/tests/src/__tests__/coverage/clover.xml
           flags: tests-integration,${{ matrix.database }}
           name: tests-integration-${{ matrix.database }}
+
   #
   # TESTS-INTEGRATION-NAPI
   #
   tests-integration-napi:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+    needs: determine-tests-to-run
+
     env:
       PRISMA_FORCE_NAPI: 'true'
       PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
@@ -269,12 +274,14 @@ jobs:
           files: ./src/packages/tests/src/__tests__/coverage/clover.xml
           flags: tests-integration,${{ matrix.database }}
           name: tests-integration-${{ matrix.database }}
+
   #
   # CLI-COMMANDS
   #
   cli-commands:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
@@ -327,6 +334,7 @@ jobs:
   client:
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
+    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
@@ -387,6 +395,8 @@ jobs:
   client-types-napi:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
+    needs: determine-tests-to-run
+
     env:
       PRISMA_FORCE_NAPI: 'true'
       PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
@@ -440,6 +450,8 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
+    needs: determine-tests-to-run
+
     strategy:
       fail-fast: false
       matrix:
@@ -490,6 +502,7 @@ jobs:
   sdk:
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
+    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
@@ -542,6 +555,7 @@ jobs:
   migrate:
     timeout-minutes: 7
     runs-on: ${{ matrix.os }}
+    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
@@ -595,12 +609,14 @@ jobs:
           files: ./src/packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }}
           name: migrate-${{ matrix.os }}
+
   #
   # All the other packages!
   #
   others:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
