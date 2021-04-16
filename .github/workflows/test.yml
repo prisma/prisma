@@ -64,7 +64,7 @@ jobs:
         uses: jitterbit/get-changed-files@v1
         with:
           format: 'json'
-      - id: Print changedfiles
+      - name: Print changedfiles
         run: |
           echo "All:"
           echo "${{ steps.changedfiles.outputs.all }}"
