@@ -56,32 +56,28 @@ jobs:
   determine-tests-to-run:
     name: Determine which tests to run
     runs-on: ubuntu-20.04
-    needs: cleanup-runs
-    
-    # outputs:
-    #   teststorun: ${{ steps.teststorun.outputs.teststorun }}
     
     steps:
       - id: checkout
         uses: actions/checkout@v2
-      - id: files
+      - id: changedfiles
         uses: jitterbit/get-changed-files@v1
         with:
           format: 'json'
-      - id: teststorun
+      - id: Print changedfiles
         run: |
           echo "All:"
-          echo "${{ steps.files.outputs.all }}"
+          echo "${{ steps.changedfiles.outputs.all }}"
           echo "Added:"
-          echo "${{ steps.files.outputs.added }}"
+          echo "${{ steps.changedfiles.outputs.added }}"
           echo "Removed:"
-          echo "${{ steps.files.outputs.removed }}"
+          echo "${{ steps.changedfiles.outputs.removed }}"
           echo "Renamed:"
-          echo "${{ steps.files.outputs.renamed }}"
+          echo "${{ steps.changedfiles.outputs.renamed }}"
           echo "Modified:"
-          echo "${{ steps.files.outputs.modified }}"
+          echo "${{ steps.changedfiles.outputs.modified }}"
           echo "Added+Modified:"
-          echo "${{ steps.files.outputs.added_modified }}"
+          echo "${{ steps.changedfiles.outputs.added_modified }}"
           
   #
   # Linting
@@ -89,7 +85,9 @@ jobs:
   lint:
     timeout-minutes: 7
     runs-on: ubuntu-20.04
+
     needs: determine-tests-to-run
+    if: contains(steps.changedfiles.outputs.all, 'src/packages')
 
     steps:
       - uses: actions/checkout@v2
@@ -126,8 +124,10 @@ jobs:
   tests-integration:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+
     needs: determine-tests-to-run
-    
+    if: contains(steps.changedfiles.outputs.all, 'src/packages/tests') || contains(steps.changedfiles.outputs.all, 'src/packages/client') || contains(steps.changedfiles.outputs.all, 'src/docker/docker-compose.yml')  
+      
     strategy:
       fail-fast: false
       matrix:
@@ -202,8 +202,10 @@ jobs:
   tests-integration-napi:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
-    needs: determine-tests-to-run
 
+    needs: determine-tests-to-run
+    if: contains(steps.changedfiles.outputs.all, 'src/packages/tests') || contains(steps.changedfiles.outputs.all, 'src/packages/client') || contains(steps.changedfiles.outputs.all, 'src/docker/docker-compose.yml')  
+      
     env:
       PRISMA_FORCE_NAPI: 'true'
       PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
