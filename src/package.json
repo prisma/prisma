@@ -8,7 +8,7 @@
     "node": ">=10.16"
   },
   "devDependencies": {
-    "@sindresorhus/slugify": "1.1.0",
+    "@sindresorhus/slugify": "2.0.0",
     "@slack/webhook": "6.0.0",
     "@types/debug": "4.1.5",
     "@types/graphviz": "0.0.32",
