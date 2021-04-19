@@ -19,7 +19,7 @@
     "eslint-config-prettier": "8.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.5",
-    "eslint-plugin-prettier": "3.3.1",
+    "eslint-plugin-prettier": "3.4.0",
     "execa": "5.0.0",
     "globby": "11.0.3",
     "husky": "4.3.8",

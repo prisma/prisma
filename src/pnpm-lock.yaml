@@ -4,7 +4,7 @@ importers:
 
   .:
     specifiers:
-      '@sindresorhus/slugify': 1.1.0
+      '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.0.0
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
@@ -27,7 +27,7 @@ importers:
       ts-node: 9.1.1
       typescript: 4.2.4
     devDependencies:
-      '@sindresorhus/slugify': 1.1.0
+      '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.0.0_debug@4.3.1
       '@types/debug': 4.1.5
       '@types/graphviz': 0.0.32
@@ -75,7 +75,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: 5.0.0
       fast-deep-equal: 3.1.3
       fs-jetpack: 4.1.0
@@ -99,7 +99,7 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.0
       tempy: 1.0.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
     dependencies:
       '@prisma/engines': 2.22.0-6.c5bee99a3abae3004e266533d9ffcd619c9b1264
@@ -126,7 +126,7 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       execa: 5.0.0
       fast-deep-equal: 3.1.3
       fs-jetpack: 4.1.0
@@ -150,7 +150,7 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.0
       tempy: 1.0.1
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/client:
@@ -182,7 +182,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: 5.0.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
@@ -212,7 +212,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       ts-node: 9.1.1
       tsd: 0.14.0
       typescript: 4.2.4
@@ -245,7 +245,7 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       execa: 5.0.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
@@ -275,7 +275,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       ts-node: 9.1.1_typescript@4.2.4
       tsd: 0.14.0
       typescript: 4.2.4
@@ -291,13 +291,13 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       jest: 26.6.3
       lint-staged: 10.5.4
       ms: ^2.1.3
       prettier: 2.2.1
       strip-ansi: 6.0.0
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
     dependencies:
       debug: 4.3.2
@@ -311,12 +311,12 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
       strip-ansi: 6.0.0
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/engine-core:
@@ -334,7 +334,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: ^5.0.0
       get-stream: ^6.0.0
       indent-string: ^4.0.0
@@ -345,7 +345,7 @@ importers:
       prettier: 2.2.1
       strip-ansi: 6.0.0
       terminal-link: ^2.1.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
       undici: 3.3.4
     dependencies:
@@ -370,12 +370,12 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
       strip-ansi: 6.0.0
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/fetch-engine:
@@ -396,7 +396,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: ^5.0.0
       find-cache-dir: ^3.3.1
       hasha: ^5.2.0
@@ -415,7 +415,7 @@ importers:
       strip-ansi: 6.0.0
       temp-dir: ^2.0.0
       tempy: ^1.0.0
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -449,12 +449,12 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
       strip-ansi: 6.0.0
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/generator-helper:
@@ -471,11 +471,11 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       ts-node: 9.1.1
       typescript: 4.2.4
     dependencies:
@@ -492,11 +492,11 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3_ts-node@9.1.1
       lint-staged: 10.5.4
       prettier: 2.2.1
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       ts-node: 9.1.1_typescript@4.2.4
       typescript: 4.2.4
 
@@ -511,11 +511,11 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -528,11 +528,11 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3
       lint-staged: 10.5.4
       prettier: 2.2.1
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/migrate:
@@ -558,7 +558,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: ^5.0.0
       fs-jetpack: 4.1.0
       global-dirs: ^3.0.0
@@ -582,7 +582,7 @@ importers:
       strip-ansi: ^6.0.0
       strip-indent: ^3.0.0
       tempy: 1.0.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       typescript: 4.2.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -619,7 +619,7 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       fs-jetpack: 4.1.0
       jest: 26.6.3
       lint-staged: 10.5.4
@@ -631,7 +631,7 @@ importers:
       sqlite-async: 1.1.1
       sqlite3: 5.0.2
       tempy: 1.0.1
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       typescript: 4.2.4
 
   packages/react-prisma:
@@ -697,7 +697,7 @@ importers:
       eslint-config-prettier: 8.2.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.3.5
-      eslint-plugin-prettier: 3.3.1
+      eslint-plugin-prettier: 3.4.0
       execa: ^5.0.0
       find-up: 5.0.0
       global-dirs: ^3.0.0
@@ -723,7 +723,7 @@ importers:
       tempy: ^1.0.0
       terminal-link: ^2.1.1
       tmp: 0.2.1
-      ts-jest: 26.5.4
+      ts-jest: 26.5.5
       ts-node: 9.1.1
       typescript: 4.2.4
       url-parse: ^1.4.7
@@ -775,11 +775,11 @@ importers:
       eslint-config-prettier: 8.2.0_eslint@7.24.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.24.0
       eslint-plugin-jest: 24.3.5_469198025d58e07f9dfdc8d1609732dd
-      eslint-plugin-prettier: 3.3.1_64fa1aa96df95a5df14fce32631d8e89
+      eslint-plugin-prettier: 3.4.0_64fa1aa96df95a5df14fce32631d8e89
       jest: 26.6.3_ts-node@9.1.1
       lint-staged: 10.5.4
       prettier: 2.2.1
-      ts-jest: 26.5.4_jest@26.6.3+typescript@4.2.4
+      ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
       ts-node: 9.1.1_typescript@4.2.4
       typescript: 4.2.4
 
@@ -1780,6 +1780,14 @@ packages:
     dependencies:
       '@sindresorhus/transliterate': 0.1.1
       escape-string-regexp: 4.0.0
+
+  /@sindresorhus/slugify/1.1.2:
+    resolution: {integrity: sha512-V9nR/W0Xd9TSGXpZ4iFUcFGhuOJtZX82Fzxj1YISlbSgKvIiNa7eLEZrT0vAraPOt++KHauIVNYgGRgjc13dXA==}
+    engines: {node: '>=10'}
+    dependencies:
+      '@sindresorhus/transliterate': 0.1.1
+      escape-string-regexp: 4.0.0
+    dev: true
 
   /@sindresorhus/transliterate/0.1.1:
     resolution: {integrity: sha512-QSdIQ5keUFAZ3KLbfbsntW39ox0Ym8183RqTwBq/ZEFoN3NQAtGV+qWaNdzKpIDHgj9J2CQ2iNDRVU11Zyr7MQ==}
@@ -3804,23 +3812,6 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
-  /eslint-plugin-prettier/3.3.1_64fa1aa96df95a5df14fce32631d8e89:
-    resolution: {integrity: sha512-Rq3jkcFY8RYeQLgk2cCwuc0P7SEFwDravPhsJZOQ5N4YI4DSg50NyqJ/9gdZHzQlHf8MvafSesbNJCcP/FF6pQ==}
-    engines: {node: '>=6.0.0'}
-    peerDependencies:
-      eslint: '>=5.0.0'
-      eslint-config-prettier: '*'
-      prettier: '>=1.13.0'
-    peerDependenciesMeta:
-      eslint-config-prettier:
-        optional: true
-    dependencies:
-      eslint: 7.24.0
-      eslint-config-prettier: 8.2.0_eslint@7.24.0
-      prettier: 2.2.1
-      prettier-linter-helpers: 1.0.0
-    dev: true
-
   /eslint-plugin-prettier/3.3.1_b9c73a8f62f15c88eece82c557486b0e:
     resolution: {integrity: sha512-Rq3jkcFY8RYeQLgk2cCwuc0P7SEFwDravPhsJZOQ5N4YI4DSg50NyqJ/9gdZHzQlHf8MvafSesbNJCcP/FF6pQ==}
     engines: {node: '>=6.0.0'}
@@ -3834,6 +3825,23 @@ packages:
     dependencies:
       eslint: 7.24.0
       eslint-config-prettier: 8.1.0_eslint@7.24.0
+      prettier: 2.2.1
+      prettier-linter-helpers: 1.0.0
+    dev: true
+
+  /eslint-plugin-prettier/3.4.0_64fa1aa96df95a5df14fce32631d8e89:
+    resolution: {integrity: sha512-UDK6rJT6INSfcOo545jiaOwB701uAIt2/dR7WnFQoGCVl1/EMqdANBmwUaqqQ45aXprsTGzSa39LI1PyuRBxxw==}
+    engines: {node: '>=6.0.0'}
+    peerDependencies:
+      eslint: '>=5.0.0'
+      eslint-config-prettier: '*'
+      prettier: '>=1.13.0'
+    peerDependenciesMeta:
+      eslint-config-prettier:
+        optional: true
+    dependencies:
+      eslint: 7.24.0
+      eslint-config-prettier: 8.2.0_eslint@7.24.0
       prettier: 2.2.1
       prettier-linter-helpers: 1.0.0
     dev: true
@@ -8488,6 +8496,28 @@ packages:
 
   /ts-jest/26.5.4_jest@26.6.3+typescript@4.2.4:
     resolution: {integrity: sha512-I5Qsddo+VTm94SukBJ4cPimOoFZsYTeElR2xy6H2TOVs+NsvgYglW8KuQgKoApOKuaU/Ix/vrF9ebFZlb5D2Pg==}
+    engines: {node: '>= 10'}
+    hasBin: true
+    peerDependencies:
+      jest: '>=26 <27'
+      typescript: '>=3.8 <5.0'
+    dependencies:
+      bs-logger: 0.2.6
+      buffer-from: 1.1.1
+      fast-json-stable-stringify: 2.1.0
+      jest: 26.6.3
+      jest-util: 26.6.2
+      json5: 2.2.0
+      lodash: 4.17.21
+      make-error: 1.3.6
+      mkdirp: 1.0.4
+      semver: 7.3.5
+      typescript: 4.2.4
+      yargs-parser: 20.2.7
+    dev: true
+
+  /ts-jest/26.5.5_jest@26.6.3+typescript@4.2.4:
+    resolution: {integrity: sha512-7tP4m+silwt1NHqzNRAPjW1BswnAhopTdc2K3HEkRZjF0ZG2F/e/ypVH0xiZIMfItFtD3CX0XFbwPzp9fIEUVg==}
     engines: {node: '>= 10'}
     hasBin: true
     peerDependencies:
