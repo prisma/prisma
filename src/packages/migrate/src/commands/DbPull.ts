@@ -60,7 +60,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     return printDatasources([
       {
         config: {},
-        provider: [provider],
+        provider: provider,
         name: 'db',
         url,
       },

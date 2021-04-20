@@ -25,7 +25,7 @@ export type Datasource =
 
 export interface InternalDatasource {
   name: string
-  provider: ConnectorType[]
+  provider: ConnectorType
   url: string
   config: any
 }

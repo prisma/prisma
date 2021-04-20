@@ -1,5 +1,5 @@
 datasource db {
-  provider = ["sqlite"]
+  provider = "sqlite"
   url      = "file:./dev.db"
   default  = true
 }

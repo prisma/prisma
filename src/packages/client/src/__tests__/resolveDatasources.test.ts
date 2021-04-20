@@ -54,7 +54,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'sqlite',
-    provider: ['sqlite'],
+    provider: 'sqlite',
     config: {},
   },
   {
@@ -64,7 +64,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'sqlite',
-    provider: ['sqlite'],
+    provider: 'sqlite',
     config: {},
   },
   {
@@ -74,7 +74,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'mysql',
-    provider: ['mysql'],
+    provider: 'mysql',
     config: {},
   },
   {
@@ -84,7 +84,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'postgresql',
-    provider: ['postgresql'],
+    provider: 'postgresql',
     config: {},
   },
 ]
