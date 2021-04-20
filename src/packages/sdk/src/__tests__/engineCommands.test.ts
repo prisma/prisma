@@ -168,7 +168,6 @@ describe('getDMMF', () => {
         @@unique([firstName, lastName, isAdmin])
       }
   `,
-      enableExperimental: ['connectOrCreate'],
     })
 
     expect(dmmf).toMatchSnapshot()
@@ -193,7 +192,6 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({
       datamodel: file,
-      enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchSnapshot()
@@ -206,7 +204,6 @@ describe('getDMMF', () => {
     )
     const dmmf = await getDMMF({
       datamodel: file,
-      enableExperimental: ['connectOrCreate'],
     })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchSnapshot()
