@@ -97,9 +97,7 @@ test('resolveDatasources', () => {
         activeProvider: sqlite,
         config: Object {},
         name: db,
-        provider: Array [
-          sqlite,
-        ],
+        provider: sqlite,
         url: Object {
           fromEnvVar: null,
           value: file:db.db,
@@ -109,9 +107,7 @@ test('resolveDatasources', () => {
         activeProvider: sqlite,
         config: Object {},
         name: db2,
-        provider: Array [
-          sqlite,
-        ],
+        provider: sqlite,
         url: Object {
           fromEnvVar: null,
           value: file:./some-dir/db.db,
@@ -121,9 +117,7 @@ test('resolveDatasources', () => {
         activeProvider: mysql,
         config: Object {},
         name: db3,
-        provider: Array [
-          mysql,
-        ],
+        provider: mysql,
         url: Object {
           fromEnvVar: null,
           value: mysql:localhost,
@@ -133,9 +127,7 @@ test('resolveDatasources', () => {
         activeProvider: postgresql,
         config: Object {},
         name: db4,
-        provider: Array [
-          postgresql,
-        ],
+        provider: postgresql,
         url: Object {
           fromEnvVar: null,
           value: postgresql://,
