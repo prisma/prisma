@@ -80,8 +80,7 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
-const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
+const dirname = \`$\{process.cwd()}/prisma\`
 
 /**
  * Enums
