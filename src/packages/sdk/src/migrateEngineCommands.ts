@@ -64,7 +64,7 @@ export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | false | ConnectionError> {
+): Promise<execa.ExecaReturnValue | false> {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
@@ -87,7 +87,7 @@ export async function dropDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | ConnectionError> {
+): Promise<execa.ExecaReturnValue> {
   return await execaCommand({
     connectionString,
     cwd,
@@ -96,15 +96,37 @@ export async function dropDatabase(
   })
 }
 
+type execaCommandInput = {
+  connectionString: string
+  cwd: string
+  migrationEnginePath?: string
+}
+
+// Somehow overloading was necesary for the return type to be inferred correctly
+export function execaCommand({
+  connectionString,
+  cwd,
+  migrationEnginePath,
+  engineCommandName,
+}: execaCommandInput & { engineCommandName: 'create-database' })
+export function execaCommand({
+  connectionString,
+  cwd,
+  migrationEnginePath,
+  engineCommandName,
+}: execaCommandInput & { engineCommandName: 'can-connect-to-database' })
+export function execaCommand({
+  connectionString,
+  cwd,
+  migrationEnginePath,
+  engineCommandName,
+}: execaCommandInput & { engineCommandName: 'drop-database' })
 export async function execaCommand({
   connectionString,
   cwd,
   migrationEnginePath,
   engineCommandName,
-}: {
-  connectionString: string
-  cwd: string
-  migrationEnginePath?: string
+}: execaCommandInput & {
   engineCommandName:
     | 'create-database'
     | 'drop-database'
