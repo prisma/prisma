@@ -4,7 +4,7 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "masterIssue": true,
-  "reviewers": ["@jolg42", "@williamluke4"],
+  "reviewers": ["@jolg42", "@williamluke4", "millsp"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": ["esbuild", "sqlite3"],
   "packageRules": [
@@ -43,6 +43,7 @@
       "automerge": "true",
       "ignoreUnstable": false,
       "followTag": "latest",
+      "reviewers": ["@jolg42", "@williamluke4", "millsp"],
       "packageNames": ["@prisma/engines", "@prisma/engines-version"]
     },
     {
@@ -50,13 +51,13 @@
       "automerge": "true",
       "packageNames": ["@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@madebysid"]
+      "reviewers": ["@madebysid", "@jolg42"]
     },
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@Weakky"]
+      "reviewers": ["@Weakky", "jolg42"]
     },
     {
       "groupName": "react-prisma",
