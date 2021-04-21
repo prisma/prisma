@@ -12,6 +12,7 @@ describe('migrateEngineCommands', () => {
     } catch (e) {
       const message = e.message as string
       expect(message.includes('mysecret')).toBeFalsy()
+      expect(message.includes('<REDACTED>')).toBeTruthy()
     }
   })
 })

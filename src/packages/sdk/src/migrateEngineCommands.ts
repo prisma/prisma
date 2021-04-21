@@ -50,12 +50,35 @@ export async function canConnectToDatabase(
     }
   }
 
-  await execaCommand({
-    connectionString,
-    cwd,
-    migrationEnginePath,
-    engineCommandName: 'can-connect-to-database',
-  })
+  try {
+    await execaCommand({
+      connectionString,
+      cwd,
+      migrationEnginePath,
+      engineCommandName: 'can-connect-to-database',
+    })
+  } catch (e) {
+    if (e.stdout) {
+      let json: CommandErrorJson
+      try {
+        json = JSON.parse(e.stdout.trim())
+      } catch (e) {
+        throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
+      }
+
+      return {
+        code: json.error_code,
+        message: json.message,
+        meta: json.meta,
+      }
+    }
+
+    if (e.stderr) {
+      throw new Error(`Migration engine error:\n${e.stderr}`)
+    } else {
+      throw new Error("Can't create database")
+    }
+  }
 
   return true
 }
@@ -64,7 +87,7 @@ export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | false> {
+) {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
@@ -75,58 +98,93 @@ export async function createDatabase(
     return false
   }
 
-  return await execaCommand({
-    connectionString,
-    cwd,
-    migrationEnginePath,
-    engineCommandName: 'create-database',
-  })
+  try {
+    await execaCommand({
+      connectionString,
+      cwd,
+      migrationEnginePath,
+      engineCommandName: 'create-database',
+    })
+  } catch (e) {
+    if (e.stdout) {
+      let error
+
+      try {
+        error = JSON.parse(e.stdout.trim())
+      } catch (e) {}
+
+      if (error?.message) {
+        throw new Error(error.message)
+      }
+    }
+
+    if (e.stderr) {
+      throw new Error(`Migration engine error:\n${e.stderr}`)
+    } else {
+      throw new Error(`Migration engine exited.`)
+    }
+  }
 }
 
 export async function dropDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue> {
-  return await execaCommand({
-    connectionString,
-    cwd,
-    migrationEnginePath,
-    engineCommandName: 'drop-database',
-  })
+) {
+  try {
+    const result = await execaCommand({
+      connectionString,
+      cwd,
+      migrationEnginePath,
+      engineCommandName: 'drop-database',
+    })
+
+    if (
+      result &&
+      result.exitCode === 0 &&
+      result.stderr.includes('The database was successfully dropped')
+    ) {
+      return true
+    } else {
+      // We should not arrive here normally
+      throw Error(
+        `An error occurred during the drop: ${JSON.stringify(
+          result,
+          undefined,
+          2,
+        )}`,
+      )
+    }
+  } catch (e) {
+    let json
+    try {
+      json = JSON.parse(e.stdout)
+    } catch (e) {
+      console.error(
+        `Could not parse database drop engine response: ${e.stdout.slice(
+          0,
+          200,
+        )}`,
+      )
+    }
+
+    if (json.message) {
+      throw Error(json.message)
+    }
+
+    throw Error(e)
+  }
 }
 
-type execaCommandInput = {
-  connectionString: string
-  cwd: string
-  migrationEnginePath?: string
-}
-
-// Somehow overloading was necesary for the return type to be inferred correctly
-export function execaCommand({
-  connectionString,
-  cwd,
-  migrationEnginePath,
-  engineCommandName,
-}: execaCommandInput & { engineCommandName: 'create-database' })
-export function execaCommand({
-  connectionString,
-  cwd,
-  migrationEnginePath,
-  engineCommandName,
-}: execaCommandInput & { engineCommandName: 'can-connect-to-database' })
-export function execaCommand({
-  connectionString,
-  cwd,
-  migrationEnginePath,
-  engineCommandName,
-}: execaCommandInput & { engineCommandName: 'drop-database' })
 export async function execaCommand({
   connectionString,
   cwd,
   migrationEnginePath,
   engineCommandName,
-}: execaCommandInput & {
+}: {
+  connectionString: string
+  cwd: string
+  migrationEnginePath?: string
   engineCommandName:
     | 'create-database'
     | 'drop-database'
@@ -148,42 +206,16 @@ export async function execaCommand({
       },
     )
   } catch (e) {
+    if (e.message) {
+      e.message = e.message.replace(connectionString, '<REDACTED>')
+    }
     if (e.stdout) {
-      if (engineCommandName === 'can-connect-to-database') {
-        let json: CommandErrorJson
-        try {
-          json = JSON.parse(e.stdout.trim())
-        } catch (e) {
-          throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
-        }
-
-        return {
-          code: json.error_code,
-          message: json.message,
-          meta: json.meta,
-        }
-      } else if (engineCommandName === 'create-database') {
-        let error
-
-        try {
-          error = JSON.parse(e.stdout.trim())
-        } catch (e) {}
-
-        if (error?.message) {
-          throw new Error(error.message)
-        }
-      }
+      e.stdout = e.stdout.replace(connectionString, '<REDACTED>')
     }
-
     if (e.stderr) {
-      throw new Error(`Migration engine error:\n${e.stderr}`)
-    } else {
-      if (engineCommandName === 'can-connect-to-database') {
-        throw new Error("Can't create database")
-      }
-
-      throw new Error(`Migration engine exited.`)
+      e.stderr = e.stderr.replace(connectionString, '<REDACTED>')
     }
+    throw e
   }
 }
 
