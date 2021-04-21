@@ -83,7 +83,7 @@
     "eslint-config-prettier": "8.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.5",
-    "eslint-plugin-prettier": "3.3.1",
+    "eslint-plugin-prettier": "3.4.0",
     "execa": "5.0.0",
     "fast-deep-equal": "3.1.3",
     "fs-jetpack": "4.1.0",
@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "26.5.4",
+    "ts-jest": "26.5.5",
     "typescript": "4.2.4"
   },
   "scripts": {
@@ -127,7 +127,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.22.0-4.22310b5256d4905b0f0095dc394e68070a07fc05"
+    "@prisma/engines": "2.22.0-10.2788d3127593343caae46dbc19e921acae191bc4"
   },
   "lint-staged": {
     "*.ts": [

@@ -663,6 +663,8 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
           errorText += `\n\nTo solve this problem, add the platform "${
             this.platform
           }" to the "${chalk.underline(
+            'binaryTargets',
+          )}" attribute in the "${chalk.underline(
             'generator',
           )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}

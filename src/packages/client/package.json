@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.22.0-4.22310b5256d4905b0f0095dc394e68070a07fc05",
+    "@prisma/engines": "2.22.0-10.2788d3127593343caae46dbc19e921acae191bc4",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -70,7 +70,7 @@
     "@types/jest": "26.0.22",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.7",
-    "@types/node": "12.20.7",
+    "@types/node": "12.20.10",
     "@types/pg": "7.14.11",
     "@typescript-eslint/eslint-plugin": "4.22.0",
     "@typescript-eslint/parser": "4.22.0",
@@ -83,7 +83,7 @@
     "eslint-config-prettier": "8.2.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.5",
-    "eslint-plugin-prettier": "3.3.1",
+    "eslint-plugin-prettier": "3.4.0",
     "execa": "5.0.0",
     "flat-map-polyfill": "0.3.8",
     "fs-monkey": "1.0.3",
@@ -113,7 +113,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
-    "ts-jest": "26.5.4",
+    "ts-jest": "26.5.5",
     "ts-node": "9.1.1",
     "tsd": "0.14.0",
     "typescript": "4.2.4"
@@ -127,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.22.0-4.22310b5256d4905b0f0095dc394e68070a07fc05"
+    "@prisma/engines-version": "2.22.0-10.2788d3127593343caae46dbc19e921acae191bc4"
   },
   "lint-staged": {
     "*.ts": [
