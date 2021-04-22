@@ -68,13 +68,20 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   }
 
   return url.toString()
-  // return NodeURL.format(url, { unicode: false })
 }
 
 export function uriToCredentials(
   connectionString: string,
 ): DatabaseCredentials {
-  const uri = new NodeURL.URL(connectionString)
+  let uri: NodeURL.URL
+  try {
+    uri = new NodeURL.URL(connectionString)
+  } catch (e) {
+    throw new Error(
+      'Invalid data source URL, see https://www.prisma.io/docs/reference/database-reference/connection-urls',
+    )
+  }
+
   const type = protocolToDatabaseType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
