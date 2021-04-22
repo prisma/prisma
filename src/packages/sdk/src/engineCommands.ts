@@ -24,7 +24,7 @@ export type GetDMMFOptions = {
   prismaPath?: string
   datamodelPath?: string
   retry?: number
-  enableExperimental?: string[]
+  previewFeatures?: string[]
 }
 
 export async function getDMMF({
@@ -33,7 +33,7 @@ export async function getDMMF({
   prismaPath: queryEnginePath,
   datamodelPath,
   retry = 4,
-  enableExperimental,
+  previewFeatures,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
   let result
@@ -76,7 +76,7 @@ export async function getDMMF({
       groupBy: getMessage('groupBy'),
     }
 
-    enableExperimental?.forEach((f) => {
+    previewFeatures?.forEach((f) => {
       const removedMessage = removedFeatureFlagMap[f]
       if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
         console.log(removedMessage)

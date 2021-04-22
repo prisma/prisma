@@ -31,7 +31,7 @@ model Post {
 async function main() {
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental: ['selectRelationCount'],
+    previewFeatures: ['selectRelationCount'],
   })
   console.log(dmmf)
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })

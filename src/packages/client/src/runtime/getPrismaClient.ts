@@ -409,17 +409,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
-          enableExperimental: mapPreviewFeatures(this._previewFeatures),
+          previewFeatures: mapPreviewFeatures(this._previewFeatures),
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb
         if (config.activeProvider === 'mongodb') {
-          const enableExperimental = this._engineConfig.enableExperimental
-            ? this._engineConfig.enableExperimental.concat('mongodb')
+          const previewFeatures = this._engineConfig.previewFeatures
+            ? this._engineConfig.previewFeatures.concat('mongodb')
             : ['mongodb']
-          this._engineConfig.enableExperimental = enableExperimental
+          this._engineConfig.previewFeatures = previewFeatures
         }
 
         debug(`clientVersion: ${config.clientVersion}`)

@@ -88,7 +88,7 @@ export class NodeEngine implements Engine {
   private lastPanic?: Error
   private globalKillSignalReceived?: string
   private startCount = 0
-  private enableExperimental: string[] = []
+  private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastErrorLog?: RustLog
   private lastRustError?: RustError
@@ -133,7 +133,7 @@ export class NodeEngine implements Engine {
     env,
     flags,
     clientVersion,
-    enableExperimental,
+    previewFeatures,
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
@@ -160,7 +160,7 @@ export class NodeEngine implements Engine {
     this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
     this.flags = flags ?? []
-    this.enableExperimental = enableExperimental ?? []
+    this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
     initHooks()
     const removedFlags = [
@@ -178,7 +178,7 @@ export class NodeEngine implements Engine {
       'createMany',
       'groupBy',
     ]
-    const removedFlagsUsed = this.enableExperimental.filter((e) =>
+    const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),
     )
 
@@ -195,7 +195,7 @@ export class NodeEngine implements Engine {
       )
     }
 
-    this.enableExperimental = this.enableExperimental.filter(
+    this.previewFeatures = this.previewFeatures.filter(
       (e) => !removedFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
