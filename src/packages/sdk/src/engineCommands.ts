@@ -75,42 +75,16 @@ export async function getDMMF({
       createMany: getMessage('createMany'),
       groupBy: getMessage('groupBy'),
     }
-    if (enableExperimental) {
-      enableExperimental = enableExperimental
-        .filter((f) => {
-          const removeMessage = removedFeatureFlagMap[f]
-          if (removeMessage) {
-            if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-              console.log(removeMessage)
-            }
-            return false
-          }
+    enableExperimental?.forEach((f) => {
+      const removeMessage = removedFeatureFlagMap[f]
+      if (removeMessage) {
+        if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+          console.log(removeMessage)
+        }
+      }
+    })
 
-          return true
-        })
-        .filter(
-          (e) =>
-            ![
-              'middlewares',
-              'aggregateApi',
-              'distinct',
-              'aggregations',
-              'nativeTypes',
-              'atomicNumberOperations',
-              'createMany',
-              'groupBy',
-            ].includes(e),
-        )
-    }
-
-    const experimentalFlags =
-      enableExperimental &&
-      Array.isArray(enableExperimental) &&
-      enableExperimental.length > 0
-        ? [`--enable-experimental=${enableExperimental.join(',')}`]
-        : []
-
-    const args = [...experimentalFlags, '--enable-raw-queries', 'cli', 'dmmf']
+    const args = ['--enable-raw-queries', 'cli', 'dmmf']
 
     result = await execa(queryEnginePath, args, options)
 

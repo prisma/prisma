@@ -1,19 +1,26 @@
+import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
 import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import { ChildProcessByStdio, spawn } from 'child_process'
-import { Readable } from 'stream'
-import Debug from '@prisma/debug'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
 import pRetry from 'p-retry'
-import { URL } from 'url'
 import path from 'path'
+import { Readable } from 'stream'
+import { URL } from 'url'
 import { promisify } from 'util'
 import byline from './byline'
+import {
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from './Engine'
 import {
   getErrorMessageWithLink,
   PrismaClientInitializationError,
@@ -25,23 +32,16 @@ import {
 } from './errors'
 import {
   convertLog,
+  getMessage,
   isRustError,
+  isRustErrorLog,
   RustError,
   RustLog,
-  getMessage,
-  isRustErrorLog,
 } from './log'
 import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
-import {
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  GetConfigResult,
-} from './Engine'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -576,21 +576,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
-        const experimentalFlags =
-          this.enableExperimental &&
-          Array.isArray(this.enableExperimental) &&
-          this.enableExperimental.length > 0
-            ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
-            : []
 
         const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
 
-        const flags = [
-          ...experimentalFlags,
-          ...debugFlag,
-          '--enable-raw-queries',
-          ...this.flags,
-        ]
+        const flags = [...debugFlag, '--enable-raw-queries', ...this.flags]
 
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)

@@ -41,6 +41,7 @@ type QueryEngineConfig = {
   datasourceOverrides?: Record<string, string>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
+  configDir?: string
 }
 type QueryEngineTelemetry = {
   enabled: Boolean
@@ -260,24 +261,13 @@ You may have to run ${chalk.greenBright(
       }
       if (this.QueryEngine) {
         try {
-          const featureFlagsOverrides = process.env
-            .PRISMA_DEBUG_ENABLE_ALL_FLAGS
-            ? [
-                'microsoftSqlServer',
-                'orderByRelation',
-                'napi',
-                // 'mongodb',
-                'selectRelationCount',
-              ]
-            : undefined
           this.engine = new this.QueryEngine(
             {
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
-              featureFlagsOverrides,
               configDir: this.config.cwd,
-            } as any,
+            },
             (err, log) => this.logger(err, log),
           )
         } catch (e) {
