@@ -21,7 +21,7 @@ describe('minimal atomic update transformation', () => {
     dmmf = new DMMFClass(
       await getDMMF({
         datamodel: blog,
-        enableExperimental: ['atomicNumberOperations'],
+        previewFeatures: ['atomicNumberOperations'],
       }),
     )
   })
