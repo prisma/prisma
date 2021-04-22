@@ -43,8 +43,8 @@ export async function getTestClient(
   const generator = config.generators.find(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
-  const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
-  if (enableExperimental.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  if (previewFeatures.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
@@ -54,7 +54,7 @@ export async function getTestClient(
   }
   const document = await getDMMF({
     datamodel,
-    enableExperimental,
+    previewFeatures,
   })
   const outputDir = schemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })

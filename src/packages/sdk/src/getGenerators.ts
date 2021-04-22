@@ -123,15 +123,13 @@ export async function getGenerators({
   printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
-  const experimentalFeatures = mapPreviewFeatures(
-    extractPreviewFeatures(config),
-  )
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
 
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,
     prismaPath,
-    enableExperimental: experimentalFeatures,
+    previewFeatures,
   })
 
   if (dmmf.datamodel.models.length === 0) {
@@ -140,7 +138,7 @@ export async function getGenerators({
 
   if (
     config.datasources.some((d) => d.provider.includes('mongodb')) &&
-    !experimentalFeatures.includes('mongodb')
+    !previewFeatures.includes('mongodb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
   }
@@ -339,7 +337,7 @@ generator gen {
             datamodel,
             datamodelPath: schemaPath,
             prismaPath: generatorBinaryPaths.queryEngine[platform],
-            enableExperimental: experimentalFeatures,
+            previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
           debug(generator.manifest.prettyName)

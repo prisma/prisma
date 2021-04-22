@@ -169,7 +169,6 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       PRISMA_FORCE_NAPI: 'true'
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -357,7 +356,6 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       PRISMA_FORCE_NAPI: 'true'
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
     strategy:
       fail-fast: false
       matrix:

@@ -49,7 +49,7 @@ export interface EngineConfig {
   useUds?: boolean
 
   clientVersion?: string
-  enableExperimental?: string[]
+  previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
 }

@@ -48,13 +48,13 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const useNapi =
-    enablePreview.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
+    previewFeatures.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental: enablePreview, // it's still called enableExperimental when calling the query engine
+    previewFeatures,
   })
 
   const outputDir = transpile
