@@ -75,12 +75,11 @@ export async function getDMMF({
       createMany: getMessage('createMany'),
       groupBy: getMessage('groupBy'),
     }
+
     enableExperimental?.forEach((f) => {
-      const removeMessage = removedFeatureFlagMap[f]
-      if (removeMessage) {
-        if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-          console.log(removeMessage)
-        }
+      const removedMessage = removedFeatureFlagMap[f]
+      if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+        console.log(removedMessage)
       }
     })
 
