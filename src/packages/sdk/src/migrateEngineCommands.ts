@@ -105,6 +105,8 @@ export async function createDatabase(
       migrationEnginePath,
       engineCommandName: 'create-database',
     })
+
+    return true
   } catch (e) {
     if (e.stdout) {
       let error
