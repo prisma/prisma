@@ -79,7 +79,7 @@ export async function getDMMF({
     previewFeatures?.forEach((f) => {
       const removedMessage = removedFeatureFlagMap[f]
       if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-        console.log(removedMessage)
+        console.warn(removedMessage)
       }
     })
 
