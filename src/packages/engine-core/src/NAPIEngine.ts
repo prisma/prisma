@@ -38,10 +38,10 @@ type QueryEngineEvent =
   | QueryEnginePanicEvent
 type QueryEngineConfig = {
   datamodel: string
+  configDir: string
   datasourceOverrides?: Record<string, string>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
-  configDir?: string
 }
 type QueryEngineTelemetry = {
   enabled: Boolean
@@ -266,7 +266,7 @@ You may have to run ${chalk.greenBright(
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
-              configDir: this.config.cwd,
+              configDir: this.config.cwd!,
             },
             (err, log) => this.logger(err, log),
           )
