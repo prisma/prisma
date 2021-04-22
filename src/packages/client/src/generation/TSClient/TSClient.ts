@@ -49,7 +49,7 @@ export class TSClient implements Generatable {
       outputDir,
       schemaDir,
     } = this.options
-    const schemaPath = path.join(schemaDir, 'prisma.schema')
+    const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
     const relativeEnvPaths = {
       rootEnvPath:
@@ -80,7 +80,7 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-const dirname = \`$\{process.cwd()}/prisma\`
+const dirname = \`${schemaDir}\`
 
 /**
  * Enums
