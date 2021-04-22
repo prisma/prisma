@@ -99,8 +99,7 @@ export async function ensureDatabaseExists(
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
   if (forceCreate) {
-    const result = await createDatabase(activeDatasource.url.value, schemaDir)
-    if (result && result.exitCode === 0) {
+    if (await createDatabase(activeDatasource.url.value, schemaDir)) {
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
         credentials,
