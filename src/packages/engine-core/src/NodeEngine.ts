@@ -1,19 +1,26 @@
+import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
 import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import { ChildProcessByStdio, spawn } from 'child_process'
-import { Readable } from 'stream'
-import Debug from '@prisma/debug'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
 import pRetry from 'p-retry'
-import { URL } from 'url'
 import path from 'path'
+import { Readable } from 'stream'
+import { URL } from 'url'
 import { promisify } from 'util'
 import byline from './byline'
+import {
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from './Engine'
 import {
   getErrorMessageWithLink,
   PrismaClientInitializationError,
@@ -25,23 +32,16 @@ import {
 } from './errors'
 import {
   convertLog,
+  getMessage,
   isRustError,
+  isRustErrorLog,
   RustError,
   RustLog,
-  getMessage,
-  isRustErrorLog,
 } from './log'
 import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
-import {
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  GetConfigResult,
-} from './Engine'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -88,7 +88,7 @@ export class NodeEngine implements Engine {
   private lastPanic?: Error
   private globalKillSignalReceived?: string
   private startCount = 0
-  private enableExperimental: string[] = []
+  private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastErrorLog?: RustLog
   private lastRustError?: RustError
@@ -133,7 +133,7 @@ export class NodeEngine implements Engine {
     env,
     flags,
     clientVersion,
-    enableExperimental,
+    previewFeatures,
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
@@ -160,7 +160,7 @@ export class NodeEngine implements Engine {
     this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
     this.flags = flags ?? []
-    this.enableExperimental = enableExperimental ?? []
+    this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
     initHooks()
     const removedFlags = [
@@ -178,7 +178,7 @@ export class NodeEngine implements Engine {
       'createMany',
       'groupBy',
     ]
-    const removedFlagsUsed = this.enableExperimental.filter((e) =>
+    const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),
     )
 
@@ -195,7 +195,7 @@ export class NodeEngine implements Engine {
       )
     }
 
-    this.enableExperimental = this.enableExperimental.filter(
+    this.previewFeatures = this.previewFeatures.filter(
       (e) => !removedFlags.includes(e),
     )
     this.engineEndpoint = engineEndpoint
@@ -361,6 +361,7 @@ You may have to run ${chalk.greenBright(
       path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.datamodelPath), // Datamodel Dir
       this.cwd, //cwdPath
+      '/tmp/prisma-engines',
     ]
 
     if (this.dirname) {
@@ -440,6 +441,8 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
           errorText += `\n\nTo solve this problem, add the platform "${
             this.platform
           }" to the "${chalk.underline(
+            'binaryTargets',
+          )}" attribute in the "${chalk.underline(
             'generator',
           )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
@@ -573,21 +576,10 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
-        const experimentalFlags =
-          this.enableExperimental &&
-          Array.isArray(this.enableExperimental) &&
-          this.enableExperimental.length > 0
-            ? [`--enable-experimental=${this.enableExperimental.join(',')}`]
-            : []
 
         const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
 
-        const flags = [
-          ...experimentalFlags,
-          ...debugFlag,
-          '--enable-raw-queries',
-          ...this.flags,
-        ]
+        const flags = [...debugFlag, '--enable-raw-queries', ...this.flags]
 
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
@@ -1230,6 +1222,6 @@ function initHooks() {
       hookProcess('SIGUSR2', true)
       hookProcess('SIGTERM', true)
     }
-    hooksInitialized = false
+    hooksInitialized = true
   }
 }

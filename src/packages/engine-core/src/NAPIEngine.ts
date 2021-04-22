@@ -38,6 +38,7 @@ type QueryEngineEvent =
   | QueryEnginePanicEvent
 type QueryEngineConfig = {
   datamodel: string
+  configDir: string
   datasourceOverrides?: Record<string, string>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
@@ -260,24 +261,13 @@ You may have to run ${chalk.greenBright(
       }
       if (this.QueryEngine) {
         try {
-          const featureFlagsOverrides = process.env
-            .PRISMA_DEBUG_ENABLE_ALL_FLAGS
-            ? [
-                'microsoftSqlServer',
-                'orderByRelation',
-                'napi',
-                // 'mongodb',
-                'selectRelationCount',
-              ]
-            : undefined
           this.engine = new this.QueryEngine(
             {
               datamodel: this.datamodel,
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
-              featureFlagsOverrides,
-              configDir: this.config.cwd,
-            } as any,
+              configDir: this.config.cwd!,
+            },
             (err, log) => this.logger(err, log),
           )
         } catch (e) {
@@ -579,6 +569,7 @@ You may have to run ${chalk.greenBright(
       path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.config.datamodelPath), // Datamodel Dir
       this.config.cwd, //cwdPath
+      '/tmp/prisma-engines',
     ]
 
     if (this.config.dirname) {
@@ -662,6 +653,8 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
           errorText += `\n\nTo solve this problem, add the platform "${
             this.platform
           }" to the "${chalk.underline(
+            'binaryTargets',
+          )}" attribute in the "${chalk.underline(
             'generator',
           )}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}

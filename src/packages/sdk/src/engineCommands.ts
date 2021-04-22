@@ -24,7 +24,7 @@ export type GetDMMFOptions = {
   prismaPath?: string
   datamodelPath?: string
   retry?: number
-  enableExperimental?: string[]
+  previewFeatures?: string[]
 }
 
 export async function getDMMF({
@@ -33,7 +33,7 @@ export async function getDMMF({
   prismaPath: queryEnginePath,
   datamodelPath,
   retry = 4,
-  enableExperimental,
+  previewFeatures,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
   let result
@@ -75,42 +75,15 @@ export async function getDMMF({
       createMany: getMessage('createMany'),
       groupBy: getMessage('groupBy'),
     }
-    if (enableExperimental) {
-      enableExperimental = enableExperimental
-        .filter((f) => {
-          const removeMessage = removedFeatureFlagMap[f]
-          if (removeMessage) {
-            if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-              console.log(removeMessage)
-            }
-            return false
-          }
 
-          return true
-        })
-        .filter(
-          (e) =>
-            ![
-              'middlewares',
-              'aggregateApi',
-              'distinct',
-              'aggregations',
-              'nativeTypes',
-              'atomicNumberOperations',
-              'createMany',
-              'groupBy',
-            ].includes(e),
-        )
-    }
+    previewFeatures?.forEach((f) => {
+      const removedMessage = removedFeatureFlagMap[f]
+      if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+        console.warn(removedMessage)
+      }
+    })
 
-    const experimentalFlags =
-      enableExperimental &&
-      Array.isArray(enableExperimental) &&
-      enableExperimental.length > 0
-        ? [`--enable-experimental=${enableExperimental.join(',')}`]
-        : []
-
-    const args = [...experimentalFlags, '--enable-raw-queries', 'cli', 'dmmf']
+    const args = ['--enable-raw-queries', 'cli', 'dmmf']
 
     result = await execa(queryEnginePath, args, options)
 
