@@ -85,6 +85,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           HTTP_PROXY: 'http://vercel-npm.vercel.app' # Proxy for NPM cache issues
+          STRICT_SSL: false
 
       - run: pnpm run lint
         working-directory: ./
