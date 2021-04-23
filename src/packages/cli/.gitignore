@@ -13,7 +13,6 @@ examples
 **/tmp-*
 **/tmp
 @prisma
-pkg-build
 download-done
 prisma-client
 preinstall
