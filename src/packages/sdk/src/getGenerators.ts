@@ -137,8 +137,8 @@ export async function getGenerators({
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongodb')) &&
-    !previewFeatures.includes('mongodb')
+    config.datasources.some((d) => d.provider.includes('mongoDb')) &&
+    !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
   }
