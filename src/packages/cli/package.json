@@ -99,7 +99,6 @@
     "node-fetch": "2.6.1",
     "open": "7.4.2",
     "pg": "8.6.0",
-    "pkg": "4.5.1",
     "pkg-up": "3.1.0",
     "prettier": "2.2.1",
     "replace-string": "3.1.0",
@@ -121,7 +120,6 @@
     "lint-ci": "eslint --ext .ts .",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
     "build": "node helpers/build.js",
-    "pkg": "pkg . -o pkg-build",
     "prepublishOnly": "pnpm run build",
     "preinstall": "node scripts/preinstall-entry.js",
     "precommit": "lint-staged"
