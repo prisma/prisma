@@ -39,6 +39,8 @@ on:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  # Proxy for NPM cache issues
+  HTTP_PROXY: 'http://vercel-npm.vercel.app'
 
 jobs:
   # From https://github.com/marketplace/actions/skip-duplicate-actions
