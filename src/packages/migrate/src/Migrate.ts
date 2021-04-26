@@ -91,11 +91,23 @@ export class Migrate {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
     const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const dbLocation = getDbLocation(credentials)
-    return {
-      ...getDbinfoFromCredentials(credentials),
-      dbLocation,
+
+    try {
+      const credentials = uriToCredentials(activeDatasource.url.value)
+      const dbLocation = getDbLocation(credentials)
+      return {
+        ...getDbinfoFromCredentials(credentials),
+        dbLocation,
+      }
+    } catch (e) {
+      debug.log(e)
+
+      return {
+        schemaWord: 'database',
+        dbType: 'unknown',
+        dbName: 'unknown',
+        dbLocation: 'unknown',
+      }
     }
   }
 
