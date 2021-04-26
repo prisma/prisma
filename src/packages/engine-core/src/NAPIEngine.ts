@@ -468,7 +468,7 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      debug(`state:${this.connected}`)
+      debug(`request state: ${this.connected}`)
       const request = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
       this.currentQuery = this.engine!.query(request, {})
