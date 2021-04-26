@@ -368,16 +368,19 @@ You may have to run ${chalk.greenBright(
   async start(): Promise<void> {
     await this.setupPromise
     await this.disconnectPromise
-
     if (this.connectPromise) {
-      debug('already starting')
-      return this.connectPromise
+      debug(`already starting: ${this.connected}`)
+      await this.connectPromise
+      if (this.connected) {
+        return
+      }
     }
     if (!this.connected) {
       // eslint-disable-next-line no-async-promise-executor
       this.connectPromise = new Promise(async (res) => {
         debug('starting')
         await this.engine?.connect({ enableRawQueries: true })
+        this.connected = true
         debug('started')
         void this.version()
         res()
@@ -388,22 +391,28 @@ You may have to run ${chalk.greenBright(
 
   async stop(): Promise<void> {
     await this.connectPromise
-    debug('stop')
+    await this.currentQuery
+    debug(`stop state ${this.connected}`)
     if (this.disconnectPromise) {
-      debug('disconnect already called')
-      return this.disconnectPromise
+      debug('engine is already disconnecting')
+      await this.disconnectPromise
+      if (!this.connected) {
+        this.disconnectPromise = undefined
+        return
+      }
     }
-    // eslint-disable-next-line no-async-promise-executor
-    this.disconnectPromise = new Promise(async (res) => {
-      if (this.connected) {
+    if (this.connected) {
+      // eslint-disable-next-line no-async-promise-executor
+      this.disconnectPromise = new Promise(async (res) => {
         await this.emitExit()
         debug('disconnect called')
         await this.engine?.disconnect()
         this.connected = false
         debug('disconnect resolved')
-      }
-      res()
-    })
+
+        res()
+      })
+    }
     return this.disconnectPromise
   }
   kill(signal: string): void {
@@ -421,10 +430,10 @@ You may have to run ${chalk.greenBright(
   }
   async getConfig(): Promise<GetConfigResult> {
     await this.start()
-    debug('getConfig')
-    return this.parseEngineResponse<GetConfigResult>(
+    const config = this.parseEngineResponse<GetConfigResult>(
       await this.engine!.getConfig(),
     )
+    return config
   }
   async version(forceRun?: boolean): Promise<string> {
     await this.start()
@@ -458,10 +467,7 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      debug(`request: ${this.connected}`)
-      if (!this.connected) {
-        await this.start()
-      }
+      debug(`request state: ${this.connected}`)
       const request = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
       this.currentQuery = this.engine!.query(request, {})
