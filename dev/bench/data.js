@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1619425263280,
+  "lastUpdate": 1619433002162,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -16612,6 +16612,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±3.03%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "william@atto-byte.com",
+            "name": "William Luke",
+            "username": "williamluke4"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4bb09fb59bb4886b1ba8e7f3d949286668db5d36",
+          "message": "chore: re-enable napi client tests (#6743)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2021-04-26T12:26:17+02:00",
+          "tree_id": "fdabc5adb916721c787fc3eca77e4e873aaf17fe",
+          "url": "https://github.com/prisma/prisma/commit/4bb09fb59bb4886b1ba8e7f3d949286668db5d36"
+        },
+        "date": 1619433000296,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±3.44%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.79%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
