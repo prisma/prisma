@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.22.0-14.546c8292ac34d3f483d080361ef0e9aa3813a268",
+    "@prisma/engines": "2.22.0-15.18abf9274a3969c58517b0590a70b25169321d7c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
@@ -51,7 +51,7 @@
     "new-github-issue-url": "^0.2.1",
     "p-retry": "^4.2.0",
     "terminal-link": "^2.1.1",
-    "undici": "3.3.5"
+    "undici": "3.3.6"
   },
   "files": [
     "README.md",
