@@ -2,6 +2,9 @@ import { PrismaClient, Prisma } from './@prisma/client'
 
 const prisma = new PrismaClient({
   rejectOnNotFound: {},
+  telemetry: {
+    enabled: true,
+  },
   log: [
     {
       emit: 'event',
@@ -11,15 +14,7 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const users = await prisma.user.findMany({
-    select: {
-      _count: {
-        select: {
-          eventsAttending: true,
-        },
-      },
-    },
-  })
+  const users = await prisma.user.findMany()
 
   // maybe I want to use the same selection set in a second query:
   const result2 = await prisma.user.findUnique({

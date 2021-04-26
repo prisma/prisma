@@ -228,6 +228,29 @@ export interface PrismaClientOptions {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
+  /**
+   * Enable OpenTelemetry streaming
+   * @example
+   * \`\`\`
+   * // Basic
+   * const client = new PrismaClient({
+   *  telemetry: {
+   *    enabled: true,
+   *  }
+   * })
+   * // Custom Endpoint
+   * const client = new PrismaClient({
+   *  telemetry: {
+   *    enabled: true,
+   *    endpoint: "http://localhost:4317"
+   *  }
+   * })
+   * \`\`\`
+   */
+  telemetry?: {
+    enabled: boolean
+    endpoint?: string
+  }
 }
 
 export type Hooks = {

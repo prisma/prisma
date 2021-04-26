@@ -47,13 +47,17 @@ export interface EngineConfig {
   env?: Record<string, string>
   flags?: string[]
   useUds?: boolean
+  telemetry?: QueryEngineTelemetry
 
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
 }
-
+export type QueryEngineTelemetry = {
+  enabled: boolean
+  endpoint?: string
+}
 export type GetConfigResult = {
   datasources: DataSource[]
   generators: GeneratorConfig[]

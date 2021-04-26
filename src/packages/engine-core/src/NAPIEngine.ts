@@ -17,6 +17,7 @@ import type {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
+  QueryEngineTelemetry,
 } from './Engine'
 import {
   getErrorMessageWithLink,
@@ -40,13 +41,11 @@ type QueryEngineConfig = {
   datamodel: string
   configDir: string
   datasourceOverrides?: Record<string, string>
+  featureFlagsOverrides?: string[]
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
 }
-type QueryEngineTelemetry = {
-  enabled: Boolean
-  endpoint: string
-}
+
 type QueryEngineLogEvent = {
   level: string
   module_path: string
@@ -267,6 +266,9 @@ You may have to run ${chalk.greenBright(
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
               configDir: this.config.cwd!,
+              telemetry: this.config.telemetry ?? {
+                enabled: false,
+              },
             },
             (err, log) => this.logger(err, log),
           )
@@ -464,7 +466,7 @@ You may have to run ${chalk.greenBright(
       }
       const request = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(request, {})
+      this.currentQuery = this.engine!.query(request, { traceparent: 'test' })
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {

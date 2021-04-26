@@ -116,7 +116,22 @@ export interface PrismaClientOptions {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
-
+  /**
+   * Enable OpenTelemetry streaming
+   * @example
+   * ```
+   * const client = new PrismaClient({
+   *  telemetry: {
+   *    enabled: true
+   *    endpoint: "http://localhost:16686"
+   *  }
+   * })
+   * ```
+   */
+  telemetry?: {
+    enabled: boolean
+    endpoint?: string
+  }
   /**
    * @internal
    * You probably don't want to use this. \`__internal\` is used by internal tooling.
@@ -396,6 +411,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           datasources,
           generator: config.generator,
           showColors: this._errorFormat === 'pretty',
+          telemetry: options.telemetry,
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
           logQueries:
             options.log &&

@@ -7,6 +7,7 @@ const knownProperties = [
   'datasources',
   'errorFormat',
   'log',
+  'telemetry',
   '__internal',
   'rejectOnNotFound',
 ]
@@ -134,6 +135,29 @@ It should have this form: { url: "CONNECTION_STRING" }`,
             )
           }
         }
+      }
+    }
+  },
+  telemetry: (value) => {
+    if (!value) {
+      return
+    }
+    if (typeof value !== 'object') {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(
+          value,
+        )} for "telemetry" to PrismaClient constructor`,
+      )
+    }
+    const knownKeys = ['enabled', 'endpoint']
+    for (const [key] of Object.entries(value)) {
+      if (!knownKeys.includes(key)) {
+        const didYouMean = getDidYouMean(key, knownKeys)
+        throw new PrismaClientConstructorValidationError(
+          `Invalid property ${JSON.stringify(
+            key,
+          )} for "telemetry" provided to PrismaClient constructor.${didYouMean}`,
+        )
       }
     }
   },

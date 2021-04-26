@@ -20,6 +20,7 @@ import {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
+  QueryEngineTelemetry,
 } from './Engine'
 import {
   getErrorMessageWithLink,
@@ -117,6 +118,7 @@ export class NodeEngine implements Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  telemetry: QueryEngineTelemetry
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -137,6 +139,7 @@ export class NodeEngine implements Engine {
     engineEndpoint,
     enableDebugLogs,
     enableEngineDebugMode,
+    telemetry,
     dirname,
     useUds,
     activeProvider,
@@ -145,6 +148,7 @@ export class NodeEngine implements Engine {
     this.useUds = useUds ?? false // === undefined ? process.platform !== 'win32' : useUds
     this.env = env
     this.cwd = this.resolveCwd(cwd)
+    this.telemetry = telemetry ?? { enabled: false }
     this.enableDebugLogs = enableDebugLogs ?? false
     this.enableEngineDebugMode = enableEngineDebugMode ?? false
     this.datamodelPath = datamodelPath
@@ -580,7 +584,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
 
         const flags = [...debugFlag, '--enable-raw-queries', ...this.flags]
-
+        if (this.telemetry.enabled) {
+          flags.push('--open-telemetry')
+          if (this.telemetry.endpoint) {
+            flags.push('--open-telemetry-endpoint', this.telemetry.endpoint)
+          }
+        }
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
         } else {
