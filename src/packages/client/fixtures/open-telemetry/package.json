@@ -1,0 +1,21 @@
+{
+  "name": "open-telemetry-fixture",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "William Luke",
+  "license": "ISC",
+  "dependencies": {
+    "@opentelemetry/api": "^1.0.0-rc.0",
+    "@opentelemetry/core": "^0.18.2",
+    "@opentelemetry/node": "^0.18.2",
+    "@opentelemetry/plugin-http": "^0.18.2",
+    "@opentelemetry/scope-base": "^0.4.0",
+    "@opentelemetry/tracing": "^0.18.2",
+    "got": "^11.8.2",
+    "jest": "^26.6.3"
+  }
+}

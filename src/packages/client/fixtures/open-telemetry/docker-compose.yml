@@ -1,0 +1,19 @@
+
+version: "3"
+services:
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    restart: always
+    ports:
+      - "16686:16686" # the trace viewer (http)
+
+  otel-agent:
+    image: otel/opentelemetry-collector-dev:latest
+    command: ["--config=/etc/otel-agent-config.yaml"]
+    restart: always
+    volumes:
+      - ./otel-agent-config.yaml:/etc/otel-agent-config.yaml
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+    depends_on:
+      - jaeger
