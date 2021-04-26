@@ -433,7 +433,6 @@ You may have to run ${chalk.greenBright(
     const config = this.parseEngineResponse<GetConfigResult>(
       await this.engine!.getConfig(),
     )
-    debug(`getConfig: ${JSON.stringify(config, undefined, 2)}`)
     return config
   }
   async version(forceRun?: boolean): Promise<string> {
