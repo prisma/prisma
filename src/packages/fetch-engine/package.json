@@ -16,8 +16,8 @@
   "devDependencies": {
     "@prisma/engines-version": "2.22.0-15.18abf9274a3969c58517b0590a70b25169321d7c",
     "@types/find-cache-dir": "3.2.0",
-    "@types/jest": "26.0.22",
-    "@types/node": "12.20.10",
+    "@types/jest": "26.0.23",
+    "@types/node": "12.20.11",
     "@types/node-fetch": "2.5.10",
     "@types/progress": "2.0.3",
     "@typescript-eslint/eslint-plugin": "4.22.0",
