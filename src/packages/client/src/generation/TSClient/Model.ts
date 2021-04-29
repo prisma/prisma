@@ -138,7 +138,7 @@ ${indent(
           if (f.outputType.location === 'outputObjectTypes') {
             return `${f.name}?: ${getAggregateInputType(
               (f.outputType.type as DMMF.OutputType).name,
-            )}${f.name === 'count' ? ' | true' : ''}`
+            )}${f.name === '_count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
@@ -269,7 +269,7 @@ ${indent(
           f.name,
         )
         data += comment ? wrapComment(comment) + '\n' : ''
-        if (f.name === 'count') {
+        if (f.name === '_count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
           data += `${f.name}?: ${getAggregateInputType(
@@ -287,7 +287,7 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T & keyof ${aggregateName}]: P extends 'count'
+  [P in keyof T & keyof ${aggregateName}]: P extends '_count'
     ? T[P] extends true
       ? number
       : GetScalarType<T[P], ${aggregateName}[P]>

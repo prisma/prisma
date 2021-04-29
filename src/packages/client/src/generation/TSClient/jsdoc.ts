@@ -46,16 +46,16 @@ const JSDocFields = {
     ),
   skip: (singular, plural) =>
     addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
-  count: (singular, plural) =>
+  _count: (singular, plural) =>
     addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
-  avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
-  sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
-  min: () =>
+  _avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
+  _sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
+  _min: () =>
     addLinkToDocs(
       `Select which fields to find the minimum value`,
       'aggregations',
     ),
-  max: () =>
+  _max: () =>
     addLinkToDocs(
       `Select which fields to find the maximum value`,
       'aggregations',
@@ -77,7 +77,7 @@ const result = await prisma.user.groupBy({
   orderBy: {
     createdAt: true
   },
-  count: {
+  _count: {
     _all: true
   },
 })
@@ -285,7 +285,7 @@ ${undefinedNote}
 // Where email contains prisma.io
 // Limited to the 10 users
 const aggregations = await prisma.user.aggregate({
-  avg: {
+  _avg: {
     age: true,
   },
   where: {
@@ -304,11 +304,11 @@ const aggregations = await prisma.user.aggregate({
       cursor: () => addLinkToDocs(`Sets the start position`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
-      count: JSDocFields.count,
-      avg: JSDocFields.avg,
-      sum: JSDocFields.sum,
-      min: JSDocFields.min,
-      max: JSDocFields.max,
+      _count: JSDocFields._count,
+      _avg: JSDocFields._avg,
+      _sum: JSDocFields._sum,
+      _min: JSDocFields._min,
+      _max: JSDocFields._max,
     },
   },
   count: {
