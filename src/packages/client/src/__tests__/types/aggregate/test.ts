@@ -24,41 +24,41 @@ async function main() {
     where: {
       age: { gt: 500 },
     },
-    count: true,
-    avg: {
+    _count: true,
+    _avg: {
       age: true,
       followerCount: true,
     },
-    max: {
-      age: true,
-      email: true,
-      followerCount: true,
-    },
-    min: {
+    _max: {
       age: true,
       email: true,
       followerCount: true,
     },
-    sum: {
+    _min: {
+      age: true,
+      email: true,
+      followerCount: true,
+    },
+    _sum: {
       age: true,
       followerCount: true,
     },
   })
-  const c: number = a1.count
+  const c: number = a1._count
   type AvgSum = {
     age: number | null
     followerCount: number | null
   }
-  const avg1: AvgSum = a1.avg
-  const sum1: AvgSum = a1.sum
+  const avg1: AvgSum = a1._avg
+  const sum1: AvgSum = a1._sum
 
   type MinMax = {
     age: number | null
     email: string | null
     followerCount: number | null
   }
-  const max1: MinMax = a1.max
-  const min1: MinMax = a1.min
+  const max1: MinMax = a1._max
+  const min1: MinMax = a1._min
 
   const test2 = await prisma.user.aggregate({
     cursor: {
@@ -72,7 +72,7 @@ async function main() {
     where: {
       age: { gt: 500 },
     },
-    count: {
+    _count: {
       _all: true,
       age: true,
       email: true,
@@ -88,7 +88,7 @@ async function main() {
     followerCount: number | null
     id: number | null
     name: number | null
-  } = test2.count
+  } = test2._count
 }
 
 main().catch((e) => {

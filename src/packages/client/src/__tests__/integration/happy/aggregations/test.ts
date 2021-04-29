@@ -12,38 +12,38 @@ test('aggregations', async () => {
     },
     skip: 0,
     take: 10000,
-    avg: {
+    _avg: {
       age: true,
     },
-    count: true,
-    max: {
-      age: true,
-      email: true,
-    },
-    min: {
+    _count: true,
+    _max: {
       age: true,
       email: true,
     },
-    sum: {
+    _min: {
+      age: true,
+      email: true,
+    },
+    _sum: {
       age: true,
     },
   })
 
   expect(result).toMatchInlineSnapshot(`
     Object {
-      avg: Object {
+      _avg: Object {
         age: 80,
       },
-      count: 10,
-      max: Object {
+      _count: 10,
+      _max: Object {
         age: 163,
         email: bob+9@hey.com,
       },
-      min: Object {
+      _min: Object {
         age: 5,
         email: bob+0@hey.com,
       },
-      sum: Object {
+      _sum: Object {
         age: 800,
       },
     }
@@ -57,43 +57,43 @@ test('aggregations', async () => {
     },
     skip: 0,
     take: 10000,
-    avg: {
+    _avg: {
       age: true,
     },
-    count: {
+    _count: {
       _all: true,
       name: true,
     },
-    max: {
+    _max: {
       age: true,
       email: true,
     },
-    min: {
+    _min: {
       age: true,
       email: true,
     },
-    sum: {
+    _sum: {
       age: true,
     },
   })
   expect(result2).toMatchInlineSnapshot(`
     Object {
-      avg: Object {
+      _avg: Object {
         age: 80,
       },
-      count: Object {
+      _count: Object {
         _all: 10,
         name: 10,
       },
-      max: Object {
+      _max: Object {
         age: 163,
         email: bob+9@hey.com,
       },
-      min: Object {
+      _min: Object {
         age: 5,
         email: bob+0@hey.com,
       },
-      sum: Object {
+      _sum: Object {
         age: 800,
       },
     }
@@ -108,7 +108,7 @@ test('aggregations', async () => {
       },
       skip: 0,
       take: 10000,
-      avg: {
+      _avg: {
         age: true,
         email: true,
       },
@@ -126,7 +126,7 @@ test('aggregations', async () => {
               },
               skip: 0,
               take: 10000,
-              avg: {
+              _avg: {
             ?   age?: true,
                 email: true
                 ~~~~~

@@ -11,13 +11,9 @@ const prisma = new PrismaClient({
 })
 
 async function main() {
-  const users = await prisma.user.findMany({
-    select: {
-      _count: {
-        select: {
-          eventsAttending: true,
-        },
-      },
+  const users = await prisma.user.aggregate({
+    _avg: {
+      age: true,
     },
   })
 

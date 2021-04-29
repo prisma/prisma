@@ -25,20 +25,20 @@ const prisma = new PrismaClient({
       where: {
         age: { gt: 500, lt: '' },
       },
-      count: true,
-      avg: {
+      _count: true,
+      _avg: {
         age: true,
         followerCount: true,
       },
-      max: {
+      _max: {
         age: true,
         followerCount: true,
       },
-      min: {
+      _min: {
         age: true,
         followerCount: true,
       },
-      sum: {
+      _sum: {
         age: true,
         followerCount: true,
       },
@@ -67,19 +67,19 @@ const prisma = new PrismaClient({
           },
         ],
       },
-      count: true,
-      avg: {
+      _count: true,
+      _avg: {
         age: true,
         followerCount: true,
       },
-      max: {
+      _max: {
         age: true,
         followerCount: true,
       },
-      min: {
+      _min: {
         followerCount: true,
       },
-      sum: {
+      _sum: {
         age: true,
         followerCount: true,
       },
@@ -89,14 +89,14 @@ const prisma = new PrismaClient({
   )
   expectError(
     await prisma.user.aggregate({
-      avg: {
+      _avg: {
         email: true,
       },
     }),
   )
   expectError(
     await prisma.user.aggregate({
-      sum: {
+      _sum: {
         email: true,
       },
     }),
@@ -104,12 +104,12 @@ const prisma = new PrismaClient({
 
   expectError(
     await prisma.user.aggregate({
-      count: 0,
+      _count: 0,
     }),
   )
   expectError(
     await prisma.user.aggregate({
-      count: {
+      _count: {
         $all: true,
       },
     }),
