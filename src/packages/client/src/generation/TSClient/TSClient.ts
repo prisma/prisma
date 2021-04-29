@@ -71,9 +71,9 @@ export class TSClient implements Generatable {
     }
     if (
       process.env.PRISMA_FORCE_NAPI &&
-      !config.generator?.previewFeatures.includes('napi')
+      !config.generator?.previewFeatures.includes('nApi')
     ) {
-      config.generator?.previewFeatures.push('napi')
+      config.generator?.previewFeatures.push('nApi')
     }
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
@@ -147,7 +147,7 @@ Object.assign(exports, Prisma)
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 ${buildNFTEngineAnnotations(
-  this.options.generator?.previewFeatures?.includes('napi') ?? false,
+  this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
   cwdDirname,
 )}

@@ -44,7 +44,7 @@ export async function getTestClient(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  if (previewFeatures.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+  if (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) {
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
