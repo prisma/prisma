@@ -396,7 +396,7 @@ export type GetScalarType<T, O> = O extends object ? {
 
 type FieldPaths<
   T,
-  U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+  U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
 > = IsObject<T> extends True ? U : T
 
 type GetHavingFields<T> = {

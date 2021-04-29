@@ -287,11 +287,11 @@ const actionOperationMap = {
 }
 
 const aggregateKeys = {
-  avg: true,
-  count: true,
-  sum: true,
-  min: true,
-  max: true,
+  _avg: true,
+  _count: true,
+  _sum: true,
+  _min: true,
+  _max: true,
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -1285,11 +1285,11 @@ new PrismaClient({
           let select
           let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { count: { select: args.select } }
+            select = { _count: { select: args.select } }
           } else {
-            select = { count: { select: { _all: true } } }
+            select = { _count: { select: { _all: true } } }
             unpacker = (data) => {
-              data.count = data.count?._all
+              data._count = data._count?._all
               return data
             }
           }
@@ -1301,14 +1301,14 @@ new PrismaClient({
               ...(args ?? {}),
               select,
             },
-            dataPath: ['count'],
+            dataPath: ['_count'],
             unpacker,
           })
         }
 
         delegate.aggregate = (args) => {
           /**
-           * avg, count, sum, min, max need to go into select
+           * _avg, _count, _sum, _min, _max need to go into select
            * For speed reasons we can go with "for in "
            */
           let unpacker: Unpacker | undefined = undefined
@@ -1319,15 +1319,15 @@ new PrismaClient({
               if (!acc.select) {
                 acc.select = {}
               }
-              // `count` doesn't have a sub-selection
-              if (key === 'count') {
+              // `_count` doesn't have a sub-selection
+              if (key === '_count') {
                 if (typeof value === 'object' && value) {
                   acc.select[key] = { select: value }
                 } else {
                   acc.select[key] = { select: { _all: value } }
                   unpacker = (data) => {
-                    if (data.count) {
-                      data.count = data.count?._all
+                    if (data._count) {
+                      data._count = data._count?._all
                     }
                     return data
                   }
@@ -1370,7 +1370,7 @@ new PrismaClient({
             } else {
               acc[key] = value
             }
-            if (key === 'count') {
+            if (key === '_count') {
               if (typeof value === 'object' && value) {
                 acc.select[key] = { select: value }
               } else if (typeof value === 'boolean') {
@@ -1380,10 +1380,10 @@ new PrismaClient({
                     data = data.map((row) => {
                       if (
                         row &&
-                        typeof row.count === 'object' &&
-                        row.count?._all
+                        typeof row._count === 'object' &&
+                        row._count?._all
                       ) {
-                        row.count = row.count?._all
+                        row._count = row._count?._all
                       }
                       return row
                     })
@@ -1630,7 +1630,7 @@ export class PrismaClientFetcher {
     if (data?.data) {
       data = data.data
     }
-    // to lift up _all in count
+    // to lift up _all in _count
     if (unpacker) {
       data[rootField] = unpacker(data[rootField])
     }
