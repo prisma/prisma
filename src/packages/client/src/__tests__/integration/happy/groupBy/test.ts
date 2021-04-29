@@ -129,20 +129,20 @@ test('groupBy name and aggregations', async () => {
     },
     // skip: 0,
     // take: 10000,
-    avg: {
+    _avg: {
       age: true,
     },
-    count: {
+    _count: {
       // age: true,
       _all: true,
     },
-    max: {
+    _max: {
       age: true,
     },
-    min: {
+    _min: {
       age: true,
     },
-    sum: {
+    _sum: {
       age: true,
     },
   })
@@ -150,22 +150,22 @@ test('groupBy name and aggregations', async () => {
   expect(user).toMatchInlineSnapshot(`
     Array [
       Object {
-        avg: Object {
+        _avg: Object {
           age: 80,
         },
-        count: Object {
+        _count: Object {
           _all: 10,
         },
-        max: Object {
+        _max: Object {
           age: 163,
         },
-        min: Object {
+        _min: Object {
           age: 5,
         },
-        name: Bobby Brown,
-        sum: Object {
+        _sum: Object {
           age: 800,
         },
+        name: Bobby Brown,
       },
     ]
   `)
@@ -176,13 +176,13 @@ test('groupBy name and aggregations', async () => {
 test('groupBy name and with count', async () => {
   const user = await prisma.user.groupBy({
     by: ['name'],
-    count: true,
+    _count: true,
   })
 
   expect(user).toMatchInlineSnapshot(`
     Array [
       Object {
-        count: 10,
+        _count: 10,
         name: Bobby Brown,
       },
     ]

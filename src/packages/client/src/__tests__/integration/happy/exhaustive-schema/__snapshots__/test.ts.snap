@@ -1090,7 +1090,7 @@ export namespace Prisma {
 
   type FieldPaths<
     T,
-    U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+    U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
   > = IsObject<T> extends True ? U : T
 
   type GetHavingFields<T> = {
@@ -1510,11 +1510,11 @@ export namespace Prisma {
 
 
   export type AggregatePost = {
-    count: PostCountAggregateOutputType | null
-    avg: PostAvgAggregateOutputType | null
-    sum: PostSumAggregateOutputType | null
-    min: PostMinAggregateOutputType | null
-    max: PostMaxAggregateOutputType | null
+    _count: PostCountAggregateOutputType | null
+    _avg: PostAvgAggregateOutputType | null
+    _sum: PostSumAggregateOutputType | null
+    _min: PostMinAggregateOutputType | null
+    _max: PostMaxAggregateOutputType | null
   }
 
   export type PostAvgAggregateOutputType = {
@@ -1628,35 +1628,35 @@ export namespace Prisma {
      * 
      * Count returned Posts
     **/
-    count?: true | PostCountAggregateInputType
+    _count?: true | PostCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: PostAvgAggregateInputType
+    _avg?: PostAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: PostSumAggregateInputType
+    _sum?: PostSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: PostMinAggregateInputType
+    _min?: PostMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: PostMaxAggregateInputType
+    _max?: PostMaxAggregateInputType
   }
 
   export type GetPostAggregateType<T extends PostAggregateArgs> = {
-    [P in keyof T & keyof AggregatePost]: P extends 'count'
+    [P in keyof T & keyof AggregatePost]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregatePost[P]>
@@ -1673,11 +1673,11 @@ export namespace Prisma {
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: PostCountAggregateInputType | true
-    avg?: PostAvgAggregateInputType
-    sum?: PostSumAggregateInputType
-    min?: PostMinAggregateInputType
-    max?: PostMaxAggregateInputType
+    _count?: PostCountAggregateInputType | true
+    _avg?: PostAvgAggregateInputType
+    _sum?: PostSumAggregateInputType
+    _min?: PostMinAggregateInputType
+    _max?: PostMaxAggregateInputType
   }
 
 
@@ -1688,11 +1688,11 @@ export namespace Prisma {
     content: string | null
     published: boolean
     authorId: number
-    count: PostCountAggregateOutputType | null
-    avg: PostAvgAggregateOutputType | null
-    sum: PostSumAggregateOutputType | null
-    min: PostMinAggregateOutputType | null
-    max: PostMaxAggregateOutputType | null
+    _count: PostCountAggregateOutputType | null
+    _avg: PostAvgAggregateOutputType | null
+    _sum: PostSumAggregateOutputType | null
+    _min: PostMinAggregateOutputType | null
+    _max: PostMaxAggregateOutputType | null
   }
 
   type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<Array<
@@ -1958,7 +1958,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -1986,7 +1986,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -2358,11 +2358,11 @@ export namespace Prisma {
 
 
   export type AggregateUser = {
-    count: UserCountAggregateOutputType | null
-    avg: UserAvgAggregateOutputType | null
-    sum: UserSumAggregateOutputType | null
-    min: UserMinAggregateOutputType | null
-    max: UserMaxAggregateOutputType | null
+    _count: UserCountAggregateOutputType | null
+    _avg: UserAvgAggregateOutputType | null
+    _sum: UserSumAggregateOutputType | null
+    _min: UserMinAggregateOutputType | null
+    _max: UserMaxAggregateOutputType | null
   }
 
   export type UserAvgAggregateOutputType = {
@@ -2528,35 +2528,35 @@ export namespace Prisma {
      * 
      * Count returned Users
     **/
-    count?: true | UserCountAggregateInputType
+    _count?: true | UserCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: UserAvgAggregateInputType
+    _avg?: UserAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: UserSumAggregateInputType
+    _sum?: UserSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: UserMinAggregateInputType
+    _min?: UserMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: UserMaxAggregateInputType
+    _max?: UserMaxAggregateInputType
   }
 
   export type GetUserAggregateType<T extends UserAggregateArgs> = {
-    [P in keyof T & keyof AggregateUser]: P extends 'count'
+    [P in keyof T & keyof AggregateUser]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateUser[P]>
@@ -2573,11 +2573,11 @@ export namespace Prisma {
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: UserCountAggregateInputType | true
-    avg?: UserAvgAggregateInputType
-    sum?: UserSumAggregateInputType
-    min?: UserMinAggregateInputType
-    max?: UserMaxAggregateInputType
+    _count?: UserCountAggregateInputType | true
+    _avg?: UserAvgAggregateInputType
+    _sum?: UserSumAggregateInputType
+    _min?: UserMinAggregateInputType
+    _max?: UserMaxAggregateInputType
   }
 
 
@@ -2596,11 +2596,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: UserCountAggregateOutputType | null
-    avg: UserAvgAggregateOutputType | null
-    sum: UserSumAggregateOutputType | null
-    min: UserMinAggregateOutputType | null
-    max: UserMaxAggregateOutputType | null
+    _count: UserCountAggregateOutputType | null
+    _avg: UserAvgAggregateOutputType | null
+    _sum: UserSumAggregateOutputType | null
+    _min: UserMinAggregateOutputType | null
+    _max: UserMaxAggregateOutputType | null
   }
 
   type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<Array<
@@ -2880,7 +2880,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -2908,7 +2908,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -3280,11 +3280,11 @@ export namespace Prisma {
 
 
   export type AggregateM = {
-    count: MCountAggregateOutputType | null
-    avg: MAvgAggregateOutputType | null
-    sum: MSumAggregateOutputType | null
-    min: MMinAggregateOutputType | null
-    max: MMaxAggregateOutputType | null
+    _count: MCountAggregateOutputType | null
+    _avg: MAvgAggregateOutputType | null
+    _sum: MSumAggregateOutputType | null
+    _min: MMinAggregateOutputType | null
+    _max: MMaxAggregateOutputType | null
   }
 
   export type MAvgAggregateOutputType = {
@@ -3444,35 +3444,35 @@ export namespace Prisma {
      * 
      * Count returned MS
     **/
-    count?: true | MCountAggregateInputType
+    _count?: true | MCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: MAvgAggregateInputType
+    _avg?: MAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: MSumAggregateInputType
+    _sum?: MSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: MMinAggregateInputType
+    _min?: MMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: MMaxAggregateInputType
+    _max?: MMaxAggregateInputType
   }
 
   export type GetMAggregateType<T extends MAggregateArgs> = {
-    [P in keyof T & keyof AggregateM]: P extends 'count'
+    [P in keyof T & keyof AggregateM]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateM[P]>
@@ -3489,11 +3489,11 @@ export namespace Prisma {
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: MCountAggregateInputType | true
-    avg?: MAvgAggregateInputType
-    sum?: MSumAggregateInputType
-    min?: MMinAggregateInputType
-    max?: MMaxAggregateInputType
+    _count?: MCountAggregateInputType | true
+    _avg?: MAvgAggregateInputType
+    _sum?: MSumAggregateInputType
+    _min?: MMinAggregateInputType
+    _max?: MMaxAggregateInputType
   }
 
 
@@ -3511,11 +3511,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: MCountAggregateOutputType | null
-    avg: MAvgAggregateOutputType | null
-    sum: MSumAggregateOutputType | null
-    min: MMinAggregateOutputType | null
-    max: MMaxAggregateOutputType | null
+    _count: MCountAggregateOutputType | null
+    _avg: MAvgAggregateOutputType | null
+    _sum: MSumAggregateOutputType | null
+    _min: MMinAggregateOutputType | null
+    _max: MMaxAggregateOutputType | null
   }
 
   type GetMGroupByPayload<T extends MGroupByArgs> = Promise<Array<
@@ -3794,7 +3794,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -3822,7 +3822,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -4194,11 +4194,11 @@ export namespace Prisma {
 
 
   export type AggregateN = {
-    count: NCountAggregateOutputType | null
-    avg: NAvgAggregateOutputType | null
-    sum: NSumAggregateOutputType | null
-    min: NMinAggregateOutputType | null
-    max: NMaxAggregateOutputType | null
+    _count: NCountAggregateOutputType | null
+    _avg: NAvgAggregateOutputType | null
+    _sum: NSumAggregateOutputType | null
+    _min: NMinAggregateOutputType | null
+    _max: NMaxAggregateOutputType | null
   }
 
   export type NAvgAggregateOutputType = {
@@ -4358,35 +4358,35 @@ export namespace Prisma {
      * 
      * Count returned NS
     **/
-    count?: true | NCountAggregateInputType
+    _count?: true | NCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: NAvgAggregateInputType
+    _avg?: NAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: NSumAggregateInputType
+    _sum?: NSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: NMinAggregateInputType
+    _min?: NMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: NMaxAggregateInputType
+    _max?: NMaxAggregateInputType
   }
 
   export type GetNAggregateType<T extends NAggregateArgs> = {
-    [P in keyof T & keyof AggregateN]: P extends 'count'
+    [P in keyof T & keyof AggregateN]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateN[P]>
@@ -4403,11 +4403,11 @@ export namespace Prisma {
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: NCountAggregateInputType | true
-    avg?: NAvgAggregateInputType
-    sum?: NSumAggregateInputType
-    min?: NMinAggregateInputType
-    max?: NMaxAggregateInputType
+    _count?: NCountAggregateInputType | true
+    _avg?: NAvgAggregateInputType
+    _sum?: NSumAggregateInputType
+    _min?: NMinAggregateInputType
+    _max?: NMaxAggregateInputType
   }
 
 
@@ -4425,11 +4425,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: NCountAggregateOutputType | null
-    avg: NAvgAggregateOutputType | null
-    sum: NSumAggregateOutputType | null
-    min: NMinAggregateOutputType | null
-    max: NMaxAggregateOutputType | null
+    _count: NCountAggregateOutputType | null
+    _avg: NAvgAggregateOutputType | null
+    _sum: NSumAggregateOutputType | null
+    _min: NMinAggregateOutputType | null
+    _max: NMaxAggregateOutputType | null
   }
 
   type GetNGroupByPayload<T extends NGroupByArgs> = Promise<Array<
@@ -4708,7 +4708,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -4736,7 +4736,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -5108,11 +5108,11 @@ export namespace Prisma {
 
 
   export type AggregateOneOptional = {
-    count: OneOptionalCountAggregateOutputType | null
-    avg: OneOptionalAvgAggregateOutputType | null
-    sum: OneOptionalSumAggregateOutputType | null
-    min: OneOptionalMinAggregateOutputType | null
-    max: OneOptionalMaxAggregateOutputType | null
+    _count: OneOptionalCountAggregateOutputType | null
+    _avg: OneOptionalAvgAggregateOutputType | null
+    _sum: OneOptionalSumAggregateOutputType | null
+    _min: OneOptionalMinAggregateOutputType | null
+    _max: OneOptionalMaxAggregateOutputType | null
   }
 
   export type OneOptionalAvgAggregateOutputType = {
@@ -5272,35 +5272,35 @@ export namespace Prisma {
      * 
      * Count returned OneOptionals
     **/
-    count?: true | OneOptionalCountAggregateInputType
+    _count?: true | OneOptionalCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: OneOptionalAvgAggregateInputType
+    _avg?: OneOptionalAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: OneOptionalSumAggregateInputType
+    _sum?: OneOptionalSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: OneOptionalMinAggregateInputType
+    _min?: OneOptionalMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: OneOptionalMaxAggregateInputType
+    _max?: OneOptionalMaxAggregateInputType
   }
 
   export type GetOneOptionalAggregateType<T extends OneOptionalAggregateArgs> = {
-    [P in keyof T & keyof AggregateOneOptional]: P extends 'count'
+    [P in keyof T & keyof AggregateOneOptional]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOneOptional[P]>
@@ -5317,11 +5317,11 @@ export namespace Prisma {
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OneOptionalCountAggregateInputType | true
-    avg?: OneOptionalAvgAggregateInputType
-    sum?: OneOptionalSumAggregateInputType
-    min?: OneOptionalMinAggregateInputType
-    max?: OneOptionalMaxAggregateInputType
+    _count?: OneOptionalCountAggregateInputType | true
+    _avg?: OneOptionalAvgAggregateInputType
+    _sum?: OneOptionalSumAggregateInputType
+    _min?: OneOptionalMinAggregateInputType
+    _max?: OneOptionalMaxAggregateInputType
   }
 
 
@@ -5339,11 +5339,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OneOptionalCountAggregateOutputType | null
-    avg: OneOptionalAvgAggregateOutputType | null
-    sum: OneOptionalSumAggregateOutputType | null
-    min: OneOptionalMinAggregateOutputType | null
-    max: OneOptionalMaxAggregateOutputType | null
+    _count: OneOptionalCountAggregateOutputType | null
+    _avg: OneOptionalAvgAggregateOutputType | null
+    _sum: OneOptionalSumAggregateOutputType | null
+    _min: OneOptionalMinAggregateOutputType | null
+    _max: OneOptionalMaxAggregateOutputType | null
   }
 
   type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<Array<
@@ -5622,7 +5622,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -5650,7 +5650,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -6022,11 +6022,11 @@ export namespace Prisma {
 
 
   export type AggregateManyRequired = {
-    count: ManyRequiredCountAggregateOutputType | null
-    avg: ManyRequiredAvgAggregateOutputType | null
-    sum: ManyRequiredSumAggregateOutputType | null
-    min: ManyRequiredMinAggregateOutputType | null
-    max: ManyRequiredMaxAggregateOutputType | null
+    _count: ManyRequiredCountAggregateOutputType | null
+    _avg: ManyRequiredAvgAggregateOutputType | null
+    _sum: ManyRequiredSumAggregateOutputType | null
+    _min: ManyRequiredMinAggregateOutputType | null
+    _max: ManyRequiredMaxAggregateOutputType | null
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
@@ -6196,35 +6196,35 @@ export namespace Prisma {
      * 
      * Count returned ManyRequireds
     **/
-    count?: true | ManyRequiredCountAggregateInputType
+    _count?: true | ManyRequiredCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: ManyRequiredAvgAggregateInputType
+    _avg?: ManyRequiredAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: ManyRequiredSumAggregateInputType
+    _sum?: ManyRequiredSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: ManyRequiredMinAggregateInputType
+    _min?: ManyRequiredMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: ManyRequiredMaxAggregateInputType
+    _max?: ManyRequiredMaxAggregateInputType
   }
 
   export type GetManyRequiredAggregateType<T extends ManyRequiredAggregateArgs> = {
-    [P in keyof T & keyof AggregateManyRequired]: P extends 'count'
+    [P in keyof T & keyof AggregateManyRequired]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateManyRequired[P]>
@@ -6241,11 +6241,11 @@ export namespace Prisma {
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ManyRequiredCountAggregateInputType | true
-    avg?: ManyRequiredAvgAggregateInputType
-    sum?: ManyRequiredSumAggregateInputType
-    min?: ManyRequiredMinAggregateInputType
-    max?: ManyRequiredMaxAggregateInputType
+    _count?: ManyRequiredCountAggregateInputType | true
+    _avg?: ManyRequiredAvgAggregateInputType
+    _sum?: ManyRequiredSumAggregateInputType
+    _min?: ManyRequiredMinAggregateInputType
+    _max?: ManyRequiredMaxAggregateInputType
   }
 
 
@@ -6264,11 +6264,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: ManyRequiredCountAggregateOutputType | null
-    avg: ManyRequiredAvgAggregateOutputType | null
-    sum: ManyRequiredSumAggregateOutputType | null
-    min: ManyRequiredMinAggregateOutputType | null
-    max: ManyRequiredMaxAggregateOutputType | null
+    _count: ManyRequiredCountAggregateOutputType | null
+    _avg: ManyRequiredAvgAggregateOutputType | null
+    _sum: ManyRequiredSumAggregateOutputType | null
+    _min: ManyRequiredMinAggregateOutputType | null
+    _max: ManyRequiredMaxAggregateOutputType | null
   }
 
   type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<Array<
@@ -6542,7 +6542,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -6570,7 +6570,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -6942,11 +6942,11 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide1 = {
-    count: OptionalSide1CountAggregateOutputType | null
-    avg: OptionalSide1AvgAggregateOutputType | null
-    sum: OptionalSide1SumAggregateOutputType | null
-    min: OptionalSide1MinAggregateOutputType | null
-    max: OptionalSide1MaxAggregateOutputType | null
+    _count: OptionalSide1CountAggregateOutputType | null
+    _avg: OptionalSide1AvgAggregateOutputType | null
+    _sum: OptionalSide1SumAggregateOutputType | null
+    _min: OptionalSide1MinAggregateOutputType | null
+    _max: OptionalSide1MaxAggregateOutputType | null
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
@@ -7116,35 +7116,35 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide1s
     **/
-    count?: true | OptionalSide1CountAggregateInputType
+    _count?: true | OptionalSide1CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: OptionalSide1AvgAggregateInputType
+    _avg?: OptionalSide1AvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: OptionalSide1SumAggregateInputType
+    _sum?: OptionalSide1SumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: OptionalSide1MinAggregateInputType
+    _min?: OptionalSide1MinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: OptionalSide1MaxAggregateInputType
+    _max?: OptionalSide1MaxAggregateInputType
   }
 
   export type GetOptionalSide1AggregateType<T extends OptionalSide1AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide1]: P extends 'count'
+    [P in keyof T & keyof AggregateOptionalSide1]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide1[P]>
@@ -7161,11 +7161,11 @@ export namespace Prisma {
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide1CountAggregateInputType | true
-    avg?: OptionalSide1AvgAggregateInputType
-    sum?: OptionalSide1SumAggregateInputType
-    min?: OptionalSide1MinAggregateInputType
-    max?: OptionalSide1MaxAggregateInputType
+    _count?: OptionalSide1CountAggregateInputType | true
+    _avg?: OptionalSide1AvgAggregateInputType
+    _sum?: OptionalSide1SumAggregateInputType
+    _min?: OptionalSide1MinAggregateInputType
+    _max?: OptionalSide1MaxAggregateInputType
   }
 
 
@@ -7184,11 +7184,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OptionalSide1CountAggregateOutputType | null
-    avg: OptionalSide1AvgAggregateOutputType | null
-    sum: OptionalSide1SumAggregateOutputType | null
-    min: OptionalSide1MinAggregateOutputType | null
-    max: OptionalSide1MaxAggregateOutputType | null
+    _count: OptionalSide1CountAggregateOutputType | null
+    _avg: OptionalSide1AvgAggregateOutputType | null
+    _sum: OptionalSide1SumAggregateOutputType | null
+    _min: OptionalSide1MinAggregateOutputType | null
+    _max: OptionalSide1MaxAggregateOutputType | null
   }
 
   type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<Array<
@@ -7462,7 +7462,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -7490,7 +7490,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -7862,11 +7862,11 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide2 = {
-    count: OptionalSide2CountAggregateOutputType | null
-    avg: OptionalSide2AvgAggregateOutputType | null
-    sum: OptionalSide2SumAggregateOutputType | null
-    min: OptionalSide2MinAggregateOutputType | null
-    max: OptionalSide2MaxAggregateOutputType | null
+    _count: OptionalSide2CountAggregateOutputType | null
+    _avg: OptionalSide2AvgAggregateOutputType | null
+    _sum: OptionalSide2SumAggregateOutputType | null
+    _min: OptionalSide2MinAggregateOutputType | null
+    _max: OptionalSide2MaxAggregateOutputType | null
   }
 
   export type OptionalSide2AvgAggregateOutputType = {
@@ -8026,35 +8026,35 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide2s
     **/
-    count?: true | OptionalSide2CountAggregateInputType
+    _count?: true | OptionalSide2CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: OptionalSide2AvgAggregateInputType
+    _avg?: OptionalSide2AvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: OptionalSide2SumAggregateInputType
+    _sum?: OptionalSide2SumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: OptionalSide2MinAggregateInputType
+    _min?: OptionalSide2MinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: OptionalSide2MaxAggregateInputType
+    _max?: OptionalSide2MaxAggregateInputType
   }
 
   export type GetOptionalSide2AggregateType<T extends OptionalSide2AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide2]: P extends 'count'
+    [P in keyof T & keyof AggregateOptionalSide2]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide2[P]>
@@ -8071,11 +8071,11 @@ export namespace Prisma {
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide2CountAggregateInputType | true
-    avg?: OptionalSide2AvgAggregateInputType
-    sum?: OptionalSide2SumAggregateInputType
-    min?: OptionalSide2MinAggregateInputType
-    max?: OptionalSide2MaxAggregateInputType
+    _count?: OptionalSide2CountAggregateInputType | true
+    _avg?: OptionalSide2AvgAggregateInputType
+    _sum?: OptionalSide2SumAggregateInputType
+    _min?: OptionalSide2MinAggregateInputType
+    _max?: OptionalSide2MaxAggregateInputType
   }
 
 
@@ -8093,11 +8093,11 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OptionalSide2CountAggregateOutputType | null
-    avg: OptionalSide2AvgAggregateOutputType | null
-    sum: OptionalSide2SumAggregateOutputType | null
-    min: OptionalSide2MinAggregateOutputType | null
-    max: OptionalSide2MaxAggregateOutputType | null
+    _count: OptionalSide2CountAggregateOutputType | null
+    _avg: OptionalSide2AvgAggregateOutputType | null
+    _sum: OptionalSide2SumAggregateOutputType | null
+    _min: OptionalSide2MinAggregateOutputType | null
+    _max: OptionalSide2MaxAggregateOutputType | null
   }
 
   type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<Array<
@@ -8370,7 +8370,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -8398,7 +8398,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -8770,11 +8770,11 @@ export namespace Prisma {
 
 
   export type AggregateA = {
-    count: ACountAggregateOutputType | null
-    avg: AAvgAggregateOutputType | null
-    sum: ASumAggregateOutputType | null
-    min: AMinAggregateOutputType | null
-    max: AMaxAggregateOutputType | null
+    _count: ACountAggregateOutputType | null
+    _avg: AAvgAggregateOutputType | null
+    _sum: ASumAggregateOutputType | null
+    _min: AMinAggregateOutputType | null
+    _max: AMaxAggregateOutputType | null
   }
 
   export type AAvgAggregateOutputType = {
@@ -8922,35 +8922,35 @@ export namespace Prisma {
      * 
      * Count returned AS
     **/
-    count?: true | ACountAggregateInputType
+    _count?: true | ACountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: AAvgAggregateInputType
+    _avg?: AAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: ASumAggregateInputType
+    _sum?: ASumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: AMinAggregateInputType
+    _min?: AMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: AMaxAggregateInputType
+    _max?: AMaxAggregateInputType
   }
 
   export type GetAAggregateType<T extends AAggregateArgs> = {
-    [P in keyof T & keyof AggregateA]: P extends 'count'
+    [P in keyof T & keyof AggregateA]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateA[P]>
@@ -8967,11 +8967,11 @@ export namespace Prisma {
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ACountAggregateInputType | true
-    avg?: AAvgAggregateInputType
-    sum?: ASumAggregateInputType
-    min?: AMinAggregateInputType
-    max?: AMaxAggregateInputType
+    _count?: ACountAggregateInputType | true
+    _avg?: AAvgAggregateInputType
+    _sum?: ASumAggregateInputType
+    _min?: AMinAggregateInputType
+    _max?: AMaxAggregateInputType
   }
 
 
@@ -8985,11 +8985,11 @@ export namespace Prisma {
     inc_int: number
     inc_sInt: number
     inc_bInt: bigint
-    count: ACountAggregateOutputType | null
-    avg: AAvgAggregateOutputType | null
-    sum: ASumAggregateOutputType | null
-    min: AMinAggregateOutputType | null
-    max: AMaxAggregateOutputType | null
+    _count: ACountAggregateOutputType | null
+    _avg: AAvgAggregateOutputType | null
+    _sum: ASumAggregateOutputType | null
+    _min: AMinAggregateOutputType | null
+    _max: AMaxAggregateOutputType | null
   }
 
   type GetAGroupByPayload<T extends AGroupByArgs> = Promise<Array<
@@ -9248,7 +9248,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -9276,7 +9276,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -9615,11 +9615,11 @@ export namespace Prisma {
 
 
   export type AggregateB = {
-    count: BCountAggregateOutputType | null
-    avg: BAvgAggregateOutputType | null
-    sum: BSumAggregateOutputType | null
-    min: BMinAggregateOutputType | null
-    max: BMaxAggregateOutputType | null
+    _count: BCountAggregateOutputType | null
+    _avg: BAvgAggregateOutputType | null
+    _sum: BSumAggregateOutputType | null
+    _min: BMinAggregateOutputType | null
+    _max: BMaxAggregateOutputType | null
   }
 
   export type BAvgAggregateOutputType = {
@@ -9735,35 +9735,35 @@ export namespace Prisma {
      * 
      * Count returned BS
     **/
-    count?: true | BCountAggregateInputType
+    _count?: true | BCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
-    avg?: BAvgAggregateInputType
+    _avg?: BAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to sum
     **/
-    sum?: BSumAggregateInputType
+    _sum?: BSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: BMinAggregateInputType
+    _min?: BMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: BMaxAggregateInputType
+    _max?: BMaxAggregateInputType
   }
 
   export type GetBAggregateType<T extends BAggregateArgs> = {
-    [P in keyof T & keyof AggregateB]: P extends 'count'
+    [P in keyof T & keyof AggregateB]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateB[P]>
@@ -9780,11 +9780,11 @@ export namespace Prisma {
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: BCountAggregateInputType | true
-    avg?: BAvgAggregateInputType
-    sum?: BSumAggregateInputType
-    min?: BMinAggregateInputType
-    max?: BMaxAggregateInputType
+    _count?: BCountAggregateInputType | true
+    _avg?: BAvgAggregateInputType
+    _sum?: BSumAggregateInputType
+    _min?: BMinAggregateInputType
+    _max?: BMaxAggregateInputType
   }
 
 
@@ -9794,11 +9794,11 @@ export namespace Prisma {
     dFloat: number
     decFloat: Decimal
     numFloat: Decimal
-    count: BCountAggregateOutputType | null
-    avg: BAvgAggregateOutputType | null
-    sum: BSumAggregateOutputType | null
-    min: BMinAggregateOutputType | null
-    max: BMaxAggregateOutputType | null
+    _count: BCountAggregateOutputType | null
+    _avg: BAvgAggregateOutputType | null
+    _sum: BSumAggregateOutputType | null
+    _min: BMinAggregateOutputType | null
+    _max: BMaxAggregateOutputType | null
   }
 
   type GetBGroupByPayload<T extends BGroupByArgs> = Promise<Array<
@@ -10053,7 +10053,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -10081,7 +10081,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -10420,9 +10420,9 @@ export namespace Prisma {
 
 
   export type AggregateC = {
-    count: CCountAggregateOutputType | null
-    min: CMinAggregateOutputType | null
-    max: CMaxAggregateOutputType | null
+    _count: CCountAggregateOutputType | null
+    _min: CMinAggregateOutputType | null
+    _max: CMaxAggregateOutputType | null
   }
 
   export type CMinAggregateOutputType = {
@@ -10522,23 +10522,23 @@ export namespace Prisma {
      * 
      * Count returned CS
     **/
-    count?: true | CCountAggregateInputType
+    _count?: true | CCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: CMinAggregateInputType
+    _min?: CMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: CMaxAggregateInputType
+    _max?: CMaxAggregateInputType
   }
 
   export type GetCAggregateType<T extends CAggregateArgs> = {
-    [P in keyof T & keyof AggregateC]: P extends 'count'
+    [P in keyof T & keyof AggregateC]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateC[P]>
@@ -10555,9 +10555,9 @@ export namespace Prisma {
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: CCountAggregateInputType | true
-    min?: CMinAggregateInputType
-    max?: CMaxAggregateInputType
+    _count?: CCountAggregateInputType | true
+    _min?: CMinAggregateInputType
+    _max?: CMaxAggregateInputType
   }
 
 
@@ -10569,9 +10569,9 @@ export namespace Prisma {
     bit: string
     vBit: string
     uuid: string
-    count: CCountAggregateOutputType | null
-    min: CMinAggregateOutputType | null
-    max: CMaxAggregateOutputType | null
+    _count: CCountAggregateOutputType | null
+    _min: CMinAggregateOutputType | null
+    _max: CMaxAggregateOutputType | null
   }
 
   type GetCGroupByPayload<T extends CGroupByArgs> = Promise<Array<
@@ -10828,7 +10828,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -10856,7 +10856,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -11195,9 +11195,9 @@ export namespace Prisma {
 
 
   export type AggregateD = {
-    count: DCountAggregateOutputType | null
-    min: DMinAggregateOutputType | null
-    max: DMaxAggregateOutputType | null
+    _count: DCountAggregateOutputType | null
+    _min: DMinAggregateOutputType | null
+    _max: DMaxAggregateOutputType | null
   }
 
   export type DMinAggregateOutputType = {
@@ -11283,23 +11283,23 @@ export namespace Prisma {
      * 
      * Count returned DS
     **/
-    count?: true | DCountAggregateInputType
+    _count?: true | DCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: DMinAggregateInputType
+    _min?: DMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: DMaxAggregateInputType
+    _max?: DMaxAggregateInputType
   }
 
   export type GetDAggregateType<T extends DAggregateArgs> = {
-    [P in keyof T & keyof AggregateD]: P extends 'count'
+    [P in keyof T & keyof AggregateD]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateD[P]>
@@ -11316,9 +11316,9 @@ export namespace Prisma {
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: DCountAggregateInputType | true
-    min?: DMinAggregateInputType
-    max?: DMaxAggregateInputType
+    _count?: DCountAggregateInputType | true
+    _min?: DMinAggregateInputType
+    _max?: DMaxAggregateInputType
   }
 
 
@@ -11329,9 +11329,9 @@ export namespace Prisma {
     xml: string
     json: JsonValue
     jsonb: JsonValue
-    count: DCountAggregateOutputType | null
-    min: DMinAggregateOutputType | null
-    max: DMaxAggregateOutputType | null
+    _count: DCountAggregateOutputType | null
+    _min: DMinAggregateOutputType | null
+    _max: DMaxAggregateOutputType | null
   }
 
   type GetDGroupByPayload<T extends DGroupByArgs> = Promise<Array<
@@ -11587,7 +11587,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -11615,7 +11615,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -11954,9 +11954,9 @@ export namespace Prisma {
 
 
   export type AggregateE = {
-    count: ECountAggregateOutputType | null
-    min: EMinAggregateOutputType | null
-    max: EMaxAggregateOutputType | null
+    _count: ECountAggregateOutputType | null
+    _min: EMinAggregateOutputType | null
+    _max: EMaxAggregateOutputType | null
   }
 
   export type EMinAggregateOutputType = {
@@ -12038,23 +12038,23 @@ export namespace Prisma {
      * 
      * Count returned ES
     **/
-    count?: true | ECountAggregateInputType
+    _count?: true | ECountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
-    min?: EMinAggregateInputType
+    _min?: EMinAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
-    max?: EMaxAggregateInputType
+    _max?: EMaxAggregateInputType
   }
 
   export type GetEAggregateType<T extends EAggregateArgs> = {
-    [P in keyof T & keyof AggregateE]: P extends 'count'
+    [P in keyof T & keyof AggregateE]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateE[P]>
@@ -12071,9 +12071,9 @@ export namespace Prisma {
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ECountAggregateInputType | true
-    min?: EMinAggregateInputType
-    max?: EMaxAggregateInputType
+    _count?: ECountAggregateInputType | true
+    _min?: EMinAggregateInputType
+    _max?: EMaxAggregateInputType
   }
 
 
@@ -12082,9 +12082,9 @@ export namespace Prisma {
     date: Date
     time: Date
     ts: Date
-    count: ECountAggregateOutputType | null
-    min: EMinAggregateOutputType | null
-    max: EMaxAggregateOutputType | null
+    _count: ECountAggregateOutputType | null
+    _min: EMinAggregateOutputType | null
+    _max: EMaxAggregateOutputType | null
   }
 
   type GetEGroupByPayload<T extends EGroupByArgs> = Promise<Array<
@@ -12338,7 +12338,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -12366,7 +12366,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -15014,11 +15014,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedIntFilter
-    min?: NestedIntFilter
-    max?: NestedIntFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
   }
 
   export type DateTimeWithAggregatesFilter = {
@@ -15030,9 +15030,9 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
-    count?: NestedIntFilter
-    min?: NestedDateTimeFilter
-    max?: NestedDateTimeFilter
+    _count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
   }
 
   export type StringWithAggregatesFilter = {
@@ -15048,9 +15048,9 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringWithAggregatesFilter | string
-    count?: NestedIntFilter
-    min?: NestedStringFilter
-    max?: NestedStringFilter
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
   }
 
   export type StringNullableWithAggregatesFilter = {
@@ -15066,17 +15066,17 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringNullableWithAggregatesFilter | string | null
-    count?: NestedIntNullableFilter
-    min?: NestedStringNullableFilter
-    max?: NestedStringNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedStringNullableFilter
+    _max?: NestedStringNullableFilter
   }
 
   export type BoolWithAggregatesFilter = {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
-    count?: NestedIntFilter
-    min?: NestedBoolFilter
-    max?: NestedBoolFilter
+    _count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    _max?: NestedBoolFilter
   }
 
   export type IntNullableFilter = {
@@ -15148,7 +15148,7 @@ export namespace Prisma {
   }
 
   export type PostOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count: SortOrder
   }
 
   export type IntNullableWithAggregatesFilter = {
@@ -15160,11 +15160,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
-    count?: NestedIntNullableFilter
-    avg?: NestedFloatNullableFilter
-    sum?: NestedIntNullableFilter
-    min?: NestedIntNullableFilter
-    max?: NestedIntNullableFilter
+    _count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    _sum?: NestedIntNullableFilter
+    _min?: NestedIntNullableFilter
+    _max?: NestedIntNullableFilter
   }
 
   export type FloatWithAggregatesFilter = {
@@ -15176,11 +15176,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedFloatFilter
-    min?: NestedFloatFilter
-    max?: NestedFloatFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedFloatFilter
+    _min?: NestedFloatFilter
+    _max?: NestedFloatFilter
   }
 
   export type FloatNullableWithAggregatesFilter = {
@@ -15192,27 +15192,27 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
-    count?: NestedIntNullableFilter
-    avg?: NestedFloatNullableFilter
-    sum?: NestedFloatNullableFilter
-    min?: NestedFloatNullableFilter
-    max?: NestedFloatNullableFilter
+    _count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    _sum?: NestedFloatNullableFilter
+    _min?: NestedFloatNullableFilter
+    _max?: NestedFloatNullableFilter
   }
 
   export type JsonWithAggregatesFilter = {
     equals?: InputJsonValue
     not?: InputJsonValue
-    count?: NestedIntFilter
-    min?: NestedJsonFilter
-    max?: NestedJsonFilter
+    _count?: NestedIntFilter
+    _min?: NestedJsonFilter
+    _max?: NestedJsonFilter
   }
 
   export type JsonNullableWithAggregatesFilter = {
     equals?: InputJsonValue | null
     not?: InputJsonValue | null
-    count?: NestedIntNullableFilter
-    min?: NestedJsonNullableFilter
-    max?: NestedJsonNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedJsonNullableFilter
+    _max?: NestedJsonNullableFilter
   }
 
   export type EnumABeautifulEnumWithAggregatesFilter = {
@@ -15220,9 +15220,9 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    count?: NestedIntFilter
-    min?: NestedEnumABeautifulEnumFilter
-    max?: NestedEnumABeautifulEnumFilter
+    _count?: NestedIntFilter
+    _min?: NestedEnumABeautifulEnumFilter
+    _max?: NestedEnumABeautifulEnumFilter
   }
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -15230,17 +15230,17 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    count?: NestedIntNullableFilter
-    min?: NestedEnumABeautifulEnumNullableFilter
-    max?: NestedEnumABeautifulEnumNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedEnumABeautifulEnumNullableFilter
+    _max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type BoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
-    count?: NestedIntNullableFilter
-    min?: NestedBoolNullableFilter
-    max?: NestedBoolNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedBoolNullableFilter
+    _max?: NestedBoolNullableFilter
   }
 
   export type NListRelationFilter = {
@@ -15250,7 +15250,7 @@ export namespace Prisma {
   }
 
   export type NOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count: SortOrder
   }
 
   export type MListRelationFilter = {
@@ -15260,7 +15260,7 @@ export namespace Prisma {
   }
 
   export type MOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count: SortOrder
   }
 
   export type ManyRequiredListRelationFilter = {
@@ -15270,7 +15270,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count: SortOrder
   }
 
   export type OneOptionalRelationFilter = {
@@ -15308,11 +15308,11 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedBigIntFilter
-    min?: NestedBigIntFilter
-    max?: NestedBigIntFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedBigIntFilter
+    _min?: NestedBigIntFilter
+    _max?: NestedBigIntFilter
   }
 
   export type DecimalFilter = {
@@ -15335,11 +15335,11 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
-    count?: NestedIntFilter
-    avg?: NestedDecimalFilter
-    sum?: NestedDecimalFilter
-    min?: NestedDecimalFilter
-    max?: NestedDecimalFilter
+    _count?: NestedIntFilter
+    _avg?: NestedDecimalFilter
+    _sum?: NestedDecimalFilter
+    _min?: NestedDecimalFilter
+    _max?: NestedDecimalFilter
   }
 
   export type BytesFilter = {
@@ -15350,9 +15350,9 @@ export namespace Prisma {
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
-    count?: NestedIntFilter
-    min?: NestedBytesFilter
-    max?: NestedBytesFilter
+    _count?: NestedIntFilter
+    _min?: NestedBytesFilter
+    _max?: NestedBytesFilter
   }
 
   export type UserCreateNestedOneWithoutPostsInput = {
@@ -15699,11 +15699,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedIntFilter
-    min?: NestedIntFilter
-    max?: NestedIntFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
   }
 
   export type NestedFloatFilter = {
@@ -15726,9 +15726,9 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
-    count?: NestedIntFilter
-    min?: NestedDateTimeFilter
-    max?: NestedDateTimeFilter
+    _count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
   }
 
   export type NestedStringWithAggregatesFilter = {
@@ -15743,9 +15743,9 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringWithAggregatesFilter | string
-    count?: NestedIntFilter
-    min?: NestedStringFilter
-    max?: NestedStringFilter
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
   }
 
   export type NestedStringNullableWithAggregatesFilter = {
@@ -15760,9 +15760,9 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringNullableWithAggregatesFilter | string | null
-    count?: NestedIntNullableFilter
-    min?: NestedStringNullableFilter
-    max?: NestedStringNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedStringNullableFilter
+    _max?: NestedStringNullableFilter
   }
 
   export type NestedIntNullableFilter = {
@@ -15779,9 +15779,9 @@ export namespace Prisma {
   export type NestedBoolWithAggregatesFilter = {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
-    count?: NestedIntFilter
-    min?: NestedBoolFilter
-    max?: NestedBoolFilter
+    _count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    _max?: NestedBoolFilter
   }
 
   export type NestedFloatNullableFilter = {
@@ -15823,11 +15823,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
-    count?: NestedIntNullableFilter
-    avg?: NestedFloatNullableFilter
-    sum?: NestedIntNullableFilter
-    min?: NestedIntNullableFilter
-    max?: NestedIntNullableFilter
+    _count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    _sum?: NestedIntNullableFilter
+    _min?: NestedIntNullableFilter
+    _max?: NestedIntNullableFilter
   }
 
   export type NestedFloatWithAggregatesFilter = {
@@ -15839,11 +15839,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedFloatFilter
-    min?: NestedFloatFilter
-    max?: NestedFloatFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedFloatFilter
+    _min?: NestedFloatFilter
+    _max?: NestedFloatFilter
   }
 
   export type NestedFloatNullableWithAggregatesFilter = {
@@ -15855,11 +15855,11 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
-    count?: NestedIntNullableFilter
-    avg?: NestedFloatNullableFilter
-    sum?: NestedFloatNullableFilter
-    min?: NestedFloatNullableFilter
-    max?: NestedFloatNullableFilter
+    _count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    _sum?: NestedFloatNullableFilter
+    _min?: NestedFloatNullableFilter
+    _max?: NestedFloatNullableFilter
   }
 
   export type NestedJsonFilter = {
@@ -15877,9 +15877,9 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    count?: NestedIntFilter
-    min?: NestedEnumABeautifulEnumFilter
-    max?: NestedEnumABeautifulEnumFilter
+    _count?: NestedIntFilter
+    _min?: NestedEnumABeautifulEnumFilter
+    _max?: NestedEnumABeautifulEnumFilter
   }
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -15887,17 +15887,17 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    count?: NestedIntNullableFilter
-    min?: NestedEnumABeautifulEnumNullableFilter
-    max?: NestedEnumABeautifulEnumNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedEnumABeautifulEnumNullableFilter
+    _max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type NestedBoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
-    count?: NestedIntNullableFilter
-    min?: NestedBoolNullableFilter
-    max?: NestedBoolNullableFilter
+    _count?: NestedIntNullableFilter
+    _min?: NestedBoolNullableFilter
+    _max?: NestedBoolNullableFilter
   }
 
   export type NestedBigIntFilter = {
@@ -15920,11 +15920,11 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
-    count?: NestedIntFilter
-    avg?: NestedFloatFilter
-    sum?: NestedBigIntFilter
-    min?: NestedBigIntFilter
-    max?: NestedBigIntFilter
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedBigIntFilter
+    _min?: NestedBigIntFilter
+    _max?: NestedBigIntFilter
   }
 
   export type NestedDecimalFilter = {
@@ -15947,11 +15947,11 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
-    count?: NestedIntFilter
-    avg?: NestedDecimalFilter
-    sum?: NestedDecimalFilter
-    min?: NestedDecimalFilter
-    max?: NestedDecimalFilter
+    _count?: NestedIntFilter
+    _avg?: NestedDecimalFilter
+    _sum?: NestedDecimalFilter
+    _min?: NestedDecimalFilter
+    _max?: NestedDecimalFilter
   }
 
   export type NestedBytesFilter = {
@@ -15962,9 +15962,9 @@ export namespace Prisma {
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
-    count?: NestedIntFilter
-    min?: NestedBytesFilter
-    max?: NestedBytesFilter
+    _count?: NestedIntFilter
+    _min?: NestedBytesFilter
+    _max?: NestedBytesFilter
   }
 
   export type UserCreateWithoutPostsInput = {

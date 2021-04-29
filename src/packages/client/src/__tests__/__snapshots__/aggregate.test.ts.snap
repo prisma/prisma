@@ -19,7 +19,7 @@ query {
       }
     }
   ) {
-    count {
+    _count {
       id
       name
       email
@@ -27,16 +27,16 @@ query {
       personaId
       _all
     }
-    avg {
+    _avg {
       age
     }
-    min {
+    _min {
       age
     }
-    max {
+    _max {
       age
     }
-    sum {
+    _sum {
       age
     }
   }
@@ -70,7 +70,7 @@ Invalid \`prisma.user()\` invocation:
 
 {
   select: {
-    avg: {
+    _avg: {
       select: {
         blub: true,
         ~~~~
