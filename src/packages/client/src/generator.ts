@@ -16,7 +16,7 @@ if (require.main === module) {
   generatorHandler({
     onManifest(config) {
       const requiredEngine =
-        config?.previewFeatures?.includes('napi') ||
+        config?.previewFeatures?.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
           ? 'libqueryEngineNapi'
           : 'queryEngine'

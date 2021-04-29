@@ -50,7 +50,7 @@ export async function generateInFolder({
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const useNapi =
-    previewFeatures.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
+    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,

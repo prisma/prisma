@@ -15,7 +15,6 @@ import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { resolveDatasources } from '../utils/resolveDatasources'
-import { extractSqliteSources } from './extractSqliteSources'
 import { getPrismaClientDMMF } from './getDMMF'
 import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
@@ -77,7 +76,7 @@ export async function buildClient({
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const useNapi =
-    generator?.previewFeatures?.includes('napi') ||
+    generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   const client = new TSClient({
     document,
@@ -152,7 +151,7 @@ export async function generateClient({
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
-    generator?.previewFeatures?.includes('napi') ||
+    generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')

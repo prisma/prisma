@@ -458,7 +458,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     private getEngine() {
       if (
-        this._previewFeatures.includes('napi') ||
+        this._previewFeatures.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
         return new NAPIEngine(this._engineConfig)
