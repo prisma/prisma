@@ -1,5 +1,4 @@
 import { enginesVersion } from '@prisma/engines'
-import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
   Command,
@@ -109,12 +108,6 @@ ${chalk.bold('Examples')}
     const port =
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
-    const platform = await getPlatform()
-    const extension = platform === 'windows' ? '.exe' : ''
-    const queryEnginePath = path.join(
-      require.resolve('@prisma/engines'),
-      `../../query-engine-${platform}${extension}`,
-    )
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
@@ -123,11 +116,9 @@ ${chalk.bold('Examples')}
       hostname,
       port,
       staticAssetDir,
-      binaryPathsOverride: {
-        queryEngine: queryEnginePath,
-      },
-      resolveOverride: {
-        prismaClient: path.resolve(__dirname, '../prisma-client'),
+      resolve: {
+        '@prisma/client': path.resolve(__dirname, '../prisma-client'),
+        '@prisma/engines': require.resolve('@prisma/engines'),
       },
       versions: {
         prisma2: packageJson.version,

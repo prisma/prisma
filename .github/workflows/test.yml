@@ -314,21 +314,24 @@ jobs:
           name: client-${{ matrix.os }}
 
   #
-  # CLIENT (types tests only with NAPI Enabled)
+  # CLIENT with NAPI Enabled  (without types test)
   #
-  client-types-napi:
-    timeout-minutes: 10
-    runs-on: ubuntu-20.04
+  client-napi:
+    timeout-minutes: 20
+    runs-on: ${{ matrix.os }}
     env:
       PRISMA_FORCE_NAPI: 'true'
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+      
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -345,18 +348,24 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test src/__tests__/types/types.test.ts
+      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts
         working-directory: src/packages/client
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
       - uses: codecov/codecov-action@v1
         with:
           files: ./src/packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }}
-          name: client-types-${{ matrix.os }}
+          flags: client,${{ matrix.os }}
+          name: client-${{ matrix.os }}
 
   #
   # CLIENT (types tests only)
