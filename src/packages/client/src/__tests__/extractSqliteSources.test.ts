@@ -6,7 +6,6 @@ test('ignore comments', () => {
     provider = "sqlite"
     // url = "file:another/wrong/folder/dev.db"
     url      = "file:my/folder/dev.db"
-    default  = true
   }
 
   generator client {
@@ -64,7 +63,7 @@ test('basic happy path', () => {
   const datamodel = `datasource db {
     provider = "sqlite"
     url      = "file:my/folder/dev.db"
-    default  = true
+    
   }
 
   generator client {
