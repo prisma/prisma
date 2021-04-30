@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1619787333028,
+  "lastUpdate": 1619792387995,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -17172,6 +17172,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.16,
             "range": "±4.26%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 6.9,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.6,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b03573f680a338ad594c30f183b20f16912715a6",
+          "message": "fix(introspection): Clarify \"Update from P1 to P2\" message (#6868)",
+          "timestamp": "2021-04-30T16:16:00+02:00",
+          "tree_id": "f13439b1a124a9d0a9768df0ac6c5c287aad8e4c",
+          "url": "https://github.com/prisma/prisma/commit/b03573f680a338ad594c30f183b20f16912715a6"
+        },
+        "date": 1619792386148,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.38,
+            "range": "±4.51%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±3.40%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
