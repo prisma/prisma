@@ -362,11 +362,9 @@ continue with the instructions below.`
         formatms(Date.now() - before),
       )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-${
-  `Run ${chalk.green(
-    getCommandWithExecutor('prisma generate'),
-  )} to generate Prisma Client.`
-}`)
+${`Run ${chalk.green(
+  getCommandWithExecutor('prisma generate'),
+)} to generate Prisma Client.`}`)
     }
 
     engine.stop()
