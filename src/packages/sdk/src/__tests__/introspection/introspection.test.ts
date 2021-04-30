@@ -483,8 +483,7 @@ test('introspection basic', async () => {
       \\"sequences\\": [],
       \\"views\\": [],
       \\"procedures\\": [],
-      \\"user_defined_types\\": [],
-      \\"lower_case_identifiers\\": false
+      \\"user_defined_types\\": []
     }"
   `)
   engine.stop()
