@@ -350,7 +350,7 @@ Learn more about the upgrade process in the docs:\n${link(
             width: 74,
             str:
               prisma1UpgradeMessage +
-              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.',
+              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.\n',
             horizontalPadding: 2,
           })
         : ''
