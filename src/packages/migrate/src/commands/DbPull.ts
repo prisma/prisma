@@ -299,7 +299,6 @@ Or run this command with the ${chalk.green(
             )}`
           }
 
-          message = message.replace(/(\n)/gm, '\n// ')
           message += `\n`
         }
         return message
@@ -334,7 +333,8 @@ Learn more about the upgrade process in the docs:\n${link(
           prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
         )
       if (introspectionWarningsMessage.trim().length > 0) {
-        console.error(introspectionWarningsMessage)
+        // Replace make it a // comment block
+        console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
       schemaPath = schemaPath || 'schema.prisma'
