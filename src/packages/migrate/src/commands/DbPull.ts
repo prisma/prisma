@@ -299,6 +299,7 @@ Or run this command with the ${chalk.green(
             )}`
           }
 
+          message = message.replace(/(\n)/gm, '\n// ')
           message += `\n`
         }
         return message
@@ -322,19 +323,7 @@ Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
 Learn more about the upgrade process in the docs:\n${link(
           'https://pris.ly/d/upgrading-to-prisma2',
         )}
-
-Once you upgraded your database schema to Prisma 2.0, 
-continue with the instructions below.`
-      : ''
-
-    const prisma1UpgradeMessageBox = prisma1UpgradeMessage
-      ? '\n\n' +
-        drawBox({
-          height: 13,
-          width: 74,
-          str: prisma1UpgradeMessage,
-          horizontalPadding: 2,
-        })
+`
       : ''
 
     if (args['--print']) {
@@ -353,6 +342,18 @@ continue with the instructions below.`
 
       const modelsCount = (introspectionSchema.match(/^model\s+/gm) || [])
         .length
+
+      const prisma1UpgradeMessageBox = prisma1UpgradeMessage
+        ? '\n\n' +
+          drawBox({
+            height: 13,
+            width: 74,
+            str:
+              prisma1UpgradeMessage +
+              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.',
+            horizontalPadding: 2,
+          })
+        : ''
 
       log(`\n✔ Introspected ${modelsCount} ${
         modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
