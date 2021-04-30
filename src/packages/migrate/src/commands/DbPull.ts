@@ -346,7 +346,7 @@ Learn more about the upgrade process in the docs:\n${link(
       const prisma1UpgradeMessageBox = prisma1UpgradeMessage
         ? '\n\n' +
           drawBox({
-            height: 13,
+            height: 16,
             width: 74,
             str:
               prisma1UpgradeMessage +
