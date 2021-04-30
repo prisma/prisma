@@ -309,8 +309,8 @@ Or run this command with the ${chalk.green(
       getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2')}
-      \nThe database you introspected seems to belong to a Prisma 1 project.
+      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2?')}
+      \nThe database you introspected could belong to a Prisma 1 project.
 
 Please run the following command to upgrade to Prisma 2.0:
 ${chalk.green(
@@ -321,7 +321,10 @@ Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
  
 Learn more about the upgrade process in the docs:\n${link(
           'https://pris.ly/d/upgrading-to-prisma2',
-        )}`
+        )}
+
+Once you upgraded your database schema to Prisma 2.0, 
+continue with the instructions below.`
       : ''
 
     const prisma1UpgradeMessageBox = prisma1UpgradeMessage
@@ -359,15 +362,9 @@ Learn more about the upgrade process in the docs:\n${link(
         formatms(Date.now() - before),
       )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-${
-  prisma1UpgradeMessage
-    ? `Once you upgraded your database schema to Prisma 2.0, run ${chalk.green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate Prisma Client.`
-    : `Run ${chalk.green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate Prisma Client.`
-}`)
+${`Run ${chalk.green(
+  getCommandWithExecutor('prisma generate'),
+)} to generate Prisma Client.`}`)
     }
 
     engine.stop()
