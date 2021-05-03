@@ -142,6 +142,6 @@ export class CLI implements Command {
       ${chalk.dim('$')} prisma db pull
 
       Push the Prisma schema state to the database
-      ${chalk.dim('$')} prisma db push --preview-feature
+      ${chalk.dim('$')} prisma db push
   `)
 }
