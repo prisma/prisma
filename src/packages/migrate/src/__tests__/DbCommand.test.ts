@@ -1,5 +1,5 @@
 import { DbCommand } from '../commands/DbCommand'
-import { DbPush } from '../commands/DbPush'
+import { DbSeed } from '../commands/DbSeed'
 
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})
@@ -40,10 +40,10 @@ it('unknown command', async () => {
   ).resolves.toThrowError()
 })
 
-it('dev with --preview-feature flag', async () => {
+it('db seed with --preview-feature flag', async () => {
   await expect(
     DbCommand.new({
-      dev: DbPush.new(),
+      dev: DbSeed.new(),
     }).parse(['dev', '--preview-feature']),
   ).rejects.toMatchInlineSnapshot(`
           Could not find a schema.prisma file that is required for this command.
@@ -51,10 +51,10 @@ it('dev with --preview-feature flag', async () => {
         `)
 })
 
-it('dev without --preview-feature flag', async () => {
+it('db seed without --preview-feature flag', async () => {
   await expect(
     DbCommand.new({
-      dev: DbPush.new(),
+      dev: DbSeed.new(),
     }).parse(['dev']),
   ).rejects.toMatchInlineSnapshot(`
           This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.

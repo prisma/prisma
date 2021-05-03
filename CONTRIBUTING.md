@@ -69,7 +69,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 3. `cd fixtures/blog`
 4. `export DB_URL=YOUR_DATABASE_URL`  
    For this step you might find our [docker-compose setup](./src/docker) helpful
-5. `npx prisma db push --preview-feature --skip-generate`
+5. `npx prisma db push --skip-generate`
 6. `ts-node main`
 
 ## Upgrading and debugging `DMMF`
