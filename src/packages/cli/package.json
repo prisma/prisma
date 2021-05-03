@@ -32,7 +32,7 @@
     "node": ">=10.4"
   },
   "prisma": {
-    "prismaCommit": "87d13fded344f1f387a8510f0fa23139444516c6"
+    "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
   },
   "files": [
     "README.md",
