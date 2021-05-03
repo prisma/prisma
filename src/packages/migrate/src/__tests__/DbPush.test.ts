@@ -8,20 +8,25 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 
 describe('push', () => {
-  it('requires --preview-feature flag', async () => {
+  it('--preview-feature flag is not required anymore', async () => {
     ctx.fixture('empty')
 
-    const result = DbPush.new().parse([])
+    const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            This feature is currently in Preview. There may be bugs and it's not recommended to use it in production environments.
-            Please provide the --preview-feature flag to use this command.
+            Could not find a schema.prisma file that is required for this command.
+            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      prisma:warn Prisma "db push" was in Preview and is now Generally Available.
+      You can now remove the --preview-feature flag.
+    `)
   })
 
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                       Could not find a schema.prisma file that is required for this command.
                       You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -30,7 +35,7 @@ describe('push', () => {
 
   it('should fail if nativeTypes VarChar on sqlite', async () => {
     ctx.fixture('nativeTypes-sqlite')
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             P1012
 
@@ -47,9 +52,9 @@ describe('push', () => {
 
   it('--force flag renamed', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature', '--force'])
+    const result = DbPush.new().parse(['--force'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `The --force flag was renamed to --accept-data-loss in 2.17.0, use prisma db push --preview-feature --accept-data-loss`,
+      `The --force flag was renamed to --accept-data-loss in 2.17.0, use prisma db push --accept-data-loss`,
     )
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -61,7 +66,7 @@ describe('push', () => {
 
   it('already in sync', async () => {
     ctx.fixture('reset')
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -79,7 +84,7 @@ describe('push', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -98,9 +103,9 @@ describe('push', () => {
 
   it('should ask for --accept-data-loss if not provided in CI', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --preview-feature --accept-data-loss`,
+      `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss`,
     )
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -115,7 +120,7 @@ describe('push', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -141,7 +146,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -163,10 +168,7 @@ describe('push', () => {
 
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
-    const result = DbPush.new().parse([
-      '--preview-feature',
-      '--accept-data-loss',
-    ])
+    const result = DbPush.new().parse(['--accept-data-loss'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -190,7 +192,7 @@ describe('push', () => {
 
     prompt.inject(['y'])
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -218,7 +220,7 @@ describe('push', () => {
 
     prompt.inject([new Error()]) // simulate user cancellation
 
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -240,7 +242,7 @@ describe('push', () => {
 
   it('unexecutable - --force-reset', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = DbPush.new().parse(['--preview-feature', '--force-reset'])
+    const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -258,17 +260,17 @@ describe('push', () => {
 
   it('unexecutable - should ask for --force-reset in CI', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
-    const result = DbPush.new().parse(['--preview-feature'])
+    const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-            ⚠️ We found changes that cannot be executed:
+                        ⚠️ We found changes that cannot be executed:
 
-              • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                          • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-            Use the --force-reset flag to drop the database before push like prisma db push --preview-feature --force-reset
-            All data will be lost.
-                    
-          `)
+                        Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                        All data will be lost.
+                                
+                    `)
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
