@@ -97,6 +97,7 @@ import { Generate } from './Generate'
 import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
+import { Schema } from './Schema'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
@@ -150,6 +151,7 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
+      schema: Schema.new(),
       doctor: Doctor.new(),
       telemetry: Telemetry.new(),
     },
@@ -165,6 +167,7 @@ async function main(): Promise<number> {
       'generate',
       'validate',
       'format',
+      'schema',
       'doctor',
       'telemetry',
     ],
