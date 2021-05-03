@@ -68,7 +68,7 @@
     "prompts": "^2.3.2",
     "resolve-pkg": "^2.0.0",
     "strip-ansi": "^6.0.0",
-    "strip-indent": "^3.0.0"
+    "strip-indent": "^4.0.0"
   },
   "scripts": {
     "run": "node dist/bin.js",
