@@ -14,11 +14,13 @@ import {
   IntrospectionEngine,
   IntrospectionWarnings,
   IntrospectionSchemaVersion,
-  uriToCredentials,
 } from '@prisma/sdk'
 import { formatms } from '../utils/formatms'
 import fs from 'fs'
-import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
@@ -55,7 +57,9 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 `)
 
   private printUrlAsDatasource(url: string): string {
-    const provider = databaseTypeToConnectorType(uriToCredentials(url).type)
+    const provider = databaseTypeToConnectorType(
+      protocolToDatabaseType(`${url.split(':')[0]}:`),
+    )
 
     return printDatasources([
       {

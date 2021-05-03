@@ -161,7 +161,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
   }
 }
 
-function protocolToDatabaseType(protocol: string): ConnectorType {
+export function protocolToDatabaseType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
