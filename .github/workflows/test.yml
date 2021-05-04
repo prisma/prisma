@@ -96,6 +96,8 @@ jobs:
           - mysql
           - mariadb
           - mssql
+          - vitess57
+          - vitess80
         node: [12]
 
     steps:
@@ -164,6 +166,8 @@ jobs:
           - mysql
           - mariadb
           - mssql
+          - vitess57
+          - vitess80
         node: [12]
 
     steps:
