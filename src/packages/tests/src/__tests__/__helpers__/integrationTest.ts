@@ -243,7 +243,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
     afterAllScenarios(kind, states)
   })
 
-  it.concurrent.each(filterTestScenarios(input.scenarios))(
+  it.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
       const { ctx, state } = await setupScenario(kind, input, scenario)
