@@ -5,10 +5,9 @@ import {
   HelpError,
   isError,
   getSchemaPath,
-  getSchemaDir,
+  logger,
   isCi,
   getCommandWithExecutor,
-  link,
 } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
@@ -16,7 +15,6 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import { formatms } from '../utils/formatms'
-import { PreviewFlagError } from '../utils/flagErrors'
 import {
   DbPushIgnoreWarningsWithFlagError,
   DbPushForceFlagRenamedError,
@@ -34,19 +32,9 @@ ${
   process.platform === 'win32' ? '' : chalk.bold('🙌  ')
 }Push the state from your Prisma schema to your database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db push is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db push [options] --preview-feature
+  ${chalk.dim('$')} prisma db push [options]
 
 ${chalk.bold('Options')}
 
@@ -59,13 +47,13 @@ ${chalk.bold('Options')}
 ${chalk.bold('Examples')}
 
   Push the Prisma schema state to the database
-  ${chalk.dim('$')} prisma db push --preview-feature
+  ${chalk.dim('$')} prisma db push
 
   Specify a schema
-  ${chalk.dim('$')} prisma db push --schema=./schema.prisma --preview-feature
+  ${chalk.dim('$')} prisma db push --schema=./schema.prisma
 
   Ignore data loss warnings
-  ${chalk.dim('$')} prisma db push --accept-data-loss --preview-feature
+  ${chalk.dim('$')} prisma db push --accept-data-loss
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -96,8 +84,9 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
+    if (args['--preview-feature']) {
+      logger.warn(`Prisma "db push" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     if (args['--force']) {
@@ -160,9 +149,7 @@ ${chalk.bold('Examples')}
         migrate.stop()
         throw new Error(`${messages.join('\n')}\n
 Use the --force-reset flag to drop the database before push like ${chalk.bold.greenBright(
-          getCommandWithExecutor(
-            'prisma db push --preview-feature --force-reset',
-          ),
+          getCommandWithExecutor('prisma db push --force-reset'),
         )}
 ${chalk.bold.redBright('All data will be lost.')}
         `)
@@ -255,7 +242,7 @@ ${chalk.bold.redBright('All data will be lost.')}
     }
 
     // Run if not skipped
-    if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
     }
 

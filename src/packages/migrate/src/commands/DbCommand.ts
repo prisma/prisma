@@ -31,9 +31,7 @@ ${chalk.bold('Options')}
 
 ${chalk.bold('Commands')}
         pull   Pull the state from the database to the Prisma schema using introspection
-        push   Push the state from Prisma schema to the database during prototyping ${chalk.dim(
-          '(preview)',
-        )}
+        push   Push the state from Prisma schema to the database during prototyping
         seed   Seed your database ${chalk.dim('(preview)')} 
 
 ${chalk.bold('Examples')}
@@ -42,7 +40,7 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db pull
 
   Using prisma db push
-  ${chalk.dim('$')} prisma db push --preview-feature
+  ${chalk.dim('$')} prisma db push
 
   Using prisma db seed
   ${chalk.dim('$')} prisma db seed --preview-feature

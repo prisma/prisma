@@ -100,7 +100,7 @@ Please try to install it by hand with ${chalk.bold.greenBright(
 
     if (!prismaClientDir) {
       throw new Error(
-        `Could not resolve @prisma/client. 
+        `Could not resolve @prisma/client.
 Please try to install it with ${chalk.bold.greenBright(
           'npm install @prisma/client',
         )} and rerun ${chalk.bold(
@@ -126,7 +126,7 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
     cwd: baseDir,
     stdio: 'inherit',
     env: {
-      SKIP_GENERATE: 'true',
+      PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
     },
   })
 }
@@ -167,7 +167,7 @@ function checkTypeScriptVersion() {
     if (output.stdout) {
       const currentVersion = output.stdout.split(' ')[1]
       if (semverLt(currentVersion, minVersion)) {
-        logger.warn(
+        throw new Error(
           `Your ${chalk.bold(
             'typescript',
           )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(

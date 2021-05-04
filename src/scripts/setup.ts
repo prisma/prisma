@@ -2,6 +2,7 @@ import execa from 'execa'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+import pRetry from 'p-retry'
 import pMap from 'p-map'
 import {
   getPackages,
@@ -108,7 +109,17 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   // final install on top level
-  await run('.', 'pnpm i --no-prefer-frozen-lockfile -r --reporter=silent')
+  await pRetry(
+    async () => {
+      await run('.', 'pnpm i --no-prefer-frozen-lockfile -r')
+    },
+    {
+      retries: 6,
+      onFailedAttempt: (e) => {
+        console.error(e)
+      },
+    },
+  )
 }
 
 if (!module.parent) {

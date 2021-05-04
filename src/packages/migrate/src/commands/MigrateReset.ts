@@ -159,12 +159,12 @@ The following migration(s) have been applied:\n\n${chalk(
     }
 
     // Run if not skipped
-    if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
     }
 
     // Run if not skipped
-    if (!process.env.MIGRATE_SKIP_SEED && !args['--skip-seed']) {
+    if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
       // Run seed if 1 or more seed files are present
       const detected = detectSeedFiles(schemaPath)
       if (detected.numberOfSeedFiles > 0) {

@@ -346,15 +346,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         if (internal.hooks) {
           this._hooks = internal.hooks
         }
+        let cwd = path.resolve(config.dirname, config.relativePath)
 
-        let predefinedDatasources = config.sqliteDatasourceOverrides ?? []
-        predefinedDatasources = predefinedDatasources.map((d) => ({
-          name: d.name,
-          url: 'file:' + path.resolve(config.dirname, d.url),
-        }))
+        if (!fs.existsSync(cwd)) {
+          cwd = config.dirname
+        }
 
         const thedatasources = options.datasources || {}
-
         const inputDatasources = Object.entries(thedatasources)
           /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
           .filter(([_, source]) => {
@@ -366,7 +364,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }))
 
         const datasources = mergeBy(
-          predefinedDatasources,
+          [],
           inputDatasources,
           (source: any) => source.name,
         )
@@ -384,12 +382,6 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
 
         this._dmmf = new DMMFClass(config.document)
-
-        let cwd = path.resolve(config.dirname, config.relativePath)
-
-        if (!fs.existsSync(cwd)) {
-          cwd = config.dirname
-        }
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -417,9 +409,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
-          enableExperimental: mapPreviewFeatures(this._previewFeatures),
+          previewFeatures: mapPreviewFeatures(this._previewFeatures),
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
+        }
+
+        // Append the mongodb experimental flag if the provider is mongodb
+        if (config.activeProvider === 'mongodb') {
+          const previewFeatures = this._engineConfig.previewFeatures
+            ? this._engineConfig.previewFeatures.concat('mongodb')
+            : ['mongodb']
+          this._engineConfig.previewFeatures = previewFeatures
         }
 
         debug(`clientVersion: ${config.clientVersion}`)
@@ -458,7 +458,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     private getEngine() {
       if (
-        this._previewFeatures.includes('napi') ||
+        this._previewFeatures.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
         return new NAPIEngine(this._engineConfig)
@@ -1352,15 +1352,6 @@ new PrismaClient({
         }
 
         delegate.groupBy = (args) => {
-          if (!this._previewFeatures.includes('groupBy')) {
-            throw new Error(`To use "groupBy", please add "groupBy" to the previewFeatures attribute in the generator block:
-generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["groupBy"]
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-}
-`)
-          }
           let unpacker: Unpacker | undefined = undefined
 
           /**

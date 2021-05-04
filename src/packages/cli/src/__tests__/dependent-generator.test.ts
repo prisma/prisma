@@ -2,6 +2,8 @@ import 'ts-node/register'
 import path from 'path'
 import execa from 'execa'
 
+process.removeAllListeners('warning')
+
 it('should error when dependent generator is missing', async () => {
   expect.assertions(1)
 

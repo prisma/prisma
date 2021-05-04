@@ -1,5 +1,4 @@
 import { enginesVersion } from '@prisma/engines'
-import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
   Command,
@@ -7,8 +6,6 @@ import {
   getSchemaPath,
   HelpError,
   isError,
-  logger,
-  ProviderAliases,
 } from '@prisma/sdk'
 import StudioServer from '@prisma/studio-server'
 import chalk from 'chalk'
@@ -21,8 +18,8 @@ const packageJson = require('../package.json') // eslint-disable-line @typescrip
 export class Studio implements Command {
   public instance?: StudioServer
 
-  public static new(providerAliases: ProviderAliases): Studio {
-    return new Studio(providerAliases)
+  public static new(): Studio {
+    return new Studio()
   }
 
   private static help = format(`
@@ -37,6 +34,7 @@ ${chalk.bold('Options')}
   -h, --help        Display this help message
   -p, --port        Port to start Studio on
   -b, --browser     Browser to open Studio in
+  -n, --hostname    Hostname to bind the Express server to
   --schema          Custom path to your Prisma schema
 
 ${chalk.bold('Examples')}
@@ -59,10 +57,6 @@ ${chalk.bold('Examples')}
     ${chalk.dim('$')} prisma studio --schema=./schema.prisma
 `)
 
-  private constructor(private readonly providerAliases: ProviderAliases) {
-    this.providerAliases = providerAliases
-  }
-
   /**
    * Parses arguments passed to this command, and starts Studio
    *
@@ -76,8 +70,9 @@ ${chalk.bold('Examples')}
       '-p': '--port',
       '--browser': String,
       '-b': '--browser',
+      '--hostname': String,
+      '-n': '--hostname',
       '--schema': String,
-      '--experimental': Boolean,
       '--telemetry-information': String,
     })
 
@@ -87,12 +82,6 @@ ${chalk.bold('Examples')}
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--experimental']) {
-      logger.warn(
-        ` --experimental is no longer required for this command as Studio is now Generally Available.`,
-      )
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
@@ -115,37 +104,22 @@ ${chalk.bold('Examples')}
       ),
     )
 
+    const hostname = args['--hostname']
     const port =
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
-    const platform = await getPlatform()
-    const extension = platform === 'windows' ? '.exe' : ''
-    const queryEnginePath =
-      process.env.NODE_ENV === 'production'
-        ? eval(
-            `require('path').join(__dirname, '../query-engine-${platform}${extension}')`,
-          )
-        : eval(
-            `require('path').join(__dirname, '../node_modules/@prisma/engines/query-engine-${platform}${extension}')`,
-          )
-    const staticAssetDir =
-      process.env.NODE_ENV === 'production'
-        ? path.resolve(__dirname, './public')
-        : path.resolve(__dirname, '../dist/public')
+
+    const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const studio = new StudioServer({
       schemaPath,
+      hostname,
       port,
-      prismaClient: {
-        generator: {
-          version: enginesVersion,
-          providerAliases: this.providerAliases,
-        },
-      },
-      binaryPaths: {
-        queryEngine: queryEnginePath,
-      },
       staticAssetDir,
+      resolve: {
+        '@prisma/client': path.resolve(__dirname, '../prisma-client'),
+        '@prisma/engines': require.resolve('@prisma/engines'),
+      },
       versions: {
         prisma2: packageJson.version,
         queryEngine: enginesVersion,

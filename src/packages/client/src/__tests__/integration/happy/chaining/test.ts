@@ -80,7 +80,7 @@ test('chaining', async () => {
       .property(),
   )
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 
   expect(a).toMatchInlineSnapshot(`
     Array [

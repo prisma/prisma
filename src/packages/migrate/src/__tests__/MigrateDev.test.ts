@@ -13,7 +13,7 @@ import {
 const ctx = Context.new().add(consoleContext()).assemble()
 
 process.env.GITHUB_ACTIONS = '1'
-process.env.MIGRATE_SKIP_GENERATE = '1'
+process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {
   it('wrong flag', async () => {
@@ -471,8 +471,9 @@ describe('sqlite', () => {
     try {
       await MigrateDev.new().parse([])
     } catch (e) {
+      expect(e.code).toEqual('P3006')
       expect(e.message).toContain(
-        'Database error: Error querying the database: near "BROKEN": syntax error',
+        'Error querying the database: near "BROKEN": syntax error',
       )
     }
 
@@ -497,7 +498,7 @@ describe('sqlite', () => {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
-        'failed to apply cleanly to a temporary database.',
+        'failed to apply cleanly to the shadow database.',
       )
     }
 
@@ -529,7 +530,7 @@ describe('sqlite', () => {
       expect(e.code).toEqual('P3006')
       expect(e.message).toContain('P3006')
       expect(e.message).toContain(
-        'failed to apply cleanly to a temporary database.',
+        'failed to apply cleanly to the shadow database.',
       )
     }
 
@@ -603,14 +604,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                        ⚠️ We found changes that cannot be executed:
+                                                                                                                        ⚠️ We found changes that cannot be executed:
 
-                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                        Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                        Then run prisma migrate dev to apply it and verify it works.
 
-                                                            `)
+                                                                                                    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -666,10 +667,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                              ⚠️  Warnings:
+                                                      ⚠️  Warnings:
 
-                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                    `)
+                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -690,10 +691,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                              ⚠️  Warnings:
+                                                      ⚠️  Warnings:
 
-                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                    `)
+                                                        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -703,21 +704,29 @@ describe('sqlite', () => {
       '--schema=./prisma/provider-array.prisma',
     ])
 
-    await expect(result).rejects.toMatchInlineSnapshot(`UserFacingError`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/provider-array.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Schema Parsing P1012
 
-      SQLite database dev.db created at file:dev.db
+            Get config 
+            error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
+              -->  schema.prisma:2
+               | 
+             1 | datasource my_db {
+             2 |     provider = ["postgresql", "sqlite"]
+               | 
 
-    `)
+            Validation Error Count: 1
+
+          `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/provider-array.prisma`,
+    )
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(
-      `Response: Datasource provider arrays are no longer supported in migrate. Please change your datasource to use a single provider. Read more at https://pris.ly/multi-provider-deprecation`,
-    )
+    ).toMatchInlineSnapshot(``)
   })
 
   it('one seed file', async () => {

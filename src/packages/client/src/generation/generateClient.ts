@@ -15,7 +15,6 @@ import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { resolveDatasources } from '../utils/resolveDatasources'
-import { extractSqliteSources } from './extractSqliteSources'
 import { getPrismaClientDMMF } from './getDMMF'
 import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
@@ -77,18 +76,13 @@ export async function buildClient({
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const useNapi =
-    generator?.previewFeatures?.includes('napi') ||
+    generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   const client = new TSClient({
     document,
     runtimePath,
     browser,
     datasources: resolveDatasources(datasources, schemaDir, outputDir),
-    sqliteDatasourceOverrides: extractSqliteSources(
-      datamodel,
-      schemaDir,
-      outputDir,
-    ),
     generator,
     platforms: useNapi
       ? Object.keys(binaryPaths.libqueryEngineNapi!)
@@ -157,7 +151,7 @@ export async function generateClient({
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
   const useNAPI =
-    generator?.previewFeatures?.includes('napi') ||
+    generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
@@ -251,9 +245,16 @@ export async function generateClient({
     )
   }
   if (transpile) {
-    for (const filePath of Object.values(enginePath)) {
+    if (process.env.NETLIFY) {
+      await makeDir('/tmp/prisma-engines')
+    }
+
+    for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
-      const target = path.join(finalOutputDir, fileName)
+      const target =
+        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
+          ? path.join('/tmp/prisma-engines', fileName)
+          : path.join(finalOutputDir, fileName)
       const [sourceFileSize, targetFileSize] = await Promise.all([
         fileSize(filePath),
         fileSize(target),

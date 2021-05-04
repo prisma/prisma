@@ -1,11 +1,11 @@
+import Debug from '@prisma/debug'
+import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import execa from 'execa'
-import { DMMF, DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import tmpWrite from 'temp-write'
 import fs from 'fs'
+import tmpWrite from 'temp-write'
 import { promisify } from 'util'
-import Debug from '@prisma/debug'
-import { resolveBinary, EngineType } from './resolveBinary'
+import { EngineType, resolveBinary } from './resolveBinary'
 const debug = Debug('prisma:engineCommands')
 
 const unlink = promisify(fs.unlink)
@@ -24,7 +24,7 @@ export type GetDMMFOptions = {
   prismaPath?: string
   datamodelPath?: string
   retry?: number
-  enableExperimental?: string[]
+  previewFeatures?: string[]
 }
 
 export async function getDMMF({
@@ -33,7 +33,7 @@ export async function getDMMF({
   prismaPath: queryEnginePath,
   datamodelPath,
   retry = 4,
-  enableExperimental,
+  previewFeatures,
 }: GetDMMFOptions): Promise<DMMF.Document> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
   let result
@@ -59,65 +59,31 @@ export async function getDMMF({
       },
       maxBuffer: MAX_BUFFER,
     }
+    const getMessage = (flag: string) =>
+      `${chalk.blueBright(
+        'info',
+      )} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
 
     const removedFeatureFlagMap = {
-      insensitiveFilters: `${chalk.blueBright(
-        'info',
-      )} The preview flag "insensitiveFilters" is not needed anymore, please remove it from your schema.prisma`,
-      atomicNumberOperations: `${chalk.blueBright(
-        'info',
-      )} The preview flag "atomicNumberOperations" is not needed anymore, please remove it from your schema.prisma`,
-      connectOrCreate: `${chalk.blueBright(
-        'info',
-      )} The preview flag "connectOrCreate" is not needed anymore, please remove it from your schema.prisma`,
-      transaction: `${chalk.blueBright(
-        'info',
-      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
-      transactionApi: `${chalk.blueBright(
-        'info',
-      )} The preview flag "transactionApi" is not needed anymore, please remove it from your schema.prisma`,
-      uncheckedScalarInputs: `${chalk.blueBright(
-        'info',
-      )} The preview flag "uncheckedScalarInputs" is not needed anymore, please remove it from your schema.prisma`,
-      nativeTypes: `${chalk.blueBright(
-        'info',
-      )} The preview flag "nativeTypes" is not needed anymore, please remove it from your schema.prisma`,
+      insensitiveFilters: getMessage('insensitiveFilters'),
+      atomicNumberOperations: getMessage('atomicNumberOperations'),
+      connectOrCreate: getMessage('connectOrCreate'),
+      transaction: getMessage('transaction'),
+      transactionApi: getMessage('transactionApi'),
+      uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
+      nativeTypes: getMessage('nativeTypes'),
+      createMany: getMessage('createMany'),
+      groupBy: getMessage('groupBy'),
     }
 
-    if (enableExperimental) {
-      enableExperimental = enableExperimental
-        .filter((f) => {
-          const removeMessage = removedFeatureFlagMap[f]
-          if (removeMessage) {
-            if (!process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
-              console.log(removeMessage)
-            }
-            return false
-          }
+    previewFeatures?.forEach((f) => {
+      const removedMessage = removedFeatureFlagMap[f]
+      if (removedMessage && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
+        console.warn(removedMessage)
+      }
+    })
 
-          return true
-        })
-        .filter(
-          (e) =>
-            ![
-              'middlewares',
-              'aggregateApi',
-              'distinct',
-              'aggregations',
-              'nativeTypes',
-              'atomicNumberOperations',
-            ].includes(e),
-        )
-    }
-
-    const experimentalFlags =
-      enableExperimental &&
-      Array.isArray(enableExperimental) &&
-      enableExperimental.length > 0
-        ? [`--enable-experimental=${enableExperimental.join(',')}`]
-        : []
-
-    const args = [...experimentalFlags, '--enable-raw-queries', 'cli', 'dmmf']
+    const args = ['--enable-raw-queries', 'cli', 'dmmf']
 
     result = await execa(queryEnginePath, args, options)
 
@@ -225,12 +191,14 @@ export async function getConfig({
     }
   }
 
+  const engineArgs = []
+
   const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
   try {
     const result = await execa(
       queryEnginePath,
-      ['cli', 'get-config', ...args],
+      [...engineArgs, 'cli', 'get-config', ...args],
       {
         cwd,
         env: {

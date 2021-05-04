@@ -67,9 +67,9 @@ export function makeUninstallCommand(
  * Users of `@prisma/cli` will be pointed to `prisma`
  */
 export function printPrismaCliUpdateWarning() {
-  logger.warn(`${chalk.bold('@prisma/cli')} has been renamed to ${chalk.bold(
-    'prisma',
-  )}.
+  logger.error(`${chalk.bold(
+    '@prisma/cli',
+  )} package has been renamed to ${chalk.bold('prisma')}.
 Please uninstall ${chalk.bold('@prisma/cli')}: ${makeUninstallCommand(
     '@prisma/cli',
     'latest',
@@ -85,7 +85,9 @@ And install ${chalk.bold.greenBright('prisma')}: ${makeInstallCommand(
       canBeGlobal: true,
       canBeDev: true,
     },
-  )}`)
+  )}\n`)
+
+  process.exit(1)
 }
 
 function makeInstallCommand(

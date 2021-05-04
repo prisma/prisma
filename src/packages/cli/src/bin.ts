@@ -11,6 +11,7 @@ import {
   getConfig,
   tryLoadEnvs,
   getEnvPaths,
+  parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -20,6 +21,8 @@ const commandArray = process.argv.slice(2)
 
 import Debug from '@prisma/debug'
 
+process.removeAllListeners('warning')
+
 const debug = Debug('prisma:cli')
 process.on('uncaughtException', (e) => {
   debug(e)
@@ -27,16 +30,6 @@ process.on('uncaughtException', (e) => {
 process.on('unhandledRejection', (e) => {
   debug(e)
 })
-
-// If running via `ts-node`, treat NODE_ENV as development
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-if (process[Symbol.for('ts-node.register.instance')]) {
-  process.env.NODE_ENV = 'development'
-} else {
-  // react: psst 🙊
-  process.env.NODE_ENV = 'production'
-}
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
@@ -101,7 +94,7 @@ import { Init } from './Init'
 import { Dev } from './Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
-import { ProviderAliases, isCurrentBinInstalledGlobally } from '@prisma/sdk'
+import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
 import { Doctor } from './Doctor'
@@ -114,17 +107,6 @@ import {
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
 import { detectPrisma1 } from './detectPrisma1'
-
-// aliases are only used by @prisma/studio, but not for users anymore,
-// as they have to ship their own version of @prisma/client
-const aliases: ProviderAliases = {
-  'prisma-client-js': {
-    generatorPath: `node --max-old-space-size=8096 "${eval(
-      `require('path').join(__dirname, '../prisma-client/generator-build/index.js')`,
-    )}"`, // all evals are here for ncc
-    outputPath: eval(`require('path').join(__dirname, '../prisma-client/')`),
-  },
-}
 
 // because chalk ...
 if (process.env.NO_COLOR) {
@@ -163,7 +145,7 @@ async function main(): Promise<number> {
       }),
       introspect: DbPull.new(),
       dev: Dev.new(),
-      studio: Studio.new(aliases),
+      studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
@@ -205,7 +187,7 @@ async function main(): Promise<number> {
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 
-    let schemaProviders: string[] | undefined
+    let schemaProvider: string | undefined
     let schemaPreviewFeatures: string[] | undefined
     let schemaGeneratorsProviders: string[] | undefined
     try {
@@ -214,7 +196,7 @@ async function main(): Promise<number> {
         datamodel: schema,
       })
       if (config.datasources.length > 0) {
-        schemaProviders = config.datasources[0].provider
+        schemaProvider = config.datasources[0].provider
       }
       const generator = config.generators.find(
         (gen) => gen.previewFeatures.length > 0,
@@ -223,7 +205,9 @@ async function main(): Promise<number> {
         schemaPreviewFeatures = generator.previewFeatures
       }
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) => gen.provider)
+      schemaGeneratorsProviders = config.generators.map((gen) =>
+        parseEnvValue(gen.provider),
+      )
     } catch (e) {
       //
       debug(e)
@@ -235,7 +219,7 @@ async function main(): Promise<number> {
       cli_path_hash: cliPathHash,
       project_hash: projectPathHash,
       version: packageJson.version,
-      schema_providers: schemaProviders,
+      schema_providers: schemaProvider ? [schemaProvider] : undefined,
       schema_preview_features: schemaPreviewFeatures,
       schema_generators_providers: schemaGeneratorsProviders,
       cli_path: process.argv[1],

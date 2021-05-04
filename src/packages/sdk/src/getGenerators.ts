@@ -33,6 +33,8 @@ import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
+import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
+import { parseEnvValue } from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
 const debug = Debug('prisma:getGenerators')
@@ -54,7 +56,6 @@ export type GetGeneratorOptions = {
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
 }
-
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
  * `Generator` class per generator defined in the schema.prisma file.
@@ -122,19 +123,24 @@ export async function getGenerators({
   printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
-  const experimentalFeatures = mapPreviewFeatures(
-    extractPreviewFeatures(config),
-  )
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
 
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,
     prismaPath,
-    enableExperimental: experimentalFeatures,
+    previewFeatures,
   })
 
   if (dmmf.datamodel.models.length === 0) {
     throw new Error(missingModelMessage)
+  }
+
+  if (
+    config.datasources.some((d) => d.provider.includes('mongoDb')) &&
+    !previewFeatures.includes('mongoDb')
+  ) {
+    throw new Error(mongoFeatureFlagMissingMessage)
   }
 
   const generatorConfigs = overrideGenerators || config.generators
@@ -147,15 +153,16 @@ export async function getGenerators({
     const generators = await pMap(
       generatorConfigs,
       async (generator, index) => {
-        let generatorPath = generator.provider
+        let generatorPath = parseEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
 
         // as of now mostly used by studio
-        if (aliases && aliases[generator.provider]) {
-          generatorPath = aliases[generator.provider].generatorPath
-          paths = aliases[generator.provider]
-        } else if (predefinedGeneratorResolvers[generator.provider]) {
-          paths = await predefinedGeneratorResolvers[generator.provider](
+        const providerValue = parseEnvValue(generator.provider)
+        if (aliases && aliases[providerValue]) {
+          generatorPath = aliases[providerValue].generatorPath
+          paths = aliases[providerValue]
+        } else if (predefinedGeneratorResolvers[providerValue]) {
+          paths = await predefinedGeneratorResolvers[providerValue](
             baseDir,
             cliVersion,
           )
@@ -172,10 +179,16 @@ export async function getGenerators({
 
         // resolve output path
         if (generator.output) {
-          generator.output = path.resolve(baseDir, generator.output)
+          generator.output = {
+            value: path.resolve(baseDir, parseEnvValue(generator.output)),
+            fromEnvVar: null,
+          }
           generator.isCustomOutput = true
         } else if (paths) {
-          generator.output = paths.outputPath
+          generator.output = {
+            value: paths.outputPath,
+            fromEnvVar: null,
+          }
         } else {
           if (
             !generatorInstance.manifest ||
@@ -189,10 +202,13 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
             )
           }
 
-          generator.output = await resolveOutput({
-            defaultOutput: generatorInstance.manifest.defaultOutput,
-            baseDir,
-          })
+          generator.output = {
+            value: await resolveOutput({
+              defaultOutput: generatorInstance.manifest.defaultOutput,
+              baseDir,
+            }),
+            fromEnvVar: 'null',
+          }
         }
 
         const options: GeneratorOptions = {
@@ -221,7 +237,9 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     // 2. Check, if all required generators are there.
     // Generators can say in their "requiresGenerators" property in the manifest, which other generators they depend on
     // This has mostly been introduced for 3rd party generators, which rely on `prisma-client-js`.
-    const generatorProviders: string[] = generatorConfigs.map((g) => g.provider)
+    const generatorProviders: string[] = generatorConfigs.map((g) =>
+      parseEnvValue(g.provider),
+    )
 
     for (const g of generators) {
       if (
@@ -319,7 +337,7 @@ generator gen {
             datamodel,
             datamodelPath: schemaPath,
             prismaPath: generatorBinaryPaths.queryEngine[platform],
-            enableExperimental: experimentalFeatures,
+            previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
           debug(generator.manifest.prettyName)
@@ -488,7 +506,7 @@ async function validateGenerators(
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (generator.provider === 'photonjs') {
+    if (parseEnvValue(generator.provider) === 'photonjs') {
       throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
         'provider = "prisma-client-js"',

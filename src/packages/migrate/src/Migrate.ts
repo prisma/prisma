@@ -1,3 +1,4 @@
+import { parseEnvValue } from '@prisma/sdk'
 import {
   getSchemaPathSync,
   getGenerators,
@@ -90,11 +91,23 @@ export class Migrate {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
     const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const dbLocation = getDbLocation(credentials)
-    return {
-      ...getDbinfoFromCredentials(credentials),
-      dbLocation,
+
+    try {
+      const credentials = uriToCredentials(activeDatasource.url.value)
+      const dbLocation = getDbLocation(credentials)
+      return {
+        ...getDbinfoFromCredentials(credentials),
+        dbLocation,
+      }
+    } catch (e) {
+      debug.log(e)
+
+      return {
+        schemaWord: 'database',
+        dbType: 'unknown',
+        dbName: 'unknown',
+        dbLocation: 'unknown',
+      }
     }
   }
 
@@ -191,13 +204,13 @@ export class Migrate {
         ? chalk.dim(
             ` to .${path.sep}${path.relative(
               process.cwd(),
-              generator.options!.generator.output,
+              parseEnvValue(generator.options!.generator.output),
             )}`,
           )
         : ''
       const name = generator.manifest
         ? generator.manifest.prettyName
-        : generator.options!.generator.provider
+        : parseEnvValue(generator.options!.generator.provider)
 
       logUpdate(`Running generate... - ${name}`)
 

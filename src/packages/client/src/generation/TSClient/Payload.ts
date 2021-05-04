@@ -11,7 +11,10 @@ import {
 import { Generatable } from './Generatable'
 
 export class PayloadType implements Generatable {
-  constructor(protected readonly type: OutputType) {}
+  constructor(
+    protected readonly type: OutputType,
+    protected readonly skipFindMany = false,
+  ) {}
 
   public toTS(): string {
     const { type } = this
@@ -22,6 +25,10 @@ export class PayloadType implements Generatable {
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
 
+    const findManyArg = this.skipFindMany
+      ? ''
+      : ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}`
+
     return `\
 export type ${getPayloadName(name)}<
   S extends boolean | null | undefined | ${argsName},
@@ -30,7 +37,7 @@ export type ${getPayloadName(name)}<
       ? ${name}
   : S extends undefined
   ? never
-  : S extends ${argsName} | ${getModelArgName(name, DMMF.ModelAction.findMany)}
+  : S extends ${argsName}${findManyArg}
   ?'include' extends U
   ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
   : 'select' extends U

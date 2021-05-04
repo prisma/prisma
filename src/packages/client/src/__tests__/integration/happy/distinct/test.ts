@@ -16,5 +16,5 @@ test('distinct', async () => {
 
   expect(result.length).toBe(1)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

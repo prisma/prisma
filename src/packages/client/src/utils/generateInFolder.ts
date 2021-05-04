@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
-import { ensureBinariesExist, getEnginesPath } from '@prisma/engines'
+import { getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
@@ -33,7 +34,6 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
 }: GenerateInFolderOptions): Promise<number> {
-  await ensureBinariesExist()
   const before = performance.now()
   if (!projectDir) {
     throw new Error(
@@ -48,13 +48,13 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const useNapi =
-    enablePreview.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
+    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental: enablePreview, // it's still called enableExperimental when calling the query engine
+    previewFeatures,
   })
 
   const outputDir = transpile
@@ -98,23 +98,32 @@ export async function generateInFolder({
       `Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`,
     )
   }
-
   const enginesPath = getEnginesPath()
-  await generateClient({
-    binaryPaths: useNapi
-      ? {
-          libqueryEngineNapi: {
-            [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
-          },
-        }
-      : {
-          queryEngine: {
-            [platform]: path.join(
-              enginesPath,
-              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-            ),
-          },
+  if (useNapi || process.env.PRISMA_FORCE_NAPI) {
+    // This is required as the NAPI library is not downloaded by default
+    await download({
+      binaries: {
+        'libquery-engine-napi': enginesPath,
+      },
+    })
+  }
+  const binaryPaths = useNapi
+    ? {
+        libqueryEngineNapi: {
+          [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
         },
+      }
+    : {
+        queryEngine: {
+          [platform]: path.join(
+            enginesPath,
+            `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+          ),
+        },
+      }
+
+  await generateClient({
+    binaryPaths,
     datamodel,
     dmmf,
     ...config,
@@ -128,7 +137,7 @@ export async function generateInFolder({
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
-    activeProvider: 'sqlite',
+    activeProvider: config.datasources[0].activeProvider,
   })
 
   const time = performance.now() - before

@@ -17,13 +17,16 @@ async function main() {
   await Promise.all([
     run('node ./helpers/copy-prisma-client.js'),
     run('tsc --build tsconfig.build.json', true),
+  ])
+
+  await Promise.all([
     esbuild.build({
       platform: 'node',
       bundle: true,
       target: 'node10',
       outfile: 'build/index.js',
       entryPoints: ['src/bin.ts'],
-      external: ['@prisma/engines'],
+      external: ['@prisma/engines', '_http_common'],
     }),
     esbuild.build({
       platform: 'node',
@@ -43,8 +46,8 @@ async function main() {
     }),
     copy({
       from: path.join(
-        require.resolve('@prisma/studio/package.json'),
-        '../build',
+        require.resolve('@prisma/studio-server/package.json'),
+        '../public',
       ),
       to: './build/public',
       recursive: true,
@@ -65,16 +68,6 @@ async function main() {
   ])
 
   await Promise.all([
-    copy({
-      from: path.join(
-        require.resolve('@prisma/studio/package.json'),
-        '../build',
-      ),
-      to: './dist/public',
-      recursive: true,
-      parallelJobs: process.platform === 'win32' ? 1 : 20,
-      overwrite: true,
-    }),
     replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n'),
   ])
 

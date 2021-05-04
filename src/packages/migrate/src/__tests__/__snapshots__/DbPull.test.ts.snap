@@ -80,6 +80,10 @@ model User {
 // introspectionSchemaVersion: Prisma2,
 `;
 
+exports[`basic introspection with invalid --url - empty host 2`] = `Prisma schema loaded from schema.prisma`;
+
+exports[`basic introspection with invalid --url 2`] = `Prisma schema loaded from schema.prisma`;
+
 exports[`introspection --force 1`] = `
 Prisma schema loaded from schema.prisma
 generator client {

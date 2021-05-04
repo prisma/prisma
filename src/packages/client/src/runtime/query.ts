@@ -888,7 +888,7 @@ ${indent(value.toString(), 2)}
     if (Array.isArray(this.value)) {
       errors.push(
         ...(flatMap(this.value as any[], (val, index) => {
-          if (!val.collectErrors) {
+          if (!val?.collectErrors) {
             return []
           }
 

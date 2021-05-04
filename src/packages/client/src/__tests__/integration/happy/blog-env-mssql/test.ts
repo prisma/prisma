@@ -1,7 +1,6 @@
 import sql from 'sql-template-tag'
-
 import { generateTestClient } from '../../../../utils/getTestClient'
-import { SetupParams, setupMSSQL } from '../../../../utils/setupMSSQL'
+import { setupMSSQL, SetupParams } from '../../../../utils/setupMSSQL'
 
 describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
@@ -38,8 +37,8 @@ describe('blog-env-mssql', () => {
     })
   })
 
-  afterAll(() => {
-    prisma.$disconnect()
+  afterAll(async () => {
+    await prisma.$disconnect()
   })
 
   test('includes version in generated client', () => {

@@ -15,5 +15,5 @@ test('filter-nullable', async () => {
     { id: '2', resaleId: null },
   ])
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

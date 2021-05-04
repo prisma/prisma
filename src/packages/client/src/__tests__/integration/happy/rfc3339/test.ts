@@ -7,8 +7,8 @@ beforeAll(async () => {
   prisma = new PrismaClient()
 })
 
-afterAll(() => {
-  prisma.$disconnect()
+afterAll(async () => {
+  await prisma.$disconnect()
 })
 
 test('findMany filter by rfc3339 date string', async () => {

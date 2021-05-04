@@ -63,7 +63,33 @@ test('introspection --force', async () => {
 test('basic introspection with --url', async () => {
   ctx.fixture('introspection/sqlite')
   const introspect = new DbPull()
-  await introspect.parse(['--print', '--url', 'file:dev.db'])
+  const result = introspect.parse(['--print', '--url', 'file:dev.db'])
+  await expect(result).resolves.toBe('')
+  expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+})
+
+test('basic introspection with invalid --url - empty host', async () => {
+  ctx.fixture('introspection/sqlite')
+  const introspect = new DbPull()
+  const result = introspect.parse([
+    '--print',
+    '--url',
+    'postgresql://root:prisma@/prisma',
+  ])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+          Error parsing connection string: empty host in database URL
+
+        `)
+  expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+})
+
+test('basic introspection with invalid --url', async () => {
+  ctx.fixture('introspection/sqlite')
+  const introspect = new DbPull()
+  const result = introspect.parse(['--print', '--url', 'invalidstring'])
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+    `Unknown database type invalidstring:`,
+  )
   expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
 })
 
@@ -209,14 +235,14 @@ it('should succeed and keep changes to valid schema and output warnings when usi
   expect(ctx.mocked['console.error'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
 
-                                                                            *** WARNING ***
-
-                                                                            These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                            - Model "AwesomeNewPost"
-                                                                            - Model "AwesomeProfile"
-                                                                            - Model "AwesomeUser"
-
-                                      `)
+        // *** WARNING ***
+        // 
+        // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+        // - Model "AwesomeNewPost"
+        // - Model "AwesomeProfile"
+        // - Model "AwesomeUser"
+        // 
+    `)
 
   expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
     originalSchema,
@@ -248,18 +274,18 @@ it('should fail when db is missing', async () => {
   const result = DbPull.new().parse([])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          P4001 The introspected database was empty: 
+                                        P4001 The introspected database was empty: 
 
-          prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-          To fix this, you have two options:
+                                        To fix this, you have two options:
 
-          - manually create a table in your database (using SQL).
-          - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                        - manually create a table in your database (using SQL).
+                                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-          Then you can run prisma db pull again. 
+                                        Then you can run prisma db pull again. 
 
-        `)
+                                `)
 })
 
 it('should fail when db is empty', async () => {
@@ -268,18 +294,18 @@ it('should fail when db is empty', async () => {
   const result = DbPull.new().parse([])
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          P4001 The introspected database was empty: 
+                                        P4001 The introspected database was empty: 
 
-          prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-          To fix this, you have two options:
+                                        To fix this, you have two options:
 
-          - manually create a table in your database (using SQL).
-          - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                        - manually create a table in your database (using SQL).
+                                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-          Then you can run prisma db pull again. 
+                                        Then you can run prisma db pull again. 
 
-        `)
+                                `)
 })
 
 it('should fail when Prisma schema is missing', async () => {

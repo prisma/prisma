@@ -6,7 +6,7 @@ async function main() {
   const data = await prisma.record.findFirst()
 
   console.log(data)
-  prisma.$disconnect()
+  await prisma.$disconnect()
 }
 
 main()

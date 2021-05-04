@@ -1,9 +1,7 @@
-const Debug = require('@prisma/debug')
 const path = require('path')
 const globalDirs = require('global-dirs')
 const { drawBox } = require('@prisma/sdk/dist/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
-const debug = Debug('prisma:preinstall')
 
 const BOLD = '\u001b[1m'
 const WHITE_BRIGHT = '\u001b[37;1m'
@@ -30,14 +28,6 @@ function isPackageInstalledGlobally(name) {
 }
 
 function prismaIsInstalledGlobally() {
-  const prismaInstalledGlobally = isPackageInstalledGlobally('prisma')
-  if (prismaInstalledGlobally) {
-    return {
-      ...prismaInstalledGlobally,
-      name: 'prisma',
-    }
-  }
-
   const prisma2InstalledGlobally = isPackageInstalledGlobally('prisma2')
   if (prisma2InstalledGlobally) {
     return {
@@ -52,10 +42,82 @@ function prismaIsInstalledGlobally() {
 const b = (str) => BOLD + str + RESET
 const white = (str) => WHITE_BRIGHT + str + RESET
 
+/**
+ * Get the package manager name currently being used.
+ *
+ */
+function getPackageManagerName() {
+  const userAgent = process.env.npm_config_user_agent
+  if (!userAgent) return null
+
+  const name = parsePackageManagerName(userAgent)
+  if (!name) return null
+
+  return name
+}
+
+/**
+ * Parse package manager name from useragent. If parsing fails, `null` is returned.
+ */
+function parsePackageManagerName(userAgent) {
+  let packageManager = null
+
+  // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
+  // References:
+  // - https://pnpm.js.org/en/3.6/only-allow-pnpm
+  // - https://github.com/cameronhunter/npm-config-user-agent-parser
+  if (userAgent) {
+    const matchResult = userAgent.match(/^([^\/]+)\/.+/)
+    if (matchResult) {
+      packageManager = matchResult[1].trim()
+    }
+  }
+
+  return packageManager
+}
+
 export function main() {
+  if (__dirname.includes(`@prisma${path.sep}cli`)) {
+    console.error(
+      drawBox({
+        str: `
+  The package ${white('@prisma/cli')} has been renamed to ${white('prisma')}.
+  
+  Please uninstall ${white('@prisma/cli')} first.
+  Then install ${white('prisma')} to continue using ${b('Prisma CLI')}:
+  
+      # Uninstall old CLI
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? 'yarn remove @prisma/cli'
+          : 'npm uninstall @prisma/cli',
+      )}
+  
+      # Install new CLI
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? `yarn add prisma --dev`
+          : `npm install prisma --save-dev`,
+      )}
+  
+      # Invoke via npx
+      ${white(
+        getPackageManagerName() === 'yarn'
+          ? `yarn prisma --help`
+          : 'npx prisma --help',
+      )}
+  
+  Learn more here: https://github.com/prisma/prisma/releases/tag/2.16.0
+  `,
+        verticalPadding: 1,
+        horizontalPadding: 3,
+      }),
+    )
+    process.exit(1)
+  }
+
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
-  debug(`Node Version: ${nodeMajorVersion}`)
   if (nodeMajorVersion < 10) {
     console.error(
       drawBox({
@@ -76,7 +138,6 @@ export function main() {
   }
 
   const installedGlobally = prismaIsInstalledGlobally()
-  debug({ installedGlobally })
   if (!installedGlobally) {
     process.exit(0)
   }
@@ -107,45 +168,6 @@ Then install ${white('prisma')} to continue using ${b('Prisma 2.0')}:
    ${white('npx prisma --help')}
 
 Learn more here: https://pris.ly/preview025
-`
-  } else {
-    message = `
-You seem to have a global installation of Prisma 1 package ${white('prisma')}. 
-As Prisma 2 uses the same executable ${white(
-      'prisma',
-    )}, this would lead to a conflict.
-
-To keep using Prisma 1, install the new package ${white(
-      'prisma1',
-    )} that we created.
-It exposes the executable ${white('prisma1')}.
-  
-   # Uninstall old Prisma 1 CLI
-   ${white(
-     installedGlobally.pkgManager === 'yarn'
-       ? 'yarn global remove prisma'
-       : 'npm uninstall -g prisma',
-   )}
-
-   # Install new Prisma 1 CLI
-   ${white(
-     installedGlobally.pkgManager === 'yarn'
-       ? 'yarn global add prisma1'
-       : 'npm install -g prisma1',
-   )}
-
-   # Use the Prisma 1 CLI
-   ${white('prisma1 --help')}
-
-Then you can install Prisma 2:
-
-   # Install Prisma 2 CLI
-   ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}
-   
-   # Invoke via npx
-   ${white('npx prisma --help')}
-
-Learn more here: https://pris.ly/prisma1
 `
   }
 

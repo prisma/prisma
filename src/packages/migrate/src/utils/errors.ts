@@ -38,9 +38,7 @@ export class DbPushForceFlagRenamedError extends Error {
   constructor() {
     super(
       `The --force flag was renamed to --accept-data-loss in 2.17.0, use ${chalk.bold.greenBright(
-        getCommandWithExecutor(
-          'prisma db push --preview-feature --accept-data-loss',
-        ),
+        getCommandWithExecutor('prisma db push --accept-data-loss'),
       )}`,
     )
   }
@@ -50,9 +48,7 @@ export class DbPushIgnoreWarningsWithFlagError extends Error {
   constructor() {
     super(
       `Use the --accept-data-loss flag to ignore the data loss warnings like ${chalk.bold.greenBright(
-        getCommandWithExecutor(
-          'prisma db push --preview-feature --accept-data-loss',
-        ),
+        getCommandWithExecutor('prisma db push --accept-data-loss'),
       )}`,
     )
   }

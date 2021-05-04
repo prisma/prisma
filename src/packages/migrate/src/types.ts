@@ -107,8 +107,6 @@ export namespace EngineResults {
     migrations: string[]
   }
   export interface DiagnoseMigrationHistoryOutput {
-    /// Null means no drift was detected.
-    drift: DriftDiagnostic | null
     /// Null means the database and the migrations directory are in sync and up to date.
     history: HistoryDiagnostic | null
     /// The name of the migrations that failed to apply completely to the database.
@@ -117,10 +115,6 @@ export namespace EngineResults {
     editedMigrationNames: string[]
     /// Whether the migrations table is present.
     hasMigrationsTable: boolean
-    /// An optional error encountered when applying a migration that is not
-    /// applied in the main database to the shadow database. We do this to
-    /// validate that unapplied migrations are at least minimally valid.
-    errorInUnappliedMigration: UserFacingError | null
   }
   export interface DevDiagnosticOutput {
     action: DevAction
