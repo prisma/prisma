@@ -109,6 +109,28 @@ services:
     ports:
       - '27017:27017'
 
+  vitess57:
+    image: vitess/vttestserver:mysql57
+    restart: always
+    ports:
+      - 33577:33577
+    environment:
+      PORT: 33574
+      KEYSPACES: "test"
+      NUM_SHARDS: "1"
+      MYSQL_BIND_HOST: "0.0.0.0"
+
+  vitess80:
+    image: vitess/vttestserver:mysql80
+    restart: always
+    ports:
+      - 33807:33807
+    environment:
+      PORT: 33804
+      KEYSPACES: "test"
+      NUM_SHARDS: "1"
+      MYSQL_BIND_HOST: "0.0.0.0"
+      
 volumes:
   postgres:
   postgres_isolated:
