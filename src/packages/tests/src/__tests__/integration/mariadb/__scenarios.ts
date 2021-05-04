@@ -1,4 +1,5 @@
 import { Input } from '../../__helpers__/integrationTest'
+import { Decimal } from 'decimal.js'
 
 export const scenarios = [
   {
@@ -70,17 +71,17 @@ export const scenarios = [
     },
     expect: {
       email: 'ada@prisma.io',
-      id: 1,
+      id: BigInt(1),
       posts: [
         {
-          id: 1,
+          id: BigInt(1),
           title: 'A',
-          user_id: 1,
+          user_id: BigInt(1),
         },
         {
-          id: 2,
+          id: BigInt(2),
           title: 'B',
-          user_id: 1,
+          user_id: BigInt(1),
         },
       ],
     },
@@ -99,7 +100,7 @@ export const scenarios = [
       return client.teams.create({ data: { name: 'c' } })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'c',
     },
   },
@@ -116,7 +117,7 @@ export const scenarios = [
       return client.teams.create({ data: {} })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'alice',
     },
   },
@@ -133,7 +134,7 @@ export const scenarios = [
       return client.teams.create({ data: {} })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'alice',
     },
   },
@@ -154,7 +155,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'd',
     },
   },
@@ -176,7 +177,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'c',
       active: false,
     },
@@ -220,7 +221,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       name: 'd',
     },
   },
@@ -267,11 +268,11 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         name: 'd',
       },
       {
-        id: 2,
+        id: BigInt(2),
         name: 'd',
       },
     ],
@@ -290,7 +291,7 @@ export const scenarios = [
       return client.users.findUnique({ where: { email: 'ada@prisma.io' } })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       email: 'ada@prisma.io',
     },
   },
@@ -314,7 +315,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       email: 'ada@prisma.io',
       name: 'Ada',
     },
@@ -340,7 +341,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       email: 'ada@prisma.io',
       name: 'Marco',
     },
@@ -365,7 +366,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       email: 'ada@prisma.io',
       name: 'Ada',
     },
@@ -387,11 +388,11 @@ export const scenarios = [
     expect: [
       {
         email: 'ada@prisma.io',
-        id: 1,
+        id: BigInt(1),
       },
       {
         email: null,
-        id: 2,
+        id: BigInt(2),
       },
     ],
   },
@@ -410,7 +411,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         email: 'ada@prisma.io',
       },
     ],
@@ -431,11 +432,11 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         email: 'ada@prisma.io',
       },
       {
-        id: 2,
+        id: BigInt(2),
         email: 'ema@prisma.io',
       },
     ],
@@ -467,14 +468,14 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         title: 'A',
-        user_id: 1,
+        user_id: BigInt(1),
       },
       {
-        id: 2,
+        id: BigInt(2),
         title: 'B',
-        user_id: 1,
+        user_id: BigInt(1),
       },
     ],
   },
@@ -501,7 +502,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         published: true,
         title: 'A',
       },
@@ -530,12 +531,12 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         published: true,
         title: 'A',
       },
       {
-        id: 3,
+        id: BigInt(3),
         published: true,
         title: 'C',
       },
@@ -562,7 +563,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       published: true,
       title: 'D',
     },
@@ -588,7 +589,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 4,
+      id: BigInt(4),
       published: false,
       title: 'D',
     },
@@ -615,17 +616,17 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         published: true,
         title: 'A',
       },
       {
-        id: 2,
+        id: BigInt(2),
         published: false,
         title: 'B',
       },
       {
-        id: 3,
+        id: BigInt(3),
         published: true,
         title: 'C',
       },
@@ -653,17 +654,17 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 3,
+        id: BigInt(3),
         published: true,
         title: 'C',
       },
       {
-        id: 2,
+        id: BigInt(2),
         published: false,
         title: 'B',
       },
       {
-        id: 1,
+        id: BigInt(1),
         published: true,
         title: 'A',
       },
@@ -687,17 +688,17 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         published: 'DRAFT',
         title: 'A',
       },
       {
-        id: 2,
+        id: BigInt(2),
         published: 'DRAFT',
         title: 'B',
       },
       {
-        id: 3,
+        id: BigInt(3),
         published: 'DRAFT',
         title: 'C',
       },
@@ -742,7 +743,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       published: 'PUBLISHED',
       title: 'A',
     },
@@ -790,17 +791,17 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         published: 'PUBLISHED',
         title: 'A',
       },
       {
-        id: 2,
+        id: BigInt(2),
         published: 'PUBLISHED',
         title: 'B',
       },
       {
-        id: 3,
+        id: BigInt(3),
         published: 'PUBLISHED',
         title: 'C',
       },
@@ -849,7 +850,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 3,
+        id: BigInt(3),
         published: 'PUBLISHED',
         title: 'C',
       },
@@ -874,12 +875,12 @@ export const scenarios = [
     expect: [
       {
         frequency: '* * * * 1-5',
-        id: 2,
+        id: BigInt(2),
         job: 'j20',
       },
       {
         frequency: '* * * * 1-5',
-        id: 3,
+        id: BigInt(3),
         job: 'j21',
       },
     ],
@@ -903,12 +904,12 @@ export const scenarios = [
     expect: [
       {
         frequency: '* * * * 1-5',
-        id: 2,
+        id: BigInt(2),
         job: 'j20',
       },
       {
         frequency: '* * * * 1-5',
-        id: 3,
+        id: BigInt(3),
         job: 'j21',
       },
     ],
@@ -932,12 +933,12 @@ export const scenarios = [
     expect: [
       {
         frequency: '* * * * *',
-        id: 1,
+        id: BigInt(1),
         job: 'j1',
       },
       {
         frequency: '* * * * 1-5',
-        id: 3,
+        id: BigInt(3),
         job: 'j21',
       },
     ],
@@ -961,12 +962,12 @@ export const scenarios = [
     expect: [
       {
         frequency: '* * * * *',
-        id: 1,
+        id: BigInt(1),
         job: 'j1',
       },
       {
         frequency: '* * * * 1-5',
-        id: 2,
+        id: BigInt(2),
         job: 'j20',
       },
     ],
@@ -991,12 +992,12 @@ export const scenarios = [
     expect: [
       {
         frequency: '* * * * *',
-        id: 1,
+        id: BigInt(1),
         job: 'j1',
       },
       {
         frequency: '* * * * 1-5',
-        id: 2,
+        id: BigInt(2),
         job: 'j20',
       },
     ],
@@ -1026,15 +1027,15 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         title: 'A',
       },
       {
-        id: 2,
+        id: BigInt(2),
         title: 'B',
       },
       {
-        id: 3,
+        id: BigInt(3),
         title: 'C',
       },
     ],
@@ -1104,15 +1105,15 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         title: 'A',
       },
       {
-        id: 2,
+        id: BigInt(2),
         title: 'B',
       },
       {
-        id: 3,
+        id: BigInt(3),
         title: 'C',
       },
     ],
@@ -1134,7 +1135,7 @@ export const scenarios = [
       })
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       token: 10,
     },
   },
@@ -1155,7 +1156,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
       },
     ],
@@ -1194,7 +1195,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
       },
     ],
@@ -1233,7 +1234,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         time: new Date(Date.UTC(2018, 8, 4, 0, 0, 0, 0)),
       },
     ],
@@ -1272,15 +1273,15 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         time: null,
       },
       {
-        id: 2,
+        id: BigInt(2),
         time: null,
       },
       {
-        id: 3,
+        id: BigInt(3),
         time: null,
       },
     ],
@@ -1338,12 +1339,12 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         name: 'a',
         token: 11,
       },
       {
-        id: 2,
+        id: BigInt(2),
         name: 'b',
         token: 22,
       },
@@ -1383,12 +1384,12 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         name: 'a',
         token: 11,
       },
       {
-        id: 2,
+        id: BigInt(2),
         name: 'b',
         token: 22,
       },
@@ -1439,7 +1440,7 @@ export const scenarios = [
     expect: [
       {
         email: 'max@prisma.io',
-        id: 1,
+        id: BigInt(1),
       },
     ],
   },
@@ -1458,8 +1459,8 @@ export const scenarios = [
     },
     expect: [
       {
-        distance: 12.213,
-        id: 1,
+        distance: new Decimal('12.213'),
+        id: BigInt(1),
       },
     ],
   },
@@ -1477,8 +1478,8 @@ export const scenarios = [
       return client.exercises.findUnique({ where: { distance: 12.213 } })
     },
     expect: {
-      distance: 12.213,
-      id: 1,
+      distance: new Decimal('12.213'),
+      id: BigInt(1),
     },
   },
   {
@@ -1498,8 +1499,8 @@ export const scenarios = [
       return client.exercises.findUnique({ where: { distance: 12.3 } })
     },
     expect: {
-      distance: 12.3,
-      id: 2,
+      distance: new Decimal('12.3'),
+      id: BigInt(2),
     },
   },
   {
@@ -1514,7 +1515,7 @@ export const scenarios = [
       return client.migrate.create({ data: { version: 1 } })
     },
     expect: {
-      version: 1,
+      version: BigInt(1),
     },
   },
   {
@@ -1668,7 +1669,7 @@ export const scenarios = [
     },
     expect: {
       email: 'd',
-      id: 1,
+      id: BigInt(1),
       key: 'b',
       name: 'a',
       value: 'c',
@@ -1767,15 +1768,15 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         name: 'a',
       },
       {
-        id: 2,
+        id: BigInt(2),
         name: 'b',
       },
       {
-        id: 3,
+        id: BigInt(3),
         name: 'b',
       },
     ],
@@ -1842,7 +1843,7 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         title: 'A',
         data: {
           somekey: 'somevalue',
@@ -1878,12 +1879,12 @@ export const scenarios = [
     },
     expect: [
       {
-        id: 1,
+        id: BigInt(1),
         title: 'A',
         data: '2020-01-14T11:10:19.573Z',
       },
       {
-        id: 2,
+        id: BigInt(2),
         title: 'B',
         data: '2020-01-01T00:00:00.000Z',
       },
@@ -1913,7 +1914,7 @@ export const scenarios = [
       return post
     },
     expect: {
-      id: 1,
+      id: BigInt(1),
       title: 'Hello',
       data: ['some', 'array', 1, 2, 3, { object: 'value' }],
     },
