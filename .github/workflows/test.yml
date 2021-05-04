@@ -91,11 +91,11 @@ jobs:
       fail-fast: false
       matrix:
         database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
+          # - sqlite
+          # - postgres
+          # - mysql
+          # - mariadb
+          # - mssql
           - vitess57
           - vitess80
         node: [12]
@@ -130,7 +130,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
+      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit #--maxConcurrency=8
         working-directory: src/packages/tests
         env:
           CI: true
@@ -163,11 +163,11 @@ jobs:
       fail-fast: false
       matrix:
         database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
+          # - sqlite
+          # - postgres
+          # - mysql
+          # - mariadb
+          # - mssql
           - vitess57
           - vitess80
         node: [12]
@@ -202,7 +202,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8 --verbose
+      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit #--maxConcurrency=8 --verbose
         working-directory: src/packages/tests
         env:
           CI: true
