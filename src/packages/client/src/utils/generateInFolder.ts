@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
@@ -99,12 +99,17 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  if (useNapi || process.env.PRISMA_FORCE_NAPI) {
+  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  if (
+    (useNapi || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(napiLibraryPath)
+  ) {
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine-napi': enginesPath,
       },
+      version: enginesVersion,
     })
   }
   const binaryPaths = useNapi
