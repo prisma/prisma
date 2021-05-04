@@ -143,6 +143,8 @@ jobs:
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_VITESS57_URI: mysql://root:prisma@localhost:33577/test
+          TEST_VITESS80_URI: mysql://root:prisma@localhost:33807/test
 
       - uses: codecov/codecov-action@v1
         with:
@@ -213,6 +215,8 @@ jobs:
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_VITESS57_URI: mysql://root:prisma@localhost:33577/test
+          TEST_VITESS80_URI: mysql://root:prisma@localhost:33807/test
 
       - uses: codecov/codecov-action@v1
         with:
