@@ -47,6 +47,8 @@ In the `prisma/prisma` repository we have a few places where you can write tests
         - mysql
         - postgresql
         - sqlite
+        - vitess57
+        - vitess80
     - While these tests also test the client itself, they're rather just our base to make sure that basic query engine functionality actually works in the Prisma Client
     - When you want to test very specific queries for a new feature, you can write an integration test in the `client` package, as that's usually easier
 

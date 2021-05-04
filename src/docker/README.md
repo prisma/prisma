@@ -1,6 +1,6 @@
 # Using docker-compose for databases
 
-This is only intended to be run in a development environment where ports 3306 / default for MySQL - 5432 / default for PostgreSQL and 4306 custom port - MariaDB are free and not used.
+This is only intended to be run in a development environment where ports 3306 / default for MySQL - 5432 / default for PostgreSQL and 4306 custom port - MariaDB are free and not used. TODO Vitess
 
 If they are already used make sure to change the ports like this
 
