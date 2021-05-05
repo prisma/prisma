@@ -863,8 +863,8 @@ describe('sqlite', () => {
     try {
       await MigrateDev.new().parse([])
     } catch (e) {
-      expect(e.code).toEqual('P3014')
-      expect(e.message).toContain('P3014')
+      expect(e.code).toEqual('P3019')
+      expect(e.message).toContain('P3019')
       expect(e.message).toContain('The datasource provider')
     }
 
