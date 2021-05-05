@@ -32,7 +32,7 @@ jobs:
           node-version: "12"
 
       - run: yarn global add prisma@2.21.0
-      - run: yarn
+      - run: pnpm install
 
       - name: Run benchmarks
         run: yarn ts-node scripts/bench.ts | tee output.txt
