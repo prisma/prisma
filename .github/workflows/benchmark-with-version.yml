@@ -31,7 +31,7 @@ jobs:
         with:
           node-version: "12"
 
-      - run: yarn install -g prisma@2.21.0
+      - run: yarn yarn global add prisma@2.21.0
 
       - name: Run benchmarks
         run: yarn run bench
