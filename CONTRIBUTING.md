@@ -106,8 +106,8 @@ If not, please always ping the Rust team, if this is an intended change.
 
 ### Integration tests
 We have two kinds of integration tests:
-1. Testing basic query functionality - located in [src/tests/src/__tests__/integration](./src/packages/tests/src/__tests__/integration)
-2. Testing the client in mini projects - located in [src/client/src/__tests__/integration](./src/packages/client/src/__tests__/integration)
+1. Testing basic query functionality - located in [`src/tests/src/__tests__/integration`](./src/packages/tests/src/__tests__/integration)
+2. Testing the client in mini projects - located in [`src/client/src/__tests__/integration`](./src/packages/client/src/__tests__/integration)
 
 To run any of these, start the test databases (see [readme](./src/docker) for various ways to run these)
 
@@ -116,7 +116,7 @@ To run any of these, start the test databases (see [readme](./src/docker) for va
 
 #### General client integration tests (`./tests`)
 
-The integration tests consisting of mini project are located in [src/tests/src/__tests__/integration](./src/packages/tests/src/__tests__/integration)
+The integration tests consisting of mini project are located in [`src/tests/src/__tests__/integration`](./src/packages/tests/src/__tests__/integration)
 
 Start the tests
 
@@ -125,7 +125,7 @@ Start the tests
 
 #### Prisma Client folder-based integration tests (`./client`)
 
-The integration tests consisting of mini project are located in [src/client/src/__tests__/integration](./src/packages/client/src/__tests__/integration)
+The integration tests consisting of mini project are located in [`src/client/src/__tests__/integration`](./src/packages/client/src/__tests__/integration)
 
 Start the tests
 
