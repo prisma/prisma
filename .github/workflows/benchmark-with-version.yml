@@ -1,9 +1,7 @@
-name: Benchmark
+name: Benchmark with version
 # Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
-    branches:
-      - master
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
@@ -66,3 +64,4 @@ jobs:
           comment-on-alert: true
           fail-on-alert: true
           alert-comment-cc-users: "@williamluke4"
+          benchmark-data-dir-path: "janpio/pr" # TODO
