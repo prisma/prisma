@@ -475,9 +475,6 @@ You may have to run ${chalk.greenBright(
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
-          if (this.lastError) {
-            throw this.lastError
-          }
           throw this.graphQLToJSError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
@@ -485,6 +482,8 @@ You may have to run ${chalk.greenBright(
           JSON.stringify(data.errors),
           this.config.clientVersion!,
         )
+      } else if (this.lastError) {
+        throw this.lastError
       }
       return { data, elapsed: 0 }
     } catch (e) {
