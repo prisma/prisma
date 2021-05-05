@@ -27,28 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v1
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
       - uses: actions/setup-node@v2
         with:
           node-version: "12"
 
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f src/pnpm-lock.yaml
-      - run: rm -f ./pnpm-lock.yaml
+      - run: yarn install -g prisma@2.21.0
 
       - name: Run benchmarks
-        run: pnpm run bench
+        run: yarn run bench
 
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
