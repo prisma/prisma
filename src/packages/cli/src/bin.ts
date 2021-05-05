@@ -209,7 +209,7 @@ async function main(): Promise<number> {
         parseEnvValue(gen.provider),
       )
     } catch (e) {
-      //
+      debug('Error from cli/src/bin.ts')
       debug(e)
     }
 
