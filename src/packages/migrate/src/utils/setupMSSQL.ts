@@ -12,17 +12,9 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   const { dirname } = options
 
   let schema = `
-    IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'tests-migrate')
-    BEGIN
-      CREATE DATABASE [tests-migrate]
-    END
-    IF NOT EXISTS(SELECT * FROM sys.databases WHERE name = 'tests-migrate-shadowdb')
-    BEGIN
-      CREATE DATABASE [tests-migrate-shadowdb]
-    END
-
-    USE [tests-migrate]
-    `
+    CREATE DATABASE [tests-migrate-shadowdb]
+    CREATE DATABASE [tests-migrate]
+  `
   if (dirname !== '') {
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
   }
@@ -40,7 +32,8 @@ export async function tearDownMSSQL(options: SetupParams) {
   const connection = await connectionPool.connect()
 
   await connection.query(`
-  DROP DATABASE IF EXISTS "tests-migrate";
+    DROP DATABASE IF EXISTS "tests-migrate-shadowdb";
+    DROP DATABASE IF EXISTS "tests-migrate";
 `)
   void connection.close()
 }
