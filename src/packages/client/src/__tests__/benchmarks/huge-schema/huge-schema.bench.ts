@@ -9,19 +9,19 @@ import { generateTestClient } from '../../../utils/getTestClient'
 const suite = new Benchmark.Suite('typescript')
 // @ts-ignore
 suite
-  .add('client generation ~50 Models', {
-    defer: true,
-    fn: function (deferred) {
-      generateTestClient()
-        .then(() => {
-          deferred.resolve()
-        })
-        .catch((err) => {
-          console.error(err)
-          process.exit(1)
-        })
-    },
-  })
+//   .add('client generation ~50 Models', {
+//     defer: true,
+//     fn: function (deferred) {
+//       generateTestClient()
+//         .then(() => {
+//           deferred.resolve()
+//         })
+//         .catch((err) => {
+//           console.error(err)
+//           process.exit(1)
+//         })
+//     },
+//   })
   .add('typescript compilation ~50 Models', {
     defer: true,
     fn: function (deferred) {
