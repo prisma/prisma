@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest an idea for this project
+labels: "kind/feature"
+body:
+  - type: textarea
+    attributes:
+      label: Problem description
+      value: |
+        <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+    validation:
+      required: true
+  - type: textarea
+    attributes:
+      label: Suggested solution
+      value: |
+        <!-- A clear and concise description of what you want to happen. -->
+  - type: textarea
+    attributes:
+      label: Alternatives
+      value: |
+        <!-- A clear and concise description of any alternative solutions or features you've considered. -->
+  - type: textarea
+    attributes:
+      label: Additional context
+      value: |
+        <!-- Add any other context or screenshots about the feature request here. -->
