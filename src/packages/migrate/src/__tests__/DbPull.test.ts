@@ -423,6 +423,8 @@ describe('mysql', () => {
 })
 
 describe('SQL Server', () => {
+  jest.setTimeout(30000)
+
   const connectionString =
     process.env.TEST_MSSQL_URI ||
     'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'

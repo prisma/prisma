@@ -247,7 +247,7 @@ model User {
 exports[`mysql basic introspection --url 2`] = `
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:root@127.0.0.1:3306/tests"
+  url      = "mysql://root:root@localhost:5432/tests"
 }
 
 model your_log {
