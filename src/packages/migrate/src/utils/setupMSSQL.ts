@@ -11,18 +11,24 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   const { connectionString } = options
   const { dirname } = options
 
-  let schema = `
-    CREATE DATABASE [tests-migrate-shadowdb]
-    CREATE DATABASE [tests-migrate]
-  `
-  if (dirname !== '') {
-    schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
-  }
-
   const connectionPool = new mssql.ConnectionPool(connectionString)
   const connection = await connectionPool.connect()
 
-  await connection.query(schema)
+  try {
+    await connection.query(`
+      CREATE DATABASE [tests-migrate-shadowdb]
+      CREATE DATABASE [tests-migrate]
+    `)
+  } catch (e) {
+    console.warn(e)
+  }
+
+  if (dirname !== '') {
+    let schema = 'USE [tests-migrate]\n'
+    schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+    await connection.query(schema)
+  }
+
   void connection.close()
 }
 
