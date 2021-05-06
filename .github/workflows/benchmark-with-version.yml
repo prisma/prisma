@@ -32,6 +32,7 @@ jobs:
           node-version: "12"
 
       - run: yarn global add prisma@2.21.0
+      - run: npm i --silent -g pnpm@5.15.1 --unsafe-perm
       - run: pnpm install
 
       - name: Run benchmarks
