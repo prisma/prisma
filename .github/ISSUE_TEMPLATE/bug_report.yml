@@ -12,7 +12,7 @@ body:
       label: Bug description
       value: |
         <!-- A clear and concise description of what the bug is. -->
-    validation:
+    validations:
       required: true
   - type: textarea
     attributes:
@@ -25,7 +25,7 @@ body:
         3. Run '....'
         4. See error
         -->
-    validation:
+    validations:
       required: true
   - type: textarea
     attributes:
@@ -38,7 +38,7 @@ body:
       value: |
         <!-- Your Prisma schema, Prisma Client queries, ...
         Do not include your database credentials when sharing your Prisma schema! -->
-      validation:
+      validations:
         required: true
   - type: textarea
     attributes:
@@ -53,5 +53,5 @@ body:
         ```
 
         ```
-    validation:
+    validations:
       required: true
