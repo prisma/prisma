@@ -22,23 +22,23 @@ suite
 //         })
 //     },
 //   })
-  .add('typescript compilation ~50 Models', {
-    defer: true,
-    fn: function (deferred) {
-      compileFile(path.join(__dirname, './compile.ts'))
-        .then(() => {
-          deferred.resolve()
-        })
-        .catch((err) => {
-          console.error(err)
-          process.exit(1)
-        })
-    },
-  })
-  .on('cycle', (event) => {
-    // Output benchmark result by converting benchmark result to string
-    console.log(String(event.target))
-  })
+//   .add('typescript compilation ~50 Models', {
+//     defer: true,
+//     fn: function (deferred) {
+//       compileFile(path.join(__dirname, './compile.ts'))
+//         .then(() => {
+//           deferred.resolve()
+//         })
+//         .catch((err) => {
+//           console.error(err)
+//           process.exit(1)
+//         })
+//     },
+//   })
+//   .on('cycle', (event) => {
+//     // Output benchmark result by converting benchmark result to string
+//     console.log(String(event.target))
+//   })
   .on('complete', () => {
     getSize('./node_modules/@prisma/client')
     getSize('./node_modules/.prisma/client')
