@@ -38,8 +38,8 @@ body:
       value: |
         <!-- Your Prisma schema, Prisma Client queries, ...
         Do not include your database credentials when sharing your Prisma schema! -->
-      validations:
-        required: true
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: Environment & setup
