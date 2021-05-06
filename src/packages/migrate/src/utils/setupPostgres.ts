@@ -11,10 +11,15 @@ export type SetupParams = {
 export async function setupPostgres(options: SetupParams): Promise<void> {
   const { connectionString } = options
   const { dirname } = options
+  const credentials = uriToCredentials(connectionString)
 
-  if (dirname === '') return
-
-  const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+  let schema = `
+  SELECT 'CREATE DATABASE tests-migrate-shadowdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'tests-migrate-shadowdb');
+  SELECT 'CREATE DATABASE ${credentials.database}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${credentials.database}');
+  `
+  if (dirname !== '') {
+    schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+  }
 
   await createDatabase(connectionString).catch((e) => console.error(e))
 
