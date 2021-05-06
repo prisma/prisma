@@ -6,7 +6,7 @@ body:
     attributes:
       value: |
         Thanks for helping us improve Prisma! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by setting the `DEBUG="*"` environment variable and enabling additional logging output in Prisma Client.
-        Learn more about the best practice for writing a bug report here: https://pris.ly/d/bug-reports
+        Learn more about the best practices for writing a bug report here: https://pris.ly/d/bug-reports
   - type: textarea
     attributes:
       label: Bug description
