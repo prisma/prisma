@@ -1653,10 +1653,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: PostMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | PostCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: PostAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: PostSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: PostMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: PostMaxAggregateInputType
   }
 
   export type GetPostAggregateType<T extends PostAggregateArgs> = {
-    [P in keyof T & keyof AggregatePost]: P extends '_count'
+    [P in keyof T & keyof AggregatePost as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregatePost[P]>
@@ -1678,6 +1698,26 @@ export namespace Prisma {
     _sum?: PostSumAggregateInputType
     _min?: PostMinAggregateInputType
     _max?: PostMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: PostCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: PostAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: PostSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: PostMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: PostMaxAggregateInputType
   }
 
 
@@ -1697,7 +1737,15 @@ export namespace Prisma {
 
   type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<Array<
     PickArray<PostGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof PostGroupByOutputType))]: GetScalarType<T[P], PostGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof PostGroupByOutputType
+        | GetDeprecatedAggregationKeys<PostAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<PostAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        PostGroupByOutputType[P extends GetDeprecatedAggregationKeys<PostAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -2553,10 +2601,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: UserMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | UserCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: UserAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: UserSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: UserMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: UserMaxAggregateInputType
   }
 
   export type GetUserAggregateType<T extends UserAggregateArgs> = {
-    [P in keyof T & keyof AggregateUser]: P extends '_count'
+    [P in keyof T & keyof AggregateUser as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateUser[P]>
@@ -2578,6 +2646,26 @@ export namespace Prisma {
     _sum?: UserSumAggregateInputType
     _min?: UserMinAggregateInputType
     _max?: UserMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: UserCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: UserAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: UserSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: UserMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: UserMaxAggregateInputType
   }
 
 
@@ -2605,7 +2693,15 @@ export namespace Prisma {
 
   type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<Array<
     PickArray<UserGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof UserGroupByOutputType))]: GetScalarType<T[P], UserGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof UserGroupByOutputType
+        | GetDeprecatedAggregationKeys<UserAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<UserAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        UserGroupByOutputType[P extends GetDeprecatedAggregationKeys<UserAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -3469,10 +3565,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: MMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | MCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: MAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: MSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: MMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: MMaxAggregateInputType
   }
 
   export type GetMAggregateType<T extends MAggregateArgs> = {
-    [P in keyof T & keyof AggregateM]: P extends '_count'
+    [P in keyof T & keyof AggregateM as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateM[P]>
@@ -3494,6 +3610,26 @@ export namespace Prisma {
     _sum?: MSumAggregateInputType
     _min?: MMinAggregateInputType
     _max?: MMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: MCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: MAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: MSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: MMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: MMaxAggregateInputType
   }
 
 
@@ -3520,7 +3656,15 @@ export namespace Prisma {
 
   type GetMGroupByPayload<T extends MGroupByArgs> = Promise<Array<
     PickArray<MGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof MGroupByOutputType))]: GetScalarType<T[P], MGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof MGroupByOutputType
+        | GetDeprecatedAggregationKeys<MAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<MAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        MGroupByOutputType[P extends GetDeprecatedAggregationKeys<MAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -4383,10 +4527,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: NMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | NCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: NAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: NSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: NMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: NMaxAggregateInputType
   }
 
   export type GetNAggregateType<T extends NAggregateArgs> = {
-    [P in keyof T & keyof AggregateN]: P extends '_count'
+    [P in keyof T & keyof AggregateN as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateN[P]>
@@ -4408,6 +4572,26 @@ export namespace Prisma {
     _sum?: NSumAggregateInputType
     _min?: NMinAggregateInputType
     _max?: NMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: NCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: NAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: NSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: NMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: NMaxAggregateInputType
   }
 
 
@@ -4434,7 +4618,15 @@ export namespace Prisma {
 
   type GetNGroupByPayload<T extends NGroupByArgs> = Promise<Array<
     PickArray<NGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof NGroupByOutputType))]: GetScalarType<T[P], NGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof NGroupByOutputType
+        | GetDeprecatedAggregationKeys<NAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<NAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        NGroupByOutputType[P extends GetDeprecatedAggregationKeys<NAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -5297,10 +5489,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: OneOptionalMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | OneOptionalCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OneOptionalAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OneOptionalSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OneOptionalMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OneOptionalMaxAggregateInputType
   }
 
   export type GetOneOptionalAggregateType<T extends OneOptionalAggregateArgs> = {
-    [P in keyof T & keyof AggregateOneOptional]: P extends '_count'
+    [P in keyof T & keyof AggregateOneOptional as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOneOptional[P]>
@@ -5322,6 +5534,26 @@ export namespace Prisma {
     _sum?: OneOptionalSumAggregateInputType
     _min?: OneOptionalMinAggregateInputType
     _max?: OneOptionalMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: OneOptionalCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OneOptionalAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OneOptionalSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OneOptionalMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OneOptionalMaxAggregateInputType
   }
 
 
@@ -5348,7 +5580,15 @@ export namespace Prisma {
 
   type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<Array<
     PickArray<OneOptionalGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof OneOptionalGroupByOutputType
+        | GetDeprecatedAggregationKeys<OneOptionalAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<OneOptionalAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        OneOptionalGroupByOutputType[P extends GetDeprecatedAggregationKeys<OneOptionalAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -6221,10 +6461,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: ManyRequiredMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | ManyRequiredCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: ManyRequiredAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: ManyRequiredSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: ManyRequiredMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: ManyRequiredMaxAggregateInputType
   }
 
   export type GetManyRequiredAggregateType<T extends ManyRequiredAggregateArgs> = {
-    [P in keyof T & keyof AggregateManyRequired]: P extends '_count'
+    [P in keyof T & keyof AggregateManyRequired as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateManyRequired[P]>
@@ -6246,6 +6506,26 @@ export namespace Prisma {
     _sum?: ManyRequiredSumAggregateInputType
     _min?: ManyRequiredMinAggregateInputType
     _max?: ManyRequiredMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: ManyRequiredCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: ManyRequiredAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: ManyRequiredSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: ManyRequiredMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: ManyRequiredMaxAggregateInputType
   }
 
 
@@ -6273,7 +6553,15 @@ export namespace Prisma {
 
   type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<Array<
     PickArray<ManyRequiredGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof ManyRequiredGroupByOutputType
+        | GetDeprecatedAggregationKeys<ManyRequiredAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<ManyRequiredAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        ManyRequiredGroupByOutputType[P extends GetDeprecatedAggregationKeys<ManyRequiredAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -7141,10 +7429,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: OptionalSide1MaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | OptionalSide1CountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OptionalSide1AvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OptionalSide1SumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OptionalSide1MinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OptionalSide1MaxAggregateInputType
   }
 
   export type GetOptionalSide1AggregateType<T extends OptionalSide1AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide1]: P extends '_count'
+    [P in keyof T & keyof AggregateOptionalSide1 as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide1[P]>
@@ -7166,6 +7474,26 @@ export namespace Prisma {
     _sum?: OptionalSide1SumAggregateInputType
     _min?: OptionalSide1MinAggregateInputType
     _max?: OptionalSide1MaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: OptionalSide1CountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OptionalSide1AvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OptionalSide1SumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OptionalSide1MinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OptionalSide1MaxAggregateInputType
   }
 
 
@@ -7193,7 +7521,15 @@ export namespace Prisma {
 
   type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<Array<
     PickArray<OptionalSide1GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof OptionalSide1GroupByOutputType
+        | GetDeprecatedAggregationKeys<OptionalSide1AggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<OptionalSide1AggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        OptionalSide1GroupByOutputType[P extends GetDeprecatedAggregationKeys<OptionalSide1AggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -8051,10 +8387,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: OptionalSide2MaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | OptionalSide2CountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OptionalSide2AvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OptionalSide2SumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OptionalSide2MinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OptionalSide2MaxAggregateInputType
   }
 
   export type GetOptionalSide2AggregateType<T extends OptionalSide2AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide2]: P extends '_count'
+    [P in keyof T & keyof AggregateOptionalSide2 as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide2[P]>
@@ -8076,6 +8432,26 @@ export namespace Prisma {
     _sum?: OptionalSide2SumAggregateInputType
     _min?: OptionalSide2MinAggregateInputType
     _max?: OptionalSide2MaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: OptionalSide2CountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: OptionalSide2AvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: OptionalSide2SumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: OptionalSide2MinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: OptionalSide2MaxAggregateInputType
   }
 
 
@@ -8102,7 +8478,15 @@ export namespace Prisma {
 
   type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<Array<
     PickArray<OptionalSide2GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof OptionalSide2GroupByOutputType
+        | GetDeprecatedAggregationKeys<OptionalSide2AggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<OptionalSide2AggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        OptionalSide2GroupByOutputType[P extends GetDeprecatedAggregationKeys<OptionalSide2AggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -8947,10 +9331,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: AMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | ACountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: AAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: ASumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: AMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: AMaxAggregateInputType
   }
 
   export type GetAAggregateType<T extends AAggregateArgs> = {
-    [P in keyof T & keyof AggregateA]: P extends '_count'
+    [P in keyof T & keyof AggregateA as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateA[P]>
@@ -8972,6 +9376,26 @@ export namespace Prisma {
     _sum?: ASumAggregateInputType
     _min?: AMinAggregateInputType
     _max?: AMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: ACountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: AAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: ASumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: AMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: AMaxAggregateInputType
   }
 
 
@@ -8994,7 +9418,15 @@ export namespace Prisma {
 
   type GetAGroupByPayload<T extends AGroupByArgs> = Promise<Array<
     PickArray<AGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof AGroupByOutputType))]: GetScalarType<T[P], AGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof AGroupByOutputType
+        | GetDeprecatedAggregationKeys<AAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<AAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        AGroupByOutputType[P extends GetDeprecatedAggregationKeys<AAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -9760,10 +10192,30 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: BMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | BCountAggregateInputType
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: BAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: BSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: BMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: BMaxAggregateInputType
   }
 
   export type GetBAggregateType<T extends BAggregateArgs> = {
-    [P in keyof T & keyof AggregateB]: P extends '_count'
+    [P in keyof T & keyof AggregateB as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateB[P]>
@@ -9785,6 +10237,26 @@ export namespace Prisma {
     _sum?: BSumAggregateInputType
     _min?: BMinAggregateInputType
     _max?: BMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: BCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_avg\`
+    **/
+    avg?: BAvgAggregateInputType
+    /**
+     * @deprecated please use \`_sum\`
+    **/
+    sum?: BSumAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: BMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: BMaxAggregateInputType
   }
 
 
@@ -9803,7 +10275,15 @@ export namespace Prisma {
 
   type GetBGroupByPayload<T extends BGroupByArgs> = Promise<Array<
     PickArray<BGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof BGroupByOutputType))]: GetScalarType<T[P], BGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof BGroupByOutputType
+        | GetDeprecatedAggregationKeys<BAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<BAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        BGroupByOutputType[P extends GetDeprecatedAggregationKeys<BAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -10535,10 +11015,22 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: CMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | CCountAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: CMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: CMaxAggregateInputType
   }
 
   export type GetCAggregateType<T extends CAggregateArgs> = {
-    [P in keyof T & keyof AggregateC]: P extends '_count'
+    [P in keyof T & keyof AggregateC as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateC[P]>
@@ -10558,6 +11050,18 @@ export namespace Prisma {
     _count?: CCountAggregateInputType | true
     _min?: CMinAggregateInputType
     _max?: CMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: CCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: CMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: CMaxAggregateInputType
   }
 
 
@@ -10576,7 +11080,15 @@ export namespace Prisma {
 
   type GetCGroupByPayload<T extends CGroupByArgs> = Promise<Array<
     PickArray<CGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof CGroupByOutputType))]: GetScalarType<T[P], CGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof CGroupByOutputType
+        | GetDeprecatedAggregationKeys<CAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<CAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        CGroupByOutputType[P extends GetDeprecatedAggregationKeys<CAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -11296,10 +11808,22 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: DMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | DCountAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: DMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: DMaxAggregateInputType
   }
 
   export type GetDAggregateType<T extends DAggregateArgs> = {
-    [P in keyof T & keyof AggregateD]: P extends '_count'
+    [P in keyof T & keyof AggregateD as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateD[P]>
@@ -11319,6 +11843,18 @@ export namespace Prisma {
     _count?: DCountAggregateInputType | true
     _min?: DMinAggregateInputType
     _max?: DMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: DCountAggregateInputType | true
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: DMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: DMaxAggregateInputType
   }
 
 
@@ -11336,7 +11872,15 @@ export namespace Prisma {
 
   type GetDGroupByPayload<T extends DGroupByArgs> = Promise<Array<
     PickArray<DGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof DGroupByOutputType))]: GetScalarType<T[P], DGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof DGroupByOutputType
+        | GetDeprecatedAggregationKeys<DAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<DAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        DGroupByOutputType[P extends GetDeprecatedAggregationKeys<DAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -12051,10 +12595,22 @@ export namespace Prisma {
      * Select which fields to find the maximum value
     **/
     _max?: EMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: true | ECountAggregateInputType
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: EMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: EMaxAggregateInputType
   }
 
   export type GetEAggregateType<T extends EAggregateArgs> = {
-    [P in keyof T & keyof AggregateE]: P extends '_count'
+    [P in keyof T & keyof AggregateE as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateE[P]>
@@ -12074,6 +12630,18 @@ export namespace Prisma {
     _count?: ECountAggregateInputType | true
     _min?: EMinAggregateInputType
     _max?: EMaxAggregateInputType
+    /**
+     * @deprecated please use \`_count\`
+    **/
+    count?: ECountAggregateInputType | true
+    /**
+     * @deprecated please use \`_min\`
+    **/
+    min?: EMinAggregateInputType
+    /**
+     * @deprecated please use \`_max\`
+    **/
+    max?: EMaxAggregateInputType
   }
 
 
@@ -12089,7 +12657,15 @@ export namespace Prisma {
 
   type GetEGroupByPayload<T extends EGroupByArgs> = Promise<Array<
     PickArray<EGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof EGroupByOutputType))]: GetScalarType<T[P], EGroupByOutputType[P]>
+      [P in keyof T & (
+        | keyof EGroupByOutputType
+        | GetDeprecatedAggregationKeys<EAggregateArgs>
+        ) as P extends GetDeprecatedAggregationKeys<EAggregateArgs> ? \`_\${P}\` : P]: GetScalarType<
+        T[P],
+        EGroupByOutputType[P extends GetDeprecatedAggregationKeys<EAggregateArgs>
+          ? \`_\${P}\`
+          : P]
+      >
     }
   >>
     
@@ -16728,6 +17304,11 @@ export namespace Prisma {
   export type BatchPayload = {
     count: number
   }
+  /**
+   * Helpers
+   */ 
+  type DeprecatedAggregations = 'count' | 'sum' | 'min' | 'max' | 'avg'
+  type GetDeprecatedAggregationKeys<T> = keyof T & DeprecatedAggregations
 
   /**
    * DMMF
