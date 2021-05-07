@@ -1312,9 +1312,12 @@ new PrismaClient({
            * For speed reasons we can go with "for in "
            */
           let unpacker: Unpacker | undefined = undefined
-
+          const deprecatedKeys = ['min', 'max', 'sum', 'avg', 'count']
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
+            if (deprecatedKeys.includes(key)) {
+              key = `_${key}`
+            }
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
@@ -1359,6 +1362,10 @@ new PrismaClient({
            * For speed reasons we can go with "for in "
            */
           const select = Object.entries(args).reduce((acc, [key, value]) => {
+            const deprecatedKeys = ['min', 'max', 'sum', 'avg', 'count']
+            if (deprecatedKeys.includes(key)) {
+              key = `_${key}`
+            }
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {

@@ -2022,7 +2022,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -2035,7 +2035,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'avg',
+              name: '_avg',
             },
             {
               inputTypes: [
@@ -2048,7 +2048,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'sum',
+              name: '_sum',
             },
             {
               inputTypes: [
@@ -2061,7 +2061,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -2074,7 +2074,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'IntWithAggregatesFilter',
@@ -2247,7 +2247,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -2260,7 +2260,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -2273,7 +2273,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'StringWithAggregatesFilter',
@@ -2325,7 +2325,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -2338,7 +2338,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -2351,7 +2351,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'BoolWithAggregatesFilter',
@@ -3701,7 +3701,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -3714,7 +3714,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'avg',
+              name: '_avg',
             },
             {
               inputTypes: [
@@ -3727,7 +3727,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'sum',
+              name: '_sum',
             },
             {
               inputTypes: [
@@ -3740,7 +3740,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -3753,7 +3753,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'NestedIntWithAggregatesFilter',
@@ -4024,7 +4024,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -4037,7 +4037,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -4050,7 +4050,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'NestedStringWithAggregatesFilter',
@@ -4102,7 +4102,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'count',
+              name: '_count',
             },
             {
               inputTypes: [
@@ -4115,7 +4115,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'min',
+              name: '_min',
             },
             {
               inputTypes: [
@@ -4128,7 +4128,7 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
-              name: 'max',
+              name: '_max',
             },
           ],
           name: 'NestedBoolWithAggregatesFilter',
@@ -6582,7 +6582,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6593,7 +6593,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6604,7 +6604,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6615,7 +6615,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6626,7 +6626,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6682,7 +6682,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6693,7 +6693,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6704,7 +6704,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6715,7 +6715,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6726,7 +6726,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6742,7 +6742,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6753,7 +6753,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6764,7 +6764,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6775,7 +6775,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6786,7 +6786,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6822,7 +6822,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6833,7 +6833,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6844,7 +6844,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6855,7 +6855,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6866,7 +6866,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6916,7 +6916,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'title',
               outputType: {
                 isList: false,
@@ -6926,7 +6926,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'published',
               outputType: {
                 isList: false,
@@ -6951,7 +6951,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -6961,7 +6961,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -6976,7 +6976,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -6986,7 +6986,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7001,7 +7001,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7011,7 +7011,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7046,7 +7046,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7056,7 +7056,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7101,7 +7101,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'email',
               outputType: {
                 isList: false,
@@ -7126,7 +7126,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7141,7 +7141,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7156,7 +7156,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7181,7 +7181,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,

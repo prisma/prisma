@@ -60,6 +60,44 @@ async function main() {
   const max1: MinMax = a1._max
   const min1: MinMax = a1._min
 
+  const a1Legacy = await prisma.user.aggregate({
+    cursor: {
+      email: 'a@a.de',
+    },
+    orderBy: {
+      age: 'asc',
+    },
+    skip: 12,
+    take: 10,
+    where: {
+      age: { gt: 500 },
+    },
+    count: true,
+    avg: {
+      age: true,
+      followerCount: true,
+    },
+    max: {
+      age: true,
+      email: true,
+      followerCount: true,
+    },
+    min: {
+      age: true,
+      email: true,
+      followerCount: true,
+    },
+    sum: {
+      age: true,
+      followerCount: true,
+    },
+  })
+  const cLegacy: number = a1._count
+  const avg1Legacy: AvgSum = a1._avg
+  const sum1Legacy: AvgSum = a1._sum
+  const max1Legacy: MinMax = a1._max
+  const min1Legacy: MinMax = a1._min
+
   const test2 = await prisma.user.aggregate({
     cursor: {
       email: 'a@a.de',
@@ -81,14 +119,38 @@ async function main() {
       name: true,
     },
   })
-  const c2: {
+  type Count = {
     _all: number | null
     age: number | null
     email: number | null
     followerCount: number | null
     id: number | null
     name: number | null
-  } = test2._count
+  }
+  const c2: Count = test2._count
+
+  const test2Legacy = await prisma.user.aggregate({
+    cursor: {
+      email: 'a@a.de',
+    },
+    orderBy: {
+      age: 'asc',
+    },
+    skip: 12,
+    take: 10,
+    where: {
+      age: { gt: 500 },
+    },
+    count: {
+      _all: true,
+      age: true,
+      email: true,
+      followerCount: true,
+      id: true,
+      name: true,
+    },
+  })
+  const c2Legacy: Count = test2._count
 }
 
 main().catch((e) => {

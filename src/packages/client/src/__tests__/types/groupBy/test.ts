@@ -47,7 +47,41 @@ async function main() {
       name: '',
     },
   })
-
+  const xLegacy = await prisma.user.groupBy({
+    by: ['name'],
+    where: {
+      age: {
+        gt: -1,
+      },
+    },
+    orderBy: [
+      {
+        name: 'desc',
+      },
+    ],
+    skip: 0,
+    take: 10000,
+    avg: {
+      age: true,
+    },
+    count: {
+      age: true,
+      email: true,
+      _all: true,
+    },
+    max: {
+      age: true,
+    },
+    min: {
+      age: true,
+    },
+    sum: {
+      age: true,
+    },
+    having: {
+      name: '',
+    },
+  })
   type X0 = {
     name: string | null
     _avg: {
@@ -69,6 +103,7 @@ async function main() {
     }
   }
   const x0: X0 = x[0]
+  const xLegacy0: X0 = xLegacy[0]
 
   const y = await prisma.user.groupBy({
     by: ['name'],
@@ -82,7 +117,18 @@ async function main() {
       },
     },
   })
-
+  const yLegacy = await prisma.user.groupBy({
+    by: ['name'],
+    count: true,
+    having: {
+      name: '',
+      email: {
+        _min: {
+          contains: '',
+        },
+      },
+    },
+  })
   const z = await prisma.user.groupBy({
     by: ['name'],
     having: {

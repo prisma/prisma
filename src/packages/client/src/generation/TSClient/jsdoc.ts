@@ -34,7 +34,9 @@ function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
 
 ${comment}`
 }
-
+function getDeprecationString(field: string) {
+  return `@deprecated please use \`${field}\``
+}
 const undefinedNote = `Note, that providing \`undefined\` is treated as the value not being there.
 Read more here: https://pris.ly/d/null-undefined`
 
@@ -60,6 +62,11 @@ const JSDocFields = {
       `Select which fields to find the maximum value`,
       'aggregations',
     ),
+  count: () => getDeprecationString('_count'),
+  avg: () => getDeprecationString('_avg'),
+  sum: () => getDeprecationString('_sum'),
+  min: () => getDeprecationString('_min'),
+  max: () => getDeprecationString('_max'),
   distinct: (singular, plural) =>
     addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
   orderBy: (singular, plural) =>
@@ -309,6 +316,11 @@ const aggregations = await prisma.user.aggregate({
       _sum: JSDocFields._sum,
       _min: JSDocFields._min,
       _max: JSDocFields._max,
+      count: JSDocFields.count,
+      avg: JSDocFields.avg,
+      sum: JSDocFields.sum,
+      min: JSDocFields.min,
+      max: JSDocFields.max,
     },
   },
   count: {
