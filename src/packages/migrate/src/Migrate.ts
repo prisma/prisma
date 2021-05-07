@@ -5,6 +5,10 @@ import {
   uriToCredentials,
   getConfig,
 } from '@prisma/sdk'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 import fs from 'fs'
@@ -84,9 +88,9 @@ export class Migrate {
 
   public async getDbInfo(): Promise<{
     schemaWord: string
-    dbType: string
-    dbName: string
-    dbLocation: string
+    dbType?: string
+    dbName?: string
+    dbLocation?: string
   }> {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
@@ -104,9 +108,9 @@ export class Migrate {
 
       return {
         schemaWord: 'database',
-        dbType: 'unknown',
-        dbName: 'unknown',
-        dbLocation: 'unknown',
+        dbType: undefined,
+        dbName: undefined,
+        dbLocation: undefined,
       }
     }
   }

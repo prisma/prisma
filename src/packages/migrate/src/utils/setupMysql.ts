@@ -11,11 +11,18 @@ export type SetupParams = {
 export async function setupMysql(options: SetupParams): Promise<void> {
   const { connectionString } = options
   const { dirname } = options
-  const schema = fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+  const credentials = uriToCredentials(connectionString)
+
+  let schema = `
+  CREATE DATABASE IF NOT EXISTS \`tests-migrate-shadowdb\`;
+  CREATE DATABASE IF NOT EXISTS \`${credentials.database}\`;
+  `
+  if (dirname !== '') {
+    schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
+  }
 
   await createDatabase(connectionString).catch((e) => console.error(e))
 
-  const credentials = uriToCredentials(connectionString)
   const db = await mariadb.createConnection({
     host: credentials.host,
     port: credentials.port,
@@ -35,7 +42,7 @@ export async function tearDownMysql(options: SetupParams) {
   const credentials = uriToCredentials(connectionString)
 
   const credentialsClone = { ...credentials }
-  credentialsClone.database = 'tests'
+  credentialsClone.database = 'mysql'
 
   const db = await mariadb.createConnection({
     host: credentialsClone.host,

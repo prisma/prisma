@@ -11,31 +11,44 @@ import prompt from 'prompts'
 import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
+type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
 export async function getDbInfo(
   schemaPath?: string,
 ): Promise<{
   name: string
-  dbLocation: string
-  schemaWord: string
-  dbType: string
-  dbName: string
   url: string
+  schemaWord: 'database'
+  dbLocation?: string
+  dbType?: dbType
+  dbName?: string
   schema?: string
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
 
-  const credentials = uriToCredentials(activeDatasource.url.value)
-  const dbLocation = getDbLocation(credentials)
-  const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
-  return {
-    name: activeDatasource.name,
-    dbLocation,
-    ...dbinfoFromCredentials,
-    url: activeDatasource.url.value,
-    schema: credentials.schema,
+  try {
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const dbLocation = getDbLocation(credentials)
+    const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
+
+    return {
+      name: activeDatasource.name,
+      dbLocation,
+      ...dbinfoFromCredentials,
+      url: activeDatasource.url.value,
+      schema: credentials.schema,
+    }
+  } catch (e) {
+    return {
+      name: activeDatasource.name,
+      schemaWord: 'database',
+      dbType: undefined,
+      dbName: undefined,
+      dbLocation: undefined,
+      url: activeDatasource.url.value,
+    }
   }
 }
 
@@ -104,9 +117,13 @@ export async function ensureDatabaseExists(
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
         credentials,
       )
-      return `${dbType} ${schemaWord} ${chalk.bold(
-        dbName,
-      )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+      if (dbType) {
+        return `${dbType} ${schemaWord} ${chalk.bold(
+          dbName,
+        )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+      } else {
+        return `${schemaWord} created.\n`
+      }
     }
   } else {
     await interactivelyCreateDatabase(
@@ -192,7 +209,7 @@ export function getDbinfoFromCredentials(
   credentials,
 ): {
   dbName: string
-  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite' | 'MSSQL'
+  dbType: dbType
   schemaWord: 'database'
 } {
   const dbName = credentials.database
@@ -208,8 +225,9 @@ export function getDbinfoFromCredentials(
     case 'sqlite':
       dbType = `SQLite`
       break
+    case 'sqlserver':
     case 'mssql':
-      dbType = `MSSQL`
+      dbType = `SQL Server`
       break
   }
 

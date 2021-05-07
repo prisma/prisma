@@ -471,7 +471,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -501,6 +501,12 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
           TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate
+          TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MSSQL_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
+          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
 
       - uses: codecov/codecov-action@v1
         with:

@@ -2,9 +2,12 @@ import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { uriToCredentials } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
 import { getSchemaDir } from './cli/getSchema'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from './convertCredentials'
 
 const exists = promisify(fs.exists)
 
@@ -36,9 +39,11 @@ export async function canConnectToDatabase(
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<ConnectionResult> {
-  const credentials = uriToCredentials(connectionString)
+  const provider = databaseTypeToConnectorType(
+    protocolToDatabaseType(`${connectionString.split(':')[0]}:`),
+  )
 
-  if (credentials.type === 'sqlite') {
+  if (provider === 'sqlite') {
     const sqliteExists = await doesSqliteDbExist(connectionString, cwd)
     if (sqliteExists) {
       return true
