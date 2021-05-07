@@ -55,7 +55,7 @@ services:
       - mssql
 
   postgres:
-    image: postgres:10
+    image: postgres:13
     restart: always
     environment:
       - POSTGRES_DB=tests
@@ -65,7 +65,7 @@ services:
       - postgres:/var/lib/postgresql/data
 
   postgres_isolated:
-    image: postgres:10
+    image: postgres:13
     restart: always
     environment:
       - POSTGRES_DB=tests
