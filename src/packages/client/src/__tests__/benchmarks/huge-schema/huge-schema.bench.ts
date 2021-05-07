@@ -39,7 +39,7 @@ suite
 //     // Output benchmark result by converting benchmark result to string
 //     console.log(String(event.target))
 //   })
-  add('RegExp#test', function() {
+  .add('RegExp#test', function() {
     /o/.test('Hello World!');
   })
   .on('complete', () => {
