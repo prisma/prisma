@@ -38,6 +38,8 @@ jobs:
       - name: Run benchmarks
         run: yarn -s ts-node scripts/bench.ts | tee output.txt
 
+      - run: cat output.txt
+      
       - name: Store benchmark result
         uses: rhysd/github-action-benchmark@v1
         with:
