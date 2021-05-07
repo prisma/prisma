@@ -1676,11 +1676,11 @@ export namespace Prisma {
   }
 
   export type GetPostAggregateType<T extends PostAggregateArgs> = {
-    [P in keyof T & keyof AggregatePost as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregatePost | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregatePost[P]>
-      : GetScalarType<T[P], AggregatePost[P]>
+        : GetScalarType<T[P], AggregatePost[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregatePost>]>
+      : GetScalarType<T[P], AggregatePost[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregatePost>]>
   }
 
 
@@ -2624,11 +2624,11 @@ export namespace Prisma {
   }
 
   export type GetUserAggregateType<T extends UserAggregateArgs> = {
-    [P in keyof T & keyof AggregateUser as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateUser | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateUser[P]>
-      : GetScalarType<T[P], AggregateUser[P]>
+        : GetScalarType<T[P], AggregateUser[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateUser>]>
+      : GetScalarType<T[P], AggregateUser[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateUser>]>
   }
 
 
@@ -3588,11 +3588,11 @@ export namespace Prisma {
   }
 
   export type GetMAggregateType<T extends MAggregateArgs> = {
-    [P in keyof T & keyof AggregateM as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateM | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateM[P]>
-      : GetScalarType<T[P], AggregateM[P]>
+        : GetScalarType<T[P], AggregateM[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateM>]>
+      : GetScalarType<T[P], AggregateM[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateM>]>
   }
 
 
@@ -4550,11 +4550,11 @@ export namespace Prisma {
   }
 
   export type GetNAggregateType<T extends NAggregateArgs> = {
-    [P in keyof T & keyof AggregateN as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateN | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateN[P]>
-      : GetScalarType<T[P], AggregateN[P]>
+        : GetScalarType<T[P], AggregateN[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateN>]>
+      : GetScalarType<T[P], AggregateN[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateN>]>
   }
 
 
@@ -5512,11 +5512,11 @@ export namespace Prisma {
   }
 
   export type GetOneOptionalAggregateType<T extends OneOptionalAggregateArgs> = {
-    [P in keyof T & keyof AggregateOneOptional as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateOneOptional | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateOneOptional[P]>
-      : GetScalarType<T[P], AggregateOneOptional[P]>
+        : GetScalarType<T[P], AggregateOneOptional[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOneOptional>]>
+      : GetScalarType<T[P], AggregateOneOptional[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOneOptional>]>
   }
 
 
@@ -6484,11 +6484,11 @@ export namespace Prisma {
   }
 
   export type GetManyRequiredAggregateType<T extends ManyRequiredAggregateArgs> = {
-    [P in keyof T & keyof AggregateManyRequired as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateManyRequired | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateManyRequired[P]>
-      : GetScalarType<T[P], AggregateManyRequired[P]>
+        : GetScalarType<T[P], AggregateManyRequired[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateManyRequired>]>
+      : GetScalarType<T[P], AggregateManyRequired[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateManyRequired>]>
   }
 
 
@@ -7452,11 +7452,11 @@ export namespace Prisma {
   }
 
   export type GetOptionalSide1AggregateType<T extends OptionalSide1AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide1 as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateOptionalSide1 | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateOptionalSide1[P]>
-      : GetScalarType<T[P], AggregateOptionalSide1[P]>
+        : GetScalarType<T[P], AggregateOptionalSide1[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOptionalSide1>]>
+      : GetScalarType<T[P], AggregateOptionalSide1[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOptionalSide1>]>
   }
 
 
@@ -8410,11 +8410,11 @@ export namespace Prisma {
   }
 
   export type GetOptionalSide2AggregateType<T extends OptionalSide2AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide2 as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateOptionalSide2 | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateOptionalSide2[P]>
-      : GetScalarType<T[P], AggregateOptionalSide2[P]>
+        : GetScalarType<T[P], AggregateOptionalSide2[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOptionalSide2>]>
+      : GetScalarType<T[P], AggregateOptionalSide2[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateOptionalSide2>]>
   }
 
 
@@ -9354,11 +9354,11 @@ export namespace Prisma {
   }
 
   export type GetAAggregateType<T extends AAggregateArgs> = {
-    [P in keyof T & keyof AggregateA as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateA | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateA[P]>
-      : GetScalarType<T[P], AggregateA[P]>
+        : GetScalarType<T[P], AggregateA[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateA>]>
+      : GetScalarType<T[P], AggregateA[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateA>]>
   }
 
 
@@ -10215,11 +10215,11 @@ export namespace Prisma {
   }
 
   export type GetBAggregateType<T extends BAggregateArgs> = {
-    [P in keyof T & keyof AggregateB as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateB | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateB[P]>
-      : GetScalarType<T[P], AggregateB[P]>
+        : GetScalarType<T[P], AggregateB[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateB>]>
+      : GetScalarType<T[P], AggregateB[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateB>]>
   }
 
 
@@ -11030,11 +11030,11 @@ export namespace Prisma {
   }
 
   export type GetCAggregateType<T extends CAggregateArgs> = {
-    [P in keyof T & keyof AggregateC as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateC | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateC[P]>
-      : GetScalarType<T[P], AggregateC[P]>
+        : GetScalarType<T[P], AggregateC[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateC>]>
+      : GetScalarType<T[P], AggregateC[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateC>]>
   }
 
 
@@ -11823,11 +11823,11 @@ export namespace Prisma {
   }
 
   export type GetDAggregateType<T extends DAggregateArgs> = {
-    [P in keyof T & keyof AggregateD as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateD | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateD[P]>
-      : GetScalarType<T[P], AggregateD[P]>
+        : GetScalarType<T[P], AggregateD[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateD>]>
+      : GetScalarType<T[P], AggregateD[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateD>]>
   }
 
 
@@ -12610,11 +12610,11 @@ export namespace Prisma {
   }
 
   export type GetEAggregateType<T extends EAggregateArgs> = {
-    [P in keyof T & keyof AggregateE as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+    [P in keyof T & (keyof AggregateE | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
-        : GetScalarType<T[P], AggregateE[P]>
-      : GetScalarType<T[P], AggregateE[P]>
+        : GetScalarType<T[P], AggregateE[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateE>]>
+      : GetScalarType<T[P], AggregateE[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof AggregateE>]>
   }
 
 

@@ -92,11 +92,11 @@ async function main() {
       followerCount: true,
     },
   })
-  const cLegacy: number = a1._count
-  const avg1Legacy: AvgSum = a1._avg
-  const sum1Legacy: AvgSum = a1._sum
-  const max1Legacy: MinMax = a1._max
-  const min1Legacy: MinMax = a1._min
+  const cLegacy: number = a1Legacy._count
+  const avg1Legacy: AvgSum = a1Legacy._avg
+  const sum1Legacy: AvgSum = a1Legacy._sum
+  const max1Legacy: MinMax = a1Legacy._max
+  const min1Legacy: MinMax = a1Legacy._min
 
   const test2 = await prisma.user.aggregate({
     cursor: {
@@ -150,7 +150,7 @@ async function main() {
       name: true,
     },
   })
-  const c2Legacy: Count = test2._count
+  const c2Legacy: Count = test2Legacy._count
 }
 
 main().catch((e) => {

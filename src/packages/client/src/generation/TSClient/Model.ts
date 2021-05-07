@@ -362,11 +362,11 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T & keyof ${aggregateName} as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count'
+  [P in keyof T & (keyof ${aggregateName} | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
     ? T[P] extends true
       ? number
-      : GetScalarType<T[P], ${aggregateName}[P]>
-    : GetScalarType<T[P], ${aggregateName}[P]>
+      : GetScalarType<T[P], ${aggregateName}[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof ${aggregateName}>]>
+    : GetScalarType<T[P], ${aggregateName}[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof ${aggregateName}>]>
 }`
   }
   public toTSWithoutNamespace(): string {
