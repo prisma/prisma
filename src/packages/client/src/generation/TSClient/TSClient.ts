@@ -278,11 +278,6 @@ ${
 export type BatchPayload = {
   count: number
 }
-/**
- * Helpers
- */ 
-type DeprecatedAggregations = 'count' | 'sum' | 'min' | 'max' | 'avg'
-type GetDeprecatedAggregationKeys<T> = keyof T & DeprecatedAggregations
 
 /**
  * DMMF

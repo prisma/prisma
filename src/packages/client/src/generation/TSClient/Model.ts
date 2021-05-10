@@ -41,16 +41,6 @@ import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
 
-const deprecated = {
-  aggregate: {
-    _count: 'count',
-    _avg: 'avg',
-    _sum: 'sum',
-    _min: 'min',
-    _max: 'max',
-  },
-}
-
 export class Model implements Generatable {
   protected outputType?: OutputType
   protected type: DMMF.OutputType
@@ -148,39 +138,12 @@ ${indent(
           if (f.outputType.location === 'outputObjectTypes') {
             return `${f.name}?: ${getAggregateInputType(
               (f.outputType.type as DMMF.OutputType).name,
-            )}${f.name === '_count' ? ' | true' : ''}`
+            )}${f.name === '_count' || f.name === 'count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
           return ''
         }),
-    )
-    .concat(
-      // This is purely to add the deprecated types for min, max, avg, sum and count
-      groupByType.fields
-        .filter((f) => f.outputType.location === 'outputObjectTypes')
-        .reduce((acc, f) => {
-          const deprecatedFieldName = deprecated.aggregate[f.name]
-          if (
-            deprecatedFieldName &&
-            f.outputType.location === 'outputObjectTypes'
-          ) {
-            let data = ''
-            const comment = getArgFieldJSDoc(
-              this.type,
-              DMMF.ModelAction.aggregate,
-              deprecatedFieldName,
-            )
-            data += comment ? wrapComment(comment) + '\n' : ''
-            data += `${deprecatedFieldName}?: ${getAggregateInputType(
-              (f.outputType.type as DMMF.OutputType).name,
-            )}${f.name === '_count' ? ' | true' : ''}`
-            acc.push(data)
-          }
-
-          // to make TS happy, but can't happen, as we filter for outputObjectTypes
-          return acc
-        }, [] as string[]),
     )
     .join('\n'),
   TAB_SIZE,
@@ -193,21 +156,9 @@ type ${getGroupByPayloadName(
       model.name,
     )}<T extends ${groupByArgsName}> = Promise<Array<
   PickArray<${groupByType.name}, T['by']> & {
-    [P in keyof T & (
-      | keyof ${groupByType.name}
-      | GetDeprecatedAggregationKeys<${getAggregateArgsName(model.name)}>
-      ) as P extends GetDeprecatedAggregationKeys<${getAggregateArgsName(
-        model.name,
-      )}> ? \`_\${P}\` : P]: GetScalarType<
-      T[P],
-      ${
-        groupByType.name
-      }[P extends GetDeprecatedAggregationKeys<${getAggregateArgsName(
-      model.name,
-    )}>
-        ? \`_\${P}\`
-        : P]
-    >
+    [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
+      groupByType.name
+    }[P]>
   }
 >>
     `
@@ -318,7 +269,7 @@ ${indent(
           f.name,
         )
         data += comment ? wrapComment(comment) + '\n' : ''
-        if (f.name === '_count') {
+        if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
           data += `${f.name}?: ${getAggregateInputType(
@@ -328,32 +279,6 @@ ${indent(
         return data
       }),
     )
-    .concat(
-      // This is purely to add the deprecated types for min, max, avg, sum and count
-      aggregateType.fields.reduce((acc, f) => {
-        const deprecatedFieldName = deprecated.aggregate[f.name]
-        if (deprecatedFieldName) {
-          let data = ''
-          const comment = getArgFieldJSDoc(
-            this.type,
-            DMMF.ModelAction.aggregate,
-            deprecatedFieldName,
-          )
-          data += comment ? wrapComment(comment) + '\n' : ''
-          if (f.name === '_count') {
-            data += `${deprecatedFieldName}?: true | ${getCountAggregateInputName(
-              model.name,
-            )}`
-          } else {
-            data += `${deprecatedFieldName}?: ${getAggregateInputType(
-              (f.outputType.type as DMMF.OutputType).name,
-            )}`
-          }
-          acc.push(data)
-        }
-        return acc
-      }, [] as string[]),
-    )
     .join('\n'),
   TAB_SIZE,
 )}
@@ -362,11 +287,11 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T & (keyof ${aggregateName} | DeprecatedAggregations) as (P extends DeprecatedAggregations ? \`_\${P}\` : P)]: P extends '_count' | 'count'
+      [P in keyof T & keyof ${aggregateName}]: P extends '_count' | 'count'
     ? T[P] extends true
       ? number
-      : GetScalarType<T[P], ${aggregateName}[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof ${aggregateName}>]>
-    : GetScalarType<T[P], ${aggregateName}[Cast<P extends DeprecatedAggregations ? \`_\${P}\` : P, keyof ${aggregateName}>]>
+      : GetScalarType<T[P], ${aggregateName}[P]>
+    : GetScalarType<T[P], ${aggregateName}[P]>
 }`
   }
   public toTSWithoutNamespace(): string {
