@@ -12,6 +12,7 @@ on:
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
       - 'examples/**'
       - 'LICENSE'
@@ -28,6 +29,7 @@ on:
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
       - 'examples/**'
       - 'LICENSE'
