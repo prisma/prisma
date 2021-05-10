@@ -61,21 +61,21 @@ async function main() {
     ],
     skip: 0,
     take: 10000,
-    avg: {
+    _avg: {
       age: true,
     },
-    count: {
+    _count: {
       age: true,
       email: true,
       _all: true,
     },
-    max: {
+    _max: {
       age: true,
     },
-    min: {
+    _min: {
       age: true,
     },
-    sum: {
+    _sum: {
       age: true,
     },
     having: {
@@ -119,7 +119,7 @@ async function main() {
   })
   const yLegacy = await prisma.user.groupBy({
     by: ['name'],
-    count: true,
+    _count: true,
     having: {
       name: '',
       email: {
