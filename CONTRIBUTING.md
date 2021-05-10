@@ -34,7 +34,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ## General Prerequisites
 
-1. Node.js `>=10.16` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Node.js `>=12.2` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 1. Install [`yarn@1`](https://classic.yarnpkg.com/en/docs/install/) (for building a "pack" version of the client)
 1. Install [`pnpm@5.15.1`](https://pnpm.js.org/) (for installing npm dependencies)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
