@@ -1,4 +1,3 @@
-import { Generatable } from './Generatable'
 import indent from 'indent-string'
 import { DMMFClass } from '../../runtime/dmmf'
 import { BaseField, DMMF } from '../../runtime/dmmf-types'
@@ -7,8 +6,9 @@ import {
   isSchemaEnum,
   needsNamespace,
 } from '../../runtime/utils/common'
-import { ExportCollector } from './helpers'
 import { TAB_SIZE } from './constants'
+import { Generatable } from './Generatable'
+import { ExportCollector, wrapComment } from './helpers'
 
 export class ModelOutputField implements Generatable {
   constructor(
@@ -75,7 +75,11 @@ export class OutputField implements Generatable {
       )
         ? `Prisma.`
         : ''
-    return `${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+    const deprecated = field.deprecation
+      ? `@deprecated since ${field.deprecation.sinceVersion} because ${field.deprecation.reason}`
+      : ''
+    const jsdoc = deprecated ? wrapComment(deprecated) + '\n' : ''
+    return `${jsdoc}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
   }
 }
 
