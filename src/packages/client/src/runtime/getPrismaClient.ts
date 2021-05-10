@@ -292,6 +292,12 @@ const aggregateKeys = {
   _sum: true,
   _min: true,
   _max: true,
+  // These will be removed at a later date
+  avg: true,
+  count: true,
+  sum: true,
+  min: true,
+  max: true,
 }
 
 // TODO: We **may** be able to get real types. However, we have both a bootstrapping
@@ -1312,18 +1318,14 @@ new PrismaClient({
            * For speed reasons we can go with "for in "
            */
           let unpacker: Unpacker | undefined = undefined
-          const deprecatedKeys = ['min', 'max', 'sum', 'avg', 'count']
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
-            if (deprecatedKeys.includes(key)) {
-              key = `_${key}`
-            }
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
               }
               // `_count` doesn't have a sub-selection
-              if (key === '_count') {
+              if (key === '_count' || key === 'count') {
                 if (typeof value === 'object' && value) {
                   acc.select[key] = { select: value }
                 } else {
@@ -1331,6 +1333,8 @@ new PrismaClient({
                   unpacker = (data) => {
                     if (data._count) {
                       data._count = data._count?._all
+                    } else if (data.count) {
+                      data.count = data.count?._all
                     }
                     return data
                   }
@@ -1362,10 +1366,6 @@ new PrismaClient({
            * For speed reasons we can go with "for in "
            */
           const select = Object.entries(args).reduce((acc, [key, value]) => {
-            const deprecatedKeys = ['min', 'max', 'sum', 'avg', 'count']
-            if (deprecatedKeys.includes(key)) {
-              key = `_${key}`
-            }
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
