@@ -161,7 +161,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `To apply this unexecutable migration we need to reset the database, do you want to continue? ${chalk.red(
+        message: `To apply this change we need to reset the database, do you want to continue? ${chalk.red(
           'All data will be lost',
         )}.`,
       })
