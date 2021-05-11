@@ -116,32 +116,32 @@ describe('aggregations', () => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.user.aggregate()\` invocation:
+                Invalid \`prisma.user.aggregate()\` invocation:
 
-        {
-          where: {
-            age: {
-              gt: -1
-            }
-          },
-          skip: 0,
-          take: 10000,
-          _avg: {
-        ?   age?: true,
-            email: true
-            ~~~~~
-          }
-        }
+                {
+                  where: {
+                    age: {
+                      gt: -1
+                    }
+                  },
+                  skip: 0,
+                  take: 10000,
+                  _avg: {
+                ?   age?: true,
+                    email: true
+                    ~~~~~
+                  }
+                }
 
 
-        Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
+                Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
 
-      `)
+            `)
     }
 
     await prisma.$disconnect()
   })
-  test('legacy', async () => {
+  test('legacy (min, max, sum, count, avg)', async () => {
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient()
     expect.assertions(3)
@@ -172,19 +172,19 @@ describe('aggregations', () => {
 
     expect(result).toMatchInlineSnapshot(`
       Object {
-        _avg: Object {
+        avg: Object {
           age: 80,
         },
-        _count: 10,
-        _max: Object {
+        count: 10,
+        max: Object {
           age: 163,
           email: bob+9@hey.com,
         },
-        _min: Object {
+        min: Object {
           age: 5,
           email: bob+0@hey.com,
         },
-        _sum: Object {
+        sum: Object {
           age: 800,
         },
       }
@@ -219,22 +219,22 @@ describe('aggregations', () => {
     })
     expect(result2).toMatchInlineSnapshot(`
       Object {
-        _avg: Object {
+        avg: Object {
           age: 80,
         },
-        _count: Object {
+        count: Object {
           _all: 10,
           name: 10,
         },
-        _max: Object {
+        max: Object {
           age: 163,
           email: bob+9@hey.com,
         },
-        _min: Object {
+        min: Object {
           age: 5,
           email: bob+0@hey.com,
         },
-        _sum: Object {
+        sum: Object {
           age: 800,
         },
       }
@@ -267,7 +267,7 @@ describe('aggregations', () => {
           },
           skip: 0,
           take: 10000,
-          _avg: {
+          avg: {
         ?   age?: true,
             email: true
             ~~~~~
