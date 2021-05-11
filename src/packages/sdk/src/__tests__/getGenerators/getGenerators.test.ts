@@ -3,7 +3,6 @@ import { getGenerators } from '../../getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
-import { getEnginesPath } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import stripAnsi from 'strip-ansi'
 
@@ -70,7 +69,7 @@ describe('getGenerators', () => {
             ],
             "url": Object {
               "fromEnvVar": null,
-              "value": "sqlite://",
+              "value": "file:./dev.db",
             },
           },
         ],
