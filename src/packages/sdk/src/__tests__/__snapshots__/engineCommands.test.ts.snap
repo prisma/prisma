@@ -117,7 +117,7 @@ Object {
       ],
       "url": Object {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-        "value": null,
+        "value": "postgres://user:password@something:5432/db",
       },
     },
   ],
