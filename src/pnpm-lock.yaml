@@ -184,7 +184,7 @@ importers:
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       js-levenshtein: 1.1.6
       klona: 2.0.4
       lint-staged: 11.0.0
@@ -462,7 +462,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.25.0
       eslint-plugin-jest: 24.3.6_09f0a389ed8a72863593b95c2fdea68a
       eslint-plugin-prettier: 3.4.0_ed07edc0d33fb90bb2bebf56b9b5e0f9
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       lint-staged: 11.0.0
       prettier: 2.2.1
       ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4
@@ -706,7 +706,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.25.0
       eslint-plugin-jest: 24.3.6_09f0a389ed8a72863593b95c2fdea68a
       eslint-plugin-prettier: 3.4.0_ed07edc0d33fb90bb2bebf56b9b5e0f9
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       lint-staged: 11.0.0
       prettier: 2.2.1
       ts-jest: 26.5.5_jest@26.6.3+typescript@4.2.4

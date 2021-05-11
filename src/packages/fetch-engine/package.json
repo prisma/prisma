@@ -14,7 +14,7 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@prisma/engines-version": "2.23.0-29.936e9b9eb66e6b265d1d25f687dd97f6ff479d7f",
+    "@prisma/engines-version": "2.23.0-23.query-engine-unify-aggregation-api-surface-2a9102cdc665fdd456107acac63cdf3d4de2e27c",
     "@types/find-cache-dir": "3.2.0",
     "@types/jest": "26.0.23",
     "@types/node": "12.20.13",
