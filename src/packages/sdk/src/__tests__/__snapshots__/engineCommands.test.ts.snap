@@ -96,8 +96,8 @@ Object {
         "postgresql",
       ],
       "url": Object {
-        "fromEnvVar": null,
-        "value": "postgresql://",
+        "fromEnvVar": "SOMETHING-SOMETHING-1234",
+        "value": null,
       },
     },
   ],
