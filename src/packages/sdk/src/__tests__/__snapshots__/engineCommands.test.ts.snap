@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`format nothing 1`] = `"Paramater schema or schemaPath must be passed."`;
+exports[`format nothing 1`] = `"Parameter schema or schemaPath must be passed."`;
 
 exports[`format valid blog schema 1`] = `
 "datasource db {

@@ -267,7 +267,7 @@ export async function formatSchema({
   schema?: string
 }): Promise<string> {
   if (!schema && !schemaPath) {
-    throw new Error(`Paramater schema or schemaPath must be passed.`)
+    throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
 
   const prismaFmtPath = await resolveBinary('prisma-fmt')
