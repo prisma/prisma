@@ -74,10 +74,10 @@ function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
 
   // Execute default or "seed" named export
   if (__keys && __keys.length) {
-    if (__keys.indexOf('default') !== -1) {
-      __seed.default()
-    } else if (__keys.indexOf('seed') !== -1) {
+    if (__keys.indexOf('seed') !== -1) {
       __seed.seed()
+    } else if (__keys.indexOf('default') !== -1) {
+      __seed.default()
     }
   } else {
     ''
