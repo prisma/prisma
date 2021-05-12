@@ -158,7 +158,6 @@ async function main(): Promise<number> {
       'init',
       'migrate',
       'db',
-      'tmp-prepare',
       'introspect',
       'dev',
       'studio',
