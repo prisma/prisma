@@ -20,6 +20,7 @@
     "@types/sqlite3": "^3.1.6",
     "@typescript-eslint/eslint-plugin": "^4.8.2",
     "@typescript-eslint/parser": "^4.8.2",
+    "decimal.js": "^10.2.1",
     "escape-string-regexp": "^4.0.0",
     "eslint": "^7.14.0",
     "eslint-config-prettier": "8.1.0",
@@ -46,12 +47,12 @@
   },
   "scripts": {
     "jest": "jest",
-    "test:integration": "jest integration --forceExit --maxConcurrency=8",
-    "test:sqlite": "jest integration.sqlite",
-    "test:postgresql": "jest integration.postgresql --maxConcurrency=8",
-    "test:mysql": "jest integration.mysql --maxConcurrency=8",
-    "test:mariadb": "jest integration.mariadb --maxConcurrency=8",
-    "test:mssql": "jest integration.mssql --maxConcurrency=8",
+    "test:integration": "jest integration --forceExit --maxConcurrency=8 --verbose",
+    "test:sqlite": "jest integration.sqlite --verbose",
+    "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
+    "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
+    "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
+    "test:mssql": "jest integration.mssql --maxConcurrency=8 --verbose",
     "build": "tsc -d",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
@@ -61,7 +62,6 @@
     "precommit": "lint-staged"
   },
   "files": [
-    "!**/__tests__",
     "README.md",
     "dist"
   ],

@@ -37,3 +37,27 @@ model User {
 }
 
 `;
+
+exports[`format should add missing backrelation 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource db {
+  provider = "sqlite"
+  url = "***"
+}
+
+model Post {
+  id     Int  @id
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model User {
+  id    Int    @id
+  posts Post[]
+}
+
+`;

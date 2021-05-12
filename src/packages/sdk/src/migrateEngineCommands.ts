@@ -2,9 +2,12 @@ import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { uriToCredentials } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
 import { getSchemaDir } from './cli/getSchema'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from './convertCredentials'
 
 const exists = promisify(fs.exists)
 
@@ -36,9 +39,11 @@ export async function canConnectToDatabase(
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<ConnectionResult> {
-  const credentials = uriToCredentials(connectionString)
+  const provider = databaseTypeToConnectorType(
+    protocolToDatabaseType(`${connectionString.split(':')[0]}:`),
+  )
 
-  if (credentials.type === 'sqlite') {
+  if (provider === 'sqlite') {
     const sqliteExists = await doesSqliteDbExist(connectionString, cwd)
     if (sqliteExists) {
       return true
@@ -50,27 +55,18 @@ export async function canConnectToDatabase(
     }
   }
 
-  migrationEnginePath =
-    migrationEnginePath || (await resolveBinary('migration-engine'))
   try {
-    await execa(
+    await execaCommand({
+      connectionString,
+      cwd,
       migrationEnginePath,
-      ['cli', '--datasource', connectionString, 'can-connect-to-database'],
-      {
-        cwd,
-        env: {
-          RUST_BACKTRACE: '1',
-          RUST_LOG: 'info',
-        },
-      },
-    )
-
-    return true
+      engineCommandName: 'can-connect-to-database',
+    })
   } catch (e) {
     if (e.stdout) {
       let json: CommandErrorJson
       try {
-        json = JSON.parse(e.stdout)
+        json = JSON.parse(e.stdout.trim())
       } catch (e) {
         throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
       }
@@ -80,19 +76,23 @@ export async function canConnectToDatabase(
         message: json.message,
         meta: json.meta,
       }
-    } else if (e.stderr) {
+    }
+
+    if (e.stderr) {
       throw new Error(`Migration engine error:\n${e.stderr}`)
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error("Can't create database")
     }
   }
+
+  return true
 }
 
 export async function createDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue | false> {
+) {
   const dbExists = await canConnectToDatabase(
     connectionString,
     cwd,
@@ -103,40 +103,127 @@ export async function createDatabase(
     return false
   }
 
-  migrationEnginePath =
-    migrationEnginePath || (await resolveBinary('migration-engine'))
-
-  return await execa(
-    migrationEnginePath,
-    ['cli', '--datasource', connectionString, 'create-database'],
-    {
+  try {
+    await execaCommand({
+      connectionString,
       cwd,
-      env: {
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
-      },
-    },
-  )
+      migrationEnginePath,
+      engineCommandName: 'create-database',
+    })
+
+    return true
+  } catch (e) {
+    if (e.stdout) {
+      let error
+
+      try {
+        error = JSON.parse(e.stdout.trim())
+      } catch (e) {}
+
+      if (error?.message) {
+        throw new Error(error.message)
+      }
+    }
+
+    if (e.stderr) {
+      throw new Error(`Migration engine error:\n${e.stderr}`)
+    } else {
+      throw new Error(`Migration engine exited.`)
+    }
+  }
 }
 
 export async function dropDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
-): Promise<execa.ExecaReturnValue> {
+) {
+  try {
+    const result = await execaCommand({
+      connectionString,
+      cwd,
+      migrationEnginePath,
+      engineCommandName: 'drop-database',
+    })
+
+    if (
+      result &&
+      result.exitCode === 0 &&
+      result.stderr.includes('The database was successfully dropped')
+    ) {
+      return true
+    } else {
+      // We should not arrive here normally
+      throw Error(
+        `An error occurred during the drop: ${JSON.stringify(
+          result,
+          undefined,
+          2,
+        )}`,
+      )
+    }
+  } catch (e) {
+    let json
+    try {
+      json = JSON.parse(e.stdout)
+    } catch (e) {
+      console.error(
+        `Could not parse database drop engine response: ${e.stdout.slice(
+          0,
+          200,
+        )}`,
+      )
+    }
+
+    if (json.message) {
+      throw Error(json.message)
+    }
+
+    throw Error(e)
+  }
+}
+
+export async function execaCommand({
+  connectionString,
+  cwd,
+  migrationEnginePath,
+  engineCommandName,
+}: {
+  connectionString: string
+  cwd: string
+  migrationEnginePath?: string
+  engineCommandName:
+    | 'create-database'
+    | 'drop-database'
+    | 'can-connect-to-database'
+}) {
   migrationEnginePath =
     migrationEnginePath || (await resolveBinary('migration-engine'))
-  return await execa(
-    migrationEnginePath,
-    ['cli', '--datasource', connectionString, 'drop-database'],
-    {
-      cwd,
-      env: {
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
+
+  try {
+    return await execa(
+      migrationEnginePath,
+      ['cli', '--datasource', connectionString, engineCommandName],
+      {
+        cwd,
+        env: {
+          RUST_BACKTRACE: '1',
+          RUST_LOG: 'info',
+        },
       },
-    },
-  )
+    )
+  } catch (e) {
+    if (e.message) {
+      e.message = e.message.replace(connectionString, '<REDACTED>')
+    }
+    if (e.stdout) {
+      e.stdout = e.stdout.replace(connectionString, '<REDACTED>')
+    }
+    if (e.stderr) {
+      e.stderr = e.stderr.replace(connectionString, '<REDACTED>')
+    }
+    throw e
+  }
 }
 
 async function doesSqliteDbExist(

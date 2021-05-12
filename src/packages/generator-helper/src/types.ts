@@ -32,9 +32,9 @@ export type Dictionary<T> = { [key: string]: T }
 
 export interface GeneratorConfig {
   name: string
-  output: string | null
+  output: EnvValue | null
   isCustomOutput?: boolean
-  provider: string
+  provider: EnvValue
   config: Dictionary<string>
   binaryTargets: string[] // check if new commit is there
   previewFeatures: string[]
@@ -47,7 +47,7 @@ export interface EnvValue {
 
 export type ConnectorType =
   | 'mysql'
-  | 'mongo'
+  | 'mongodb'
   | 'sqlite'
   | 'postgresql'
   | 'sqlserver'
@@ -55,7 +55,7 @@ export type ConnectorType =
 export interface DataSource {
   name: string
   activeProvider: ConnectorType
-  provider: ConnectorType[]
+  provider: ConnectorType
   url: EnvValue
   config: { [key: string]: string }
 }

@@ -80,8 +80,6 @@ Or specify a Prisma schema path
       ),
     )
 
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
-
     let output = await formatSchema({
       schemaPath,
     })

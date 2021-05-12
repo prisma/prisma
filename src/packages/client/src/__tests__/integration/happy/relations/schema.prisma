@@ -1,7 +1,6 @@
 datasource db {
   provider = "sqlite"
-  url      = "sqlite:dev.db"
-  default  = true
+  url      = "file:dev.db"
 }
 
 generator client {
@@ -30,6 +29,6 @@ model Location {
 }
 
 model Company {
-  id       Int      @id
+  id       Int       @id
   location Location?
 }

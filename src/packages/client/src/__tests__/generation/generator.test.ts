@@ -1,10 +1,10 @@
-import { getGenerator, getPackedPackage } from '@prisma/sdk'
+import { getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { omit } from '../../omit'
-import { promisify } from 'util'
-import stripAnsi from 'strip-ansi'
 import rimraf from 'rimraf'
+import stripAnsi from 'strip-ansi'
+import { promisify } from 'util'
+import { omit } from '../../omit'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
@@ -43,16 +43,29 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    expect(manifest).toMatchInlineSnapshot(`
-      Object {
-        defaultOutput: @prisma/client,
-        prettyName: Prisma Client,
-        requiresEngineVersion: ENGINE_VERSION_TEST,
-        requiresEngines: Array [
-          queryEngine,
-        ],
-      }
-    `)
+    if (process.env.PRISMA_FORCE_NAPI) {
+      expect(manifest).toMatchInlineSnapshot(`
+              Object {
+                defaultOutput: @prisma/client,
+                prettyName: Prisma Client,
+                requiresEngineVersion: ENGINE_VERSION_TEST,
+                requiresEngines: Array [
+                  libqueryEngineNapi,
+                ],
+              }
+          `)
+    } else {
+      expect(manifest).toMatchInlineSnapshot(`
+              Object {
+                defaultOutput: @prisma/client,
+                prettyName: Prisma Client,
+                requiresEngineVersion: ENGINE_VERSION_TEST,
+                requiresEngines: Array [
+                  queryEngine,
+                ],
+              }
+          `)
+    }
 
     expect(omit(generator.options!.generator, ['output']))
       .toMatchInlineSnapshot(`
@@ -61,12 +74,18 @@ describe('generator', () => {
         config: Object {},
         name: client,
         previewFeatures: Array [],
-        provider: prisma-client-js,
+        provider: Object {
+          fromEnvVar: null,
+          value: prisma-client-js,
+        },
       }
     `)
 
     expect(
-      path.relative(__dirname, generator.options!.generator.output!),
+      path.relative(
+        __dirname,
+        parseEnvValue(generator.options!.generator.output!),
+      ),
     ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 
     await generator.generate()
@@ -160,5 +179,94 @@ describe('generator', () => {
         stripAnsi(doesnNotExistError.message).split('generation/')[1],
       ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
     }
+  })
+  test('mongo', async () => {
+    const prismaClientTarget = path.join(
+      __dirname,
+      './node_modules/@prisma/client',
+    )
+    // Make sure, that nothing is cached.
+    try {
+      await del(prismaClientTarget)
+    } catch (e) {
+      //
+    }
+    await getPackedPackage('@prisma/client', prismaClientTarget)
+
+    if (!fs.existsSync(prismaClientTarget)) {
+      throw new Error(`Prisma Client didn't get packed properly 🤔`)
+    }
+
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'mongo.prisma'),
+      baseDir: __dirname,
+      printDownloadProgress: false,
+      skipDownload: true,
+    })
+
+    const manifest = omit<any, any>(generator.manifest, ['version']) as any
+
+    if (manifest.requiresEngineVersion.length !== 40) {
+      throw new Error(
+        `Generator manifest should have "requiresEngineVersion" with length 40`,
+      )
+    }
+    manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
+
+    if (process.env.PRISMA_FORCE_NAPI) {
+      expect(manifest).toMatchInlineSnapshot(`
+        Object {
+          defaultOutput: @prisma/client,
+          prettyName: Prisma Client,
+          requiresEngineVersion: ENGINE_VERSION_TEST,
+          requiresEngines: Array [
+            libqueryEngineNapi,
+          ],
+        }
+      `)
+    } else {
+      expect(manifest).toMatchInlineSnapshot(`
+        Object {
+          defaultOutput: @prisma/client,
+          prettyName: Prisma Client,
+          requiresEngineVersion: ENGINE_VERSION_TEST,
+          requiresEngines: Array [
+            queryEngine,
+          ],
+        }
+      `)
+    }
+
+    expect(omit(generator.options!.generator, ['output']))
+      .toMatchInlineSnapshot(`
+      Object {
+        binaryTargets: Array [],
+        config: Object {},
+        name: client,
+        previewFeatures: Array [
+          mongoDb,
+        ],
+        provider: Object {
+          fromEnvVar: null,
+          value: prisma-client-js,
+        },
+      }
+    `)
+
+    expect(
+      path.relative(
+        __dirname,
+        parseEnvValue(generator.options!.generator.output!),
+      ),
+    ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
+
+    await generator.generate()
+    const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
+    expect(fs.existsSync(photonDir)).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index-browser.js'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'index.d.ts'))).toBe(true)
+    expect(fs.existsSync(path.join(photonDir, 'runtime'))).toBe(true)
+    generator.stop()
   })
 })

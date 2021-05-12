@@ -1,24 +1,23 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
+import { Platform } from '@prisma/get-platform'
+import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
 import indent from 'indent-string'
+import { klona } from 'klona'
 import path from 'path'
 import { DMMFClass } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
-
-import { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { DatasourceOverwrite } from './../extractSqliteSources'
-
 import { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
-import { klona } from 'klona'
-import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
+import { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { buildNFTEngineAnnotations } from '../utils'
+import { DatasourceOverwrite } from './../extractSqliteSources'
+import { commonCodeJS, commonCodeTS } from './common'
+import { Count } from './Count'
+import { Enum } from './Enum'
 import { Generatable } from './Generatable'
 import { escapeJson, ExportCollector } from './helpers'
-import { Enum } from './Enum'
-import { PrismaClientClass } from './PrismaClient'
-import { Model } from './Model'
 import { InputType } from './Input'
-import { commonCodeJS, commonCodeTS } from './common'
-import { buildNFTEngineAnnotations } from '../utils'
-import { Platform } from '@prisma/get-platform'
+import { Model } from './Model'
+import { PrismaClientClass } from './PrismaClient'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -70,13 +69,19 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
     }
+    if (
+      process.env.PRISMA_FORCE_NAPI &&
+      !config.generator?.previewFeatures.includes('nApi')
+    ) {
+      config.generator?.previewFeatures.push('nApi')
+    }
     // used for the __dirname polyfill needed for Next.js
     const cwdDirname = path.relative(this.options.projectRoot, outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
 const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
-const dirname = __dirname.length === 1 ? dirnamePolyfill : __dirname
+const dirname = (__dirname.length === 1 || __dirname.includes('.next/serverless')) ? dirnamePolyfill : __dirname
 
 /**
  * Enums
@@ -142,7 +147,7 @@ Object.assign(exports, Prisma)
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 ${buildNFTEngineAnnotations(
-  this.options.generator?.previewFeatures?.includes('napi') ?? false,
+  this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
   cwdDirname,
 )}
@@ -187,6 +192,10 @@ path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
       new Enum(type, false, collector).toTS(),
     )
 
+    const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
+      .filter((t) => t.name.endsWith('CountOutputType'))
+      .map((t) => new Count(t, this.dmmf, this.options.generator, collector))
+
     const code = `
 /**
  * Client
@@ -228,6 +237,15 @@ export type Datasource = {
   url?: string
 }
 
+/**
+ * Count Types
+ */
+
+${countTypes.map((t) => t.toTS()).join('\n')}
+
+/**
+ * Models
+ */
 ${models.map((model) => model.toTS()).join('\n')}
 
 /**

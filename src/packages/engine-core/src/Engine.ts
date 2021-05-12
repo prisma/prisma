@@ -15,19 +15,20 @@ export interface Engine {
     query: string,
     headers: Record<string, string>,
     numTry: number,
-  ): Promise<T>
+  ): Promise<{ data: T; elapsed: number }>
   requestBatch<T>(
     queries: string[],
     transaction?: boolean,
     numTry?: number,
-  ): Promise<T>
+  ): Promise<{ data: T; elapsed: number }>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
 export interface DatasourceOverwrite {
   name: string
-  url: string
+  url?: string
+  env?: string
 }
 
 export interface EngineConfig {
@@ -48,7 +49,7 @@ export interface EngineConfig {
   useUds?: boolean
 
   clientVersion?: string
-  enableExperimental?: string[]
+  previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
 }

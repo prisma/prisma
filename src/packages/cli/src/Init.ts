@@ -7,8 +7,11 @@ import {
   HelpError,
   link,
   logger,
-  uriToCredentials,
 } from '@prisma/sdk'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
@@ -133,8 +136,10 @@ export class Init implements Command {
           }
         }
       }
-      const credentials = uriToCredentials(args['--url'])
-      provider = credentials.type
+
+      provider = databaseTypeToConnectorType(
+        protocolToDatabaseType(`${args['--url'].split(':')[0]}:`),
+      )
       url = args['--url']
     }
 

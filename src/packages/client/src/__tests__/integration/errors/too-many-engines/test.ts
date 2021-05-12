@@ -18,12 +18,15 @@ test('raw-transaction: queryRaw', async () => {
   for (const client of clients) {
     client.$disconnect()
   }
-
-  expect(warnings).toMatchInlineSnapshot(`
-    Array [
-      warn(prisma-client) Already 10 Prisma Clients are actively running.,
-    ]
-  `)
+  if (process.env.PRISMA_FORCE_NAPI) {
+    expect(warnings).toMatchInlineSnapshot(`Array []`)
+  } else {
+    expect(warnings).toMatchInlineSnapshot(`
+      Array [
+        warn(prisma-client) Already 10 Prisma Clients are actively running.,
+      ]
+    `)
+  }
 
   console.warn = oldConsoleWarn
 })

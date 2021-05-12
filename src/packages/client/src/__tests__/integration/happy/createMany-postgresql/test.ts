@@ -38,7 +38,7 @@ describe('createMany(postgres)', () => {
       ],
     })
     expect(created.count).toEqual(4)
-    prisma.$disconnect()
+    await prisma.$disconnect()
   })
   test('user.create(posts: createMany: data as object)', async () => {
     // start with a fresh db
@@ -66,7 +66,7 @@ describe('createMany(postgres)', () => {
     expect(res.email).toEqual('test@2.com')
     expect(res.posts.length).toEqual(1)
 
-    prisma.$disconnect()
+    await prisma.$disconnect()
   })
   test('user.create(posts: createMany: data as array)', async () => {
     // start with a fresh db
@@ -97,6 +97,6 @@ describe('createMany(postgres)', () => {
     expect(res.email).toEqual('test@2.com')
     expect(res.posts.length).toEqual(4)
 
-    prisma.$disconnect()
+    await prisma.$disconnect()
   })
 })

@@ -1,22 +1,26 @@
-import { parse } from 'stacktrace-parser'
-import path from 'path'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
+import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
-  getRelativeSchemaPath,
-  getConfig,
   extractPreviewFeatures,
-  mapPreviewFeatures,
+  getConfig,
   getEnvPaths,
+  getRelativeSchemaPath,
+  mapPreviewFeatures,
+  parseEnvValue,
   printConfigWarnings,
 } from '@prisma/sdk'
-import { getDMMF } from '../generation/getDMMF'
-import { promisify } from 'util'
 import fs from 'fs'
+import path from 'path'
+import { parse } from 'stacktrace-parser'
+import { promisify } from 'util'
+import { getDMMF } from '../generation/getDMMF'
 import {
-  GetPrismaClientOptions,
   getPrismaClient,
+  GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
-import { extractSqliteSources } from '../generation/extractSqliteSources'
 import { generateInFolder } from './generateInFolder'
+
 const readFile = promisify(fs.readFile)
 
 /**
@@ -38,17 +42,31 @@ export async function getTestClient(
   }
 
   const generator = config.generators.find(
-    (g) => g.provider === 'prisma-client-js',
+    (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
-  const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const enginesPath = getEnginesPath()
+  const platform = await getPlatform()
+  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  if (
+    (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(napiLibraryPath)
+  ) {
+    // This is required as the NAPI library is not downloaded by default
+    await download({
+      binaries: {
+        'libquery-engine-napi': enginesPath,
+      },
+      version: enginesVersion,
+    })
+  }
   const document = await getDMMF({
     datamodel,
-    enableExperimental,
+    previewFeatures,
   })
   const outputDir = schemaDir
-
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
-
+  const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientOptions = {
     document,
     generator,
@@ -58,12 +76,7 @@ export async function getTestClient(
     engineVersion: 'engine-test-version',
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
-    sqliteDatasourceOverrides: extractSqliteSources(
-      datamodel,
-      schemaDir,
-      outputDir,
-    ),
-    activeProvider: config.datasources[0].activeProvider,
+    activeProvider,
   }
 
   return getPrismaClient(options)

@@ -44,7 +44,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
-
+    checkTypeScriptVersion()
     if (debugEnabled) {
       console.log({ prismaClientDir })
     }
@@ -100,7 +100,7 @@ Please try to install it by hand with ${chalk.bold.greenBright(
 
     if (!prismaClientDir) {
       throw new Error(
-        `Could not resolve @prisma/client. 
+        `Could not resolve @prisma/client.
 Please try to install it with ${chalk.bold.greenBright(
           'npm install @prisma/client',
         )} and rerun ${chalk.bold(
@@ -126,7 +126,7 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
     cwd: baseDir,
     stdio: 'inherit',
     env: {
-      SKIP_GENERATE: 'true',
+      PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
     },
   })
 }
@@ -155,7 +155,31 @@ function checkYarnVersion() {
     }
   }
 }
-
+/**
+ * Warn, if typescript is below `4.1.0` or if it is not install locally or globally
+ */
+function checkTypeScriptVersion() {
+  const minVersion = '4.1.0'
+  try {
+    const output = execa.sync('tsc', ['-v'], {
+      preferLocal: true,
+    })
+    if (output.stdout) {
+      const currentVersion = output.stdout.split(' ')[1]
+      if (semverLt(currentVersion, minVersion)) {
+        throw new Error(
+          `Your ${chalk.bold(
+            'typescript',
+          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+            minVersion,
+          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+        )
+      }
+    }
+  } catch (e) {
+    // They do not have TS installed, we ignore (example: JS project)
+  }
+}
 /**
  * Returns true, if semver version `a` is lower than `b`
  * Note: This obviously doesn't support the full semver spec.

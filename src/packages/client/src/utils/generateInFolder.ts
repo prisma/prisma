@@ -1,21 +1,22 @@
+import Debug from '@prisma/debug'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
+import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
+  extractPreviewFeatures,
   getConfig,
   getDMMF,
-  extractPreviewFeatures,
+  getPackedPackage,
   mapPreviewFeatures,
 } from '@prisma/sdk'
+import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
-import { generateClient } from '../generation/generateClient'
-import { getPackedPackage } from '@prisma/sdk'
-import { getEnginesPath } from '@prisma/engines'
-import Debug from '@prisma/debug'
-const debug = Debug('prisma:generateInFolder')
-import copy from '@timsuchanek/copy'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
+import { generateClient } from '../generation/generateClient'
+const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
 export interface GenerateInFolderOptions {
@@ -42,16 +43,18 @@ export async function generateInFolder({
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)
   }
+
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi = enablePreview.includes('napi')
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const useNapi =
+    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental: enablePreview, // it's still called enableExperimental when calling the query engine
+    previewFeatures,
   })
 
   const outputDir = transpile
@@ -95,23 +98,37 @@ export async function generateInFolder({
       `Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`,
     )
   }
-
   const enginesPath = getEnginesPath()
-  await generateClient({
-    binaryPaths: useNapi
-      ? {
-          libqueryEngineNapi: {
-            [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
-          },
-        }
-      : {
-          queryEngine: {
-            [platform]: path.join(
-              enginesPath,
-              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-            ),
-          },
+  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  if (
+    (useNapi || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(napiLibraryPath)
+  ) {
+    // This is required as the NAPI library is not downloaded by default
+    await download({
+      binaries: {
+        'libquery-engine-napi': enginesPath,
+      },
+      version: enginesVersion,
+    })
+  }
+  const binaryPaths = useNapi
+    ? {
+        libqueryEngineNapi: {
+          [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
         },
+      }
+    : {
+        queryEngine: {
+          [platform]: path.join(
+            enginesPath,
+            `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+          ),
+        },
+      }
+
+  await generateClient({
+    binaryPaths,
     datamodel,
     dmmf,
     ...config,
@@ -125,7 +142,7 @@ export async function generateInFolder({
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
-    activeProvider: 'sqlite',
+    activeProvider: config.datasources[0].activeProvider,
   })
 
   const time = performance.now() - before

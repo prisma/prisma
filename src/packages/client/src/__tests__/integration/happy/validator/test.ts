@@ -19,5 +19,5 @@ test('validator', async () => {
     ]
   `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

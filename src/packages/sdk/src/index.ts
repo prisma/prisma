@@ -69,6 +69,8 @@ export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { parseEnvValue } from './utils/parseEnvValue'
+
 export {
   Position,
   trimBlocksFromSchema,

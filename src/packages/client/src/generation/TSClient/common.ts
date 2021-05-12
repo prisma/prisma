@@ -28,7 +28,6 @@ const {
   PrismaClientValidationError,
   warnEnvConflicts,
   getPrismaClient,
-  debugLib,
   sqltag,
   empty,
   join,
@@ -37,7 +36,6 @@ const {
 } = require('${runtimePath}')
 
 const path = require('path')
-const debug = debugLib('prisma-client')
 `
 }
 
@@ -428,6 +426,11 @@ type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
  * Like \`Pick\`, but with an array
  */
 type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
+
+/**
+ * Exclude all keys with underscores
+ */
+type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 ${
   !hideFetcher

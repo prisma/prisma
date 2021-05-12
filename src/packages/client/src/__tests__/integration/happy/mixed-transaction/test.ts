@@ -35,5 +35,5 @@ test('mixed transaction', async () => {
   users = await prisma.user.findMany()
   expect(users).toMatchInlineSnapshot(`Array []`)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

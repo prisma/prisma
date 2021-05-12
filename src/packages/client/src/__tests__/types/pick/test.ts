@@ -12,7 +12,7 @@ async function main() {
   data?.author.id
 
   console.log(data)
-  prisma.$disconnect()
+  await prisma.$disconnect()
 }
 
 main()

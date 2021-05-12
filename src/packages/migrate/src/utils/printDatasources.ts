@@ -3,7 +3,7 @@ import indent from 'indent-string'
 
 export type ConnectorType =
   | 'mysql'
-  | 'mongo'
+  | 'mongodb'
   | 'sqlite'
   | 'postgresql'
   | 'sqlserver'
@@ -25,7 +25,7 @@ export type Datasource =
 
 export interface InternalDatasource {
   name: string
-  provider: ConnectorType[]
+  provider: ConnectorType
   url: string
   config: any
 }

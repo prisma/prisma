@@ -13,5 +13,5 @@ test('async-hooks', async () => {
   await prisma.user.findMany()
   expect(asyncId).toBeGreaterThan(0)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

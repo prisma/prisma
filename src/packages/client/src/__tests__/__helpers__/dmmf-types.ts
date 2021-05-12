@@ -154,11 +154,13 @@ const dmmf: DMMF.Document = {
       {
         aggregate: 'aggregatePost',
         create: 'createOnePost',
+        createMany: 'createManyPost',
         delete: 'deleteOnePost',
         deleteMany: 'deleteManyPost',
         findFirst: 'findFirstPost',
         findMany: 'findManyPost',
         findUnique: 'findUniquePost',
+        groupBy: 'groupByPost',
         model: 'Post',
         plural: 'posts',
         update: 'updateOnePost',
@@ -168,11 +170,13 @@ const dmmf: DMMF.Document = {
       {
         aggregate: 'aggregateUser',
         create: 'createOneUser',
+        createMany: 'createManyUser',
         delete: 'deleteOneUser',
         deleteMany: 'deleteManyUser',
         findFirst: 'findFirstUser',
         findMany: 'findManyUser',
         findUnique: 'findUniqueUser',
+        groupBy: 'groupByUser',
         model: 'User',
         plural: 'users',
         update: 'updateOneUser',
@@ -453,6 +457,138 @@ const dmmf: DMMF.Document = {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
+                  type: 'PostScalarWhereWithAggregatesInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'AND',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'OR',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereWithAggregatesInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'NOT',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'BoolWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostScalarWhereWithAggregatesInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
                   type: 'UserWhereInput',
                 },
                 {
@@ -617,6 +753,102 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'UserWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserScalarWhereWithAggregatesInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'AND',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'OR',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserScalarWhereWithAggregatesInput',
+                },
+                {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserScalarWhereWithAggregatesInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'NOT',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'IntWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'StringWithAggregatesFilter',
+                },
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserScalarWhereWithAggregatesInput',
         },
         {
           constraints: {
@@ -859,6 +1091,63 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostUncheckedUpdateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostCreateManyInput',
         },
         {
           constraints: {
@@ -1163,6 +1452,39 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'UserUncheckedUpdateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'email',
+            },
+          ],
+          name: 'UserCreateManyInput',
         },
         {
           constraints: {
@@ -1591,6 +1913,459 @@ const dmmf: DMMF.Document = {
               inputTypes: [
                 {
                   isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedFloatFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'sum',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'IntWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'contains',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'startsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'endsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'QueryMode',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'mode',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'StringWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'BoolWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
                   type: 'PostWhereInput',
@@ -1942,6 +2717,19 @@ const dmmf: DMMF.Document = {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
+                  type: 'PostCreateManyAuthorInputEnvelope',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'createMany',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
                   type: 'PostWhereUniqueInput',
                 },
                 {
@@ -2013,6 +2801,19 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: 'connectOrCreate',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateManyAuthorInputEnvelope',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'createMany',
             },
             {
               inputTypes: [
@@ -2110,6 +2911,19 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: 'upsert',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateManyAuthorInputEnvelope',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'createMany',
             },
             {
               inputTypes: [
@@ -2321,6 +3135,19 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: 'upsert',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateManyAuthorInputEnvelope',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'createMany',
             },
             {
               inputTypes: [
@@ -2766,6 +3593,557 @@ const dmmf: DMMF.Document = {
                 {
                   isList: false,
                   location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedFloatFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'sum',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'NestedIntWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Float',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedFloatFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+          ],
+          name: 'NestedFloatFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'in',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: true,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'notIn',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'lte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gt',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'gte',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'contains',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'startsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'endsWith',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'NestedStringWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'equals',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolWithAggregatesFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'not',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'max',
+            },
+          ],
+          name: 'NestedBoolWithAggregatesFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
                   type: 'String',
                 },
               ],
@@ -3097,6 +4475,40 @@ const dmmf: DMMF.Document = {
             {
               inputTypes: [
                 {
+                  isList: true,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCreateManyAuthorInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'data',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'skipDuplicates',
+            },
+          ],
+          name: 'PostCreateManyAuthorInputEnvelope',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
@@ -3361,6 +4773,51 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostScalarWhereInput',
+        },
+        {
+          constraints: {
+            maxNumFields: null,
+            minNumFields: null,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Int',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostCreateManyAuthorInput',
         },
         {
           constraints: {
@@ -3993,6 +5450,106 @@ const dmmf: DMMF.Document = {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
+                      type: 'PostWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarFieldEnum',
+                    },
+                    {
+                      isList: false,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'by',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostScalarWhereWithAggregatesInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'having',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+              ],
+              isNullable: false,
+              name: 'groupByPost',
+              outputType: {
+                isList: true,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostGroupByOutputType',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
                       type: 'PostWhereUniqueInput',
                     },
                   ],
@@ -4287,6 +5844,106 @@ const dmmf: DMMF.Document = {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
+                      type: 'UserWhereInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'where',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserOrderByInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'orderBy',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'UserScalarFieldEnum',
+                    },
+                    {
+                      isList: false,
+                      location: 'enumTypes',
+                      namespace: 'prisma',
+                      type: 'UserScalarFieldEnum',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'by',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserScalarWhereWithAggregatesInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'having',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'take',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Int',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skip',
+                },
+              ],
+              isNullable: false,
+              name: 'groupByUser',
+              outputType: {
+                isList: true,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserGroupByOutputType',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
                       type: 'UserWhereUniqueInput',
                     },
                   ],
@@ -4401,6 +6058,43 @@ const dmmf: DMMF.Document = {
                 location: 'outputObjectTypes',
                 namespace: 'model',
                 type: 'Post',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'PostCreateManyInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Boolean',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skipDuplicates',
+                },
+              ],
+              isNullable: false,
+              name: 'createManyPost',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'AffectedRowsOutput',
               },
             },
             {
@@ -4633,6 +6327,43 @@ const dmmf: DMMF.Document = {
                 location: 'outputObjectTypes',
                 namespace: 'model',
                 type: 'User',
+              },
+            },
+            {
+              args: [
+                {
+                  inputTypes: [
+                    {
+                      isList: true,
+                      location: 'inputObjectTypes',
+                      namespace: 'prisma',
+                      type: 'UserCreateManyInput',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: true,
+                  name: 'data',
+                },
+                {
+                  inputTypes: [
+                    {
+                      isList: false,
+                      location: 'scalar',
+                      type: 'Boolean',
+                    },
+                  ],
+                  isNullable: false,
+                  isRequired: false,
+                  name: 'skipDuplicates',
+                },
+              ],
+              isNullable: false,
+              name: 'createManyUser',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'AffectedRowsOutput',
               },
             },
             {
@@ -4910,6 +6641,106 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
+              isNullable: false,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              name: 'authorId',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              name: 'title',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              name: 'published',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Boolean',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMaxAggregateOutputType',
+              },
+            },
+          ],
+          name: 'PostGroupByOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
               isNullable: true,
               name: 'count',
               outputType: {
@@ -4965,6 +6796,86 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'AggregateUser',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              name: 'id',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+            {
+              args: [],
+              isNullable: false,
+              name: 'email',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'String',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              isNullable: true,
+              name: 'max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMaxAggregateOutputType',
+              },
+            },
+          ],
+          name: 'UserGroupByOutputType',
         },
         {
           fields: [

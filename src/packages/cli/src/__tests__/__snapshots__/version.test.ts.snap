@@ -8,6 +8,7 @@ Query Engine         : placeholder
 Migration Engine     : placeholder
 Introspection Engine : placeholder
 Format Binary        : placeholder
+Default Engines Hash : placeholder
 Studio               : placeholder
 `;
 
@@ -19,5 +20,6 @@ Query Engine         : placeholder
 Migration Engine     : placeholder
 Introspection Engine : placeholder
 Format Binary        : placeholder
+Default Engines Hash : placeholder
 Studio               : placeholder
 `;

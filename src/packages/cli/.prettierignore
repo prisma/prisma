@@ -1,7 +1,6 @@
 node_modules
 build
 dist
-download-build
 __snapshots__
 preinstall
 prisma-client

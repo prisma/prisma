@@ -57,5 +57,5 @@ test('union validation', async () => {
     `)
   }
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

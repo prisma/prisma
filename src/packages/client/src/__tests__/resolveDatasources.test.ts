@@ -54,7 +54,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'sqlite',
-    provider: ['sqlite'],
+    provider: 'sqlite',
     config: {},
   },
   {
@@ -64,7 +64,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'sqlite',
-    provider: ['sqlite'],
+    provider: 'sqlite',
     config: {},
   },
   {
@@ -74,7 +74,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'mysql',
-    provider: ['mysql'],
+    provider: 'mysql',
     config: {},
   },
   {
@@ -84,7 +84,7 @@ const datasources: DataSource[] = [
       fromEnvVar: null,
     },
     activeProvider: 'postgresql',
-    provider: ['postgresql'],
+    provider: 'postgresql',
     config: {},
   },
 ]
@@ -97,33 +97,27 @@ test('resolveDatasources', () => {
         activeProvider: sqlite,
         config: Object {},
         name: db,
-        provider: Array [
-          sqlite,
-        ],
+        provider: sqlite,
         url: Object {
           fromEnvVar: null,
-          value: ../../../../prisma/db.db,
+          value: file:db.db,
         },
       },
       Object {
         activeProvider: sqlite,
         config: Object {},
         name: db2,
-        provider: Array [
-          sqlite,
-        ],
+        provider: sqlite,
         url: Object {
           fromEnvVar: null,
-          value: ../../../../prisma/some-dir/db.db,
+          value: file:./some-dir/db.db,
         },
       },
       Object {
         activeProvider: mysql,
         config: Object {},
         name: db3,
-        provider: Array [
-          mysql,
-        ],
+        provider: mysql,
         url: Object {
           fromEnvVar: null,
           value: mysql:localhost,
@@ -133,9 +127,7 @@ test('resolveDatasources', () => {
         activeProvider: postgresql,
         config: Object {},
         name: db4,
-        provider: Array [
-          postgresql,
-        ],
+        provider: postgresql,
         url: Object {
           fromEnvVar: null,
           value: postgresql://,
@@ -156,11 +148,11 @@ test('serializeDatasources', () => {
     [
       {
         "name": "db",
-        "url": "../../../../prisma/db.db"
+        "url": "file:db.db"
       },
       {
         "name": "db2",
-        "url": "../../../../prisma/some-dir/db.db"
+        "url": "file:./some-dir/db.db"
       },
       {
         "name": "db3",

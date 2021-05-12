@@ -1,9 +1,14 @@
+import { parseEnvValue } from '@prisma/sdk'
 import {
   getSchemaPathSync,
   getGenerators,
   uriToCredentials,
   getConfig,
 } from '@prisma/sdk'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 import fs from 'fs'
@@ -83,18 +88,30 @@ export class Migrate {
 
   public async getDbInfo(): Promise<{
     schemaWord: string
-    dbType: string
-    dbName: string
-    dbLocation: string
+    dbType?: string
+    dbName?: string
+    dbLocation?: string
   }> {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
     const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const dbLocation = getDbLocation(credentials)
-    return {
-      ...getDbinfoFromCredentials(credentials),
-      dbLocation,
+
+    try {
+      const credentials = uriToCredentials(activeDatasource.url.value)
+      const dbLocation = getDbLocation(credentials)
+      return {
+        ...getDbinfoFromCredentials(credentials),
+        dbLocation,
+      }
+    } catch (e) {
+      debug.log(e)
+
+      return {
+        schemaWord: 'database',
+        dbType: undefined,
+        dbName: undefined,
+        dbLocation: undefined,
+      }
     }
   }
 
@@ -191,13 +208,13 @@ export class Migrate {
         ? chalk.dim(
             ` to .${path.sep}${path.relative(
               process.cwd(),
-              generator.options!.generator.output,
+              parseEnvValue(generator.options!.generator.output),
             )}`,
           )
         : ''
       const name = generator.manifest
         ? generator.manifest.prettyName
-        : generator.options!.generator.provider
+        : parseEnvValue(generator.options!.generator.provider)
 
       logUpdate(`Running generate... - ${name}`)
 

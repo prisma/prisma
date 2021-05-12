@@ -14,11 +14,13 @@ import {
   IntrospectionEngine,
   IntrospectionWarnings,
   IntrospectionSchemaVersion,
-  uriToCredentials,
 } from '@prisma/sdk'
 import { formatms } from '../utils/formatms'
 import fs from 'fs'
-import { databaseTypeToConnectorType } from '@prisma/sdk/dist/convertCredentials'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
@@ -55,12 +57,14 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 `)
 
   private printUrlAsDatasource(url: string): string {
-    const provider = databaseTypeToConnectorType(uriToCredentials(url).type)
+    const provider = databaseTypeToConnectorType(
+      protocolToDatabaseType(`${url.split(':')[0]}:`),
+    )
 
     return printDatasources([
       {
         config: {},
-        provider: [provider],
+        provider: provider,
         name: 'db',
         url,
       },
@@ -309,8 +313,8 @@ Or run this command with the ${chalk.green(
       getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2')}
-      \nThe database you introspected seems to belong to a Prisma 1 project.
+      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2?')}
+      \nThe database you introspected could belong to a Prisma 1 project.
 
 Please run the following command to upgrade to Prisma 2.0:
 ${chalk.green(
@@ -321,17 +325,8 @@ Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
  
 Learn more about the upgrade process in the docs:\n${link(
           'https://pris.ly/d/upgrading-to-prisma2',
-        )}`
-      : ''
-
-    const prisma1UpgradeMessageBox = prisma1UpgradeMessage
-      ? '\n\n' +
-        drawBox({
-          height: 13,
-          width: 74,
-          str: prisma1UpgradeMessage,
-          horizontalPadding: 2,
-        })
+        )}
+`
       : ''
 
     if (args['--print']) {
@@ -342,7 +337,8 @@ Learn more about the upgrade process in the docs:\n${link(
           prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
         )
       if (introspectionWarningsMessage.trim().length > 0) {
-        console.error(introspectionWarningsMessage)
+        // Replace make it a // comment block
+        console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
       schemaPath = schemaPath || 'schema.prisma'
@@ -350,6 +346,18 @@ Learn more about the upgrade process in the docs:\n${link(
 
       const modelsCount = (introspectionSchema.match(/^model\s+/gm) || [])
         .length
+
+      const prisma1UpgradeMessageBox = prisma1UpgradeMessage
+        ? '\n\n' +
+          drawBox({
+            height: 16,
+            width: 74,
+            str:
+              prisma1UpgradeMessage +
+              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.\n',
+            horizontalPadding: 2,
+          })
+        : ''
 
       log(`\n✔ Introspected ${modelsCount} ${
         modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
@@ -359,15 +367,9 @@ Learn more about the upgrade process in the docs:\n${link(
         formatms(Date.now() - before),
       )}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
-${
-  prisma1UpgradeMessage
-    ? `Once you upgraded your database schema to Prisma 2.0, run ${chalk.green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate Prisma Client.`
-    : `Run ${chalk.green(
-        getCommandWithExecutor('prisma generate'),
-      )} to generate Prisma Client.`
-}`)
+${`Run ${chalk.green(
+  getCommandWithExecutor('prisma generate'),
+)} to generate Prisma Client.`}`)
     }
 
     engine.stop()

@@ -10,6 +10,6 @@ test('blog-dot-env-both', async () => {
   try {
     await prisma.$connect()
   } finally {
-    prisma.$disconnect()
+    await prisma.$disconnect()
   }
 })

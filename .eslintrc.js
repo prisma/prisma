@@ -33,15 +33,11 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: "module",
-    project: ["./src/packages/*/tsconfig.json" /* , 'tsconfig.json' */],
+    project: ["./src/packages/*/tsconfig.eslint.json"],
     // debugLevel: true,
   },
   ignorePatterns,
   overrides: [
-    // {
-    //   files: ['*.js'],
-    //   rules: {},
-    // },
     {
       files: ["*.ts"],
       extends: [

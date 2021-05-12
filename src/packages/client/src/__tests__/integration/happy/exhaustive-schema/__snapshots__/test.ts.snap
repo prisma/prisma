@@ -1121,6 +1121,11 @@ export namespace Prisma {
    */
   type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 
+  /**
+   * Exclude all keys with underscores
+   */
+  type ExcludeUnderscoreKeys<T extends string> = T extends \`_\${string}\` ? never : T
+
   class PrismaClientFetcher {
     private readonly prisma;
     private readonly debug;
@@ -1294,6 +1299,210 @@ export namespace Prisma {
     url?: string
   }
 
+  /**
+   * Count Types
+   */
+
+
+  /**
+   * Count Type UserCountOutputType
+   */
+
+
+  export type UserCountOutputType = {
+    posts: number
+  }
+
+  export type UserCountOutputTypeSelect = {
+    posts?: boolean
+  }
+
+  export type UserCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | UserCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? UserCountOutputType
+    : S extends undefined
+    ? never
+    : S extends UserCountOutputTypeArgs
+    ?'include' extends U
+    ? UserCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof UserCountOutputType ?UserCountOutputType [P]
+  : 
+     never
+  } 
+    : UserCountOutputType
+  : UserCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the UserCountOutputType
+    **/
+    select?: UserCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type MCountOutputType
+   */
+
+
+  export type MCountOutputType = {
+    n: number
+  }
+
+  export type MCountOutputTypeSelect = {
+    n?: boolean
+  }
+
+  export type MCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | MCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? MCountOutputType
+    : S extends undefined
+    ? never
+    : S extends MCountOutputTypeArgs
+    ?'include' extends U
+    ? MCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof MCountOutputType ?MCountOutputType [P]
+  : 
+     never
+  } 
+    : MCountOutputType
+  : MCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * MCountOutputType without action
+   */
+  export type MCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the MCountOutputType
+    **/
+    select?: MCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type NCountOutputType
+   */
+
+
+  export type NCountOutputType = {
+    m: number
+  }
+
+  export type NCountOutputTypeSelect = {
+    m?: boolean
+  }
+
+  export type NCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | NCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? NCountOutputType
+    : S extends undefined
+    ? never
+    : S extends NCountOutputTypeArgs
+    ?'include' extends U
+    ? NCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof NCountOutputType ?NCountOutputType [P]
+  : 
+     never
+  } 
+    : NCountOutputType
+  : NCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * NCountOutputType without action
+   */
+  export type NCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the NCountOutputType
+    **/
+    select?: NCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type OneOptionalCountOutputType
+   */
+
+
+  export type OneOptionalCountOutputType = {
+    many: number
+  }
+
+  export type OneOptionalCountOutputTypeSelect = {
+    many?: boolean
+  }
+
+  export type OneOptionalCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? OneOptionalCountOutputType
+    : S extends undefined
+    ? never
+    : S extends OneOptionalCountOutputTypeArgs
+    ?'include' extends U
+    ? OneOptionalCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]: P extends keyof OneOptionalCountOutputType ?OneOptionalCountOutputType [P]
+  : 
+     never
+  } 
+    : OneOptionalCountOutputType
+  : OneOptionalCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * OneOptionalCountOutputType without action
+   */
+  export type OneOptionalCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the OneOptionalCountOutputType
+    **/
+    select?: OneOptionalCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Models
+   */
 
   /**
    * Model Post
@@ -1309,39 +1518,39 @@ export namespace Prisma {
   }
 
   export type PostAvgAggregateOutputType = {
-    id: number
-    authorId: number
+    id: number | null
+    authorId: number | null
   }
 
   export type PostSumAggregateOutputType = {
-    id: number
-    authorId: number
+    id: number | null
+    authorId: number | null
   }
 
   export type PostMinAggregateOutputType = {
-    id: number
+    id: number | null
     createdAt: Date | null
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number
+    authorId: number | null
   }
 
   export type PostMaxAggregateOutputType = {
-    id: number
+    id: number | null
     createdAt: Date | null
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number
+    authorId: number | null
   }
 
   export type PostCountAggregateOutputType = {
     id: number
-    createdAt: number | null
-    title: number | null
-    content: number | null
-    published: number | null
+    createdAt: number
+    title: number
+    content: number
+    published: number
     authorId: number
     _all: number
   }
@@ -1792,7 +2001,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: PostGroupByArgs['orderBy'] }
         : { orderBy?: PostGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -2157,27 +2366,27 @@ export namespace Prisma {
   }
 
   export type UserAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type UserSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type UserMinAggregateOutputType = {
-    id: number
+    id: number | null
     email: string | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -2188,11 +2397,11 @@ export namespace Prisma {
   }
 
   export type UserMaxAggregateOutputType = {
-    id: number
+    id: number | null
     email: string | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -2204,19 +2413,19 @@ export namespace Prisma {
 
   export type UserCountAggregateOutputType = {
     id: number
-    email: number | null
+    email: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -2417,10 +2626,12 @@ export namespace Prisma {
     boolean?: boolean
     optionalBoolean?: boolean
     posts?: boolean | PostFindManyArgs
+    _count?: boolean | UserCountOutputTypeArgs
   }
 
   export type UserInclude = {
     posts?: boolean | PostFindManyArgs
+    _count?: boolean | UserCountOutputTypeArgs
   }
 
   export type UserGetPayload<
@@ -2435,14 +2646,18 @@ export namespace Prisma {
     ? User  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'posts'
-        ? Array < PostGetPayload<S['include'][P]>>  : never
+        ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? UserCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof User ?User [P]
   : 
           P extends 'posts'
-        ? Array < PostGetPayload<S['select'][P]>>  : never
+        ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? UserCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : User
   : User
@@ -2708,7 +2923,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: UserGroupByArgs['orderBy'] }
         : { orderBy?: UserGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -3073,26 +3288,26 @@ export namespace Prisma {
   }
 
   export type MAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type MSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type MMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -3103,10 +3318,10 @@ export namespace Prisma {
   }
 
   export type MMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -3119,17 +3334,17 @@ export namespace Prisma {
   export type MCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -3325,10 +3540,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | MCountOutputTypeArgs
   }
 
   export type MInclude = {
     n?: boolean | NFindManyArgs
+    _count?: boolean | MCountOutputTypeArgs
   }
 
   export type MGetPayload<
@@ -3343,14 +3560,18 @@ export namespace Prisma {
     ? M  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'n'
-        ? Array < NGetPayload<S['include'][P]>>  : never
+        ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? MCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof M ?M [P]
   : 
           P extends 'n'
-        ? Array < NGetPayload<S['select'][P]>>  : never
+        ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? MCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : M
   : M
@@ -3616,7 +3837,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: MGroupByArgs['orderBy'] }
         : { orderBy?: MGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -3981,26 +4202,26 @@ export namespace Prisma {
   }
 
   export type NAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type NSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type NMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4011,10 +4232,10 @@ export namespace Prisma {
   }
 
   export type NMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4027,17 +4248,17 @@ export namespace Prisma {
   export type NCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -4233,10 +4454,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | NCountOutputTypeArgs
   }
 
   export type NInclude = {
     m?: boolean | MFindManyArgs
+    _count?: boolean | NCountOutputTypeArgs
   }
 
   export type NGetPayload<
@@ -4251,14 +4474,18 @@ export namespace Prisma {
     ? N  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'm'
-        ? Array < MGetPayload<S['include'][P]>>  : never
+        ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? NCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof N ?N [P]
   : 
           P extends 'm'
-        ? Array < MGetPayload<S['select'][P]>>  : never
+        ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? NCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : N
   : N
@@ -4524,7 +4751,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: NGroupByArgs['orderBy'] }
         : { orderBy?: NGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -4889,26 +5116,26 @@ export namespace Prisma {
   }
 
   export type OneOptionalAvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OneOptionalSumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OneOptionalMinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4919,10 +5146,10 @@ export namespace Prisma {
   }
 
   export type OneOptionalMaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -4935,17 +5162,17 @@ export namespace Prisma {
   export type OneOptionalCountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -5141,10 +5368,12 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
   export type OneOptionalInclude = {
     many?: boolean | ManyRequiredFindManyArgs
+    _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
   export type OneOptionalGetPayload<
@@ -5159,14 +5388,18 @@ export namespace Prisma {
     ? OneOptional  & {
     [P in TrueKeys<S['include']>]: 
           P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['include'][P]>>  : never
+        ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count'
+        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> | null : never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof OneOptional ?OneOptional [P]
   : 
           P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['select'][P]>>  : never
+        ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count'
+        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> | null : never
   } 
     : OneOptional
   : OneOptional
@@ -5432,7 +5665,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: OneOptionalGroupByArgs['orderBy'] }
         : { orderBy?: OneOptionalGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -5797,29 +6030,29 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type ManyRequiredSumAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type ManyRequiredMinAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -5830,11 +6063,11 @@ export namespace Prisma {
   }
 
   export type ManyRequiredMaxAggregateOutputType = {
-    id: number
+    id: number | null
     oneOptionalId: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -5846,19 +6079,19 @@ export namespace Prisma {
 
   export type ManyRequiredCountAggregateOutputType = {
     id: number
-    oneOptionalId: number | null
+    oneOptionalId: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -6352,7 +6585,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: ManyRequiredGroupByArgs['orderBy'] }
         : { orderBy?: ManyRequiredGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -6717,29 +6950,29 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide1SumAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide1MinAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6750,11 +6983,11 @@ export namespace Prisma {
   }
 
   export type OptionalSide1MaxAggregateOutputType = {
-    id: number
+    id: number | null
     optionalSide2Id: number | null
-    int: number
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -6766,19 +6999,19 @@ export namespace Prisma {
 
   export type OptionalSide1CountAggregateOutputType = {
     id: number
-    optionalSide2Id: number | null
+    optionalSide2Id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -7272,7 +7505,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: OptionalSide1GroupByArgs['orderBy'] }
         : { orderBy?: OptionalSide1GroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -7637,26 +7870,26 @@ export namespace Prisma {
   }
 
   export type OptionalSide2AvgAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide2SumAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
   }
 
   export type OptionalSide2MinAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -7667,10 +7900,10 @@ export namespace Prisma {
   }
 
   export type OptionalSide2MaxAggregateOutputType = {
-    id: number
-    int: number
+    id: number | null
+    int: number | null
     optionalInt: number | null
-    float: number
+    float: number | null
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
@@ -7683,17 +7916,17 @@ export namespace Prisma {
   export type OptionalSide2CountAggregateOutputType = {
     id: number
     int: number
-    optionalInt: number | null
+    optionalInt: number
     float: number
-    optionalFloat: number | null
-    string: number | null
-    optionalString: number | null
-    json: number | null
-    optionalJson: number | null
-    enum: number | null
-    optionalEnum: number | null
-    boolean: number | null
-    optionalBoolean: number | null
+    optionalFloat: number
+    string: number
+    optionalString: number
+    json: number
+    optionalJson: number
+    enum: number
+    optionalEnum: number
+    boolean: number
+    optionalBoolean: number
     _all: number
   }
 
@@ -8180,7 +8413,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: OptionalSide2GroupByArgs['orderBy'] }
         : { orderBy?: OptionalSide2GroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -8545,51 +8778,51 @@ export namespace Prisma {
   }
 
   export type AAvgAggregateOutputType = {
-    int: number
-    sInt: number
-    bInt: number
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: number
+    int: number | null
+    sInt: number | null
+    bInt: number | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: number | null
   }
 
   export type ASumAggregateOutputType = {
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type AMinAggregateOutputType = {
     id: string | null
     email: string | null
     name: string | null
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type AMaxAggregateOutputType = {
     id: string | null
     email: string | null
     name: string | null
-    int: number
-    sInt: number
-    bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
+    int: number | null
+    sInt: number | null
+    bInt: bigint | null
+    inc_int: number | null
+    inc_sInt: number | null
+    inc_bInt: bigint | null
   }
 
   export type ACountAggregateOutputType = {
-    id: number | null
-    email: number | null
-    name: number | null
+    id: number
+    email: number
+    name: number
     int: number
     sInt: number
     bInt: number
@@ -9058,7 +9291,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: AGroupByArgs['orderBy'] }
         : { orderBy?: AGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -9390,37 +9623,37 @@ export namespace Prisma {
   }
 
   export type BAvgAggregateOutputType = {
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BSumAggregateOutputType = {
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BMinAggregateOutputType = {
     id: string | null
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BMaxAggregateOutputType = {
     id: string | null
-    float: number
-    dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
+    float: number | null
+    dFloat: number | null
+    decFloat: Decimal | null
+    numFloat: Decimal | null
   }
 
   export type BCountAggregateOutputType = {
-    id: number | null
+    id: number
     float: number
     dFloat: number
     decFloat: number
@@ -9863,7 +10096,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: BGroupByArgs['orderBy'] }
         : { orderBy?: BGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -10213,13 +10446,13 @@ export namespace Prisma {
   }
 
   export type CCountAggregateOutputType = {
-    id: number | null
-    char: number | null
-    vChar: number | null
-    text: number | null
-    bit: number | null
-    vBit: number | null
-    uuid: number | null
+    id: number
+    char: number
+    vChar: number
+    text: number
+    bit: number
+    vBit: number
+    uuid: number
     _all: number
   }
 
@@ -10638,7 +10871,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: CGroupByArgs['orderBy'] }
         : { orderBy?: CGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -10982,12 +11215,12 @@ export namespace Prisma {
   }
 
   export type DCountAggregateOutputType = {
-    id: number | null
-    bool: number | null
-    byteA: number | null
-    xml: number | null
-    json: number | null
-    jsonb: number | null
+    id: number
+    bool: number
+    byteA: number
+    xml: number
+    json: number
+    jsonb: number
     _all: number
   }
 
@@ -11397,7 +11630,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: DGroupByArgs['orderBy'] }
         : { orderBy?: DGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -11741,10 +11974,10 @@ export namespace Prisma {
   }
 
   export type ECountAggregateOutputType = {
-    id: number | null
-    date: number | null
-    time: number | null
-    ts: number | null
+    id: number
+    date: number
+    time: number
+    ts: number
     _all: number
   }
 
@@ -12148,7 +12381,7 @@ export namespace Prisma {
       OrderByArg extends True extends HasSelectOrTake
         ? { orderBy: EGroupByArgs['orderBy'] }
         : { orderBy?: EGroupByArgs['orderBy'] },
-      OrderFields extends Keys<MaybeTupleToUnion<T['orderBy']>>,
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
       ByFields extends TupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
@@ -12787,7 +13020,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
-    posts?: PostOrderByAggregateInput
+    posts?: PostOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = {
@@ -12854,7 +13087,7 @@ export namespace Prisma {
 
   export type MOrderByWithRelationInput = {
     id?: SortOrder
-    n?: NOrderByAggregateInput
+    n?: NOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -12930,7 +13163,7 @@ export namespace Prisma {
 
   export type NOrderByWithRelationInput = {
     id?: SortOrder
-    m?: MOrderByAggregateInput
+    m?: MOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -13006,7 +13239,7 @@ export namespace Prisma {
 
   export type OneOptionalOrderByWithRelationInput = {
     id?: SortOrder
-    many?: ManyRequiredOrderByAggregateInput
+    many?: ManyRequiredOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -14914,7 +15147,7 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
-  export type PostOrderByAggregateInput = {
+  export type PostOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15016,7 +15249,7 @@ export namespace Prisma {
     none?: NWhereInput
   }
 
-  export type NOrderByAggregateInput = {
+  export type NOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15026,7 +15259,7 @@ export namespace Prisma {
     none?: MWhereInput
   }
 
-  export type MOrderByAggregateInput = {
+  export type MOrderByRelationAggregateInput = {
     count: SortOrder
   }
 
@@ -15036,7 +15269,7 @@ export namespace Prisma {
     none?: ManyRequiredWhereInput
   }
 
-  export type ManyRequiredOrderByAggregateInput = {
+  export type ManyRequiredOrderByRelationAggregateInput = {
     count: SortOrder
   }
 

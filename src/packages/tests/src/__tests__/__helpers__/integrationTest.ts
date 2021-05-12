@@ -9,7 +9,7 @@ import { getTestClient } from '@prisma/client/dist/utils/getTestClient'
 
 process.setMaxListeners(200)
 
-process.env.SKIP_GENERATE = 'true'
+process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
 
 const engine = new IntrospectionEngine()
 
@@ -243,7 +243,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
     afterAllScenarios(kind, states)
   })
 
-  it.concurrent.each(filterTestScenarios(input.scenarios).slice(0, 1))(
+  it.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
       const { ctx, state } = await setupScenario(kind, input, scenario)

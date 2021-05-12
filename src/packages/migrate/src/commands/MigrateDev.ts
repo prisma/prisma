@@ -190,7 +190,7 @@ ${chalk.bold('Examples')}
     // If database was reset we want to run the seed if not skipped
     if (
       devDiagnostic.action.tag === 'reset' &&
-      !process.env.MIGRATE_SKIP_SEED &&
+      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
       !args['--skip-seed']
     ) {
       // Run seed if 1 or more seed files are present
@@ -272,15 +272,13 @@ ${chalk.bold('Examples')}
 
     if (migrationIds.length === 0) {
       if (migrationIdsApplied.length > 0) {
-        // Run if not skipped
-        if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-          await migrate.tryToRunGenerate()
-          console.info() // empty line
-        }
-
-        return `${chalk.green('Everything is now in sync.')}`
+        console.info(
+          `${chalk.green('Your database is now in sync with your schema.')}`,
+        )
       } else {
-        return `Already in sync, no schema change or pending migration was found.`
+        console.info(
+          `Already in sync, no schema change or pending migration was found.`,
+        )
       }
     } else {
       console.info(
@@ -288,27 +286,35 @@ ${chalk.bold('Examples')}
           printFilesFromMigrationIds('migrations', migrationIds, {
             'migration.sql': '',
           }),
-        )}`,
+        )}
+
+${chalk.green('Your database is now in sync with your schema.')}`,
       )
-
-      // Run if not skipped
-      if (!process.env.MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-        await migrate.tryToRunGenerate()
-        console.info() // empty line
-      }
-
-      return `${chalk.green('Everything is now in sync.')}`
     }
+
+    // Run if not skipped
+    if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
+      await migrate.tryToRunGenerate()
+      console.info() // empty line
+    }
+
+    return ''
   }
 
   private async confirmReset(
-    { schemaWord, dbType, dbName, dbLocation },
-    reason,
+    {
+      schemaWord,
+      dbType,
+      dbName,
+      dbLocation,
+    }: { schemaWord?; dbType?; dbName?; dbLocation? },
+    reason: string,
   ): Promise<boolean> {
     const mssqlMessage = `${reason}
 
 We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
+
     const message = `${reason}
 
 We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".

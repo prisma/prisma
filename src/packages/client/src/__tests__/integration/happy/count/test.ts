@@ -60,5 +60,5 @@ test('count', async () => {
 
     `)
   }
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

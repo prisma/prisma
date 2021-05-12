@@ -1,7 +1,6 @@
 /node_modules
 /build
 /dist
-/download-build
 /prisma-client
 /runtime
 /src/__tests__

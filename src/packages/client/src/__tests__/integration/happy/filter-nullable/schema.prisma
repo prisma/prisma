@@ -1,11 +1,10 @@
 datasource db {
   provider = "sqlite"
-  url      = "sqlite:dev.db"
-  default  = true
+  url      = "file:dev.db"
 }
 
 generator client {
-  provider             = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model Person {
@@ -15,9 +14,9 @@ model Person {
 }
 
 model Sale {
-  id     String   @id @default(cuid())
-  resaleId String?
-  resale   Sale?   @relation("Resale", fields: [resaleId], references: [id])
-  originalSale Sale?   @relation("Resale")
-  persons Person[]  @relation("PersonsOnSale", references: [id])
+  id           String   @id @default(cuid())
+  resaleId     String?
+  resale       Sale?    @relation("Resale", fields: [resaleId], references: [id])
+  originalSale Sale?    @relation("Resale")
+  persons      Person[] @relation("PersonsOnSale", references: [id])
 }

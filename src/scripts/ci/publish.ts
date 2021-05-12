@@ -14,6 +14,7 @@ import { cloneOrPull } from '../setup'
 import { unique } from './unique'
 import pMap from 'p-map'
 import slugify from '@sindresorhus/slugify'
+import pRetry from 'p-retry'
 import { IncomingWebhook } from '@slack/webhook'
 
 export type Commit = {
@@ -149,7 +150,7 @@ async function run(
       shell: true,
       env: {
         ...process.env,
-        SKIP_GENERATE: 'true',
+        PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
       },
     })
   } catch (e) {
@@ -510,7 +511,7 @@ async function getAllVersions(
 }
 
 async function getNextMinorStable(): Promise<string | null> {
-  const remoteVersion = await runResult('.', `npm info @prisma/cli version`)
+  const remoteVersion = await runResult('.', `npm info prisma version`)
 
   return increaseMinor(remoteVersion)
 }
@@ -672,7 +673,7 @@ async function publish() {
       // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
       const latestStudioVersion = await runResult(
         '.',
-        'npm info @prisma/studio version',
+        'npm info @prisma/studio-server version',
       )
       console.log(
         `UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`,
@@ -683,7 +684,7 @@ async function publish() {
       await run('.', 'git checkout master')
       await run(
         '.',
-        `pnpm update  -r @prisma/studio@${latestStudioVersion} @prisma/studio-server@${latestStudioVersion}`,
+        `pnpm update  -r @prisma/studio-server@${latestStudioVersion}`,
       )
     }
 
@@ -891,7 +892,11 @@ function intersection<T>(arr1: T[], arr2: T[]): T[] {
 
 // Parent "version updating function", uses `patch` and `patchVersion`
 async function newVersion(pkg: Package, prisma2Version: string) {
-  const isPrisma2OrPhoton = ['@prisma/cli', '@prisma/client'].includes(pkg.name)
+  const isPrisma2OrPhoton = [
+    '@prisma/cli',
+    'prisma',
+    '@prisma/client',
+  ].includes(pkg.name)
   return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
 }
 
@@ -971,7 +976,7 @@ async function publishPackages(
   releaseVersion?: string,
   patchBranch?: string,
 ): Promise<void> {
-  // we need to release a new @prisma/cli in all cases.
+  // we need to release a new `prisma` CLI in all cases.
   // if there is a change in prisma-client-js, it will also use this new version
 
   const publishStr = dryRun
@@ -1013,7 +1018,7 @@ async function publishPackages(
       chalk.red.bold(
         `\nThis will ${chalk.underline(
           'release',
-        )} a new version of @prisma/cli on latest: ${chalk.underline(
+        )} a new version of prisma CLI on latest: ${chalk.underline(
           prisma2Version,
         )}`,
       ),
@@ -1070,14 +1075,31 @@ async function publishPackages(
 
       const prismaDeps = [...pkg.uses, ...pkg.usesDev]
       if (prismaDeps.length > 0) {
-        await run(
-          pkgDir,
-          `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
-          dryRun,
+        await pRetry(
+          async () => {
+            await run(
+              pkgDir,
+              `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`,
+              dryRun,
+            )
+          },
+          {
+            retries: 6,
+            onFailedAttempt: (e) => {
+              console.error(e)
+            },
+          },
         )
       }
 
       await writeVersion(pkgDir, newVersion, dryRun)
+
+      if (pkgName === 'prisma') {
+        const latestCommit = await getLatestCommit('.')
+        await writeToPkgJson(pkgDir, (pkg) => {
+          pkg.prisma.prismaCommit = latestCommit.hash
+        })
+      }
 
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
@@ -1317,10 +1339,17 @@ function getLines(str: string): string[] {
 }
 
 async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
+  type Commit = {
+    message?: string
+    author: {
+      name: string
+    }
+    hash
+  }
   return fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
     .then((_) => _.json())
-    .then(({ commit }) => ({
-      message: commit.message,
+    .then(({ commit }: { commit: Commit }) => ({
+      message: commit.message || '',
       author: commit.author.name,
       hash,
     }))

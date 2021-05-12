@@ -18,5 +18,5 @@ test('missing-table', async () => {
             The table \`main.User\` does not exist in the current database.
         `)
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

@@ -129,48 +129,14 @@ ${chalk.bold('Examples')}
       }
     }
 
-    let result: execa.ExecaReturnValue<string> | undefined = undefined
-    try {
-      result = await dropDatabase(dbInfo.url, schemaDir)
-    } catch (e) {
-      let json
-      try {
-        json = JSON.parse(e.stdout)
-      } catch (e) {
-        console.error(
-          `Could not parse database drop engine response: ${e.stdout.slice(
-            0,
-            200,
-          )}`,
-        )
-      }
-
-      if (json.message) {
-        throw Error(json.message)
-      }
-
-      throw Error(e)
-    }
-
-    if (
-      result &&
-      result.exitCode === 0 &&
-      result.stderr.includes('The database was successfully dropped')
-    ) {
+    if (await dropDatabase(dbInfo.url, schemaDir)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${
         dbInfo.dbType
       } ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${
         dbInfo.dbLocation
       }" was successfully dropped.\n`
     } else {
-      // We should not arrive here normally
-      throw Error(
-        `An error occurred during the drop: ${JSON.stringify(
-          result,
-          undefined,
-          2,
-        )}`,
-      )
+      return ''
     }
   }
 

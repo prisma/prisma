@@ -33,7 +33,7 @@ export async function tearDownMysql(connectionString: string) {
   const credentials = uriToCredentials(connectionString)
 
   const credentialsClone = { ...credentials }
-  credentialsClone.database = 'tests'
+  credentialsClone.database = 'mysql'
 
   const db = await mariadb.createConnection({
     host: credentialsClone.host,
