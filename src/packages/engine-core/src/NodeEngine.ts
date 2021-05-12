@@ -72,7 +72,7 @@ const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
-
+// TODO Rename to BinaryEngine?
 export class NodeEngine implements Engine {
   private logEmitter: EventEmitter
   private showColors: boolean

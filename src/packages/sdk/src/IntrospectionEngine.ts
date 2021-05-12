@@ -216,6 +216,7 @@ export class IntrospectionEngine {
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
+  // TODO Dead Code?
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
@@ -275,7 +276,7 @@ export class IntrospectionEngine {
         try {
           const binaryPath = await resolveBinary('introspection-engine')
           debugRpc('starting introspection engine with binary: ' + binaryPath)
-
+          // TODO Why does the engine need the cwd
           this.child = spawn(binaryPath, {
             env: process.env,
             cwd: this.cwd,

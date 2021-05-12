@@ -150,6 +150,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
     let schema: string | null = null
 
+    // Makes sure we have a schema to pass to the engine
     if (url && schemaPath) {
       schema = this.printUrlAsDatasource(url)
       const rawSchema = fs.readFileSync(schemaPath, 'utf-8')

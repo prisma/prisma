@@ -170,6 +170,10 @@ export type GetConfigOptions = {
   ignoreEnvVarErrors?: boolean
 }
 
+// TODO Add comments 
+// TODO Rename datamodelPath to schemaPath
+// TODO Rename getConfig to ??? 
+
 export async function getConfig({
   datamodel,
   cwd = process.cwd(),
@@ -179,13 +183,14 @@ export async function getConfig({
 }: GetConfigOptions): Promise<ConfigMetaFormat> {
   queryEnginePath = await resolveBinary('query-engine', queryEnginePath)
 
-  let tempDatamodelPath: string | undefined = datamodelPath
-  if (!tempDatamodelPath) {
+  // If we do not get the path we write the datamodel to a tmp location
+  let tempDatamodelPath: string | undefined
+  if (!datamodelPath) {
     try {
       tempDatamodelPath = await tmpWrite(datamodel!)
     } catch (err) {
       throw new Error(
-        chalk.redBright.bold('Get DMMF ') +
+        chalk.redBright.bold('Get Config ') +
           'unable to write temp data model path',
       )
     }
@@ -202,14 +207,14 @@ export async function getConfig({
       {
         cwd,
         env: {
-          PRISMA_DML_PATH: tempDatamodelPath,
+          PRISMA_DML_PATH: datamodelPath ?? tempDatamodelPath,
           RUST_BACKTRACE: '1',
         },
         maxBuffer: MAX_BUFFER,
       },
     )
 
-    if (!datamodelPath) {
+    if (tempDatamodelPath) {
       await unlink(tempDatamodelPath)
     }
 
