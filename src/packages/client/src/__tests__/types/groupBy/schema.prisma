@@ -4,8 +4,8 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  output          = "@prisma/client"
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
 }
 
 // / User model comment
@@ -16,6 +16,7 @@ model user {
   followerCount Int?
   // / name comment
   name          String?
+  count         Int
   posts         Post[]
   Like          Like[]
 }

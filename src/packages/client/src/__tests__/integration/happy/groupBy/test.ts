@@ -116,7 +116,25 @@ describe('groupBy', () => {
       ]
     `)
   })
-
+  test('count field and aggregations', async () => {
+    const user = await prisma.user.groupBy({
+      by: ['count'],
+      where: {
+        age: {
+          gt: -1,
+        },
+      },
+      _count: true,
+    })
+    expect(user).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          _count: 10,
+          count: 0,
+        },
+      ]
+    `)
+  })
   // TODO: enable skip, take, age in count
   // when QE bugs are fixed
   test('name and aggregations', async () => {
@@ -201,68 +219,62 @@ describe('groupBy', () => {
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.user.groupBy()\` invocation:
+                        Invalid \`prisma.user.groupBy()\` invocation:
 
-        {
-          by: [
-            'name'
-          ],
-          select: {
-        ?   name?: true,
-            avg: {
-            ~~~
-              select: {
-                age: true
-              }
-            },
-            count: {
-            ~~~~~
-              select: {
-                _all: true
-              }
-            },
-            max: {
-            ~~~
-              select: {
-                age: true
-              }
-            },
-            min: {
-            ~~~
-              select: {
-                age: true
-              }
-            },
-            sum: {
-            ~~~
-              select: {
-                age: true
-              }
-            },
-        ?   id?: true,
-        ?   email?: true,
-        ?   age?: true,
-        ?   _count?: true,
-        ?   _avg?: true,
-        ?   _sum?: true,
-        ?   _min?: true,
-        ?   _max?: true
-          },
-          where: {
-            age: {
-              gt: -1
-            }
-          }
-        }
+                        {
+                          by: [
+                            'name'
+                          ],
+                          select: {
+                        ?   name?: true,
+                            avg: {
+                            ~~~
+                              select: {
+                                age: true
+                              }
+                            },
+                        ?   count?: true,
+                            max: {
+                            ~~~
+                              select: {
+                                age: true
+                              }
+                            },
+                            min: {
+                            ~~~
+                              select: {
+                                age: true
+                              }
+                            },
+                            sum: {
+                            ~~~
+                              select: {
+                                age: true
+                              }
+                            },
+                        ?   id?: true,
+                        ?   email?: true,
+                        ?   age?: true,
+                        ?   _count?: true,
+                        ?   _avg?: true,
+                        ?   _sum?: true,
+                        ?   _min?: true,
+                        ?   _max?: true
+                          },
+                          where: {
+                            age: {
+                              gt: -1
+                            }
+                          }
+                        }
 
 
-        Unknown field \`avg\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_avg\`?
-        Unknown field \`count\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_count\`?
-        Unknown field \`max\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_max\`?
-        Unknown field \`min\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_min\`?
-        Unknown field \`sum\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_sum\`?
+                        Unknown field \`avg\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_avg\`?
+                        Unknown field \`max\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_max\`?
+                        Unknown field \`min\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_min\`?
+                        Unknown field \`sum\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_sum\`?
 
-      `)
+                  `)
     }
   })
   // TODO: enable skip, take, age in count
@@ -289,35 +301,9 @@ describe('groupBy', () => {
         count: true,
       })
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`
-
-        Invalid \`prisma.user.groupBy()\` invocation:
-
-        {
-          by: [
-            'name'
-          ],
-          select: {
-        ?   name?: true,
-            count: {
-            ~~~~~
-              select: true
-            },
-        ?   id?: true,
-        ?   email?: true,
-        ?   age?: true,
-        ?   _count?: true,
-        ?   _avg?: true,
-        ?   _sum?: true,
-        ?   _min?: true,
-        ?   _max?: true
-          }
-        }
-
-
-        Unknown field \`count\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_count\`?
-
-      `)
+      expect(e).toMatchInlineSnapshot(
+        `Cannot read property 'filter' of undefined`,
+      )
     }
   })
 })

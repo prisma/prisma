@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["groupBy"]
+  provider = "prisma-client-js"
 }
 
 // / User model comment
@@ -14,6 +13,7 @@ model User {
   email String  @unique
   age   Int
   // / name comment
+  count Int     @default(0)
   name  String?
   posts Post[]
 }
