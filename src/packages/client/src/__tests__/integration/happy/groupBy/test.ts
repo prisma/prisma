@@ -16,54 +16,14 @@ describe('groupBy', () => {
       by: ['email'],
     })
 
-    expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: bob+0@hey.com,
-        },
-        Object {
-          email: bob+1@hey.com,
-        },
-        Object {
-          email: bob+2@hey.com,
-        },
-        Object {
-          email: bob+3@hey.com,
-        },
-        Object {
-          email: bob+4@hey.com,
-        },
-        Object {
-          email: bob+5@hey.com,
-        },
-        Object {
-          email: bob+6@hey.com,
-        },
-        Object {
-          email: bob+7@hey.com,
-        },
-        Object {
-          email: bob+8@hey.com,
-        },
-        Object {
-          email: bob+9@hey.com,
-        },
-      ]
-    `)
+    expect(user).toMatchSnapshot()
   })
 
   test('name', async () => {
     const user = await prisma.user.groupBy({
       by: ['name'],
     })
-
-    expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          name: Bobby Brown,
-        },
-      ]
-    `)
+    expect(user).toMatchSnapshot()
   })
 
   test('2 fields', async () => {
@@ -71,51 +31,9 @@ describe('groupBy', () => {
       by: ['email', 'name'],
     })
 
-    expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: bob+0@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+1@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+2@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+3@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+4@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+5@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+6@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+7@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+8@hey.com,
-          name: Bobby Brown,
-        },
-        Object {
-          email: bob+9@hey.com,
-          name: Bobby Brown,
-        },
-      ]
-    `)
+    expect(user).toMatchSnapshot()
   })
+
   test('count field and aggregations', async () => {
     const user = await prisma.user.groupBy({
       by: ['count'],
@@ -125,15 +43,26 @@ describe('groupBy', () => {
         },
       },
       _count: true,
+      _min: {
+        min: true,
+      },
     })
-    expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          _count: 10,
-          count: 0,
+    expect(user).toMatchSnapshot()
+  })
+  test('by  [name, count, min, sum, max, avg] with aggregations', async () => {
+    const user = await prisma.user.groupBy({
+      by: ['name', 'count', 'min', 'sum', 'max', 'avg'],
+      where: {
+        age: {
+          gt: -1,
         },
-      ]
-    `)
+      },
+      _count: true,
+      _min: {
+        min: true,
+      },
+    })
+    expect(user).toMatchSnapshot()
   })
   // TODO: enable skip, take, age in count
   // when QE bugs are fixed
@@ -151,7 +80,7 @@ describe('groupBy', () => {
         age: true,
       },
       _count: {
-        // age: true,
+        age: true,
         _all: true,
       },
       _max: {
@@ -165,29 +94,9 @@ describe('groupBy', () => {
       },
     })
 
-    expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          _avg: Object {
-            age: 80,
-          },
-          _count: Object {
-            _all: 10,
-          },
-          _max: Object {
-            age: 163,
-          },
-          _min: Object {
-            age: 5,
-          },
-          _sum: Object {
-            age: 800,
-          },
-          name: Bobby Brown,
-        },
-      ]
-    `)
+    expect(user).toMatchSnapshot()
   })
+
   test('name and aggregations (legacy)', async () => {
     try {
       const user = await prisma.user.groupBy({
@@ -217,68 +126,10 @@ describe('groupBy', () => {
         },
       })
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`
-
-                        Invalid \`prisma.user.groupBy()\` invocation:
-
-                        {
-                          by: [
-                            'name'
-                          ],
-                          select: {
-                        ?   name?: true,
-                            avg: {
-                            ~~~
-                              select: {
-                                age: true
-                              }
-                            },
-                        ?   count?: true,
-                            max: {
-                            ~~~
-                              select: {
-                                age: true
-                              }
-                            },
-                            min: {
-                            ~~~
-                              select: {
-                                age: true
-                              }
-                            },
-                            sum: {
-                            ~~~
-                              select: {
-                                age: true
-                              }
-                            },
-                        ?   id?: true,
-                        ?   email?: true,
-                        ?   age?: true,
-                        ?   _count?: true,
-                        ?   _avg?: true,
-                        ?   _sum?: true,
-                        ?   _min?: true,
-                        ?   _max?: true
-                          },
-                          where: {
-                            age: {
-                              gt: -1
-                            }
-                          }
-                        }
-
-
-                        Unknown field \`avg\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_avg\`?
-                        Unknown field \`max\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_max\`?
-                        Unknown field \`min\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_min\`?
-                        Unknown field \`sum\` for select statement on model UserGroupByOutputType. Available options are listed in green. Did you mean \`_sum\`?
-
-                  `)
+      expect(e).toMatchSnapshot()
     }
   })
-  // TODO: enable skip, take, age in count
-  // when QE bugs are fixed
+
   test('name and with count', async () => {
     const user = await prisma.user.groupBy({
       by: ['name'],
@@ -294,6 +145,7 @@ describe('groupBy', () => {
       ]
     `)
   })
+
   test('name and with count (legacy)', async () => {
     try {
       const user = await prisma.user.groupBy({
@@ -301,9 +153,7 @@ describe('groupBy', () => {
         count: true,
       })
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `Cannot read property 'filter' of undefined`,
-      )
+      expect(e).toMatchSnapshot()
     }
   })
 })

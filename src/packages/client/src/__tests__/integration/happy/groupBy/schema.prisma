@@ -13,8 +13,12 @@ model User {
   email String  @unique
   age   Int
   // / name comment
-  count Int     @default(0)
   name  String?
+  count Int     @default(0)
+  sum   Int     @default(0)
+  avg   Int     @default(0)
+  min   Int     @default(0)
+  max   Int     @default(0)
   posts Post[]
 }
 

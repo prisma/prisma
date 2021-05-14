@@ -13,7 +13,7 @@ async function main() {
   })
 
   const x = await prisma.user.groupBy({
-    by: ['name'],
+    by: ['name', 'count', 'min', 'sum', 'max', 'avg'],
     where: {
       age: {
         gt: -1,
@@ -28,55 +28,25 @@ async function main() {
     take: 10000,
     _avg: {
       age: true,
+      avg: true,
     },
     _count: {
       age: true,
       email: true,
+      count: true,
       _all: true,
     },
     _max: {
       age: true,
+      max: true,
     },
     _min: {
       age: true,
+      min: true,
     },
     _sum: {
       age: true,
-    },
-    having: {
-      name: '',
-    },
-  })
-  const xLegacy = await prisma.user.groupBy({
-    by: ['name'],
-    where: {
-      age: {
-        gt: -1,
-      },
-    },
-    orderBy: [
-      {
-        name: 'desc',
-      },
-    ],
-    skip: 0,
-    take: 10000,
-    _avg: {
-      age: true,
-    },
-    _count: {
-      age: true,
-      email: true,
-      _all: true,
-    },
-    _max: {
-      age: true,
-    },
-    _min: {
-      age: true,
-    },
-    _sum: {
-      age: true,
+      sum: true,
     },
     having: {
       name: '',
@@ -84,40 +54,38 @@ async function main() {
   })
   type X0 = {
     name: string | null
+    count: number
+    min: number
+    sum: number
+    max: number
+    avg: number
+
     _avg: {
       age: number | null
+      avg: number | null
     }
     _sum: {
       age: number | null
+      sum: number | null
     }
     _count: {
       age: number | null
+      count: number | null
       email: number | null
       _all: number | null
     }
     _min: {
       age: number | null
+      min: number | null
     }
     _max: {
       age: number | null
+      max: number | null
     }
   }
   const x0: X0 = x[0]
-  const xLegacy0: X0 = xLegacy[0]
 
   const y = await prisma.user.groupBy({
-    by: ['name'],
-    _count: true,
-    having: {
-      name: '',
-      email: {
-        _min: {
-          contains: '',
-        },
-      },
-    },
-  })
-  const yLegacy = await prisma.user.groupBy({
     by: ['name'],
     _count: true,
     having: {

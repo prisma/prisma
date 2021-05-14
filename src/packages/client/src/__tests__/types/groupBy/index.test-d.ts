@@ -1,5 +1,5 @@
+import { expectError,  } from 'tsd'
 import { PrismaClient } from '.'
-import { expectType, expectError } from 'tsd'
 
 // tslint:disable
 
