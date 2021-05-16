@@ -246,7 +246,7 @@ Please run \`prisma generate\` manually.`
                 ),
               ),
             )
-          : '@prisma/client'
+          : '.prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
           ? `
 
