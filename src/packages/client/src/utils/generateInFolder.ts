@@ -115,7 +115,7 @@ export async function generateInFolder({
   const binaryPaths = useNapi
     ? {
         libqueryEngineNapi: {
-          [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
+          [platform]: napiLibraryPath,
         },
       }
     : {
@@ -144,7 +144,6 @@ export async function generateInFolder({
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
   })
-
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)
 

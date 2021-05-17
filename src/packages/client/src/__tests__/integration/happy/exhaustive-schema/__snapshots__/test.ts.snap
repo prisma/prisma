@@ -1090,7 +1090,7 @@ export namespace Prisma {
 
   type FieldPaths<
     T,
-    U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+    U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
   > = IsObject<T> extends True ? U : T
 
   type GetHavingFields<T> = {
@@ -1347,6 +1347,7 @@ export namespace Prisma {
   export type UserCountOutputTypeArgs = {
     /**
      * Select specific fields to fetch from the UserCountOutputType
+     * 
     **/
     select?: UserCountOutputTypeSelect | null
   }
@@ -1396,6 +1397,7 @@ export namespace Prisma {
   export type MCountOutputTypeArgs = {
     /**
      * Select specific fields to fetch from the MCountOutputType
+     * 
     **/
     select?: MCountOutputTypeSelect | null
   }
@@ -1445,6 +1447,7 @@ export namespace Prisma {
   export type NCountOutputTypeArgs = {
     /**
      * Select specific fields to fetch from the NCountOutputType
+     * 
     **/
     select?: NCountOutputTypeSelect | null
   }
@@ -1494,6 +1497,7 @@ export namespace Prisma {
   export type OneOptionalCountOutputTypeArgs = {
     /**
      * Select specific fields to fetch from the OneOptionalCountOutputType
+     * 
     **/
     select?: OneOptionalCountOutputTypeSelect | null
   }
@@ -1510,10 +1514,15 @@ export namespace Prisma {
 
 
   export type AggregatePost = {
+    _count: PostCountAggregateOutputType | null
     count: PostCountAggregateOutputType | null
+    _avg: PostAvgAggregateOutputType | null
     avg: PostAvgAggregateOutputType | null
+    _sum: PostSumAggregateOutputType | null
     sum: PostSumAggregateOutputType | null
+    _min: PostMinAggregateOutputType | null
     min: PostMinAggregateOutputType | null
+    _max: PostMaxAggregateOutputType | null
     max: PostMaxAggregateOutputType | null
   }
 
@@ -1597,30 +1606,35 @@ export namespace Prisma {
   export type PostAggregateArgs = {
     /**
      * Filter which Post to aggregate.
+     * 
     **/
     where?: PostWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
+     * 
     **/
     orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Posts from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Posts.
+     * 
     **/
     skip?: number
     /**
@@ -1628,11 +1642,19 @@ export namespace Prisma {
      * 
      * Count returned Posts
     **/
+    _count?: true | PostCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | PostCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: PostAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: PostAvgAggregateInputType
     /**
@@ -1640,11 +1662,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: PostSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: PostSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: PostMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: PostMinAggregateInputType
     /**
@@ -1652,11 +1682,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: PostMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: PostMaxAggregateInputType
   }
 
   export type GetPostAggregateType<T extends PostAggregateArgs> = {
-    [P in keyof T & keyof AggregatePost]: P extends 'count'
+        [P in keyof T & keyof AggregatePost]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregatePost[P]>
@@ -1673,11 +1707,11 @@ export namespace Prisma {
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: PostCountAggregateInputType | true
-    avg?: PostAvgAggregateInputType
-    sum?: PostSumAggregateInputType
-    min?: PostMinAggregateInputType
-    max?: PostMaxAggregateInputType
+    _count?: PostCountAggregateInputType | true
+    _avg?: PostAvgAggregateInputType
+    _sum?: PostSumAggregateInputType
+    _min?: PostMinAggregateInputType
+    _max?: PostMaxAggregateInputType
   }
 
 
@@ -1688,19 +1722,26 @@ export namespace Prisma {
     content: string | null
     published: boolean
     authorId: number
-    count: PostCountAggregateOutputType | null
-    avg: PostAvgAggregateOutputType | null
-    sum: PostSumAggregateOutputType | null
-    min: PostMinAggregateOutputType | null
-    max: PostMaxAggregateOutputType | null
+    _count: PostCountAggregateOutputType | null
+    _avg: PostAvgAggregateOutputType | null
+    _sum: PostSumAggregateOutputType | null
+    _min: PostMinAggregateOutputType | null
+    _max: PostMaxAggregateOutputType | null
   }
 
-  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<Array<
-    PickArray<PostGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof PostGroupByOutputType))]: GetScalarType<T[P], PostGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<
+    Array<
+      PickArray<PostGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof PostGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], PostGroupByOutputType[P]> 
+            : GetScalarType<T[P], PostGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type PostSelect = {
     id?: boolean
@@ -1958,7 +1999,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -1986,7 +2027,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -2108,18 +2149,22 @@ export namespace Prisma {
   export type PostFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * Throw an Error if a Post can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
+     * 
     **/
     where: PostWhereUniqueInput
   }
@@ -2131,48 +2176,57 @@ export namespace Prisma {
   export type PostFindFirstArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * Throw an Error if a Post can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
+     * 
     **/
     where?: PostWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
+     * 
     **/
     orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for Posts.
+     * 
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Posts from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Posts.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of Posts.
+     * 
     **/
     distinct?: Enumerable<PostScalarFieldEnum>
   }
@@ -2184,38 +2238,45 @@ export namespace Prisma {
   export type PostFindManyArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * Filter, which Posts to fetch.
+     * 
     **/
     where?: PostWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Posts to fetch.
+     * 
     **/
     orderBy?: Enumerable<PostOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing Posts.
+     * 
     **/
     cursor?: PostWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Posts from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Posts.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<PostScalarFieldEnum>
@@ -2228,14 +2289,17 @@ export namespace Prisma {
   export type PostCreateArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * The data needed to create a Post.
+     * 
     **/
     data: XOR<PostCreateInput, PostUncheckedCreateInput>
   }
@@ -2256,18 +2320,22 @@ export namespace Prisma {
   export type PostUpdateArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * The data needed to update a Post.
+     * 
     **/
     data: XOR<PostUpdateInput, PostUncheckedUpdateInput>
     /**
      * Choose, which Post to update.
+     * 
     **/
     where: PostWhereUniqueInput
   }
@@ -2288,22 +2356,27 @@ export namespace Prisma {
   export type PostUpsertArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * The filter to search for the Post to update in case it exists.
+     * 
     **/
     where: PostWhereUniqueInput
     /**
      * In case the Post found by the \`where\` argument doesn't exist, create a new Post with this data.
+     * 
     **/
     create: XOR<PostCreateInput, PostUncheckedCreateInput>
     /**
      * In case the Post was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<PostUpdateInput, PostUncheckedUpdateInput>
   }
@@ -2315,14 +2388,17 @@ export namespace Prisma {
   export type PostDeleteArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
     /**
      * Filter which Post to delete.
+     * 
     **/
     where: PostWhereUniqueInput
   }
@@ -2342,10 +2418,12 @@ export namespace Prisma {
   export type PostArgs = {
     /**
      * Select specific fields to fetch from the Post
+     * 
     **/
     select?: PostSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: PostInclude | null
   }
@@ -2358,10 +2436,15 @@ export namespace Prisma {
 
 
   export type AggregateUser = {
+    _count: UserCountAggregateOutputType | null
     count: UserCountAggregateOutputType | null
+    _avg: UserAvgAggregateOutputType | null
     avg: UserAvgAggregateOutputType | null
+    _sum: UserSumAggregateOutputType | null
     sum: UserSumAggregateOutputType | null
+    _min: UserMinAggregateOutputType | null
     min: UserMinAggregateOutputType | null
+    _max: UserMaxAggregateOutputType | null
     max: UserMaxAggregateOutputType | null
   }
 
@@ -2497,30 +2580,35 @@ export namespace Prisma {
   export type UserAggregateArgs = {
     /**
      * Filter which User to aggregate.
+     * 
     **/
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
+     * 
     **/
     orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Users from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Users.
+     * 
     **/
     skip?: number
     /**
@@ -2528,11 +2616,19 @@ export namespace Prisma {
      * 
      * Count returned Users
     **/
+    _count?: true | UserCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | UserCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: UserAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: UserAvgAggregateInputType
     /**
@@ -2540,11 +2636,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: UserSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: UserSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: UserMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: UserMinAggregateInputType
     /**
@@ -2552,11 +2656,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: UserMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: UserMaxAggregateInputType
   }
 
   export type GetUserAggregateType<T extends UserAggregateArgs> = {
-    [P in keyof T & keyof AggregateUser]: P extends 'count'
+        [P in keyof T & keyof AggregateUser]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateUser[P]>
@@ -2573,11 +2681,11 @@ export namespace Prisma {
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: UserCountAggregateInputType | true
-    avg?: UserAvgAggregateInputType
-    sum?: UserSumAggregateInputType
-    min?: UserMinAggregateInputType
-    max?: UserMaxAggregateInputType
+    _count?: UserCountAggregateInputType | true
+    _avg?: UserAvgAggregateInputType
+    _sum?: UserSumAggregateInputType
+    _min?: UserMinAggregateInputType
+    _max?: UserMaxAggregateInputType
   }
 
 
@@ -2596,19 +2704,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: UserCountAggregateOutputType | null
-    avg: UserAvgAggregateOutputType | null
-    sum: UserSumAggregateOutputType | null
-    min: UserMinAggregateOutputType | null
-    max: UserMaxAggregateOutputType | null
+    _count: UserCountAggregateOutputType | null
+    _avg: UserAvgAggregateOutputType | null
+    _sum: UserSumAggregateOutputType | null
+    _min: UserMinAggregateOutputType | null
+    _max: UserMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<Array<
-    PickArray<UserGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof UserGroupByOutputType))]: GetScalarType<T[P], UserGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<
+    Array<
+      PickArray<UserGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], UserGroupByOutputType[P]> 
+            : GetScalarType<T[P], UserGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type UserSelect = {
     id?: boolean
@@ -2880,7 +2995,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -2908,7 +3023,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -3030,18 +3145,22 @@ export namespace Prisma {
   export type UserFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * Throw an Error if a User can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
+     * 
     **/
     where: UserWhereUniqueInput
   }
@@ -3053,48 +3172,57 @@ export namespace Prisma {
   export type UserFindFirstArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * Throw an Error if a User can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
+     * 
     **/
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
+     * 
     **/
     orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for Users.
+     * 
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Users from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Users.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of Users.
+     * 
     **/
     distinct?: Enumerable<UserScalarFieldEnum>
   }
@@ -3106,38 +3234,45 @@ export namespace Prisma {
   export type UserFindManyArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * Filter, which Users to fetch.
+     * 
     **/
     where?: UserWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of Users to fetch.
+     * 
     **/
     orderBy?: Enumerable<UserOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing Users.
+     * 
     **/
     cursor?: UserWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` Users from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` Users.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<UserScalarFieldEnum>
@@ -3150,14 +3285,17 @@ export namespace Prisma {
   export type UserCreateArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * The data needed to create a User.
+     * 
     **/
     data: XOR<UserCreateInput, UserUncheckedCreateInput>
   }
@@ -3178,18 +3316,22 @@ export namespace Prisma {
   export type UserUpdateArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * The data needed to update a User.
+     * 
     **/
     data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
     /**
      * Choose, which User to update.
+     * 
     **/
     where: UserWhereUniqueInput
   }
@@ -3210,22 +3352,27 @@ export namespace Prisma {
   export type UserUpsertArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * The filter to search for the User to update in case it exists.
+     * 
     **/
     where: UserWhereUniqueInput
     /**
      * In case the User found by the \`where\` argument doesn't exist, create a new User with this data.
+     * 
     **/
     create: XOR<UserCreateInput, UserUncheckedCreateInput>
     /**
      * In case the User was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<UserUpdateInput, UserUncheckedUpdateInput>
   }
@@ -3237,14 +3384,17 @@ export namespace Prisma {
   export type UserDeleteArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
     /**
      * Filter which User to delete.
+     * 
     **/
     where: UserWhereUniqueInput
   }
@@ -3264,10 +3414,12 @@ export namespace Prisma {
   export type UserArgs = {
     /**
      * Select specific fields to fetch from the User
+     * 
     **/
     select?: UserSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: UserInclude | null
   }
@@ -3280,10 +3432,15 @@ export namespace Prisma {
 
 
   export type AggregateM = {
+    _count: MCountAggregateOutputType | null
     count: MCountAggregateOutputType | null
+    _avg: MAvgAggregateOutputType | null
     avg: MAvgAggregateOutputType | null
+    _sum: MSumAggregateOutputType | null
     sum: MSumAggregateOutputType | null
+    _min: MMinAggregateOutputType | null
     min: MMinAggregateOutputType | null
+    _max: MMaxAggregateOutputType | null
     max: MMaxAggregateOutputType | null
   }
 
@@ -3413,30 +3570,35 @@ export namespace Prisma {
   export type MAggregateArgs = {
     /**
      * Filter which M to aggregate.
+     * 
     **/
     where?: MWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
+     * 
     **/
     orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` MS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` MS.
+     * 
     **/
     skip?: number
     /**
@@ -3444,11 +3606,19 @@ export namespace Prisma {
      * 
      * Count returned MS
     **/
+    _count?: true | MCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | MCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: MAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: MAvgAggregateInputType
     /**
@@ -3456,11 +3626,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: MSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: MSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: MMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: MMinAggregateInputType
     /**
@@ -3468,11 +3646,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: MMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: MMaxAggregateInputType
   }
 
   export type GetMAggregateType<T extends MAggregateArgs> = {
-    [P in keyof T & keyof AggregateM]: P extends 'count'
+        [P in keyof T & keyof AggregateM]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateM[P]>
@@ -3489,11 +3671,11 @@ export namespace Prisma {
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: MCountAggregateInputType | true
-    avg?: MAvgAggregateInputType
-    sum?: MSumAggregateInputType
-    min?: MMinAggregateInputType
-    max?: MMaxAggregateInputType
+    _count?: MCountAggregateInputType | true
+    _avg?: MAvgAggregateInputType
+    _sum?: MSumAggregateInputType
+    _min?: MMinAggregateInputType
+    _max?: MMaxAggregateInputType
   }
 
 
@@ -3511,19 +3693,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: MCountAggregateOutputType | null
-    avg: MAvgAggregateOutputType | null
-    sum: MSumAggregateOutputType | null
-    min: MMinAggregateOutputType | null
-    max: MMaxAggregateOutputType | null
+    _count: MCountAggregateOutputType | null
+    _avg: MAvgAggregateOutputType | null
+    _sum: MSumAggregateOutputType | null
+    _min: MMinAggregateOutputType | null
+    _max: MMaxAggregateOutputType | null
   }
 
-  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<Array<
-    PickArray<MGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof MGroupByOutputType))]: GetScalarType<T[P], MGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<
+    Array<
+      PickArray<MGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof MGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], MGroupByOutputType[P]> 
+            : GetScalarType<T[P], MGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type MSelect = {
     id?: boolean
@@ -3794,7 +3983,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -3822,7 +4011,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -3944,18 +4133,22 @@ export namespace Prisma {
   export type MFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * Throw an Error if a M can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
+     * 
     **/
     where: MWhereUniqueInput
   }
@@ -3967,48 +4160,57 @@ export namespace Prisma {
   export type MFindFirstArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * Throw an Error if a M can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
+     * 
     **/
     where?: MWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
+     * 
     **/
     orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for MS.
+     * 
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` MS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` MS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of MS.
+     * 
     **/
     distinct?: Enumerable<MScalarFieldEnum>
   }
@@ -4020,38 +4222,45 @@ export namespace Prisma {
   export type MFindManyArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * Filter, which MS to fetch.
+     * 
     **/
     where?: MWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of MS to fetch.
+     * 
     **/
     orderBy?: Enumerable<MOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing MS.
+     * 
     **/
     cursor?: MWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` MS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` MS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<MScalarFieldEnum>
@@ -4064,14 +4273,17 @@ export namespace Prisma {
   export type MCreateArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * The data needed to create a M.
+     * 
     **/
     data: XOR<MCreateInput, MUncheckedCreateInput>
   }
@@ -4092,18 +4304,22 @@ export namespace Prisma {
   export type MUpdateArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * The data needed to update a M.
+     * 
     **/
     data: XOR<MUpdateInput, MUncheckedUpdateInput>
     /**
      * Choose, which M to update.
+     * 
     **/
     where: MWhereUniqueInput
   }
@@ -4124,22 +4340,27 @@ export namespace Prisma {
   export type MUpsertArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * The filter to search for the M to update in case it exists.
+     * 
     **/
     where: MWhereUniqueInput
     /**
      * In case the M found by the \`where\` argument doesn't exist, create a new M with this data.
+     * 
     **/
     create: XOR<MCreateInput, MUncheckedCreateInput>
     /**
      * In case the M was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<MUpdateInput, MUncheckedUpdateInput>
   }
@@ -4151,14 +4372,17 @@ export namespace Prisma {
   export type MDeleteArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
     /**
      * Filter which M to delete.
+     * 
     **/
     where: MWhereUniqueInput
   }
@@ -4178,10 +4402,12 @@ export namespace Prisma {
   export type MArgs = {
     /**
      * Select specific fields to fetch from the M
+     * 
     **/
     select?: MSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: MInclude | null
   }
@@ -4194,10 +4420,15 @@ export namespace Prisma {
 
 
   export type AggregateN = {
+    _count: NCountAggregateOutputType | null
     count: NCountAggregateOutputType | null
+    _avg: NAvgAggregateOutputType | null
     avg: NAvgAggregateOutputType | null
+    _sum: NSumAggregateOutputType | null
     sum: NSumAggregateOutputType | null
+    _min: NMinAggregateOutputType | null
     min: NMinAggregateOutputType | null
+    _max: NMaxAggregateOutputType | null
     max: NMaxAggregateOutputType | null
   }
 
@@ -4327,30 +4558,35 @@ export namespace Prisma {
   export type NAggregateArgs = {
     /**
      * Filter which N to aggregate.
+     * 
     **/
     where?: NWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
+     * 
     **/
     orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` NS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` NS.
+     * 
     **/
     skip?: number
     /**
@@ -4358,11 +4594,19 @@ export namespace Prisma {
      * 
      * Count returned NS
     **/
+    _count?: true | NCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | NCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: NAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: NAvgAggregateInputType
     /**
@@ -4370,11 +4614,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: NSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: NSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: NMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: NMinAggregateInputType
     /**
@@ -4382,11 +4634,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: NMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: NMaxAggregateInputType
   }
 
   export type GetNAggregateType<T extends NAggregateArgs> = {
-    [P in keyof T & keyof AggregateN]: P extends 'count'
+        [P in keyof T & keyof AggregateN]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateN[P]>
@@ -4403,11 +4659,11 @@ export namespace Prisma {
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: NCountAggregateInputType | true
-    avg?: NAvgAggregateInputType
-    sum?: NSumAggregateInputType
-    min?: NMinAggregateInputType
-    max?: NMaxAggregateInputType
+    _count?: NCountAggregateInputType | true
+    _avg?: NAvgAggregateInputType
+    _sum?: NSumAggregateInputType
+    _min?: NMinAggregateInputType
+    _max?: NMaxAggregateInputType
   }
 
 
@@ -4425,19 +4681,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: NCountAggregateOutputType | null
-    avg: NAvgAggregateOutputType | null
-    sum: NSumAggregateOutputType | null
-    min: NMinAggregateOutputType | null
-    max: NMaxAggregateOutputType | null
+    _count: NCountAggregateOutputType | null
+    _avg: NAvgAggregateOutputType | null
+    _sum: NSumAggregateOutputType | null
+    _min: NMinAggregateOutputType | null
+    _max: NMaxAggregateOutputType | null
   }
 
-  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<Array<
-    PickArray<NGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof NGroupByOutputType))]: GetScalarType<T[P], NGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<
+    Array<
+      PickArray<NGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof NGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], NGroupByOutputType[P]> 
+            : GetScalarType<T[P], NGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type NSelect = {
     id?: boolean
@@ -4708,7 +4971,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -4736,7 +4999,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -4858,18 +5121,22 @@ export namespace Prisma {
   export type NFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * Throw an Error if a N can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
+     * 
     **/
     where: NWhereUniqueInput
   }
@@ -4881,48 +5148,57 @@ export namespace Prisma {
   export type NFindFirstArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * Throw an Error if a N can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
+     * 
     **/
     where?: NWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
+     * 
     **/
     orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for NS.
+     * 
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` NS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` NS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of NS.
+     * 
     **/
     distinct?: Enumerable<NScalarFieldEnum>
   }
@@ -4934,38 +5210,45 @@ export namespace Prisma {
   export type NFindManyArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * Filter, which NS to fetch.
+     * 
     **/
     where?: NWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of NS to fetch.
+     * 
     **/
     orderBy?: Enumerable<NOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing NS.
+     * 
     **/
     cursor?: NWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` NS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` NS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<NScalarFieldEnum>
@@ -4978,14 +5261,17 @@ export namespace Prisma {
   export type NCreateArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * The data needed to create a N.
+     * 
     **/
     data: XOR<NCreateInput, NUncheckedCreateInput>
   }
@@ -5006,18 +5292,22 @@ export namespace Prisma {
   export type NUpdateArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * The data needed to update a N.
+     * 
     **/
     data: XOR<NUpdateInput, NUncheckedUpdateInput>
     /**
      * Choose, which N to update.
+     * 
     **/
     where: NWhereUniqueInput
   }
@@ -5038,22 +5328,27 @@ export namespace Prisma {
   export type NUpsertArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * The filter to search for the N to update in case it exists.
+     * 
     **/
     where: NWhereUniqueInput
     /**
      * In case the N found by the \`where\` argument doesn't exist, create a new N with this data.
+     * 
     **/
     create: XOR<NCreateInput, NUncheckedCreateInput>
     /**
      * In case the N was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<NUpdateInput, NUncheckedUpdateInput>
   }
@@ -5065,14 +5360,17 @@ export namespace Prisma {
   export type NDeleteArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
     /**
      * Filter which N to delete.
+     * 
     **/
     where: NWhereUniqueInput
   }
@@ -5092,10 +5390,12 @@ export namespace Prisma {
   export type NArgs = {
     /**
      * Select specific fields to fetch from the N
+     * 
     **/
     select?: NSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: NInclude | null
   }
@@ -5108,10 +5408,15 @@ export namespace Prisma {
 
 
   export type AggregateOneOptional = {
+    _count: OneOptionalCountAggregateOutputType | null
     count: OneOptionalCountAggregateOutputType | null
+    _avg: OneOptionalAvgAggregateOutputType | null
     avg: OneOptionalAvgAggregateOutputType | null
+    _sum: OneOptionalSumAggregateOutputType | null
     sum: OneOptionalSumAggregateOutputType | null
+    _min: OneOptionalMinAggregateOutputType | null
     min: OneOptionalMinAggregateOutputType | null
+    _max: OneOptionalMaxAggregateOutputType | null
     max: OneOptionalMaxAggregateOutputType | null
   }
 
@@ -5241,30 +5546,35 @@ export namespace Prisma {
   export type OneOptionalAggregateArgs = {
     /**
      * Filter which OneOptional to aggregate.
+     * 
     **/
     where?: OneOptionalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
+     * 
     **/
     orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OneOptionals.
+     * 
     **/
     skip?: number
     /**
@@ -5272,11 +5582,19 @@ export namespace Prisma {
      * 
      * Count returned OneOptionals
     **/
+    _count?: true | OneOptionalCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | OneOptionalCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: OneOptionalAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OneOptionalAvgAggregateInputType
     /**
@@ -5284,11 +5602,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: OneOptionalSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: OneOptionalSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: OneOptionalMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OneOptionalMinAggregateInputType
     /**
@@ -5296,11 +5622,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: OneOptionalMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: OneOptionalMaxAggregateInputType
   }
 
   export type GetOneOptionalAggregateType<T extends OneOptionalAggregateArgs> = {
-    [P in keyof T & keyof AggregateOneOptional]: P extends 'count'
+        [P in keyof T & keyof AggregateOneOptional]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOneOptional[P]>
@@ -5317,11 +5647,11 @@ export namespace Prisma {
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OneOptionalCountAggregateInputType | true
-    avg?: OneOptionalAvgAggregateInputType
-    sum?: OneOptionalSumAggregateInputType
-    min?: OneOptionalMinAggregateInputType
-    max?: OneOptionalMaxAggregateInputType
+    _count?: OneOptionalCountAggregateInputType | true
+    _avg?: OneOptionalAvgAggregateInputType
+    _sum?: OneOptionalSumAggregateInputType
+    _min?: OneOptionalMinAggregateInputType
+    _max?: OneOptionalMaxAggregateInputType
   }
 
 
@@ -5339,19 +5669,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OneOptionalCountAggregateOutputType | null
-    avg: OneOptionalAvgAggregateOutputType | null
-    sum: OneOptionalSumAggregateOutputType | null
-    min: OneOptionalMinAggregateOutputType | null
-    max: OneOptionalMaxAggregateOutputType | null
+    _count: OneOptionalCountAggregateOutputType | null
+    _avg: OneOptionalAvgAggregateOutputType | null
+    _sum: OneOptionalSumAggregateOutputType | null
+    _min: OneOptionalMinAggregateOutputType | null
+    _max: OneOptionalMaxAggregateOutputType | null
   }
 
-  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<Array<
-    PickArray<OneOptionalGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<
+    Array<
+      PickArray<OneOptionalGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OneOptionalGroupByOutputType[P]> 
+            : GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OneOptionalSelect = {
     id?: boolean
@@ -5622,7 +5959,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -5650,7 +5987,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -5772,18 +6109,22 @@ export namespace Prisma {
   export type OneOptionalFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * Throw an Error if a OneOptional can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
+     * 
     **/
     where: OneOptionalWhereUniqueInput
   }
@@ -5795,48 +6136,57 @@ export namespace Prisma {
   export type OneOptionalFindFirstArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * Throw an Error if a OneOptional can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
+     * 
     **/
     where?: OneOptionalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
+     * 
     **/
     orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for OneOptionals.
+     * 
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OneOptionals.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OneOptionals.
+     * 
     **/
     distinct?: Enumerable<OneOptionalScalarFieldEnum>
   }
@@ -5848,38 +6198,45 @@ export namespace Prisma {
   export type OneOptionalFindManyArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * Filter, which OneOptionals to fetch.
+     * 
     **/
     where?: OneOptionalWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OneOptionals to fetch.
+     * 
     **/
     orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing OneOptionals.
+     * 
     **/
     cursor?: OneOptionalWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OneOptionals.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<OneOptionalScalarFieldEnum>
@@ -5892,14 +6249,17 @@ export namespace Prisma {
   export type OneOptionalCreateArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * The data needed to create a OneOptional.
+     * 
     **/
     data: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
   }
@@ -5920,18 +6280,22 @@ export namespace Prisma {
   export type OneOptionalUpdateArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * The data needed to update a OneOptional.
+     * 
     **/
     data: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
     /**
      * Choose, which OneOptional to update.
+     * 
     **/
     where: OneOptionalWhereUniqueInput
   }
@@ -5952,22 +6316,27 @@ export namespace Prisma {
   export type OneOptionalUpsertArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * The filter to search for the OneOptional to update in case it exists.
+     * 
     **/
     where: OneOptionalWhereUniqueInput
     /**
      * In case the OneOptional found by the \`where\` argument doesn't exist, create a new OneOptional with this data.
+     * 
     **/
     create: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
     /**
      * In case the OneOptional was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
   }
@@ -5979,14 +6348,17 @@ export namespace Prisma {
   export type OneOptionalDeleteArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
     /**
      * Filter which OneOptional to delete.
+     * 
     **/
     where: OneOptionalWhereUniqueInput
   }
@@ -6006,10 +6378,12 @@ export namespace Prisma {
   export type OneOptionalArgs = {
     /**
      * Select specific fields to fetch from the OneOptional
+     * 
     **/
     select?: OneOptionalSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OneOptionalInclude | null
   }
@@ -6022,10 +6396,15 @@ export namespace Prisma {
 
 
   export type AggregateManyRequired = {
+    _count: ManyRequiredCountAggregateOutputType | null
     count: ManyRequiredCountAggregateOutputType | null
+    _avg: ManyRequiredAvgAggregateOutputType | null
     avg: ManyRequiredAvgAggregateOutputType | null
+    _sum: ManyRequiredSumAggregateOutputType | null
     sum: ManyRequiredSumAggregateOutputType | null
+    _min: ManyRequiredMinAggregateOutputType | null
     min: ManyRequiredMinAggregateOutputType | null
+    _max: ManyRequiredMaxAggregateOutputType | null
     max: ManyRequiredMaxAggregateOutputType | null
   }
 
@@ -6165,30 +6544,35 @@ export namespace Prisma {
   export type ManyRequiredAggregateArgs = {
     /**
      * Filter which ManyRequired to aggregate.
+     * 
     **/
     where?: ManyRequiredWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
+     * 
     **/
     orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ManyRequireds.
+     * 
     **/
     skip?: number
     /**
@@ -6196,11 +6580,19 @@ export namespace Prisma {
      * 
      * Count returned ManyRequireds
     **/
+    _count?: true | ManyRequiredCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | ManyRequiredCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: ManyRequiredAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: ManyRequiredAvgAggregateInputType
     /**
@@ -6208,11 +6600,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: ManyRequiredSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: ManyRequiredSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: ManyRequiredMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: ManyRequiredMinAggregateInputType
     /**
@@ -6220,11 +6620,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: ManyRequiredMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: ManyRequiredMaxAggregateInputType
   }
 
   export type GetManyRequiredAggregateType<T extends ManyRequiredAggregateArgs> = {
-    [P in keyof T & keyof AggregateManyRequired]: P extends 'count'
+        [P in keyof T & keyof AggregateManyRequired]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateManyRequired[P]>
@@ -6241,11 +6645,11 @@ export namespace Prisma {
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ManyRequiredCountAggregateInputType | true
-    avg?: ManyRequiredAvgAggregateInputType
-    sum?: ManyRequiredSumAggregateInputType
-    min?: ManyRequiredMinAggregateInputType
-    max?: ManyRequiredMaxAggregateInputType
+    _count?: ManyRequiredCountAggregateInputType | true
+    _avg?: ManyRequiredAvgAggregateInputType
+    _sum?: ManyRequiredSumAggregateInputType
+    _min?: ManyRequiredMinAggregateInputType
+    _max?: ManyRequiredMaxAggregateInputType
   }
 
 
@@ -6264,19 +6668,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: ManyRequiredCountAggregateOutputType | null
-    avg: ManyRequiredAvgAggregateOutputType | null
-    sum: ManyRequiredSumAggregateOutputType | null
-    min: ManyRequiredMinAggregateOutputType | null
-    max: ManyRequiredMaxAggregateOutputType | null
+    _count: ManyRequiredCountAggregateOutputType | null
+    _avg: ManyRequiredAvgAggregateOutputType | null
+    _sum: ManyRequiredSumAggregateOutputType | null
+    _min: ManyRequiredMinAggregateOutputType | null
+    _max: ManyRequiredMaxAggregateOutputType | null
   }
 
-  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<Array<
-    PickArray<ManyRequiredGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<
+    Array<
+      PickArray<ManyRequiredGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]> 
+            : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ManyRequiredSelect = {
     id?: boolean
@@ -6542,7 +6953,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -6570,7 +6981,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -6692,18 +7103,22 @@ export namespace Prisma {
   export type ManyRequiredFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * Throw an Error if a ManyRequired can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
+     * 
     **/
     where: ManyRequiredWhereUniqueInput
   }
@@ -6715,48 +7130,57 @@ export namespace Prisma {
   export type ManyRequiredFindFirstArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * Throw an Error if a ManyRequired can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
+     * 
     **/
     where?: ManyRequiredWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
+     * 
     **/
     orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for ManyRequireds.
+     * 
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ManyRequireds.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of ManyRequireds.
+     * 
     **/
     distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
@@ -6768,38 +7192,45 @@ export namespace Prisma {
   export type ManyRequiredFindManyArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * Filter, which ManyRequireds to fetch.
+     * 
     **/
     where?: ManyRequiredWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ManyRequireds to fetch.
+     * 
     **/
     orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing ManyRequireds.
+     * 
     **/
     cursor?: ManyRequiredWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ManyRequireds.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<ManyRequiredScalarFieldEnum>
@@ -6812,14 +7243,17 @@ export namespace Prisma {
   export type ManyRequiredCreateArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * The data needed to create a ManyRequired.
+     * 
     **/
     data: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
   }
@@ -6840,18 +7274,22 @@ export namespace Prisma {
   export type ManyRequiredUpdateArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * The data needed to update a ManyRequired.
+     * 
     **/
     data: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
     /**
      * Choose, which ManyRequired to update.
+     * 
     **/
     where: ManyRequiredWhereUniqueInput
   }
@@ -6872,22 +7310,27 @@ export namespace Prisma {
   export type ManyRequiredUpsertArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * The filter to search for the ManyRequired to update in case it exists.
+     * 
     **/
     where: ManyRequiredWhereUniqueInput
     /**
      * In case the ManyRequired found by the \`where\` argument doesn't exist, create a new ManyRequired with this data.
+     * 
     **/
     create: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
     /**
      * In case the ManyRequired was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
   }
@@ -6899,14 +7342,17 @@ export namespace Prisma {
   export type ManyRequiredDeleteArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
     /**
      * Filter which ManyRequired to delete.
+     * 
     **/
     where: ManyRequiredWhereUniqueInput
   }
@@ -6926,10 +7372,12 @@ export namespace Prisma {
   export type ManyRequiredArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
+     * 
     **/
     select?: ManyRequiredSelect | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: ManyRequiredInclude | null
   }
@@ -6942,10 +7390,15 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide1 = {
+    _count: OptionalSide1CountAggregateOutputType | null
     count: OptionalSide1CountAggregateOutputType | null
+    _avg: OptionalSide1AvgAggregateOutputType | null
     avg: OptionalSide1AvgAggregateOutputType | null
+    _sum: OptionalSide1SumAggregateOutputType | null
     sum: OptionalSide1SumAggregateOutputType | null
+    _min: OptionalSide1MinAggregateOutputType | null
     min: OptionalSide1MinAggregateOutputType | null
+    _max: OptionalSide1MaxAggregateOutputType | null
     max: OptionalSide1MaxAggregateOutputType | null
   }
 
@@ -7085,30 +7538,35 @@ export namespace Prisma {
   export type OptionalSide1AggregateArgs = {
     /**
      * Filter which OptionalSide1 to aggregate.
+     * 
     **/
     where?: OptionalSide1WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide1s.
+     * 
     **/
     skip?: number
     /**
@@ -7116,11 +7574,19 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide1s
     **/
+    _count?: true | OptionalSide1CountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | OptionalSide1CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: OptionalSide1AvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OptionalSide1AvgAggregateInputType
     /**
@@ -7128,11 +7594,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: OptionalSide1SumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: OptionalSide1SumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: OptionalSide1MinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OptionalSide1MinAggregateInputType
     /**
@@ -7140,11 +7614,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: OptionalSide1MaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: OptionalSide1MaxAggregateInputType
   }
 
   export type GetOptionalSide1AggregateType<T extends OptionalSide1AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide1]: P extends 'count'
+        [P in keyof T & keyof AggregateOptionalSide1]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide1[P]>
@@ -7161,11 +7639,11 @@ export namespace Prisma {
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide1CountAggregateInputType | true
-    avg?: OptionalSide1AvgAggregateInputType
-    sum?: OptionalSide1SumAggregateInputType
-    min?: OptionalSide1MinAggregateInputType
-    max?: OptionalSide1MaxAggregateInputType
+    _count?: OptionalSide1CountAggregateInputType | true
+    _avg?: OptionalSide1AvgAggregateInputType
+    _sum?: OptionalSide1SumAggregateInputType
+    _min?: OptionalSide1MinAggregateInputType
+    _max?: OptionalSide1MaxAggregateInputType
   }
 
 
@@ -7184,19 +7662,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OptionalSide1CountAggregateOutputType | null
-    avg: OptionalSide1AvgAggregateOutputType | null
-    sum: OptionalSide1SumAggregateOutputType | null
-    min: OptionalSide1MinAggregateOutputType | null
-    max: OptionalSide1MaxAggregateOutputType | null
+    _count: OptionalSide1CountAggregateOutputType | null
+    _avg: OptionalSide1AvgAggregateOutputType | null
+    _sum: OptionalSide1SumAggregateOutputType | null
+    _min: OptionalSide1MinAggregateOutputType | null
+    _max: OptionalSide1MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<Array<
-    PickArray<OptionalSide1GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<
+    Array<
+      PickArray<OptionalSide1GroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]> 
+            : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OptionalSide1Select = {
     id?: boolean
@@ -7462,7 +7947,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -7490,7 +7975,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -7612,18 +8097,22 @@ export namespace Prisma {
   export type OptionalSide1FindUniqueArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * Throw an Error if a OptionalSide1 can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
+     * 
     **/
     where: OptionalSide1WhereUniqueInput
   }
@@ -7635,48 +8124,57 @@ export namespace Prisma {
   export type OptionalSide1FindFirstArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * Throw an Error if a OptionalSide1 can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
+     * 
     **/
     where?: OptionalSide1WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for OptionalSide1s.
+     * 
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide1s.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OptionalSide1s.
+     * 
     **/
     distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
   }
@@ -7688,38 +8186,45 @@ export namespace Prisma {
   export type OptionalSide1FindManyArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * Filter, which OptionalSide1s to fetch.
+     * 
     **/
     where?: OptionalSide1WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide1s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing OptionalSide1s.
+     * 
     **/
     cursor?: OptionalSide1WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide1s.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
@@ -7732,14 +8237,17 @@ export namespace Prisma {
   export type OptionalSide1CreateArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * The data needed to create a OptionalSide1.
+     * 
     **/
     data: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
   }
@@ -7760,18 +8268,22 @@ export namespace Prisma {
   export type OptionalSide1UpdateArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * The data needed to update a OptionalSide1.
+     * 
     **/
     data: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
     /**
      * Choose, which OptionalSide1 to update.
+     * 
     **/
     where: OptionalSide1WhereUniqueInput
   }
@@ -7792,22 +8304,27 @@ export namespace Prisma {
   export type OptionalSide1UpsertArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * The filter to search for the OptionalSide1 to update in case it exists.
+     * 
     **/
     where: OptionalSide1WhereUniqueInput
     /**
      * In case the OptionalSide1 found by the \`where\` argument doesn't exist, create a new OptionalSide1 with this data.
+     * 
     **/
     create: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
     /**
      * In case the OptionalSide1 was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
   }
@@ -7819,14 +8336,17 @@ export namespace Prisma {
   export type OptionalSide1DeleteArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
     /**
      * Filter which OptionalSide1 to delete.
+     * 
     **/
     where: OptionalSide1WhereUniqueInput
   }
@@ -7846,10 +8366,12 @@ export namespace Prisma {
   export type OptionalSide1Args = {
     /**
      * Select specific fields to fetch from the OptionalSide1
+     * 
     **/
     select?: OptionalSide1Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide1Include | null
   }
@@ -7862,10 +8384,15 @@ export namespace Prisma {
 
 
   export type AggregateOptionalSide2 = {
+    _count: OptionalSide2CountAggregateOutputType | null
     count: OptionalSide2CountAggregateOutputType | null
+    _avg: OptionalSide2AvgAggregateOutputType | null
     avg: OptionalSide2AvgAggregateOutputType | null
+    _sum: OptionalSide2SumAggregateOutputType | null
     sum: OptionalSide2SumAggregateOutputType | null
+    _min: OptionalSide2MinAggregateOutputType | null
     min: OptionalSide2MinAggregateOutputType | null
+    _max: OptionalSide2MaxAggregateOutputType | null
     max: OptionalSide2MaxAggregateOutputType | null
   }
 
@@ -7995,30 +8522,35 @@ export namespace Prisma {
   export type OptionalSide2AggregateArgs = {
     /**
      * Filter which OptionalSide2 to aggregate.
+     * 
     **/
     where?: OptionalSide2WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide2s.
+     * 
     **/
     skip?: number
     /**
@@ -8026,11 +8558,19 @@ export namespace Prisma {
      * 
      * Count returned OptionalSide2s
     **/
+    _count?: true | OptionalSide2CountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | OptionalSide2CountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: OptionalSide2AvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OptionalSide2AvgAggregateInputType
     /**
@@ -8038,11 +8578,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: OptionalSide2SumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: OptionalSide2SumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: OptionalSide2MinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OptionalSide2MinAggregateInputType
     /**
@@ -8050,11 +8598,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: OptionalSide2MaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: OptionalSide2MaxAggregateInputType
   }
 
   export type GetOptionalSide2AggregateType<T extends OptionalSide2AggregateArgs> = {
-    [P in keyof T & keyof AggregateOptionalSide2]: P extends 'count'
+        [P in keyof T & keyof AggregateOptionalSide2]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateOptionalSide2[P]>
@@ -8071,11 +8623,11 @@ export namespace Prisma {
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: OptionalSide2CountAggregateInputType | true
-    avg?: OptionalSide2AvgAggregateInputType
-    sum?: OptionalSide2SumAggregateInputType
-    min?: OptionalSide2MinAggregateInputType
-    max?: OptionalSide2MaxAggregateInputType
+    _count?: OptionalSide2CountAggregateInputType | true
+    _avg?: OptionalSide2AvgAggregateInputType
+    _sum?: OptionalSide2SumAggregateInputType
+    _min?: OptionalSide2MinAggregateInputType
+    _max?: OptionalSide2MaxAggregateInputType
   }
 
 
@@ -8093,19 +8645,26 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
-    count: OptionalSide2CountAggregateOutputType | null
-    avg: OptionalSide2AvgAggregateOutputType | null
-    sum: OptionalSide2SumAggregateOutputType | null
-    min: OptionalSide2MinAggregateOutputType | null
-    max: OptionalSide2MaxAggregateOutputType | null
+    _count: OptionalSide2CountAggregateOutputType | null
+    _avg: OptionalSide2AvgAggregateOutputType | null
+    _sum: OptionalSide2SumAggregateOutputType | null
+    _min: OptionalSide2MinAggregateOutputType | null
+    _max: OptionalSide2MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<Array<
-    PickArray<OptionalSide2GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<
+    Array<
+      PickArray<OptionalSide2GroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]> 
+            : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OptionalSide2Select = {
     id?: boolean
@@ -8370,7 +8929,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -8398,7 +8957,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -8520,18 +9079,22 @@ export namespace Prisma {
   export type OptionalSide2FindUniqueArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * Throw an Error if a OptionalSide2 can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
+     * 
     **/
     where: OptionalSide2WhereUniqueInput
   }
@@ -8543,48 +9106,57 @@ export namespace Prisma {
   export type OptionalSide2FindFirstArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * Throw an Error if a OptionalSide2 can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
+     * 
     **/
     where?: OptionalSide2WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for OptionalSide2s.
+     * 
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide2s.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of OptionalSide2s.
+     * 
     **/
     distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
   }
@@ -8596,38 +9168,45 @@ export namespace Prisma {
   export type OptionalSide2FindManyArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * Filter, which OptionalSide2s to fetch.
+     * 
     **/
     where?: OptionalSide2WhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of OptionalSide2s to fetch.
+     * 
     **/
     orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing OptionalSide2s.
+     * 
     **/
     cursor?: OptionalSide2WhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` OptionalSide2s.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
@@ -8640,14 +9219,17 @@ export namespace Prisma {
   export type OptionalSide2CreateArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * The data needed to create a OptionalSide2.
+     * 
     **/
     data: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
   }
@@ -8668,18 +9250,22 @@ export namespace Prisma {
   export type OptionalSide2UpdateArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * The data needed to update a OptionalSide2.
+     * 
     **/
     data: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
     /**
      * Choose, which OptionalSide2 to update.
+     * 
     **/
     where: OptionalSide2WhereUniqueInput
   }
@@ -8700,22 +9286,27 @@ export namespace Prisma {
   export type OptionalSide2UpsertArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * The filter to search for the OptionalSide2 to update in case it exists.
+     * 
     **/
     where: OptionalSide2WhereUniqueInput
     /**
      * In case the OptionalSide2 found by the \`where\` argument doesn't exist, create a new OptionalSide2 with this data.
+     * 
     **/
     create: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
     /**
      * In case the OptionalSide2 was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
   }
@@ -8727,14 +9318,17 @@ export namespace Prisma {
   export type OptionalSide2DeleteArgs = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
     /**
      * Filter which OptionalSide2 to delete.
+     * 
     **/
     where: OptionalSide2WhereUniqueInput
   }
@@ -8754,10 +9348,12 @@ export namespace Prisma {
   export type OptionalSide2Args = {
     /**
      * Select specific fields to fetch from the OptionalSide2
+     * 
     **/
     select?: OptionalSide2Select | null
     /**
      * Choose, which related nodes to fetch as well.
+     * 
     **/
     include?: OptionalSide2Include | null
   }
@@ -8770,10 +9366,15 @@ export namespace Prisma {
 
 
   export type AggregateA = {
+    _count: ACountAggregateOutputType | null
     count: ACountAggregateOutputType | null
+    _avg: AAvgAggregateOutputType | null
     avg: AAvgAggregateOutputType | null
+    _sum: ASumAggregateOutputType | null
     sum: ASumAggregateOutputType | null
+    _min: AMinAggregateOutputType | null
     min: AMinAggregateOutputType | null
+    _max: AMaxAggregateOutputType | null
     max: AMaxAggregateOutputType | null
   }
 
@@ -8891,30 +9492,35 @@ export namespace Prisma {
   export type AAggregateArgs = {
     /**
      * Filter which A to aggregate.
+     * 
     **/
     where?: AWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
+     * 
     **/
     orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` AS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` AS.
+     * 
     **/
     skip?: number
     /**
@@ -8922,11 +9528,19 @@ export namespace Prisma {
      * 
      * Count returned AS
     **/
+    _count?: true | ACountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | ACountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: AAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: AAvgAggregateInputType
     /**
@@ -8934,11 +9548,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: ASumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: ASumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: AMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: AMinAggregateInputType
     /**
@@ -8946,11 +9568,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: AMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: AMaxAggregateInputType
   }
 
   export type GetAAggregateType<T extends AAggregateArgs> = {
-    [P in keyof T & keyof AggregateA]: P extends 'count'
+        [P in keyof T & keyof AggregateA]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateA[P]>
@@ -8967,11 +9593,11 @@ export namespace Prisma {
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ACountAggregateInputType | true
-    avg?: AAvgAggregateInputType
-    sum?: ASumAggregateInputType
-    min?: AMinAggregateInputType
-    max?: AMaxAggregateInputType
+    _count?: ACountAggregateInputType | true
+    _avg?: AAvgAggregateInputType
+    _sum?: ASumAggregateInputType
+    _min?: AMinAggregateInputType
+    _max?: AMaxAggregateInputType
   }
 
 
@@ -8985,19 +9611,26 @@ export namespace Prisma {
     inc_int: number
     inc_sInt: number
     inc_bInt: bigint
-    count: ACountAggregateOutputType | null
-    avg: AAvgAggregateOutputType | null
-    sum: ASumAggregateOutputType | null
-    min: AMinAggregateOutputType | null
-    max: AMaxAggregateOutputType | null
+    _count: ACountAggregateOutputType | null
+    _avg: AAvgAggregateOutputType | null
+    _sum: ASumAggregateOutputType | null
+    _min: AMinAggregateOutputType | null
+    _max: AMaxAggregateOutputType | null
   }
 
-  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<Array<
-    PickArray<AGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof AGroupByOutputType))]: GetScalarType<T[P], AGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<
+    Array<
+      PickArray<AGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof AGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], AGroupByOutputType[P]> 
+            : GetScalarType<T[P], AGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ASelect = {
     id?: boolean
@@ -9248,7 +9881,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -9276,7 +9909,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -9397,14 +10030,17 @@ export namespace Prisma {
   export type AFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * Throw an Error if a A can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
+     * 
     **/
     where: AWhereUniqueInput
   }
@@ -9416,44 +10052,52 @@ export namespace Prisma {
   export type AFindFirstArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * Throw an Error if a A can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
+     * 
     **/
     where?: AWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
+     * 
     **/
     orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for AS.
+     * 
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` AS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` AS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of AS.
+     * 
     **/
     distinct?: Enumerable<AScalarFieldEnum>
   }
@@ -9465,34 +10109,40 @@ export namespace Prisma {
   export type AFindManyArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * Filter, which AS to fetch.
+     * 
     **/
     where?: AWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of AS to fetch.
+     * 
     **/
     orderBy?: Enumerable<AOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing AS.
+     * 
     **/
     cursor?: AWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` AS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` AS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<AScalarFieldEnum>
@@ -9505,10 +10155,12 @@ export namespace Prisma {
   export type ACreateArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * The data needed to create a A.
+     * 
     **/
     data: XOR<ACreateInput, AUncheckedCreateInput>
   }
@@ -9529,14 +10181,17 @@ export namespace Prisma {
   export type AUpdateArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * The data needed to update a A.
+     * 
     **/
     data: XOR<AUpdateInput, AUncheckedUpdateInput>
     /**
      * Choose, which A to update.
+     * 
     **/
     where: AWhereUniqueInput
   }
@@ -9557,18 +10212,22 @@ export namespace Prisma {
   export type AUpsertArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * The filter to search for the A to update in case it exists.
+     * 
     **/
     where: AWhereUniqueInput
     /**
      * In case the A found by the \`where\` argument doesn't exist, create a new A with this data.
+     * 
     **/
     create: XOR<ACreateInput, AUncheckedCreateInput>
     /**
      * In case the A was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<AUpdateInput, AUncheckedUpdateInput>
   }
@@ -9580,10 +10239,12 @@ export namespace Prisma {
   export type ADeleteArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
     /**
      * Filter which A to delete.
+     * 
     **/
     where: AWhereUniqueInput
   }
@@ -9603,6 +10264,7 @@ export namespace Prisma {
   export type AArgs = {
     /**
      * Select specific fields to fetch from the A
+     * 
     **/
     select?: ASelect | null
   }
@@ -9615,10 +10277,15 @@ export namespace Prisma {
 
 
   export type AggregateB = {
+    _count: BCountAggregateOutputType | null
     count: BCountAggregateOutputType | null
+    _avg: BAvgAggregateOutputType | null
     avg: BAvgAggregateOutputType | null
+    _sum: BSumAggregateOutputType | null
     sum: BSumAggregateOutputType | null
+    _min: BMinAggregateOutputType | null
     min: BMinAggregateOutputType | null
+    _max: BMaxAggregateOutputType | null
     max: BMaxAggregateOutputType | null
   }
 
@@ -9704,30 +10371,35 @@ export namespace Prisma {
   export type BAggregateArgs = {
     /**
      * Filter which B to aggregate.
+     * 
     **/
     where?: BWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
+     * 
     **/
     orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` BS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` BS.
+     * 
     **/
     skip?: number
     /**
@@ -9735,11 +10407,19 @@ export namespace Prisma {
      * 
      * Count returned BS
     **/
+    _count?: true | BCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | BCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
+    **/
+    _avg?: BAvgAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: BAvgAggregateInputType
     /**
@@ -9747,11 +10427,19 @@ export namespace Prisma {
      * 
      * Select which fields to sum
     **/
+    _sum?: BSumAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_sum\`
+    **/
     sum?: BSumAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: BMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: BMinAggregateInputType
     /**
@@ -9759,11 +10447,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: BMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: BMaxAggregateInputType
   }
 
   export type GetBAggregateType<T extends BAggregateArgs> = {
-    [P in keyof T & keyof AggregateB]: P extends 'count'
+        [P in keyof T & keyof AggregateB]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateB[P]>
@@ -9780,11 +10472,11 @@ export namespace Prisma {
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: BCountAggregateInputType | true
-    avg?: BAvgAggregateInputType
-    sum?: BSumAggregateInputType
-    min?: BMinAggregateInputType
-    max?: BMaxAggregateInputType
+    _count?: BCountAggregateInputType | true
+    _avg?: BAvgAggregateInputType
+    _sum?: BSumAggregateInputType
+    _min?: BMinAggregateInputType
+    _max?: BMaxAggregateInputType
   }
 
 
@@ -9794,19 +10486,26 @@ export namespace Prisma {
     dFloat: number
     decFloat: Decimal
     numFloat: Decimal
-    count: BCountAggregateOutputType | null
-    avg: BAvgAggregateOutputType | null
-    sum: BSumAggregateOutputType | null
-    min: BMinAggregateOutputType | null
-    max: BMaxAggregateOutputType | null
+    _count: BCountAggregateOutputType | null
+    _avg: BAvgAggregateOutputType | null
+    _sum: BSumAggregateOutputType | null
+    _min: BMinAggregateOutputType | null
+    _max: BMaxAggregateOutputType | null
   }
 
-  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<Array<
-    PickArray<BGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof BGroupByOutputType))]: GetScalarType<T[P], BGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<
+    Array<
+      PickArray<BGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof BGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], BGroupByOutputType[P]> 
+            : GetScalarType<T[P], BGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type BSelect = {
     id?: boolean
@@ -10053,7 +10752,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -10081,7 +10780,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -10202,14 +10901,17 @@ export namespace Prisma {
   export type BFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * Throw an Error if a B can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
+     * 
     **/
     where: BWhereUniqueInput
   }
@@ -10221,44 +10923,52 @@ export namespace Prisma {
   export type BFindFirstArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * Throw an Error if a B can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
+     * 
     **/
     where?: BWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
+     * 
     **/
     orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for BS.
+     * 
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` BS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` BS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of BS.
+     * 
     **/
     distinct?: Enumerable<BScalarFieldEnum>
   }
@@ -10270,34 +10980,40 @@ export namespace Prisma {
   export type BFindManyArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * Filter, which BS to fetch.
+     * 
     **/
     where?: BWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of BS to fetch.
+     * 
     **/
     orderBy?: Enumerable<BOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing BS.
+     * 
     **/
     cursor?: BWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` BS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` BS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<BScalarFieldEnum>
@@ -10310,10 +11026,12 @@ export namespace Prisma {
   export type BCreateArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * The data needed to create a B.
+     * 
     **/
     data: XOR<BCreateInput, BUncheckedCreateInput>
   }
@@ -10334,14 +11052,17 @@ export namespace Prisma {
   export type BUpdateArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * The data needed to update a B.
+     * 
     **/
     data: XOR<BUpdateInput, BUncheckedUpdateInput>
     /**
      * Choose, which B to update.
+     * 
     **/
     where: BWhereUniqueInput
   }
@@ -10362,18 +11083,22 @@ export namespace Prisma {
   export type BUpsertArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * The filter to search for the B to update in case it exists.
+     * 
     **/
     where: BWhereUniqueInput
     /**
      * In case the B found by the \`where\` argument doesn't exist, create a new B with this data.
+     * 
     **/
     create: XOR<BCreateInput, BUncheckedCreateInput>
     /**
      * In case the B was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<BUpdateInput, BUncheckedUpdateInput>
   }
@@ -10385,10 +11110,12 @@ export namespace Prisma {
   export type BDeleteArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
     /**
      * Filter which B to delete.
+     * 
     **/
     where: BWhereUniqueInput
   }
@@ -10408,6 +11135,7 @@ export namespace Prisma {
   export type BArgs = {
     /**
      * Select specific fields to fetch from the B
+     * 
     **/
     select?: BSelect | null
   }
@@ -10420,8 +11148,11 @@ export namespace Prisma {
 
 
   export type AggregateC = {
+    _count: CCountAggregateOutputType | null
     count: CCountAggregateOutputType | null
+    _min: CMinAggregateOutputType | null
     min: CMinAggregateOutputType | null
+    _max: CMaxAggregateOutputType | null
     max: CMaxAggregateOutputType | null
   }
 
@@ -10491,30 +11222,35 @@ export namespace Prisma {
   export type CAggregateArgs = {
     /**
      * Filter which C to aggregate.
+     * 
     **/
     where?: CWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
+     * 
     **/
     orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` CS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` CS.
+     * 
     **/
     skip?: number
     /**
@@ -10522,11 +11258,19 @@ export namespace Prisma {
      * 
      * Count returned CS
     **/
+    _count?: true | CCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | CCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: CMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: CMinAggregateInputType
     /**
@@ -10534,11 +11278,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: CMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: CMaxAggregateInputType
   }
 
   export type GetCAggregateType<T extends CAggregateArgs> = {
-    [P in keyof T & keyof AggregateC]: P extends 'count'
+        [P in keyof T & keyof AggregateC]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateC[P]>
@@ -10555,9 +11303,9 @@ export namespace Prisma {
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: CCountAggregateInputType | true
-    min?: CMinAggregateInputType
-    max?: CMaxAggregateInputType
+    _count?: CCountAggregateInputType | true
+    _min?: CMinAggregateInputType
+    _max?: CMaxAggregateInputType
   }
 
 
@@ -10569,17 +11317,24 @@ export namespace Prisma {
     bit: string
     vBit: string
     uuid: string
-    count: CCountAggregateOutputType | null
-    min: CMinAggregateOutputType | null
-    max: CMaxAggregateOutputType | null
+    _count: CCountAggregateOutputType | null
+    _min: CMinAggregateOutputType | null
+    _max: CMaxAggregateOutputType | null
   }
 
-  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<Array<
-    PickArray<CGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof CGroupByOutputType))]: GetScalarType<T[P], CGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<
+    Array<
+      PickArray<CGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof CGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], CGroupByOutputType[P]> 
+            : GetScalarType<T[P], CGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type CSelect = {
     id?: boolean
@@ -10828,7 +11583,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -10856,7 +11611,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -10977,14 +11732,17 @@ export namespace Prisma {
   export type CFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * Throw an Error if a C can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
+     * 
     **/
     where: CWhereUniqueInput
   }
@@ -10996,44 +11754,52 @@ export namespace Prisma {
   export type CFindFirstArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * Throw an Error if a C can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
+     * 
     **/
     where?: CWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
+     * 
     **/
     orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for CS.
+     * 
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` CS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` CS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of CS.
+     * 
     **/
     distinct?: Enumerable<CScalarFieldEnum>
   }
@@ -11045,34 +11811,40 @@ export namespace Prisma {
   export type CFindManyArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * Filter, which CS to fetch.
+     * 
     **/
     where?: CWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of CS to fetch.
+     * 
     **/
     orderBy?: Enumerable<COrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing CS.
+     * 
     **/
     cursor?: CWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` CS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` CS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<CScalarFieldEnum>
@@ -11085,10 +11857,12 @@ export namespace Prisma {
   export type CCreateArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * The data needed to create a C.
+     * 
     **/
     data: XOR<CCreateInput, CUncheckedCreateInput>
   }
@@ -11109,14 +11883,17 @@ export namespace Prisma {
   export type CUpdateArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * The data needed to update a C.
+     * 
     **/
     data: XOR<CUpdateInput, CUncheckedUpdateInput>
     /**
      * Choose, which C to update.
+     * 
     **/
     where: CWhereUniqueInput
   }
@@ -11137,18 +11914,22 @@ export namespace Prisma {
   export type CUpsertArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * The filter to search for the C to update in case it exists.
+     * 
     **/
     where: CWhereUniqueInput
     /**
      * In case the C found by the \`where\` argument doesn't exist, create a new C with this data.
+     * 
     **/
     create: XOR<CCreateInput, CUncheckedCreateInput>
     /**
      * In case the C was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<CUpdateInput, CUncheckedUpdateInput>
   }
@@ -11160,10 +11941,12 @@ export namespace Prisma {
   export type CDeleteArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
     /**
      * Filter which C to delete.
+     * 
     **/
     where: CWhereUniqueInput
   }
@@ -11183,6 +11966,7 @@ export namespace Prisma {
   export type CArgs = {
     /**
      * Select specific fields to fetch from the C
+     * 
     **/
     select?: CSelect | null
   }
@@ -11195,8 +11979,11 @@ export namespace Prisma {
 
 
   export type AggregateD = {
+    _count: DCountAggregateOutputType | null
     count: DCountAggregateOutputType | null
+    _min: DMinAggregateOutputType | null
     min: DMinAggregateOutputType | null
+    _max: DMaxAggregateOutputType | null
     max: DMaxAggregateOutputType | null
   }
 
@@ -11252,30 +12039,35 @@ export namespace Prisma {
   export type DAggregateArgs = {
     /**
      * Filter which D to aggregate.
+     * 
     **/
     where?: DWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
+     * 
     **/
     orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` DS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` DS.
+     * 
     **/
     skip?: number
     /**
@@ -11283,11 +12075,19 @@ export namespace Prisma {
      * 
      * Count returned DS
     **/
+    _count?: true | DCountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | DCountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: DMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: DMinAggregateInputType
     /**
@@ -11295,11 +12095,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: DMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: DMaxAggregateInputType
   }
 
   export type GetDAggregateType<T extends DAggregateArgs> = {
-    [P in keyof T & keyof AggregateD]: P extends 'count'
+        [P in keyof T & keyof AggregateD]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateD[P]>
@@ -11316,9 +12120,9 @@ export namespace Prisma {
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: DCountAggregateInputType | true
-    min?: DMinAggregateInputType
-    max?: DMaxAggregateInputType
+    _count?: DCountAggregateInputType | true
+    _min?: DMinAggregateInputType
+    _max?: DMaxAggregateInputType
   }
 
 
@@ -11329,17 +12133,24 @@ export namespace Prisma {
     xml: string
     json: JsonValue
     jsonb: JsonValue
-    count: DCountAggregateOutputType | null
-    min: DMinAggregateOutputType | null
-    max: DMaxAggregateOutputType | null
+    _count: DCountAggregateOutputType | null
+    _min: DMinAggregateOutputType | null
+    _max: DMaxAggregateOutputType | null
   }
 
-  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<Array<
-    PickArray<DGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof DGroupByOutputType))]: GetScalarType<T[P], DGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<
+    Array<
+      PickArray<DGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof DGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], DGroupByOutputType[P]> 
+            : GetScalarType<T[P], DGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type DSelect = {
     id?: boolean
@@ -11587,7 +12398,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -11615,7 +12426,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -11736,14 +12547,17 @@ export namespace Prisma {
   export type DFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * Throw an Error if a D can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
+     * 
     **/
     where: DWhereUniqueInput
   }
@@ -11755,44 +12569,52 @@ export namespace Prisma {
   export type DFindFirstArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * Throw an Error if a D can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
+     * 
     **/
     where?: DWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
+     * 
     **/
     orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for DS.
+     * 
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` DS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` DS.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of DS.
+     * 
     **/
     distinct?: Enumerable<DScalarFieldEnum>
   }
@@ -11804,34 +12626,40 @@ export namespace Prisma {
   export type DFindManyArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * Filter, which DS to fetch.
+     * 
     **/
     where?: DWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of DS to fetch.
+     * 
     **/
     orderBy?: Enumerable<DOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing DS.
+     * 
     **/
     cursor?: DWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` DS from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` DS.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<DScalarFieldEnum>
@@ -11844,10 +12672,12 @@ export namespace Prisma {
   export type DCreateArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * The data needed to create a D.
+     * 
     **/
     data: XOR<DCreateInput, DUncheckedCreateInput>
   }
@@ -11868,14 +12698,17 @@ export namespace Prisma {
   export type DUpdateArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * The data needed to update a D.
+     * 
     **/
     data: XOR<DUpdateInput, DUncheckedUpdateInput>
     /**
      * Choose, which D to update.
+     * 
     **/
     where: DWhereUniqueInput
   }
@@ -11896,18 +12729,22 @@ export namespace Prisma {
   export type DUpsertArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * The filter to search for the D to update in case it exists.
+     * 
     **/
     where: DWhereUniqueInput
     /**
      * In case the D found by the \`where\` argument doesn't exist, create a new D with this data.
+     * 
     **/
     create: XOR<DCreateInput, DUncheckedCreateInput>
     /**
      * In case the D was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<DUpdateInput, DUncheckedUpdateInput>
   }
@@ -11919,10 +12756,12 @@ export namespace Prisma {
   export type DDeleteArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
     /**
      * Filter which D to delete.
+     * 
     **/
     where: DWhereUniqueInput
   }
@@ -11942,6 +12781,7 @@ export namespace Prisma {
   export type DArgs = {
     /**
      * Select specific fields to fetch from the D
+     * 
     **/
     select?: DSelect | null
   }
@@ -11954,8 +12794,11 @@ export namespace Prisma {
 
 
   export type AggregateE = {
+    _count: ECountAggregateOutputType | null
     count: ECountAggregateOutputType | null
+    _min: EMinAggregateOutputType | null
     min: EMinAggregateOutputType | null
+    _max: EMaxAggregateOutputType | null
     max: EMaxAggregateOutputType | null
   }
 
@@ -12007,30 +12850,35 @@ export namespace Prisma {
   export type EAggregateArgs = {
     /**
      * Filter which E to aggregate.
+     * 
     **/
     where?: EWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
+     * 
     **/
     orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the start position
+     * 
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ES from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ES.
+     * 
     **/
     skip?: number
     /**
@@ -12038,11 +12886,19 @@ export namespace Prisma {
      * 
      * Count returned ES
     **/
+    _count?: true | ECountAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_count\`
+    **/
     count?: true | ECountAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
+    **/
+    _min?: EMinAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: EMinAggregateInputType
     /**
@@ -12050,11 +12906,15 @@ export namespace Prisma {
      * 
      * Select which fields to find the maximum value
     **/
+    _max?: EMaxAggregateInputType
+    /**
+     * @deprecated since 2.23.0 please use \`_max\`
+    **/
     max?: EMaxAggregateInputType
   }
 
   export type GetEAggregateType<T extends EAggregateArgs> = {
-    [P in keyof T & keyof AggregateE]: P extends 'count'
+        [P in keyof T & keyof AggregateE]: P extends '_count' | 'count'
       ? T[P] extends true
         ? number
         : GetScalarType<T[P], AggregateE[P]>
@@ -12071,9 +12931,9 @@ export namespace Prisma {
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
-    count?: ECountAggregateInputType | true
-    min?: EMinAggregateInputType
-    max?: EMaxAggregateInputType
+    _count?: ECountAggregateInputType | true
+    _min?: EMinAggregateInputType
+    _max?: EMaxAggregateInputType
   }
 
 
@@ -12082,17 +12942,24 @@ export namespace Prisma {
     date: Date
     time: Date
     ts: Date
-    count: ECountAggregateOutputType | null
-    min: EMinAggregateOutputType | null
-    max: EMaxAggregateOutputType | null
+    _count: ECountAggregateOutputType | null
+    _min: EMinAggregateOutputType | null
+    _max: EMaxAggregateOutputType | null
   }
 
-  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<Array<
-    PickArray<EGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof EGroupByOutputType))]: GetScalarType<T[P], EGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<
+    Array<
+      PickArray<EGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof EGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], EGroupByOutputType[P]> 
+            : GetScalarType<T[P], EGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ESelect = {
     id?: boolean
@@ -12338,7 +13205,7 @@ export namespace Prisma {
      * // Where email contains prisma.io
      * // Limited to the 10 users
      * const aggregations = await prisma.user.aggregate({
-     *   avg: {
+     *   _avg: {
      *     age: true,
      *   },
      *   where: {
@@ -12366,7 +13233,7 @@ export namespace Prisma {
      *   orderBy: {
      *     createdAt: true
      *   },
-     *   count: {
+     *   _count: {
      *     _all: true
      *   },
      * })
@@ -12487,14 +13354,17 @@ export namespace Prisma {
   export type EFindUniqueArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * Throw an Error if a E can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
+     * 
     **/
     where: EWhereUniqueInput
   }
@@ -12506,44 +13376,52 @@ export namespace Prisma {
   export type EFindFirstArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * Throw an Error if a E can't be found
+     * 
     **/
     rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
+     * 
     **/
     where?: EWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
+     * 
     **/
     orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for searching for ES.
+     * 
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ES from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ES.
+     * 
     **/
     skip?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
      * 
      * Filter by unique combinations of ES.
+     * 
     **/
     distinct?: Enumerable<EScalarFieldEnum>
   }
@@ -12555,34 +13433,40 @@ export namespace Prisma {
   export type EFindManyArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * Filter, which ES to fetch.
+     * 
     **/
     where?: EWhereInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
      * 
      * Determine the order of ES to fetch.
+     * 
     **/
     orderBy?: Enumerable<EOrderByWithRelationInput>
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
      * Sets the position for listing ES.
+     * 
     **/
     cursor?: EWhereUniqueInput
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Take \`±n\` ES from the position of the cursor.
+     * 
     **/
     take?: number
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
      * 
      * Skip the first \`n\` ES.
+     * 
     **/
     skip?: number
     distinct?: Enumerable<EScalarFieldEnum>
@@ -12595,10 +13479,12 @@ export namespace Prisma {
   export type ECreateArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * The data needed to create a E.
+     * 
     **/
     data: XOR<ECreateInput, EUncheckedCreateInput>
   }
@@ -12619,14 +13505,17 @@ export namespace Prisma {
   export type EUpdateArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * The data needed to update a E.
+     * 
     **/
     data: XOR<EUpdateInput, EUncheckedUpdateInput>
     /**
      * Choose, which E to update.
+     * 
     **/
     where: EWhereUniqueInput
   }
@@ -12647,18 +13536,22 @@ export namespace Prisma {
   export type EUpsertArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * The filter to search for the E to update in case it exists.
+     * 
     **/
     where: EWhereUniqueInput
     /**
      * In case the E found by the \`where\` argument doesn't exist, create a new E with this data.
+     * 
     **/
     create: XOR<ECreateInput, EUncheckedCreateInput>
     /**
      * In case the E was found with the provided \`where\` argument, update it with this data.
+     * 
     **/
     update: XOR<EUpdateInput, EUncheckedUpdateInput>
   }
@@ -12670,10 +13563,12 @@ export namespace Prisma {
   export type EDeleteArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
     /**
      * Filter which E to delete.
+     * 
     **/
     where: EWhereUniqueInput
   }
@@ -12693,6 +13588,7 @@ export namespace Prisma {
   export type EArgs = {
     /**
      * Select specific fields to fetch from the E
+     * 
     **/
     select?: ESelect | null
   }
@@ -15014,10 +15910,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedIntFilter
+    _max?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedIntFilter
   }
 
@@ -15030,8 +15951,23 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedDateTimeFilter
   }
 
@@ -15048,8 +15984,23 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedStringFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedStringFilter
+    _max?: NestedStringFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedStringFilter
   }
 
@@ -15066,16 +16017,46 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringNullableWithAggregatesFilter | string | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedStringNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedStringNullableFilter
+    _max?: NestedStringNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedStringNullableFilter
   }
 
   export type BoolWithAggregatesFilter = {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBoolFilter
+    _max?: NestedBoolFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBoolFilter
   }
 
@@ -15148,7 +16129,12 @@ export namespace Prisma {
   }
 
   export type PostOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count?: SortOrder
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
+    count?: SortOrder
   }
 
   export type IntNullableWithAggregatesFilter = {
@@ -15160,10 +16146,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatNullableFilter
+    _sum?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedIntNullableFilter
+    _min?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedIntNullableFilter
+    _max?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedIntNullableFilter
   }
 
@@ -15176,10 +16187,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedFloatFilter
+    _min?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedFloatFilter
+    _max?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedFloatFilter
   }
 
@@ -15192,26 +16228,81 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatNullableFilter
+    _sum?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedFloatNullableFilter
+    _min?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedFloatNullableFilter
+    _max?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedFloatNullableFilter
   }
 
   export type JsonWithAggregatesFilter = {
     equals?: InputJsonValue
     not?: InputJsonValue
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedJsonFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedJsonFilter
+    _max?: NestedJsonFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedJsonFilter
   }
 
   export type JsonNullableWithAggregatesFilter = {
     equals?: InputJsonValue | null
     not?: InputJsonValue | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedJsonNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedJsonNullableFilter
+    _max?: NestedJsonNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedJsonNullableFilter
   }
 
@@ -15220,8 +16311,23 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedEnumABeautifulEnumFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedEnumABeautifulEnumFilter
+    _max?: NestedEnumABeautifulEnumFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedEnumABeautifulEnumFilter
   }
 
@@ -15230,16 +16336,46 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedEnumABeautifulEnumNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedEnumABeautifulEnumNullableFilter
+    _max?: NestedEnumABeautifulEnumNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type BoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedBoolNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBoolNullableFilter
+    _max?: NestedBoolNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBoolNullableFilter
   }
 
@@ -15250,7 +16386,12 @@ export namespace Prisma {
   }
 
   export type NOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count?: SortOrder
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
+    count?: SortOrder
   }
 
   export type MListRelationFilter = {
@@ -15260,7 +16401,12 @@ export namespace Prisma {
   }
 
   export type MOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count?: SortOrder
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
+    count?: SortOrder
   }
 
   export type ManyRequiredListRelationFilter = {
@@ -15270,7 +16416,12 @@ export namespace Prisma {
   }
 
   export type ManyRequiredOrderByRelationAggregateInput = {
-    count: SortOrder
+    _count?: SortOrder
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
+    count?: SortOrder
   }
 
   export type OneOptionalRelationFilter = {
@@ -15308,10 +16459,35 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedBigIntFilter
+    _min?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBigIntFilter
+    _max?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBigIntFilter
   }
 
@@ -15335,10 +16511,35 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedDecimalFilter
+    _sum?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedDecimalFilter
+    _min?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedDecimalFilter
+    _max?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedDecimalFilter
   }
 
@@ -15350,8 +16551,23 @@ export namespace Prisma {
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedBytesFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBytesFilter
+    _max?: NestedBytesFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBytesFilter
   }
 
@@ -15699,10 +16915,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedIntFilter
+    _max?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedIntFilter
   }
 
@@ -15726,8 +16967,23 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedDateTimeFilter
   }
 
@@ -15743,8 +16999,23 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedStringFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedStringFilter
+    _max?: NestedStringFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedStringFilter
   }
 
@@ -15760,8 +17031,23 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringNullableWithAggregatesFilter | string | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedStringNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedStringNullableFilter
+    _max?: NestedStringNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedStringNullableFilter
   }
 
@@ -15779,8 +17065,23 @@ export namespace Prisma {
   export type NestedBoolWithAggregatesFilter = {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedBoolFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBoolFilter
+    _max?: NestedBoolFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBoolFilter
   }
 
@@ -15823,10 +17124,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatNullableFilter
+    _sum?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedIntNullableFilter
+    _min?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedIntNullableFilter
+    _max?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedIntNullableFilter
   }
 
@@ -15839,10 +17165,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedFloatFilter
+    _min?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedFloatFilter
+    _max?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedFloatFilter
   }
 
@@ -15855,10 +17206,35 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _avg?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatNullableFilter
+    _sum?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedFloatNullableFilter
+    _min?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedFloatNullableFilter
+    _max?: NestedFloatNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedFloatNullableFilter
   }
 
@@ -15877,8 +17253,23 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedEnumABeautifulEnumFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedEnumABeautifulEnumFilter
+    _max?: NestedEnumABeautifulEnumFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedEnumABeautifulEnumFilter
   }
 
@@ -15887,16 +17278,46 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedEnumABeautifulEnumNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedEnumABeautifulEnumNullableFilter
+    _max?: NestedEnumABeautifulEnumNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type NestedBoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    _count?: NestedIntNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntNullableFilter
+    _min?: NestedBoolNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBoolNullableFilter
+    _max?: NestedBoolNullableFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBoolNullableFilter
   }
 
@@ -15920,10 +17341,35 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedFloatFilter
+    _sum?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedBigIntFilter
+    _min?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBigIntFilter
+    _max?: NestedBigIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBigIntFilter
   }
 
@@ -15947,10 +17393,35 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _avg?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     avg?: NestedDecimalFilter
+    _sum?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     sum?: NestedDecimalFilter
+    _min?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedDecimalFilter
+    _max?: NestedDecimalFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedDecimalFilter
   }
 
@@ -15962,8 +17433,23 @@ export namespace Prisma {
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
+    _count?: NestedIntFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     count?: NestedIntFilter
+    _min?: NestedBytesFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     min?: NestedBytesFilter
+    _max?: NestedBytesFilter
+    /**
+     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
+     * 
+    **/
     max?: NestedBytesFilter
   }
 

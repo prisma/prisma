@@ -1,5 +1,7 @@
 import chalk from 'chalk'
+import Decimal from 'decimal.js'
 import indent from 'indent-string'
+import stripAnsi from 'strip-ansi'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
@@ -25,6 +27,8 @@ import {
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
+import { flatMap } from './utils/flatMap'
+import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
 import {
   MissingItem,
@@ -33,10 +37,6 @@ import {
 } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
-import stripAnsi from 'strip-ansi'
-import { flatMap } from './utils/flatMap'
-import Decimal from 'decimal.js'
-import { isObject } from './utils/isObject'
 
 const tab = 2
 
@@ -146,7 +146,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
           .type as DMMF.OutputType
 
         fieldType.fields
-          .filter((field) =>
+          ?.filter((field) =>
             fieldError.error.type === 'emptyInclude'
               ? field.outputType.location === 'outputObjectTypes'
               : true,

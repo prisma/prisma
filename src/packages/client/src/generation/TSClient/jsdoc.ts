@@ -34,7 +34,9 @@ function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
 
 ${comment}`
 }
-
+function getDeprecationString(since: string, replacement: string) {
+  return `@deprecated since ${since} please use \`${replacement}\``
+}
 const undefinedNote = `Note, that providing \`undefined\` is treated as the value not being there.
 Read more here: https://pris.ly/d/null-undefined`
 
@@ -46,20 +48,25 @@ const JSDocFields = {
     ),
   skip: (singular, plural) =>
     addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
-  count: (singular, plural) =>
+  _count: (singular, plural) =>
     addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
-  avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
-  sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
-  min: () =>
+  _avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
+  _sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
+  _min: () =>
     addLinkToDocs(
       `Select which fields to find the minimum value`,
       'aggregations',
     ),
-  max: () =>
+  _max: () =>
     addLinkToDocs(
       `Select which fields to find the maximum value`,
       'aggregations',
     ),
+  count: () => getDeprecationString('2.23.0', '_count'),
+  avg: () => getDeprecationString('2.23.0', '_avg'),
+  sum: () => getDeprecationString('2.23.0', '_sum'),
+  min: () => getDeprecationString('2.23.0', '_min'),
+  max: () => getDeprecationString('2.23.0', '_max'),
   distinct: (singular, plural) =>
     addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
   orderBy: (singular, plural) =>
@@ -77,7 +84,7 @@ const result = await prisma.user.groupBy({
   orderBy: {
     createdAt: true
   },
-  count: {
+  _count: {
     _all: true
   },
 })
@@ -285,7 +292,7 @@ ${undefinedNote}
 // Where email contains prisma.io
 // Limited to the 10 users
 const aggregations = await prisma.user.aggregate({
-  avg: {
+  _avg: {
     age: true,
   },
   where: {
@@ -304,6 +311,11 @@ const aggregations = await prisma.user.aggregate({
       cursor: () => addLinkToDocs(`Sets the start position`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
+      _count: JSDocFields._count,
+      _avg: JSDocFields._avg,
+      _sum: JSDocFields._sum,
+      _min: JSDocFields._min,
+      _max: JSDocFields._max,
       count: JSDocFields.count,
       avg: JSDocFields.avg,
       sum: JSDocFields.sum,
