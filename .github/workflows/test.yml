@@ -153,8 +153,8 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }}
-          name: tests-integration-${{ matrix.database }}
+          flags: tests-integration,${{ matrix.database }},${{ matrix.engine }}
+          name: tests-integration-${{ matrix.database }}-${{ matrix.engine }}
 
   #
   # CLI-COMMANDS
