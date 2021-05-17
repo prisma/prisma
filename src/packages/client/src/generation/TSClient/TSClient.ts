@@ -48,16 +48,23 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
+      projectRoot,
     } = this.options
     const schemaPath = path.join(schemaDir, 'prisma.schema')
-    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
+    const envPaths = getEnvPaths(schemaPath, { cwd: projectRoot })
+
+    console.log(envPaths)
+
     const relativeEnvPaths = {
       rootEnvPath:
-        envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
+        envPaths.rootEnvPath &&
+        path.relative(projectRoot, envPaths.rootEnvPath),
       schemaEnvPath:
         envPaths.schemaEnvPath &&
-        path.relative(outputDir, envPaths.schemaEnvPath),
+        path.relative(projectRoot, envPaths.schemaEnvPath),
     }
+
+    console.log(relativeEnvPaths)
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
@@ -75,13 +82,11 @@ export class TSClient implements Generatable {
     ) {
       config.generator?.previewFeatures.push('nApi')
     }
-    // used for the __dirname polyfill needed for Next.js
-    const cwdDirname = path.relative(this.options.projectRoot, outputDir)
+    const relativeOutputDir = path.relative(projectRoot, outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
-const dirname = (__dirname.length === 1 || __dirname.includes('.next/serverless')) ? dirnamePolyfill : __dirname
+const dirname = path.join(process.cwd(), '${relativeOutputDir}');
 
 /**
  * Enums
@@ -131,8 +136,8 @@ config.dirname = dirname
  * loading of env variable occurs in getPrismaClient
  */
 const envPaths = {
-  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
-  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(process.cwd(), config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(process.cwd(), config.relativeEnvPaths.schemaEnvPath)
 }
 warnEnvConflicts(envPaths)
 
@@ -149,14 +154,14 @@ Object.assign(exports, Prisma)
 ${buildNFTEngineAnnotations(
   this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
-  cwdDirname,
+  relativeOutputDir,
 )}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
+path.join(process.cwd(), './${path.join(relativeOutputDir, `schema.prisma`)}');
 `
 
     return code
@@ -291,7 +296,6 @@ export const dmmf: runtime.DMMF.Document;
   }
 
   public toBrowserJS(): string {
-    // used for the __dirname polyfill needed for Next.js
     const code = `${commonCodeJS({ ...this.options, browser: true })}
 /**
  * Enums
