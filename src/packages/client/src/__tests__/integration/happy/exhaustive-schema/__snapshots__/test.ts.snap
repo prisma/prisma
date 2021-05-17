@@ -1644,7 +1644,7 @@ export namespace Prisma {
     **/
     _count?: true | PostCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | PostCountAggregateInputType
     /**
@@ -1654,7 +1654,7 @@ export namespace Prisma {
     **/
     _avg?: PostAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: PostAvgAggregateInputType
     /**
@@ -1664,7 +1664,7 @@ export namespace Prisma {
     **/
     _sum?: PostSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: PostSumAggregateInputType
     /**
@@ -1674,7 +1674,7 @@ export namespace Prisma {
     **/
     _min?: PostMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: PostMinAggregateInputType
     /**
@@ -1684,7 +1684,7 @@ export namespace Prisma {
     **/
     _max?: PostMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: PostMaxAggregateInputType
   }
@@ -1729,12 +1729,19 @@ export namespace Prisma {
     _max: PostMaxAggregateOutputType | null
   }
 
-  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<Array<
-    PickArray<PostGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof PostGroupByOutputType))]: GetScalarType<T[P], PostGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<
+    Array<
+      PickArray<PostGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof PostGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], PostGroupByOutputType[P]> 
+            : GetScalarType<T[P], PostGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type PostSelect = {
     id?: boolean
@@ -2611,7 +2618,7 @@ export namespace Prisma {
     **/
     _count?: true | UserCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | UserCountAggregateInputType
     /**
@@ -2621,7 +2628,7 @@ export namespace Prisma {
     **/
     _avg?: UserAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: UserAvgAggregateInputType
     /**
@@ -2631,7 +2638,7 @@ export namespace Prisma {
     **/
     _sum?: UserSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: UserSumAggregateInputType
     /**
@@ -2641,7 +2648,7 @@ export namespace Prisma {
     **/
     _min?: UserMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: UserMinAggregateInputType
     /**
@@ -2651,7 +2658,7 @@ export namespace Prisma {
     **/
     _max?: UserMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: UserMaxAggregateInputType
   }
@@ -2704,12 +2711,19 @@ export namespace Prisma {
     _max: UserMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<Array<
-    PickArray<UserGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof UserGroupByOutputType))]: GetScalarType<T[P], UserGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<
+    Array<
+      PickArray<UserGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], UserGroupByOutputType[P]> 
+            : GetScalarType<T[P], UserGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type UserSelect = {
     id?: boolean
@@ -3594,7 +3608,7 @@ export namespace Prisma {
     **/
     _count?: true | MCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | MCountAggregateInputType
     /**
@@ -3604,7 +3618,7 @@ export namespace Prisma {
     **/
     _avg?: MAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: MAvgAggregateInputType
     /**
@@ -3614,7 +3628,7 @@ export namespace Prisma {
     **/
     _sum?: MSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: MSumAggregateInputType
     /**
@@ -3624,7 +3638,7 @@ export namespace Prisma {
     **/
     _min?: MMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: MMinAggregateInputType
     /**
@@ -3634,7 +3648,7 @@ export namespace Prisma {
     **/
     _max?: MMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: MMaxAggregateInputType
   }
@@ -3686,12 +3700,19 @@ export namespace Prisma {
     _max: MMaxAggregateOutputType | null
   }
 
-  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<Array<
-    PickArray<MGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof MGroupByOutputType))]: GetScalarType<T[P], MGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<
+    Array<
+      PickArray<MGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof MGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], MGroupByOutputType[P]> 
+            : GetScalarType<T[P], MGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type MSelect = {
     id?: boolean
@@ -4575,7 +4596,7 @@ export namespace Prisma {
     **/
     _count?: true | NCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | NCountAggregateInputType
     /**
@@ -4585,7 +4606,7 @@ export namespace Prisma {
     **/
     _avg?: NAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: NAvgAggregateInputType
     /**
@@ -4595,7 +4616,7 @@ export namespace Prisma {
     **/
     _sum?: NSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: NSumAggregateInputType
     /**
@@ -4605,7 +4626,7 @@ export namespace Prisma {
     **/
     _min?: NMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: NMinAggregateInputType
     /**
@@ -4615,7 +4636,7 @@ export namespace Prisma {
     **/
     _max?: NMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: NMaxAggregateInputType
   }
@@ -4667,12 +4688,19 @@ export namespace Prisma {
     _max: NMaxAggregateOutputType | null
   }
 
-  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<Array<
-    PickArray<NGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof NGroupByOutputType))]: GetScalarType<T[P], NGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<
+    Array<
+      PickArray<NGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof NGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], NGroupByOutputType[P]> 
+            : GetScalarType<T[P], NGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type NSelect = {
     id?: boolean
@@ -5556,7 +5584,7 @@ export namespace Prisma {
     **/
     _count?: true | OneOptionalCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | OneOptionalCountAggregateInputType
     /**
@@ -5566,7 +5594,7 @@ export namespace Prisma {
     **/
     _avg?: OneOptionalAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OneOptionalAvgAggregateInputType
     /**
@@ -5576,7 +5604,7 @@ export namespace Prisma {
     **/
     _sum?: OneOptionalSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: OneOptionalSumAggregateInputType
     /**
@@ -5586,7 +5614,7 @@ export namespace Prisma {
     **/
     _min?: OneOptionalMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OneOptionalMinAggregateInputType
     /**
@@ -5596,7 +5624,7 @@ export namespace Prisma {
     **/
     _max?: OneOptionalMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: OneOptionalMaxAggregateInputType
   }
@@ -5648,12 +5676,19 @@ export namespace Prisma {
     _max: OneOptionalMaxAggregateOutputType | null
   }
 
-  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<Array<
-    PickArray<OneOptionalGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<
+    Array<
+      PickArray<OneOptionalGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OneOptionalGroupByOutputType[P]> 
+            : GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OneOptionalSelect = {
     id?: boolean
@@ -6547,7 +6582,7 @@ export namespace Prisma {
     **/
     _count?: true | ManyRequiredCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | ManyRequiredCountAggregateInputType
     /**
@@ -6557,7 +6592,7 @@ export namespace Prisma {
     **/
     _avg?: ManyRequiredAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: ManyRequiredAvgAggregateInputType
     /**
@@ -6567,7 +6602,7 @@ export namespace Prisma {
     **/
     _sum?: ManyRequiredSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: ManyRequiredSumAggregateInputType
     /**
@@ -6577,7 +6612,7 @@ export namespace Prisma {
     **/
     _min?: ManyRequiredMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: ManyRequiredMinAggregateInputType
     /**
@@ -6587,7 +6622,7 @@ export namespace Prisma {
     **/
     _max?: ManyRequiredMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: ManyRequiredMaxAggregateInputType
   }
@@ -6640,12 +6675,19 @@ export namespace Prisma {
     _max: ManyRequiredMaxAggregateOutputType | null
   }
 
-  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<Array<
-    PickArray<ManyRequiredGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<
+    Array<
+      PickArray<ManyRequiredGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]> 
+            : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ManyRequiredSelect = {
     id?: boolean
@@ -7534,7 +7576,7 @@ export namespace Prisma {
     **/
     _count?: true | OptionalSide1CountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | OptionalSide1CountAggregateInputType
     /**
@@ -7544,7 +7586,7 @@ export namespace Prisma {
     **/
     _avg?: OptionalSide1AvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OptionalSide1AvgAggregateInputType
     /**
@@ -7554,7 +7596,7 @@ export namespace Prisma {
     **/
     _sum?: OptionalSide1SumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: OptionalSide1SumAggregateInputType
     /**
@@ -7564,7 +7606,7 @@ export namespace Prisma {
     **/
     _min?: OptionalSide1MinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OptionalSide1MinAggregateInputType
     /**
@@ -7574,7 +7616,7 @@ export namespace Prisma {
     **/
     _max?: OptionalSide1MaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: OptionalSide1MaxAggregateInputType
   }
@@ -7627,12 +7669,19 @@ export namespace Prisma {
     _max: OptionalSide1MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<Array<
-    PickArray<OptionalSide1GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<
+    Array<
+      PickArray<OptionalSide1GroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]> 
+            : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OptionalSide1Select = {
     id?: boolean
@@ -8511,7 +8560,7 @@ export namespace Prisma {
     **/
     _count?: true | OptionalSide2CountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | OptionalSide2CountAggregateInputType
     /**
@@ -8521,7 +8570,7 @@ export namespace Prisma {
     **/
     _avg?: OptionalSide2AvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: OptionalSide2AvgAggregateInputType
     /**
@@ -8531,7 +8580,7 @@ export namespace Prisma {
     **/
     _sum?: OptionalSide2SumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: OptionalSide2SumAggregateInputType
     /**
@@ -8541,7 +8590,7 @@ export namespace Prisma {
     **/
     _min?: OptionalSide2MinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: OptionalSide2MinAggregateInputType
     /**
@@ -8551,7 +8600,7 @@ export namespace Prisma {
     **/
     _max?: OptionalSide2MaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: OptionalSide2MaxAggregateInputType
   }
@@ -8603,12 +8652,19 @@ export namespace Prisma {
     _max: OptionalSide2MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<Array<
-    PickArray<OptionalSide2GroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
-    }
-  >>
-    
+  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<
+    Array<
+      PickArray<OptionalSide2GroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]> 
+            : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type OptionalSide2Select = {
     id?: boolean
@@ -9474,7 +9530,7 @@ export namespace Prisma {
     **/
     _count?: true | ACountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | ACountAggregateInputType
     /**
@@ -9484,7 +9540,7 @@ export namespace Prisma {
     **/
     _avg?: AAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: AAvgAggregateInputType
     /**
@@ -9494,7 +9550,7 @@ export namespace Prisma {
     **/
     _sum?: ASumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: ASumAggregateInputType
     /**
@@ -9504,7 +9560,7 @@ export namespace Prisma {
     **/
     _min?: AMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: AMinAggregateInputType
     /**
@@ -9514,7 +9570,7 @@ export namespace Prisma {
     **/
     _max?: AMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: AMaxAggregateInputType
   }
@@ -9562,12 +9618,19 @@ export namespace Prisma {
     _max: AMaxAggregateOutputType | null
   }
 
-  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<Array<
-    PickArray<AGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof AGroupByOutputType))]: GetScalarType<T[P], AGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<
+    Array<
+      PickArray<AGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof AGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], AGroupByOutputType[P]> 
+            : GetScalarType<T[P], AGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ASelect = {
     id?: boolean
@@ -10346,7 +10409,7 @@ export namespace Prisma {
     **/
     _count?: true | BCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | BCountAggregateInputType
     /**
@@ -10356,7 +10419,7 @@ export namespace Prisma {
     **/
     _avg?: BAvgAggregateInputType
     /**
-     * @deprecated please use \`_avg\`
+     * @deprecated since 2.23.0 please use \`_avg\`
     **/
     avg?: BAvgAggregateInputType
     /**
@@ -10366,7 +10429,7 @@ export namespace Prisma {
     **/
     _sum?: BSumAggregateInputType
     /**
-     * @deprecated please use \`_sum\`
+     * @deprecated since 2.23.0 please use \`_sum\`
     **/
     sum?: BSumAggregateInputType
     /**
@@ -10376,7 +10439,7 @@ export namespace Prisma {
     **/
     _min?: BMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: BMinAggregateInputType
     /**
@@ -10386,7 +10449,7 @@ export namespace Prisma {
     **/
     _max?: BMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: BMaxAggregateInputType
   }
@@ -10430,12 +10493,19 @@ export namespace Prisma {
     _max: BMaxAggregateOutputType | null
   }
 
-  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<Array<
-    PickArray<BGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof BGroupByOutputType))]: GetScalarType<T[P], BGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<
+    Array<
+      PickArray<BGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof BGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], BGroupByOutputType[P]> 
+            : GetScalarType<T[P], BGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type BSelect = {
     id?: boolean
@@ -11190,7 +11260,7 @@ export namespace Prisma {
     **/
     _count?: true | CCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | CCountAggregateInputType
     /**
@@ -11200,7 +11270,7 @@ export namespace Prisma {
     **/
     _min?: CMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: CMinAggregateInputType
     /**
@@ -11210,7 +11280,7 @@ export namespace Prisma {
     **/
     _max?: CMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: CMaxAggregateInputType
   }
@@ -11252,12 +11322,19 @@ export namespace Prisma {
     _max: CMaxAggregateOutputType | null
   }
 
-  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<Array<
-    PickArray<CGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof CGroupByOutputType))]: GetScalarType<T[P], CGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<
+    Array<
+      PickArray<CGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof CGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], CGroupByOutputType[P]> 
+            : GetScalarType<T[P], CGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type CSelect = {
     id?: boolean
@@ -12000,7 +12077,7 @@ export namespace Prisma {
     **/
     _count?: true | DCountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | DCountAggregateInputType
     /**
@@ -12010,7 +12087,7 @@ export namespace Prisma {
     **/
     _min?: DMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: DMinAggregateInputType
     /**
@@ -12020,7 +12097,7 @@ export namespace Prisma {
     **/
     _max?: DMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: DMaxAggregateInputType
   }
@@ -12061,12 +12138,19 @@ export namespace Prisma {
     _max: DMaxAggregateOutputType | null
   }
 
-  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<Array<
-    PickArray<DGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof DGroupByOutputType))]: GetScalarType<T[P], DGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<
+    Array<
+      PickArray<DGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof DGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], DGroupByOutputType[P]> 
+            : GetScalarType<T[P], DGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type DSelect = {
     id?: boolean
@@ -12804,7 +12888,7 @@ export namespace Prisma {
     **/
     _count?: true | ECountAggregateInputType
     /**
-     * @deprecated please use \`_count\`
+     * @deprecated since 2.23.0 please use \`_count\`
     **/
     count?: true | ECountAggregateInputType
     /**
@@ -12814,7 +12898,7 @@ export namespace Prisma {
     **/
     _min?: EMinAggregateInputType
     /**
-     * @deprecated please use \`_min\`
+     * @deprecated since 2.23.0 please use \`_min\`
     **/
     min?: EMinAggregateInputType
     /**
@@ -12824,7 +12908,7 @@ export namespace Prisma {
     **/
     _max?: EMaxAggregateInputType
     /**
-     * @deprecated please use \`_max\`
+     * @deprecated since 2.23.0 please use \`_max\`
     **/
     max?: EMaxAggregateInputType
   }
@@ -12863,12 +12947,19 @@ export namespace Prisma {
     _max: EMaxAggregateOutputType | null
   }
 
-  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<Array<
-    PickArray<EGroupByOutputType, T['by']> & {
-      [P in ((keyof T) & (keyof EGroupByOutputType))]: GetScalarType<T[P], EGroupByOutputType[P]>
-    }
-  >>
-    
+  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<
+    Array<
+      PickArray<EGroupByOutputType, T['by']> & 
+        {
+          [P in ((keyof T) & (keyof EGroupByOutputType))]: P extends '_count' 
+            ? T[P] extends boolean 
+              ? number 
+              : GetScalarType<T[P], EGroupByOutputType[P]> 
+            : GetScalarType<T[P], EGroupByOutputType[P]>
+        }
+      > 
+    >
+
 
   export type ESelect = {
     id?: boolean
