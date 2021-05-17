@@ -314,7 +314,7 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-  if (process.env.INIT_CWD) {
+  if (!testMode && process.env.INIT_CWD) {
     const backupPath = path.join(
       process.env.INIT_CWD,
       'node_modules/.prisma/client',
