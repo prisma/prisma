@@ -126,7 +126,7 @@ export async function generateInFolder({
           ),
         },
       }
-
+  process.chdir(projectDir)
   await generateClient({
     binaryPaths,
     datamodel,

@@ -53,8 +53,6 @@ export class TSClient implements Generatable {
     const schemaPath = path.join(schemaDir, 'prisma.schema')
     const envPaths = getEnvPaths(schemaPath, { cwd: projectRoot })
 
-    console.log(envPaths)
-
     const relativeEnvPaths = {
       rootEnvPath:
         envPaths.rootEnvPath &&
@@ -82,7 +80,7 @@ export class TSClient implements Generatable {
     ) {
       config.generator?.previewFeatures.push('nApi')
     }
-    const relativeOutputDir = path.relative(projectRoot, outputDir)
+    const relativeOutputDir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 

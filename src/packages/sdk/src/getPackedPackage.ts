@@ -1,15 +1,15 @@
-import execa from 'execa'
-import path from 'path'
-import tempy from 'tempy'
-import fs from 'fs'
-import resolvePkg from 'resolve-pkg'
-import tar from 'tar'
 import copy from '@timsuchanek/copy'
+import execa from 'execa'
+import fs from 'fs'
 import makeDir from 'make-dir'
-import { promisify } from 'util'
-import rimraf from 'rimraf'
+import path from 'path'
 import readPkgUp from 'read-pkg-up'
+import resolvePkg from 'resolve-pkg'
+import rimraf from 'rimraf'
 import { quote } from 'shell-quote'
+import tar from 'tar'
+import tempy from 'tempy'
+import { promisify } from 'util'
 import { hasYarn } from './utils/hasYarn'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
@@ -24,7 +24,7 @@ export async function getPackedPackage(
 ): Promise<string | void> {
   packageDir =
     packageDir ||
-    resolvePkg(name, { cwd: __dirname }) ||
+    resolvePkg(name, { cwd: process.cwd() }) ||
     resolvePkg(name, { cwd: target })
 
   if (!packageDir) {
