@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.23.0-30.query-engine-unify-aggregation-api-surface-ca54ad152b8a61a9b4b64ae7fd4eb7c7f3f5d885",
+    "@prisma/engines-version": "2.23.0-32.967904aed21a763c64b70752a17f8582a75dc8e1",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
