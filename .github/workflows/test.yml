@@ -92,6 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         database:
           - sqlite
           - postgres
@@ -102,6 +103,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
@@ -147,76 +153,9 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }}
-          name: tests-integration-${{ matrix.database }}
-  #
-  # TESTS-INTEGRATION-NAPI
-  #
-  tests-integration-napi:
-    timeout-minutes: 20
-    runs-on: ubuntu-20.04
-    env:
-      PRISMA_FORCE_NAPI: 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
-        node: [12]
+          flags: tests-integration,${{ matrix.database }},${{ matrix.engine }}
+          name: tests-integration-${{ matrix.database }}-${{ matrix.engine }}
 
-    steps:
-      - uses: actions/checkout@v2
-
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
-        if: matrix.database != 'sqlite'
-
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v1
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        if: ${{ matrix.database == 'sqlite' }}
-        working-directory: src/packages/tests
-
-      # temp
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8 --verbose
-        working-directory: src/packages/tests
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
-          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
-          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }}
-          name: tests-integration-${{ matrix.database }}
   #
   # CLI-COMMANDS
   #
@@ -272,65 +211,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
-      
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v1
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts
-        working-directory: src/packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }}
-          name: client-${{ matrix.os }}
-
-  #
-  # CLIENT with NAPI Enabled  (without types test)
-  #
-  client-napi:
-    timeout-minutes: 20
-    runs-on: ${{ matrix.os }}
-    env:
-      PRISMA_FORCE_NAPI: 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
       
