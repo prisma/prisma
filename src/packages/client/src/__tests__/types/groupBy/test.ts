@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { expectType } from 'tsd'
 
 // tslint:disable
 
@@ -83,7 +84,8 @@ async function main() {
       max: number | null
     }
   }
-  const x0: X0 = x[0]
+  expectType<X0[]>(x)
+
 
   const y = await prisma.user.groupBy({
     by: ['name'],
@@ -97,6 +99,13 @@ async function main() {
       },
     },
   })
+  expectType<
+    {
+      _count: number
+      name: string | null
+    }[]
+  >(y)
+
   const z = await prisma.user.groupBy({
     by: ['name'],
     having: {
@@ -119,6 +128,11 @@ async function main() {
       ],
     },
   })
+  expectType<
+    {
+      name: string | null
+    }[]
+  >(z)
 }
 
 main().catch((e) => {

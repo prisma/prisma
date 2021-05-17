@@ -212,4 +212,23 @@ Array [
 ]
 `;
 
-exports[`groupBy name and with count (legacy) 1`] = `Cannot read property 'filter' of undefined`;
+exports[`groupBy name and with count (legacy) 1`] = `
+
+Invalid \`prisma.user.groupBy()\` invocation:
+
+{
+  by: [
+    'name'
+  ],
+  select: {
+    name: true,
+    count: {
+      select: true
+    }
+  }
+}
+
+
+The \`select\` statement for type Int must not be empty. Available options are listed in green.
+
+`;

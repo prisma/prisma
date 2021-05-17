@@ -154,14 +154,19 @@ ${new OutputType(this.dmmf, groupByType).toTS()}
 
 type ${getGroupByPayloadName(
       model.name,
-    )}<T extends ${groupByArgsName}> = Promise<Array<
-  PickArray<${groupByType.name}, T['by']> & {
-    [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
-      groupByType.name
-    }[P]>
-  }
->>
-    `
+    )}<T extends ${groupByArgsName}> = Promise<
+  Array<
+    PickArray<${groupByType.name}, T['by']> & 
+      {
+        [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count' 
+          ? T[P] extends boolean 
+            ? number 
+            : GetScalarType<T[P], ${groupByType.name}[P]> 
+          : GetScalarType<T[P], ${groupByType.name}[P]>
+      }
+    > 
+  >
+`
   }
   private getAggregationTypes() {
     const { model, mapping } = this

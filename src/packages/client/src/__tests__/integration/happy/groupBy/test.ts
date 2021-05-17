@@ -50,6 +50,7 @@ describe('groupBy', () => {
     expect(user).toMatchSnapshot()
   })
   test('by  [name, count, min, sum, max, avg] with aggregations', async () => {
+    // This is a regression test for this issue https://github.com/prisma/prisma/issues/7052
     const user = await prisma.user.groupBy({
       by: ['name', 'count', 'min', 'sum', 'max', 'avg'],
       where: {

@@ -34,8 +34,8 @@ function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
 
 ${comment}`
 }
-function getDeprecationString(field: string) {
-  return `@deprecated please use \`${field}\``
+function getDeprecationString(since: string, replacement: string) {
+  return `@deprecated since ${since} please use \`${replacement}\``
 }
 const undefinedNote = `Note, that providing \`undefined\` is treated as the value not being there.
 Read more here: https://pris.ly/d/null-undefined`
@@ -62,11 +62,11 @@ const JSDocFields = {
       `Select which fields to find the maximum value`,
       'aggregations',
     ),
-  count: () => getDeprecationString('_count'),
-  avg: () => getDeprecationString('_avg'),
-  sum: () => getDeprecationString('_sum'),
-  min: () => getDeprecationString('_min'),
-  max: () => getDeprecationString('_max'),
+  count: () => getDeprecationString('2.23.0', '_count'),
+  avg: () => getDeprecationString('2.23.0', '_avg'),
+  sum: () => getDeprecationString('2.23.0', '_sum'),
+  min: () => getDeprecationString('2.23.0', '_min'),
+  max: () => getDeprecationString('2.23.0', '_max'),
   distinct: (singular, plural) =>
     addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
   orderBy: (singular, plural) =>
