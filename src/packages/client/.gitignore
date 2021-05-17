@@ -15,7 +15,6 @@ src/utils/transformed-dmmf.json
 *-dmmf.json
 *-dmmf-raw.json
 db
-failed-*.md
 query-engine*
 test.sh
 try-getConfig.ts
