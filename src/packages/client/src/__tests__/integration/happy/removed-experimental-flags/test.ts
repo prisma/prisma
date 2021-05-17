@@ -13,27 +13,27 @@ test('removed-experimental-flags', async () => {
     },
     skip: 0,
     take: 10000,
-    avg: {
+    _avg: {
       age: true,
     },
-    count: true,
-    max: {
+    _count: true,
+    _max: {
       age: true,
     },
-    min: {
+    _min: {
       age: true,
     },
-    sum: {
+    _sum: {
       age: true,
     },
   })
 
   expect(result).toEqual({
-    count: 10,
-    avg: { age: 80 },
-    max: { age: 163 },
-    min: { age: 5 },
-    sum: { age: 800 },
+    _count: 10,
+    _avg: { age: 80 },
+    _max: { age: 163 },
+    _min: { age: 5 },
+    _sum: { age: 800 },
   })
 
   await prisma.$disconnect()

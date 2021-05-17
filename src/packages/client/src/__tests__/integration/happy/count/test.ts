@@ -44,7 +44,7 @@ test('count', async () => {
       Invalid \`prisma.user.aggregate()\` invocation:
 
       {
-        count: {
+        _count: {
       ?   _all?: true,
       ?   email?: true,
       ?   age?: true,

@@ -20,7 +20,11 @@ export class InputField implements Generatable {
     const { field } = this
 
     const optionalStr = field.isRequired ? '' : '?'
-    const jsdoc = field.comment ? wrapComment(field.comment) + '\n' : ''
+    const deprecated = field.deprecation
+      ? `@deprecated since ${field.deprecation.sinceVersion} because ${field.deprecation.reason}\n`
+      : ''
+    const comment = `${field.comment ? field.comment + '\n' : ''}${deprecated}`
+    const jsdoc = comment ? wrapComment(comment) + '\n' : ''
     const fieldType = stringifyInputTypes(
       field.inputTypes,
       this.prefixFilter,

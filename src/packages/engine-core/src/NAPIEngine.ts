@@ -187,7 +187,8 @@ export class NAPIEngine implements Engine {
     if (this.setupPromise) return this.setupPromise
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
-    return this.loadEngine()
+    await this.loadEngine()
+    await this.version()
   }
   private async getPlatform() {
     if (this.platform) return this.platform
@@ -383,7 +384,6 @@ You may have to run ${chalk.greenBright(
         await this.engine?.connect({ enableRawQueries: true })
         this.connected = true
         debug('started')
-        void this.version()
         res()
       })
       return this.connectPromise
@@ -430,14 +430,12 @@ You may have to run ${chalk.greenBright(
     }
   }
   async getConfig(): Promise<GetConfigResult> {
-    await this.start()
     const config = this.parseEngineResponse<GetConfigResult>(
       await this.engine!.getConfig(),
     )
     return config
   }
   async version(forceRun?: boolean): Promise<string> {
-    await this.start()
     const serverInfo = this.parseEngineResponse<ServerInfo>(
       await this.engine!.serverInfo(),
     )

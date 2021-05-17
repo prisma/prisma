@@ -137,6 +137,7 @@ export namespace DMMF {
     isNullable: boolean
     isRequired: boolean
     inputTypes: SchemaArgInputType[]
+    deprecation?: Deprecation
   }
 
   export interface OutputType {
@@ -156,13 +157,13 @@ export namespace DMMF {
       namespace?: FieldNamespace
     }
     args: SchemaArg[]
-    deprecation?: SchemaFieldDeprecation
+    deprecation?: Deprecation
   }
 
-  export interface SchemaFieldDeprecation {
+  export interface Deprecation {
     sinceVersion: string
     reason: string
-    plannedRemovalVersion: string
+    plannedRemovalVersion?: string
   }
 
   export interface InputType {
