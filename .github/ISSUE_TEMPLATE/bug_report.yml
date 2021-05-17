@@ -53,3 +53,13 @@ body:
         ```
     validations:
       required: true
+  - type: textarea
+    attributes:
+      label: Prisma Version
+      description: Run `prisma -v` to see your Prisma version and paste it between the ´´´
+      value: |
+        ```
+
+        ```
+    validations:
+      required: true
