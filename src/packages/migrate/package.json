@@ -71,6 +71,7 @@
     "strip-indent": "^3.0.0"
   },
   "scripts": {
+    "postinstall": "cd src/__tests__/fixtures/seed-sqlite && npm i && cd ../seed-sqlite-js-ts-default-export && npm i && cd ../seed-sqlite-js-ts-named-export && npm i",
     "run": "node dist/bin.js",
     "precommit": "lint-staged",
     "format": "prettier --write .",

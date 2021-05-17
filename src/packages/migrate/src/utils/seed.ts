@@ -68,7 +68,7 @@ export function detectSeedFiles(schemaPath) {
 }
 
 function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
-  let script = `
+  const script = `
   const __seed = require('./${seedFilepath}')
   const __keys = Object.keys(__seed)
 
@@ -82,10 +82,6 @@ function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
   } else {
     ''
   }`
-
-  if (type === 'TS') {
-    script = 'declare const require: any' + script
-  }
 
   return script
 }
@@ -146,7 +142,7 @@ To install them run: ${chalk.green(
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
       let tsNodeCommand = `ts-node`
-      let tsNodeArgs = `-p -e "${getSeedScript('TS', detected.ts)}"`
+      let tsNodeArgs = `--print --eval "${getSeedScript('TS', detected.ts)}"`
 
       // User can customize the `ts-node` command from the package script
       if (scripts?.['ts-node']) {
