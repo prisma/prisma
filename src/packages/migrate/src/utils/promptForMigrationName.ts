@@ -31,7 +31,7 @@ export async function getMigrationName(
   const response = await prompt({
     type: 'text',
     name: 'name',
-    message: `Name of migration`,
+    message: `Enter a name for the new migration:`,
   })
 
   if (!('name' in response)) {

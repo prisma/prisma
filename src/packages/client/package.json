@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.23.0-27.ed792f504cb865b38d9d632b33acb6a65cedfc8c",
+    "@prisma/engines": "2.23.0-29.936e9b9eb66e6b265d1d25f687dd97f6ff479d7f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -70,7 +70,7 @@
     "@types/jest": "26.0.23",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
-    "@types/node": "12.20.12",
+    "@types/node": "12.20.13",
     "@types/pg": "7.14.11",
     "@typescript-eslint/eslint-plugin": "4.22.1",
     "@typescript-eslint/parser": "4.22.1",
@@ -127,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.23.0-27.ed792f504cb865b38d9d632b33acb6a65cedfc8c"
+    "@prisma/engines-version": "2.23.0-29.936e9b9eb66e6b265d1d25f687dd97f6ff479d7f"
   },
   "lint-staged": {
     "*.ts": [

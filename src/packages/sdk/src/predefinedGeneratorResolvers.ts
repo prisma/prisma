@@ -133,6 +133,9 @@ async function installPackage(baseDir: string, pkg: string): Promise<void> {
 
 /**
  * Warn, if yarn is older than 1.19.2
+ * Because Yarn used to remove all dot folders inside node_modules before.
+ * We use node_modules/.prisma/client directory as default location for generated Prisma Client.
+ * Changelog https://github.com/yarnpkg/yarn/blob/HEAD/CHANGELOG.md#1192
  */
 function checkYarnVersion() {
   if (process.env.npm_config_user_agent) {
@@ -155,8 +158,10 @@ function checkYarnVersion() {
     }
   }
 }
+
 /**
  * Warn, if typescript is below `4.1.0` or if it is not install locally or globally
+ * Because Template Literal Types are required for generating Prisma Client types.
  */
 function checkTypeScriptVersion() {
   const minVersion = '4.1.0'

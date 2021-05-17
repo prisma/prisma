@@ -337,7 +337,6 @@ export class MigrateEngine {
                 reject(new Error(message))
               }
             } else {
-              const text = this.persistError(request, this.messages.join('\n'))
               reject(
                 new Error(
                   `${chalk.redBright(
@@ -348,7 +347,7 @@ export class MigrateEngine {
                     2,
                   )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
                     response.error.message
-                  }\n\n${text}\n`,
+                  }\n`,
                 ),
               )
             }
@@ -375,33 +374,7 @@ export class MigrateEngine {
       this.lastRequest = request
     })
   }
-  private persistError(request: any, message: string): string {
-    const filename = `failed-${request.method}-${now()}.md`
-    fs.writeFileSync(
-      filename,
-      `# Failed ${request.method} at ${new Date().toISOString()}
-## RPC One-Liner
-\`\`\`json
-${JSON.stringify(request)}
-\`\`\`
 
-## RPC Input Readable
-\`\`\`json
-${JSON.stringify(request, null, 2)}
-\`\`\`
-
-## Stack Trace
-\`\`\`bash
-${message}
-\`\`\`
-`,
-    )
-    return `Wrote ${chalk.bold(filename)} with debugging information.
-Please put that file into a gist and post it in Slack.
-1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}
-2. Create a gist ${chalk.greenBright.underline(`https://gist.github.com/new`)}`
-    // }
-  }
   private getRPCPayload(method: string, params: any): RPCPayload {
     return {
       id: messageId++,

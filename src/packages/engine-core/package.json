@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "26.0.23",
-    "@types/node": "12.20.12",
+    "@types/node": "12.20.13",
     "@typescript-eslint/eslint-plugin": "4.22.1",
     "@typescript-eslint/parser": "4.22.1",
     "eslint": "7.25.0",
@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.23.0-27.ed792f504cb865b38d9d632b33acb6a65cedfc8c",
+    "@prisma/engines": "2.23.0-29.936e9b9eb66e6b265d1d25f687dd97f6ff479d7f",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
