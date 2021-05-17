@@ -67,6 +67,29 @@ export function detectSeedFiles(schemaPath) {
   return detected
 }
 
+function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
+  let script = `
+  const __seed = require('./${seedFilepath}')
+  const __keys = Object.keys(__seed)
+
+  // Execute default or "seed" named export
+  if (__keys && __keys.length) {
+    if (__keys.indexOf('seed') !== -1) {
+      __seed.seed()
+    } else if (__keys.indexOf('default') !== -1) {
+      __seed.default()
+    }
+  } else {
+    ''
+  }`
+
+  if (type === 'TS') {
+    script = 'declare const require: any' + script
+  }
+
+  return script
+}
+
 export async function tryToRunSeed(schemaPath: string | null) {
   const detected = detectSeedFiles(schemaPath)
 
@@ -83,8 +106,10 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
     )
   } else {
     if (detected.js) {
-      console.info(`Running ${chalk.bold(`node "${detected.js}"`)} ...`)
-      return await execa('node', [`"${detected.js}"`], {
+      console.info(`Running seed from ${chalk.bold(`"${detected.js}"`)} ...`)
+
+      // -p means -e (Evaluate the following argument as JavaScript.) + print result
+      return await execa('node', [`-p "${getSeedScript('JS', detected.js)}"`], {
         shell: true,
         stdio: 'inherit',
       })
@@ -120,20 +145,26 @@ To install them run: ${chalk.green(
 
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
-      let tsNodeCommand = 'ts-node'
+      let tsNodeCommand = `ts-node`
+      let tsNodeArgs = `-p -e "${getSeedScript('TS', detected.ts)}"`
+
+      // User can customize the `ts-node` command from the package script
       if (scripts?.['ts-node']) {
         tsNodeCommand = scripts['ts-node']
+        tsNodeArgs = `"${detected.ts}"`
+        console.info(
+          `Running seed: ${chalk.bold(`${tsNodeCommand} ${tsNodeArgs}`)} ...`,
+        )
+      } else {
+        console.info(`Running seed from ${chalk.bold(`${detected.ts}`)} ...`)
       }
 
-      console.info(
-        `Running ${chalk.bold(`${tsNodeCommand} "${detected.ts}"`)} ...`,
-      )
-      return await execa(tsNodeCommand, [`"${detected.ts}"`], {
+      return await execa(tsNodeCommand, [tsNodeArgs], {
         shell: true,
         stdio: 'inherit',
       })
     } else if (detected.sh) {
-      console.info(`Running ${chalk.bold(`sh "${detected.sh}"`)} ...`)
+      console.info(`Running seed: ${chalk.bold(`sh "${detected.sh}"`)} ...`)
       return await execa('sh', [`"${detected.sh}"`], {
         shell: true,
         stdio: 'inherit',
