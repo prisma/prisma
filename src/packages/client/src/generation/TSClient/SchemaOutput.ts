@@ -1,6 +1,5 @@
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
-
 import { GraphQLScalarToJSTypeTable } from '../../runtime/utils/common'
 import { TAB_SIZE } from './constants'
 import { Generatable } from './Generatable'
@@ -19,8 +18,7 @@ export class SchemaOutputField implements Generatable {
       fieldType = fieldType[0]
     }
     const arrayStr = field.outputType.isList ? `[]` : ''
-    const nullableStr =
-      field.isNullable && !field.outputType.isList ? ' | null' : ''
+    const nullableStr = field.isNullable ? ' | null' : ''
     return `${field.name}: ${fieldType}${arrayStr}${nullableStr}`
   }
 }

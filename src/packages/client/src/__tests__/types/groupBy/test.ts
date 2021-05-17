@@ -48,6 +48,7 @@ async function main() {
     _sum: {
       age: true,
       sum: true,
+      grades: true,
     },
     having: {
       name: '',
@@ -68,6 +69,7 @@ async function main() {
     _sum: {
       age: number | null
       sum: number | null
+      grades: number[] | null
     }
     _count: {
       age: number | null
@@ -85,7 +87,6 @@ async function main() {
     }
   }
   expectType<X0[]>(x)
-
 
   const y = await prisma.user.groupBy({
     by: ['name'],

@@ -21,6 +21,7 @@ model user {
   avg           Int     @default(0)
   min           Int     @default(0)
   max           Int     @default(0)
+  grades        Int[]   
   posts         Post[]
   Like          Like[]
 }
