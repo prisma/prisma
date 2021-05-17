@@ -62,8 +62,6 @@ export class TSClient implements Generatable {
         path.relative(projectRoot, envPaths.schemaEnvPath),
     }
 
-    console.log(relativeEnvPaths)
-
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
