@@ -53,7 +53,7 @@ describe('json-filtering(postgres)', () => {
     const a = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.number',
+          path: 'number',
           lt: 2,
         },
       },
@@ -67,7 +67,7 @@ describe('json-filtering(postgres)', () => {
     const a = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.number',
+          path: 'number',
           lte: 2,
         },
       },
@@ -81,7 +81,7 @@ describe('json-filtering(postgres)', () => {
     const a = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.number',
+          path: 'number',
           gte: 2,
         },
       },
@@ -95,7 +95,7 @@ describe('json-filtering(postgres)', () => {
     const a = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.number',
+          path: 'number',
           gt: 2,
         },
       },
@@ -109,7 +109,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.string',
+          path: 'string',
           string_contains: 'bc',
         },
       },
@@ -123,7 +123,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.string',
+          path: 'string',
           string_starts_with: 'a',
         },
       },
@@ -137,7 +137,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.string',
+          path: 'string',
           string_ends_with: 'c',
         },
       },
@@ -151,7 +151,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.array',
+          path: 'array',
           array_contains: [1, 2, 3],
         },
       },
@@ -165,7 +165,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.array',
+          path: 'array',
           array_starts_with: 5,
         },
       },
@@ -179,7 +179,7 @@ describe('json-filtering(postgres)', () => {
     const b = await prisma.user.findMany({
       where: {
         json: {
-          path: '$.array',
+          path: 'array',
           array_ends_with: 12,
         },
       },
