@@ -45,15 +45,15 @@ describe('generator', () => {
 
     if (process.env.PRISMA_FORCE_NAPI) {
       expect(manifest).toMatchInlineSnapshot(`
-              Object {
-                defaultOutput: .prisma/client,
-                prettyName: Prisma Client,
-                requiresEngineVersion: ENGINE_VERSION_TEST,
-                requiresEngines: Array [
-                  libqueryEngineNapi,
-                ],
-              }
-          `)
+        Object {
+          defaultOutput: .prisma/client,
+          prettyName: Prisma Client,
+          requiresEngineVersion: ENGINE_VERSION_TEST,
+          requiresEngines: Array [
+            libqueryEngineNapi,
+          ],
+        }
+      `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
         Object {
