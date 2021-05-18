@@ -68,20 +68,28 @@ export function detectSeedFiles(schemaPath) {
 }
 
 function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
-  const script = `
-  const __seed = require('./${seedFilepath}')
-  const __keys = Object.keys(__seed)
+  let script = `
+const __seed = require('./${seedFilepath}')
+const __keys = Object.keys(__seed)
 
-  // Execute default or "seed" named export
-  if (__keys && __keys.length) {
-    if (__keys.indexOf('seed') !== -1) {
-      __seed.seed()
-    } else if (__keys.indexOf('default') !== -1) {
-      __seed.default()
-    }
-  } else {
-    ''
-  }`
+// Execute "seed" named export or default export
+if (__keys && __keys.length) {
+  if (__keys.indexOf('seed') !== -1) {
+    __seed.seed()
+  } else if (__keys.indexOf('default') !== -1) {
+    __seed.default()
+  }
+} else {
+  ''
+}`
+
+  if (type === 'TS') {
+    script = `
+// @ts-ignore
+declare const require: any
+
+${script}`
+  }
 
   return script
 }
