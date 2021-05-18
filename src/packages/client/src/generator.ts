@@ -22,7 +22,7 @@ if (require.main === module) {
           : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
       return {
-        defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
+        defaultOutput: '.prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
         prettyName: 'Prisma Client',
         requiresEngines: [requiredEngine],
         version: clientVersion,
