@@ -22,6 +22,7 @@ describe('json-filtering(mysql)', () => {
             string: 'ab',
             number: 1,
             array: [1, 2, 3, 4],
+            object: { a: 1, b: 2, c: 3 },
           },
         },
         {
@@ -30,6 +31,7 @@ describe('json-filtering(mysql)', () => {
             string: 'bc',
             number: 2,
             array: [5, 6, 7, 8],
+            object: { a: 4, b: 5, c: 6 },
           },
         },
         {
@@ -38,6 +40,7 @@ describe('json-filtering(mysql)', () => {
             string: 'cd',
             number: 3,
             array: [9, 10, 11, 12],
+            object: { a: 7, b: 8, c: 9 },
           },
         },
       ],
@@ -61,6 +64,20 @@ describe('json-filtering(mysql)', () => {
       },
     })
     expect(sort(a)).toMatchSnapshot()
+
+    // Nested Object
+    const b = await prisma.user.findMany({
+      where: {
+        json: {
+          path: '$.object.a',
+          lt: 2,
+        },
+      },
+      select: {
+        json: true,
+      },
+    })
+    expect(sort(b)).toMatchSnapshot()
   })
   test('lte(2)', async () => {
     const a = await prisma.user.findMany({

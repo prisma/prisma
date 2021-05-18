@@ -11,6 +11,11 @@ Array [
         4,
       ],
       number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
       string: ab,
     },
   },
@@ -28,6 +33,11 @@ Array [
         12,
       ],
       number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
       string: cd,
     },
   },
@@ -45,6 +55,11 @@ Array [
         8,
       ],
       number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
       string: bc,
     },
   },
@@ -62,6 +77,11 @@ Array [
         12,
       ],
       number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
       string: cd,
     },
   },
@@ -79,6 +99,11 @@ Array [
         12,
       ],
       number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
       string: cd,
     },
   },
@@ -91,6 +116,11 @@ Array [
         8,
       ],
       number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
       string: bc,
     },
   },
@@ -108,6 +138,33 @@ Array [
         4,
       ],
       number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) lt(2) 2`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
       string: ab,
     },
   },
@@ -125,6 +182,11 @@ Array [
         8,
       ],
       number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
       string: bc,
     },
   },
@@ -137,6 +199,11 @@ Array [
         4,
       ],
       number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
       string: ab,
     },
   },
@@ -154,6 +221,11 @@ Array [
         8,
       ],
       number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
       string: bc,
     },
   },
@@ -171,6 +243,11 @@ Array [
         8,
       ],
       number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
       string: bc,
     },
   },
@@ -188,6 +265,11 @@ Array [
         4,
       ],
       number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
       string: ab,
     },
   },

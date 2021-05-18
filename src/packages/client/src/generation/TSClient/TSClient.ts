@@ -264,6 +264,7 @@ ${prismaEnums.join('\n\n')}
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+      // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
       const baseName = `Required<${inputType.name}Base>`
       acc.push(`export type ${inputType.name} = 
   | PatchUndefined<
