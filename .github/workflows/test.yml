@@ -51,7 +51,7 @@ jobs:
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.0
@@ -61,7 +61,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v2
@@ -90,7 +90,7 @@ jobs:
   #
   tests-integration:
     timeout-minutes: 20
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -168,7 +168,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [self-hosted] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -214,7 +214,7 @@ jobs:
       fail-fast: false
       matrix:
         engine: ['napi', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [self-hosted] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -267,7 +267,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       matrix:
@@ -315,7 +315,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [self-hosted] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -360,7 +360,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [self-hosted] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -418,7 +418,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [self-hosted] # macos-latest, windows-latest
         node: [12]
 
     steps:
