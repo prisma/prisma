@@ -976,7 +976,36 @@ export namespace Prisma {
    * From ts-toolbelt
    */
 
+  type __Either<O extends object, K extends Key> = Omit<O, K> &
+    {
+      // Merge all but K
+      [P in K]: Pick<O, P & keyof O> // With K possibilities
+    }[K]
+
+  type EitherStrict<O extends object, K extends Key> = Strict<__Either<O, K>>
+
+  type EitherLoose<O extends object, K extends Key> = ComputeRaw<__Either<O, K>>
+
+  type _Either<
+    O extends object,
+    K extends Key,
+    strict extends Boolean
+  > = {
+    1: EitherStrict<O, K>
+    0: EitherLoose<O, K>
+  }[strict]
+
+  type Either<
+    O extends object,
+    K extends Key,
+    strict extends Boolean = 1
+  > = O extends unknown ? _Either<O, K, strict> : never
+
   export type Union = any
+
+  type PatchUndefined<O extends object, O1 extends object> = {
+    [K in keyof O]: O[K] extends undefined ? At<O1, K> : O[K]
+  } & {}
 
   /** Helper Types for "Merge" **/
   export type IntersectOf<U extends Union> = (
@@ -16092,8 +16121,14 @@ export namespace Prisma {
     gte?: number
     not?: NestedFloatNullableFilter | number | null
   }
+  export type JsonFilter = 
+    | PatchUndefined<
+        Either<Required<JsonFilterBase>, Exclude<keyof Required<JsonFilterBase>, 'path'>>,
+        Required<JsonFilterBase>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase>, 'path'>>
 
-  export type JsonFilter = {
+  export type JsonFilterBase = {
     equals?: InputJsonValue
     lt?: InputJsonValue
     lte?: InputJsonValue
@@ -16108,8 +16143,14 @@ export namespace Prisma {
     array_ends_with?: InputJsonValue
     not?: InputJsonValue
   }
+  export type JsonNullableFilter = 
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase>, Exclude<keyof Required<JsonNullableFilterBase>, 'path'>>,
+        Required<JsonNullableFilterBase>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase>, 'path'>>
 
-  export type JsonNullableFilter = {
+  export type JsonNullableFilterBase = {
     equals?: InputJsonValue | null
     lt?: InputJsonValue
     lte?: InputJsonValue
@@ -16281,8 +16322,14 @@ export namespace Prisma {
     **/
     max?: NestedFloatNullableFilter
   }
+  export type JsonWithAggregatesFilter = 
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase>, Exclude<keyof Required<JsonWithAggregatesFilterBase>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase>, 'path'>>
 
-  export type JsonWithAggregatesFilter = {
+  export type JsonWithAggregatesFilterBase = {
     equals?: InputJsonValue
     lt?: InputJsonValue
     lte?: InputJsonValue
@@ -16315,8 +16362,14 @@ export namespace Prisma {
     **/
     max?: NestedJsonFilter
   }
+  export type JsonNullableWithAggregatesFilter = 
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase>, 'path'>>
 
-  export type JsonNullableWithAggregatesFilter = {
+  export type JsonNullableWithAggregatesFilterBase = {
     equals?: InputJsonValue | null
     lt?: InputJsonValue
     lte?: InputJsonValue
@@ -17281,8 +17334,14 @@ export namespace Prisma {
     **/
     max?: NestedFloatNullableFilter
   }
+  export type NestedJsonFilter = 
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase>, Exclude<keyof Required<NestedJsonFilterBase>, 'path'>>,
+        Required<NestedJsonFilterBase>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase>, 'path'>>
 
-  export type NestedJsonFilter = {
+  export type NestedJsonFilterBase = {
     equals?: InputJsonValue
     lt?: InputJsonValue
     lte?: InputJsonValue
@@ -17297,8 +17356,14 @@ export namespace Prisma {
     array_ends_with?: InputJsonValue
     not?: InputJsonValue
   }
+  export type NestedJsonNullableFilter = 
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase>, Exclude<keyof Required<NestedJsonNullableFilterBase>, 'path'>>,
+        Required<NestedJsonNullableFilterBase>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase>, 'path'>>
 
-  export type NestedJsonNullableFilter = {
+  export type NestedJsonNullableFilterBase = {
     equals?: InputJsonValue | null
     lt?: InputJsonValue
     lte?: InputJsonValue

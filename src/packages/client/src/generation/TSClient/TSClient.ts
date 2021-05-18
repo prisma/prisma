@@ -262,7 +262,27 @@ ${prismaEnums.join('\n\n')}
  */
 
 ${this.dmmf.inputObjectTypes.prisma
-  .map((inputType) => new InputType(inputType, collector).toTS())
+  .reduce((acc, inputType) => {
+    if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+      const baseName = `Required<${inputType.name}Base>`
+      acc.push(`export type ${inputType.name} = 
+  | PatchUndefined<
+      Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
+      ${baseName}
+    >
+  | OptionalFlat<Omit<${baseName}, 'path'>>`)
+      collector?.addSymbol(inputType.name)
+      acc.push(
+        new InputType(
+          { ...inputType, name: `${inputType.name}Base` },
+          collector,
+        ).toTS(),
+      )
+    } else {
+      acc.push(new InputType(inputType, collector).toTS())
+    }
+    return acc
+  }, [] as string[])
   .join('\n')}
 
 ${
