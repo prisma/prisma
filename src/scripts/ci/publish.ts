@@ -1339,18 +1339,15 @@ function getLines(str: string): string[] {
 }
 
 async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
-  type Commit = {
-    message?: string
-    author: {
-      name: string
-    }
-    hash
+  const response = await fetch(
+    `https://api.github.com/repos/prisma/${repo}/commits/${hash}`,
+  )
+
+  const jsonData = await response.json()
+
+  return {
+    message: jsonData.commit?.message || '',
+    author: jsonData.commit?.author.name || '',
+    hash,
   }
-  return fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
-    .then((_) => _.json())
-    .then(({ commit }: { commit: Commit }) => ({
-      message: commit.message || '',
-      author: commit.author.name,
-      hash,
-    }))
 }
