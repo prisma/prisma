@@ -78,16 +78,25 @@ async function runSeed() {
   // Execute "seed" named export or default export
   if (__keys && __keys.length) {
     if (__keys.indexOf('seed') !== -1) {
-      return await __seed.seed()
+      return __seed.seed()
     } else if (__keys.indexOf('default') !== -1) {
-      return await __seed.default()
+      return __seed.default()
     }
   } else {
-    return ''
+    ''
   }
 }
 
 runSeed()
+  .then(function (result) {
+    if (result) {
+      console.log(result)
+    }
+  })
+  .catch(function (e) {
+    console.error('Error from seed:')
+    throw e
+  })
 `
 
   if (type === 'TS') {
@@ -156,7 +165,7 @@ To install them run: ${chalk.green(
 
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
-      let tsNodeCommand = `ts-node`
+      let tsNodeCommand = 'ts-node'
       let tsNodeArgs = `--print --eval "${getSeedScript('TS', detected.ts)}"`
 
       // User can customize the `ts-node` command from the package script
