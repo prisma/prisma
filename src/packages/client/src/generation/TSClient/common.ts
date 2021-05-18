@@ -285,7 +285,7 @@ export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
 type __Either<O extends object, K extends Key> = Omit<O, K> &
   {
     // Merge all but K
-    [P in K]: Pick<O, P & keyof O> // With K possibilities
+    [P in K]: Prisma__Pick<O, P & keyof O> // With K possibilities
   }[K]
 
 type EitherStrict<O extends object, K extends Key> = Strict<__Either<O, K>>
