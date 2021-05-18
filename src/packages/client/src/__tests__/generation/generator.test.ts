@@ -50,7 +50,7 @@ describe('generator', () => {
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
-            queryEngine,
+            libqueryEngineNapi,
           ],
         }
       `)
@@ -220,7 +220,7 @@ describe('generator', () => {
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
-            queryEngine,
+            libqueryEngineNapi,
           ],
         }
       `)
