@@ -193,9 +193,8 @@ type ${getGroupByPayloadName(
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
     const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
     const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
-    const countType = this.dmmf.outputTypeMap[
-      getCountAggregateOutputName(model.name)
-    ]
+    const countType =
+      this.dmmf.outputTypeMap[getCountAggregateOutputName(model.name)]
 
     if (avgType) {
       aggregateTypes.push(avgType)

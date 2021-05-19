@@ -110,7 +110,8 @@ ${chalk.bold('Examples')}
       optInToShadowDatabase: false,
     })
     debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
-    const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
+    const listMigrationDirectoriesResult =
+      await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 
     console.info() // empty line
@@ -135,9 +136,8 @@ ${editedMigrationNames.join('\n')}`,
       )
     }
 
-    const {
-      appliedMigrationNames: migrationIds,
-    } = await migrate.applyMigrations()
+    const { appliedMigrationNames: migrationIds } =
+      await migrate.applyMigrations()
 
     migrate.stop()
 

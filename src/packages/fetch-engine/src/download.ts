@@ -210,9 +210,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   return binaryPaths
 }
 
-function getCollectiveBar(
-  options: DownloadOptions,
-): {
+function getCollectiveBar(options: DownloadOptions): {
   finishBar: () => void
   setProgress: (sourcePath: string) => (progress: number) => void
 } {
@@ -227,20 +225,22 @@ function getCollectiveBar(
   const numDownloads =
     Object.values(options.binaries).length *
     Object.values(options?.binaryTargets ?? []).length
-  const setProgress = (sourcePath: string) => (progress): void => {
-    progressMap[sourcePath] = progress
-    const progressValues = Object.values(progressMap)
-    const totalProgress =
-      progressValues.reduce((acc, curr) => {
-        return acc + curr
-      }, 0) / numDownloads
-    if (options.progressCb) {
-      options.progressCb(totalProgress)
+  const setProgress =
+    (sourcePath: string) =>
+    (progress): void => {
+      progressMap[sourcePath] = progress
+      const progressValues = Object.values(progressMap)
+      const totalProgress =
+        progressValues.reduce((acc, curr) => {
+          return acc + curr
+        }, 0) / numDownloads
+      if (options.progressCb) {
+        options.progressCb(totalProgress)
+      }
+      if (bar) {
+        bar.update(totalProgress)
+      }
     }
-    if (bar) {
-      bar.update(totalProgress)
-    }
-  }
 
   return {
     setProgress,
@@ -420,13 +420,8 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const {
-    version,
-    progressCb,
-    targetFilePath,
-    binaryTarget,
-    binaryName,
-  } = options
+  const { version, progressCb, targetFilePath, binaryTarget, binaryName } =
+    options
   const downloadUrl = getDownloadUrl(
     'all_commits',
     version,

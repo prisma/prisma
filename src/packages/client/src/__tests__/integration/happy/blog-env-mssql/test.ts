@@ -212,7 +212,8 @@ describe('blog-env-mssql', () => {
 
     test('$queryRaw`<SQL>` with params', async () => {
       await prisma.user.create({ data: { email: 'f@a.de', name: 'F' } })
-      const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      const users =
+        await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users[0].name).toBe('F')
     })
   })
@@ -255,7 +256,8 @@ describe('blog-env-mssql', () => {
 
     test('$executeRaw`<SQL>` with params', async () => {
       await prisma.user.create({ data: { email: 'f@b.de', name: 'F' } })
-      const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      const users =
+        await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users).not.toBe(0)
     })
   })
