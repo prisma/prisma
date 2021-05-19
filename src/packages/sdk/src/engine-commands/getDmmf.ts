@@ -48,7 +48,6 @@ export async function getDMMF({
       EngineTypes.libqueryEngineNapi,
       queryEnginePath,
     )
-    console.warn(queryEnginePath)
     const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
     datamodel = datamodel ?? fs.readFileSync(datamodelPath!, 'utf-8')
     let dmmf: any
