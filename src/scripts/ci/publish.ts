@@ -879,7 +879,7 @@ async function testPackages(
       if (pkg.name === '@prisma/tests' || pkg.name === '@prisma/client') {
         await run(
           path.dirname(pkg.path),
-          'DEBUG=* PRISMA_FORCE_NAPI=true pnpm run test',
+          'PRISMA_FORCE_NAPI=true pnpm run test',
         )
       }
     } else {
