@@ -16,7 +16,6 @@ import tempDir from 'temp-dir'
 import { promisify } from 'util'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
-import { copy } from './copy'
 import { downloadZip } from './downloadZip'
 import { flatMap } from './flatMap'
 import { getHash } from './getHash'
@@ -28,6 +27,7 @@ const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
+const copyFile = promisify(fs.copyFile)
 
 const channel = 'master'
 export enum EngineTypes {
@@ -290,14 +290,14 @@ async function binaryNeedsToBeDownloaded(
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           debug(`copying ${cachedFile} to ${job.targetFilePath}`)
-          await copy(cachedFile, job.targetFilePath)
+          await copyFile(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
           debug(
             `overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`,
           )
-          await copy(cachedFile, job.targetFilePath)
+          await copyFile(cachedFile, job.targetFilePath)
         }
         return false
       } else {
@@ -492,7 +492,7 @@ async function saveFileToCache(
   )
 
   try {
-    await copy(job.targetFilePath, cachedTargetPath)
+    await copyFile(job.targetFilePath, cachedTargetPath)
     await writeFile(cachedSha256Path, sha256)
     await writeFile(cachedSha256ZippedPath, zippedSha256)
   } catch (e) {
