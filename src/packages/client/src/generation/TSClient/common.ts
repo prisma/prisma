@@ -36,6 +36,7 @@ const {
 } = require('${runtimePath}')
 
 const path = require('path')
+const fs = require('fs')
 `
 }
 

@@ -78,11 +78,25 @@ export class TSClient implements Generatable {
     ) {
       config.generator?.previewFeatures.push('nApi')
     }
+
+    // get relative output dir for it to be preserved even after bundling, or
+    // being moved around as long as we keep the same project dir structure.
     const relativeOutputDir = path.relative(process.cwd(), outputDir)
+
+    // on serverless envs, relative output dir can be one step lower because of
+    // where and how the code is packaged into the lambda like with a build step
+    // with platforms like Vercel or Netlify. We want to check this as well.
+    const slsRelativeOutputDir = relativeOutputDir.split('/').slice(1).join('/')
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-const dirname = path.join(process.cwd(), '${relativeOutputDir}');
+// this is the directory where the generated client is found
+let dirname = path.join(process.cwd(), '${relativeOutputDir}')
+
+if (!fs.existsSync(dirname)) { // but sometimes it's not found
+  // we give it a try, we're probably on a serverless platform
+  dirname = path.join(process.cwd(), '${slsRelativeOutputDir}')
+}
 
 /**
  * Enums
