@@ -78,16 +78,23 @@ async function runSeed() {
   // Execute "seed" named export or default export
   if (__keys && __keys.length) {
     if (__keys.indexOf('seed') !== -1) {
-      return await __seed.seed()
+      return __seed.seed()
     } else if (__keys.indexOf('default') !== -1) {
-      return await __seed.default()
+      return __seed.default()
     }
-  } else {
-    return ''
   }
 }
 
 runSeed()
+  .then(function (result) {
+    if (result) {
+      console.log(result)
+    }
+  })
+  .catch(function (e) {
+    console.error('Error from seed:')
+    throw e
+  })
 `
 
   if (type === 'TS') {
@@ -119,8 +126,8 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
     if (detected.js) {
       console.info(`Running seed from ${chalk.bold(`"${detected.js}"`)} ...`)
 
-      // -p means -e (Evaluate the following argument as JavaScript.) + print result
-      return await execa('node', [`-p "${getSeedScript('JS', detected.js)}"`], {
+      // -e (Evaluate the following argument as JavaScript.)
+      return await execa('node', [`-e "${getSeedScript('JS', detected.js)}"`], {
         shell: true,
         stdio: 'inherit',
       })
@@ -156,8 +163,8 @@ To install them run: ${chalk.green(
 
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
-      let tsNodeCommand = `ts-node`
-      let tsNodeArgs = `--print --eval "${getSeedScript('TS', detected.ts)}"`
+      let tsNodeCommand = 'ts-node'
+      let tsNodeArgs = `--eval "${getSeedScript('TS', detected.ts)}"`
 
       // User can customize the `ts-node` command from the package script
       if (scripts?.['ts-node']) {
