@@ -2,6 +2,7 @@ const resolveFrom = require('resolve-from')
 const path = require('path')
 const fs = require('fs')
 
+
 const jestPath = require.resolve('jest')
 const jestCliPath = resolveFrom(jestPath, 'jest-cli')
 const jestUtilPath = resolveFrom(jestCliPath, 'jest-util')
@@ -15,3 +16,4 @@ lines[78] = '  globalObject.process = process'
 
 const result = lines.join('\n')
 fs.writeFileSync(patchFilePath, result)
+
