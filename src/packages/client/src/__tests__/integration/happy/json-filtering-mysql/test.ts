@@ -3,6 +3,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
 let prisma
+const baseUri = process.env.TEST_MYSQL_URI
 describe('json-filtering(mysql)', () => {
   beforeAll(async () => {
     process.env.TEST_MYSQL_URI += '-json-filtering'
@@ -49,6 +50,7 @@ describe('json-filtering(mysql)', () => {
   afterAll(async () => {
     await prisma.user.deleteMany()
     await prisma.$disconnect()
+    process.env.TEST_MYSQL_URI = baseUri
   })
 
   test('lt(2)', async () => {

@@ -4,6 +4,7 @@ import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
+const baseUri = process.env.TEST_POSTGRES_URI
 describe('json-filtering(postgres)', () => {
   beforeAll(async () => {
     process.env.TEST_POSTGRES_URI += '-json-filtering'
@@ -50,6 +51,7 @@ describe('json-filtering(postgres)', () => {
   afterAll(async () => {
     await prisma.user.deleteMany()
     await prisma.$disconnect()
+    process.env.TEST_POSTGRES_URI = baseUri
   })
 
   test('lt(2)', async () => {
