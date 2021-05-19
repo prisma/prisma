@@ -2,20 +2,20 @@ import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
   Command,
+  engineEnvVarMap,
+  EngineTypes,
+  format,
   getConfig,
   getSchema,
   getSchemaPath,
   getVersion,
-  resolveBinary,
-  EngineType,
-  format,
-  isError,
   HelpError,
-  engineEnvVarMap,
+  isError,
+  resolveBinary,
 } from '@prisma/sdk'
+import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
-import chalk from 'chalk'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -67,10 +67,14 @@ export class Version implements Command {
 
     const platform = await getPlatform()
 
-    const introspectionEngine = await this.resolveEngine('introspection-engine')
-    const migrationEngine = await this.resolveEngine('migration-engine')
-    const queryEngine = await this.resolveEngine('query-engine')
-    const fmtBinary = await this.resolveEngine('prisma-fmt')
+    const introspectionEngine = await this.resolveEngine(
+      EngineTypes.introspectionEngine,
+    )
+    const migrationEngine = await this.resolveEngine(
+      EngineTypes.migrationEngine,
+    )
+    const queryEngine = await this.resolveEngine(EngineTypes.queryEngine)
+    const fmtBinary = await this.resolveEngine(EngineTypes.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -133,7 +137,7 @@ export class Version implements Command {
     )}${resolved})`
   }
 
-  private async resolveEngine(binaryName: EngineType): Promise<BinaryInfo> {
+  private async resolveEngine(binaryName: EngineTypes): Promise<BinaryInfo> {
     const envVar = engineEnvVarMap[binaryName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {

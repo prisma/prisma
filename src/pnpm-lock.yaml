@@ -48,7 +48,7 @@ importers:
       typescript: 4.2.4
   packages/cli:
     dependencies:
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
     devDependencies:
       '@prisma/client': link:../client
       '@prisma/debug': link:../debug
@@ -100,7 +100,7 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@prisma/debug': workspace:*
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -148,11 +148,11 @@ importers:
       typescript: 4.2.4
   packages/client:
     dependencies:
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
     devDependencies:
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
@@ -184,7 +184,7 @@ importers:
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
-      jest: 26.6.3_ts-node@9.1.1
+      jest: 26.6.3
       js-levenshtein: 1.1.6
       klona: 2.0.4
       lint-staged: 11.0.0
@@ -213,8 +213,8 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -313,7 +313,7 @@ importers:
   packages/engine-core:
     dependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
       chalk: 4.1.0
@@ -342,7 +342,7 @@ importers:
       typescript: 4.2.4
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@types/jest': 26.0.23
@@ -388,7 +388,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@types/find-cache-dir': 3.2.0
       '@types/jest': 26.0.23
       '@types/node': 12.20.13
@@ -410,7 +410,7 @@ importers:
       typescript: 4.2.4
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/get-platform': workspace:*
       '@types/find-cache-dir': 3.2.0
       '@types/jest': 26.0.23
@@ -455,13 +455,13 @@ importers:
     devDependencies:
       '@types/jest': 26.0.23
       '@types/node': 12.20.13
-      '@typescript-eslint/eslint-plugin': 4.24.0_59c9e933fd1a489015de5df6809ac2f2
-      '@typescript-eslint/parser': 4.24.0_eslint@7.26.0+typescript@4.2.4
-      eslint: 7.26.0
-      eslint-config-prettier: 8.3.0_eslint@7.26.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.26.0
-      eslint-plugin-jest: 24.3.6_75f6ac06fa52186b4cbfbd844359c2f7
-      eslint-plugin-prettier: 3.4.0_39fed7ca8f33f3403e39ca7e7aa90c0f
+      '@typescript-eslint/eslint-plugin': 4.22.1_f2cf9a191be19a59b06aad4f4e4a9af1
+      '@typescript-eslint/parser': 4.22.1_eslint@7.25.0+typescript@4.2.4
+      eslint: 7.25.0
+      eslint-config-prettier: 8.3.0_eslint@7.25.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.25.0
+      eslint-plugin-jest: 24.3.6_09f0a389ed8a72863593b95c2fdea68a
+      eslint-plugin-prettier: 3.4.0_ed07edc0d33fb90bb2bebf56b9b5e0f9
       jest: 26.6.3
       lint-staged: 11.0.0
       prettier: 2.3.0
@@ -618,7 +618,7 @@ importers:
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
     devDependencies:
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
       '@types/diff': 4.0.2
@@ -651,7 +651,7 @@ importers:
       typescript: 4.2.4
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines-version': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/sdk': workspace:*
@@ -738,7 +738,7 @@ importers:
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
@@ -759,6 +759,7 @@ importers:
       node-fetch: 2.6.1
       p-map: 4.0.0
       read-pkg-up: 7.0.1
+      resolve-from: 5.0.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       shell-quote: 1.7.2
@@ -776,13 +777,13 @@ importers:
       '@types/node': 12.20.13
       '@types/shell-quote': 1.7.0
       '@types/tar': 4.0.4
-      '@typescript-eslint/eslint-plugin': 4.24.0_59c9e933fd1a489015de5df6809ac2f2
-      '@typescript-eslint/parser': 4.24.0_eslint@7.26.0+typescript@4.2.4
-      eslint: 7.26.0
-      eslint-config-prettier: 8.3.0_eslint@7.26.0
-      eslint-plugin-eslint-comments: 3.2.0_eslint@7.26.0
-      eslint-plugin-jest: 24.3.6_75f6ac06fa52186b4cbfbd844359c2f7
-      eslint-plugin-prettier: 3.4.0_39fed7ca8f33f3403e39ca7e7aa90c0f
+      '@typescript-eslint/eslint-plugin': 4.22.1_f2cf9a191be19a59b06aad4f4e4a9af1
+      '@typescript-eslint/parser': 4.22.1_eslint@7.25.0+typescript@4.2.4
+      eslint: 7.25.0
+      eslint-config-prettier: 8.3.0_eslint@7.25.0
+      eslint-plugin-eslint-comments: 3.2.0_eslint@7.25.0
+      eslint-plugin-jest: 24.3.6_09f0a389ed8a72863593b95c2fdea68a
+      eslint-plugin-prettier: 3.4.0_ed07edc0d33fb90bb2bebf56b9b5e0f9
       jest: 26.6.3
       lint-staged: 11.0.0
       prettier: 2.3.0
@@ -792,7 +793,7 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
-      '@prisma/engines': 2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61
+      '@prisma/engines': 2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -827,6 +828,7 @@ importers:
       p-map: ^4.0.0
       prettier: 2.3.0
       read-pkg-up: ^7.0.1
+      resolve-from: ^5.0.0
       resolve-pkg: ^2.0.0
       rimraf: ^3.0.2
       shell-quote: ^1.7.2
@@ -1278,43 +1280,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-xvV1kKbhfUqFVuZ8Cyo+JPpipAHHAV3kcDBftiduK8EICXmTFddryy3P7NfZt8Pv37rA9nEJBKCCkglCPt/Xjw==
-  /@jest/core/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/reporters': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/transform': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.37
-      ansi-escapes: 4.3.2
-      chalk: 4.1.0
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      jest-changed-files: 26.6.2
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-haste-map: 26.6.2
-      jest-message-util: 26.6.2
-      jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
-      jest-resolve-dependencies: 26.6.3
-      jest-runner: 26.6.3_ts-node@9.1.1
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      jest-watcher: 26.6.2
-      micromatch: 4.0.2
-      p-each-series: 2.2.0
-      rimraf: 3.0.2
-      slash: 3.0.0
-      strip-ansi: 6.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-xvV1kKbhfUqFVuZ8Cyo+JPpipAHHAV3kcDBftiduK8EICXmTFddryy3P7NfZt8Pv37rA9nEJBKCCkglCPt/Xjw==
   /@jest/environment/26.6.2:
     dependencies:
       '@jest/fake-timers': 26.6.2
@@ -1415,20 +1380,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-YHlVIjP5nfEyjlrSr8t/YdNfU/1XEt7c5b4OxcXCjyRhjzLYu/rO69/WHPuYcbCWkz8kAeZVZp2N2+IOLLEPGw==
-  /@jest/test-sequencer/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/test-result': 26.6.2
-      graceful-fs: 4.2.6
-      jest-haste-map: 26.6.2
-      jest-runner: 26.6.3_ts-node@9.1.1
-      jest-runtime: 26.6.3_ts-node@9.1.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-YHlVIjP5nfEyjlrSr8t/YdNfU/1XEt7c5b4OxcXCjyRhjzLYu/rO69/WHPuYcbCWkz8kAeZVZp2N2+IOLLEPGw==
   /@jest/transform/26.6.2:
     dependencies:
       '@babel/core': 7.13.15
@@ -1511,20 +1462,20 @@ packages:
       undici: 3.3.6
     dev: true
     resolution:
-      integrity: sha512-Q5hm+/oMsG4Sfi2sOLZoQzsJWeoos1KGC+qNBtc5NYdckfo8f1ajb2a86JfRhRk2iY6S9keeomafZpE6JiyiJQ==
-  /@prisma/engines-version/2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61:
+      integrity: sha512-xcRzY6c0fh96ri+wGv+LooAEPfgS0MR9OgOHWUpu81dYf6TjV1Oc0IthHnPGtoUdjAQCDHogNY5rOHJfzcQjtQ==
+  /@prisma/engines-version/2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d:
     resolution:
-      integrity: sha512-95QKnRWQJdxRlWEwAPF1D2uhM+fY8+AddrLDWR+r7ThdEzJIqn7i3nr3mR4Qaj8StMXflOSsr4AKMjKwGQZM9Q==
-  /@prisma/engines/2.24.0-3.21e59e9d64a9c78da61a3accf99521bc0680ea55:
+      integrity: sha512-5xMHJ+j+HIsccjX3EoZx9hbpx7qRZBWu8hT4+ZSXDOYJmKIp8+gYSEMsxYi3+WvkxQ2gDuc6r3YR3t8npn4yTQ==
+  /@prisma/engines/2.22.0-21.60cc71d884972ab4e897f0277c4b84383dddaf6c:
     dev: true
     requiresBuild: true
     resolution:
-      integrity: sha512-7mN3T9G1GmRs8LZRqFhZJXWkT/yR6CFNd3cFgK3ifJchx2BpV6zlBrb7tPY790Sm3HS6Q3xH5Q6C0VK8dR6dYQ==
-  /@prisma/engines/2.24.0-5.2beb202d1edf364097cece4300649f1f98557d61:
+      integrity: sha512-KmWdogrsfsSLYvfqY3cS3QcDGzaEFklE+T6dNJf+k/KPQum4A29IwDalafMwh5cMN8ivZobUbowNSwWJrMT08Q==
+  /@prisma/engines/2.24.0-2.napi-version-function-ca33087a7006efe27fa379b25688642fda9aed7d:
     requiresBuild: true
     resolution:
-      integrity: sha512-I1Pu3fhZnUWIImBJfpqBeuKS7w06yq292kUgQB0WqaHjR2pxpM/RBBNDAEZQ38sAgBADSxbz7lZ2afFT0xlJnA==
-  /@prisma/fetch-engine/2.24.0-dev.8:
+      integrity: sha512-3zgPFY/RKX00gpgt59E7zBzpGfehQxrbtieJzHur6dEn1VJ99Mv458tWlAoVVUvoLnJSKED/kAzEHd9pm4P1kg==
+  /@prisma/fetch-engine/2.22.1:
     dependencies:
       '@prisma/debug': 2.24.0-dev.8
       '@prisma/get-platform': 2.24.0-dev.8
@@ -5134,29 +5085,6 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-GF9noBSa9t08pSyl3CY4frMrqp+aQXFGFkf5hEPbh/pIUFYWMK6ZLTfbmadxJVcJrdRoChlWQsA2VkJcDFK8hg==
-  /jest-cli/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/core': 26.6.3_ts-node@9.1.1
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      chalk: 4.1.0
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      import-local: 3.0.2
-      is-ci: 2.0.0
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      prompts: 2.4.1
-      yargs: 15.4.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-GF9noBSa9t08pSyl3CY4frMrqp+aQXFGFkf5hEPbh/pIUFYWMK6ZLTfbmadxJVcJrdRoChlWQsA2VkJcDFK8hg==
   /jest-config/26.6.3:
     dependencies:
       '@babel/core': 7.13.15
@@ -5175,7 +5103,7 @@ packages:
       jest-resolve: 26.6.2
       jest-util: 26.6.2
       jest-validate: 26.6.2
-      micromatch: 4.0.4
+      micromatch: 4.0.2
       pretty-format: 26.6.2
     dev: true
     engines:
@@ -5187,6 +5115,17 @@ packages:
         optional: true
     resolution:
       integrity: sha512-t5qdIj/bCj2j7NFVHb2nFB4aUdfucDn3JRKgrZnplb8nieAirAzRSHP8uDEd+qV6ygzg9Pz4YG7UTJf94LPSyg==
+  /jest-diff/25.5.0:
+    dependencies:
+      chalk: 3.0.0
+      diff-sequences: 25.2.6
+      jest-get-type: 25.2.6
+      pretty-format: 25.5.0
+    dev: true
+    engines:
+      node: '>= 8.3'
+    resolution:
+      integrity: sha512-z1kygetuPiREYdNIumRpAHY6RXiGmp70YHptjdaxTWGmA085W3iCnXNx0DhflK3vwrKmrRWyY1wUpkPMVxMK7A==
   /jest-diff/26.6.2:
     dependencies:
       chalk: 4.1.1
@@ -5296,33 +5235,6 @@ packages:
     dev: true
     engines:
       node: '>= 10.14.2'
-    resolution:
-      integrity: sha512-kPKUrQtc8aYwBV7CqBg5pu+tmYXlvFlSFYn18ev4gPFtrRzB15N2gW/Roew3187q2w2eHuu0MU9TJz6w0/nPEg==
-  /jest-jasmine2/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@babel/traverse': 7.13.15
-      '@jest/environment': 26.6.2
-      '@jest/source-map': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.37
-      chalk: 4.1.0
-      co: 4.6.0
-      expect: 26.6.2
-      is-generator-fn: 2.1.0
-      jest-each: 26.6.2
-      jest-matcher-utils: 26.6.2
-      jest-message-util: 26.6.2
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      pretty-format: 26.6.2
-      throat: 5.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
     resolution:
       integrity: sha512-kPKUrQtc8aYwBV7CqBg5pu+tmYXlvFlSFYn18ev4gPFtrRzB15N2gW/Roew3187q2w2eHuu0MU9TJz6w0/nPEg==
   /jest-leak-detector/26.6.2:
@@ -5441,35 +5353,6 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-atgKpRHnaA2OvByG/HpGA4g6CSPS/1LK0jK3gATJAoptC1ojltpmVlYC3TYgdmGp+GLuhzpH30Gvs36szSL2JQ==
-  /jest-runner/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/environment': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/node': 14.14.37
-      chalk: 4.1.0
-      emittery: 0.7.2
-      exit: 0.1.2
-      graceful-fs: 4.2.6
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-docblock: 26.0.0
-      jest-haste-map: 26.6.2
-      jest-leak-detector: 26.6.2
-      jest-message-util: 26.6.2
-      jest-resolve: 26.6.2
-      jest-runtime: 26.6.3_ts-node@9.1.1
-      jest-util: 26.6.2
-      jest-worker: 26.6.2
-      source-map-support: 0.5.19
-      throat: 5.0.0
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    peerDependencies:
-      ts-node: '*'
-    resolution:
-      integrity: sha512-atgKpRHnaA2OvByG/HpGA4g6CSPS/1LK0jK3gATJAoptC1ojltpmVlYC3TYgdmGp+GLuhzpH30Gvs36szSL2JQ==
   /jest-runtime/26.6.3:
     dependencies:
       '@jest/console': 26.6.2
@@ -5503,43 +5386,6 @@ packages:
     engines:
       node: '>= 10.14.2'
     hasBin: true
-    resolution:
-      integrity: sha512-lrzyR3N8sacTAMeonbqpnSka1dHNux2uk0qqDXVkMv2c/A3wYnvQ4EXuI013Y6+gSKSCxdaczvf4HF0mVXHRdw==
-  /jest-runtime/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/console': 26.6.2
-      '@jest/environment': 26.6.2
-      '@jest/fake-timers': 26.6.2
-      '@jest/globals': 26.6.2
-      '@jest/source-map': 26.6.2
-      '@jest/test-result': 26.6.2
-      '@jest/transform': 26.6.2
-      '@jest/types': 26.6.2
-      '@types/yargs': 15.0.13
-      chalk: 4.1.0
-      cjs-module-lexer: 0.6.0
-      collect-v8-coverage: 1.0.1
-      exit: 0.1.2
-      glob: 7.1.6
-      graceful-fs: 4.2.6
-      jest-config: 26.6.3_ts-node@9.1.1
-      jest-haste-map: 26.6.2
-      jest-message-util: 26.6.2
-      jest-mock: 26.6.2
-      jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
-      jest-snapshot: 26.6.2
-      jest-util: 26.6.2
-      jest-validate: 26.6.2
-      slash: 3.0.0
-      strip-bom: 4.0.0
-      yargs: 15.4.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
     resolution:
       integrity: sha512-lrzyR3N8sacTAMeonbqpnSka1dHNux2uk0qqDXVkMv2c/A3wYnvQ4EXuI013Y6+gSKSCxdaczvf4HF0mVXHRdw==
   /jest-serializer/26.6.2:
@@ -5633,19 +5479,6 @@ packages:
     engines:
       node: '>= 10.14.2'
     hasBin: true
-    resolution:
-      integrity: sha512-lGS5PXGAzR4RF7V5+XObhqz2KZIDUA1yD0DG6pBVmy10eh0ZIXQImRuzocsI/N2XZ1GrLFwTS27In2i2jlpq1Q==
-  /jest/26.6.3_ts-node@9.1.1:
-    dependencies:
-      '@jest/core': 26.6.3_ts-node@9.1.1
-      import-local: 3.0.2
-      jest-cli: 26.6.3_ts-node@9.1.1
-    dev: true
-    engines:
-      node: '>= 10.14.2'
-    hasBin: true
-    peerDependencies:
-      ts-node: '*'
     resolution:
       integrity: sha512-lGS5PXGAzR4RF7V5+XObhqz2KZIDUA1yD0DG6pBVmy10eh0ZIXQImRuzocsI/N2XZ1GrLFwTS27In2i2jlpq1Q==
   /js-levenshtein/1.1.6:

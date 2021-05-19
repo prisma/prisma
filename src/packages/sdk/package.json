@@ -18,7 +18,7 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
-    "test": "jest",
+    "test": "node ./scripts/patchJest && jest",
     "precommit": "lint-staged"
   },
   "files": [
@@ -69,6 +69,7 @@
     "node-fetch": "2.6.1",
     "p-map": "^4.0.0",
     "read-pkg-up": "^7.0.1",
+    "resolve-from": "^5.0.0",
     "resolve-pkg": "^2.0.0",
     "rimraf": "^3.0.2",
     "shell-quote": "^1.7.2",

@@ -5,6 +5,7 @@ import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
 import { getPlatform } from '@prisma/get-platform'
 import stripAnsi from 'strip-ansi'
+import { EngineTypes } from '@prisma/fetch-engine'
 
 jest.setTimeout(20000)
 
@@ -104,8 +105,8 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary('migration-engine')
-    const queryEngine = await resolveBinary('query-engine')
+    const migrationEngine = await resolveBinary(EngineTypes.migrationEngine)
+    const queryEngine = await resolveBinary(EngineTypes.queryEngine)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),

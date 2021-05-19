@@ -1,8 +1,9 @@
-import { getDMMF, getConfig, formatSchema } from '../engineCommands'
-import stripAnsi from 'strip-ansi'
+import { enginesVersion } from '@prisma/engines'
 import fs from 'fs'
 import path from 'path'
-
+import stripAnsi from 'strip-ansi'
+import { EngineTypes } from '..'
+import { formatSchema, getConfig, getDMMF, getVersion } from '../'
 jest.setTimeout(15000)
 
 describe('getDMMF', () => {
@@ -297,7 +298,7 @@ describe('getConfig', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "Get config: Error: Database provider \\"sqlite\\" and the preview feature \\"createMany\\" can't be used at the same time.
-        Please either remove the \\"createMany\\" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver."
+          Please either remove the \\"createMany\\" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver."
       `)
     }
   })
@@ -416,5 +417,44 @@ describe('format', () => {
     })
 
     expect(formatted).toMatchSnapshot()
+  })
+})
+
+describe('getVersion', () => {
+  test('Introspection Engine', async () => {
+    const introspectionEngineVersion = await getVersion(
+      undefined,
+      EngineTypes.introspectionEngine,
+    )
+    expect(introspectionEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
+
+  test('N-API Engine', async () => {
+    const libqueryEngineNapiVersion = await getVersion(
+      undefined,
+      EngineTypes.libqueryEngineNapi,
+    )
+    expect(libqueryEngineNapiVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
+
+  test('Migration Engine', async () => {
+    const migrationEngineVersion = await getVersion(
+      undefined,
+      EngineTypes.migrationEngine,
+    )
+    expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
+
+  test('Prisma Fmt', async () => {
+    const prismaFmtVersion = await getVersion(undefined, EngineTypes.prismaFmt)
+    expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
+
+  test('Query Engine', async () => {
+    const queryEngineVersion = await getVersion(
+      undefined,
+      EngineTypes.queryEngine,
+    )
+    expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 })

@@ -10,7 +10,7 @@ export interface Engine {
   stop(): Promise<void>
   kill(signal: string): void
   getConfig(): Promise<GetConfigResult>
-  version(forceRun?: boolean): Promise<string>
+  version(forceRun?: boolean): Promise<string> | string
   request<T>(
     query: string,
     headers: Record<string, string>,
