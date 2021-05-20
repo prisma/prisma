@@ -875,13 +875,13 @@ async function testPackages(
       console.log(`\nTesting ${chalk.magentaBright(pkg.name)}`)
       await run(path.dirname(pkg.path), 'pnpm run test')
 
-      // Also need a second run but with N-API
-      if (pkg.name === '@prisma/tests' || pkg.name === '@prisma/client') {
-        await run(
-          path.dirname(pkg.path),
-          'PRISMA_FORCE_NAPI=true pnpm run test',
-        )
-      }
+//       // Also need a second run but with N-API
+//       if (pkg.name === '@prisma/tests' || pkg.name === '@prisma/client') {
+//         await run(
+//           path.dirname(pkg.path),
+//           'PRISMA_FORCE_NAPI=true pnpm run test',
+//         )
+//       }
     } else {
       console.log(
         `\nSkipping ${chalk.magentaBright(pkg.name)}, as it doesn't have tests`,
