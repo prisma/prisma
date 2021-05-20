@@ -64,7 +64,8 @@ test('Blog fixture: Postgres', async () => {
   expect(rawQueryTemplate[0]['?column?']).toBe(1)
 
   // Test queryRaw`` with ${param}
-  const rawQueryTemplateWithParams = await prisma.$queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams =
+    await prisma.$queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   expect(rawQueryTemplateWithParams[0].name).toBe('Alice')
 
   // Test executeRaw(string)
@@ -76,7 +77,8 @@ test('Blog fixture: Postgres', async () => {
   expect(rawexecuteTemplate).toBe(1)
 
   // Test executeRaw`` with ${param}
-  const rawexecuteTemplateWithParams = await prisma.$executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawexecuteTemplateWithParams =
+    await prisma.$executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   expect(rawexecuteTemplateWithParams).toBe(1)
 
   // Test validation errors

@@ -9,9 +9,7 @@ export const database = {
   async connect(ctx) {
     const connectionString = getConnectionString(ctx)
     const db = new PG.Client({ connectionString })
-    await new Promise((res, rej) =>
-      db.connect((err) => (err ? rej(err) : res())),
-    )
+    await db.connect()
     return db
   },
   beforeEach: async (db, sqlScenario, ctx) => {

@@ -43,12 +43,8 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS(): string {
-    const {
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaDir,
-    } = this.options
+    const { generator, sqliteDatasourceOverrides, outputDir, schemaDir } =
+      this.options
     const schemaPath = path.join(schemaDir, 'prisma.schema')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
     const relativeEnvPaths = {
