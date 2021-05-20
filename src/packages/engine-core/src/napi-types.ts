@@ -104,7 +104,7 @@ export type NAPI = {
     version: string
   }
   getConfig: (options: GetConfigOptions) => Promise<ConfigMetaFormat>
-  dmmf: (options: GetDMMFOptions) => Promise<DMMF.Document>
+  dmmf: (datamodel: string) => Promise<DMMF.Document>
 }
 
 export interface QueryEngineConstructor {

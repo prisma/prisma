@@ -50,24 +50,27 @@ export async function getConfig({
     )
   }
   let data: ConfigMetaFormat | undefined
-  try {
-    if (useNapi) {
+  debug(`Using ${useNapi ? 'N-API ' : ''}Query Engine at: ${queryEnginePath}`)
+  if (useNapi) {
+    try {
       const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
       data = await NApiQueryEngine.getConfig({
         datamodel: datamodel,
         datasourceOverrides: {},
         ignoreEnvVarErrors: ignoreEnvVarErrors ?? false,
       })
-    } else {
+    } catch (e) {
+      const error = JSON.parse(e.message)
+      throw new GetConfigError(error.message)
+    }
+  } else {
+    try {
       let tempDatamodelPath: string | undefined = datamodelPath
       if (!tempDatamodelPath) {
         try {
           tempDatamodelPath = await tmpWrite(datamodel!)
         } catch (err) {
-          throw new Error(
-            chalk.redBright.bold('Get Config ') +
-              'unable to write temp data model path',
-          )
+          throw new GetConfigError('Unable to write temp data model path')
         }
       }
       const engineArgs = []
@@ -92,46 +95,48 @@ export async function getConfig({
       }
 
       data = JSON.parse(result.stdout)
-    }
-    if (!data)
-      throw new Error(
-        `${chalk.redBright.bold('Get config ')} failed to return any data`,
-      )
-    if (
-      data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
-      data.generators.some((g) => g.previewFeatures.includes('createMany'))
-    ) {
-      throw new Error(`Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
-  Please either remove the "createMany" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver.`)
-    }
-  } catch (e) {
-    if (e.stderr || e.stdout) {
-      const error = e.stderr ? e.stderr : e.stout
-      let jsonError, message
-      try {
-        jsonError = JSON.parse(error)
-        message = `${chalk.redBright.bold('Get config ')}\n${chalk.redBright(
-          jsonError.message,
-        )}\n`
-        if (jsonError.error_code) {
-          if (jsonError.error_code === 'P1012') {
-            message =
-              chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
-              message
-          } else {
-            message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+    } catch (e) {
+      if (e.stderr || e.stdout) {
+        const error = e.stderr ? e.stderr : e.stout
+        let jsonError, message
+        try {
+          jsonError = JSON.parse(error)
+          message = `${chalk.redBright(jsonError.message)}\n`
+          if (jsonError.error_code) {
+            if (jsonError.error_code === 'P1012') {
+              message =
+                chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
+                message
+            } else {
+              message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+            }
           }
+        } catch (e) {
+          // if JSON parse / pretty handling fails, fallback to simple printing
+          throw new GetConfigError(error)
         }
-      } catch (e) {
-        // if JSON parse / pretty handling fails, fallback to simple printing
-        throw new Error(chalk.redBright.bold('Get config ') + error)
+
+        throw new GetConfigError(message)
       }
 
-      throw new Error(message)
+      throw new GetConfigError(e)
     }
-
-    throw new Error(chalk.redBright.bold('Get config: ') + e)
+  }
+  if (!data) throw new GetConfigError(`Failed to return any data`)
+  if (
+    data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
+    data.generators.some((g) => g.previewFeatures.includes('createMany'))
+  ) {
+    const message = `Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
+  Please either remove the "createMany" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver.`
+    throw new GetConfigError(message)
   }
 
   return data
+}
+
+export class GetConfigError extends Error {
+  constructor(message: string) {
+    super(chalk.redBright.bold('Get config: ') + message)
+  }
 }

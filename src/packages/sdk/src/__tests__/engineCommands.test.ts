@@ -297,7 +297,7 @@ describe('getConfig', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Get config: Error: Database provider \\"sqlite\\" and the preview feature \\"createMany\\" can't be used at the same time.
+        "Get config: Database provider \\"sqlite\\" and the preview feature \\"createMany\\" can't be used at the same time.
           Please either remove the \\"createMany\\" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver."
       `)
     }
