@@ -117,7 +117,8 @@ ${e.message}`)
       optInToShadowDatabase: false,
     })
     debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
-    const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
+    const listMigrationDirectoriesResult =
+      await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
     migrate.stop()
 
@@ -179,7 +180,8 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         return new HowToBaselineError().message
       } else {
-        const migrationId = listMigrationDirectoriesResult.migrations.shift() as string
+        const migrationId =
+          listMigrationDirectoriesResult.migrations.shift() as string
         return `The current database is not managed by Prisma Migrate.
 
 If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "${migrationId}":

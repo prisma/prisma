@@ -9,9 +9,7 @@ function formatHostname(hostname: string): string {
   return hostname.replace(/^\.*/, '.').toLowerCase()
 }
 
-function parseNoProxyZone(
-  zone: string,
-): {
+function parseNoProxyZone(zone: string): {
   hostname: string
   port: string
   hasPort: boolean
