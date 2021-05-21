@@ -97,7 +97,7 @@
     "lint-staged": "11.0.0",
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
-    "mssql": "6.3.2",
+    "mssql": "7.1.0",
     "pg": "8.6.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
