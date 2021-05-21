@@ -1,10 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
-  // works in isolation
-  if (process.env.PRISMA_FORCE_NAPI) {
-    return
-  }
   expect.assertions(1)
 
   const PrismaClient = await getTestClient()

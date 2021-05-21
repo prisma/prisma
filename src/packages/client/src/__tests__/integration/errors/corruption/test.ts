@@ -4,10 +4,6 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('corruption of query engine binary', async () => {
-  // testing for corruption of the main query engine
-  if (process.env.PRISMA_FORCE_NAPI === 'true') {
-    return
-  }
   expect.assertions(1)
 
   await generateTestClient()
