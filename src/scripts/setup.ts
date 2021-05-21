@@ -81,7 +81,9 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
           runPromise.catch(console.error)
 
           // for sqlite3 native bindings, they need a rebuild after an update
-          if (['@prisma/migrate', '@prisma/tests'].includes(pkgName)) {
+          if (
+            ['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)
+          ) {
             run(pkgDir, 'pnpm rebuild')
           }
         }
