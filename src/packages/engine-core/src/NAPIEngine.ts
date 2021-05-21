@@ -44,7 +44,7 @@ const debug = Debug('prisma:client:napi')
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
-  return event.level === 'info' && event['item_type'] === 'query'
+  return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   return event.level === 'error' && event['message'] === 'PANIC'
@@ -90,10 +90,6 @@ export class NAPIEngine implements Engine {
     this.datasourceOverrides = config.datasources
       ? this.convertDatasources(config.datasources)
       : {}
-
-    if (this.logQueries) {
-      this.logLevel = 'trace'
-    }
     if (config.enableEngineDebugMode) {
       this.logLevel = 'debug'
       // Debug.enable('*')
