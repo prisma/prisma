@@ -86,9 +86,9 @@ jobs:
         working-directory: ./
 
   #
-  # TESTS-INTEGRATION
+  # INTEGRATION-TESTS
   #
-  tests-integration:
+  integration-tests:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
     strategy:
@@ -132,14 +132,14 @@ jobs:
 
       - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
         if: ${{ matrix.database == 'sqlite' }}
-        working-directory: src/packages/tests
+        working-directory: src/packages/integration-tests
 
       # temp
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
       - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
-        working-directory: src/packages/tests
+        working-directory: src/packages/integration-tests
         env:
           CI: true
           SKIP_GIT: true
@@ -154,9 +154,9 @@ jobs:
 
       - uses: codecov/codecov-action@v1
         with:
-          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }},${{ matrix.engine }}
-          name: tests-integration-${{ matrix.database }}-${{ matrix.engine }}
+          files: ./src/packages/integration-tests/src/__tests__/coverage/clover.xml
+          flags: integration-tests,${{ matrix.database }},${{ matrix.engine }}
+          name: integration-tests-${{ matrix.database }}-${{ matrix.engine }}
 
   #
   # CLI-COMMANDS
