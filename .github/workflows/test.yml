@@ -86,9 +86,9 @@ jobs:
         working-directory: ./
 
   #
-  # TESTS-INTEGRATION
+  # INTEGRATION-TESTS
   #
-  tests-integration:
+  integration-tests:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
     strategy:
@@ -155,8 +155,8 @@ jobs:
       - uses: codecov/codecov-action@v1
         with:
           files: ./src/packages/integration-tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }},${{ matrix.engine }}
-          name: tests-integration-${{ matrix.database }}-${{ matrix.engine }}
+          flags: integration-tests,${{ matrix.database }},${{ matrix.engine }}
+          name: integration-tests-${{ matrix.database }}-${{ matrix.engine }}
 
   #
   # CLI-COMMANDS
