@@ -403,16 +403,14 @@ async function getBinaryPathsByVersion({
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce(
-      (acc, curr) => {
+    const binariesConfig: BinaryDownloadConfiguration =
+      neededVersion.engines.reduce((acc, curr) => {
         // only download the binary, of not already covered by the `binaryPathsOverride`
         if (!binaryPathsOverride?.[curr]) {
           acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
         }
         return acc
-      },
-      Object.create(null),
-    )
+      }, Object.create(null))
 
     binaryPathsByVersion[currentVersion] = {}
 

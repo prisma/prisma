@@ -13,9 +13,7 @@ import execa from 'execa'
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
-export async function getDbInfo(
-  schemaPath?: string,
-): Promise<{
+export async function getDbInfo(schemaPath?: string): Promise<{
   name: string
   url: string
   schemaWord: 'database'
@@ -114,9 +112,8 @@ export async function ensureDatabaseExists(
   if (forceCreate) {
     if (await createDatabase(activeDatasource.url.value, schemaDir)) {
       const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
-        credentials,
-      )
+      const { schemaWord, dbType, dbName } =
+        getDbinfoFromCredentials(credentials)
       if (dbType) {
         return `${dbType} ${schemaWord} ${chalk.bold(
           dbName,
@@ -205,9 +202,7 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
-export function getDbinfoFromCredentials(
-  credentials,
-): {
+export function getDbinfoFromCredentials(credentials): {
   dbName: string
   dbType: dbType
   schemaWord: 'database'
