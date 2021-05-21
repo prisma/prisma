@@ -1,4 +1,4 @@
-import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
 // Events
 export type QueryEngineEvent =
@@ -104,7 +104,10 @@ export type NAPI = {
     version: string
   }
   getConfig: (options: GetConfigOptions) => Promise<ConfigMetaFormat>
-  dmmf: (datamodel: string) => Promise<DMMF.Document>
+  /**
+   * This returns a string representation of `DMMF.Document`
+   */
+  dmmf: (datamodel: string) => Promise<string>
 }
 
 export interface QueryEngineConstructor {

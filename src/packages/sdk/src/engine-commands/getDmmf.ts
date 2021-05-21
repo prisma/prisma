@@ -52,7 +52,7 @@ export async function getDMMF({
     datamodel = datamodel ?? fs.readFileSync(datamodelPath!, 'utf-8')
     let dmmf: any
     try {
-      dmmf = await NApiQueryEngine.dmmf(datamodel)
+      dmmf = JSON.parse(await NApiQueryEngine.dmmf(datamodel)) as DMMF.Document
     } catch (e) {
       const error = JSON.parse(e.message)
       const message = addMissingOpenSSLInfo(error.message)
