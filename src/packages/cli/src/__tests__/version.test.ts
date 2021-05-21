@@ -1,9 +1,9 @@
-import { consoleContext, Context } from './__helpers__/context'
 import { download } from '@prisma/fetch-engine'
-import path from 'path'
-import makeDir from 'make-dir'
-import { engineEnvVarMap } from '@prisma/sdk'
 import { getPlatform } from '@prisma/get-platform'
+import { engineEnvVarMap } from '@prisma/sdk'
+import makeDir from 'make-dir'
+import path from 'path'
+import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
@@ -23,8 +23,9 @@ describe('version', () => {
         'migration-engine': enginesDir,
         'prisma-fmt': enginesDir,
         'query-engine': enginesDir,
+        'libquery-engine-napi': enginesDir,
       },
-      version: '58369335532e47bdcec77a2f1e7c1fb83a463918',
+      version: '2beb202d1edf364097cece4300649f1f98557d61',
       failSilent: false,
     })
 
