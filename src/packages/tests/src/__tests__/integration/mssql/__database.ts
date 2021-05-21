@@ -47,6 +47,7 @@ function getConnectionInfo(ctx: Context) {
     },
     options: {
       enableArithAbort: false,
+      trustServerCertificate: true, // change to true for local dev / self-signed certs
     },
   }
   return { credentials, connectionString }
