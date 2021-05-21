@@ -60,7 +60,7 @@ retry 6 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
-cd packages/tests
+cd packages/integration-tests
 pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
 cd ../..
 

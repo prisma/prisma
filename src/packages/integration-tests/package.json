@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/tests",
+  "name": "@prisma/integration-tests",
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
