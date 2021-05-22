@@ -28,7 +28,7 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 const copyFile = promisify(fs.copyFile)
-const utime = promisify(fs.utime)
+const utimes = promisify(fs.utimes)
 
 const channel = 'master'
 export enum EngineTypes {
@@ -294,7 +294,7 @@ async function binaryNeedsToBeDownloaded(
 
           // TODO Remove when https://github.com/docker/for-linux/issues/1015 is fixed
           // Workaround for https://github.com/prisma/prisma/issues/7037
-          await utime(cachedFile, new Date(), new Date());
+          await utimes(cachedFile, new Date(), new Date());
 
           await copyFile(cachedFile, job.targetFilePath)
         }
