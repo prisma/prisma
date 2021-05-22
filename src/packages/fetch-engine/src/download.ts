@@ -28,6 +28,7 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
 const copyFile = promisify(fs.copyFile)
+const utime = promisify(fs.utime)
 
 const channel = 'master'
 export enum EngineTypes {
