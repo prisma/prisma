@@ -290,6 +290,11 @@ async function binaryNeedsToBeDownloaded(
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           debug(`copying ${cachedFile} to ${job.targetFilePath}`)
+
+          // TODO Remove when https://github.com/docker/for-linux/issues/1015 is fixed
+          // Workaround for https://github.com/prisma/prisma/issues/7037
+          await utime(cachedFile, new Date(), new Date());
+
           await copyFile(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await getHash(job.targetFilePath)
