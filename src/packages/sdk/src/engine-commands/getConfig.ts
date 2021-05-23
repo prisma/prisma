@@ -61,7 +61,16 @@ export async function getConfig({
       })
     } catch (e) {
       const error = JSON.parse(e.message)
-      throw new GetConfigError(error.message)
+      let message: string
+      if (error.error_code === 'P1012') {
+        message =
+          chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) +
+          error.message +
+          '\n'
+      } else {
+        message = chalk.redBright(`${error.error_code}\n\n`) + error
+      }
+      throw new GetConfigError(message)
     }
   } else {
     try {
