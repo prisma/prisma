@@ -56,7 +56,7 @@ describe('version', () => {
   // Binary Tests
   testIf(!useNAPI)('basic version', async () => {
     const data = await ctx.cli('--version')
-    expect(cleanSnapshot(data.stdout)).toMatchSnapshot('BINARY')
+    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
   testIf(!useNAPI)(

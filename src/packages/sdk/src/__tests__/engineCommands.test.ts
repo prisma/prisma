@@ -420,6 +420,7 @@ describe('format', () => {
   })
 })
 const testIf = (condition: boolean) => (condition ? test : test.skip)
+/* eslint-disable jest/no-standalone-expect */
 describe('getVersion', () => {
   test('Introspection Engine', async () => {
     const introspectionEngineVersion = await getVersion(

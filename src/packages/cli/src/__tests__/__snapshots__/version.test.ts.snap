@@ -12,7 +12,7 @@ Default Engines Hash : placeholder
 Studio               : placeholder
 `;
 
-exports[`version basic version: BINARY 1`] = `
+exports[`version basic version 1`] = `
 prisma               : placeholder
 @prisma/client       : placeholder
 Current platform     : placeholder
