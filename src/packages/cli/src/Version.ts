@@ -66,14 +66,16 @@ export class Version implements Command {
     }
 
     const platform = await getPlatform()
-
+    const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
     const introspectionEngine = await this.resolveEngine(
       EngineTypes.introspectionEngine,
     )
     const migrationEngine = await this.resolveEngine(
       EngineTypes.migrationEngine,
     )
-    const queryEngine = await this.resolveEngine(EngineTypes.queryEngine)
+    const queryEngine = await this.resolveEngine(
+      useNAPI ? EngineTypes.libqueryEngineNapi : EngineTypes.queryEngine,
+    )
     const fmtBinary = await this.resolveEngine(EngineTypes.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
@@ -82,7 +84,10 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      ['Query Engine', this.printBinaryInfo(queryEngine)],
+      [
+        `${useNAPI ? 'N-API ' : ''}Query Engine`,
+        this.printBinaryInfo(queryEngine),
+      ],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],

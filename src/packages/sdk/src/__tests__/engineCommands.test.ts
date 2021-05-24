@@ -419,7 +419,7 @@ describe('format', () => {
     expect(formatted).toMatchSnapshot()
   })
 })
-
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 describe('getVersion', () => {
   test('Introspection Engine', async () => {
     const introspectionEngineVersion = await getVersion(
@@ -427,14 +427,6 @@ describe('getVersion', () => {
       EngineTypes.introspectionEngine,
     )
     expect(introspectionEngineVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
-
-  test('N-API Engine', async () => {
-    const libqueryEngineNapiVersion = await getVersion(
-      undefined,
-      EngineTypes.libqueryEngineNapi,
-    )
-    expect(libqueryEngineNapiVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
   test('Migration Engine', async () => {
@@ -450,11 +442,18 @@ describe('getVersion', () => {
     expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
-  test('Query Engine', async () => {
+  testIf(process.env.PRISMA_FORCE_NAPI !== 'true')('Query Engine', async () => {
     const queryEngineVersion = await getVersion(
       undefined,
       EngineTypes.queryEngine,
     )
     expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
+  testIf(process.env.PRISMA_FORCE_NAPI === 'true')('N-API Engine', async () => {
+    const libqueryEngineNapiVersion = await getVersion(
+      undefined,
+      EngineTypes.libqueryEngineNapi,
+    )
+    expect(libqueryEngineNapiVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 })
