@@ -1,6 +1,9 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('exit-hook', async () => {
+  if (process.env.PRISMA_FORCE_NAPI === 'true') {
+    return
+  }
   expect.assertions(2)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()

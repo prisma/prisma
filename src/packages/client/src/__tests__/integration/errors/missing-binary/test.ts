@@ -4,6 +4,9 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-binary', async () => {
+  if (process.env.PRISMA_FORCE_NAPI === 'true') {
+    return
+  }
   expect.assertions(1)
   await generateTestClient()
 
