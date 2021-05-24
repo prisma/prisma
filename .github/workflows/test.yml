@@ -271,12 +271,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
-
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+      
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -381,11 +387,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
