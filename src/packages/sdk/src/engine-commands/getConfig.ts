@@ -60,7 +60,12 @@ export async function getConfig({
         ignoreEnvVarErrors: ignoreEnvVarErrors ?? false,
       })
     } catch (e) {
-      const error = JSON.parse(e.message)
+      let error
+      try {
+        error = JSON.parse(e.message)
+      } catch {
+        throw e
+      }
       let message: string
       if (error.error_code === 'P1012') {
         message =
