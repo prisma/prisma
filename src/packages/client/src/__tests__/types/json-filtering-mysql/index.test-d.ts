@@ -13,22 +13,21 @@ const prisma = new PrismaClient({
 
 ;(async () => {
   expectError(
-    await prisma.user.create({
-      data: {
+    await prisma.user.findFirst({
+      where: {
         info: {
-          x: new Date(),
+          path: ["any"]
         },
-        email: '',
       },
     }),
   )
   expectError(
-    await prisma.user.create({
-      data: {
+    await prisma.user.findFirst({
+      where: {
         info: {
-          x: /regex/,
+          path: ["any"],
+          gt: 4
         },
-        email: '',
       },
     }),
   )
