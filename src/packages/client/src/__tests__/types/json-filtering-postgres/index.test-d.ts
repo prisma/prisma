@@ -1,7 +1,5 @@
-import { PrismaClient } from '.'
 import { expectError } from 'tsd'
-
-// tslint:disable
+import { PrismaClient } from '.'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -16,7 +14,7 @@ const prisma = new PrismaClient({
     await prisma.user.findFirst({
       where: {
         info: {
-          path: "any"
+          path: 'any',
         },
       },
     }),
@@ -25,8 +23,8 @@ const prisma = new PrismaClient({
     await prisma.user.findFirst({
       where: {
         info: {
-          path: "any",
-          gt: 4
+          path: 'any',
+          gt: 4,
         },
       },
     }),
