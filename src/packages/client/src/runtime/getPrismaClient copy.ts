@@ -23,7 +23,6 @@ import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import { EngineMiddleware, QueryMiddleware, Middlewares, QueryMiddlewareParams, Namespace } from './MiddlewareHandler'
 import { PrismaClientFetcher } from './PrismaClientFetcher'
-import { AsyncResource } from 'async_hooks'
 import {
   Document,
   makeDocument,
@@ -171,7 +170,6 @@ export type AllHookArgs = {
   fetch: (params: HookParams) => Promise<any>
 }
 
-
 // TODO: drop hooks 💣 
 export type Hooks = {
   beforeRequest?: (options: HookParams) => any
@@ -246,12 +244,6 @@ const actionOperationMap = {
 }
 
 const aggregateKeys = {
-  _avg: true,
-  _count: true,
-  _sum: true,
-  _min: true,
-  _max: true,
-  // These will be removed at a later date
   avg: true,
   count: true,
   sum: true,
@@ -441,16 +433,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     $use(
       arg0: Namespace | QueryMiddleware,
       arg1?: QueryMiddleware | EngineMiddleware,
-    ) { // TODO use a mixin and move this into MiddlewareHandler
+    ) {
       if (typeof arg0 === 'function') {
         this._middlewares.query.use(arg0)
       } else if (arg0 === 'all') {
         this._middlewares.query.use(arg1 as QueryMiddleware)
       } else if (arg0 === 'engine') {
         this._middlewares.engine.use(arg1 as EngineMiddleware)
-      } else {
-        throw new Error(`Invalid middleware ${arg0}`)
       }
+
+      throw new Error(`Invalid middleware ${arg0}`)
     }
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {
@@ -909,7 +901,7 @@ new PrismaClient({
     }
 
     /**
-     * Runs the middlewares over params before executing a request
+     * Runs the middlewares over before executing a request
      * @param internalParams 
      * @param middlewareIndex 
      * @returns 
@@ -918,42 +910,30 @@ new PrismaClient({
       internalParams: InternalRequestParams,
       middlewareIndex = 0,
     ): Promise<any> {
-      try {
-        // in this recursion, we check for our terminating condition
-        const middleware = this._middlewares.query.get(middlewareIndex)
-        // async scope https://github.com/prisma/prisma/issues/3148
-        const resource = new AsyncResource('prisma-client-request')
+      // in this recursion, we check for our terminating condition
+      const middleware = this._middlewares.query.get(middlewareIndex)
 
-        if (middleware) {
-          // make sure that we don't leak extra properties to users
-          const params: QueryMiddlewareParams = {
-            args: internalParams.args,
-            dataPath: internalParams.dataPath,
-            runInTransaction: internalParams.runInTransaction,
-            action: internalParams.action,
-            model: internalParams.model,
-          }
-
-          return resource.runInAsyncScope(() => {
-            // call the middleware of the user & get their changes
-            return middleware(params, (changedParams) => {
-              // this middleware returns the value of the next one 🐛
-              return this._request({
-                ...internalParams, ...changedParams,
-              }, ++middlewareIndex) // recursion happens over here
-            })
-          })
+      if (middleware) {
+        // we make sure that we don't leak extra properties to users
+        const params: QueryMiddlewareParams = {
+          args: internalParams.args,
+          dataPath: internalParams.dataPath,
+          runInTransaction: internalParams.runInTransaction,
+          action: internalParams.action,
+          model: internalParams.model,
         }
 
-        // they're finished, or there's none, then execute request
-        return resource.runInAsyncScope(() => {
-          return this._executeRequest(internalParams)
+        // we call the middleware of the user & get their changes
+        return middleware(params, (changedParams) => {
+          // this middleware returns the value of the next one 🐛
+          return this._request({
+            ...internalParams, ...changedParams,
+          }, ++middlewareIndex)
         })
-      } catch (e) {
-        e.clientVersion = this._clientVersion
-
-        throw e
       }
+
+      // until they're finished, or there's none, execute request
+      return this._executeRequest(internalParams)
     }
 
     private _executeRequest({
@@ -1233,11 +1213,11 @@ new PrismaClient({
           let select
           let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { _count: { select: args.select } }
+            select = { count: { select: args.select } }
           } else {
-            select = { _count: { select: { _all: true } } }
+            select = { count: { select: { _all: true } } }
             unpacker = (data) => {
-              data._count = data._count?._all
+              data.count = data.count?._all
               return data
             }
           }
@@ -1249,33 +1229,32 @@ new PrismaClient({
               ...(args ?? {}),
               select,
             },
-            dataPath: ['_count'],
+            dataPath: ['count'],
             unpacker,
           })
         }
 
         delegate.aggregate = (args) => {
           /**
-           * _avg, _count, _sum, _min, _max need to go into select
+           * avg, count, sum, min, max need to go into select
            * For speed reasons we can go with "for in "
            */
           let unpacker: Unpacker | undefined = undefined
+
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
               }
-              // `_count` doesn't have a sub-selection
-              if (key === '_count' || key === 'count') {
+              // `count` doesn't have a sub-selection
+              if (key === 'count') {
                 if (typeof value === 'object' && value) {
                   acc.select[key] = { select: value }
                 } else {
                   acc.select[key] = { select: { _all: value } }
                   unpacker = (data) => {
-                    if (data._count) {
-                      data._count = data._count?._all
-                    } else if (data.count) {
+                    if (data.count) {
                       data.count = data.count?._all
                     }
                     return data
@@ -1319,7 +1298,7 @@ new PrismaClient({
             } else {
               acc[key] = value
             }
-            if (key === '_count') {
+            if (key === 'count') {
               if (typeof value === 'object' && value) {
                 acc.select[key] = { select: value }
               } else if (typeof value === 'boolean') {
@@ -1329,10 +1308,10 @@ new PrismaClient({
                     data = data.map((row) => {
                       if (
                         row &&
-                        typeof row._count === 'object' &&
-                        row._count?._all
+                        typeof row.count === 'object' &&
+                        row.count?._all
                       ) {
-                        row._count = row._count?._all
+                        row.count = row.count?._all
                       }
                       return row
                     })
