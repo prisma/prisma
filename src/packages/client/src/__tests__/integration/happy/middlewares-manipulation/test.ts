@@ -1,5 +1,4 @@
 import { getTestClient } from '../../../../utils/getTestClient'
-// TODO Rename fetch to next
 
 test('middlewares-manipulation', async () => {
   const PrismaClient = await getTestClient()
@@ -7,7 +6,7 @@ test('middlewares-manipulation', async () => {
 
   let theParams
   let firstCall = true
-  prisma.$use(async (params, fetch) => {
+  prisma.$use(async (params, next) => {
     theParams = JSON.parse(JSON.stringify(params)) // clone
     if (firstCall) {
       params.args = {
@@ -17,12 +16,12 @@ test('middlewares-manipulation', async () => {
       }
       firstCall = false
     }
-    const result = await fetch(params)
+    const result = await next(params)
     return result
   })
 
-  prisma.$use(async (params, fetch) => {
-    const result = await fetch(params)
+  prisma.$use(async (params, next) => {
+    const result = await next(params)
     if (result.length > 0) {
       result[0].name += '2' // make sure that we can change the result
     }

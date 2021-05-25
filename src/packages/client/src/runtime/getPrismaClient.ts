@@ -14,6 +14,7 @@ import {
 import * as logger from '@prisma/sdk/dist/logger'
 import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
 import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
@@ -21,14 +22,15 @@ import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import { EngineMiddleware, QueryMiddleware, Middlewares, QueryMiddlewareParams, Namespace } from './MiddlewareHandler'
-import { PrismaClientFetcher } from './PrismaClientFetcher'
-import { AsyncResource } from 'async_hooks'
 import {
-  Document,
-  makeDocument,
-  transformDocument,
-} from './query'
+  EngineMiddleware,
+  Middlewares,
+  Namespace,
+  QueryMiddleware,
+  QueryMiddlewareParams,
+} from './MiddlewareHandler'
+import { PrismaClientFetcher } from './PrismaClientFetcher'
+import { Document, makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
@@ -159,7 +161,7 @@ export type InternalRequestParams = {
    * code looks like
    */
   clientMethod: string // TODO what is this
-  callsite?: string // TODO what is this 
+  callsite?: string // TODO what is this
   headers?: Record<string, string> // TODO what is this
   transactionId?: number // TODO what is this
   unpacker?: Unpacker // TODO what is this
@@ -171,8 +173,7 @@ export type AllHookArgs = {
   fetch: (params: HookParams) => Promise<any>
 }
 
-
-// TODO: drop hooks 💣 
+// TODO: drop hooks 💣
 export type Hooks = {
   beforeRequest?: (options: HookParams) => any
 }
@@ -184,13 +185,12 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<
-  T extends LogLevel | LogDefinition
-  > = T extends LogDefinition
-  ? T['emit'] extends 'event'
-  ? T['level']
-  : never
-  : never
+export type GetLogType<T extends LogLevel | LogDefinition> =
+  T extends LogDefinition
+    ? T['emit'] extends 'event'
+      ? T['level']
+      : never
+    : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
   | GetLogType<T[1]>
@@ -271,7 +271,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
     private _errorFormat: ErrorFormat
-    private _hooks?: Hooks // 
+    private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
@@ -280,7 +280,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _clientVersion: string
     private _previewFeatures: string[]
     private _activeProvider: string
-    private _transactionId = 1;
+    private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -367,8 +367,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof options.log === 'string'
                 ? options.log === 'query'
                 : options.log.find((o) =>
-                  typeof o === 'string' ? o === 'query' : o.level === 'query',
-                ),
+                    typeof o === 'string' ? o === 'query' : o.level === 'query',
+                  ),
             ),
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
@@ -398,8 +398,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
               typeof log === 'string'
                 ? log
                 : log.emit === 'stdout'
-                  ? log.level
-                  : null
+                ? log.level
+                : null
             if (level) {
               this.$on(level, (event) => {
                 logger.log(
@@ -441,7 +441,8 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     $use(
       arg0: Namespace | QueryMiddleware,
       arg1?: QueryMiddleware | EngineMiddleware,
-    ) { // TODO use a mixin and move this into MiddlewareHandler
+    ) {
+      // TODO use a mixin and move this into MiddlewareHandler
       if (typeof arg0 === 'function') {
         this._middlewares.query.use(arg0)
       } else if (arg0 === 'all') {
@@ -647,7 +648,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             stringOrTemplateStringsArray,
             ...values,
           )
-            ; (promise as any).isExecuteRaw = true
+          ;(promise as any).isExecuteRaw = true
           return promise
         } catch (e) {
           e.clientVersion = this._clientVersion
@@ -796,7 +797,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
             stringOrTemplateStringsArray,
             ...values,
           )
-            ; (promise as any).isQueryRaw = true
+          ;(promise as any).isQueryRaw = true
           return promise
         } catch (e) {
           e.clientVersion = this._clientVersion
@@ -910,9 +911,9 @@ new PrismaClient({
 
     /**
      * Runs the middlewares over params before executing a request
-     * @param internalParams 
-     * @param middlewareIndex 
-     * @returns 
+     * @param internalParams
+     * @param middlewareIndex
+     * @returns
      */
     private _request(
       internalParams: InternalRequestParams,
@@ -938,9 +939,13 @@ new PrismaClient({
             // call the middleware of the user & get their changes
             return middleware(params, (changedParams) => {
               // this middleware returns the value of the next one 🐛
-              return this._request({
-                ...internalParams, ...changedParams,
-              }, ++middlewareIndex) // recursion happens over here
+              return this._request(
+                {
+                  ...internalParams,
+                  ...changedParams,
+                },
+                ++middlewareIndex,
+              ) // recursion happens over here
             })
           })
         }
@@ -1176,8 +1181,8 @@ new PrismaClient({
                 const prefix = dataPath.includes('select')
                   ? 'select'
                   : dataPath.includes('include')
-                    ? 'include'
-                    : 'select'
+                  ? 'include'
+                  : 'select'
                 const newDataPath = [...dataPath, prefix, field.name]
                 const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 

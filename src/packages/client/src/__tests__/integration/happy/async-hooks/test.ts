@@ -1,14 +1,13 @@
 import { executionAsyncId } from 'async_hooks'
 import { getTestClient } from '../../../../utils/getTestClient'
 
-// TODO Rename fetch to next
 test('async-hooks', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   let asyncId
-  prisma.$use((params, fetch) => {
+  prisma.$use((params, next) => {
     asyncId = executionAsyncId()
-    return fetch(params)
+    return next(params)
   })
 
   await prisma.user.findMany()

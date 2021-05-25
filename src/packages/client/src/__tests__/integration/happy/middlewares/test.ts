@@ -1,36 +1,42 @@
 import { getTestClient } from '../../../../utils/getTestClient'
-describe('middleware', () => {
-  // TODO Rename fetch to next
-  // TODO Add isolated engine middleware test
-  // TODO Add test that messes with params
 
-  test('basic, order and engine middleware', async () => {
+describe('middleware', () => {
+  test('basic', async () => {
     const PrismaClient = await getTestClient()
+
     const db = new PrismaClient()
 
     const allResults: any[] = []
-    const engineResults: any[] = []
 
-    const order: number[] = []
-
-    db.$use(async (params, fetch) => {
-      order.push(1)
-      const result = await fetch(params)
-      order.push(4)
-      return result
-    })
-
-    db.$use(async (params, fetch) => {
-      order.push(2)
-      const result = await fetch(params)
-      order.push(3)
+    db.$use(async (params, next) => {
+      const result = await next(params)
       allResults.push(result)
       return result
     })
 
-    db.$use('engine', async (params, fetch) => {
-      const result = await fetch(params)
-      engineResults.push(result)
+    await db.user.findMany()
+    await db.post.findMany()
+
+    expect(allResults).toEqual([[], []])
+
+    db.$disconnect()
+  })
+  test('order', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+    const order: number[] = []
+
+    db.$use(async (params, next) => {
+      order.push(1)
+      const result = await next(params)
+      order.push(4)
+      return result
+    })
+
+    db.$use(async (params, next) => {
+      order.push(2)
+      const result = await next(params)
+      order.push(3)
       return result
     })
 
@@ -38,7 +44,23 @@ describe('middleware', () => {
     await db.post.findMany()
 
     expect(order).toEqual([1, 2, 3, 4, 1, 2, 3, 4])
-    expect(allResults).toEqual([[], []])
+
+    db.$disconnect()
+  })
+  test('engine middleware', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+
+    const engineResults: any[] = []
+
+    db.$use('engine', async (params, next) => {
+      const result = await next(params)
+      engineResults.push(result)
+      return result
+    })
+
+    await db.user.findMany()
+    await db.post.findMany()
     expect(engineResults.map((r) => r.data)).toEqual([
       {
         data: {
@@ -56,7 +78,37 @@ describe('middleware', () => {
 
     db.$disconnect()
   })
+  test('modify params', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
 
+    const user = await db.user.create({
+      data: {
+        email: 'test@test.com',
+        name: 'test',
+      },
+    })
+    db.$use(async (params, next) => {
+      if (params.action === 'findFirst' && params.model === 'User') {
+        params.args = { ...params.args, where: { name: 'test' } }
+      }
+      const result = await next(params)
+      return result
+    })
+
+    const users = await db.user.findMany()
+    console.warn(users)
+    // The name should be overwritten by the middleware
+    const u = await db.user.findFirst({
+      where: {
+        name: 'fake',
+      },
+    })
+    expect(u.id).toBe(user.id)
+    await db.user.deleteMany()
+
+    db.$disconnect()
+  })
   test('count unpack', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()
