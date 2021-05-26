@@ -117,7 +117,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   // final install on top level
   await pRetry(
     async () => {
-      await run('.', 'pnpm i --no-prefer-frozen-lockfile -r')
+      await run('.', 'pnpm i --no-prefer-frozen-lockfile -r  --filter=!@prisma/engines --filter=!@prisma/engines-version')
     },
     {
       retries: 6,
