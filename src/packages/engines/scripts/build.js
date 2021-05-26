@@ -1,5 +1,6 @@
 const execa = require('execa')
 const chalk = require('chalk')
+const esbuild = require('esbuild')
 
 async function main() {
   const before = Date.now()
@@ -7,14 +8,24 @@ async function main() {
   // TODO: Combine download.ts and index.ts together to save space
   await Promise.all([
     run('tsc -d', true),
-    run(
-      'esbuild src/download.ts --outfile=download/index.js --bundle --platform=node --target=node10 --minify --sourcemap',
-      false,
-    ),
-    run(
-      'esbuild src/index.ts --outfile=dist/index.js --bundle --platform=node --target=node10',
-      false,
-    ),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      target: 'node10',
+      outfile: 'download/index.js',
+      entryPoints: ['src/download.ts'],
+      sourcemap: true,
+      minify: true,
+    }),
+    esbuild.build({
+      platform: 'node',
+      bundle: true,
+      target: 'node10',
+      outfile: 'dist/index.js',
+      entryPoints: ['src/index.ts'],
+      sourcemap: true,
+      minify: true,
+    }),
   ])
 
   const after = Date.now()
