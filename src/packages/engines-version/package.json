@@ -16,6 +16,7 @@
     "build": "tsc -d",
     "prepublishOnly": "tsc -d",
     "publish": "echo $GITHUB_CONTEXT",
+    "lint-ci": "echo 'no lint for engines-version pkg'",
     "precommit": "echo 'no precommit for engines-version pkg'"
   },
   "files": [
