@@ -90,13 +90,11 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-// this is the directory where the generated client is found
-let dirname = path.join(process.cwd(), '${relativeOutputDir}')
-
-if (!fs.existsSync(dirname)) { // but sometimes it's not found
-  // we give it a try, we're probably on a serverless platform
-  dirname = path.join(process.cwd(), '${slsRelativeOutputDir}')
-}
+// the folder where the generated client is found
+const dirname = findSync(process.cwd(), [
+  '${relativeOutputDir}', // usually found here
+  '${slsRelativeOutputDir}', // 1 level lower on sls
+], ['d'], true, 1)[0]
 
 /**
  * Enums

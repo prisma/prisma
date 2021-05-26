@@ -32,7 +32,8 @@ const {
   empty,
   join,
   raw,
-  Decimal
+  Decimal,
+  findSync
 } = require('${runtimePath}')
 
 const path = require('path')
