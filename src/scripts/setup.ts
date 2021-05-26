@@ -1,15 +1,15 @@
-import execa from 'execa'
 import chalk from 'chalk'
+import execa from 'execa'
 import fs from 'fs'
-import path from 'path'
-import pRetry from 'p-retry'
+import fetch from 'node-fetch'
 import pMap from 'p-map'
+import pRetry from 'p-retry'
+import path from 'path'
 import {
+  getPackageDependencies,
   getPackages,
   getPublishOrder,
-  getPackageDependencies,
 } from './ci/publish'
-import fetch from 'node-fetch'
 
 function getCommitEnvVar(name: string): string {
   return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
@@ -51,18 +51,24 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
       stdio: 'inherit',
     })
   }
-
+  function filterObject<T>(obj: T, callback) {
+    return Object.fromEntries(
+      Object.entries(obj).filter(([key, val]) => callback(val, key)),
+    ) as T
+  }
+  const enginesPackages = ['@prisma/engines', '@prisma/engines-version']
   const rawPackages = await getPackages()
-  const packages = getPackageDependencies(rawPackages)
+  const packages = getPackageDependencies(
+    filterObject(rawPackages, (key) => !enginesPackages.includes(key)),
+  )
   const publishOrder = getPublishOrder(packages)
-
   console.log(publishOrder)
   if (!buildOnly) {
     console.debug(`Installing dependencies`)
 
     await run(
       '.',
-      `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent`,
+      `pnpm i --no-prefer-frozen-lockfile -r --reporter=silent --filter=!@prisma/engines --filter=!@prisma/engines-version`,
     ).catch((e) => {})
   }
 
