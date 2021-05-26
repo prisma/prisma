@@ -58,11 +58,9 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
   const enginesPackages = ['@prisma/engines', '@prisma/engines-version']
   const rawPackages = await getPackages()
-  const packages = getPackageDependencies(
-    filterObject(rawPackages, (key) => !enginesPackages.includes(key)),
-  )
+  const filteredPackages = filterObject(rawPackages, (_, key) => !enginesPackages.includes(key))
+  const packages = getPackageDependencies(filteredPackages)
   const publishOrder = getPublishOrder(packages)
-  console.log(publishOrder)
   if (!buildOnly) {
     console.debug(`Installing dependencies`)
 
