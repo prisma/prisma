@@ -19,6 +19,9 @@ on:
       - "src/.dockerignore"
       - "src/scripts/ci/publish.ts"
       - "src/graphs/**"
+      - "src/packages/engines-version/**"
+      - "src/packages/engines/**"
+
 
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma benchmark.yml"

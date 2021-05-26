@@ -1,0 +1,47 @@
+name: publish-engines
+
+on:
+  repository_dispatch:
+    types:
+      - publish-engines
+
+jobs:
+  cli-commands:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+
+      - run: bash .github/workflows/setup-engines.sh
+        env:
+          CI: true
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - run: pnpm run publish-engines
+        env:
+          CI: true
+          GITHUB_EVENT_CLIENT_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          # Optional but recommended, defaults to "Apply automatic changes"
+          commit_message: engines commit ${{ github.event.client_payload.commit }}
+
+          # Optional commit user and author settings
+          commit_user_name: prisma-bot
+          commit_user_email: prismabots@gmail.com
+          commit_author: prisma-bot <prismabots@gmail.com>
+
+      - name: Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2.1.3
+        env:  
+          SLACK_TITLE: "Publishing failed :x:"
+          SLACK_COLOR: '#FF0000'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_ENGINES_WEBHOOK }}
+          

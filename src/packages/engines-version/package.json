@@ -1,0 +1,24 @@
+{
+  "name": "@prisma/engines-version",
+  "version": "2.24.0-16.905be1d185710a62ed9568350c700aa2d38dae6b",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "prisma": {
+    "enginesVersion": "905be1d185710a62ed9568350c700aa2d38dae6b"
+  },
+  "devDependencies": {
+    "@types/node": "14.17.1",
+    "typescript": "4.2.4"
+  },
+  "scripts": {
+    "build": "tsc -d",
+    "prepublishOnly": "tsc -d",
+    "publish": "echo $GITHUB_CONTEXT"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ]
+}

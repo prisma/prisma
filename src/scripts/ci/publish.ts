@@ -28,7 +28,7 @@ export type Commit = {
 async function getLatestChanges(): Promise<string[]> {
   return getChangesFromCommit(await getLatestCommit('.'))
 }
-
+const IGNORED_PACKAGES = ['@prisma/integration-tests', '@prisma/engines', '@prisma/engines-version']
 async function getChangesFromCommit(commit: Commit): Promise<string[]> {
   const hashes = commit.isMergeCommit
     ? commit.parentCommits.join(' ')
@@ -478,10 +478,10 @@ async function getAllVersions(
     flatten(
       await pMap(
         Object.values(packages).filter(
-          (p) => p.name !== '@prisma/integration-tests',
+          (p) => !IGNORED_PACKAGES.includes(p.name),
         ),
         async (pkg) => {
-          if (pkg.name === '@prisma/integration-tests') {
+          if (IGNORED_PACKAGES.includes(pkg.name)) {
             return []
           }
           const pkgVersions = []
@@ -707,9 +707,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         }
       }
 
-      const publishOrder = filterPublishOrder(getPublishOrder(packages), [
-        '@prisma/integration-tests',
-      ])
+      const publishOrder = filterPublishOrder(getPublishOrder(packages), IGNORED_PACKAGES)
 
       if (!dryRun) {
         console.log(`Let's first do a dry run!`)
@@ -946,7 +944,7 @@ async function patch(pkg: Package): Promise<string> {
   }
 
   const localVersion = pkg.version
-  if (pkg.name === '@prisma/integration-tests') {
+  if (IGNORED_PACKAGES.includes(pkg.name)) {
     return localVersion
   }
   const npmVersion = await runResult('.', `npm info ${pkg.name} version`)
@@ -1055,16 +1053,8 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
 
-      if (pkg.name === '@prisma/integration-tests') {
-        continue
-      }
-
       // @prisma/engines & @prisma/engines-version are published outside of this script
-      const packagesNotToPublish = [
-        '@prisma/engines',
-        '@prisma/engines-version',
-      ]
-      if (packagesNotToPublish.includes(pkgName)) {
+      if (IGNORED_PACKAGES.includes(pkg.name)) {
         continue
       }
 

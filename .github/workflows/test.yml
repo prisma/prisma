@@ -22,6 +22,8 @@ on:
       - '*.bench.ts'
       - 'src/scripts/ci/publish.ts'
       - 'src/graphs/**'
+      - "src/packages/engines-version/**"
+      - "src/packages/engines/**"
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
@@ -40,6 +42,8 @@ on:
       - '*.bench.ts'
       - 'src/scripts/ci/publish.ts'
       - 'src/graphs/**'
+      - "src/packages/engines-version/**"
+      - "src/packages/engines/**"
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
