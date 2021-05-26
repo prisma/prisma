@@ -27,16 +27,17 @@ jobs:
         env:
           CI: true
           GITHUB_EVENT_CLIENT_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          
       # Is this something we still need?  
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          # Optional but recommended, defaults to "Apply automatic changes"
-          commit_message: engines commit ${{ github.event.client_payload.commit }}
+      # - uses: stefanzweifel/git-auto-commit-action@v4
+      #   with:
+      #     # Optional but recommended, defaults to "Apply automatic changes"
+      #     commit_message: engines commit ${{ github.event.client_payload.commit }}
 
-          # Optional commit user and author settings
-          commit_user_name: prisma-bot
-          commit_user_email: prismabots@gmail.com
-          commit_author: prisma-bot <prismabots@gmail.com>
+      #     # Optional commit user and author settings
+      #     commit_user_name: prisma-bot
+      #     commit_user_email: prismabots@gmail.com
+      #     commit_author: prisma-bot <prismabots@gmail.com>
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}

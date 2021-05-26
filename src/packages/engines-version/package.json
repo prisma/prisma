@@ -15,7 +15,8 @@
   "scripts": {
     "build": "tsc -d",
     "prepublishOnly": "tsc -d",
-    "publish": "echo $GITHUB_CONTEXT"
+    "publish": "echo $GITHUB_CONTEXT",
+    "precommit": "echo 'no precommit for engines-version pkg'"
   },
   "files": [
     "index.js",
