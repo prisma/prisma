@@ -23,10 +23,11 @@ jobs:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - run: pnpm run publish-engines
+        working-directory: src
         env:
           CI: true
           GITHUB_EVENT_CLIENT_PAYLOAD: ${{ toJson(github.event.client_payload) }}
-
+      # Is this something we still need?  
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           # Optional but recommended, defaults to "Apply automatic changes"
