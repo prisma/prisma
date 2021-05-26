@@ -1,12 +1,12 @@
 {
   "name": "@prisma/engines-version",
-  "version": "2.24.0-16.905be1d185710a62ed9568350c700aa2d38dae6b",
+  "version": "0.0.0",
   "main": "index.js",
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "prisma": {
-    "enginesVersion": "905be1d185710a62ed9568350c700aa2d38dae6b"
+    "enginesVersion": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
   },
   "devDependencies": {
     "@types/node": "14.17.1",

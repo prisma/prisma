@@ -1,13 +1,13 @@
 {
   "name": "@prisma/engines",
-  "version": "2.24.0-16.905be1d185710a62ed9568350c700aa2d38dae6b",
+  "version": "0.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "workspace:2.24.0-16.905be1d185710a62ed9568350c700aa2d38dae6b",
+    "@prisma/engines-version": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@types/node": "14.17.1",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
