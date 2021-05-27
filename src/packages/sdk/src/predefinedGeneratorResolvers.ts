@@ -55,7 +55,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = await getPrismaClientDir(process.cwd())
+    const prismaClientDir = await getPrismaClientDir(baseDir)
 
     checkYarnVersion()
     checkTypeScriptVersion()
@@ -89,7 +89,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      prismaClientDir = await getPrismaClientDir(process.cwd())
+      const prismaClientDir = await getPrismaClientDir(baseDir)
 
       if (!prismaClientDir) {
         throw new Error(
