@@ -36,7 +36,7 @@ async function main() {
       [EngineTypes.prismaFmt]: binaryDir,
     }
     // TODO tmp workaround until https://github.com/prisma/prisma/pull/7152 is merged
-    if(process.env.PRISMA_FORCE_NAPI === 'true'){
+    if (process.env.PRISMA_FORCE_NAPI === 'true') {
       binaries[EngineTypes.libqueryEngineNapi] = binaryDir
     }
     await download({
