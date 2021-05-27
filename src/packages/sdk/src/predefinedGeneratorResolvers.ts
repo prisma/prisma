@@ -1,13 +1,11 @@
-import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
-import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-const debugEnabled = Debug.enabled('generator')
+import { findUpAsync as findUp } from './utils/find'
 
 export type GeneratorPaths = {
   outputPath: string
@@ -22,6 +20,21 @@ export type GeneratorResolver = (
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
+}
+
+const getPrismaClientDir = async (
+  baseDir: string,
+): Promise<string | undefined> => {
+  const filter = (base: string, item: string) => {
+    // if the package.json is the one of `@prisma/client`, return `base`
+    if (require(path.join(base, item)).name === '@prisma/client') {
+      return base
+    }
+
+    return false
+  }
+
+  return (await findUp(baseDir, ['package.json'], ['f'], true, 1, filter))[0]
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -42,12 +55,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    let prismaClientDir = await getPrismaClientDir(process.cwd())
+
     checkYarnVersion()
     checkTypeScriptVersion()
-    if (debugEnabled) {
-      console.log({ prismaClientDir })
-    }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -78,7 +89,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+      prismaClientDir = await getPrismaClientDir(process.cwd())
 
       if (!prismaClientDir) {
         throw new Error(
