@@ -162,9 +162,14 @@ export class InputType implements Generatable {
     const body = `{
 ${indent(
   fields
-    .map((arg) =>
-      new InputField(arg /*, type.atLeastOne && !type.atMostOne*/).toTS(),
-    )
+    .map((arg) => {
+      // This disables enumerable on JsonFilter path argument
+      const noEnumerable =
+        type.name.includes('Json') &&
+        type.name.includes('Filter') &&
+        arg.name === 'path'
+      return new InputField(arg, false, noEnumerable).toTS()
+    })
     .join('\n'),
   TAB_SIZE,
 )}
