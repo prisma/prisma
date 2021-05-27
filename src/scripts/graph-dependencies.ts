@@ -38,7 +38,7 @@ function generateGraph(
       const depNodes = keys.map((key) => {
         g.addEdge(json.name, key, {})
       })
-    } catch {
+    } catch (_) {
       
     }
   })

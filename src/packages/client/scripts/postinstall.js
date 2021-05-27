@@ -42,7 +42,7 @@ function findPackageRoot(startPath, limit = 10) {
         if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {}
+      } catch (_) {}
     }
     currentPath = path.join(currentPath, '../')
   }

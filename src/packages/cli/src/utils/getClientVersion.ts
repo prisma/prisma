@@ -38,7 +38,7 @@ async function getPrismaClientVersionFromNodeModules(
     }
 
     return pkgJson.version
-  } catch {
+  } catch (_) {
     return null
   }
 }
@@ -67,7 +67,7 @@ async function getPrismaClientVersionFromLocalPackageJson(
     }
 
     return clientVersion
-  } catch {
+  } catch (_) {
     return null
   }
 }
@@ -82,7 +82,7 @@ function requireResolveFrom(moduleId: string, fromDir: string): string | null {
     })
 
     return resolvedPath
-  } catch {
+  } catch (_) {
     return null
   }
 }

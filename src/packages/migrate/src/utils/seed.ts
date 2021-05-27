@@ -214,7 +214,7 @@ export async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
     const { 'ts-node': tsnode } = pkgJson.scripts
 
     return { 'ts-node': tsnode }
-  } catch {
+  } catch (_) {
     return null
   }
 }

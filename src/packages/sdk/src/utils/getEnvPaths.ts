@@ -38,7 +38,7 @@ export function getEnvPaths(
 function readSchemaPathFromPkgJson(): string | null {
   try {
     return getSchemaPathFromPackageJsonSync(process.cwd())
-  } catch {
+  } catch (_) {
     return null
   }
 }
