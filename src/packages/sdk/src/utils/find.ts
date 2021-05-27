@@ -229,6 +229,7 @@ export const findAsync = async (
       // we deep dive within the directory tree
       if (deep && ['d', 'l'].includes(itemType!)) {
         // we recurse and continue mutating `found`
+        // eslint-disable-next-line prettier/prettier
         await findAsync(
           itemPath,
           match,
