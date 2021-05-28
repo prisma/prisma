@@ -7,6 +7,8 @@ import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 import { findUpAsync as findUp } from './utils/find'
 
+const load = require
+
 export type GeneratorPaths = {
   outputPath: string
   generatorPath: string
@@ -28,8 +30,8 @@ const getPrismaClientDir = async (
   const filter = (base: string, item: string) => {
     const itemPath = path.join(base, item)
 
-    // if package.json is one of `@prisma/client`, return `base`
-    if (eval(`require(${itemPath}).name`) === '@prisma/client') {
+    // if package.json `@prisma/client`, return `base`
+    if (load(itemPath).name === '@prisma/client') {
       return base
     }
 
