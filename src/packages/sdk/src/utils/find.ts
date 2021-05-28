@@ -15,7 +15,7 @@ const statSync = fs.statSync
  * @param dirent
  * @returns
  */
-const direntToType = (dirent: fs.Dirent | fs.Stats) => {
+function direntToType(dirent: fs.Dirent | fs.Stats) {
   return dirent.isFile()
     ? 'f'
     : dirent.isDirectory()
@@ -31,7 +31,7 @@ const direntToType = (dirent: fs.Dirent | fs.Stats) => {
  * @param regexs to be matched with
  * @returns
  */
-const isMatched = (string: string, regexs: (RegExp | string)[]) => {
+function isMatched(string: string, regexs: (RegExp | string)[]) {
   for (const regex of regexs) {
     if (typeof regex === 'string') {
       if (string.includes(regex)) {
@@ -57,7 +57,7 @@ const isMatched = (string: string, regexs: (RegExp | string)[]) => {
  * @param seen to add to already seen #private
  * @returns unresolved paths
  */
-export const findSync = (
+export function findSync(
   root: string,
   match: (RegExp | string)[],
   types: ('f' | 'd' | 'l')[] = ['f', 'd', 'l'],
@@ -66,7 +66,7 @@ export const findSync = (
   filter: (base: string, item: string) => boolean | string = () => true,
   found: string[] = [],
   seen: Record<string, true> = {},
-) => {
+) {
   try {
     const realRoot = realpathSync(root)
 
@@ -134,7 +134,7 @@ export const findSync = (
  * @param seen to add to already seen #private
  * @returns unresolved paths
  */
-export const findUpSync = (
+export function findUpSync(
   root: string,
   match: (RegExp | string)[],
   types: ('f' | 'd' | 'l')[] = ['f', 'd', 'l'],
@@ -143,7 +143,7 @@ export const findUpSync = (
   filter: (base: string, item: string) => boolean | string = () => true,
   found: string[] = [],
   seen: Record<string, true> = {},
-) => {
+) {
   // stop if we cannot go any higher than this root
   if (path.resolve(root) === path.resolve(root, '..')) {
     return found
@@ -172,7 +172,7 @@ export const findUpSync = (
  * @param seen to add to already seen #private
  * @returns unresolved paths
  */
-export const findAsync = async (
+export async function findAsync(
   root: string,
   match: (RegExp | string)[],
   types: ('f' | 'd' | 'l')[] = ['f', 'd', 'l'],
@@ -181,7 +181,7 @@ export const findAsync = async (
   filter: (base: string, item: string) => boolean | string = () => true,
   found: string[] = [],
   seen: Record<string, true> = {},
-) => {
+) {
   try {
     const realRoot = await realpathAsync(root)
 
@@ -259,7 +259,7 @@ export const findAsync = async (
  * @param seen to add to already seen #private
  * @returns unresolved paths
  */
-export const findUpAsync = async (
+export async function findUpAsync(
   root: string,
   match: (RegExp | string)[],
   types: ('f' | 'd' | 'l')[] = ['f', 'd', 'l'],
@@ -268,7 +268,7 @@ export const findUpAsync = async (
   filter: (base: string, item: string) => boolean | string = () => true,
   found: string[] = [],
   seen: Record<string, true> = {},
-) => {
+) {
   // stop if we cannot go any higher than this root
   if (path.resolve(root) === path.resolve(root, '..')) {
     return found

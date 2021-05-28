@@ -26,8 +26,10 @@ const getPrismaClientDir = async (
   baseDir: string,
 ): Promise<string | undefined> => {
   const filter = (base: string, item: string) => {
-    // if the package.json is the one of `@prisma/client`, return `base`
-    if (require(path.join(base, item)).name === '@prisma/client') {
+    const itemPath = path.join(base, item)
+
+    // if package.json is one of `@prisma/client`, return `base`
+    if (eval(`require(${itemPath}).name`) === '@prisma/client') {
       return base
     }
 

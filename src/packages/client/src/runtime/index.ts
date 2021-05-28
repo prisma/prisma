@@ -28,6 +28,4 @@ export {
 
 export { warnEnvConflicts } from './warnEnvConflicts'
 
-export { findSync } from './utils/find'
-
 export { default as Decimal } from 'decimal.js'

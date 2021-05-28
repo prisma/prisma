@@ -81,20 +81,26 @@ export class TSClient implements Generatable {
 
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
-    const relativeOutputDir = path.relative(process.cwd(), outputDir)
+    const relativeOutDir = path.relative(process.cwd(), outputDir)
 
     // on serverless envs, relative output dir can be one step lower because of
     // where and how the code is packaged into the lambda like with a build step
     // with platforms like Vercel or Netlify. We want to check this as well.
-    const slsRelativeOutputDir = relativeOutputDir.split('/').slice(1).join('/')
+    // eslint-disable-next-line prettier/prettier
+    const slsRelativeOutDir = relativeOutDir
+      .split(path.sep)
+      .slice(1)
+      .join(path.sep)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-// the folder where the generated client is found
-const dirname = findSync(process.cwd(), [
-  '${relativeOutputDir}', // usually found here
-  '${slsRelativeOutputDir}', // 1 level lower on sls
-], ['d'], true, 1)[0]
+// this is the directory where the generated client is found
+let dirname = path.join(process.cwd(), '${relativeOutDir}')
+
+if (!fs.existsSync(dirname)) { // but sometimes it's not found
+  // we give it a try, we're probably on a serverless platform
+  dirname = path.join(process.cwd(), '${slsRelativeOutDir}')
+}
 
 /**
  * Enums
@@ -162,14 +168,14 @@ Object.assign(exports, Prisma)
 ${buildNFTEngineAnnotations(
   this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
-  relativeOutputDir,
+  relativeOutDir,
 )}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(relativeOutputDir, `schema.prisma`)}');
+path.join(process.cwd(), './${path.join(relativeOutDir, `schema.prisma`)}');
 `
 
     return code
