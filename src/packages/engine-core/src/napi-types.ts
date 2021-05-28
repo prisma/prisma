@@ -120,10 +120,13 @@ export interface QueryEngineConstructor {
 export type QueryEngine = {
   connect(connectArgs: ConnectArgs): Promise<void>
   disconnect(): Promise<void>
-  query(
-    request: QueryEngineRequest | QueryEngineBatchRequest,
-    headers: QueryEngineRequestHeaders,
-  ): Promise<string>
+  /**
+   *
+   * @param request JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
+   *
+   * @param headers JSON.stringified `QueryEngineRequestHeaders`
+   */
+  query(request: string, headers: string): Promise<string>
   sdlSchema(): Promise<string>
 }
 

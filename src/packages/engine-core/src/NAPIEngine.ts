@@ -28,11 +28,14 @@ import {
   ConfigMetaFormat,
   NAPI,
   QueryEngine,
+  QueryEngineBatchRequest,
   QueryEngineConstructor,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
+  QueryEngineRequest,
+  QueryEngineRequestHeaders,
   RustRequestError,
   SyncRustError,
 } from './napi-types'
@@ -387,9 +390,12 @@ You may have to run ${chalk.greenBright(
     try {
       await this.start()
       debug(`request state: ${this.connected}`)
-      const request = { query, variables: {} }
+      const request: QueryEngineRequest = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(request, {})
+      this.currentQuery = this.engine!.query(
+        this.lastQuery,
+        JSON.stringify(headers),
+      )
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
@@ -423,13 +429,16 @@ You may have to run ${chalk.greenBright(
   ): Promise<any> {
     await this.start()
     debug('requestBatch')
-    const variables = {}
-    const request = {
-      batch: queries.map((query) => ({ query, variables })),
+    const headers: QueryEngineRequestHeaders = {}
+    const request: QueryEngineBatchRequest = {
+      batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
     this.lastQuery = JSON.stringify(request)
-    this.currentQuery = this.engine!.query(request, {})
+    this.currentQuery = this.engine!.query(
+      this.lastQuery,
+      JSON.stringify(headers),
+    )
     const result = await this.currentQuery
     const data = this.parseEngineResponse<any>(result)
 
