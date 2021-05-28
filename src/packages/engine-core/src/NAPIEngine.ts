@@ -392,10 +392,7 @@ You may have to run ${chalk.greenBright(
       debug(`request state: ${this.connected}`)
       const request: QueryEngineRequest = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(
-        this.lastQuery,
-        JSON.stringify(headers),
-      )
+      this.currentQuery = this.engine!.query(this.lastQuery, JSON.stringify({}))
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
