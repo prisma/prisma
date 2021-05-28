@@ -29,113 +29,23 @@ export type GetConfigOptions = {
   retry?: number
   ignoreEnvVarErrors?: boolean
 }
-
-export async function getConfig({
-  datamodel,
-  cwd = process.cwd(),
-  prismaPath: queryEnginePath,
-  datamodelPath,
-  ignoreEnvVarErrors,
-}: GetConfigOptions): Promise<ConfigMetaFormat> {
+export class GetConfigError extends Error {
+  constructor(message: string) {
+    super(chalk.redBright.bold('Get config: ') + message)
+  }
+}
+// TODO add error handling functions
+export async function getConfig(
+  options: GetConfigOptions,
+): Promise<ConfigMetaFormat> {
   const useNapi = process.env.PRISMA_FORCE_NAPI === 'true'
-  if (useNapi) {
-    queryEnginePath = await resolveBinary(
-      EngineTypes.libqueryEngineNapi,
-      queryEnginePath,
-    )
-  } else {
-    queryEnginePath = await resolveBinary(
-      EngineTypes.queryEngine,
-      queryEnginePath,
-    )
-  }
   let data: ConfigMetaFormat | undefined
-  debug(`Using ${useNapi ? 'N-API ' : ''}Query Engine at: ${queryEnginePath}`)
   if (useNapi) {
-    try {
-      const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
-      data = await NApiQueryEngine.getConfig({
-        datamodel: datamodel,
-        datasourceOverrides: {},
-        ignoreEnvVarErrors: ignoreEnvVarErrors ?? false,
-      })
-    } catch (e) {
-      let error
-      try {
-        error = JSON.parse(e.message)
-      } catch {
-        throw e
-      }
-      let message: string
-      if (error.error_code === 'P1012') {
-        message =
-          chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) +
-          error.message +
-          '\n'
-      } else {
-        message = chalk.redBright(`${error.error_code}\n\n`) + error
-      }
-      throw new GetConfigError(message)
-    }
+    data = await getConfigNAPI(options)
   } else {
-    try {
-      let tempDatamodelPath: string | undefined = datamodelPath
-      if (!tempDatamodelPath) {
-        try {
-          tempDatamodelPath = await tmpWrite(datamodel!)
-        } catch (err) {
-          throw new GetConfigError('Unable to write temp data model path')
-        }
-      }
-      const engineArgs = []
-
-      const args = ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
-
-      const result = await execa(
-        queryEnginePath,
-        [...engineArgs, 'cli', 'get-config', ...args],
-        {
-          cwd,
-          env: {
-            PRISMA_DML_PATH: tempDatamodelPath,
-            RUST_BACKTRACE: '1',
-          },
-          maxBuffer: MAX_BUFFER,
-        },
-      )
-
-      if (!datamodelPath) {
-        await unlink(tempDatamodelPath)
-      }
-
-      data = JSON.parse(result.stdout)
-    } catch (e) {
-      if (e.stderr || e.stdout) {
-        const error = e.stderr ? e.stderr : e.stout
-        let jsonError, message
-        try {
-          jsonError = JSON.parse(error)
-          message = `${chalk.redBright(jsonError.message)}\n`
-          if (jsonError.error_code) {
-            if (jsonError.error_code === 'P1012') {
-              message =
-                chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
-                message
-            } else {
-              message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
-            }
-          }
-        } catch (e) {
-          // if JSON parse / pretty handling fails, fallback to simple printing
-          throw new GetConfigError(error)
-        }
-
-        throw new GetConfigError(message)
-      }
-
-      throw new GetConfigError(e)
-    }
+    data = await getConfigBinary(options)
   }
+
   if (!data) throw new GetConfigError(`Failed to return any data`)
   if (
     data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
@@ -149,8 +59,110 @@ export async function getConfig({
   return data
 }
 
-export class GetConfigError extends Error {
-  constructor(message: string) {
-    super(chalk.redBright.bold('Get config: ') + message)
+async function getConfigNAPI(
+  options: GetConfigOptions,
+): Promise<ConfigMetaFormat> {
+  let data: ConfigMetaFormat | undefined
+  const queryEnginePath = await resolveBinary(
+    EngineTypes.libqueryEngineNapi,
+    options.prismaPath,
+  )
+  debug(`Using N-API Query Engine at: ${queryEnginePath}`)
+  try {
+    const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
+    data = await NApiQueryEngine.getConfig({
+      datamodel: options.datamodel,
+      datasourceOverrides: {},
+      ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+    })
+  } catch (e) {
+    let error
+    try {
+      error = JSON.parse(e.message)
+    } catch {
+      throw e
+    }
+    let message: string
+    if (error.error_code === 'P1012') {
+      message =
+        chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) +
+        error.message +
+        '\n'
+    } else {
+      message = chalk.redBright(`${error.error_code}\n\n`) + error
+    }
+    throw new GetConfigError(message)
   }
+  return data
+}
+
+async function getConfigBinary(
+  options: GetConfigOptions,
+): Promise<ConfigMetaFormat | undefined> {
+  let data: ConfigMetaFormat | undefined
+
+  const queryEnginePath = await resolveBinary(
+    EngineTypes.queryEngine,
+    options.prismaPath,
+  )
+  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+
+  try {
+    let tempDatamodelPath: string | undefined = options.datamodelPath
+    if (!tempDatamodelPath) {
+      try {
+        tempDatamodelPath = await tmpWrite(options.datamodel!)
+      } catch (err) {
+        throw new GetConfigError('Unable to write temp data model path')
+      }
+    }
+    const engineArgs = []
+
+    const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
+
+    const result = await execa(
+      queryEnginePath,
+      [...engineArgs, 'cli', 'get-config', ...args],
+      {
+        cwd: options.cwd,
+        env: {
+          PRISMA_DML_PATH: tempDatamodelPath,
+          RUST_BACKTRACE: '1',
+        },
+        maxBuffer: MAX_BUFFER,
+      },
+    )
+
+    if (!options.datamodelPath) {
+      await unlink(tempDatamodelPath)
+    }
+
+    data = JSON.parse(result.stdout)
+  } catch (e) {
+    if (e.stderr || e.stdout) {
+      const error = e.stderr ? e.stderr : e.stout
+      let jsonError, message
+      try {
+        jsonError = JSON.parse(error)
+        message = `${chalk.redBright(jsonError.message)}\n`
+        if (jsonError.error_code) {
+          if (jsonError.error_code === 'P1012') {
+            message =
+              chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
+              message
+          } else {
+            message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
+          }
+        }
+      } catch (e) {
+        // if JSON parse / pretty handling fails, fallback to simple printing
+        throw new GetConfigError(error)
+      }
+
+      throw new GetConfigError(message)
+    }
+
+    throw new GetConfigError(e)
+  }
+  return data
 }
