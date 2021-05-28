@@ -25,14 +25,7 @@ export {
 export { arg, format, isError } from './cli/utils'
 export { credentialsToUri, uriToCredentials } from './convertCredentials'
 export { drawBox } from './drawBox'
-export {
-  ConfigMetaFormat,
-  formatSchema,
-  getConfig,
-  getDMMF,
-  GetDMMFOptions,
-  getVersion,
-} from './engineCommands'
+export * from './engine-commands'
 export { Generator } from './Generator'
 export { getCommandWithExecutor } from './getCommandWithExecutor'
 export { getGenerator, getGenerators, ProviderAliases } from './getGenerators'
@@ -60,7 +53,7 @@ export {
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'
 export { GeneratorPaths } from './predefinedGeneratorResolvers'
-export { engineEnvVarMap, EngineType, resolveBinary } from './resolveBinary'
+export { engineEnvVarMap, resolveBinary, EngineTypes } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export { DatabaseCredentials } from './types'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
@@ -68,9 +61,8 @@ export { getEnvPaths } from './utils/getEnvPaths'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
-export { printConfigWarnings } from './utils/printConfigWarnings'
 export { parseEnvValue } from './utils/parseEnvValue'
-
+export { printConfigWarnings } from './utils/printConfigWarnings'
 export {
   Position,
   trimBlocksFromSchema,

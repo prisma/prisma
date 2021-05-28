@@ -2,7 +2,7 @@ import { DMMF } from '@prisma/generator-helper'
 import {
   getDMMF as getRawDMMF,
   GetDMMFOptions,
-} from '@prisma/sdk/dist/engineCommands'
+} from '@prisma/sdk/dist/engine-commands/getDmmf'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 

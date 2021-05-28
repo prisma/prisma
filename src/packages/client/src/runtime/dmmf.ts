@@ -1,5 +1,5 @@
 import { DMMF } from '@prisma/generator-helper'
-import { Dictionary, keyBy, ScalarTypeTable, keyBy2 } from './utils/common'
+import { Dictionary, keyBy, keyBy2, ScalarTypeTable } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel
@@ -27,9 +27,6 @@ export class DMMFClass implements DMMF.Document {
     this.datamodel = datamodel
     this.schema = schema
 
-    const type = this.schema.inputObjectTypes.prisma.find(
-      (t) => t.name === 'OperatorCreateNestedOneWithoutAccountsInput',
-    )
 
     this.mappings = mappings
     this.enumMap = this.getEnumMap()

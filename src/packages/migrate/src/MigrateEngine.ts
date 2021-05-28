@@ -1,14 +1,14 @@
+import Debug from '@prisma/debug'
+import { ErrorArea, resolveBinary, RustPanic, EngineTypes } from '@prisma/sdk'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from '@prisma/debug'
+import fs from 'fs'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
+import { now } from './utils/now'
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
-import fs from 'fs'
-import { now } from './utils/now'
-import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 
 export interface MigrateEngineOptions {
   projectDir: string
@@ -188,7 +188,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
-        const binaryPath = await resolveBinary('migration-engine')
+        const binaryPath = await resolveBinary(EngineTypes.migrationEngine)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
         if (
