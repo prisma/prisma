@@ -110,9 +110,8 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Schema Parsing P1012
+            Get config: Schema Parsing P1012
 
-            Get config 
             error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
               -->  schema.prisma:10
                | 
@@ -706,9 +705,8 @@ describe('sqlite', () => {
     ])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Schema Parsing P1012
+            Get config: Schema Parsing P1012
 
-            Get config 
             error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
               -->  schema.prisma:2
                | 
