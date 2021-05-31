@@ -246,7 +246,7 @@ You may have to run ${chalk.greenBright(
       title,
       version: this.config.clientVersion!,
       engineVersion: this.versionInfo?.version,
-      // TODO
+      // TODO binaryTargets
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
@@ -562,9 +562,14 @@ ${searchedLocations
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
+        // TODO
         if (
-          this.config.generator.binaryTargets.includes(this.platform) ||
-          this.config.generator.binaryTargets.includes('native')
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === this.platform,
+          ) ||
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
@@ -610,7 +615,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     const fixedGenerator = {
       ...this.config.generator!,
       binaryTargets: fixBinaryTargets(
-        this.config.generator!.binaryTargets as Platform[],
+        this.config.generator!.binaryTargets,
         this.platform!,
       ),
     }

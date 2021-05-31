@@ -420,9 +420,14 @@ ${searchedLocations
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
+        // TODO binaryTargets
         if (
-          this.generator.binaryTargets.includes(this.platform!) ||
-          this.generator.binaryTargets.includes('native')
+          this.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
+          ) ||
+          this.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
@@ -482,7 +487,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     const fixedGenerator = {
       ...this.generator!,
       binaryTargets: fixBinaryTargets(
-        this.generator!.binaryTargets as Platform[],
+        this.generator!.binaryTargets,
         this.platform!,
       ),
     }

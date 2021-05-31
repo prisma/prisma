@@ -10,12 +10,31 @@ export class GeneratorConfigClass {
   toString(): string {
     const { config } = this
     // parse & stringify trims out all the undefined values
+
+    const provider = config.provider.fromEnvVar
+      ? `env("${config.provider.fromEnvVar}")`
+      : config.provider.value
+
+    let binaryTargets: string | undefined
+    if (config.binaryTargets.length > 0) {
+      const binaryTargetsFromEnvVar = config.binaryTargets.find(
+        (object) => object.fromEnvVar !== null,
+      )
+      if (binaryTargetsFromEnvVar) {
+        binaryTargets = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
+      } else {
+        binaryTargets = config.binaryTargets
+          .map((object) => object.value)
+          .toString()
+      }
+    } else {
+      binaryTargets = undefined
+    }
+
     const obj = JSON.parse(
       JSON.stringify({
-        provider: config.provider.fromEnvVar
-          ? `env("${config.provider.fromEnvVar}")`
-          : config.provider.value,
-        binaryTargets: config.binaryTargets || undefined,
+        provider,
+        binaryTargets,
       }),
     )
 

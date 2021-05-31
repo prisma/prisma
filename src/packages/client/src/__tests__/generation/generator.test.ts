@@ -1,4 +1,8 @@
-import { getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
+import {
+  getGenerator,
+  getPackedPackage,
+  parseProviderEnvValue,
+} from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -84,7 +88,7 @@ describe('generator', () => {
     expect(
       path.relative(
         __dirname,
-        parseEnvValue(generator.options!.generator.output!),
+        parseProviderEnvValue(generator.options!.generator.output!),
       ),
     ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 
@@ -256,7 +260,7 @@ describe('generator', () => {
     expect(
       path.relative(
         __dirname,
-        parseEnvValue(generator.options!.generator.output!),
+        parseProviderEnvValue(generator.options!.generator.output!),
       ),
     ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
 

@@ -34,7 +34,10 @@ import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
-import { parseEnvValue } from './utils/parseEnvValue'
+import {
+  parseProviderEnvValue,
+  parseBinaryTargetsEnvValue,
+} from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
 const debug = Debug('prisma:getGenerators')
@@ -99,6 +102,7 @@ export async function getGenerators({
         binaries: {
           [engineType]: potentialPath,
         },
+        // TODO binaryTargets
         binaryTargets: [platform],
         showProgress: false,
         version,
@@ -156,11 +160,11 @@ export async function getGenerators({
     const generators = await pMap(
       generatorConfigs,
       async (generator, index) => {
-        let generatorPath = parseEnvValue(generator.provider)
+        let generatorPath = parseProviderEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
 
         // as of now mostly used by studio
-        const providerValue = parseEnvValue(generator.provider)
+        const providerValue = parseProviderEnvValue(generator.provider)
         if (aliases && aliases[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
@@ -183,7 +187,10 @@ export async function getGenerators({
         // resolve output path
         if (generator.output) {
           generator.output = {
-            value: path.resolve(baseDir, parseEnvValue(generator.output)),
+            value: path.resolve(
+              baseDir,
+              parseProviderEnvValue(generator.output),
+            ),
             fromEnvVar: null,
           }
           generator.isCustomOutput = true
@@ -241,7 +248,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     // Generators can say in their "requiresGenerators" property in the manifest, which other generators they depend on
     // This has mostly been introduced for 3rd party generators, which rely on `prisma-client-js`.
     const generatorProviders: string[] = generatorConfigs.map((g) =>
-      parseEnvValue(g.provider),
+      parseProviderEnvValue(g.provider),
     )
 
     for (const g of generators) {
@@ -288,13 +295,19 @@ generator gen {
           g.options?.generator?.binaryTargets &&
           g.options?.generator?.binaryTargets.length > 0
         ) {
-          for (let binaryTarget of g.options?.generator?.binaryTargets) {
-            if (binaryTarget === 'native') {
-              binaryTarget = platform
+          for (const binaryTarget of g.options?.generator?.binaryTargets) {
+            // parse value if set from env var
+            if (binaryTarget.fromEnvVar !== null) {
+              binaryTarget.value = parseBinaryTargetsEnvValue(binaryTarget)
             }
+
+            if (binaryTarget.value === 'native') {
+              binaryTarget.value = platform
+            }
+
             if (
-              !neededVersions[neededVersion].binaryTargets.includes(
-                binaryTarget,
+              !neededVersions[neededVersion].binaryTargets.find(
+                (object) => object.value === binaryTarget,
               )
             ) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
@@ -382,17 +395,22 @@ async function getBinaryPathsByVersion({
     // ensure binaryTargets are set correctly
     const neededVersion = neededVersions[currentVersion]
     if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets.push(platform)
+      neededVersion.binaryTargets.push({ fromEnvVar: null, value: platform })
       if (neededVersion.binaryTargets.length === 0) {
-        neededVersion.binaryTargets = [platform]
+        neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
       }
     }
 
     if (
       process.env.NETLIFY &&
-      !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')
+      !neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-1.0.x',
+      )
     ) {
-      neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
+      neededVersion.binaryTargets.push({
+        fromEnvVar: null,
+        value: 'rhel-openssl-1.0.x',
+      })
     }
 
     // download
@@ -507,7 +525,7 @@ async function validateGenerators(
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (parseEnvValue(generator.provider) === 'photonjs') {
+    if (parseProviderEnvValue(generator.provider) === 'photonjs') {
       throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
         'provider = "prisma-client-js"',
@@ -537,19 +555,22 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
     }
     if (generator.binaryTargets) {
       for (const binaryTarget of generator.binaryTargets) {
-        if (oldToNewBinaryTargetsMapping[binaryTarget]) {
+        if (oldToNewBinaryTargetsMapping[binaryTarget.value]) {
           throw new Error(
             `Binary target ${chalk.red.bold(
               binaryTarget,
             )} is deprecated. Please use ${chalk.green.bold(
-              oldToNewBinaryTargetsMapping[binaryTarget],
+              oldToNewBinaryTargetsMapping[binaryTarget.value],
             )} instead.`,
           )
         }
-        if (!knownBinaryTargets.includes(binaryTarget as Platform)) {
+        if (
+          !binaryTarget.fromEnvVar &&
+          !knownBinaryTargets.includes(binaryTarget.value as Platform)
+        ) {
           throw new Error(
             `Unknown binary target ${chalk.red(
-              binaryTarget,
+              binaryTarget.value,
             )} in generator ${chalk.bold(generator.name)}.
 Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           )
@@ -559,13 +580,19 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
       const binaryTargets =
         generator.binaryTargets && generator.binaryTargets.length > 0
           ? generator.binaryTargets
-          : ['native']
+          : [{ fromEnvVar: null, value: 'native' }]
 
       const resolvedBinaryTargets = binaryTargets.map((p) =>
-        p === 'native' ? platform : p,
+        p.value === 'native' ? platform : p.value,
       )
 
-      if (!resolvedBinaryTargets.includes(platform)) {
+      // Only show warning if binaryTargets
+      // is not set by env()
+      // is missing "native"
+      if (
+        !binaryTargets.find((object) => object.fromEnvVar !== null) &&
+        !resolvedBinaryTargets.includes(platform)
+      ) {
         if (generator) {
           console.log(`${chalk.yellow(
             'Warning:',
@@ -578,10 +605,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     ${chalk.greenBright(
       printGeneratorConfig({
         ...generator,
-        binaryTargets: fixBinaryTargets(
-          generator.binaryTargets as any[],
-          platform,
-        ),
+        binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
       }),
     )}
     ${chalk.gray(

@@ -1,4 +1,4 @@
-import { parseEnvValue } from '@prisma/sdk'
+import { parseProviderEnvValue } from '@prisma/sdk'
 import {
   getSchemaPathSync,
   getGenerators,
@@ -205,13 +205,13 @@ export class Migrate {
         ? chalk.dim(
             ` to .${path.sep}${path.relative(
               process.cwd(),
-              parseEnvValue(generator.options!.generator.output),
+              parseProviderEnvValue(generator.options!.generator.output),
             )}`,
           )
         : ''
       const name = generator.manifest
         ? generator.manifest.prettyName
-        : parseEnvValue(generator.options!.generator.provider)
+        : parseProviderEnvValue(generator.options!.generator.provider)
 
       logUpdate(`Running generate... - ${name}`)
 

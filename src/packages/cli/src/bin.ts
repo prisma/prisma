@@ -11,7 +11,7 @@ import {
   getConfig,
   tryLoadEnvs,
   getEnvPaths,
-  parseEnvValue,
+  parseProviderEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -205,7 +205,7 @@ async function main(): Promise<number> {
       }
       // Example 'prisma-client-js'
       schemaGeneratorsProviders = config.generators.map((gen) =>
-        parseEnvValue(gen.provider),
+        parseProviderEnvValue(gen.provider),
       )
     } catch (e) {
       debug('Error from cli/src/bin.ts')

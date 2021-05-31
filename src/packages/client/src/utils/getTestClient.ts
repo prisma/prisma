@@ -7,7 +7,7 @@ import {
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
-  parseEnvValue,
+  parseProviderEnvValue,
   printConfigWarnings,
 } from '@prisma/sdk'
 import fs from 'fs'
@@ -42,7 +42,7 @@ export async function getTestClient(
   }
 
   const generator = config.generators.find(
-    (g) => parseEnvValue(g.provider) === 'prisma-client-js',
+    (g) => parseProviderEnvValue(g.provider) === 'prisma-client-js',
   )
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const enginesPath = getEnginesPath()

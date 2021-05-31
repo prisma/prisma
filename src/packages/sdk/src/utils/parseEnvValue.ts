@@ -1,6 +1,14 @@
 import { EnvValue } from '@prisma/generator-helper'
 import chalk from 'chalk'
 
+export function parseProviderEnvValue(object: EnvValue) {
+  return parseEnvValue(object, 'provider')
+}
+
+export function parseBinaryTargetsEnvValue(object: EnvValue) {
+  return parseEnvValue(object, 'binaryTargets')
+}
+
 /**
  * Parses the EnvValue and return the string value
  *
@@ -8,19 +16,19 @@ import chalk from 'chalk'
  * - If there is an env var it will be resolve and returned.
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
-export function parseEnvValue(provider: EnvValue) {
-  if (provider.fromEnvVar && provider.fromEnvVar !== 'null') {
-    const value = process.env[provider.fromEnvVar]
+function parseEnvValue(object: EnvValue, type: 'provider' | 'binaryTargets') {
+  if (object.fromEnvVar && object.fromEnvVar !== null) {
+    const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
-        `Attempted to load provider value using \`env(${
-          provider.fromEnvVar
+        `Attempted to load ${type} value using \`env(${
+          object.fromEnvVar
         })\` but it was not present. Please insure that ${chalk.dim(
-          provider.fromEnvVar,
+          object.fromEnvVar,
         )} is present in your Environment Variables`,
       )
     }
     return value
   }
-  return provider.value
+  return object.value
 }

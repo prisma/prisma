@@ -8,6 +8,11 @@ generator gen {
   binaryTargets = ["darwin"]
 }
 
+generator gen_env {
+  provider      = "predefined-generator"
+  binaryTargets = env("binaryTargets_ENV_VAR_TEST")
+}
+
 model User {
   id   Int    @id
   name String

@@ -1,4 +1,4 @@
-import { parseEnvValue } from '@prisma/sdk'
+import { parseProviderEnvValue } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
@@ -35,7 +35,7 @@ if (require.main === module) {
       const outputDir =
         typeof options.generator.output === 'string'
           ? options.generator.output
-          : parseEnvValue(options.generator.output!)
+          : parseProviderEnvValue(options.generator.output!)
 
       return generateClient({
         datamodel: options.datamodel,

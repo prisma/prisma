@@ -14,7 +14,7 @@ import {
   link,
   logger,
   missingGeneratorMessage,
-  parseEnvValue,
+  parseProviderEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -72,7 +72,7 @@ ${chalk.bold('Examples')}
           ? chalk.dim(
               ` to .${path.sep}${path.relative(
                 process.cwd(),
-                parseEnvValue(generator.options!.generator.output!),
+                parseProviderEnvValue(generator.options!.generator.output!),
               )}`,
             )
           : ''
@@ -171,7 +171,8 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         const jsClient = generators.find(
           (g) =>
             g.options &&
-            parseEnvValue(g.options.generator.provider) === 'prisma-client-js',
+            parseProviderEnvValue(g.options.generator.provider) ===
+              'prisma-client-js',
         )
 
         clientGeneratorVersion = jsClient?.manifest?.version ?? null
@@ -232,7 +233,8 @@ Please run \`prisma generate\` manually.`
       const prismaClientJSGenerator = generators?.find(
         (g) =>
           g.options?.generator.provider &&
-          parseEnvValue(g.options?.generator.provider) === 'prisma-client-js',
+          parseProviderEnvValue(g.options?.generator.provider) ===
+            'prisma-client-js',
       )
       let hint = ''
       if (prismaClientJSGenerator) {
@@ -241,7 +243,7 @@ Please run \`prisma generate\` manually.`
           ? prefixRelativePathIfNecessary(
               path.relative(
                 process.cwd(),
-                parseEnvValue(
+                parseProviderEnvValue(
                   prismaClientJSGenerator.options.generator.output!,
                 ),
               ),
