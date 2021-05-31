@@ -66,7 +66,10 @@ export class Version implements Command {
     }
 
     const platform = await getPlatform()
-    const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+    const schemaPath = await getSchemaPath()
+    const featureFlags = await this.getFeatureFlags(schemaPath)
+    const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true' || featureFlags.includes('nApi')
+
     const introspectionEngine = await this.resolveEngine(
       EngineTypes.introspectionEngine,
     )
@@ -98,8 +101,7 @@ export class Version implements Command {
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
-    const schemaPath = await getSchemaPath()
-    const featureFlags = await this.getFeatureFlags(schemaPath)
+   
 
     if (featureFlags && featureFlags.length > 0) {
       rows.push(['Preview Features', featureFlags.join(', ')])
