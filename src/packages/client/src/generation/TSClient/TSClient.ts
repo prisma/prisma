@@ -81,10 +81,7 @@ export class TSClient implements Generatable {
 
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
-    const relativeOutputDir = path
-      .relative(process.cwd(), outputDir)
-      .split(path.sep) // we need to espace win for JS insert
-      .join(process.platform === 'win32' ? '\\\\' : path.sep)
+    const relativeOutputDir = path.relative(process.cwd(), outputDir)
 
     // on serverless envs, relative output dir can be one step lower because of
     // where and how the code is packaged into the lambda like with a build step
@@ -92,16 +89,16 @@ export class TSClient implements Generatable {
     const slsRelativeOutputDir = path
       .relative(process.cwd(), outputDir)
       .split(path.sep)
-      .slice(1) // we need to espace win for JS insert
-      .join(process.platform === 'win32' ? '\\\\' : path.sep)
+      .slice(1)
+      .join(path.sep)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-// the folder where the generated client is found
+the folder where the generated client is found
 const dirname = findSync(process.cwd(), [
-  '${relativeOutputDir}',
-  '${slsRelativeOutputDir}',
-], ['d'], ['d'], 1)[0]
+  '${JSON.stringify(relativeOutputDir)}',
+  '${JSON.stringify(slsRelativeOutputDir)}',
+], ['d'], ['d'], 1)[0] || __dirname
 
 /**
  * Enums
