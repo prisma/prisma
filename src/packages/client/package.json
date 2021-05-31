@@ -84,7 +84,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
     "eslint-plugin-prettier": "3.4.0",
-    "execa": "5.0.0",
+    "execa": "5.0.1",
     "flat-map-polyfill": "0.3.8",
     "fs-monkey": "1.0.3",
     "get-own-enumerable-property-symbols": "3.0.2",
@@ -105,7 +105,7 @@
     "replace-string": "3.1.0",
     "resolve-from": "5.0.0",
     "rimraf": "3.0.2",
-    "rollup": "2.50.1",
+    "rollup": "2.50.5",
     "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
@@ -115,8 +115,8 @@
     "strip-indent": "3.0.0",
     "ts-jest": "26.5.6",
     "ts-node": "9.1.1",
-    "tsd": "0.15.1",
-    "typescript": "4.2.4"
+    "tsd": "0.16.0",
+    "typescript": "4.3.2"
   },
   "peerDependencies": {
     "prisma": "*"
