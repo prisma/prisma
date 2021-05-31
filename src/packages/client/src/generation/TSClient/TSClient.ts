@@ -81,29 +81,27 @@ export class TSClient implements Generatable {
 
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
-    const relativeOutDir = path
+    const relativeOutputDir = path
       .relative(process.cwd(), outputDir)
-      .split(path.sep)
+      .split(path.sep) // we need to espace win for JS insert
       .join(process.platform === 'win32' ? '\\\\' : path.sep)
 
     // on serverless envs, relative output dir can be one step lower because of
     // where and how the code is packaged into the lambda like with a build step
     // with platforms like Vercel or Netlify. We want to check this as well.
-    const slsRelativeOutDir = path
+    const slsRelativeOutputDir = path
       .relative(process.cwd(), outputDir)
       .split(path.sep)
-      .slice(1)
+      .slice(1) // we need to espace win for JS insert
       .join(process.platform === 'win32' ? '\\\\' : path.sep)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-// this is the directory where the generated client is found
-let dirname = path.join(process.cwd(), '${relativeOutDir}')
-
-if (!fs.existsSync(dirname)) { // but sometimes it's not found
-  // we give it a try, we're probably on a serverless platform
-  dirname = path.join(process.cwd(), '${slsRelativeOutDir}')
-}
+// the folder where the generated client is found
+const dirname = findSync(process.cwd(), [
+  '${relativeOutputDir}',
+  '${slsRelativeOutputDir}',
+], ['d'], ['d'], 1)[0]
 
 /**
  * Enums
@@ -171,14 +169,14 @@ Object.assign(exports, Prisma)
 ${buildNFTEngineAnnotations(
   this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
-  relativeOutDir,
+  relativeOutputDir,
 )}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(relativeOutDir, `schema.prisma`)}');
+path.join(process.cwd(), './${path.join(relativeOutputDir, `schema.prisma`)}');
 `
 
     return code

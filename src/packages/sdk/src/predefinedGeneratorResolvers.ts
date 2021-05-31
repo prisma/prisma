@@ -24,10 +24,10 @@ export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
 }
 
-const getPrismaClientDir = async (
+async function getPrismaClientDir(
   baseDir: string,
-): Promise<string | undefined> => {
-  const filter = (base: string, item: string) => {
+): Promise<string | undefined> {
+  const handler = (base: string, item: string) => {
     const itemPath = path.join(base, item)
 
     // if package.json `@prisma/client`, return `base`
@@ -38,7 +38,9 @@ const getPrismaClientDir = async (
     return false
   }
 
-  return (await findUp(baseDir, ['package.json'], ['f'], true, 1, filter))[0]
+  return (
+    await findUp(baseDir, ['package.json'], ['f'], ['d', 'l'], 1, handler)
+  )[0]
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
