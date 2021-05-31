@@ -94,7 +94,7 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-the folder where the generated client is found
+// folder where the generated client is found
 const dirname = findSync(process.cwd(), [
   '${JSON.stringify(relativeOutputDir)}',
   '${JSON.stringify(slsRelativeOutputDir)}',
