@@ -33,10 +33,9 @@ export type GetDMMFOptions = {
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
 
-  const useNapi =
-    process.env.PRISMA_FORCE_NAPI === 'true' ||
-    options.previewFeatures?.includes('nApi')
-  let dmmf: any
+  const useNapi = process.env.PRISMA_FORCE_NAPI === 'true'
+
+  let dmmf: DMMF.Document | undefined
   if (useNapi) {
     dmmf = await getDmmfNapi(options)
   } else {
@@ -50,6 +49,7 @@ async function getDmmfNapi(options: GetDMMFOptions): Promise<DMMF.Document> {
     EngineTypes.libqueryEngineNapi,
     options.prismaPath,
   )
+  debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
   const datamodel =
     options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
@@ -70,6 +70,8 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     EngineTypes.queryEngine,
     options.prismaPath,
   )
+  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+
   try {
     let tempDatamodelPath: string | undefined = options.datamodelPath
     if (!tempDatamodelPath) {
