@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-inferrable-types */
 import fs from 'fs'
 import path from 'path'
+import { promisify } from 'util'
 
-const readdirAsync = fs.promises.readdir
-const realpathAsync = fs.promises.realpath
-const statAsync = fs.promises.stat
+const readdirAsync = promisify(fs.readdir)
+const realpathAsync = promisify(fs.realpath)
+const statAsync = promisify(fs.stat)
 
 const readdirSync = fs.readdirSync
 const realpathSync = fs.realpathSync

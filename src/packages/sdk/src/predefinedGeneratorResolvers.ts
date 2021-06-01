@@ -7,6 +7,7 @@ import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 import { findUpAsync as findUp } from './utils/find'
 
+// hide require from bundlers
 const load = require
 
 export type GeneratorPaths = {
