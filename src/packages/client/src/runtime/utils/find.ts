@@ -57,9 +57,9 @@ function isMatched(string: string, regexs: (RegExp | string)[]) {
  * @param deep to recurse in the directory tree
  * @param limit to limit the results
  * @param handler to further filter results
- * @param found to add to already found #private
- * @param seen to add to already seen #private
- * @returns unresolved paths
+ * @param found to add to already found
+ * @param seen to add to already seen
+ * @returns found paths (symlinks preserved)
  */
 export function findSync(
   root: string,
@@ -135,9 +135,9 @@ export function findSync(
  * @param deep to recurse in the directory tree
  * @param limit to limit the results
  * @param filter to further filter results
- * @param found to add to already found #private
- * @param seen to add to already seen #private
- * @returns unresolved paths
+ * @param found to add to already found
+ * @param seen to add to already seen
+ * @returns found paths (symlinks preserved)
  */
 export function findUpSync(
   root: string,
@@ -173,9 +173,9 @@ export function findUpSync(
  * @param deep to recurse in the directory tree
  * @param limit to limit the results
  * @param filter to further filter results
- * @param found to add to already found #private
- * @param seen to add to already seen #private
- * @returns unresolved paths
+ * @param found to add to already found
+ * @param seen to add to already seen
+ * @returns found paths (symlinks preserved)
  */
 export async function findAsync(
   root: string,
@@ -260,9 +260,9 @@ export async function findAsync(
  * @param deep to recurse in the directory tree
  * @param limit to limit the results
  * @param filter to further filter results
- * @param found to add to already found #private
- * @param seen to add to already seen #private
- * @returns unresolved paths
+ * @param found to add to already found
+ * @param seen to add to already seen
+ * @returns found paths (symlinks preserved)
  */
 export async function findUpAsync(
   root: string,
