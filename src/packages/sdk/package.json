@@ -48,7 +48,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.24.0-30.f3e341280d96d0abc068f97e959ddf01f321a858",
+    "@prisma/engines": "2.24.0-31.5d6cab9c982962ec077836b158e3b5a092dc9474",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
