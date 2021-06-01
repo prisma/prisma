@@ -1,15 +1,16 @@
+import Debug from '@prisma/debug'
+import { EngineTypes } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from '@prisma/debug'
+import fs from 'fs'
+import { ErrorArea, RustPanic } from './panic'
+import { resolveBinary } from './resolveBinary'
 import byline from './utils/byline'
+import { now } from './utils/now'
 const debugCli = Debug('prisma:introspectionEngine:cli')
 const debugRpc = Debug('prisma:introspectionEngine:rpc')
 const debugStderr = Debug('prisma:introspectionEngine:stderr')
 const debugStdin = Debug('prisma:introspectionEngine:stdin')
-import fs from 'fs'
-import { now } from './utils/now'
-import { RustPanic, ErrorArea } from './panic'
-import { resolveBinary } from './resolveBinary'
 
 export interface IntrospectionEngineOptions {
   binaryPath?: string
@@ -273,7 +274,9 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const binaryPath = await resolveBinary('introspection-engine')
+          const binaryPath = await resolveBinary(
+            EngineTypes.introspectionEngine,
+          )
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
           this.child = spawn(binaryPath, {

@@ -244,7 +244,7 @@ describe('seed', () => {
   })
 
   it('Custom --schema from package.json', async () => {
-    ctx.fixture('seed-sqilte-schema-from-package-json')
+    ctx.fixture('seed-sqlite-schema-from-package-json')
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`

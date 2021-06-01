@@ -16,7 +16,6 @@ import tempDir from 'temp-dir'
 import { promisify } from 'util'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
-import { copy } from './copy'
 import { downloadZip } from './downloadZip'
 import { flatMap } from './flatMap'
 import { getHash } from './getHash'
@@ -28,6 +27,8 @@ const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
+const copyFile = promisify(fs.copyFile)
+const utimes = promisify(fs.utimes)
 
 const channel = 'master'
 export enum EngineTypes {
@@ -210,9 +211,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   return binaryPaths
 }
 
-function getCollectiveBar(
-  options: DownloadOptions,
-): {
+function getCollectiveBar(options: DownloadOptions): {
   finishBar: () => void
   setProgress: (sourcePath: string) => (progress: number) => void
 } {
@@ -227,20 +226,22 @@ function getCollectiveBar(
   const numDownloads =
     Object.values(options.binaries).length *
     Object.values(options?.binaryTargets ?? []).length
-  const setProgress = (sourcePath: string) => (progress): void => {
-    progressMap[sourcePath] = progress
-    const progressValues = Object.values(progressMap)
-    const totalProgress =
-      progressValues.reduce((acc, curr) => {
-        return acc + curr
-      }, 0) / numDownloads
-    if (options.progressCb) {
-      options.progressCb(totalProgress)
+  const setProgress =
+    (sourcePath: string) =>
+    (progress): void => {
+      progressMap[sourcePath] = progress
+      const progressValues = Object.values(progressMap)
+      const totalProgress =
+        progressValues.reduce((acc, curr) => {
+          return acc + curr
+        }, 0) / numDownloads
+      if (options.progressCb) {
+        options.progressCb(totalProgress)
+      }
+      if (bar) {
+        bar.update(totalProgress)
+      }
     }
-    if (bar) {
-      bar.update(totalProgress)
-    }
-  }
 
   return {
     setProgress,
@@ -290,14 +291,19 @@ async function binaryNeedsToBeDownloaded(
       if (sha256File === sha256Cache) {
         if (!targetExists) {
           debug(`copying ${cachedFile} to ${job.targetFilePath}`)
-          await copy(cachedFile, job.targetFilePath)
+
+          // TODO Remove when https://github.com/docker/for-linux/issues/1015 is fixed
+          // Workaround for https://github.com/prisma/prisma/issues/7037
+          await utimes(cachedFile, new Date(), new Date())
+
+          await copyFile(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
           debug(
             `overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`,
           )
-          await copy(cachedFile, job.targetFilePath)
+          await copyFile(cachedFile, job.targetFilePath)
         }
         return false
       } else {
@@ -420,13 +426,8 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const {
-    version,
-    progressCb,
-    targetFilePath,
-    binaryTarget,
-    binaryName,
-  } = options
+  const { version, progressCb, targetFilePath, binaryTarget, binaryName } =
+    options
   const downloadUrl = getDownloadUrl(
     'all_commits',
     version,
@@ -492,7 +493,7 @@ async function saveFileToCache(
   )
 
   try {
-    await copy(job.targetFilePath, cachedTargetPath)
+    await copyFile(job.targetFilePath, cachedTargetPath)
     await writeFile(cachedSha256Path, sha256)
     await writeFile(cachedSha256ZippedPath, zippedSha256)
   } catch (e) {

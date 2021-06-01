@@ -1,30 +1,28 @@
+import { plusX } from '@prisma/engine-core/dist/util'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
+import { download, EngineTypes } from '@prisma/fetch-engine'
+import { getNapiName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
+import makeDir from 'make-dir'
 import path from 'path'
 import tempDir from 'temp-dir'
-import makeDir from 'make-dir'
 import { promisify } from 'util'
-import { getPlatform } from '@prisma/get-platform'
-import { plusX } from '@prisma/engine-core/dist/util'
-import { getEnginesPath } from '@prisma/engines'
+import Debug from '@prisma/debug'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-
-export type EngineType =
-  | 'query-engine'
-  | 'migration-engine'
-  | 'introspection-engine'
-  | 'prisma-fmt'
+const debug = Debug('prisma:resolveBinary')
 
 export const engineEnvVarMap = {
-  'query-engine': 'PRISMA_QUERY_ENGINE_BINARY',
-  'migration-engine': 'PRISMA_MIGRATION_ENGINE_BINARY',
-  'introspection-engine': 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  'prisma-fmt': 'PRISMA_FMT_BINARY',
+  [EngineTypes.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [EngineTypes.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [EngineTypes.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [EngineTypes.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  [EngineTypes.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
-
+export { EngineTypes }
 export async function resolveBinary(
-  name: EngineType,
+  name: EngineTypes,
   proposedPath?: string,
 ): Promise<string> {
   if (
@@ -51,7 +49,19 @@ export async function resolveBinary(
 
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
-  const binaryName = `${name}-${platform}${extension}`
+  let binaryName = `${name}-${platform}${extension}`
+  if (name === EngineTypes.libqueryEngineNapi) {
+    binaryName = getNapiName(platform, 'fs')
+    if (!fs.existsSync(path.join(getEnginesPath(), binaryName))) {
+      debug('Downloading N-API Library')
+      await download({
+        binaries: {
+          'libquery-engine-napi': getEnginesPath(),
+        },
+        version: enginesVersion,
+      })
+    }
+  }
 
   let prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {

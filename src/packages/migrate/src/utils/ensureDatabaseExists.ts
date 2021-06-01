@@ -13,9 +13,7 @@ import execa from 'execa'
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
-export async function getDbInfo(
-  schemaPath?: string,
-): Promise<{
+export async function getDbInfo(schemaPath?: string): Promise<{
   name: string
   url: string
   schemaWord: 'database'
@@ -63,6 +61,12 @@ export async function ensureCanConnectToDatabase(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
+  if (activeDatasource.provider[0] === 'mongodb') {
+    throw new Error(
+      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
+    )
+  }
+
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
@@ -91,6 +95,12 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
+  if (activeDatasource.provider[0] === 'mongodb') {
+    throw new Error(
+      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
+    )
+  }
+
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
@@ -114,9 +124,8 @@ export async function ensureDatabaseExists(
   if (forceCreate) {
     if (await createDatabase(activeDatasource.url.value, schemaDir)) {
       const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
-        credentials,
-      )
+      const { schemaWord, dbType, dbName } =
+        getDbinfoFromCredentials(credentials)
       if (dbType) {
         return `${dbType} ${schemaWord} ${chalk.bold(
           dbName,
@@ -205,9 +214,7 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
-export function getDbinfoFromCredentials(
-  credentials,
-): {
+export function getDbinfoFromCredentials(credentials): {
   dbName: string
   dbType: dbType
   schemaWord: 'database'

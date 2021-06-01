@@ -1,10 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('enums', async () => {
-  // works in isolation
-  if (process.env.PRISMA_FORCE_NAPI) {
-    return
-  }
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient({
     log: [

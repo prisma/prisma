@@ -261,9 +261,8 @@ ${chalk.bold('Examples')}
       )}.`
     }
 
-    const {
-      appliedMigrationNames: migrationIds,
-    } = await migrate.applyMigrations()
+    const { appliedMigrationNames: migrationIds } =
+      await migrate.applyMigrations()
 
     migrate.stop()
 

@@ -22,7 +22,7 @@ type BaseContext = {
    *
    * @remarks
    *
-   * For this to work the source must be built!
+   * For this to work the source must be built
    */
   cli: (...input: string[]) => ExecaChildProcess<string>
 }
