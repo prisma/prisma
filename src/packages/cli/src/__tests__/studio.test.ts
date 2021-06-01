@@ -18,13 +18,16 @@ async function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const describeIf = (condition: boolean) =>
+  condition ? describe : describe.skip
 
 describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
   beforeEach(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'))
+    rimraf.sync(
+      path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
+    )
     fs.copyFileSync(
       path.join(__dirname, './fixtures/studio-test-project/dev.db'),
       path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
