@@ -1,13 +1,14 @@
-import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
-import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-const debugEnabled = Debug.enabled('generator')
+import { findUpAsync as findUp } from './utils/find'
+
+// hide require from bundlers
+const load = require
 
 export type GeneratorPaths = {
   outputPath: string
@@ -22,6 +23,25 @@ export type GeneratorResolver = (
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
+}
+
+async function getPrismaClientDir(
+  baseDir: string,
+): Promise<string | undefined> {
+  const handler = (base: string, item: string) => {
+    const itemPath = path.join(base, item)
+
+    // if package.json `@prisma/client`, return `base`
+    if (load(itemPath).name === '@prisma/client') {
+      return base
+    }
+
+    return false
+  }
+
+  return (
+    await findUp(baseDir, ['package.json'], ['f'], ['d', 'l'], 1, handler)
+  )[0]
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -42,12 +62,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    const prismaClientDir = await getPrismaClientDir(baseDir)
+
     checkYarnVersion()
     checkTypeScriptVersion()
-    if (debugEnabled) {
-      console.log({ prismaClientDir })
-    }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -78,7 +96,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+      const prismaClientDir = await getPrismaClientDir(baseDir)
 
       if (!prismaClientDir) {
         throw new Error(
