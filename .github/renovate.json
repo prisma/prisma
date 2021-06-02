@@ -62,7 +62,7 @@
     {
       "groupName": "jest",
       "automerge": "true",
-      "packageNames": ["jest", "@types/jest", "ts-jest"],
+      "packageNames": ["jest", "@types/jest", "ts-jest"]
     },
     {
       "groupName": "react-prisma",
