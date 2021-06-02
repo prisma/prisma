@@ -60,6 +60,11 @@
       "reviewers": ["@Weakky", "jolg42"]
     },
     {
+      "groupName": "jest",
+      "automerge": "true",
+      "packageNames": ["jest", "@types/jest", "ts-jest"],
+    },
+    {
       "groupName": "react-prisma",
       "paths": ["src/packages/react-prisma/**"],
       "rangeStrategy": "replace",
