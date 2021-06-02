@@ -210,13 +210,12 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<
-  T extends LogLevel | LogDefinition
-> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
+export type GetLogType<T extends LogLevel | LogDefinition> =
+  T extends LogDefinition
+    ? T['emit'] extends 'event'
+      ? T['level']
+      : never
     : never
-  : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
   | GetLogType<T[1]>

@@ -253,7 +253,11 @@ ${fieldErrors
         return stripAnsi(errorMessages)
       }
 
-      const { stack, indent: indentValue, afterLines } = printStack({
+      const {
+        stack,
+        indent: indentValue,
+        afterLines,
+      } = printStack({
         callsite,
         originalMethod: originalMethod || queryName,
         showColors: errorFormat && errorFormat === 'pretty',
@@ -456,8 +460,9 @@ ${errorMessages}${missingArgsLegend}\n`
             error.requiredType.bestFittingType.isList,
           ),
         )}.
-→ Possible values: ${(error.requiredType.bestFittingType
-          .type as DMMF.SchemaEnum).values
+→ Possible values: ${(
+          error.requiredType.bestFittingType.type as DMMF.SchemaEnum
+        ).values
           .map((v) =>
             chalk.greenBright(
               `${stringifyGraphQLType(
@@ -650,9 +655,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     return str
   }
-  public collectErrors(
-    prefix = 'select',
-  ): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
+  public collectErrors(prefix = 'select'): {
+    fieldErrors: FieldError[]
+    argErrors: ArgError[]
+  } {
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
 
