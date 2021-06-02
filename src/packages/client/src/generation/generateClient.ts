@@ -4,7 +4,7 @@ import {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import { getVersion } from '@prisma/sdk/dist/engineCommands'
+import { getVersion } from '@prisma/sdk/dist/engine-commands/getVersion'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -314,7 +314,7 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-  if (process.env.INIT_CWD) {
+  if (!testMode && process.env.INIT_CWD) {
     const backupPath = path.join(
       process.env.INIT_CWD,
       'node_modules/.prisma/client',

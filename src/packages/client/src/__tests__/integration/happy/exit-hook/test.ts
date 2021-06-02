@@ -1,7 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('exit-hook', async () => {
-  // this functionality doesn't make sense for napi anymore
   if (process.env.PRISMA_FORCE_NAPI === 'true') {
     return
   }

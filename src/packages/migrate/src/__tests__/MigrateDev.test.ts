@@ -110,9 +110,8 @@ describe('sqlite', () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Schema Parsing P1012
+            Get config: Schema Parsing P1012
 
-            Get config 
             error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
               -->  schema.prisma:10
                | 
@@ -605,14 +604,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                        Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                      `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -668,10 +667,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                              ⚠️  Warnings:
+                                                                                                                                    ⚠️  Warnings:
 
-                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                    `)
+                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -692,10 +691,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                              ⚠️  Warnings:
+                                                                                                                                    ⚠️  Warnings:
 
-                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                    `)
+                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -706,9 +705,8 @@ describe('sqlite', () => {
     ])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Schema Parsing P1012
+            Get config: Schema Parsing P1012
 
-            Get config 
             error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
               -->  schema.prisma:2
                | 
@@ -1528,5 +1526,24 @@ describe('SQL Server', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+})
+
+describe('MongoDB', () => {
+  it.only('schema only - should fail with unsupported', async () => {
+    ctx.fixture('schema-only-mongodb')
+
+    const result = MigrateDev.new().parse([])
+    await expect(result).rejects.toMatchInlineSnapshot(
+      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+
+    `)
   })
 })

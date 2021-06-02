@@ -72,11 +72,11 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.23",
     "@types/ws": "7.4.4",
-    "@typescript-eslint/eslint-plugin": "4.25.0",
-    "@typescript-eslint/parser": "4.25.0",
+    "@typescript-eslint/eslint-plugin": "4.26.0",
+    "@typescript-eslint/parser": "4.26.0",
     "chalk": "4.1.1",
     "checkpoint-client": "1.1.20",
-    "dotenv": "9.0.2",
+    "dotenv": "10.0.0",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
     "eslint": "7.27.0",
@@ -84,14 +84,14 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
     "eslint-plugin-prettier": "3.4.0",
-    "execa": "5.0.0",
+    "execa": "5.0.1",
     "fast-deep-equal": "3.1.3",
     "fs-jetpack": "4.1.0",
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "26.6.3",
+    "jest": "27.0.3",
     "line-replace": "2.0.1",
     "lint-staged": "11.0.0",
     "log-update": "4.0.0",
@@ -106,8 +106,8 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "26.5.6",
-    "typescript": "4.2.4"
+    "ts-jest": "27.0.2",
+    "typescript": "4.3.2"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.24.0-11.bd7c4642adf29275535cc9852bdbd5a390fd3b7e"
+    "@prisma/engines": "2.25.0-1.5554c45c4cb79fd93d7f92ae45d305c4c57abd36"
   },
   "lint-staged": {
     "*.ts": [

@@ -16134,7 +16134,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
@@ -16156,7 +16156,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
@@ -16335,7 +16335,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
@@ -16375,7 +16375,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
@@ -17347,7 +17347,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
@@ -17369,7 +17369,7 @@ export namespace Prisma {
     lte?: InputJsonValue
     gt?: InputJsonValue
     gte?: InputJsonValue
-    path?: Enumerable<string>
+    path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string

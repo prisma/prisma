@@ -3,6 +3,9 @@ import path from 'path'
 
 describe('engine', () => {
   test('should error correctly with invalid flags', async () => {
+    if (process.env.PRISMA_FORCE_NAPI === 'true') {
+      return
+    }
     try {
       const engine = new NodeEngine({
         flags: ['--flag-that-does-not-exist'],

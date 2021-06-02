@@ -2,7 +2,7 @@
 
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-*                               @Jolg42 @williamluke4
+*                               @Jolg42 @williamluke4 @millsp 
 
 # root
 /.github/                       @Jolg42 @williamluke4
@@ -15,7 +15,7 @@
 /src/scripts/                   @Jolg42 
 
 # src/packages
-/src/packages/cli/              @Jolg42 @williamluke4
+/src/packages/cli/              @Jolg42 @williamluke4 @millsp
 /src/packages/client/           @williamluke4 @millsp
 /src/packages/debug/            @williamluke4 @millsp
 /src/packages/engine-core/      @williamluke4 @millsp

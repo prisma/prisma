@@ -1,11 +1,12 @@
 export {
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
   PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
   PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
 } from './errors'
-export { NodeEngine as Engine } from './NodeEngine'
-export { NAPIEngine } from './NAPIEngine'
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'
+export { NAPIEngine } from './NAPIEngine'
+export { NodeEngine as Engine } from './NodeEngine'
 export { printGeneratorConfig } from './printGeneratorConfig'
+export * as NApiEngineTypes from './napi-types'
 export { fixBinaryTargets } from './util'

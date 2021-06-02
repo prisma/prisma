@@ -809,7 +809,9 @@ async function tagEnginesRepo(
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
   )
-  const changelogSanitized = changelog.replace(/"/gm, '\\"')
+  const changelogSanitized = changelog
+    .replace(/"/gm, '\\"')
+    .replace(/`/gm, '\\`')
 
   const remotes = dryRun
     ? []

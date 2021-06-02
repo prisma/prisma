@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.24.0-11.bd7c4642adf29275535cc9852bdbd5a390fd3b7e",
+    "@prisma/engines-version": "2.25.0-1.5554c45c4cb79fd93d7f92ae45d305c4c57abd36",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
@@ -25,8 +25,8 @@
     "@types/pg": "8.6.0",
     "@types/prompts": "2.0.12",
     "@types/sqlite3": "3.1.7",
-    "@typescript-eslint/eslint-plugin": "4.25.0",
-    "@typescript-eslint/parser": "4.25.0",
+    "@typescript-eslint/eslint-plugin": "4.26.0",
+    "@typescript-eslint/parser": "4.26.0",
     "chalk": "4.1.1",
     "del": "6.0.0",
     "eslint": "7.27.0",
@@ -35,7 +35,7 @@
     "eslint-plugin-jest": "24.3.6",
     "eslint-plugin-prettier": "3.4.0",
     "fs-jetpack": "4.1.0",
-    "jest": "26.6.3",
+    "jest": "27.0.3",
     "lint-staged": "11.0.0",
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
@@ -45,8 +45,8 @@
     "sqlite-async": "1.1.1",
     "sqlite3": "5.0.2",
     "tempy": "1.0.1",
-    "ts-jest": "26.5.6",
-    "typescript": "4.2.4"
+    "ts-jest": "27.0.2",
+    "typescript": "4.3.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
