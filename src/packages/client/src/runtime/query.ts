@@ -393,7 +393,10 @@ ${errorMessages}${missingArgsLegend}\n`
 
       return str
     }
+
+    return undefined
   }
+
   protected printArgError = (
     { error, path, id }: ArgError,
     hasMissingItems: boolean,
@@ -552,6 +555,8 @@ ${errorMessages}${missingArgsLegend}\n`
         .map((key) => chalk.redBright(key))
         .join(' and ')}.${additional}`
     }
+
+    return undefined
   }
   /**
    * As we're allowing both single objects and array of objects for list inputs, we need to remove incorrect
