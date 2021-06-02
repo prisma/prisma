@@ -27,7 +27,6 @@ export class DMMFClass implements DMMF.Document {
     this.datamodel = datamodel
     this.schema = schema
 
-
     this.mappings = mappings
     this.enumMap = this.getEnumMap()
     this.datamodelEnumMap = this.getDatamodelEnumMap()
