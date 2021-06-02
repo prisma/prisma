@@ -1,16 +1,21 @@
 {
   "compilerOptions": {
-    "lib": ["esnext"],
+    "lib": [
+      "esnext"
+    ],
     "module": "commonjs",
     "target": "es2018",
     "strict": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "noImplicitAny": false,
+    "noImplicitAny": false, // TODO Can't let TS shoot itself on the foot
     "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
-    "incremental": true
+    "incremental": true,
+    "noUncheckedIndexedAccess": false, // TODO Can't let TS shoot itself on the foot
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": [
     "dist",
