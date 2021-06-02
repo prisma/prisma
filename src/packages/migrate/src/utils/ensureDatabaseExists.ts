@@ -1,15 +1,14 @@
-import {
-  canConnectToDatabase,
-  createDatabase,
-  DatabaseCredentials,
-  getConfig,
-  getSchema,
-  getSchemaDir,
-  uriToCredentials,
-} from '@prisma/sdk'
+import { getSchema, getSchemaDir } from '@prisma/sdk'
+import { getConfig } from '@prisma/sdk'
 import chalk from 'chalk'
-import execa from 'execa'
+import {
+  DatabaseCredentials,
+  uriToCredentials,
+  createDatabase,
+  canConnectToDatabase,
+} from '@prisma/sdk'
 import prompt from 'prompts'
+import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
