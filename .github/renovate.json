@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "masterIssue": true,
+  "dependencyDashboard": true,
   "reviewers": ["@jolg42", "@williamluke4", "millsp"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": ["esbuild", "sqlite3"],
