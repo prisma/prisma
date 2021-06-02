@@ -1,8 +1,8 @@
-dist
-generator-build
-scripts/any-index.js
-node_modules
-runtime
-runtime-dist
-sandbox
-dist
+./dist
+./generator-build
+./scripts/any-index.js
+./node_modules
+./runtime
+./runtime-dist
+./sandbox
+./dist
