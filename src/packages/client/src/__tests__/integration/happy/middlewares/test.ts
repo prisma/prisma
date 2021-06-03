@@ -9,6 +9,8 @@ describe('middleware', () => {
     const allResults: any[] = []
 
     db.$use(async (params, next) => {
+      expect(params).toMatchSnapshot()
+
       const result = await next(params)
       allResults.push(result)
       return result
@@ -21,6 +23,7 @@ describe('middleware', () => {
 
     db.$disconnect()
   })
+
   test('order', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()
@@ -47,6 +50,7 @@ describe('middleware', () => {
 
     db.$disconnect()
   })
+
   test('engine middleware', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()
@@ -78,6 +82,7 @@ describe('middleware', () => {
 
     db.$disconnect()
   })
+
   test('modify params', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()
@@ -109,6 +114,7 @@ describe('middleware', () => {
 
     db.$disconnect()
   })
+
   test('count unpack', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()
