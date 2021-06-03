@@ -27,7 +27,7 @@ specifiers:
   terminal-link: ^2.1.1
   ts-jest: 26.5.6
   typescript: 4.3.2
-  undici: 3.3.6
+  undici: 4.0.0-rc.5
 
 dependencies:
   '@prisma/debug': link:../debug
@@ -41,7 +41,7 @@ dependencies:
   new-github-issue-url: 0.2.1
   p-retry: 4.5.0
   terminal-link: 2.1.1
-  undici: 3.3.6
+  undici: 4.0.0-rc.5
 
 devDependencies:
   '@types/jest': 26.0.23
@@ -4458,8 +4458,9 @@ packages:
     hasBin: true
     dev: true
 
-  /undici/3.3.6:
-    resolution: {integrity: sha512-/j3YTZ5AobMB4ZrTY72mzM54uFUX32v0R/JRW9G2vOyF1uSKYAx+WT8dMsAcRS13TOFISv094TxIyWYk+WEPsA==}
+  /undici/4.0.0-rc.5:
+    resolution: {integrity: sha512-zVLGa6lB43cAX08tPJQj0Sg+KNaQ936HzWMLCsHoFgIvwIy8bBNXi16JTHcouMy+XnWNpyL1VMOvZEwSq5XuGw==}
+    engines: {node: '>=12.18'}
     dev: false
 
   /union-value/1.0.1:
