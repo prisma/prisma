@@ -195,7 +195,7 @@ export class Migrate {
 
     const generators = await getGenerators({
       schemaPath: this.schemaPath,
-      printDownloadProgress: false,
+      printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
     })
