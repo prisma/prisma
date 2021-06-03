@@ -884,8 +884,8 @@ async function testPackages(
         [
           '@prisma/integration-tests',
           '@prisma/client',
-          '@prisma/cli',
           '@prisma/sdk',
+          'prisma',
         ].includes(pkg.name)
       ) {
         await run(
