@@ -148,9 +148,9 @@ describe('getGenerators', () => {
         url      = \\"file:./dev.db\\"
       }
 
-      generator gen {
+      generator gen_env {
         provider      = \\"predefined-generator\\"
-        binaryTargets = [\\"darwin\\"]
+        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
       }
 
       model User {
@@ -180,12 +180,14 @@ describe('getGenerators', () => {
       Object {
         "binaryTargets": Array [
           Object {
-            "fromEnvVar": null,
-            "value": "darwin",
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": Array [
+              "darwin",
+            ],
           },
         ],
         "config": Object {},
-        "name": "gen",
+        "name": "gen_env",
         "previewFeatures": Array [],
         "provider": Object {
           "fromEnvVar": null,
