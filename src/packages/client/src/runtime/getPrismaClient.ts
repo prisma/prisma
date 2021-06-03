@@ -43,7 +43,7 @@ import {
 } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
-export const debug = Debug('prisma:client')
+const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
