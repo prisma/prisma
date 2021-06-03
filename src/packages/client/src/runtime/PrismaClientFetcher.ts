@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
 import {
   PrismaClientInitializationError,
@@ -6,10 +7,11 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { Dataloader } from './Dataloader'
-import { debug, RequestParams, Unpacker } from './getPrismaClient'
+import { RequestParams, Unpacker } from './getPrismaClient'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
 import { throwIfNotFound } from './utils/rejectOnNotFound'
+const debug = Debug('prisma:client:fetcher')
 
 export class PrismaClientFetcher {
   prisma: any
