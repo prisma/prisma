@@ -1,22 +1,28 @@
-import { EnvValue } from '@prisma/generator-helper'
+import {
+  ProviderEnvValue,
+  BinaryTargetsEnvValue,
+} from '@prisma/generator-helper'
 import chalk from 'chalk'
 
-export function parseProviderEnvValue(object: EnvValue) {
+export function parseProviderEnvValue(object: ProviderEnvValue) {
   return parseEnvValue(object, 'provider')
 }
 
-export function parseBinaryTargetsEnvValue(object: EnvValue) {
+export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue) {
   return parseEnvValue(object, 'binaryTargets')
 }
 
 /**
- * Parses the EnvValue and return the string value
+ * Parses the ProviderEnvValue and return the string value
  *
  * - If there is no env var just return the value
  * - If there is an env var it will be resolve and returned.
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
-function parseEnvValue(object: EnvValue, type: 'provider' | 'binaryTargets') {
+function parseEnvValue(
+  object: ProviderEnvValue | BinaryTargetsEnvValue,
+  type: 'provider' | 'binaryTargets',
+) {
   if (object.fromEnvVar && object.fromEnvVar !== null) {
     const value = process.env[object.fromEnvVar]
     if (!value) {
@@ -28,7 +34,13 @@ function parseEnvValue(object: EnvValue, type: 'provider' | 'binaryTargets') {
         )} is present in your Environment Variables`,
       )
     }
-    return value
+
+    if (type === 'provider') {
+      return value
+    } else {
+      // value is a string because it's from env var but need to be parsed as an array
+      return JSON.parse(value)
+    }
   }
   return object.value
 }

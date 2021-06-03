@@ -31,7 +31,7 @@ if (require.main === module) {
     },
     async onGenerate(options) {
       // CLI versions < 2.20.0 still send a string
-      // CLIs >= 2.20.0 send an `EnvValue`
+      // CLIs >= 2.20.0 send an `ProviderEnvValue`
       const outputDir =
         typeof options.generator.output === 'string'
           ? options.generator.output

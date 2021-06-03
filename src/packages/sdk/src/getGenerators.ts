@@ -13,6 +13,7 @@ import {
   GeneratorConfig,
   GeneratorManifest,
   GeneratorOptions,
+  BinaryTargetsEnvValue,
 } from '@prisma/generator-helper'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -102,7 +103,6 @@ export async function getGenerators({
         binaries: {
           [engineType]: potentialPath,
         },
-        // TODO binaryTargets
         binaryTargets: [platform],
         showProgress: false,
         version,
@@ -295,19 +295,30 @@ generator gen {
           g.options?.generator?.binaryTargets &&
           g.options?.generator?.binaryTargets.length > 0
         ) {
-          for (const binaryTarget of g.options?.generator?.binaryTargets) {
+          const generatorBinaryTargets = g.options?.generator?.binaryTargets
+          // If set from env var, there is only one item
+          // and we need to read the env var
+          if (generatorBinaryTargets[0].fromEnvVar !== null) {
             // parse value if set from env var
-            if (binaryTarget.fromEnvVar !== null) {
-              binaryTarget.value = parseBinaryTargetsEnvValue(binaryTarget)
-            }
+            generatorBinaryTargets[0].value = parseBinaryTargetsEnvValue(
+              generatorBinaryTargets[0],
+            )
+          }
 
+          for (const binaryTarget of g.options?.generator?.binaryTargets) {
             if (binaryTarget.value === 'native') {
               binaryTarget.value = platform
+            } else if (Array.isArray(binaryTarget.value)) {
+              binaryTarget.value = binaryTarget.value.map((p) =>
+                p === 'native' ? platform : p,
+              )
             }
 
             if (
-              !neededVersions[neededVersion].binaryTargets.find(
-                (object) => object.value === binaryTarget,
+              !neededVersions[neededVersion].binaryTargets.find((object) =>
+                Array.isArray(object.value)
+                  ? object.value.includes(binaryTarget.value)
+                  : object.value === binaryTarget.value,
               )
             ) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
@@ -371,8 +382,13 @@ generator gen {
   }
 }
 
+type NeededVersions = {
+  engines: EngineType[]
+  binaryTargets: BinaryTargetsEnvValue[]
+}
+
 type GetBinaryPathsByVersionInput = {
-  neededVersions: Record<string, any>
+  neededVersions: NeededVersions
   platform: string
   version?: string
   printDownloadProgress?: boolean
@@ -436,9 +452,13 @@ async function getBinaryPathsByVersion({
     binaryPathsByVersion[currentVersion] = {}
 
     if (Object.values(binariesConfig).length > 0) {
+      const platforms: Platform[] = neededVersion.binaryTargets.flatMap(
+        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value,
+      )
+
       const downloadParams: DownloadOptions = {
         binaries: binariesConfig,
-        binaryTargets: neededVersion.binaryTargets,
+        binaryTargets: platforms,
         showProgress:
           typeof printDownloadProgress === 'boolean'
             ? printDownloadProgress
@@ -554,45 +574,38 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
       )
     }
     if (generator.binaryTargets) {
-      for (const binaryTarget of generator.binaryTargets) {
-        if (oldToNewBinaryTargetsMapping[binaryTarget.value]) {
+      const binaryTargets =
+        generator.binaryTargets && generator.binaryTargets.length > 0
+          ? generator.binaryTargets
+          : [{ fromEnvVar: null, value: 'native' }]
+
+      const resolvedBinaryTargets: string[] = binaryTargets
+        .flatMap((object) => parseBinaryTargetsEnvValue(object))
+        .map((p) => (p === 'native' ? platform : p))
+
+      for (const resolvedBinaryTarget of resolvedBinaryTargets) {
+        if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
           throw new Error(
             `Binary target ${chalk.red.bold(
-              binaryTarget,
+              resolvedBinaryTarget,
             )} is deprecated. Please use ${chalk.green.bold(
-              oldToNewBinaryTargetsMapping[binaryTarget.value],
+              oldToNewBinaryTargetsMapping[resolvedBinaryTarget],
             )} instead.`,
           )
         }
-        if (
-          !binaryTarget.fromEnvVar &&
-          !knownBinaryTargets.includes(binaryTarget.value as Platform)
-        ) {
+        if (!knownBinaryTargets.includes(resolvedBinaryTarget as Platform)) {
           throw new Error(
             `Unknown binary target ${chalk.red(
-              binaryTarget.value,
+              resolvedBinaryTarget,
             )} in generator ${chalk.bold(generator.name)}.
 Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           )
         }
       }
 
-      const binaryTargets =
-        generator.binaryTargets && generator.binaryTargets.length > 0
-          ? generator.binaryTargets
-          : [{ fromEnvVar: null, value: 'native' }]
-
-      const resolvedBinaryTargets = binaryTargets.map((p) =>
-        p.value === 'native' ? platform : p.value,
-      )
-
-      // Only show warning if binaryTargets
-      // is not set by env()
-      // is missing "native"
-      if (
-        !binaryTargets.find((object) => object.fromEnvVar !== null) &&
-        !resolvedBinaryTargets.includes(platform)
-      ) {
+      // Only show warning if resolvedBinaryTargets
+      // is missing current platform
+      if (!resolvedBinaryTargets.includes(platform)) {
         if (generator) {
           console.log(`${chalk.yellow(
             'Warning:',

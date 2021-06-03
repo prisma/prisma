@@ -246,7 +246,7 @@ You may have to run ${chalk.greenBright(
       title,
       version: this.config.clientVersion!,
       engineVersion: this.versionInfo?.version,
-      // TODO binaryTargets
+      // TODO
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
@@ -562,13 +562,16 @@ ${searchedLocations
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
-        // TODO
         if (
-          this.config.generator.binaryTargets.find(
-            (object) => object.value === this.platform,
+          this.config.generator.binaryTargets.find((object) =>
+            Array.isArray(object.value)
+              ? object.value.includes(this.platform!)
+              : object.value === this.platform!,
           ) ||
-          this.config.generator.binaryTargets.find(
-            (object) => object.value === 'native',
+          this.config.generator.binaryTargets.find((object) =>
+            Array.isArray(object.value)
+              ? object.value.includes('native')
+              : object.value === 'native',
           )
         ) {
           errorText += `

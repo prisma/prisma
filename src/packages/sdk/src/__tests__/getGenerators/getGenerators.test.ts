@@ -9,6 +9,8 @@ import { resolveBinary } from '../../resolveBinary'
 
 jest.setTimeout(20000)
 
+process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
+
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
@@ -60,7 +62,8 @@ describe('getGenerators', () => {
       model User {
         id   Int    @id
         name String
-      }",
+      }
+      ",
         "datasources": Array [
           Object {
             "activeProvider": "sqlite",
@@ -82,7 +85,104 @@ describe('getGenerators', () => {
       .toMatchInlineSnapshot(`
       Object {
         "binaryTargets": Array [
-          "darwin",
+          Object {
+            "fromEnvVar": null,
+            "value": "darwin",
+          },
+        ],
+        "config": Object {},
+        "name": "gen",
+        "previewFeatures": Array [],
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
+      }
+    `)
+
+    generators.forEach((g) => g.stop())
+  })
+
+  test('basic - binaryTargets as env var', async () => {
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: path.join(__dirname, 'generator'),
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(
+        __dirname,
+        'valid-minimal-schema-binaryTargets-env-var.prisma',
+      ),
+      providerAliases: aliases,
+    })
+
+    expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "defaultOutput": "default-output",
+          "denylist": Array [
+            "SomeForbiddenType",
+          ],
+          "prettyName": "This is a pretty pretty name",
+          "requiresEngines": Array [
+            "queryEngine",
+            "migrationEngine",
+          ],
+        },
+      ]
+    `)
+
+    expect(
+      pick(generators[0].options!, [
+        'datamodel',
+        'datasources',
+        'otherGenerators',
+      ]),
+    ).toMatchInlineSnapshot(`
+      Object {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
+
+      generator gen {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = [\\"darwin\\"]
+      }
+
+      model User {
+        id   Int    @id
+        name String
+      }
+      ",
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": Array [
+              "sqlite",
+            ],
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "file:./dev.db",
+            },
+          },
+        ],
+        "otherGenerators": Array [],
+      }
+    `)
+
+    expect(omit(generators[0].options!.generator, ['output']))
+      .toMatchInlineSnapshot(`
+      Object {
+        "binaryTargets": Array [
+          Object {
+            "fromEnvVar": null,
+            "value": "darwin",
+          },
         ],
         "config": Object {},
         "name": "gen",
