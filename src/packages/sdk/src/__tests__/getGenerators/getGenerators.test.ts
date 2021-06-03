@@ -9,7 +9,7 @@ import { resolveBinary } from '../../resolveBinary'
 
 jest.setTimeout(20000)
 
-process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
+process.env.BINARY_TARGETS_ENV_VAR_TEST = '["darwin"]'
 
 describe('getGenerators', () => {
   test('basic', async () => {
