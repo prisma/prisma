@@ -12,9 +12,11 @@ on:
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
       - 'examples/**'
       - 'LICENSE'
+      - '.github/CODEOWNERS'
       - 'src/.buildkite/**'
       - 'src/.dockerignore'
       - '*.bench.ts'
@@ -28,9 +30,11 @@ on:
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
       - 'examples/**'
       - 'LICENSE'
+      - '.github/CODEOWNERS'
       - 'src/.buildkite/**'
       - 'src/.dockerignore'
       - '*.bench.ts'
@@ -52,33 +56,6 @@ jobs:
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.0
 
-  # Determine which tests to run based on file changes
-  determine-tests-to-run:
-    name: Determine which tests to run
-    runs-on: ubuntu-20.04
-    
-    steps:
-      - id: checkout
-        uses: actions/checkout@v2
-      - id: changedfiles
-        uses: jitterbit/get-changed-files@v1
-        with:
-          format: 'json'
-      - name: Print changedfiles
-        run: |
-          echo "All:"
-          echo "${{ steps.changedfiles.outputs.all }}"
-          echo "Added:"
-          echo "${{ steps.changedfiles.outputs.added }}"
-          echo "Removed:"
-          echo "${{ steps.changedfiles.outputs.removed }}"
-          echo "Renamed:"
-          echo "${{ steps.changedfiles.outputs.renamed }}"
-          echo "Modified:"
-          echo "${{ steps.changedfiles.outputs.modified }}"
-          echo "Added+Modified:"
-          echo "${{ steps.changedfiles.outputs.added_modified }}"
-          
   #
   # Linting
   #
@@ -86,24 +63,14 @@ jobs:
     timeout-minutes: 7
     runs-on: ubuntu-20.04
 
-    needs: determine-tests-to-run
-    if: contains(steps.changedfiles.outputs.all, 'src/packages')
-
     steps:
       - uses: actions/checkout@v2
 
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
@@ -118,217 +85,6 @@ jobs:
       - run: pnpm run lint
         working-directory: ./
 
-  #
-  # TESTS-INTEGRATION
-  #
-  tests-integration:
-    timeout-minutes: 20
-    runs-on: ubuntu-20.04
-
-    needs: determine-tests-to-run
-    if: contains(steps.changedfiles.outputs.all, 'src/packages/tests') || contains(steps.changedfiles.outputs.all, 'src/packages/client') || contains(steps.changedfiles.outputs.all, 'src/docker/docker-compose.yml')  
-      
-    strategy:
-      fail-fast: false
-      matrix:
-        database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
-        if: matrix.database != 'sqlite'
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        if: ${{ matrix.database == 'sqlite' }}
-        working-directory: src/packages/tests
-
-      # temp
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
-        working-directory: src/packages/tests
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
-          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
-          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }}
-          name: tests-integration-${{ matrix.database }}
-
-  #
-  # TESTS-INTEGRATION-NAPI
-  #
-  tests-integration-napi:
-    timeout-minutes: 20
-    runs-on: ubuntu-20.04
-
-    needs: determine-tests-to-run
-    if: contains(steps.changedfiles.outputs.all, 'src/packages/tests') || contains(steps.changedfiles.outputs.all, 'src/packages/client') || contains(steps.changedfiles.outputs.all, 'src/docker/docker-compose.yml')  
-      
-    env:
-      PRISMA_FORCE_NAPI: 'true'
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
-        if: matrix.database != 'sqlite'
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        if: ${{ matrix.database == 'sqlite' }}
-        working-directory: src/packages/tests
-
-      # temp
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
-        working-directory: src/packages/tests
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
-          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
-          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/tests/src/__tests__/coverage/clover.xml
-          flags: tests-integration,${{ matrix.database }}
-          name: tests-integration-${{ matrix.database }}
-
-  #
-  # CLI-COMMANDS
-  #
-  cli-commands:
-    timeout-minutes: 10
-    runs-on: ${{ matrix.os }}
-    needs: determine-tests-to-run
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test
-        working-directory: src/packages/cli
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/cli/src/__tests__/coverage/clover.xml
-          flags: cli,${{ matrix.os }}
-          name: cli-${{ matrix.os }}
 
   #
   # CLIENT (without types test)
@@ -336,31 +92,29 @@ jobs:
   client:
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
-    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+      
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
@@ -372,7 +126,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts
+      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts --verbose
         working-directory: src/packages/client
         env:
           CI: true
@@ -392,68 +146,11 @@ jobs:
           name: client-${{ matrix.os }}
 
   #
-  # CLIENT (types tests only with NAPI Enabled)
-  #
-  client-types-napi:
-    timeout-minutes: 10
-    runs-on: ubuntu-20.04
-    needs: determine-tests-to-run
-
-    env:
-      PRISMA_FORCE_NAPI: 'true'
-      PRISMA_DEBUG_ENABLE_ALL_FLAGS: 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [12]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
-
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test src/__tests__/types/types.test.ts
-        working-directory: src/packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }}
-          name: client-types-${{ matrix.os }}
-
-  #
   # CLIENT (types tests only)
   #
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
-    needs: determine-tests-to-run
-
     strategy:
       fail-fast: false
       matrix:
@@ -462,18 +159,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
@@ -497,6 +187,79 @@ jobs:
           files: ./src/packages/client/src/__tests__/coverage/clover.xml
           flags: client-types,${{ matrix.os }}
           name: client-types-${{ matrix.os }}
+
+  #
+  # INTEGRATION-TESTS
+  #
+  integration-tests:
+    timeout-minutes: 20
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['napi', 'binary']
+        database:
+          - sqlite
+          - postgres
+          - mysql
+          - mariadb
+          - mssql
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
+        if: matrix.database != 'sqlite'
+      
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
+        if: ${{ matrix.database == 'sqlite' }}
+        working-directory: src/packages/integration-tests
+
+      # temp
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
+      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
+        working-directory: src/packages/integration-tests
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
+          TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
+          TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/integration-tests/src/__tests__/coverage/clover.xml
+          flags: integration-tests,${{ matrix.database }},${{ matrix.engine }}
+          name: integration-tests-${{ matrix.database }}-${{ matrix.engine }}
 
   #
   # SDK
@@ -504,29 +267,27 @@ jobs:
   sdk:
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
-    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
-
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+      
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
@@ -557,31 +318,29 @@ jobs:
   migrate:
     timeout-minutes: 7
     runs-on: ${{ matrix.os }}
-    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
       matrix:
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres
+      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
@@ -605,6 +364,12 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
           TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate
+          TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MSSQL_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
+          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
 
       - uses: codecov/codecov-action@v1
         with:
@@ -613,12 +378,62 @@ jobs:
           name: migrate-${{ matrix.os }}
 
   #
+  # CLI-COMMANDS
+  #
+  cli-commands:
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['napi', 'binary']
+        os: [ubuntu-20.04] # macos-latest, windows-latest
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: src/packages/cli
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v1
+        with:
+          files: ./src/packages/cli/src/__tests__/coverage/clover.xml
+          flags: cli,${{ matrix.os }}
+          name: cli-${{ matrix.os }}
+
+  #
   # All the other packages!
   #
   others:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
-    needs: determine-tests-to-run
 
     strategy:
       fail-fast: false
@@ -629,18 +444,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # From https://docs.github.com/en/actions/configuring-and-managing-workflows/caching-dependencies-to-speed-up-workflows#example-using-the-cache-action
-      - name: Cache node modules
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-node-modules
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
