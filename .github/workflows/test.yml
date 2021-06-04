@@ -45,19 +45,8 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
-  # From https://github.com/marketplace/actions/skip-duplicate-actions
-  # This action cleans up previously running instances of a workflow on the same branch.
-  # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
-  # which is a common feature in most CI systems but currently not possible with GitHub actions.
-  cleanup-runs:
-    continue-on-error: true
-    runs-on: ubuntu-20.04
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
-    steps:
-      - uses: fkirc/skip-duplicate-actions@v3.4.0
-
   detect_jobs_to_run:
-    name: Detect changes
+    name: Detect jobs to run
     runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
@@ -71,14 +60,16 @@ jobs:
       - id: detect
         run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
 
-  test-job:
-    name: Fake Job 
-    runs-on: ubuntu-latest
-    needs: detect_jobs_to_run    
-    steps: 
-      - name: Print analyze output
-        run: |
-          echo ${{ needs.detect_jobs_to_run.outputs.jobs }}
+  # From https://github.com/marketplace/actions/skip-duplicate-actions
+  # This action cleans up previously running instances of a workflow on the same branch.
+  # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
+  # which is a common feature in most CI systems but currently not possible with GitHub actions.
+  cleanup-runs:
+    continue-on-error: true
+    runs-on: ubuntu-20.04
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+    steps:
+      - uses: fkirc/skip-duplicate-actions@v3.4.0
 
   #
   # Linting
