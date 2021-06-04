@@ -269,7 +269,6 @@ test('add fullName', () => {
   const before = `datasource db {
     provider = "sqlite"
     url      = "file:dev.db"
-    default  = true
   }
 
 generator client {
@@ -287,7 +286,6 @@ model User {
   const after = `datasource db {
     provider = "sqlite"
     url      = "file:dev.db"
-    default  = true
   }
 
 generator client {

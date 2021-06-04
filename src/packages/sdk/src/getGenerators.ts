@@ -20,7 +20,7 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import pMap from 'p-map'
 import path from 'path'
-import { getConfig, getDMMF } from './engineCommands'
+import { getConfig, getDMMF } from '.'
 import { Generator } from './Generator'
 import { engineVersions } from './getAllVersions'
 import { pick } from './pick'
@@ -86,7 +86,10 @@ export async function getGenerators({
   const platform = await getPlatform()
 
   let prismaPath: string | undefined = binaryPathsOverride?.queryEngine
-
+  const engineType =
+    process.env.PRISMA_FORCE_NAPI === 'true'
+      ? EngineTypes.libqueryEngineNapi
+      : EngineTypes.queryEngine
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
@@ -94,7 +97,7 @@ export async function getGenerators({
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
         binaries: {
-          'query-engine': potentialPath,
+          [engineType]: potentialPath,
         },
         binaryTargets: [platform],
         showProgress: false,
@@ -103,7 +106,7 @@ export async function getGenerators({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType['query-engine']![platform]
+      prismaPath = binaryPathsWithEngineType[engineType]![platform]
     }
   }
 
@@ -123,15 +126,13 @@ export async function getGenerators({
   printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
-  const experimentalFeatures = mapPreviewFeatures(
-    extractPreviewFeatures(config),
-  )
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
 
   const dmmf = await getDMMF({
     datamodel,
     datamodelPath: schemaPath,
     prismaPath,
-    enableExperimental: experimentalFeatures,
+    previewFeatures,
   })
 
   if (dmmf.datamodel.models.length === 0) {
@@ -139,8 +140,8 @@ export async function getGenerators({
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongodb')) &&
-    !experimentalFeatures.includes('mongodb')
+    config.datasources.some((d) => d.provider.includes('mongoDb')) &&
+    !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
   }
@@ -339,7 +340,7 @@ generator gen {
             datamodel,
             datamodelPath: schemaPath,
             prismaPath: generatorBinaryPaths.queryEngine[platform],
-            enableExperimental: experimentalFeatures,
+            previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
           debug(generator.manifest.prettyName)
@@ -405,16 +406,14 @@ async function getBinaryPathsByVersion({
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce(
-      (acc, curr) => {
+    const binariesConfig: BinaryDownloadConfiguration =
+      neededVersion.engines.reduce((acc, curr) => {
         // only download the binary, of not already covered by the `binaryPathsOverride`
         if (!binaryPathsOverride?.[curr]) {
           acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
         }
         return acc
-      },
-      Object.create(null),
-    )
+      }, Object.create(null))
 
     binaryPathsByVersion[currentVersion] = {}
 

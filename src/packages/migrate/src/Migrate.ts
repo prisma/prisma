@@ -5,6 +5,10 @@ import {
   uriToCredentials,
   getConfig,
 } from '@prisma/sdk'
+import {
+  protocolToDatabaseType,
+  databaseTypeToConnectorType,
+} from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 import fs from 'fs'
@@ -84,18 +88,30 @@ export class Migrate {
 
   public async getDbInfo(): Promise<{
     schemaWord: string
-    dbType: string
-    dbName: string
-    dbLocation: string
+    dbType?: string
+    dbName?: string
+    dbLocation?: string
   }> {
     const datamodel = this.getDatamodel()
     const config = await getConfig({ datamodel })
     const activeDatasource = config.datasources[0]
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const dbLocation = getDbLocation(credentials)
-    return {
-      ...getDbinfoFromCredentials(credentials),
-      dbLocation,
+
+    try {
+      const credentials = uriToCredentials(activeDatasource.url.value)
+      const dbLocation = getDbLocation(credentials)
+      return {
+        ...getDbinfoFromCredentials(credentials),
+        dbLocation,
+      }
+    } catch (e) {
+      debug.log(e)
+
+      return {
+        schemaWord: 'database',
+        dbType: undefined,
+        dbName: undefined,
+        dbLocation: undefined,
+      }
     }
   }
 
@@ -154,14 +170,11 @@ export class Migrate {
   }): Promise<EngineResults.SchemaPush> {
     const datamodel = this.getDatamodel()
 
-    const {
-      warnings,
-      unexecutable,
-      executedSteps,
-    } = await this.engine.schemaPush({
-      force,
-      schema: datamodel,
-    })
+    const { warnings, unexecutable, executedSteps } =
+      await this.engine.schemaPush({
+        force,
+        schema: datamodel,
+      })
 
     return {
       executedSteps,
@@ -182,7 +195,7 @@ export class Migrate {
 
     const generators = await getGenerators({
       schemaPath: this.schemaPath,
-      printDownloadProgress: false,
+      printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
     })

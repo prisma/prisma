@@ -55,7 +55,7 @@ export type ConnectorType =
 export interface DataSource {
   name: string
   activeProvider: ConnectorType
-  provider: ConnectorType[]
+  provider: ConnectorType
   url: EnvValue
   config: { [key: string]: string }
 }

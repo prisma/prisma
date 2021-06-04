@@ -1,5 +1,5 @@
 import { DatabaseCredentials } from './types'
-import URL from 'url-parse'
+import * as NodeURL from 'url'
 import { ConnectorType } from '@prisma/generator-helper'
 import path from 'path'
 
@@ -8,7 +8,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   if (credentials.type === 'mongodb') {
     return credentials.uri!
   }
-  const url = new URL(type + '//', true)
+  const url = new NodeURL.URL(type + '//')
 
   if (credentials.host) {
     url.hostname = credentials.host
@@ -20,21 +20,21 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     }
 
     if (credentials.schema) {
-      url.query.schema = credentials.schema
+      url.searchParams.set('schema', credentials.schema)
     }
 
     if (credentials.socket) {
-      url.query.host = credentials.socket
+      url.host = credentials.socket
     }
   } else if (credentials.type === 'mysql') {
     url.pathname = '/' + (credentials.database || credentials.schema || '')
     if (credentials.socket) {
-      url.query.socket = credentials.socket
+      url.searchParams.set('socket', credentials.socket)
     }
   }
 
   if (credentials.ssl) {
-    url.query.sslmode = 'prefer'
+    url.searchParams.set('sslmode', 'prefer')
   }
 
   if (credentials.user) {
@@ -53,7 +53,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
 
   if (credentials.extraFields) {
     for (const [key, value] of Object.entries(credentials.extraFields)) {
-      url.query[key] = value
+      url.searchParams.set(key, value)
     }
   }
 
@@ -66,18 +66,22 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     // if `file:../parent-dev.db` return as it is
     return credentials.uri!
   }
-  // use a custom toString method, as we don't want escaping of query params
-  return url.toString((q) =>
-    Object.entries(q)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&'),
-  )
+
+  return url.toString()
 }
 
 export function uriToCredentials(
   connectionString: string,
 ): DatabaseCredentials {
-  const uri = new URL(connectionString, true)
+  let uri: NodeURL.URL
+  try {
+    uri = new NodeURL.URL(connectionString)
+  } catch (e) {
+    throw new Error(
+      'Invalid data source URL, see https://www.prisma.io/docs/reference/database-reference/connection-urls',
+    )
+  }
+
   const type = protocolToDatabaseType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
@@ -90,7 +94,15 @@ export function uriToCredentials(
     }
   }
 
-  const { schema, socket, host, ...extraFields } = uri.query
+  const extraFields = {}
+  const schema = uri.searchParams.get('schema')
+  const socket = uri.searchParams.get('socket')
+
+  for (const [name, value] of uri.searchParams) {
+    if (!['schema', 'socket'].includes(name)) {
+      extraFields[name] = value
+    }
+  }
 
   let database: string | undefined = undefined
   let defaultSchema: string | undefined = undefined
@@ -128,8 +140,8 @@ export function uriToCredentials(
     database,
     schema: schema || defaultSchema,
     uri: connectionString,
-    ssl: Boolean(uri.query.sslmode),
-    socket: socket || host,
+    ssl: Boolean(uri.searchParams.get('sslmode')),
+    socket: socket || undefined,
     extraFields,
   }
 }
@@ -149,7 +161,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
   }
 }
 
-function protocolToDatabaseType(protocol: string): ConnectorType {
+export function protocolToDatabaseType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':

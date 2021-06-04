@@ -477,9 +477,11 @@ async function getAllVersions(
   return unique(
     flatten(
       await pMap(
-        Object.values(packages).filter((p) => p.name !== '@prisma/tests'),
+        Object.values(packages).filter(
+          (p) => p.name !== '@prisma/integration-tests',
+        ),
         async (pkg) => {
-          if (pkg.name === '@prisma/tests') {
+          if (pkg.name === '@prisma/integration-tests') {
             return []
           }
           const pkgVersions = []
@@ -706,7 +708,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
       }
 
       const publishOrder = filterPublishOrder(getPublishOrder(packages), [
-        '@prisma/tests',
+        '@prisma/integration-tests',
       ])
 
       if (!dryRun) {
@@ -807,7 +809,9 @@ async function tagEnginesRepo(
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
   )
-  const changelogSanitized = changelog.replace(/"/gm, '\\"')
+  const changelogSanitized = changelog
+    .replace(/"/gm, '\\"')
+    .replace(/`/gm, '\\`')
 
   const remotes = dryRun
     ? []
@@ -874,6 +878,14 @@ async function testPackages(
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${chalk.magentaBright(pkg.name)}`)
       await run(path.dirname(pkg.path), 'pnpm run test')
+
+      //       // Also need a second run but with N-API
+      //       if (pkg.name === '@prisma/integration-tests' || pkg.name === '@prisma/client') {
+      //         await run(
+      //           path.dirname(pkg.path),
+      //           'PRISMA_FORCE_NAPI=true pnpm run test',
+      //         )
+      //       }
     } else {
       console.log(
         `\nSkipping ${chalk.magentaBright(pkg.name)}, as it doesn't have tests`,
@@ -900,7 +912,8 @@ async function newVersion(pkg: Package, prisma2Version: string) {
   return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
 }
 
-const semverRegex = /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
+const semverRegex =
+  /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
 function patchVersion(version: string): string | null {
   // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
@@ -935,7 +948,7 @@ async function patch(pkg: Package): Promise<string> {
   }
 
   const localVersion = pkg.version
-  if (pkg.name === '@prisma/tests') {
+  if (pkg.name === '@prisma/integration-tests') {
     return localVersion
   }
   const npmVersion = await runResult('.', `npm info ${pkg.name} version`)
@@ -1044,7 +1057,7 @@ async function publishPackages(
     for (const pkgName of currentBatch) {
       const pkg = packages[pkgName]
 
-      if (pkg.name === '@prisma/tests') {
+      if (pkg.name === '@prisma/integration-tests') {
         continue
       }
 
@@ -1093,6 +1106,13 @@ async function publishPackages(
       }
 
       await writeVersion(pkgDir, newVersion, dryRun)
+
+      if (pkgName === 'prisma') {
+        const latestCommit = await getLatestCommit('.')
+        await writeToPkgJson(pkgDir, (pkg) => {
+          pkg.prisma.prismaCommit = latestCommit.hash
+        })
+      }
 
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
@@ -1332,18 +1352,15 @@ function getLines(str: string): string[] {
 }
 
 async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
-  type Commit = {
-    message?: string
-    author: {
-      name: string
-    }
-    hash
+  const response = await fetch(
+    `https://api.github.com/repos/prisma/${repo}/commits/${hash}`,
+  )
+
+  const jsonData = await response.json()
+
+  return {
+    message: jsonData.commit?.message || '',
+    author: jsonData.commit?.author.name || '',
+    hash,
   }
-  return fetch(`https://api.github.com/repos/prisma/${repo}/commits/${hash}`)
-    .then((_) => _.json())
-    .then(({ commit }: { commit: Commit }) => ({
-      message: commit.message || '',
-      author: commit.author.name,
-      hash,
-    }))
 }

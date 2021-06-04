@@ -16,13 +16,13 @@ if (require.main === module) {
   generatorHandler({
     onManifest(config) {
       const requiredEngine =
-        config?.previewFeatures?.includes('napi') ||
+        config?.previewFeatures?.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
           ? 'libqueryEngineNapi'
           : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
       return {
-        defaultOutput: '@prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
+        defaultOutput: '.prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/master/cli/sdk/src/getGenerators.ts
         prettyName: 'Prisma Client',
         requiresEngines: [requiredEngine],
         version: clientVersion,

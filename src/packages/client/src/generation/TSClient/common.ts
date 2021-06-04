@@ -32,7 +32,8 @@ const {
   empty,
   join,
   raw,
-  Decimal
+  Decimal,
+  findSync
 } = require('${runtimePath}')
 
 const path = require('path')
@@ -282,7 +283,36 @@ export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
  * From ts-toolbelt
  */
 
+type __Either<O extends object, K extends Key> = Omit<O, K> &
+  {
+    // Merge all but K
+    [P in K]: Prisma__Pick<O, P & keyof O> // With K possibilities
+  }[K]
+
+type EitherStrict<O extends object, K extends Key> = Strict<__Either<O, K>>
+
+type EitherLoose<O extends object, K extends Key> = ComputeRaw<__Either<O, K>>
+
+type _Either<
+  O extends object,
+  K extends Key,
+  strict extends Boolean
+> = {
+  1: EitherStrict<O, K>
+  0: EitherLoose<O, K>
+}[strict]
+
+type Either<
+  O extends object,
+  K extends Key,
+  strict extends Boolean = 1
+> = O extends unknown ? _Either<O, K, strict> : never
+
 export type Union = any
+
+type PatchUndefined<O extends object, O1 extends object> = {
+  [K in keyof O]: O[K] extends undefined ? At<O1, K> : O[K]
+} & {}
 
 /** Helper Types for "Merge" **/
 export type IntersectOf<U extends Union> = (
@@ -396,7 +426,7 @@ export type GetScalarType<T, O> = O extends object ? {
 
 type FieldPaths<
   T,
-  U = Omit<T, 'avg' | 'sum' | 'count' | 'min' | 'max'>
+  U = Omit<T, '_avg' | '_sum' | '_count' | '_min' | '_max'>
 > = IsObject<T> extends True ? U : T
 
 type GetHavingFields<T> = {

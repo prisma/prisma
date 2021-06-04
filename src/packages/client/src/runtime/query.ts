@@ -1,5 +1,7 @@
 import chalk from 'chalk'
+import Decimal from 'decimal.js'
 import indent from 'indent-string'
+import stripAnsi from 'strip-ansi'
 import { /*dmmf, */ DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import {
@@ -25,6 +27,8 @@ import {
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
+import { flatMap } from './utils/flatMap'
+import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
 import {
   MissingItem,
@@ -33,10 +37,6 @@ import {
 } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
-import stripAnsi from 'strip-ansi'
-import { flatMap } from './utils/flatMap'
-import Decimal from 'decimal.js'
-import { isObject } from './utils/isObject'
 
 const tab = 2
 
@@ -146,7 +146,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
           .type as DMMF.OutputType
 
         fieldType.fields
-          .filter((field) =>
+          ?.filter((field) =>
             fieldError.error.type === 'emptyInclude'
               ? field.outputType.location === 'outputObjectTypes'
               : true,
@@ -253,7 +253,11 @@ ${fieldErrors
         return stripAnsi(errorMessages)
       }
 
-      const { stack, indent: indentValue, afterLines } = printStack({
+      const {
+        stack,
+        indent: indentValue,
+        afterLines,
+      } = printStack({
         callsite,
         originalMethod: originalMethod || queryName,
         showColors: errorFormat && errorFormat === 'pretty',
@@ -389,7 +393,10 @@ ${errorMessages}${missingArgsLegend}\n`
 
       return str
     }
+
+    return undefined
   }
+
   protected printArgError = (
     { error, path, id }: ArgError,
     hasMissingItems: boolean,
@@ -456,8 +463,9 @@ ${errorMessages}${missingArgsLegend}\n`
             error.requiredType.bestFittingType.isList,
           ),
         )}.
-→ Possible values: ${(error.requiredType.bestFittingType
-          .type as DMMF.SchemaEnum).values
+→ Possible values: ${(
+          error.requiredType.bestFittingType.type as DMMF.SchemaEnum
+        ).values
           .map((v) =>
             chalk.greenBright(
               `${stringifyGraphQLType(
@@ -547,6 +555,8 @@ ${errorMessages}${missingArgsLegend}\n`
         .map((key) => chalk.redBright(key))
         .join(' and ')}.${additional}`
     }
+
+    return undefined
   }
   /**
    * As we're allowing both single objects and array of objects for list inputs, we need to remove incorrect
@@ -650,9 +660,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     return str
   }
-  public collectErrors(
-    prefix = 'select',
-  ): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
+  public collectErrors(prefix = 'select'): {
+    fieldErrors: FieldError[]
+    argErrors: ArgError[]
+  } {
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
 
@@ -888,7 +899,7 @@ ${indent(value.toString(), 2)}
     if (Array.isArray(this.value)) {
       errors.push(
         ...(flatMap(this.value as any[], (val, index) => {
-          if (!val.collectErrors) {
+          if (!val?.collectErrors) {
             return []
           }
 

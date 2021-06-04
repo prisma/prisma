@@ -10,7 +10,7 @@ export interface Engine {
   stop(): Promise<void>
   kill(signal: string): void
   getConfig(): Promise<GetConfigResult>
-  version(forceRun?: boolean): Promise<string>
+  version(forceRun?: boolean): Promise<string> | string
   request<T>(
     query: string,
     headers: Record<string, string>,
@@ -49,7 +49,7 @@ export interface EngineConfig {
   useUds?: boolean
 
   clientVersion?: string
-  enableExperimental?: string[]
+  previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
 }

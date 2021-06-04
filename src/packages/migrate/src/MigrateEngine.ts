@@ -1,14 +1,14 @@
+import Debug from '@prisma/debug'
+import { ErrorArea, resolveBinary, RustPanic, EngineTypes } from '@prisma/sdk'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from '@prisma/debug'
+import fs from 'fs'
 import { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
+import { now } from './utils/now'
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
-import fs from 'fs'
-import { now } from './utils/now'
-import { RustPanic, ErrorArea, resolveBinary } from '@prisma/sdk'
 
 export interface MigrateEngineOptions {
   projectDir: string
@@ -188,7 +188,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
-        const binaryPath = await resolveBinary('migration-engine')
+        const binaryPath = await resolveBinary(EngineTypes.migrationEngine)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args = ['-d', this.schemaPath]
         if (
@@ -337,7 +337,6 @@ export class MigrateEngine {
                 reject(new Error(message))
               }
             } else {
-              const text = this.persistError(request, this.messages.join('\n'))
               reject(
                 new Error(
                   `${chalk.redBright(
@@ -348,7 +347,7 @@ export class MigrateEngine {
                     2,
                   )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
                     response.error.message
-                  }\n\n${text}\n`,
+                  }\n`,
                 ),
               )
             }
@@ -375,33 +374,7 @@ export class MigrateEngine {
       this.lastRequest = request
     })
   }
-  private persistError(request: any, message: string): string {
-    const filename = `failed-${request.method}-${now()}.md`
-    fs.writeFileSync(
-      filename,
-      `# Failed ${request.method} at ${new Date().toISOString()}
-## RPC One-Liner
-\`\`\`json
-${JSON.stringify(request)}
-\`\`\`
 
-## RPC Input Readable
-\`\`\`json
-${JSON.stringify(request, null, 2)}
-\`\`\`
-
-## Stack Trace
-\`\`\`bash
-${message}
-\`\`\`
-`,
-    )
-    return `Wrote ${chalk.bold(filename)} with debugging information.
-Please put that file into a gist and post it in Slack.
-1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}
-2. Create a gist ${chalk.greenBright.underline(`https://gist.github.com/new`)}`
-    // }
-  }
   private getRPCPayload(method: string, params: any): RPCPayload {
     return {
       id: messageId++,

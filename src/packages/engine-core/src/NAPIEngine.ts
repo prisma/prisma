@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { ConnectorType } from '@prisma/generator-helper'
 import {
   getNapiName,
   getPlatform,
@@ -16,7 +15,6 @@ import type {
   Engine,
   EngineConfig,
   EngineEventType,
-  GetConfigResult,
 } from './Engine'
 import {
   getErrorMessageWithLink,
@@ -26,109 +24,30 @@ import {
   PrismaClientUnknownRequestError,
   RequestError,
 } from './errors'
+import {
+  ConfigMetaFormat,
+  NAPI,
+  QueryEngine,
+  QueryEngineBatchRequest,
+  QueryEngineConstructor,
+  QueryEngineEvent,
+  QueryEngineLogLevel,
+  QueryEnginePanicEvent,
+  QueryEngineQueryEvent,
+  QueryEngineRequest,
+  QueryEngineRequestHeaders,
+  RustRequestError,
+  SyncRustError,
+} from './napi-types'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
+
 const debug = Debug('prisma:client:napi')
 
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
-type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
-type QueryEngineEvent =
-  | QueryEngineLogEvent
-  | QueryEngineQueryEvent
-  | QueryEnginePanicEvent
-type QueryEngineConfig = {
-  datamodel: string
-  datasourceOverrides?: Record<string, string>
-  logLevel: QueryEngineLogLevel
-  telemetry?: QueryEngineTelemetry
-}
-type QueryEngineTelemetry = {
-  enabled: Boolean
-  endpoint: string
-}
-type QueryEngineLogEvent = {
-  level: string
-  module_path: string
-  message: string
-}
-type QueryEngineQueryEvent = {
-  level: 'info'
-  module_path: string
-  query: string
-  item_type: 'query'
-  params: string
-  duration_ms: string
-  result: string
-}
-type QueryEnginePanicEvent = {
-  level: 'error'
-  module_path: string
-  message: 'PANIC'
-  reason: string
-  file: string
-  line: string
-  column: string
-}
-export interface QueryEngineConstructor {
-  new (
-    config: QueryEngineConfig,
-    logger: (err: string, log: string) => void,
-  ): QueryEngine
-}
 
-type ConnectArgs = {
-  enableRawQueries: boolean
-}
-
-export type QueryEngineRequest = {
-  query: string
-  variables: Object
-}
-export type QueryEngineRequestHeaders = {
-  traceparent?: string
-}
-
-export type QueryEngineBatchRequest = {
-  batch: QueryEngineRequest[]
-  transaction: boolean
-}
-
-export type QueryEngine = {
-  connect(connectArgs: ConnectArgs): Promise<void>
-  disconnect(): Promise<void>
-  getConfig(): Promise<string>
-  dmmf(): Promise<string>
-  query(
-    request: QueryEngineRequest | QueryEngineBatchRequest,
-    headers: QueryEngineRequestHeaders,
-  ): Promise<string>
-  sdlSchema(): Promise<string>
-  serverInfo(): Promise<string>
-  nextLogEvent(): Promise<string>
-}
-
-type ServerInfo = {
-  commit: string
-  version: string
-  primaryConnector: string
-}
-
-type SyncRustError = {
-  is_panic: boolean
-  message: string
-  meta: {
-    full_error: string
-  }
-  error_code: string
-}
-
-type RustRequestError = {
-  is_panic: boolean
-  message: string
-  backtrace: string
-}
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
-  return event.level === 'info' && event['item_type'] === 'query'
+  return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   return event.level === 'error' && event['message'] === 'PANIC'
@@ -143,6 +62,7 @@ export class NAPIEngine implements Engine {
   private currentQuery?: Promise<any>
   private config: EngineConfig
   private QueryEngine?: QueryEngineConstructor
+  private library?: NAPI
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
@@ -155,7 +75,10 @@ export class NAPIEngine implements Engine {
 
   connected: boolean
   beforeExitListener?: (args?: any) => any
-  serverInfo?: ServerInfo
+  versionInfo?: {
+    commit: string
+    version: string
+  }
 
   constructor(config: EngineConfig) {
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
@@ -170,11 +93,6 @@ export class NAPIEngine implements Engine {
     this.datasourceOverrides = config.datasources
       ? this.convertDatasources(config.datasources)
       : {}
-
-    if (this.logQueries) {
-      process.env.LOG_QUERIES = 'true'
-      this.logLevel = 'info'
-    }
     if (config.enableEngineDebugMode) {
       this.logLevel = 'debug'
       // Debug.enable('*')
@@ -186,7 +104,8 @@ export class NAPIEngine implements Engine {
     if (this.setupPromise) return this.setupPromise
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
-    return this.loadEngine()
+    await this.loadEngine()
+    this.version()
   }
   private async getPlatform() {
     if (this.platform) return this.platform
@@ -208,7 +127,13 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
-  private parseEngineResponse<T>(response: string): T {
+  private parseEngineResponse<T>(response?: string): T {
+    if (!response) {
+      throw new PrismaClientUnknownRequestError(
+        `Response from the Engine was empty`,
+        this.config.clientVersion!,
+      )
+    }
     try {
       const config = JSON.parse(response)
       return config as T
@@ -238,8 +163,8 @@ You may have to run ${chalk.greenBright(
         }
         try {
           // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.QueryEngine = require(/* webpackIgnore: true */
-          this.libQueryEnginePath).QueryEngine
+          this.library = eval('require')(this.libQueryEnginePath) as NAPI
+          this.QueryEngine = this.library.QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
             throw new PrismaClientInitializationError(
@@ -260,24 +185,15 @@ You may have to run ${chalk.greenBright(
       }
       if (this.QueryEngine) {
         try {
-          const featureFlagsOverrides = process.env
-            .PRISMA_DEBUG_ENABLE_ALL_FLAGS
-            ? [
-                'microsoftSqlServer',
-                'orderByRelation',
-                'napi',
-                // 'mongodb',
-                'selectRelationCount',
-              ]
-            : undefined
           this.engine = new this.QueryEngine(
             {
               datamodel: this.datamodel,
+              logQueries: this.config.logQueries ?? false,
+              ignoreEnvVarErrors: false,
               datasourceOverrides: this.datasourceOverrides,
               logLevel: this.logLevel,
-              featureFlagsOverrides,
-              configDir: this.config.cwd,
-            } as any,
+              configDir: this.config.cwd!,
+            },
             (err, log) => this.logger(err, log),
           )
         } catch (e) {
@@ -329,8 +245,9 @@ You may have to run ${chalk.greenBright(
       platform: this.platform,
       title,
       version: this.config.clientVersion!,
-      engineVersion: this.serverInfo?.version,
-      database: this.serverInfo?.primaryConnector as ConnectorType,
+      engineVersion: this.versionInfo?.version,
+      // TODO
+      database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
   }
@@ -378,18 +295,20 @@ You may have to run ${chalk.greenBright(
   async start(): Promise<void> {
     await this.setupPromise
     await this.disconnectPromise
-
     if (this.connectPromise) {
-      debug('already starting')
-      return this.connectPromise
+      debug(`already starting: ${this.connected}`)
+      await this.connectPromise
+      if (this.connected) {
+        return
+      }
     }
     if (!this.connected) {
       // eslint-disable-next-line no-async-promise-executor
       this.connectPromise = new Promise(async (res) => {
         debug('starting')
         await this.engine?.connect({ enableRawQueries: true })
+        this.connected = true
         debug('started')
-        void this.version()
         res()
       })
       return this.connectPromise
@@ -398,22 +317,28 @@ You may have to run ${chalk.greenBright(
 
   async stop(): Promise<void> {
     await this.connectPromise
-    debug('stop')
+    await this.currentQuery
+    debug(`stop state ${this.connected}`)
     if (this.disconnectPromise) {
-      debug('disconnect already called')
-      return this.disconnectPromise
+      debug('engine is already disconnecting')
+      await this.disconnectPromise
+      if (!this.connected) {
+        this.disconnectPromise = undefined
+        return
+      }
     }
-    // eslint-disable-next-line no-async-promise-executor
-    this.disconnectPromise = new Promise(async (res) => {
-      if (this.connected) {
+    if (this.connected) {
+      // eslint-disable-next-line no-async-promise-executor
+      this.disconnectPromise = new Promise(async (res) => {
         await this.emitExit()
         debug('disconnect called')
         await this.engine?.disconnect()
         this.connected = false
         debug('disconnect resolved')
-      }
-      res()
-    })
+
+        res()
+      })
+    }
     return this.disconnectPromise
   }
   kill(signal: string): void {
@@ -429,20 +354,16 @@ You may have to run ${chalk.greenBright(
       })
     }
   }
-  async getConfig(): Promise<GetConfigResult> {
-    await this.start()
-    debug('getConfig')
-    return this.parseEngineResponse<GetConfigResult>(
-      await this.engine!.getConfig(),
-    )
+  async getConfig(): Promise<ConfigMetaFormat> {
+    return this.library!.getConfig({
+      datamodel: this.datamodel,
+      datasourceOverrides: this.datasourceOverrides,
+      ignoreEnvVarErrors: true,
+    })
   }
-  async version(forceRun?: boolean): Promise<string> {
-    await this.start()
-    const serverInfo = this.parseEngineResponse<ServerInfo>(
-      await this.engine!.serverInfo(),
-    )
-    this.serverInfo = serverInfo
-    return this.serverInfo.version
+  version(forceRun?: boolean): string {
+    this.versionInfo = this.library?.version()
+    return this.versionInfo?.version ?? 'unknown'
   }
   private graphQLToJSError(
     error: RequestError,
@@ -468,19 +389,13 @@ You may have to run ${chalk.greenBright(
   ): Promise<{ data: T; elapsed: number }> {
     try {
       await this.start()
-      debug(`request: ${this.connected}`)
-      if (!this.connected) {
-        await this.start()
-      }
-      const request = { query, variables: {} }
+      debug(`request state: ${this.connected}`)
+      const request: QueryEngineRequest = { query, variables: {} }
       this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(request, {})
+      this.currentQuery = this.engine!.query(this.lastQuery, JSON.stringify({}))
       const data = this.parseEngineResponse<any>(await this.currentQuery)
       if (data.errors) {
         if (data.errors.length === 1) {
-          if (this.lastError) {
-            throw this.lastError
-          }
           throw this.graphQLToJSError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
@@ -488,6 +403,8 @@ You may have to run ${chalk.greenBright(
           JSON.stringify(data.errors),
           this.config.clientVersion!,
         )
+      } else if (this.lastError) {
+        throw this.lastError
       }
       return { data, elapsed: 0 }
     } catch (e) {
@@ -509,13 +426,16 @@ You may have to run ${chalk.greenBright(
   ): Promise<any> {
     await this.start()
     debug('requestBatch')
-    const variables = {}
-    const request = {
-      batch: queries.map((query) => ({ query, variables })),
+    const headers: QueryEngineRequestHeaders = {}
+    const request: QueryEngineBatchRequest = {
+      batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
     this.lastQuery = JSON.stringify(request)
-    this.currentQuery = this.engine!.query(request, {})
+    this.currentQuery = this.engine!.query(
+      this.lastQuery,
+      JSON.stringify(headers),
+    )
     const result = await this.currentQuery
     const data = this.parseEngineResponse<any>(result)
 

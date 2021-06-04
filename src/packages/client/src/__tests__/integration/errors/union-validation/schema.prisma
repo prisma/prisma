@@ -6,7 +6,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DB_URL")
+  url      = "file:./dev.db"
 }
 
 model Organization {

@@ -1,5 +1,6 @@
-import { getEnginesPath } from '@prisma/engines'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
+import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -43,18 +44,25 @@ export async function getTestClient(
   const generator = config.generators.find(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
-  const enableExperimental = mapPreviewFeatures(extractPreviewFeatures(config))
-  if (enableExperimental.includes('napi') || process.env.PRISMA_FORCE_NAPI) {
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const enginesPath = getEnginesPath()
+  const platform = await getPlatform()
+  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  if (
+    (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(napiLibraryPath)
+  ) {
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
-        'libquery-engine-napi': getEnginesPath(),
+        'libquery-engine-napi': enginesPath,
       },
+      version: enginesVersion,
     })
   }
   const document = await getDMMF({
     datamodel,
-    enableExperimental,
+    previewFeatures,
   })
   const outputDir = schemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })

@@ -11,31 +11,42 @@ import prompt from 'prompts'
 import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
+type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
-export async function getDbInfo(
-  schemaPath?: string,
-): Promise<{
+export async function getDbInfo(schemaPath?: string): Promise<{
   name: string
-  dbLocation: string
-  schemaWord: string
-  dbType: string
-  dbName: string
   url: string
+  schemaWord: 'database'
+  dbLocation?: string
+  dbType?: dbType
+  dbName?: string
   schema?: string
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
 
-  const credentials = uriToCredentials(activeDatasource.url.value)
-  const dbLocation = getDbLocation(credentials)
-  const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
-  return {
-    name: activeDatasource.name,
-    dbLocation,
-    ...dbinfoFromCredentials,
-    url: activeDatasource.url.value,
-    schema: credentials.schema,
+  try {
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const dbLocation = getDbLocation(credentials)
+    const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
+
+    return {
+      name: activeDatasource.name,
+      dbLocation,
+      ...dbinfoFromCredentials,
+      url: activeDatasource.url.value,
+      schema: credentials.schema,
+    }
+  } catch (e) {
+    return {
+      name: activeDatasource.name,
+      schemaWord: 'database',
+      dbType: undefined,
+      dbName: undefined,
+      dbLocation: undefined,
+      url: activeDatasource.url.value,
+    }
   }
 }
 
@@ -48,6 +59,12 @@ export async function ensureCanConnectToDatabase(
 
   if (!activeDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
+  }
+
+  if (activeDatasource.provider[0] === 'mongodb') {
+    throw new Error(
+      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
+    )
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
@@ -78,6 +95,12 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
+  if (activeDatasource.provider[0] === 'mongodb') {
+    throw new Error(
+      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
+    )
+  }
+
   const schemaDir = (await getSchemaDir(schemaPath))!
 
   const canConnect = await canConnectToDatabase(
@@ -99,15 +122,17 @@ export async function ensureDatabaseExists(
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
   if (forceCreate) {
-    const result = await createDatabase(activeDatasource.url.value, schemaDir)
-    if (result && result.exitCode === 0) {
+    if (await createDatabase(activeDatasource.url.value, schemaDir)) {
       const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(
-        credentials,
-      )
-      return `${dbType} ${schemaWord} ${chalk.bold(
-        dbName,
-      )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+      const { schemaWord, dbType, dbName } =
+        getDbinfoFromCredentials(credentials)
+      if (dbType) {
+        return `${dbType} ${schemaWord} ${chalk.bold(
+          dbName,
+        )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+      } else {
+        return `${schemaWord} created.\n`
+      }
     }
   } else {
     await interactivelyCreateDatabase(
@@ -189,11 +214,9 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
-export function getDbinfoFromCredentials(
-  credentials,
-): {
+export function getDbinfoFromCredentials(credentials): {
   dbName: string
-  dbType: 'MySQL' | 'PostgreSQL' | 'SQLite' | 'MSSQL'
+  dbType: dbType
   schemaWord: 'database'
 } {
   const dbName = credentials.database
@@ -209,8 +232,9 @@ export function getDbinfoFromCredentials(
     case 'sqlite':
       dbType = `SQLite`
       break
+    case 'sqlserver':
     case 'mssql':
-      dbType = `MSSQL`
+      dbType = `SQL Server`
       break
   }
 

@@ -1,8 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
-  // works in isolation
-  if (process.env.PRISMA_FORCE_NAPI) {
+  // TODO triggerPanic has not been implemented for N-API
+  if (process.env.PRISMA_FORCE_NAPI === 'true') {
     return
   }
   expect.assertions(1)

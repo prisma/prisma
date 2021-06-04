@@ -158,7 +158,6 @@ async function main(): Promise<number> {
       'init',
       'migrate',
       'db',
-      'tmp-prepare',
       'introspect',
       'dev',
       'studio',
@@ -187,7 +186,7 @@ async function main(): Promise<number> {
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
 
-    let schemaProviders: string[] | undefined
+    let schemaProvider: string | undefined
     let schemaPreviewFeatures: string[] | undefined
     let schemaGeneratorsProviders: string[] | undefined
     try {
@@ -196,7 +195,7 @@ async function main(): Promise<number> {
         datamodel: schema,
       })
       if (config.datasources.length > 0) {
-        schemaProviders = config.datasources[0].provider
+        schemaProvider = config.datasources[0].provider
       }
       const generator = config.generators.find(
         (gen) => gen.previewFeatures.length > 0,
@@ -209,7 +208,7 @@ async function main(): Promise<number> {
         parseEnvValue(gen.provider),
       )
     } catch (e) {
-      //
+      debug('Error from cli/src/bin.ts')
       debug(e)
     }
 
@@ -219,7 +218,7 @@ async function main(): Promise<number> {
       cli_path_hash: cliPathHash,
       project_hash: projectPathHash,
       version: packageJson.version,
-      schema_providers: schemaProviders,
+      schema_providers: schemaProvider ? [schemaProvider] : undefined,
       schema_preview_features: schemaPreviewFeatures,
       schema_generators_providers: schemaGeneratorsProviders,
       cli_path: process.argv[1],

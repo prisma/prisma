@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
+import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import { getNapiName, getPlatform } from '@prisma/get-platform'
 import {
@@ -48,13 +48,13 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const enablePreview = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const useNapi =
-    enablePreview.includes('napi') || process.env.PRISMA_FORCE_NAPI === 'true'
+    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
     datamodel,
-    enableExperimental: enablePreview, // it's still called enableExperimental when calling the query engine
+    previewFeatures,
   })
 
   const outputDir = transpile
@@ -99,18 +99,23 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  if (useNapi || process.env.PRISMA_FORCE_NAPI) {
+  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  if (
+    (useNapi || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(napiLibraryPath)
+  ) {
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine-napi': enginesPath,
       },
+      version: enginesVersion,
     })
   }
   const binaryPaths = useNapi
     ? {
         libqueryEngineNapi: {
-          [platform]: path.join(enginesPath, getNapiName(platform, 'fs')),
+          [platform]: napiLibraryPath,
         },
       }
     : {
@@ -121,6 +126,10 @@ export async function generateInFolder({
           ),
         },
       }
+
+  // we make sure that we are in the project root
+  // this only applies to generated test clients
+  process.chdir(projectDir)
 
   await generateClient({
     binaryPaths,
@@ -139,7 +148,6 @@ export async function generateInFolder({
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
   })
-
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)
 

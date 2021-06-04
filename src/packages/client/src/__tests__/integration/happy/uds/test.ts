@@ -95,7 +95,8 @@ test('blog', async () => {
   expect(rawQueryTemplate[0]['1']).toBe(1)
 
   // Test queryRaw`` with ${param}
-  const rawQueryTemplateWithParams = await db.$queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams =
+    await db.$queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`
   expect(rawQueryTemplateWithParams[0].name).toBe('Alice')
 
   // Test queryRaw`` with prisma.sql``
@@ -130,7 +131,8 @@ test('blog', async () => {
   expect(executeRawWithValues).toBe(0)
 
   // Test $executeRaw
-  const $executeRawTemplate = await db.$executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
+  const $executeRawTemplate =
+    await db.$executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
   expect($executeRawTemplate).toBe(0)
 
   // Test validation errors

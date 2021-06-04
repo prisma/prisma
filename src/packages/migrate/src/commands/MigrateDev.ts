@@ -261,9 +261,8 @@ ${chalk.bold('Examples')}
       )}.`
     }
 
-    const {
-      appliedMigrationNames: migrationIds,
-    } = await migrate.applyMigrations()
+    const { appliedMigrationNames: migrationIds } =
+      await migrate.applyMigrations()
 
     migrate.stop()
 
@@ -302,13 +301,19 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
   }
 
   private async confirmReset(
-    { schemaWord, dbType, dbName, dbLocation },
-    reason,
+    {
+      schemaWord,
+      dbType,
+      dbName,
+      dbLocation,
+    }: { schemaWord?; dbType?; dbName?; dbLocation? },
+    reason: string,
   ): Promise<boolean> {
     const mssqlMessage = `${reason}
 
 We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
+
     const message = `${reason}
 
 We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".

@@ -138,7 +138,7 @@ ${indent(
           if (f.outputType.location === 'outputObjectTypes') {
             return `${f.name}?: ${getAggregateInputType(
               (f.outputType.type as DMMF.OutputType).name,
-            )}${f.name === 'count' ? ' | true' : ''}`
+            )}${f.name === '_count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
@@ -154,14 +154,19 @@ ${new OutputType(this.dmmf, groupByType).toTS()}
 
 type ${getGroupByPayloadName(
       model.name,
-    )}<T extends ${groupByArgsName}> = Promise<Array<
-  PickArray<${groupByType.name}, T['by']> & {
-    [P in ((keyof T) & (keyof ${groupByType.name}))]: GetScalarType<T[P], ${
-      groupByType.name
-    }[P]>
-  }
->>
-    `
+    )}<T extends ${groupByArgsName}> = Promise<
+  Array<
+    PickArray<${groupByType.name}, T['by']> & 
+      {
+        [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count' 
+          ? T[P] extends boolean 
+            ? number 
+            : GetScalarType<T[P], ${groupByType.name}[P]> 
+          : GetScalarType<T[P], ${groupByType.name}[P]>
+      }
+    > 
+  >
+`
   }
   private getAggregationTypes() {
     const { model, mapping } = this
@@ -188,9 +193,8 @@ type ${getGroupByPayloadName(
     const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
     const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
     const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
-    const countType = this.dmmf.outputTypeMap[
-      getCountAggregateOutputName(model.name)
-    ]
+    const countType =
+      this.dmmf.outputTypeMap[getCountAggregateOutputName(model.name)]
 
     if (avgType) {
       aggregateTypes.push(avgType)
@@ -269,7 +273,7 @@ ${indent(
           f.name,
         )
         data += comment ? wrapComment(comment) + '\n' : ''
-        if (f.name === 'count') {
+        if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
           data += `${f.name}?: ${getAggregateInputType(
@@ -287,7 +291,7 @@ ${indent(
 export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       model.name,
     )}> = {
-  [P in keyof T & keyof ${aggregateName}]: P extends 'count'
+      [P in keyof T & keyof ${aggregateName}]: P extends '_count' | 'count'
     ? T[P] extends true
       ? number
       : GetScalarType<T[P], ${aggregateName}[P]>

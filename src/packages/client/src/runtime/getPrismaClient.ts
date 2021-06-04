@@ -18,36 +18,28 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import stripAnsi from 'strip-ansi'
-import {
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from '.'
-import { Dataloader } from './Dataloader'
 import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import {
-  Args,
-  Document,
-  makeDocument,
-  transformDocument,
-  unpack,
-} from './query'
+  EngineMiddleware,
+  Middlewares,
+  Namespace,
+  QueryMiddleware,
+  QueryMiddlewareParams,
+} from './MiddlewareHandler'
+import { PrismaClientFetcher } from './PrismaClientFetcher'
+import { Document, makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import { printStack } from './utils/printStack'
 import {
   getRejectOnNotFound,
   InstanceRejectOnNotFound,
   RejectOnNotFound,
-  throwIfNotFound,
 } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
@@ -134,7 +126,7 @@ export interface PrismaClientOptions {
   }
 }
 
-type Unpacker = (data: any) => any
+export type Unpacker = (data: any) => any
 
 export type HookParams = {
   query: string
@@ -146,59 +138,42 @@ export type HookParams = {
   args: any
 }
 
-/**
- * These options are being passed in to the middleware as "params"
- */
-export type MiddlewareParams = {
-  model?: string
-  action: Action
-  args: any
-  dataPath: string[]
-  runInTransaction: boolean
-}
+export type Action =
+  | 'findUnique'
+  | 'findFirst'
+  | 'findMany'
+  | 'create'
+  | 'createMany'
+  | 'update'
+  | 'updateMany'
+  | 'upsert'
+  | 'delete'
+  | 'deleteMany'
+  | 'executeRaw'
+  | 'queryRaw'
+  | 'aggregate'
 
-/**
- * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
- */
-export type Middleware<T = any> = (
-  params: MiddlewareParams,
-  next: (params: MiddlewareParams) => Promise<T>,
-) => Promise<T>
-
-export interface InternalRequestParams extends MiddlewareParams {
+export type InternalRequestParams = {
   /**
    * The original client method being called.
    * Even though the rootField / operation can be changed,
    * this method stays as it is, as it's what the user's
    * code looks like
    */
-  clientMethod: string
-  callsite?: string
-  headers?: Record<string, string>
-  transactionId?: number
-  unpacker?: Unpacker
-}
-
-export type HookPoint = 'all' | 'engine'
-
-export type EngineMiddlewareParams = {
-  document: Document
-  runInTransaction?: boolean
-}
+  clientMethod: string // TODO what is this
+  callsite?: string // TODO what is this
+  headers?: Record<string, string> // TODO what is this
+  transactionId?: number // TODO what is this
+  unpacker?: Unpacker // TODO what is this
+} & QueryMiddlewareParams
 
 // only used by the .use() hooks
 export type AllHookArgs = {
   params: HookParams
   fetch: (params: HookParams) => Promise<any>
 }
-/**
- * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
- */
-export type EngineMiddleware<T = any> = (
-  params: EngineMiddlewareParams,
-  next: (params: EngineMiddlewareParams) => Promise<T>,
-) => Promise<T>
 
+// TODO: drop hooks 💣
 export type Hooks = {
   beforeRequest?: (options: HookParams) => any
 }
@@ -210,13 +185,12 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<
-  T extends LogLevel | LogDefinition
-> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
+export type GetLogType<T extends LogLevel | LogDefinition> =
+  T extends LogDefinition
+    ? T['emit'] extends 'event'
+      ? T['level']
+      : never
     : never
-  : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
   | GetLogType<T[1]>
@@ -253,21 +227,6 @@ export interface GetPrismaClientOptions {
   activeProvider: string
 }
 
-export type Action =
-  | 'findUnique'
-  | 'findFirst'
-  | 'findMany'
-  | 'create'
-  | 'createMany'
-  | 'update'
-  | 'updateMany'
-  | 'upsert'
-  | 'delete'
-  | 'deleteMany'
-  | 'executeRaw'
-  | 'queryRaw'
-  | 'aggregate'
-
 const actionOperationMap = {
   findUnique: 'query',
   findFirst: 'query',
@@ -287,6 +246,12 @@ const actionOperationMap = {
 }
 
 const aggregateKeys = {
+  _avg: true,
+  _count: true,
+  _sum: true,
+  _min: true,
+  _max: true,
+  // These will be removed at a later date
   avg: true,
   count: true,
   sum: true,
@@ -306,13 +271,12 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
     private _errorFormat: ErrorFormat
-    private _hooks?: Hooks
+    private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
     }>
-    private _middlewares: Middleware[] = []
-    private _engineMiddlewares: EngineMiddleware[] = []
+    private _middlewares: Middlewares = new Middlewares()
     private _clientVersion: string
     private _previewFeatures: string[]
     private _activeProvider: string
@@ -409,17 +373,17 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           env: loadedEnv ? loadedEnv.parsed : {},
           flags: [],
           clientVersion: config.clientVersion,
-          enableExperimental: mapPreviewFeatures(this._previewFeatures),
+          previewFeatures: mapPreviewFeatures(this._previewFeatures),
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb
         if (config.activeProvider === 'mongodb') {
-          const enableExperimental = this._engineConfig.enableExperimental
-            ? this._engineConfig.enableExperimental.concat('mongodb')
+          const previewFeatures = this._engineConfig.previewFeatures
+            ? this._engineConfig.previewFeatures.concat('mongodb')
             : ['mongodb']
-          this._engineConfig.enableExperimental = enableExperimental
+          this._engineConfig.previewFeatures = previewFeatures
         }
 
         debug(`clientVersion: ${config.clientVersion}`)
@@ -458,7 +422,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     }
     private getEngine() {
       if (
-        this._previewFeatures.includes('napi') ||
+        this._previewFeatures.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
         return new NAPIEngine(this._engineConfig)
@@ -466,25 +430,27 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         return new NodeEngine(this._engineConfig)
       }
     }
-    $use(cb: Middleware)
-    $use(namespace: 'all', cb: Middleware)
+
+    /**
+     * Hook a middleware into the client
+     * @param middleware to hook
+     */
+    $use(middleware: QueryMiddleware)
+    $use(namespace: 'all', cb: QueryMiddleware)
     $use(namespace: 'engine', cb: EngineMiddleware)
     $use(
-      namespace: HookPoint | Middleware,
-      cb?: Middleware | EngineMiddleware,
+      arg0: Namespace | QueryMiddleware,
+      arg1?: QueryMiddleware | EngineMiddleware,
     ) {
-      if (typeof namespace === 'function') {
-        this._middlewares.push(namespace)
-      } else if (typeof namespace === 'string') {
-        if (namespace === 'all') {
-          this._middlewares.push(cb! as Middleware)
-        } else if (namespace === 'engine') {
-          this._engineMiddlewares.push(cb! as EngineMiddleware)
-        } else {
-          throw new Error(`Unknown middleware hook ${namespace}`)
-        }
+      // TODO use a mixin and move this into MiddlewareHandler
+      if (typeof arg0 === 'function') {
+        this._middlewares.query.use(arg0)
+      } else if (arg0 === 'all') {
+        this._middlewares.query.use(arg1 as QueryMiddleware)
+      } else if (arg0 === 'engine') {
+        this._middlewares.engine.use(arg1 as EngineMiddleware)
       } else {
-        throw new Error(`Invalid middleware ${namespace}`)
+        throw new Error(`Invalid middleware ${arg0}`)
       }
     }
 
@@ -943,69 +909,56 @@ new PrismaClient({
       }
     }
 
-    private _request(internalParams: InternalRequestParams) {
+    /**
+     * Runs the middlewares over params before executing a request
+     * @param internalParams
+     * @param middlewareIndex
+     * @returns
+     */
+    private _request(
+      internalParams: InternalRequestParams,
+      middlewareIndex = 0,
+    ): Promise<any> {
       try {
+        // in this recursion, we check for our terminating condition
+        const middleware = this._middlewares.query.get(middlewareIndex)
+        // async scope https://github.com/prisma/prisma/issues/3148
         const resource = new AsyncResource('prisma-client-request')
-        if (this._middlewares.length > 0) {
-          // https://perf.link/#eyJpZCI6Img4bmd0anp5eGxrIiwidGl0bGUiOiJGaW5kaW5nIG51bWJlcnMgaW4gYW4gYXJyYXkgb2YgMTAwMCIsImJlZm9yZSI6ImNvbnN0IGRhdGEgPSB7XG4gIG9wZXJhdGlvbjogXCJxdWVyeVwiLFxuICByb290RmllbGQ6IFwiZmluZE1hbnlVc2VyXCIsXG4gIGFyZ3M6IHtcbiAgICB3aGVyZTogeyBpZDogeyBndDogNSB9IH1cbiAgfSxcbiAgZGF0YVBhdGg6IFtdLFxuICBjbGllbnRNZXRob2Q6ICd1c2VyLmZpbmRNYW55J1xufSIsInRlc3RzIjpbeyJuYW1lIjoiZm9yIGluIiwiY29kZSI6ImNvbnN0IG5ld0RhdGEgPSB7fVxuZm9yIChjb25zdCBrZXkgaW4gZGF0YSkge1xuICBpZiAoa2V5ICE9PSAnY2xpZW50TWV0aG9kJykge1xuICAgIG5ld0RhdGFba2V5XSA9IGRhdGFba2V5XVxuICB9XG59IiwicnVucyI6WzU1MzAwMCw0OTAwMDAsMzQ0MDAwLDYyNDAwMCwxMzkxMDAwLDEyMjQwMDAsMTA2NDAwMCwxMjE3MDAwLDc0MDAwLDM3MzAwMCw5MDUwMDAsNTM3MDAwLDE3MDYwMDAsOTAzMDAwLDE0MjUwMDAsMTMxMjAwMCw3NjkwMDAsMTM0NTAwMCwxOTQ4MDAwLDk5MDAwMCw5MDAwMDAsMTM0ODAwMCwxMDk2MDAwLDM4NjAwMCwxNTE3MDAwLDE5MzYwMDAsMTAwMCwyMTM0MDAwLDEzMjgwMDAsODI5MDAwLDE1ODYwMDAsMTc2MzAwMCw1MDgwMDAsOTg2MDAwLDE5NDkwMDAsMjEwODAwMCwxNjA4MDAwLDIyNDAwMCwxOTAyMDAwLDEyNjgwMDAsMjEzNDAwMCwxNzEwMDAwLDEzNzIwMDAsMjExMDAwMCwxNzgwMDAwLDc3NzAwMCw1NzgwMDAsNDAwMCw4OTAwMDAsMTEwMTAwMCwxNTk0MDAwLDE3ODAwMDAsMzU0MDAwLDU0NDAwMCw4MjQwMDAsNzEwMDAwLDg0OTAwMCwxNjQwMDAwLDE5ODQwMDAsNzAzMDAwLDg4MjAwMCw4NTAwMDAsMTA2MDAwLDMwMzAwMCwxMzMwMDAsNjA4MDAwLDIxMzQwMDAsNTUxMDAwLDc0MjAwMCwyMDcwMDAsMTU3NTAwMCwxMzQwMDAsNDAwMCwxMDAwLDQ5NDAwMCwyNTAwMDAsMTQwMjAwMCw2OTgwMDAsNTgxMDAwLDQ4MDAwMCwyMDMwMDAsMTY4MzAwMCwxNjcxMDAwLDEyNDAwMDAsMTk1NjAwMCwzMDUwMDAsODkwMDAsNjUzMDAwLDE3MDgwMDAsMTYwMTAwMCwxOTg0MDAwLDg4ODAwMCwyMTAwMDAwLDE5NzUwMDAsNTM2MDAwLDU3NTAwMCwyMTM0MDAwLDEwMTcwMDAsMTI5NzAwMCw3NTYwMDBdLCJvcHMiOjEwNDUxNTB9LHsibmFtZSI6IkRlY29uc3RydWN0b3IiLCJjb2RlIjoiY29uc3QgeyBjbGllbnRNZXRob2QsIC4uLnJlc3QgfSA9IGRhdGEiLCJydW5zIjpbMjE0MDAwLDUxMDAwLDg2NDAwMCw3MjcwMDAsNDMxMDAwLDIyMDAwMCwzOTAwMDAsODQxMDAwLDIyOTAwMCw3MjIwMDAsNDEzMDAwLDYwODAwMCwyOTgwMDAsMzY4MDAwLDg2NDAwMCw5MjQwMDAsMTI4MDAwLDU1MzAwMCw4ODAwMDAsNTQ1MDAwLDc3NTAwMCw0MzAwMDAsMjM3MDAwLDc4NjAwMCw1NTUwMDAsNTI2MDAwLDMyNzAwMCw2MzAwMCw5MTIwMDAsMTgxMDAwLDMzMTAwMCw0MzAwMCwyMjUwMDAsNTQ3MDAwLDgyMjAwMCw3OTMwMDAsMTA1NzAwMCw1NjAwMCwyNzUwMDAsMzkzMDAwLDgwNTAwMCw5MzAwMCw3NjYwMDAsODM0MDAwLDUwMzAwMCw4MDAwMCwyMzgwMDAsNDY0MDAwLDU2NDAwMCw3MzAwMDAsOTU1MDAwLDgwOTAwMCwyMDMwMDAsNDEzMDAwLDM0NDAwMCw1MDIwMDAsNjEzMDAwLDEwMDAwMCw0MzIwMDAsNjcwMDAwLDQ1MzAwMCw4OTEwMDAsNTUwMDAsMjMwMDAwLDM5MTAwMCw3NTQwMDAsMTEyMjAwMCw3NjIwMDAsMzU3MDAwLDQ3MDAwLDc5MjAwMCwzNTQwMDAsMTA4MDAwMCwxNjAwMCwxODgwMDAsMTQxMDAwLDIxMDAwMCw2MDcwMDAsOTAyMDAwLDgyNTAwMCwxOTAwMDAsMjMzMDAwLDI4MzAwMCwyMzgwMDAsNjk2MDAwLDc2ODAwMCw3NTgwMDAsMTk0MDAwLDI3OTAwMCwyMjMwMDAsMjM4MDAwLDkzNDAwMCw2MDUwMDAsMTcwMDAsMjEwMDAwLDMyMjAwMCwxMDM0MDAwLDgxMjAwMCw0NDYwMDAsNjMxMDAwXSwib3BzIjo0OTAxMDB9LHsibmFtZSI6ImRlbGV0ZSIsImNvZGUiOiJjb25zdCB7IGNsaWVudE1ldGhvZCB9ID0gZGF0YVxuZGVsZXRlIGRhdGEuY2xpZW50TWV0aG9kIiwicnVucyI6WzI3NjIwMDAsNjIyMDAwLDEwNTcwMDAsMzIzMTAwMCwzNDQ2MDAwLDIwNzMwMDAsMzM4MjAwMCwyNzA0MDAwLDM4ODEwMDAsMTIwMTAwMCwzNzk3MDAwLDI1OTAwMCwxMDI4MDAwLDI1MTgwMDAsMjEwMjAwMCwxOTczMDAwLDM0MTIwMDAsMzU4MDAwLDExNDcwMDAsMTA3NDAwMCwzMTk1MDAwLDM2NzUwMDAsNTQ3MDAwLDIwNzkwMDAsMjc0NTAwMCwyNDE1MDAwLDIxOTAwMCwzNzM3MDAwLDM2OTIwMDAsMTY0MDAwLDI0MzMwMDAsNjQzMDAwLDcxODAwMCw0Mzg2MDAwLDE3MDIwMDAsMTAyNDAwMCw1NjUwMDAsNDIxOTAwMCwxMTk3MDAwLDE4MzkwMDAsMzgyMTAwMCwxMTUyMDAwLDg1MzAwMCwxMzczMDAwLDI5NTAwMCwxNDg5MDAwLDE0MjEwMDAsMjcyNDAwMCw1MDYxMDAwLDI2NTcwMDAsMjYzNzAwMCwyOTkwMDAsMjE1NzAwMCwxNTAxMDAwLDM2OTAwMDAsMzU3OTAwMCw0MjE5MDAwLDI4NTgwMDAsNTI0MzAwMCwxNTA0MDAwLDEyMTMwMDAsMjM4NDAwMCw3NzgwMDAsMjgyNjAwMCwxNzQ5MDAwLDM2MjAwMCwyNzEzMDAwLDMzODYwMDAsMzE2NjAwMCwxNTMwMDAsNzk0MDAwLDMyMTcwMDAsMjA4MjAwMCw0MTUwMDAsMzMyMDAwMCwyMTA1MDAwLDE1NzYwMDAsMjUxMDAwLDIzMjkwMDAsOTI1MDAwLDM3MTUwMDAsNjkyMDAwLDE5MDIwMDAsMjA0NzAwMCwyNTM5MDAwLDIwMjkwMDAsMzE3OTAwMCwyMTA2MDAwLDg5NTAwMCwxNTUwMDAwLDYwNzAwMCw0MTA1MDAwLDM0ODMwMDAsMzcxNTAwMCw0OTQwMDAwLDIyODAwMCw0MDI2MDAwLDE2MTYwMDAsMzMxNDAwMCwyNDIyMDAwXSwib3BzIjoyMTY2MDgwfSx7Im5hbWUiOiJDcmVhdGUgbmV3IG9iamVjdCIsImNvZGUiOiJjb25zdCBuZXdEYXRhID0ge1xuICBvcGVyYXRpb246IGRhdGEub3BlcmF0aW9uLFxuICByb290RmllbGQ6IGRhdGEucm9vdEZpZWxkLFxuICBhcmdzOiBkYXRhLmFyZ3MsXG4gIGRhdGFQYXRoOiBkYXRhLmRhdGFQYXRoXG59IiwicnVucyI6WzcwNTAwMCwxMTAwMDAsMzI3NTAwMCwxOTgwMDAsMjE5OTAwMCw0MzYwMDAsODI4MDAwLDI5MjcwMDAsNzI0MDAwLDI1NDAwMCwyOTgzMDAwLDI2NzIwMDAsMjUzMDAwLDI4MjcwMDAsMzA0ODAwMCwyOTA3MDAwLDM0OTkwMDAsMjY1OTAwMCwzODIyMDAwLDI3NzcwMDAsMzc5NzAwMCw4MDAwMDAsNDM1MDAwLDExOTMwMDAsMTAwMDAsMTQ0MDAwMCw3NTcwMDAsMTMyMDAwMCwzMjIwMDAsMjA3MDAwLDM2ODAwMDAsMzkxMTAwMCwzMjQxMDAwLDExMDcwMDAsNDM4MDAwLDMwNDQwMDAsMTA3NjAwMCwyMTAwMDAsNDIxOTAwMCwzNzQ4MDAwLDQwNjcwMDAsNzc0MDAwLDYzMDAwLDMyMTAwMCwzMDQ4MDAwLDMxMjgwMDAsMTg3MTAwMCwzNTkxMDAwLDI0MzcwMDAsNjcxMDAwLDc5OTAwMCwxMTUzMDAwLDIxMTMwMDAsOTUwMDAsNTg3MDAwLDYyMzAwMCwxMzEzMDAwLDMxNTgwMDAsMzMyNzAwMCwxNTkwMDAsNDg4MDAwLDIxMTAwMCwxMjk0MDAwLDExNTcwMDAsNDA0MDAwLDM2MjMwMDAsMjY4NDAwMCw4NzkwMDAsMjE4NTAwMCwxNTkyMDAwLDM2ODcwMDAsMjI0ODAwMCwyMjE4MDAwLDE3NDMwMDAsNzg4MDAwLDQwODYwMDAsMjExNTAwMCwzOTE0MDAwLDM5MjgwMDAsNDM3MjAwMCwxOTkwMDAsMzc1MzAwMCwzNjQ3MDAwLDE2MjcwMDAsMTQ5OTAwMCwxODQyMDAwLDIxMjkwMDAsNDAwMCwxMjIzMDAwLDI4NjMwMDAsMzgzNDAwMCwzNjk0MDAwLDYzNjAwMCw0MjQ3MDAwLDQwMjIwMDAsMTAwMDAsMTcxNDAwMCwxNzUwMDAwLDI5MDEwMDAsMTM0NjAwMF0sIm9wcyI6MTkzOTEyMH1dLCJ1cGRhdGVkIjoiMjAyMC0wNy0xNVQxMTowMDo1Ny45MzhaIn0%3D
-          const params: MiddlewareParams = {
+
+        if (middleware) {
+          // make sure that we don't leak extra properties to users
+          const params: QueryMiddlewareParams = {
             args: internalParams.args,
             dataPath: internalParams.dataPath,
             runInTransaction: internalParams.runInTransaction,
             action: internalParams.action,
             model: internalParams.model,
           }
-          return resource.runInAsyncScope(() =>
-            this._requestWithMiddlewares(
-              params,
-              this._middlewares.slice(),
-              internalParams.clientMethod,
-              internalParams.callsite,
-              internalParams.headers,
-              internalParams.unpacker,
-            ),
-          )
+
+          return resource.runInAsyncScope(() => {
+            // call the middleware of the user & get their changes
+            return middleware(params, (changedParams) => {
+              // this middleware returns the value of the next one 🐛
+              return this._request(
+                {
+                  ...internalParams,
+                  ...changedParams,
+                },
+                ++middlewareIndex,
+              ) // recursion happens over here
+            })
+          })
         }
 
-        return resource.runInAsyncScope(() =>
-          this._executeRequest(internalParams),
-        )
+        // they're finished, or there's none, then execute request
+        return resource.runInAsyncScope(() => {
+          return this._executeRequest(internalParams)
+        })
       } catch (e) {
         e.clientVersion = this._clientVersion
+
         throw e
       }
-    }
-
-    private _requestWithMiddlewares(
-      params: MiddlewareParams,
-      middlewares: Middleware[],
-      clientMethod: string,
-      callsite?: string,
-      headers?: Record<string, string>,
-      unpacker?: Unpacker,
-    ) {
-      const middleware = middlewares.shift()
-      if (middleware) {
-        return middleware(params, (params2) =>
-          this._requestWithMiddlewares(
-            params2,
-            middlewares,
-            clientMethod,
-            callsite,
-            headers,
-            unpacker,
-          ),
-        )
-      }
-
-      // No, we won't copy the whole object here just to make it easier to do TypeScript
-      // as it would be much slower
-      ;(params as InternalRequestParams).clientMethod = clientMethod
-      ;(params as InternalRequestParams).callsite = callsite
-      ;(params as InternalRequestParams).headers = headers
-      ;(params as InternalRequestParams).unpacker = unpacker
-
-      return this._executeRequest(params as InternalRequestParams)
     }
 
     private _executeRequest({
@@ -1107,7 +1060,7 @@ new PrismaClient({
         callsite,
         showColors: this._errorFormat === 'pretty',
         args,
-        engineHook: this._engineMiddlewares[0],
+        engineHook: this._middlewares.engine.get(0),
         runInTransaction,
         headers,
         transactionId,
@@ -1285,11 +1238,11 @@ new PrismaClient({
           let select
           let unpacker: Unpacker | undefined
           if (args?.select && typeof args?.select === 'object') {
-            select = { count: { select: args.select } }
+            select = { _count: { select: args.select } }
           } else {
-            select = { count: { select: { _all: true } } }
+            select = { _count: { select: { _all: true } } }
             unpacker = (data) => {
-              data.count = data.count?._all
+              data._count = data._count?._all
               return data
             }
           }
@@ -1301,32 +1254,33 @@ new PrismaClient({
               ...(args ?? {}),
               select,
             },
-            dataPath: ['count'],
+            dataPath: ['_count'],
             unpacker,
           })
         }
 
         delegate.aggregate = (args) => {
           /**
-           * avg, count, sum, min, max need to go into select
+           * _avg, _count, _sum, _min, _max need to go into select
            * For speed reasons we can go with "for in "
            */
           let unpacker: Unpacker | undefined = undefined
-
           const select = Object.entries(args).reduce((acc, [key, value]) => {
             // if it is an aggregate like "avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
               }
-              // `count` doesn't have a sub-selection
-              if (key === 'count') {
+              // `_count` doesn't have a sub-selection
+              if (key === '_count' || key === 'count') {
                 if (typeof value === 'object' && value) {
                   acc.select[key] = { select: value }
                 } else {
                   acc.select[key] = { select: { _all: value } }
                   unpacker = (data) => {
-                    if (data.count) {
+                    if (data._count) {
+                      data._count = data._count?._all
+                    } else if (data.count) {
                       data.count = data.count?._all
                     }
                     return data
@@ -1370,7 +1324,7 @@ new PrismaClient({
             } else {
               acc[key] = value
             }
-            if (key === 'count') {
+            if (key === '_count') {
               if (typeof value === 'object' && value) {
                 acc.select[key] = { select: value }
               } else if (typeof value === 'boolean') {
@@ -1380,10 +1334,10 @@ new PrismaClient({
                     data = data.map((row) => {
                       if (
                         row &&
-                        typeof row.count === 'object' &&
-                        row.count?._all
+                        typeof row._count === 'object' &&
+                        row._count?._all
                       ) {
-                        row.count = row.count?._all
+                        row._count = row._count?._all
                       }
                       return row
                     })
@@ -1421,227 +1375,22 @@ new PrismaClient({
   return NewPrismaClient
 }
 
-export class PrismaClientFetcher {
-  prisma: any
-  debug: boolean
-  hooks: any
-  dataloader: Dataloader<{
-    document: Document
-    runInTransaction?: boolean
-    transactionId?: number
-    headers?: Record<string, string>
-  }>
-
-  constructor(prisma, enableDebug = false, hooks?: any) {
-    this.prisma = prisma
-    this.debug = enableDebug
-    this.hooks = hooks
-    this.dataloader = new Dataloader({
-      batchLoader: (requests) => {
-        const queries = requests.map((r) => String(r.document))
-        const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine.requestBatch(queries, runTransaction)
-      },
-      singleLoader: (request) => {
-        const query = String(request.document)
-        return this.prisma._engine.request(query, request.headers)
-      },
-      batchBy: (request) => {
-        if (request.runInTransaction) {
-          if (request.transactionId) {
-            return `transaction-batch-${request.transactionId}`
-          }
-          return 'transaction-batch'
-        }
-
-        if (!request.document.children[0].name.startsWith('findUnique')) {
-          return null
-        }
-
-        const selectionSet = request.document.children[0].children!.join(',')
-
-        const args = request.document.children[0].args?.args
-          .map((a) => {
-            if (a.value instanceof Args) {
-              return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
-            }
-            return a.key
-          })
-          .join(',')
-
-        return `${request.document.children[0].name}|${args}|${selectionSet}`
-      },
-    })
-  }
-  get [Symbol.toStringTag]() {
-    return 'PrismaClientFetcher'
-  }
-  async request({
-    document,
-    dataPath = [],
-    rootField,
-    typeName,
-    isList,
-    callsite,
-    rejectOnNotFound,
-    clientMethod,
-    runInTransaction,
-    showColors,
-    engineHook,
-    args,
-    headers,
-    transactionId,
-    unpacker,
-  }: {
-    document: Document
-    dataPath: string[]
-    rootField: string
-    typeName: string
-    isList: boolean
-    clientMethod: string
-    callsite?: string
-    rejectOnNotFound?: RejectOnNotFound
-    runInTransaction?: boolean
-    showColors?: boolean
-    engineHook?: EngineMiddleware
-    args: any
-    headers?: Record<string, string>
-    transactionId?: number
-    unpacker?: Unpacker
-  }) {
-    const cb = async () => {
-      if (this.hooks && this.hooks.beforeRequest) {
-        const query = String(document)
-        this.hooks.beforeRequest({
-          query,
-          path: dataPath,
-          rootField,
-          typeName,
-          document,
-          isList,
-          clientMethod,
-          args,
-        })
-      }
-      try {
-        /**
-         * If there's an engine hook, use it here
-         */
-        let data, elapsed
-        if (engineHook) {
-          const result = await engineHook(
-            {
-              document,
-              runInTransaction,
-            },
-            (params) => this.dataloader.request(params),
-          )
-          data = result.data
-          elapsed = result.elapsed
-        } else {
-          const result = await this.dataloader.request({
-            document,
-            runInTransaction,
-            headers,
-            transactionId,
-          })
-          data = result?.data
-          elapsed = result?.elapsed
-        }
-
-        /**
-         * Unpack
-         */
-        const unpackResult = this.unpack(
-          document,
-          data,
-          dataPath,
-          rootField,
-          unpacker,
-        )
-        throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
-        if (process.env.PRISMA_CLIENT_GET_TIME) {
-          return { data: unpackResult, elapsed }
-        }
-        return unpackResult
-      } catch (e) {
-        debug(e)
-        let message = e.message
-        if (callsite) {
-          const { stack } = printStack({
-            callsite,
-            originalMethod: clientMethod,
-            onUs: e.isPanic,
-            showColors,
-          })
-          message = `${stack}\n  ${e.message}`
-        }
-
-        message = this.sanitizeMessage(message)
-        // TODO: Do request with callsite instead, so we don't need to rethrow
-        if (e.code) {
-          throw new PrismaClientKnownRequestError(
-            message,
-            e.code,
-            this.prisma._clientVersion,
-            e.meta,
-          )
-        } else if (e.isPanic) {
-          throw new PrismaClientRustPanicError(
-            message,
-            this.prisma._clientVersion,
-          )
-        } else if (e instanceof PrismaClientUnknownRequestError) {
-          throw new PrismaClientUnknownRequestError(
-            message,
-            this.prisma._clientVersion,
-          )
-        } else if (e instanceof PrismaClientInitializationError) {
-          throw new PrismaClientInitializationError(
-            message,
-            this.prisma._clientVersion,
-          )
-        } else if (e instanceof PrismaClientRustPanicError) {
-          throw new PrismaClientRustPanicError(
-            message,
-            this.prisma._clientVersion,
-          )
-        }
-
-        e.clientVersion = this.prisma._clientVersion
-
-        throw e
-      }
-    }
-    if (transactionId) {
-      return cb
-    } else {
-      return cb()
-    }
-  }
-
-  sanitizeMessage(message) {
-    if (this.prisma._errorFormat && this.prisma._errorFormat !== 'pretty') {
-      return stripAnsi(message)
-    }
-    return message
-  }
-  unpack(document, data, path, rootField, unpacker?: Unpacker) {
-    if (data?.data) {
-      data = data.data
-    }
-    // to lift up _all in count
-    if (unpacker) {
-      data[rootField] = unpacker(data[rootField])
-    }
-
-    const getPath: any[] = []
-    if (rootField) {
-      getPath.push(rootField)
-    }
-    getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
-    return unpack({ document, data, path: getPath })
-  }
+export type RequestParams = {
+  document: Document
+  dataPath: string[]
+  rootField: string
+  typeName: string
+  isList: boolean
+  clientMethod: string
+  callsite?: string
+  rejectOnNotFound?: RejectOnNotFound
+  runInTransaction?: boolean
+  showColors?: boolean
+  engineHook?: EngineMiddleware
+  args: any
+  headers?: Record<string, string>
+  transactionId?: number
+  unpacker?: Unpacker
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {

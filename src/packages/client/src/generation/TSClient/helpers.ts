@@ -87,6 +87,8 @@ export function getArgFieldJSDoc(
     const comment = JSDocs[action]?.fields[fieldName](singular, plural)
     return comment as string
   }
+
+  return undefined
 }
 
 export function escapeJson(str: string): string {

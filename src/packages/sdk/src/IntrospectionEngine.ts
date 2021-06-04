@@ -1,15 +1,16 @@
+import Debug from '@prisma/debug'
+import { EngineTypes } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
-import Debug from '@prisma/debug'
+import fs from 'fs'
+import { ErrorArea, RustPanic } from './panic'
+import { resolveBinary } from './resolveBinary'
 import byline from './utils/byline'
+import { now } from './utils/now'
 const debugCli = Debug('prisma:introspectionEngine:cli')
 const debugRpc = Debug('prisma:introspectionEngine:rpc')
 const debugStderr = Debug('prisma:introspectionEngine:stderr')
 const debugStdin = Debug('prisma:introspectionEngine:stdin')
-import fs from 'fs'
-import { now } from './utils/now'
-import { RustPanic, ErrorArea } from './panic'
-import { resolveBinary } from './resolveBinary'
 
 export interface IntrospectionEngineOptions {
   binaryPath?: string
@@ -273,7 +274,9 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const binaryPath = await resolveBinary('introspection-engine')
+          const binaryPath = await resolveBinary(
+            EngineTypes.introspectionEngine,
+          )
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
           this.child = spawn(binaryPath, {
@@ -428,7 +431,6 @@ export class IntrospectionEngine {
                 reject(new Error(message))
               }
             } else {
-              const text = this.persistError(request, this.messages.join('\n'))
               reject(
                 new Error(
                   `${chalk.redBright(
@@ -439,7 +441,7 @@ export class IntrospectionEngine {
                     2,
                   )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
                     response.error.message
-                  }\n\n${text}\n`,
+                  }\n`,
                 ),
               )
             }
@@ -466,30 +468,7 @@ export class IntrospectionEngine {
       this.lastRequest = request
     })
   }
-  private persistError(request: any, message: string): string {
-    const filename = `failed-${request.method}-${now()}.md`
-    const file = `# Failed ${request.method} at ${new Date().toISOString()}
-## RPC One-Liner
-\`\`\`json
-${JSON.stringify(request)}
-\`\`\`
 
-## RPC Input Readable
-\`\`\`json
-${JSON.stringify(request, null, 2)}
-\`\`\`
-
-## Stack Trace
-\`\`\`bash
-${message}
-\`\`\`
-`
-    fs.writeFileSync(filename, file)
-    return `Wrote ${chalk.bold(filename)} with debugging information.
-Please put that file into a gist and post it in Slack.
-1. ${chalk.greenBright(`cat ${filename} | pbcopy`)}
-2. Create a gist ${chalk.greenBright.underline(`https://gist.github.com/new`)}`
-  }
   private getRPCPayload(method: string, params: any): RPCPayload {
     return {
       id: messageId++,

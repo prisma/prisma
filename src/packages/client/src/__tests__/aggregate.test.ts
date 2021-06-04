@@ -58,7 +58,7 @@ describe('aggregate', () => {
       select: {
         take: 10,
         select: {
-          count: {
+          _count: {
             select: {
               _all: true,
             },
@@ -72,7 +72,7 @@ describe('aggregate', () => {
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         aggregateUser(take: 10) {
-          count {
+          _count {
             _all
           }
         }
@@ -96,23 +96,23 @@ describe('aggregate', () => {
           age: { gt: 500 },
         },
         select: {
-          count: true,
-          avg: {
+          _count: true,
+          _avg: {
             select: {
               age: true,
             },
           },
-          min: {
+          _min: {
             select: {
               age: true,
             },
           },
-          max: {
+          _max: {
             select: {
               age: true,
             },
           },
-          sum: {
+          _sum: {
             select: {
               age: true,
             },
@@ -142,7 +142,7 @@ describe('aggregate', () => {
   test('unhappy path - incorrect field', () => {
     const select = {
       select: {
-        avg: {
+        _avg: {
           select: {
             blub: true,
           },

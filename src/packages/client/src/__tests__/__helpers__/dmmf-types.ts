@@ -2022,9 +2022,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedFloatFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -2048,6 +2084,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_sum',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'sum',
             },
             {
@@ -2061,9 +2115,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -2247,6 +2337,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
@@ -2260,9 +2368,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -2325,6 +2469,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
@@ -2338,9 +2500,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -3701,9 +3899,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedFloatFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -3727,6 +3961,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_sum',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'sum',
             },
             {
@@ -3740,9 +3992,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -4024,6 +4312,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
@@ -4037,9 +4343,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedStringFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -4102,6 +4444,24 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedIntFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'count',
             },
             {
@@ -4115,9 +4475,45 @@ const dmmf: DMMF.Document = {
               ],
               isNullable: false,
               isRequired: false,
+              name: '_min',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
               name: 'min',
             },
             {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'NestedBoolFilter',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               inputTypes: [
                 {
                   isList: false,
@@ -6582,6 +6978,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'count',
               outputType: {
                 isList: false,
@@ -6592,6 +7004,22 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
+              isNullable: true,
+              name: '_avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               isNullable: true,
               name: 'avg',
               outputType: {
@@ -6604,6 +7032,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'sum',
               outputType: {
                 isList: false,
@@ -6615,6 +7059,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'min',
               outputType: {
                 isList: false,
@@ -6625,6 +7085,22 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
+              isNullable: true,
+              name: '_max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'PostMaxAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               isNullable: true,
               name: 'max',
               outputType: {
@@ -6682,7 +7158,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6693,7 +7169,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6704,7 +7180,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6715,7 +7191,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6726,7 +7202,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6742,6 +7218,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserCountAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'count',
               outputType: {
                 isList: false,
@@ -6752,6 +7244,22 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
+              isNullable: true,
+              name: '_avg',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserAvgAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               isNullable: true,
               name: 'avg',
               outputType: {
@@ -6764,6 +7272,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_sum',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserSumAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'sum',
               outputType: {
                 isList: false,
@@ -6775,6 +7299,22 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
+              name: '_min',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMinAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              isNullable: true,
               name: 'min',
               outputType: {
                 isList: false,
@@ -6785,6 +7325,22 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
+              isNullable: true,
+              name: '_max',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserMaxAggregateOutputType',
+              },
+            },
+            {
+              args: [],
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
               isNullable: true,
               name: 'max',
               outputType: {
@@ -6822,7 +7378,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'count',
+              name: '_count',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6833,7 +7389,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'avg',
+              name: '_avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6844,7 +7400,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'sum',
+              name: '_sum',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6855,7 +7411,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'min',
+              name: '_min',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6866,7 +7422,7 @@ const dmmf: DMMF.Document = {
             {
               args: [],
               isNullable: true,
-              name: 'max',
+              name: '_max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -6916,7 +7472,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'title',
               outputType: {
                 isList: false,
@@ -6926,7 +7482,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'published',
               outputType: {
                 isList: false,
@@ -6951,7 +7507,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -6961,7 +7517,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -6976,7 +7532,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -6986,7 +7542,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7001,7 +7557,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7011,7 +7567,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7046,7 +7602,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7056,7 +7612,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'authorId',
               outputType: {
                 isList: false,
@@ -7101,7 +7657,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: 'email',
               outputType: {
                 isList: false,
@@ -7126,7 +7682,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7141,7 +7697,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7156,7 +7712,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,
@@ -7181,7 +7737,7 @@ const dmmf: DMMF.Document = {
           fields: [
             {
               args: [],
-              isNullable: false,
+              isNullable: true,
               name: 'id',
               outputType: {
                 isList: false,

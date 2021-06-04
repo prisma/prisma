@@ -11,9 +11,9 @@ test('missing-relation', async () => {
       },
     })
   } catch (e) {
-    expect(e.message).toContain('PANIC')
+    expect(e.message).toContain(`→  8   await prisma.post.findMany(`)
     expect(e.message).toContain(
-      'Application logic invariant error: received null value for field author which may not be null',
+      'Inconsistent query result: Field author is required to return data, got `null` instead.',
     )
   }
 })

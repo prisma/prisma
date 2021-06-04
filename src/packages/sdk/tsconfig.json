@@ -7,10 +7,8 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "dist",
     "rootDir": "src",
     "declaration": true,
     "incremental": true
-  },
-  "exclude": ["dist", "build", "src/__tests__", "sandbox"]
+  }
 }

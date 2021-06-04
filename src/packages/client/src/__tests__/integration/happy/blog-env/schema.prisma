@@ -1,7 +1,6 @@
 datasource db {
   provider = "sqlite"
   url      = env("SQLITE_URL")
-  default  = true
 }
 
 generator client {

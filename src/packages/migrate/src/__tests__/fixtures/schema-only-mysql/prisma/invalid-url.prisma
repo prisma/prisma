@@ -1,0 +1,4 @@
+datasource my_db {
+  provider = "mysql"
+  url      = "mysql://johndoe:randompassword@doesnotexist:5432/mydb"
+}

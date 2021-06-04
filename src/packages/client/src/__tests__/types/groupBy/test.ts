@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { expectType } from 'tsd'
 
 // tslint:disable
 
@@ -13,7 +14,7 @@ async function main() {
   })
 
   const x = await prisma.user.groupBy({
-    by: ['name'],
+    by: ['name', 'count', 'min', 'sum', 'max', 'avg'],
     where: {
       age: {
         gt: -1,
@@ -26,62 +27,85 @@ async function main() {
     ],
     skip: 0,
     take: 10000,
-    avg: {
+    _avg: {
       age: true,
+      avg: true,
     },
-    count: {
+    _count: {
       age: true,
       email: true,
+      count: true,
       _all: true,
     },
-    max: {
+    _max: {
       age: true,
+      max: true,
     },
-    min: {
+    _min: {
       age: true,
+      min: true,
     },
-    sum: {
+    _sum: {
       age: true,
+      sum: true,
+      grades: true,
     },
     having: {
       name: '',
     },
   })
-
   type X0 = {
     name: string | null
-    avg: {
+    count: number
+    min: number
+    sum: number
+    max: number
+    avg: number
+
+    _avg: {
       age: number | null
+      avg: number | null
     }
-    sum: {
+    _sum: {
       age: number | null
+      sum: number | null
+      grades: number[] | null
     }
-    count: {
+    _count: {
       age: number | null
+      count: number | null
       email: number | null
       _all: number | null
     }
-    min: {
+    _min: {
       age: number | null
+      min: number | null
     }
-    max: {
+    _max: {
       age: number | null
+      max: number | null
     }
   }
-  const x0: X0 = x[0]
+  expectType<X0[]>(x)
 
   const y = await prisma.user.groupBy({
     by: ['name'],
-    count: true,
+    _count: true,
     having: {
       name: '',
       email: {
-        min: {
+        _min: {
           contains: '',
         },
       },
     },
   })
+  expectType<
+    {
+      _count: number
+      name: string | null
+    }[]
+  >(y)
 
   const z = await prisma.user.groupBy({
     by: ['name'],
@@ -93,7 +117,7 @@ async function main() {
               NOT: [
                 {
                   email: {
-                    max: {
+                    _max: {
                       contains: '',
                     },
                   },
@@ -105,6 +129,11 @@ async function main() {
       ],
     },
   })
+  expectType<
+    {
+      name: string | null
+    }[]
+  >(z)
 }
 
 main().catch((e) => {
