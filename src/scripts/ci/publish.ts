@@ -890,7 +890,7 @@ async function testPackages(
       ) {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_FORCE_NAPI=true pnpm run test',
+          'PRISMA_FORCE_NAPI=true DEBUG="*" pnpm run test',
         )
       }
     } else {
