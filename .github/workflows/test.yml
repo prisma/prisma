@@ -56,6 +56,30 @@ jobs:
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.0
 
+  detect_jobs_to_run:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.detect.outputs.jobs }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2        
+      - id: files
+        uses: jitterbit/get-changed-files@v1
+        with:
+          format: 'json'
+      - id: detect
+        run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+
+  test-job:
+    name: Fake Job 
+    runs-on: ubuntu-latest
+    needs: detect_jobs_to_run    
+    steps: 
+      - name: Print analyze output
+        run: |
+          echo ${{ needs.detect_jobs_to_run.outputs.jobs }}
+
   #
   # Linting
   #
@@ -92,6 +116,9 @@ jobs:
   client:
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -151,6 +178,10 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -194,6 +225,10 @@ jobs:
   integration-tests:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -268,6 +303,9 @@ jobs:
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
 
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -318,6 +356,9 @@ jobs:
   migrate:
     timeout-minutes: 7
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
 
     strategy:
       fail-fast: false
@@ -384,6 +425,9 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -434,6 +478,9 @@ jobs:
   others:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
 
     strategy:
       fail-fast: false
