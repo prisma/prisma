@@ -44,7 +44,7 @@ test('works with url param', async () => {
 })
 
 test('works with provider param', async () => {
-  ctx.fixture('init');
+  ctx.fixture('init')
   const result = await ctx.cli('init', '--provider', 'mysql')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
   const schema = fs.readFileSync(
@@ -61,7 +61,7 @@ test('works with provider param', async () => {
     # Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="mysql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+    DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb?schema=public"
   `)
 })
 

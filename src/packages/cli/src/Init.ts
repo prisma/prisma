@@ -49,6 +49,18 @@ export const defaultEnv = (
   return env
 }
 
+export const defaultPort = (provider = 'postgresql') => {
+  switch (provider) {
+    case 'mysql':
+      return 3306
+    case 'sqlserver':
+      return 1433
+    case 'postgresql':
+    default:
+      return 5432
+  }
+}
+
 export class Init implements Command {
   static new(): Init {
     return new Init()
@@ -146,7 +158,9 @@ export class Init implements Command {
 
     if (args['--provider'] && !args['--url']) {
       provider = args['--provider']
-      url = `${provider}://johndoe:randompassword@localhost:5432/mydb?schema=public`
+      url = `${provider}://johndoe:randompassword@localhost:${defaultPort(
+        provider,
+      )}/mydb?schema=public`
     }
 
     /**
