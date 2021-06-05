@@ -61,6 +61,17 @@ export const defaultPort = (provider = 'postgresql') => {
   }
 }
 
+export const defaultURL = (
+  provider = 'postgresql',
+  port = defaultPort(provider),
+  schema = 'public',
+) => {
+  const schemaExists = provider === 'postgresql'
+  return `${provider}://johndoe:randompassword@localhost:${port}/mydb${
+    schemaExists ? `?schema=${schema}` : ''
+  }`
+}
+
 export class Init implements Command {
   static new(): Init {
     return new Init()
@@ -158,9 +169,7 @@ export class Init implements Command {
 
     if (args['--provider'] && !args['--url']) {
       provider = args['--provider']
-      url = `${provider}://johndoe:randompassword@localhost:${defaultPort(
-        provider,
-      )}/mydb?schema=public`
+      url = defaultURL(provider)
     }
 
     /**
