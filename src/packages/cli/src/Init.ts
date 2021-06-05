@@ -68,7 +68,7 @@ export class Init implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
-      '--provider': String
+      '--provider': String,
     })
 
     if (isError(args) || args['--help']) {
