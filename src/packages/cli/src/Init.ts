@@ -68,6 +68,7 @@ export class Init implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
+      '--provider': String
     })
 
     if (isError(args) || args['--help']) {
@@ -141,6 +142,11 @@ export class Init implements Command {
         protocolToDatabaseType(`${args['--url'].split(':')[0]}:`),
       )
       url = args['--url']
+    }
+
+    if (args['--provider'] && !args['--url']) {
+      provider = args['--provider']
+      url = `${provider}://johndoe:randompassword@localhost:5432/mydb?schema=public`
     }
 
     /**
