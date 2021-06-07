@@ -66,10 +66,16 @@ export const defaultURL = (
   port = defaultPort(provider),
   schema = 'public',
 ) => {
-  const schemaExists = provider === 'postgresql'
-  return `${provider}://johndoe:randompassword@localhost:${port}/mydb${
-    schemaExists ? `?schema=${schema}` : ''
-  }`
+  switch (provider) {
+    case 'postgresql':
+      return `${provider}://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
+    case 'mysql':
+      return `${provider}://johndoe:randompassword@localhost:${port}/mydb`
+    case 'sqlserver':
+      return `${provider}://localhost:${port};database=mydb;user=SA;password=randompassword;`
+    case 'sqlite':
+      return 'file:./dev.db'
+  }
 }
 
 export class Init implements Command {
@@ -165,9 +171,7 @@ export class Init implements Command {
         protocolToDatabaseType(`${args['--url'].split(':')[0]}:`),
       )
       url = args['--url']
-    }
-
-    if (args['--provider'] && !args['--url']) {
+    } else if (args['--provider']) {
       provider = args['--provider']
       url = defaultURL(provider)
     }
