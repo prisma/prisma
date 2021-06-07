@@ -65,6 +65,11 @@
       "packageNames": ["jest", "@types/jest", "ts-jest"]
     },
     {
+      "groupName": "node-fetch",
+      "ignoreUnstable": false,
+      "packageNames": ["node-fetch"]
+    },
+    {
       "groupName": "react-prisma",
       "paths": ["src/packages/react-prisma/**"],
       "rangeStrategy": "replace",
