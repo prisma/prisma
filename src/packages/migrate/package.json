@@ -35,7 +35,7 @@
     "eslint-plugin-jest": "24.3.6",
     "eslint-plugin-prettier": "3.4.0",
     "fs-jetpack": "4.1.0",
-    "jest": "27.0.3",
+    "jest": "27.0.4",
     "lint-staged": "11.0.0",
     "make-dir": "3.1.0",
     "mariadb": "2.5.3",
@@ -45,7 +45,7 @@
     "sqlite-async": "1.1.1",
     "sqlite3": "5.0.2",
     "tempy": "1.0.1",
-    "ts-jest": "27.0.2",
+    "ts-jest": "27.0.3",
     "typescript": "4.3.2"
   },
   "peerDependencies": {
