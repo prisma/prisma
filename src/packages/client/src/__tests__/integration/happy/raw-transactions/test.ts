@@ -295,6 +295,7 @@ describe('transaction', () => {
       ]),
       prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
     ])
+    await new Promise((res) => setTimeout(res, 200))
     await prisma.$disconnect()
 
     // as Promise.all does things in parallel, the order is not clear
