@@ -45,6 +45,21 @@ env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
+  detect_jobs_to_run:
+    name: Detect jobs to run
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.detect.outputs.jobs }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2        
+      - id: files
+        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
+        with:
+          format: 'json'
+      - id: detect
+        run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+
   # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
@@ -92,6 +107,9 @@ jobs:
   client:
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -151,6 +169,10 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -194,6 +216,10 @@ jobs:
   integration-tests:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -268,6 +294,9 @@ jobs:
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
 
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -318,6 +347,9 @@ jobs:
   migrate:
     timeout-minutes: 7
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
 
     strategy:
       fail-fast: false
@@ -384,6 +416,9 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -434,6 +469,9 @@ jobs:
   others:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
 
     strategy:
       fail-fast: false
