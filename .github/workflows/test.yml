@@ -54,7 +54,7 @@ jobs:
       - id: checkout
         uses: actions/checkout@v2        
       - id: files
-        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
+        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1
         with:
           format: 'json'
       - id: detect
