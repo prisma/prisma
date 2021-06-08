@@ -870,7 +870,7 @@ async function testPackages(
     order = ['@prisma/client']
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
     // This is to test N-API
-    console.log('BUILDKITE_PARALLEL_JOB === 2 - running client only')
+    console.log('BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [integration-tests, client, sdk, prisma (cli)]')
     order = [
       '@prisma/integration-tests',
       '@prisma/client',
