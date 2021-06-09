@@ -12,6 +12,7 @@ import {
   protocolToDatabaseType,
   databaseTypeToConnectorType,
 } from '@prisma/sdk/dist/convertCredentials'
+import { ConnectorType } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
@@ -42,27 +43,28 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
   return env
 }
 
-export const defaultPort = (provider = 'postgresql') => {
+export const defaultPort = (provider: ConnectorType) => {
   switch (provider) {
     case 'mysql':
       return 3306
     case 'sqlserver':
       return 1433
+    case 'mongodb':
+      return 27017
     case 'postgresql':
-    default:
       return 5432
   }
 }
 
 export const defaultURL = (
-  provider = 'postgresql',
+  provider: ConnectorType,
   port = defaultPort(provider),
   schema = 'public',
 ) => {
@@ -73,6 +75,8 @@ export const defaultURL = (
       return `${provider}://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `${provider}://localhost:${port};database=mydb;user=SA;password=randompassword;`
+    case 'mongodb':
+      return `mongodb://johndoe:randompassword@localhost:${port}/mydb?authSource=admin`
     case 'sqlite':
       return 'file:./dev.db'
   }
@@ -149,8 +153,8 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    let provider: undefined | string
-    let url: undefined | string
+    let provider: ConnectorType
+    let url: string | undefined
 
     if (args['--url']) {
       const canConnect = await canConnectToDatabase(args['--url'])
@@ -172,8 +176,21 @@ export class Init implements Command {
       )
       url = args['--url']
     } else if (args['--provider']) {
-      provider = args['--provider']
+      const providerLowercase = args['--provider'].toLowerCase()
+      if (
+        !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb'].includes(
+          providerLowercase,
+        )
+      ) {
+        throw new Error(
+          `Provider "${args['--provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlserver" or "sqlite".`,
+        )
+      }
+      provider = providerLowercase as ConnectorType
       url = defaultURL(provider)
+    } else {
+      // Default to PostgreSQL
+      provider = 'postgresql'
     }
 
     /**
@@ -192,6 +209,7 @@ export class Init implements Command {
       path.join(prismaFolder, 'schema.prisma'),
       defaultSchema(provider),
     )
+
     let warning
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
@@ -225,16 +243,21 @@ export class Init implements Command {
       )} to install Prisma Client. You can then start querying your database.`,
     ]
 
-    if (!url) {
-      steps.unshift(
-        `Set the ${chalk.green('provider')} of the ${chalk.green(
-          'datasource',
-        )} block in ${chalk.green(
-          'schema.prisma',
-        )} to match your database: ${chalk.green('postgresql')}, ${chalk.green(
-          'mysql',
-        )} or ${chalk.green('sqlite')}.`,
-      )
+    if (!url || args['--provider']) {
+      if (!args['--provider']) {
+        steps.unshift(
+          `Set the ${chalk.green('provider')} of the ${chalk.green(
+            'datasource',
+          )} block in ${chalk.green(
+            'schema.prisma',
+          )} to match your database: ${chalk.green(
+            'postgresql',
+          )}, ${chalk.green('mysql')}, ${chalk.green(
+            'sqlserver',
+          )} or ${chalk.green('sqlite')}.`,
+        )
+      }
+
       steps.unshift(
         `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
           '.env',
