@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.25.0-11.89fa7f94d9b41d463c14a784b678cd93fefb0800",
+    "@prisma/engines": "2.25.0-13.sql-server-char-collation-fix-d1bbc3328748c24dcda5c39663fe8af9df62acff",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",

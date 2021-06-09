@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.25.0-11.89fa7f94d9b41d463c14a784b678cd93fefb0800",
+    "@prisma/engines": "2.25.0-13.sql-server-char-collation-fix-d1bbc3328748c24dcda5c39663fe8af9df62acff",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -127,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.25.0-11.89fa7f94d9b41d463c14a784b678cd93fefb0800"
+    "@prisma/engines-version": "2.25.0-13.sql-server-char-collation-fix-d1bbc3328748c24dcda5c39663fe8af9df62acff"
   },
   "lint-staged": {
     "*.ts": [
