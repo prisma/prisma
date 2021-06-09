@@ -21,7 +21,7 @@
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
     "@types/jest": "26.0.23",
-    "@types/node": "12.20.14",
+    "@types/node": "12.20.15",
     "@types/pg": "8.6.0",
     "@types/prompts": "2.0.12",
     "@types/sqlite3": "3.1.7",
