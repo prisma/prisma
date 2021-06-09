@@ -1472,19 +1472,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       }
     })
 
-    // because Node 10's sort has a different order for sorting than Node 11+
-    let scoresEqual = true
-    const currentScore = argsWithScores[0].score
-    for (const { score } of argsWithScores) {
-      if (score !== currentScore) {
-        scoresEqual = false
-        break
-      }
-    }
-
-    if (!scoresEqual) {
-      argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
-    }
+    argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
 
     return argsWithScores[0].arg
   }
