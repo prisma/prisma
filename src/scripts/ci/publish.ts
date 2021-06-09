@@ -872,10 +872,10 @@ async function testPackages(
     // This is to test N-API
     console.log('BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [integration-tests, client, sdk, prisma (cli)]')
     order = [
-      '@prisma/integration-tests',
-      '@prisma/client',
       '@prisma/sdk',
+      '@prisma/client',
       'prisma',
+      '@prisma/integration-tests',
     ]
   }
 
