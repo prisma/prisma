@@ -2,7 +2,7 @@ lockfileVersion: 5.3
 
 specifiers:
   '@types/benchmark': 2.1.0
-  '@types/node': 14.17.2
+  '@types/node': 14.17.3
   '@typescript-eslint/eslint-plugin': 4.26.0
   '@typescript-eslint/parser': 4.26.0
   arg: 5.0.0
@@ -24,7 +24,7 @@ specifiers:
 
 devDependencies:
   '@types/benchmark': 2.1.0
-  '@types/node': 14.17.2
+  '@types/node': 14.17.3
   '@typescript-eslint/eslint-plugin': 4.26.0_20402444dce539b9a5aa61b9d15feae1
   '@typescript-eslint/parser': 4.26.0_eslint@7.28.0+typescript@4.3.2
   arg: 5.0.0
@@ -41,7 +41,7 @@ devDependencies:
   p-map: 4.0.0
   prettier: 2.3.1
   staged-git-files: 1.2.0
-  ts-node: 10.0.0_9c6825393a72b4b24406554754016cad
+  ts-node: 10.0.0_d85b7772979915fe9cd1f91cbe4a0244
   typescript: 4.3.2
 
 packages:
@@ -132,8 +132,8 @@ packages:
     resolution: {integrity: sha512-cxWFQVseBm6O9Gbw1IWb8r6OS4OhSt3hPZLkFApLjM8TEXROBuQGLAH2i2gZpcXdLBIrpXuTDhH7Vbm1iXmNGA==}
     dev: true
 
-  /@types/node/14.17.2:
-    resolution: {integrity: sha512-sld7b/xmFum66AAKuz/rp/CUO8+98fMpyQ3SBfzzBNGMd/1iHBTAg9oyAvcYlAj46bpc74r91jSw2iFdnx29nw==}
+  /@types/node/14.17.3:
+    resolution: {integrity: sha512-e6ZowgGJmTuXa3GyaPbTGxX17tnThl2aSSizrFthQ7m9uLGZBXiGhgE55cjRZTF5kjZvYn9EOPOMljdjwbflxw==}
     dev: true
 
   /@types/parse-json/4.0.0:
@@ -1444,7 +1444,7 @@ packages:
       is-number: 7.0.0
     dev: true
 
-  /ts-node/10.0.0_9c6825393a72b4b24406554754016cad:
+  /ts-node/10.0.0_d85b7772979915fe9cd1f91cbe4a0244:
     resolution: {integrity: sha512-ROWeOIUvfFbPZkoDis0L/55Fk+6gFQNZwwKPLinacRl6tsxstTF1DbAcLKkovwnpKMVvOMHP1TIbnwXwtLg1gg==}
     engines: {node: '>=12.0.0'}
     hasBin: true
@@ -1463,7 +1463,7 @@ packages:
       '@tsconfig/node12': 1.0.7
       '@tsconfig/node14': 1.0.0
       '@tsconfig/node16': 1.0.1
-      '@types/node': 14.17.2
+      '@types/node': 14.17.3
       arg: 4.1.3
       create-require: 1.1.1
       diff: 4.0.2
