@@ -360,6 +360,7 @@ You may have to run ${chalk.greenBright(
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,
       ignoreEnvVarErrors: true,
+      env: process.env,
     })
   }
   version(forceRun?: boolean): string {
