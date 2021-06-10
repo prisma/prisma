@@ -414,13 +414,18 @@ it('devDiagnostic - reset because drift', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              reason: Drift detected: Your database schema is not in sync with your migration history.,
-              tag: reset,
-            },
-          }
-        `)
+Object {
+  action: Object {
+    reason: Drift detected: Your database schema is not in sync with your migration history.
+
+[+] Added tables
+  - Blog
+  - _Migration
+,
+    tag: reset,
+  },
+}
+`)
 
   migrate.stop()
 })
