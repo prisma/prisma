@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.25.0-18.node-api-virtual-env-72f3bf24c0cd86d4a381c07bd15ac2f63b0743ae",
+    "@prisma/engines": "2.25.0-21.node-api-virtual-env-f75c07c4c14f3126c6e77b30fcf35c9872414ac8",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -127,7 +127,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.25.0-18.node-api-virtual-env-72f3bf24c0cd86d4a381c07bd15ac2f63b0743ae"
+    "@prisma/engines-version": "2.25.0-21.node-api-virtual-env-f75c07c4c14f3126c6e77b30fcf35c9872414ac8"
   },
   "lint-staged": {
     "*.ts": [
