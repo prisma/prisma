@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.25.0-21.node-api-virtual-env-f75c07c4c14f3126c6e77b30fcf35c9872414ac8",
+    "@prisma/engines-version": "2.25.0-24.d580c0e2929f7d38e35a3ee8584e8daf7ffdfacd",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/diff": "4.0.2",
