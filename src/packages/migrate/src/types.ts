@@ -123,7 +123,7 @@ export namespace EngineResults {
     // Todo
   }
   export interface EvaluateDataLossOutput {
-    /// The number migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
+    /// The number of migration steps that would be generated. If this is 0, we wouldn't generate a new migration, unless the `draft` option is passed.
     migrationSteps: number
 
     /// The warnings and unexecutable migration messages that apply to the _development database_.
