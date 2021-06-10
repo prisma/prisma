@@ -228,10 +228,7 @@ ${chalk.bold('Examples')}
     }
 
     let migrationName: undefined | string = undefined
-    if (
-      evaluateDataLossResult.migrationSteps.length > 0 ||
-      args['--create-only']
-    ) {
+    if (evaluateDataLossResult.migrationSteps > 0 || args['--create-only']) {
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
