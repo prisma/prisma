@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.25.0-14.89926e7ecbebb89657ae2b56ab3454364ad7b5c5",
+    "@prisma/engines": "2.25.0-18.node-api-virtual-env-72f3bf24c0cd86d4a381c07bd15ac2f63b0743ae",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",

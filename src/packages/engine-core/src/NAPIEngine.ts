@@ -188,6 +188,7 @@ You may have to run ${chalk.greenBright(
           this.engine = new this.QueryEngine(
             {
               datamodel: this.datamodel,
+              env: process.env,
               logQueries: this.config.logQueries ?? false,
               ignoreEnvVarErrors: false,
               datasourceOverrides: this.datasourceOverrides,
