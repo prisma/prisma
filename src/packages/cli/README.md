@@ -8,7 +8,7 @@ Check out the [**Getting Started Quickstart**](https://www.prisma.io/docs/gettin
 
 ## Installation
 
-The Prisma CLI currently requires Node.js 10.4 (or higher).
+The Prisma CLI currently requires Node.js 12.2 (or higher).
 We recommend using [the latest Node.js LTS ("long-term support") release.](https://nodejs.org/en/about/releases/)
 
 ### npm
