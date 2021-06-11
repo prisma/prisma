@@ -98,9 +98,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     EngineTypes.libqueryEngineNapi in options.binaries
   ) {
     throw new Error(
-      `${chalk.red(
-        'Error',
-      )} Node-API is currently not supported for M1. Please remove \`nApi\` from your previewFeatures or remove the env var \`PRISMA_FORCE_NAPI\` `,
+      `Node-API is currently not supported for M1. Please remove \`nApi\` from your previewFeatures or remove the ENV VAR \`PRISMA_FORCE_NAPI\` `,
     )
   }
 
