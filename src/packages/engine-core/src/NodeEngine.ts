@@ -1214,14 +1214,12 @@ function hookProcess(handler: string, exit = false) {
 let hooksInitialized = false
 function initHooks() {
   if (!hooksInitialized) {
-    if (!process.env.PRISMA_FORCE_NAPI) {
-      hookProcess('beforeExit')
-      hookProcess('exit')
-      hookProcess('SIGINT', true)
-      hookProcess('SIGUSR1', true)
-      hookProcess('SIGUSR2', true)
-      hookProcess('SIGTERM', true)
-    }
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR1', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
 }
