@@ -12,6 +12,20 @@ import { resolveBinary } from './resolveBinary'
 
 const exists = promisify(fs.exists)
 
+export type EngineLog = {
+  // {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"migration_engine::logger"}
+  // {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting migration engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"migration_engine"}
+  timestamp: string
+  level: 'INFO' | 'WARN'| 'ERROR'
+  fields: {
+    message: string
+    is_panic?: boolean
+    error_code?: string
+    git_hash?: string 
+  }
+  target: string
+} 
+
 // https://github.com/prisma/specs/tree/master/errors#common
 export type DatabaseErrorCodes =
   | 'P1000'
@@ -146,7 +160,6 @@ export async function dropDatabase(
       migrationEnginePath,
       engineCommandName: 'drop-database',
     })
-
     if (
       result &&
       result.exitCode === 0 &&
@@ -164,23 +177,22 @@ export async function dropDatabase(
       )
     }
   } catch (e) {
-    let json
-    try {
-      json = JSON.parse(e.stdout)
-    } catch (e) {
-      console.error(
-        `Could not parse database drop engine response: ${e.stdout.slice(
-          0,
-          200,
-        )}`,
-      )
-    }
 
-    if (json.message) {
-      throw Error(json.message)
-    }
+    // split by new line
+    const lines = e.stderr.split(/\r?\n/)
+    const messages: string[] = []
 
-    throw Error(e)
+    lines.forEach((line) => {
+      const data = String(line)
+      try {
+        const json: EngineLog = JSON.parse(data)
+        messages.push(json.fields.message)
+      } catch (e) {
+        messages.push(data)
+      }
+    });
+
+    throw Error(messages.join('\n'))
   }
 }
 

@@ -226,11 +226,7 @@ export class MigrateEngine {
           if (code !== 0 || messages.includes('panicking')) {
             let errorMessage =
               chalk.red.bold('Error in migration engine: ') + messages
-            if (code === 250) {
-              // Not a panic
-              // It's a UserFacingError https://github.com/prisma/prisma-engines/pull/1446
-              errorMessage = chalk.red.bold('UserFacingError')
-            } else if (this.lastError && code === 255) {
+            if (this.lastError && code === 101) {
               errorMessage = serializePanic(this.lastError)
               err = new RustPanic(
                 errorMessage,
@@ -239,7 +235,7 @@ export class MigrateEngine {
                 ErrorArea.LIFT_CLI,
                 this.schemaPath,
               )
-            } else if (messages.includes('panicked at') || code === 255) {
+            } else if (code === 101) {
               err = new RustPanic(
                 errorMessage,
                 messages,
@@ -258,17 +254,20 @@ export class MigrateEngine {
           debugStdin(err)
         })
 
-        byline(this.child.stderr).on('data', (data) => {
-          const msg = String(data)
-          this.messages.push(msg)
-          debugStderr(msg)
+        byline(this.child.stderr).on('data', (msg) => {
+          const data = String(msg)
+          debugStderr(data)
+
           try {
-            const json = JSON.parse(msg)
-            if (json.backtrace) {
-              this.lastError = json
+            const json = JSON.parse(data)
+
+            this.messages.push(json.fields.message)
+
+            if (json.fields.backtrace) {
+              this.lastError = json.fields
             }
-            if (json.level === 'ERRO') {
-              this.lastError = json
+            if (json.fields.level === 'ERRO') {
+              this.lastError = json.fields
             }
           } catch (e) {
             //
