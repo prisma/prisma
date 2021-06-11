@@ -92,6 +92,16 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled binaries are not available for ${platform}. Read more about building your own binaries at https://pris.ly/d/build-binaries`,
     )
+  } else if (
+    os.platform === 'darwin' &&
+    os.arch === 'arm64' &&
+    EngineTypes.libqueryEngineNapi in options.binaries
+  ) {
+    throw new Error(
+      `${chalk.red(
+        'Error',
+      )} Node-API is currently not supported for M1. Please remove \`nApi\` from your previewFeatures or remove the env var \`PRISMA_FORCE_NAPI\` `,
+    )
   }
 
   // no need to do anything, if there are no binaries
