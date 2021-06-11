@@ -16,15 +16,15 @@ export type EngineLog = {
   // {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"migration_engine::logger"}
   // {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting migration engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"migration_engine"}
   timestamp: string
-  level: 'INFO' | 'WARN'| 'ERROR'
+  level: 'INFO' | 'WARN' | 'ERROR'
   fields: {
     message: string
     is_panic?: boolean
     error_code?: string
-    git_hash?: string 
+    git_hash?: string
   }
   target: string
-} 
+}
 
 // https://github.com/prisma/specs/tree/master/errors#common
 export type DatabaseErrorCodes =
@@ -177,7 +177,6 @@ export async function dropDatabase(
       )
     }
   } catch (e) {
-
     // split by new line
     const lines = e.stderr.split(/\r?\n/)
     const messages: string[] = []
@@ -190,7 +189,7 @@ export async function dropDatabase(
       } catch (e) {
         messages.push(data)
       }
-    });
+    })
 
     throw Error(messages.join('\n'))
   }
