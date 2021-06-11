@@ -74,6 +74,7 @@ async function getConfigNAPI(
       datamodel: options.datamodel,
       datasourceOverrides: {},
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+      env: process.env,
     })
   } catch (e) {
     let error
