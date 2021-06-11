@@ -111,7 +111,7 @@
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",
-    "strip-indent": "3.0.0",
+    "strip-indent": "4.0.0",
     "ts-jest": "27.0.3",
     "ts-node": "10.0.0",
     "tsd": "0.17.0",
