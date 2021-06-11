@@ -29,7 +29,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10.4"
+    "node": ">=12.2"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -68,7 +68,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.397.0",
+    "@prisma/studio-server": "0.399.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.23",
     "@types/ws": "7.4.4",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.25.0-14.89926e7ecbebb89657ae2b56ab3454364ad7b5c5"
+    "@prisma/engines": "2.25.0-28.2456c6fa85cf119868d31902130d1c8401345c53"
   },
   "lint-staged": {
     "*.ts": [

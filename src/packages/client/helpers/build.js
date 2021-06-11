@@ -28,7 +28,7 @@ async function main() {
     esbuild.build({
       platform: 'node',
       bundle: true,
-      target: 'node10',
+      target: 'node12',
       outfile: 'generator-build/index.js',
       entryPoints: ['src/generator.ts'],
       external: ['_http_common']
@@ -39,7 +39,7 @@ async function main() {
     esbuild.build({
       platform: 'node',
       bundle: true,
-      target: 'node10',
+      target: 'node12',
       outdir: 'runtime',
       entryPoints: ['src/runtime/index.ts'],
       external: ['_http_common']
