@@ -23,7 +23,7 @@
     "graphviz": "0.0.9",
     "node-fetch": "2.6.1",
     "p-map": "4.0.0",
-    "p-reduce": "2.1.0",
+    "p-reduce": "3.0.0",
     "p-retry": "4.5.0",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
