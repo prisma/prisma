@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import {
   getNapiName,
+  getos,
   getPlatform,
   Platform,
   platforms,
@@ -101,11 +102,23 @@ export class NAPIEngine implements Engine {
   }
   private async internalSetup(): Promise<void> {
     debug('internalSetup')
+    await this.checkSupportedPlatform()
     if (this.setupPromise) return this.setupPromise
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
     this.version()
+  }
+  private async checkSupportedPlatform() {
+    const os = await getos()
+    // Throw if we are on an M1
+    if (os.platform === 'darwin' && os.arch === 'arm64') {
+      throw new Error(
+        `${chalk.red(
+          'Error',
+        )} Node-API is currently not supported for M1. Please remove \`nApi\` from your previewFeatures or remove the env var \`PRISMA_FORCE_NAPI\` `,
+      )
+    }
   }
   private async getPlatform() {
     if (this.platform) return this.platform
