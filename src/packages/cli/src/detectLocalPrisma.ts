@@ -14,7 +14,9 @@ export function detectLocalPrisma() {
     console.warn(
       printWarning(`You're running a global installation of Prisma but we detected a local
           installation in your node modules. It's recommended to always run a
-          locally available installation of Prisma.`),
+          locally available installation of Prisma.
+
+          Use \`npx prisma\` to run from local installation.`),
     )
   }
 }
