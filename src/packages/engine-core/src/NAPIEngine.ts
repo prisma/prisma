@@ -114,7 +114,7 @@ export class NAPIEngine implements Engine {
     // Throw if we are on an M1
     if (os.platform === 'darwin' && os.arch === 'arm64') {
       throw new Error(
-        `Node-API is currently not supported for Apple M1. Please remove \`nApi\` from the previewFeatures` attribute in the "generator" block of the "schema.prisma".`
+        `Node-API is currently not supported for Apple M1. Please remove \`nApi\` from the previewFeatures attribute in the "generator" block of the "schema.prisma".`,
       )
     }
   }
