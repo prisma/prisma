@@ -107,6 +107,7 @@ import {
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
 import { detectPrisma1 } from './detectPrisma1'
+import { detectLocalPrisma } from './detectLocalPrisma'
 
 // because chalk ...
 if (process.env.NO_COLOR) {
@@ -126,6 +127,8 @@ async function main(): Promise<number> {
   }
 
   detectPrisma1()
+
+  detectLocalPrisma()
 
   const cli = CLI.new(
     {
