@@ -1,0 +1,53 @@
+name: Update Engines Version
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to check and update the engines version"
+        required: true
+
+jobs:
+  update_engines:
+    name: "Check and update @prisma/engines@${{ github.event.inputs.tag }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 5.15.1
+          run_install: |
+            - args: [--global, "@prisma/ensure-npm-release"]
+
+      - name: Check if tag is avaliable on npm
+        run: |
+          echo 'Checking @prisma/engines@${{ github.event.inputs.tag }}'
+          enr update -p @prisma/engines -u ${{ github.event.inputs.tag }}
+          enr update -p @prisma/engines-version -u ${{ github.event.inputs.tag }}
+          echo 'Awesome - proceeding to make the PR'
+       
+      - name: Update the engines
+        run: |
+          echo 'Updating @prisma/engines to ${{ github.event.inputs.tag }} using pnpm'
+          cd src
+          pnpm update -r @prisma/engines@${{ github.event.inputs.tag }} @prisma/engines-version@${{ github.event.inputs.tag  }}
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "fix(deps): update engines to ${{ github.event.inputs.tag }}"
+          branch: deps/engines
+          delete-branch: true
+          title: "fix(deps): update engines to ${{ github.event.inputs.tag }}"
+          body: |
+            This automatic PR updates the engines to version ${{  github.event.inputs.tag }}. This will get automatically merged
+            if all the tests pass.
+      - name: PR url
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+
+        
