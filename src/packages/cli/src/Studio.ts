@@ -116,9 +116,11 @@ ${chalk.bold('Examples')}
       hostname,
       port,
       staticAssetDir,
-      resolve: {
-        '@prisma/client': path.resolve(__dirname, '../prisma-client'),
-        '@prisma/engines': require.resolve('@prisma/engines'),
+      prismaClient: {
+        resolve: {
+          '@prisma/client': path.resolve(__dirname, '../prisma-client'),
+          '@prisma/engines': require.resolve('@prisma/engines'),
+        },
       },
       versions: {
         prisma2: packageJson.version,
