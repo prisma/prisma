@@ -98,7 +98,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     EngineTypes.libqueryEngineNapi in options.binaries
   ) {
     throw new Error(
-      `Node-API is currently not supported for Apple M1. Please remove \`nApi\` from the "previewFeatures" attribute in the "generator" block of the "schema.prisma".`,
+      `Node-API is currently not supported for Apple M1. Please remove \`nApi\` from the "previewFeatures" attribute in the "generator" block of the "schema.prisma", or remove the "PRISMA_FORCE_NAPI" environment variable.`,
     )
   }
 
