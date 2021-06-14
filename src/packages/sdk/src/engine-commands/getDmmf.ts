@@ -8,6 +8,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
+import { isNodeAPISupported } from './isNodeAPISupported'
 
 const debug = Debug('prisma:getDMMF')
 
@@ -49,6 +50,8 @@ async function getDmmfNapi(options: GetDMMFOptions): Promise<DMMF.Document> {
     EngineTypes.libqueryEngineNapi,
     options.prismaPath,
   )
+  await isNodeAPISupported()
+
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
   const datamodel =

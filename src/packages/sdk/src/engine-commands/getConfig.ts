@@ -8,6 +8,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
+import { isNodeAPISupported } from './isNodeAPISupported'
 
 const debug = Debug('prisma:getConfig')
 
@@ -67,6 +68,7 @@ async function getConfigNAPI(
     EngineTypes.libqueryEngineNapi,
     options.prismaPath,
   )
+  await isNodeAPISupported()
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   try {
     const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
