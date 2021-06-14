@@ -2,8 +2,8 @@ import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import {
   getNapiName,
-  getos,
   getPlatform,
+  isNodeAPISupported,
   Platform,
   platforms,
 } from '@prisma/get-platform'
@@ -103,20 +103,11 @@ export class NAPIEngine implements Engine {
   private async internalSetup(): Promise<void> {
     debug('internalSetup')
     if (this.setupPromise) return this.setupPromise
-    await this.checkSupportedPlatform()
+    await isNodeAPISupported()
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
     this.version()
-  }
-  private async checkSupportedPlatform() {
-    const os = await getos()
-    // Throw if we are on an M1
-    if (os.platform === 'darwin' && os.arch === 'arm64') {
-      throw new Error(
-        `Node-API is currently not supported for Apple M1. Please remove \`nApi\` from the "previewFeatures" attribute in the "generator" block of the "schema.prisma", or remove the "PRISMA_FORCE_NAPI" environment variable.`,
-      )
-    }
   }
   private async getPlatform() {
     if (this.platform) return this.platform

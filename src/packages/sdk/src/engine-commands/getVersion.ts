@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
 import { NApiEngineTypes } from '@prisma/engine-core'
 import { EngineTypes } from '@prisma/fetch-engine'
+import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
 import { resolveBinary } from '../resolveBinary'
-import { isNodeAPISupported } from './isNodeAPISupported'
 
 const debug = Debug('prisma:getVersion')
 

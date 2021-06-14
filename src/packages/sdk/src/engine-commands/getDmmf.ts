@@ -8,7 +8,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
-import { isNodeAPISupported } from './isNodeAPISupported'
+import { isNodeAPISupported } from '@prisma/get-platform'
 
 const debug = Debug('prisma:getDMMF')
 
