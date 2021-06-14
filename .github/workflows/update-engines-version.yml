@@ -19,6 +19,7 @@ jobs:
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: 5.15.1
+          dest: ~/.pnpm-store
           run_install: |
             - args: [--global, "@prisma/ensure-npm-release"]
 
