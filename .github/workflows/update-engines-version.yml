@@ -19,15 +19,12 @@ jobs:
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: 5.15.1
-          dest: ~/.pnpm-store
-          run_install: |
-            - args: [--global, "@prisma/ensure-npm-release"]
 
       - name: Check if tag is avaliable on npm
         run: |
           echo 'Checking @prisma/engines@${{ github.event.inputs.tag }}'
-          enr update -p @prisma/engines -u ${{ github.event.inputs.tag }}
-          enr update -p @prisma/engines-version -u ${{ github.event.inputs.tag }}
+          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.tag }}
+          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.tag }}
           echo 'Awesome - proceeding to make the PR'
        
       - name: Update the engines
