@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.25.0-30.149261944d529dc4c506db7e017bb4dfd26ef398",
+    "@prisma/engines": "2.25.0-31.node-api-blocking-logging-95206c7fa37ce161cb2244a958535515d03af5cc",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",
