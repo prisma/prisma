@@ -282,43 +282,47 @@ generator gen {
         g.manifest.requiresEngines.length > 0
       ) {
         const neededVersion = getEngineVersionForGenerator(g.manifest, version)
-
         if (!neededVersions[neededVersion]) {
           neededVersions[neededVersion] = { engines: [], binaryTargets: [] }
         }
+
         for (const engine of g.manifest?.requiresEngines) {
           if (!neededVersions[neededVersion].engines.includes(engine)) {
             neededVersions[neededVersion].engines.push(engine)
           }
         }
-        if (
-          g.options?.generator?.binaryTargets &&
-          g.options?.generator?.binaryTargets.length > 0
-        ) {
-          const generatorBinaryTargets = g.options?.generator?.binaryTargets
+
+        const generatorBinaryTargets = g.options?.generator?.binaryTargets
+
+        if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
+          const binaryTarget0 = generatorBinaryTargets[0]
           // If set from env var, there is only one item
           // and we need to read the env var
-          if (generatorBinaryTargets[0].fromEnvVar !== null) {
-            // parse value if set from env var
-            generatorBinaryTargets[0].value = parseBinaryTargetsEnvValue(
-              generatorBinaryTargets[0],
-            )
+          if (binaryTarget0.fromEnvVar !== null) {
+            const parsedBinaryTargetsEnvValue: string[] =
+              parseBinaryTargetsEnvValue(binaryTarget0)
+
+            // remove item and replace with parsed values
+            // value is an array
+            // so we create one new iteam for each element in the array
+            generatorBinaryTargets.shift()
+
+            for (const platformName of parsedBinaryTargetsEnvValue) {
+              generatorBinaryTargets.push({
+                fromEnvVar: binaryTarget0.fromEnvVar,
+                value: platformName,
+              })
+            }
           }
 
-          for (const binaryTarget of g.options?.generator?.binaryTargets) {
+          for (const binaryTarget of generatorBinaryTargets) {
             if (binaryTarget.value === 'native') {
               binaryTarget.value = platform
-            } else if (Array.isArray(binaryTarget.value)) {
-              binaryTarget.value = binaryTarget.value.map((p) =>
-                p === 'native' ? platform : p,
-              )
             }
 
             if (
-              !neededVersions[neededVersion].binaryTargets.find((object) =>
-                Array.isArray(object.value)
-                  ? object.value.includes(binaryTarget.value)
-                  : object.value === binaryTarget.value,
+              !neededVersions[neededVersion].binaryTargets.find(
+                (object) => object.value === binaryTarget.value,
               )
             ) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
@@ -383,13 +387,15 @@ generator gen {
 }
 
 type NeededVersions = {
-  engines: EngineType[]
-  binaryTargets: BinaryTargetsEnvValue[]
+  [key: string]: {
+    engines: EngineType[]
+    binaryTargets: BinaryTargetsEnvValue[]
+  }
 }
 
 type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
-  platform: string
+  platform: Platform
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
@@ -408,13 +414,13 @@ async function getBinaryPathsByVersion({
 
   // make sure, that at least the current platform is being fetched
   for (const currentVersion in neededVersions) {
+    binaryPathsByVersion[currentVersion] = {}
+
     // ensure binaryTargets are set correctly
     const neededVersion = neededVersions[currentVersion]
+
     if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets.push({ fromEnvVar: null, value: platform })
-      if (neededVersion.binaryTargets.length === 0) {
-        neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
-      }
+      neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
     }
 
     if (
@@ -449,11 +455,10 @@ async function getBinaryPathsByVersion({
         return acc
       }, Object.create(null))
 
-    binaryPathsByVersion[currentVersion] = {}
-
     if (Object.values(binariesConfig).length > 0) {
-      const platforms: Platform[] = neededVersion.binaryTargets.flatMap(
-        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value,
+      // Convert BinaryTargetsEnvValue[] to Platform[]
+      const platforms: Platform[] = neededVersion.binaryTargets.map(
+        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
       )
 
       const downloadParams: DownloadOptions = {
@@ -471,7 +476,7 @@ async function getBinaryPathsByVersion({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths = mapKeys(
+      const binaryPaths: BinaryPaths = mapKeys(
         binaryPathsWithEngineType,
         binaryTypeToEngineType,
       )
@@ -479,14 +484,15 @@ async function getBinaryPathsByVersion({
     }
 
     if (binaryPathsOverride) {
-      const overrideBinaries = Object.keys(binaryPathsOverride)
-      const binariesCoveredByOverride = neededVersion.engines.filter((e) =>
-        overrideBinaries.includes(e),
+      const overrideEngines = Object.keys(binaryPathsOverride)
+      const enginesCoveredByOverride = neededVersion.engines.filter((engine) =>
+        overrideEngines.includes(engine),
       )
-      if (binariesCoveredByOverride.length > 0) {
-        for (const bin of binariesCoveredByOverride) {
-          binaryPathsByVersion[currentVersion][bin] = {
-            [platform]: binaryPathsOverride[bin],
+      if (enginesCoveredByOverride.length > 0) {
+        for (const engine of enginesCoveredByOverride) {
+          const enginePath = binaryPathsOverride[engine]!
+          binaryPathsByVersion[currentVersion][engine] = {
+            [platform]: enginePath,
           }
         }
       }
@@ -567,12 +573,14 @@ async function validateGenerators(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
       )
     }
+
     if (generator.config.pinnedBinaryTargets) {
       throw new Error(
         `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
 Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
       )
     }
+
     if (generator.binaryTargets) {
       const binaryTargets =
         generator.binaryTargets && generator.binaryTargets.length > 0

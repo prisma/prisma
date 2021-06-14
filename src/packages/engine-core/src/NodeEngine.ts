@@ -421,15 +421,11 @@ ${searchedLocations
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (
-          this.generator.binaryTargets.find((object) =>
-            Array.isArray(object.value)
-              ? object.value.includes(this.platform!)
-              : object.value === this.platform!,
+          this.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
           ) ||
-          this.generator.binaryTargets.find((object) =>
-            Array.isArray(object.value)
-              ? object.value.includes('native')
-              : object.value === 'native',
+          this.generator.binaryTargets.find(
+            (object) => object.value === 'native',
           )
         ) {
           errorText += `

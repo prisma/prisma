@@ -563,15 +563,11 @@ ${searchedLocations
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
         if (
-          this.config.generator.binaryTargets.find((object) =>
-            Array.isArray(object.value)
-              ? object.value.includes(this.platform!)
-              : object.value === this.platform!,
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
           ) ||
-          this.config.generator.binaryTargets.find((object) =>
-            Array.isArray(object.value)
-              ? object.value.includes('native')
-              : object.value === 'native',
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === 'native',
           )
         ) {
           errorText += `

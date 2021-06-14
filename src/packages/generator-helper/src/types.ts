@@ -47,7 +47,7 @@ export interface ProviderEnvValue {
 
 export interface BinaryTargetsEnvValue {
   fromEnvVar: null | string
-  value: string | string[]
+  value: string
 }
 
 export type ConnectorType =
