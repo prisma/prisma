@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.25.0-31.node-api-blocking-logging-95206c7fa37ce161cb2244a958535515d03af5cc",
+    "@prisma/engines": "2.25.0-32.node-api-blocking-logging-d4b7bfc2a82ed375dd64885d7f41988710419784",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
@@ -126,7 +126,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.25.0-31.node-api-blocking-logging-95206c7fa37ce161cb2244a958535515d03af5cc"
+    "@prisma/engines-version": "2.25.0-32.node-api-blocking-logging-d4b7bfc2a82ed375dd64885d7f41988710419784"
   },
   "lint-staged": {
     "*.ts": [
