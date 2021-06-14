@@ -9,7 +9,6 @@ import {
   isCi,
   getConfig,
   getDMMF,
-  link,
 } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import chalk from 'chalk'
@@ -17,7 +16,11 @@ import prompt from 'prompts'
 import fs from 'fs'
 import path from 'path'
 import { Migrate } from '../Migrate'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import {
+  ensureDatabaseExists,
+  getDbInfo,
+  DbType,
+} from '../utils/ensureDatabaseExists'
 import {
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
@@ -303,7 +306,12 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
       dbType,
       dbName,
       dbLocation,
-    }: { schemaWord?; dbType?; dbName?; dbLocation? },
+    }: {
+      schemaWord?: 'database'
+      dbType?: DbType
+      dbName?: string
+      dbLocation?: string
+    },
     reason: string,
   ): Promise<boolean> {
     const mssqlMessage = `${reason}
@@ -319,7 +327,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType ? message : mssqlMessage,
+      message: dbType === 'SQL Server' ? mssqlMessage : message,
     })
 
     return confirmation.value
