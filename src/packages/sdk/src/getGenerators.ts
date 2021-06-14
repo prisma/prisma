@@ -36,7 +36,7 @@ import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
 import {
-  parseProviderEnvValue,
+  parseEnvValue,
   parseBinaryTargetsEnvValue,
 } from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
@@ -160,11 +160,11 @@ export async function getGenerators({
     const generators = await pMap(
       generatorConfigs,
       async (generator, index) => {
-        let generatorPath = parseProviderEnvValue(generator.provider)
+        let generatorPath = parseEnvValue(generator.provider)
         let paths: GeneratorPaths | undefined
 
         // as of now mostly used by studio
-        const providerValue = parseProviderEnvValue(generator.provider)
+        const providerValue = parseEnvValue(generator.provider)
         if (aliases && aliases[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
@@ -187,10 +187,7 @@ export async function getGenerators({
         // resolve output path
         if (generator.output) {
           generator.output = {
-            value: path.resolve(
-              baseDir,
-              parseProviderEnvValue(generator.output),
-            ),
+            value: path.resolve(baseDir, parseEnvValue(generator.output)),
             fromEnvVar: null,
           }
           generator.isCustomOutput = true
@@ -248,7 +245,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     // Generators can say in their "requiresGenerators" property in the manifest, which other generators they depend on
     // This has mostly been introduced for 3rd party generators, which rely on `prisma-client-js`.
     const generatorProviders: string[] = generatorConfigs.map((g) =>
-      parseProviderEnvValue(g.provider),
+      parseEnvValue(g.provider),
     )
 
     for (const g of generators) {
@@ -551,7 +548,7 @@ async function validateGenerators(
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (parseProviderEnvValue(generator.provider) === 'photonjs') {
+    if (parseEnvValue(generator.provider) === 'photonjs') {
       throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
         'provider = "prisma-client-js"',

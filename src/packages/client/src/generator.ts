@@ -1,4 +1,4 @@
-import { parseProviderEnvValue } from '@prisma/sdk'
+import { parseEnvValue } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
@@ -31,11 +31,11 @@ if (require.main === module) {
     },
     async onGenerate(options) {
       // CLI versions < 2.20.0 still send a string
-      // CLIs >= 2.20.0 send an `ProviderEnvValue`
+      // CLIs >= 2.20.0 send an `EnvValue`
       const outputDir =
         typeof options.generator.output === 'string'
           ? options.generator.output
-          : parseProviderEnvValue(options.generator.output!)
+          : parseEnvValue(options.generator.output!)
 
       return generateClient({
         datamodel: options.datamodel,

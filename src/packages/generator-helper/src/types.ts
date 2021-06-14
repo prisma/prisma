@@ -32,15 +32,15 @@ export type Dictionary<T> = { [key: string]: T }
 
 export interface GeneratorConfig {
   name: string
-  output: ProviderEnvValue | null
+  output: EnvValue | null
   isCustomOutput?: boolean
-  provider: ProviderEnvValue
+  provider: EnvValue
   config: Dictionary<string>
   binaryTargets: BinaryTargetsEnvValue[]
   previewFeatures: string[]
 }
 
-export interface ProviderEnvValue {
+export interface EnvValue {
   fromEnvVar: null | string
   value: string
 }
@@ -61,7 +61,7 @@ export interface DataSource {
   name: string
   activeProvider: ConnectorType
   provider: ConnectorType
-  url: ProviderEnvValue
+  url: EnvValue
   config: { [key: string]: string }
 }
 

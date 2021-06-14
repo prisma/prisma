@@ -62,7 +62,7 @@ export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export {
-  parseProviderEnvValue,
+  parseEnvValue,
   parseBinaryTargetsEnvValue,
 } from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'

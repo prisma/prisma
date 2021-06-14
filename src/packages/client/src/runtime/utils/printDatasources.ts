@@ -26,13 +26,13 @@ export interface InternalDatasource {
   name: string
   activeProvider: ConnectorType
   provider: ConnectorType
-  url: ProviderEnvValue
+  url: EnvValue
   config: any
 }
 
-// We could do import { ProviderEnvValue } from '../../isdlToDatamodel2'
+// We could do import { EnvValue } from '../../isdlToDatamodel2'
 // but we don't want to pull that into the runtime build
-export interface ProviderEnvValue {
+export interface EnvValue {
   fromEnvVar: null | string
   value: string
 }

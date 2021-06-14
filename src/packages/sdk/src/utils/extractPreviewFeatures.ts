@@ -1,10 +1,10 @@
 import { ConfigMetaFormat } from '../engine-commands'
-import { parseProviderEnvValue } from './parseEnvValue'
+import { parseEnvValue } from './parseEnvValue'
 
 export function extractPreviewFeatures(config: ConfigMetaFormat): string[] {
   return (
     config.generators.find(
-      (g) => parseProviderEnvValue(g.provider) === 'prisma-client-js',
+      (g) => parseEnvValue(g.provider) === 'prisma-client-js',
     )?.previewFeatures || []
   )
 }
