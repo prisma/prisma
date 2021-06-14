@@ -3,6 +3,7 @@ import { getEnginesPath } from '@prisma/engines'
 import {
   getNapiName,
   getPlatform,
+  isNodeAPISupported,
   Platform,
   platforms,
 } from '@prisma/get-platform'
@@ -102,6 +103,7 @@ export class NAPIEngine implements Engine {
   private async internalSetup(): Promise<void> {
     debug('internalSetup')
     if (this.setupPromise) return this.setupPromise
+    await isNodeAPISupported()
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
