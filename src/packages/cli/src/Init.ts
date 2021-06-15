@@ -87,6 +87,7 @@ export class Init implements Command {
     return new Init()
   }
 
+  // TODO add --provider & --url
   private static help = format(`
     Setup a new Prisma project
     
@@ -101,7 +102,7 @@ export class Init implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
-      '--provider': String,
+      // '--provider': String,
     })
 
     if (isError(args) || args['--help']) {
