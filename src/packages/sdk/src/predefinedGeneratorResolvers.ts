@@ -25,14 +25,15 @@ export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
 }
 
-async function getPrismaClientDir(
+async function getPkgDir(
   baseDir: string,
+  pkgName: string,
 ): Promise<string | undefined> {
   const handler = (base: string, item: string) => {
     const itemPath = path.join(base, item)
 
-    // if package.json `@prisma/client`, return `base`
-    if (load(itemPath).name === '@prisma/client') {
+    // if the package.json name is equal to the `pkgName`, return `base`
+    if (load(itemPath)?.name === pkgName) {
       return base
     }
 
@@ -44,6 +45,23 @@ async function getPrismaClientDir(
   )[0]
 }
 
+async function getPrismaClientDir(baseDir: string) {
+  // we check that the found client is not the one of the CLI
+  const clientDir = await getPkgDir(baseDir, '@prisma/client')
+  const cliDir = await getPkgDir(baseDir, 'prisma')
+
+  // During development we want to test using the bundled client
+  if (cliDir && process.cwd().includes(cliDir)) {
+    return clientDir
+  }
+
+  // Checks that the found client is not the bundled client in the cli
+  if (clientDir && !clientDir?.includes(cliDir!)) {
+    return clientDir
+  }
+
+  return undefined
+}
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
@@ -96,6 +114,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
+      // Try again to see if we installed the client
       const prismaClientDir = await getPrismaClientDir(baseDir)
 
       if (!prismaClientDir) {
