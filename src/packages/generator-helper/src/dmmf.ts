@@ -75,11 +75,14 @@ export namespace DMMF {
     isList: boolean
     isUnique: boolean
     isId: boolean
+    isReadOnly: boolean
+    isGenerated: boolean
+    isUpdatedAt: boolean
     type: string
     dbNames?: string[] | null
-    isGenerated: boolean
     hasDefaultValue: boolean
     default?: FieldDefault | string | boolean | number
+    relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
