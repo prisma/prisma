@@ -40,7 +40,7 @@ export async function handleWarnings(
   createOnly = false,
 ): Promise<boolean | void> {
   if (warnings && warnings.length > 0) {
-    console.log(chalk.bold(`\n⚠️  Warnings for current database:\n`))
+    console.log(chalk.bold(`\n⚠️  Warnings for the current datasource:\n`))
     for (const warning of warnings) {
       console.log(chalk(`  • ${warning.message}`))
     }
