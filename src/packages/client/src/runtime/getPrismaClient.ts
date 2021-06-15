@@ -915,9 +915,7 @@ new PrismaClient({
      * @param middlewareIndex
      * @returns
      */
-    private _request(
-      internalParams: InternalRequestParams,
-    ): Promise<any> {
+    private _request(internalParams: InternalRequestParams): Promise<any> {
       try {
         let index = -1
         // async scope https://github.com/prisma/prisma/issues/3148

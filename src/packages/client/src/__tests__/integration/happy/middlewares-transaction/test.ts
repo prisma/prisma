@@ -7,7 +7,7 @@ describe('middleware and transaction', () => {
     const prisma = new PrismaClient()
     await prisma.user.deleteMany()
 
-    let responses: any[] = []
+    const responses: any[] = []
     prisma.$use(async (params, next) => {
       const response = await next(params)
       responses.push(response)
