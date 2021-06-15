@@ -116,9 +116,15 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     if (args['--force-reset']) {
       console.info()
       await migrate.reset()
-      console.info(
-        `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
-      )
+      if (dbInfo.dbName && dbInfo.dbLocation) {
+        console.info(
+          `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+        )
+      } else {
+        console.info(
+          `The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`,
+        )
+      }
       wasDatabaseReset = true
     }
 
@@ -175,9 +181,15 @@ ${chalk.bold.redBright('All data will be lost.')}
       }
 
       await migrate.reset()
-      console.info(
-        `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
-      )
+      if (dbInfo.dbName && dbInfo.dbLocation) {
+        console.info(
+          `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+        )
+      } else {
+        console.info(
+          `The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`,
+        )
+      }
       wasDatabaseReset = true
     }
 

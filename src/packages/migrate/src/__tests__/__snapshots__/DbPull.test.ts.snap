@@ -18,7 +18,6 @@ model jobs {
 `;
 
 exports[`SQL Server basic introspection 1`] = `
-Prisma schema loaded from schema.prisma
 datasource db {
   provider = "sqlserver"
   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
@@ -36,7 +35,6 @@ model jobs {
 `;
 
 exports[`common/sqlite basic introspection 1`] = `
-Prisma schema loaded from schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -76,7 +74,6 @@ model User {
 `;
 
 exports[`common/sqlite basic introspection with --url 1`] = `
-Prisma schema loaded from schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -117,10 +114,9 @@ model User {
 
 exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
 
-exports[`common/sqlite basic introspection with invalid --url 2`] = `Prisma schema loaded from schema.prisma`;
+exports[`common/sqlite basic introspection with invalid --url 2`] = ``;
 
 exports[`common/sqlite introspection --force 1`] = `
-Prisma schema loaded from schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -160,7 +156,6 @@ model User {
 `;
 
 exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
-Prisma schema loaded from prisma/reintrospection.prisma
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
@@ -206,7 +201,7 @@ model AwesomeProfile {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`common/sqlite should succeed when schema is invalid and using --force 3`] = `
+exports[`common/sqlite should succeed when schema is invalid and using --force 5`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
@@ -288,7 +283,6 @@ model your_url {
 `;
 
 exports[`mysql basic introspection 1`] = `
-Prisma schema loaded from schema.prisma
 datasource db {
   provider = "mysql"
   url      = env("TEST_MYSQL_URI")
@@ -367,7 +361,6 @@ enum Role {
 `;
 
 exports[`postgresql basic introspection 1`] = `
-Prisma schema loaded from schema.prisma
 datasource db {
   provider = "postgresql"
   url      = env("TEST_POSTGRES_URI_MIGRATE")
