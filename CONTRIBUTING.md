@@ -24,7 +24,7 @@ To setup and build the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
-npm i -g pnpm@5.15.1 --unsafe-perm
+npm i -g pnpm@6 --unsafe-perm
 cd prisma/src
 pnpm i
 pnpm run setup
@@ -36,7 +36,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 1. Node.js `>=12.2` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 1. Install [`yarn@1`](https://classic.yarnpkg.com/en/docs/install/) (for building a "pack" version of the client)
-1. Install [`pnpm@5.15.1`](https://pnpm.js.org/) (for installing npm dependencies)
+1. Install [`pnpm@6`](https://pnpm.js.org/) (for installing npm dependencies)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node scripts written in TypeScript)
 
