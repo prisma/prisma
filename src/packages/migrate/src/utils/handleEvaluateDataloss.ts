@@ -40,7 +40,7 @@ export async function handleWarnings(
   createOnly = false,
 ): Promise<boolean | void> {
   if (warnings && warnings.length > 0) {
-    console.log(chalk.bold(`\n⚠️  Warnings:\n`))
+    console.log(chalk.bold(`\n⚠️  Warnings for current database:\n`))
     for (const warning of warnings) {
       console.log(chalk(`  • ${warning.message}`))
     }
@@ -57,7 +57,7 @@ export async function handleWarnings(
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
-          message: `${message} ${chalk.red('Some data will be lost')}.`,
+          message,
         })
 
         if (!confirmation.value) {
