@@ -1,41 +1,35 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('middleware and transaction', () => {
-  test('next response and params', async () => {
+  test('typeof await next()', async () => {
     const PrismaClient = await getTestClient()
-    const db = new PrismaClient()
 
-    let response
-    let parameters
-    db.$use(async (params, next) => {
-      parameters = params
-      response = await next(params)
+    const prisma = new PrismaClient()
+    await prisma.user.deleteMany()
 
+    let responses: any[] = []
+    prisma.$use(async (params, next) => {
+      const response = await next(params)
+      responses.push(response)
       return response
     })
 
-    await db.$transaction([
-      db.user.create({
+    await prisma.$transaction([
+      prisma.user.create({
         data: {
           email: 'test@test.com',
           name: 'test',
         },
       }),
-      db.user.findMany(),
     ])
-    expect(parameters).toMatchInlineSnapshot(`
-Object {
-  action: findMany,
-  args: undefined,
-  dataPath: Array [],
-  model: User,
-  runInTransaction: true,
-}
-`)
-    expect(response.email).toMatchInlineSnapshot(`undefined`)
+    expect(typeof responses[0]).toEqual(`object`)
+    expect(responses[0].email).toMatchInlineSnapshot(`test@test.com`)
 
-    await db.user.deleteMany()
+    const users = await prisma.user.findMany()
+    expect(users[0].email).toMatchInlineSnapshot(`test@test.com`)
 
-    db.$disconnect()
+    await prisma.user.deleteMany()
+
+    prisma.$disconnect()
   })
 })
