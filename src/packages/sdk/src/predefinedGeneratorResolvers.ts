@@ -50,11 +50,17 @@ async function getPrismaClientDir(baseDir: string) {
   const clientDir = await getPkgDir(baseDir, '@prisma/client')
   const cliDir = await getPkgDir(baseDir, 'prisma')
 
-  if (cliDir && clientDir?.includes(cliDir)) {
-    return undefined
+  // if we are testing the client in the CLI folder
+  if (cliDir && process.cwd().includes(cliDir)) {
+    return clientDir
   }
 
-  return clientDir
+  // if the found client dir is not the one of CLI
+  if (clientDir && !clientDir?.includes(cliDir!)) {
+    return clientDir
+  }
+
+  return undefined
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
