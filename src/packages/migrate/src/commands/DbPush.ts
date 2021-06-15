@@ -204,9 +204,7 @@ ${chalk.bold.redBright('All data will be lost.')}
         const confirmation = await prompt({
           type: 'confirm',
           name: 'value',
-          message: `Do you want to ignore the warning(s)? ${chalk.red(
-            'Some data will be lost',
-          )}.`,
+          message: `Do you want to ignore the warning(s)?`,
         })
 
         if (!confirmation.value) {
