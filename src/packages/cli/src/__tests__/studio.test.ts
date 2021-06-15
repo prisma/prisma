@@ -18,10 +18,8 @@ async function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
-const describeIf = (condition: boolean) =>
-  condition ? describe : describe.skip
 
-describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
+describe('studio', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
