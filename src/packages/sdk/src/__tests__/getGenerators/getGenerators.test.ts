@@ -101,25 +101,28 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  test.skip('basic - binaryTargets as env var - native', async () => {
-    process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
+  /* eslint-disable jest/no-standalone-expect */
+  const it = (condition: boolean) => (condition ? test : test.skip)
 
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
-        outputPath: __dirname,
-      },
-    }
+  it(process.env.PRISMA_FORCE_NAPI !== 'true')(
+    'basic - binaryTargets - native string',
+    async () => {
+      const aliases = {
+        'predefined-generator': {
+          generatorPath: path.join(__dirname, 'generator'),
+          outputPath: __dirname,
+        },
+      }
 
-    const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets-env-var.prisma',
-      ),
-      providerAliases: aliases,
-    })
+      const generators = await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'valid-minimal-schema-binaryTargets.prisma',
+        ),
+        providerAliases: aliases,
+      })
 
-    expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+      expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
       Array [
         Object {
           "defaultOutput": "default-output",
@@ -135,13 +138,112 @@ describe('getGenerators', () => {
       ]
     `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+      expect(
+        pick(generators[0].options!, [
+          'datamodel',
+          'datasources',
+          'otherGenerators',
+        ]),
+      ).toMatchInlineSnapshot(`
+      Object {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
+
+      generator gen_env {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = \\"native\\"
+      }
+
+      model User {
+        id   Int    @id
+        name String
+      }
+      ",
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": Array [
+              "sqlite",
+            ],
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "file:./dev.db",
+            },
+          },
+        ],
+        "otherGenerators": Array [],
+      }
+    `)
+
+      const generator = omit(generators[0].options!.generator, ['output'])
+      const platform = await getPlatform()
+
+      expect(generator.binaryTargets).toHaveLength(1)
+      expect(generator.binaryTargets[0].value).toEqual(platform)
+      expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
+
+      expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
+      Object {
+        "config": Object {},
+        "name": "gen_env",
+        "previewFeatures": Array [],
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
+      }
+    `)
+
+      generators.forEach((g) => g.stop())
+    },
+  )
+
+  it(process.env.PRISMA_FORCE_NAPI !== 'true')(
+    'basic - binaryTargets as env var - native string',
+    async () => {
+      process.env.BINARY_TARGETS_ENV_VAR_TEST = '"native"'
+
+      const aliases = {
+        'predefined-generator': {
+          generatorPath: path.join(__dirname, 'generator'),
+          outputPath: __dirname,
+        },
+      }
+
+      const generators = await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'valid-minimal-schema-binaryTargets-env-var.prisma',
+        ),
+        providerAliases: aliases,
+      })
+
+      expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "defaultOutput": "default-output",
+          "denylist": Array [
+            "SomeForbiddenType",
+          ],
+          "prettyName": "This is a pretty pretty name",
+          "requiresEngines": Array [
+            "queryEngine",
+            "migrationEngine",
+          ],
+        },
+      ]
+    `)
+
+      expect(
+        pick(generators[0].options!, [
+          'datamodel',
+          'datasources',
+          'otherGenerators',
+        ]),
+      ).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -175,16 +277,16 @@ describe('getGenerators', () => {
       }
     `)
 
-    const generator = omit(generators[0].options!.generator, ['output'])
-    const platform = await getPlatform()
+      const generator = omit(generators[0].options!.generator, ['output'])
+      const platform = await getPlatform()
 
-    expect(generator.binaryTargets).toHaveLength(1)
-    expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual(
-      'BINARY_TARGETS_ENV_VAR_TEST',
-    )
+      expect(generator.binaryTargets).toHaveLength(1)
+      expect(generator.binaryTargets[0].value).toEqual(platform)
+      expect(generator.binaryTargets[0].fromEnvVar).toEqual(
+        'BINARY_TARGETS_ENV_VAR_TEST',
+      )
 
-    expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
+      expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
       Object {
         "config": Object {},
         "name": "gen_env",
@@ -196,113 +298,219 @@ describe('getGenerators', () => {
       }
     `)
 
-    generators.forEach((g) => g.stop())
-  })
+      generators.forEach((g) => g.stop())
+    },
+  )
 
-  test.skip('basic - binaryTargets as env var', async () => {
-    process.env.BINARY_TARGETS_ENV_VAR_TEST =
-      '["darwin", "windows", "debian-openssl-1.1.x"]'
+  it(process.env.PRISMA_FORCE_NAPI !== 'true')(
+    'basic - binaryTargets as env var - native',
+    async () => {
+      process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
 
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
-        outputPath: __dirname,
-      },
-    }
-
-    const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets-env-var.prisma',
-      ),
-      providerAliases: aliases,
-    })
-
-    expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "defaultOutput": "default-output",
-          "denylist": Array [
-            "SomeForbiddenType",
-          ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
-            "queryEngine",
-            "migrationEngine",
-          ],
-        },
-      ]
-    `)
-
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
-      Object {
-        "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
-      }
-
-      generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
-      }
-
-      model User {
-        id   Int    @id
-        name String
-      }
-      ",
-        "datasources": Array [
-          Object {
-            "activeProvider": "sqlite",
-            "name": "db",
-            "provider": Array [
-              "sqlite",
-            ],
-            "url": Object {
-              "fromEnvVar": null,
-              "value": "file:./dev.db",
-            },
-          },
-        ],
-        "otherGenerators": Array [],
-      }
-    `)
-
-    expect(omit(generators[0].options!.generator, ['output']))
-      .toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-            "value": "darwin",
-          },
-          Object {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-            "value": "windows",
-          },
-          Object {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-            "value": "debian-openssl-1.1.x",
-          },
-        ],
-        "config": Object {},
-        "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
-          "fromEnvVar": null,
-          "value": "predefined-generator",
+      const aliases = {
+        'predefined-generator': {
+          generatorPath: path.join(__dirname, 'generator'),
+          outputPath: __dirname,
         },
       }
-    `)
 
-    generators.forEach((g) => g.stop())
-  })
+      const generators = await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'valid-minimal-schema-binaryTargets-env-var.prisma',
+        ),
+        providerAliases: aliases,
+      })
+
+      expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+              Array [
+                Object {
+                  "defaultOutput": "default-output",
+                  "denylist": Array [
+                    "SomeForbiddenType",
+                  ],
+                  "prettyName": "This is a pretty pretty name",
+                  "requiresEngines": Array [
+                    "queryEngine",
+                    "migrationEngine",
+                  ],
+                },
+              ]
+          `)
+
+      expect(
+        pick(generators[0].options!, [
+          'datamodel',
+          'datasources',
+          'otherGenerators',
+        ]),
+      ).toMatchInlineSnapshot(`
+              Object {
+                "datamodel": "datasource db {
+                provider = \\"sqlite\\"
+                url      = \\"file:./dev.db\\"
+              }
+
+              generator gen_env {
+                provider      = \\"predefined-generator\\"
+                binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+              }
+
+              model User {
+                id   Int    @id
+                name String
+              }
+              ",
+                "datasources": Array [
+                  Object {
+                    "activeProvider": "sqlite",
+                    "name": "db",
+                    "provider": Array [
+                      "sqlite",
+                    ],
+                    "url": Object {
+                      "fromEnvVar": null,
+                      "value": "file:./dev.db",
+                    },
+                  },
+                ],
+                "otherGenerators": Array [],
+              }
+          `)
+
+      const generator = omit(generators[0].options!.generator, ['output'])
+      const platform = await getPlatform()
+
+      expect(generator.binaryTargets).toHaveLength(1)
+      expect(generator.binaryTargets[0].value).toEqual(platform)
+      expect(generator.binaryTargets[0].fromEnvVar).toEqual(
+        'BINARY_TARGETS_ENV_VAR_TEST',
+      )
+
+      expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
+              Object {
+                "config": Object {},
+                "name": "gen_env",
+                "previewFeatures": Array [],
+                "provider": Object {
+                  "fromEnvVar": null,
+                  "value": "predefined-generator",
+                },
+              }
+          `)
+
+      generators.forEach((g) => g.stop())
+    },
+  )
+
+  it(process.env.PRISMA_FORCE_NAPI !== 'true')(
+    'basic - binaryTargets as env var - darwin, windows, debian',
+    async () => {
+      process.env.BINARY_TARGETS_ENV_VAR_TEST =
+        '["darwin", "windows", "debian-openssl-1.1.x"]'
+
+      const aliases = {
+        'predefined-generator': {
+          generatorPath: path.join(__dirname, 'generator'),
+          outputPath: __dirname,
+        },
+      }
+
+      const generators = await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'valid-minimal-schema-binaryTargets-env-var.prisma',
+        ),
+        providerAliases: aliases,
+      })
+
+      expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+              Array [
+                Object {
+                  "defaultOutput": "default-output",
+                  "denylist": Array [
+                    "SomeForbiddenType",
+                  ],
+                  "prettyName": "This is a pretty pretty name",
+                  "requiresEngines": Array [
+                    "queryEngine",
+                    "migrationEngine",
+                  ],
+                },
+              ]
+          `)
+
+      expect(
+        pick(generators[0].options!, [
+          'datamodel',
+          'datasources',
+          'otherGenerators',
+        ]),
+      ).toMatchInlineSnapshot(`
+              Object {
+                "datamodel": "datasource db {
+                provider = \\"sqlite\\"
+                url      = \\"file:./dev.db\\"
+              }
+
+              generator gen_env {
+                provider      = \\"predefined-generator\\"
+                binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+              }
+
+              model User {
+                id   Int    @id
+                name String
+              }
+              ",
+                "datasources": Array [
+                  Object {
+                    "activeProvider": "sqlite",
+                    "name": "db",
+                    "provider": Array [
+                      "sqlite",
+                    ],
+                    "url": Object {
+                      "fromEnvVar": null,
+                      "value": "file:./dev.db",
+                    },
+                  },
+                ],
+                "otherGenerators": Array [],
+              }
+          `)
+
+      expect(omit(generators[0].options!.generator, ['output']))
+        .toMatchInlineSnapshot(`
+              Object {
+                "binaryTargets": Array [
+                  Object {
+                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+                    "value": "darwin",
+                  },
+                  Object {
+                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+                    "value": "windows",
+                  },
+                  Object {
+                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+                    "value": "debian-openssl-1.1.x",
+                  },
+                ],
+                "config": Object {},
+                "name": "gen_env",
+                "previewFeatures": Array [],
+                "provider": Object {
+                  "fromEnvVar": null,
+                  "value": "predefined-generator",
+                },
+              }
+          `)
+
+      generators.forEach((g) => g.stop())
+    },
+  )
+  /* eslint-enable jest/no-standalone-expect */
 
   test('inject engines', async () => {
     const aliases = {

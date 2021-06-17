@@ -9,7 +9,7 @@ import chalk from 'chalk'
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
 export function parseEnvValue(object: EnvValue) {
-  if (object.fromEnvVar && object.fromEnvVar !== null) {
+  if (object.fromEnvVar && object.fromEnvVar != null) {
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
@@ -34,8 +34,10 @@ export function parseEnvValue(object: EnvValue) {
  * - If there is an env var it will be resolve and returned.
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
-export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue) {
-  if (object.fromEnvVar && object.fromEnvVar !== null) {
+export function parseBinaryTargetsEnvValue(
+  object: BinaryTargetsEnvValue,
+): string[] | string {
+  if (object.fromEnvVar && object.fromEnvVar != null) {
     const value = process.env[object.fromEnvVar]
     if (!value) {
       throw new Error(
@@ -47,9 +49,12 @@ export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue) {
       )
     }
 
-    // value is a string because it's from env var but need to be parsed as an array
+    // value is a string because it's from env var but need to be parsed
+    // can be an array like `["darwin"]`
+    // or a string like `"darwin"`
+
     return JSON.parse(value)
   }
 
-  return object.value
+  return object.value as any
 }

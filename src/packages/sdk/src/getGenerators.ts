@@ -300,7 +300,7 @@ generator gen {
           // If set from env var, there is only one item
           // and we need to read the env var
           if (binaryTarget0.fromEnvVar !== null) {
-            const parsedBinaryTargetsEnvValue: string[] =
+            const parsedBinaryTargetsEnvValue =
               parseBinaryTargetsEnvValue(binaryTarget0)
 
             // remove item and replace with parsed values
@@ -308,10 +308,17 @@ generator gen {
             // so we create one new iteam for each element in the array
             generatorBinaryTargets.shift()
 
-            for (const platformName of parsedBinaryTargetsEnvValue) {
+            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
+              for (const platformName of parsedBinaryTargetsEnvValue) {
+                generatorBinaryTargets.push({
+                  fromEnvVar: binaryTarget0.fromEnvVar,
+                  value: platformName,
+                })
+              }
+            } else {
               generatorBinaryTargets.push({
                 fromEnvVar: binaryTarget0.fromEnvVar,
-                value: platformName,
+                value: parsedBinaryTargetsEnvValue,
               })
             }
           }
@@ -332,7 +339,7 @@ generator gen {
         }
       }
     }
-    debug({ neededVersions })
+    debug('neededVersions', JSON.stringify(neededVersions, null, 2))
     const binaryPathsByVersion = await getBinaryPathsByVersion({
       neededVersions,
       platform,
@@ -372,8 +379,12 @@ generator gen {
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
-          debug(generator.manifest.prettyName)
-          debug(options)
+          debug('generator.manifest.prettyName', generator.manifest.prettyName)
+          debug('options', options)
+          debug(
+            'options.generator.binaryTargets',
+            options.generator.binaryTargets,
+          )
           generator.setOptions(options)
         }
       }
