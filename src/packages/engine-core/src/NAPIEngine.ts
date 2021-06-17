@@ -100,9 +100,11 @@ export class NAPIEngine implements Engine {
   }
   private async instantiateLibrary(): Promise<void> {
     debug('internalSetup')
-    await isNodeAPISupported()
-    if (this.libraryInstantiationPromise)
+    if (this.libraryInstantiationPromise) {
       return this.libraryInstantiationPromise
+    }
+
+    await isNodeAPISupported()
     this.platform = await this.getPlatform()
     this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
