@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "masterIssue": true,
+  "dependencyDashboard": true,
   "reviewers": ["@jolg42", "@williamluke4", "millsp"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": ["esbuild", "sqlite3"],
@@ -58,6 +58,16 @@
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
       "reviewers": ["@Weakky", "jolg42"]
+    },
+    {
+      "groupName": "jest",
+      "automerge": "true",
+      "packageNames": ["jest", "@types/jest", "ts-jest"]
+    },
+    {
+      "groupName": "node-fetch",
+      "ignoreUnstable": false,
+      "packageNames": ["node-fetch"]
     },
     {
       "groupName": "react-prisma",

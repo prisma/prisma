@@ -253,7 +253,11 @@ ${fieldErrors
         return stripAnsi(errorMessages)
       }
 
-      const { stack, indent: indentValue, afterLines } = printStack({
+      const {
+        stack,
+        indent: indentValue,
+        afterLines,
+      } = printStack({
         callsite,
         originalMethod: originalMethod || queryName,
         showColors: errorFormat && errorFormat === 'pretty',
@@ -389,7 +393,10 @@ ${errorMessages}${missingArgsLegend}\n`
 
       return str
     }
+
+    return undefined
   }
+
   protected printArgError = (
     { error, path, id }: ArgError,
     hasMissingItems: boolean,
@@ -456,8 +463,9 @@ ${errorMessages}${missingArgsLegend}\n`
             error.requiredType.bestFittingType.isList,
           ),
         )}.
-→ Possible values: ${(error.requiredType.bestFittingType
-          .type as DMMF.SchemaEnum).values
+→ Possible values: ${(
+          error.requiredType.bestFittingType.type as DMMF.SchemaEnum
+        ).values
           .map((v) =>
             chalk.greenBright(
               `${stringifyGraphQLType(
@@ -547,6 +555,8 @@ ${errorMessages}${missingArgsLegend}\n`
         .map((key) => chalk.redBright(key))
         .join(' and ')}.${additional}`
     }
+
+    return undefined
   }
   /**
    * As we're allowing both single objects and array of objects for list inputs, we need to remove incorrect
@@ -650,9 +660,10 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     return str
   }
-  public collectErrors(
-    prefix = 'select',
-  ): { fieldErrors: FieldError[]; argErrors: ArgError[] } {
+  public collectErrors(prefix = 'select'): {
+    fieldErrors: FieldError[]
+    argErrors: ArgError[]
+  } {
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
 
@@ -1461,19 +1472,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
       }
     })
 
-    // because Node 10's sort has a different order for sorting than Node 11+
-    let scoresEqual = true
-    const currentScore = argsWithScores[0].score
-    for (const { score } of argsWithScores) {
-      if (score !== currentScore) {
-        scoresEqual = false
-        break
-      }
-    }
-
-    if (!scoresEqual) {
-      argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
-    }
+    argsWithScores.sort((a, b) => (a.score < b.score ? -1 : 1))
 
     return argsWithScores[0].arg
   }

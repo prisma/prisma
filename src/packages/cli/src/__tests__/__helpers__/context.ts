@@ -37,18 +37,25 @@ type BaseContext = {
  */
 export const Context = {
   new: function (ctx: BaseContext = {} as any) {
-    const c = ctx as any
+    const c = ctx as BaseContext
 
     beforeEach(() => {
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.fixture = (name: string) => {
+        // copy the fixture in isolated tmp directory
         c.fs.copy(path.join(__dirname, '..', 'fixtures', name), '.', {
           overwrite: true,
         })
+        // symlink to local client version in tmp dir
+        c.fs.symlink(
+          path.join(__dirname, '..', '..', '..', '..', 'client'),
+          path.join(c.fs.cwd(), 'client'),
+        )
       }
-      c.mocked = c.mocked ?? {}
-      c.mocked.cwd = process.cwd()
+      c.mocked = c.mocked ?? {
+        cwd: process.cwd(),
+      }
       c.cli = (...input) => {
         return execa.node(
           path.join(__dirname, '../../../build/index.js'),

@@ -47,6 +47,7 @@ export class TSClient implements Generatable {
       this.options
     const schemaPath = path.join(schemaDir, 'prisma.schema')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
+
     const relativeEnvPaths = {
       rootEnvPath:
         envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
@@ -71,13 +72,27 @@ export class TSClient implements Generatable {
     ) {
       config.generator?.previewFeatures.push('nApi')
     }
-    // used for the __dirname polyfill needed for Next.js
-    const cwdDirname = path.relative(this.options.projectRoot, outputDir)
+
+    // get relative output dir for it to be preserved even after bundling, or
+    // being moved around as long as we keep the same project dir structure.
+    const relativeOutputDir = path.relative(process.cwd(), outputDir)
+
+    // on serverless envs, relative output dir can be one step lower because of
+    // where and how the code is packaged into the lambda like with a build step
+    // with platforms like Vercel or Netlify. We want to check this as well.
+    const slsRelativeOutputDir = path
+      .relative(process.cwd(), outputDir)
+      .split(path.sep)
+      .slice(1)
+      .join(path.sep)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-const dirnamePolyfill = path.join(process.cwd(), ${JSON.stringify(cwdDirname)})
-const dirname = (__dirname.length === 1 || __dirname.includes('.next/serverless')) ? dirnamePolyfill : __dirname
+// folder where the generated client is found
+const dirname = findSync(process.cwd(), [
+  '${JSON.stringify(relativeOutputDir)}',
+  '${JSON.stringify(slsRelativeOutputDir)}',
+], ['d'], ['d'], 1)[0] || __dirname
 
 /**
  * Enums
@@ -145,14 +160,14 @@ Object.assign(exports, Prisma)
 ${buildNFTEngineAnnotations(
   this.options.generator?.previewFeatures?.includes('nApi') ?? false,
   this.options.platforms as Platform[],
-  cwdDirname,
+  relativeOutputDir,
 )}
 /**
  * Annotation for \`@vercel/nft\`
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(cwdDirname, `schema.prisma`)}');
+path.join(process.cwd(), './${path.join(relativeOutputDir, `schema.prisma`)}');
 `
 
     return code
@@ -308,7 +323,6 @@ export const dmmf: runtime.DMMF.Document;
   }
 
   public toBrowserJS(): string {
-    // used for the __dirname polyfill needed for Next.js
     const code = `${commonCodeJS({ ...this.options, browser: true })}
 /**
  * Enums

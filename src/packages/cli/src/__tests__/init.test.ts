@@ -33,14 +33,66 @@ test('works with url param', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-    # Environment variables declared in this file are automatically made available to Prisma.
-    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL and SQLite.
-    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="file:dev.db"
-  `)
+DATABASE_URL="file:dev.db"
+`)
+})
+
+test.skip('works with provider param - mysql', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--provider', 'mysql')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema('mysql'))
+
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchInlineSnapshot(`
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
+`)
+})
+
+test.skip('works with provider param - SQLITE', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--provider', 'SQLITE')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(
+    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
+    'utf-8',
+  )
+  expect(schema).toMatch(defaultSchema('sqlite'))
+
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchInlineSnapshot(`
+# Environment variables declared in this file are automatically made available to Prisma.
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
+# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+DATABASE_URL="file:./dev.db"
+`)
+})
+
+test.skip('errors with invalid provider param', async () => {
+  ctx.fixture('init')
+  const result = ctx.cli('init', '--provider', 'INVALID')
+  await expect(result).rejects.toThrowError()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {
@@ -60,6 +112,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatch(`DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
 })
+
 test('appends when .env present', async () => {
   fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
   const result = await ctx.cli('init')

@@ -1,21 +1,21 @@
+import slugify from '@sindresorhus/slugify'
+import { IncomingWebhook } from '@slack/webhook'
+import arg from 'arg'
+import topo from 'batching-toposort'
 import chalk from 'chalk'
 import execa from 'execa'
-import path from 'path'
-import globby from 'globby'
-import topo from 'batching-toposort'
 import { promises as fs } from 'fs'
-import arg from 'arg'
-import semver from 'semver'
-import pReduce from 'p-reduce'
-import redis from 'redis'
+import globby from 'globby'
 import fetch from 'node-fetch'
+import pMap from 'p-map'
+import pReduce from 'p-reduce'
+import pRetry from 'p-retry'
+import path from 'path'
+import redis from 'redis'
+import semver from 'semver'
 import { promisify } from 'util'
 import { cloneOrPull } from '../setup'
 import { unique } from './unique'
-import pMap from 'p-map'
-import slugify from '@sindresorhus/slugify'
-import pRetry from 'p-retry'
-import { IncomingWebhook } from '@slack/webhook'
 
 export type Commit = {
   date: Date
@@ -809,7 +809,9 @@ async function tagEnginesRepo(
     'prisma-engines',
     `git log ${previousTag}..${engineVersion} --pretty=format:' * %h - %s - by %an' --`,
   )
-  const changelogSanitized = changelog.replace(/"/gm, '\\"')
+  const changelogSanitized = changelog
+    .replace(/"/gm, '\\"')
+    .replace(/`/gm, '\\`')
 
   const remotes = dryRun
     ? []
@@ -864,8 +866,17 @@ async function testPackages(
       order.splice(index, 1)
     }
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-    console.log('BUILDKITE_PARALLEL_JOB === 0 - running client only')
+    console.log('BUILDKITE_PARALLEL_JOB === 1 - running client only')
     order = ['@prisma/client']
+  } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
+    // This is to test N-API
+    console.log('BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [integration-tests, client, sdk, prisma (cli)]')
+    order = [
+      '@prisma/sdk',
+      '@prisma/client',
+      'prisma',
+      '@prisma/integration-tests',
+    ]
   }
 
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
@@ -875,15 +886,14 @@ async function testPackages(
     const pkg = packages[pkgName]
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${chalk.magentaBright(pkg.name)}`)
-      await run(path.dirname(pkg.path), 'pnpm run test')
-
-      //       // Also need a second run but with N-API
-      //       if (pkg.name === '@prisma/integration-tests' || pkg.name === '@prisma/client') {
-      //         await run(
-      //           path.dirname(pkg.path),
-      //           'PRISMA_FORCE_NAPI=true pnpm run test',
-      //         )
-      //       }
+      if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
+        await run(
+          path.dirname(pkg.path),
+          'PRISMA_FORCE_NAPI=true pnpm run test',
+        )
+      } else {
+        await run(path.dirname(pkg.path), 'pnpm run test')
+      }
     } else {
       console.log(
         `\nSkipping ${chalk.magentaBright(pkg.name)}, as it doesn't have tests`,

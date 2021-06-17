@@ -36,7 +36,6 @@ Object {
             string: true,
           },
         },
-        clientMethod: with_all_field_types.create,
         dataPath: Array [],
         model: with_all_field_types,
         runInTransaction: false,
@@ -63,7 +62,7 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 2,
 }
 `;
 
@@ -89,7 +88,6 @@ Object {
             id: 2,
           },
         },
-        clientMethod: with_all_field_types.delete,
         dataPath: Array [],
         model: with_all_field_types,
         runInTransaction: false,
@@ -110,7 +108,7 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 4,
 }
 `;
 
@@ -133,7 +131,6 @@ Object {
             string: true,
           },
         },
-        clientMethod: with_all_field_types.findMany,
         dataPath: Array [],
         model: with_all_field_types,
         runInTransaction: false,
@@ -211,7 +208,6 @@ Object {
             id: 1,
           },
         },
-        clientMethod: with_all_field_types.update,
         dataPath: Array [],
         model: with_all_field_types,
         runInTransaction: false,
@@ -238,6 +234,6 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 3,
 }
 `;

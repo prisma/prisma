@@ -3,6 +3,7 @@ import {
   getNapiName,
   getos,
   getPlatform,
+  isNodeAPISupported,
   Platform,
   platforms,
 } from '@prisma/get-platform'
@@ -92,6 +93,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled binaries are not available for ${platform}. Read more about building your own binaries at https://pris.ly/d/build-binaries`,
     )
+  } else if (EngineTypes.libqueryEngineNapi in options.binaries) {
+    await isNodeAPISupported()
   }
 
   // no need to do anything, if there are no binaries
