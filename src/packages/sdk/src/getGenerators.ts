@@ -1,5 +1,10 @@
 import Debug from '@prisma/debug'
-import { fixBinaryTargets, printGeneratorConfig } from '@prisma/engine-core'
+import {
+  fixBinaryTargets,
+  printGeneratorConfig,
+  getOriginalBinaryTargetsValue,
+  niceStringify,
+} from '@prisma/engine-core'
 import { enginesVersion } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
@@ -611,13 +616,17 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
       // Only show warning if resolvedBinaryTargets
       // is missing current platform
       if (!resolvedBinaryTargets.includes(platform)) {
+        const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(
+          generator.binaryTargets,
+        )
+
         if (generator) {
           console.log(`${chalk.yellow(
             'Warning:',
           )} Your current platform \`${chalk.bold(
             platform,
           )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            generator.binaryTargets,
+            originalBinaryTargetsConfig,
           )}.
     To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
     ${chalk.greenBright(
@@ -635,7 +644,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
         } else {
           console.log(
             `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
-              binaryTargets,
+              originalBinaryTargetsConfig,
             )} don't include your local platform ${platform}, which you can also point to with \`native\`.
     In case you want to fix this, you can provide ${chalk.greenBright(
       `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
