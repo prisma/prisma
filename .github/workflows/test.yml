@@ -179,7 +179,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [12]
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04] #, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -480,7 +480,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-20.04] #, macos-latest, windows-latest]
         node: [12]
 
     steps:
