@@ -342,6 +342,7 @@ You may have to run ${chalk.greenBright(
       // eslint-disable-next-line no-async-promise-executor
       this.libraryStoppingPromise = new Promise(async (res) => {
         await this.runBeforeStop()
+        await new Promise((r) => setTimeout(r, 5))
         debug('library stopping')
         await this.engine?.disconnect()
         this.libraryStarted = false
@@ -442,9 +443,9 @@ You may have to run ${chalk.greenBright(
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
-    this.lastQuery = JSON.stringify(request)
-
     await this.start()
+
+    this.lastQuery = JSON.stringify(request)
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify(headers),
@@ -472,7 +473,7 @@ You may have to run ${chalk.greenBright(
             this.prismaGraphQLToJSError(result.errors[0])
           )
         }
-        // TODO Implement Elapsed
+        console.warn(result)
         return {
           data: result,
           elapsed: 0,
