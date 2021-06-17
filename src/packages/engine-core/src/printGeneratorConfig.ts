@@ -15,7 +15,7 @@ export class GeneratorConfigClass {
       ? `env("${config.provider.fromEnvVar}")`
       : config.provider.value
 
-    let binaryTargets: string | undefined
+    let binaryTargets: string | string[] | undefined
     if (config.binaryTargets.length > 0) {
       const binaryTargetsFromEnvVar = config.binaryTargets.find(
         (object) => object.fromEnvVar !== null,
@@ -23,9 +23,7 @@ export class GeneratorConfigClass {
       if (binaryTargetsFromEnvVar) {
         binaryTargets = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
       } else {
-        binaryTargets = config.binaryTargets
-          .map((object) => object.value)
-          .toString()
+        binaryTargets = config.binaryTargets.map((object) => object.value)
       }
     } else {
       binaryTargets = undefined

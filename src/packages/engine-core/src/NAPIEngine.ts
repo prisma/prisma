@@ -578,7 +578,7 @@ ${searchedLocations
 You already added the platform${
             this.config.generator.binaryTargets.length > 1 ? 's' : ''
           } ${this.config.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
