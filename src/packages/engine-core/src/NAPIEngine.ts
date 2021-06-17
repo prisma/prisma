@@ -392,12 +392,14 @@ You may have to run ${chalk.greenBright(
     numTry: number,
   ): Promise<{ data: T; elapsed: number }> {
     try {
-      await this.start()
       debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
       const request: QueryEngineRequest = { query, variables: {} }
       const queryStr = JSON.stringify(request)
       const headerStr = JSON.stringify({})
+
+      await this.start()
       this.executingQueryPromise = this.engine?.query(queryStr, headerStr)
+
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(
         await this.executingQueryPromise,
@@ -434,7 +436,6 @@ You may have to run ${chalk.greenBright(
     transaction = false,
     numTry = 1,
   ): Promise<any> {
-    await this.start()
     debug('requestBatch')
     const headers: QueryEngineRequestHeaders = {}
     const request: QueryEngineBatchRequest = {
@@ -442,6 +443,8 @@ You may have to run ${chalk.greenBright(
       transaction,
     }
     this.lastQuery = JSON.stringify(request)
+
+    await this.start()
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify(headers),
