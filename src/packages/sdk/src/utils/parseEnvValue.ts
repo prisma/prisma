@@ -15,7 +15,7 @@ export function parseEnvValue(object: EnvValue) {
       throw new Error(
         `Attempted to load provider value using \`env(${
           object.fromEnvVar
-        })\` but it was not present. Please insure that ${chalk.dim(
+        })\` but it was not present. Please ensure that ${chalk.dim(
           object.fromEnvVar,
         )} is present in your Environment Variables`,
       )
@@ -41,7 +41,7 @@ export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue) {
       throw new Error(
         `Attempted to load binaryTargets value using \`env(${
           object.fromEnvVar
-        })\` but it was not present. Please insure that ${chalk.dim(
+        })\` but it was not present. Please ensure that ${chalk.dim(
           object.fromEnvVar,
         )} is present in your Environment Variables`,
       )
