@@ -3,7 +3,6 @@ import {
   fixBinaryTargets,
   printGeneratorConfig,
   getOriginalBinaryTargetsValue,
-  niceStringify,
 } from '@prisma/engine-core'
 import { enginesVersion } from '@prisma/engines'
 import {
