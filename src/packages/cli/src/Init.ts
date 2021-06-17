@@ -228,8 +228,7 @@ export class Init implements Command {
       } else {
         fs.appendFileSync(
           envPath,
-          `\n\n` +
-            '# This was inserted by `prisma init`:\n' +
+          `\n\n` + '# This was inserted by `prisma init`:\n' +
             defaultEnv(url),
         )
       }
