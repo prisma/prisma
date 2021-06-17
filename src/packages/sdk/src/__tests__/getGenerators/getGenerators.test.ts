@@ -101,7 +101,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  test('basic - binaryTargets as env var - native', async () => {
+  test.skip('basic - binaryTargets as env var - native', async () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
 
     const aliases = {
@@ -199,7 +199,7 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
-  test('basic - binaryTargets as env var', async () => {
+  test.skip('basic - binaryTargets as env var', async () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST =
       '["darwin", "windows", "debian-openssl-1.1.x"]'
 
