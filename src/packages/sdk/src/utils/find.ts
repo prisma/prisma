@@ -12,7 +12,11 @@ const realpathSync = fs.realpathSync
 const statSync = fs.statSync
 
 type ItemType = 'd' | 'f' | 'l'
-type Handler = (base: string, item: string, type: ItemType) => boolean | string
+type Handler = (
+  base: string,
+  item: string,
+  type: ItemType,
+) => boolean | string | undefined
 
 /**
  * Transform a dirent to a file type
@@ -36,6 +40,10 @@ function direntToType(dirent: fs.Dirent | fs.Stats) {
  * @returns
  */
 function isMatched(string: string, regexs: (RegExp | string)[]) {
+  if (regexs.length === 0) {
+    return true
+  }
+
   for (const regex of regexs) {
     if (typeof regex === 'string') {
       if (string.includes(regex)) {
@@ -90,7 +98,9 @@ export function findSync(
     }
 
     // we list the items in the current root
-    const items = readdirSync(root, { withFileTypes: true })
+    const items = readdirSync(root, { withFileTypes: true }).sort((d) =>
+      direntToType(d) === 'd' ? 1 : -1,
+    )
 
     //seen[realRoot] = true
     for (const item of items) {
@@ -99,11 +109,12 @@ export function findSync(
       const itemType = direntToType(item)
       const itemPath = path.join(root, item.name)
 
+      let value: string | boolean | undefined
       // if the item is one of the selected
       if (itemType && types.includes(itemType)) {
         // if the path of an item has matched
         if (isMatched(itemPath, match)) {
-          const value = handler(root, itemName, itemType)
+          value = handler(root, itemName, itemType)
 
           // if we changed the path value
           if (typeof value === 'string') {
@@ -116,8 +127,8 @@ export function findSync(
         }
       }
 
-      if (deep.includes(itemType as any)) {
-        // dive within the directory tree
+      // dive within the directory tree
+      if (value !== false && deep.includes(itemType as any)) {
         // we recurse and continue mutating `found`
         findSync(itemPath, match, types, deep, limit, handler, found, seen)
       }
@@ -206,7 +217,9 @@ export async function findAsync(
     }
 
     // we list the items in the current root
-    const items = await readdirAsync(root, { withFileTypes: true })
+    const items = (await readdirAsync(root, { withFileTypes: true })).sort(
+      (d) => (direntToType(d) === 'd' ? 1 : -1),
+    )
 
     seen[realRoot] = true
     for (const item of items) {
@@ -215,11 +228,12 @@ export async function findAsync(
       const itemType = direntToType(item)
       const itemPath = path.join(root, item.name)
 
+      let value: string | boolean | undefined
       // if the ietm is one of the selected
       if (itemType && types.includes(itemType)) {
         // if the path of an item has matched
         if (isMatched(itemPath, match)) {
-          const value = handler(root, itemName, itemType)
+          value = handler(root, itemName, itemType)
 
           // if we changed the path value
           if (typeof value === 'string') {
@@ -233,7 +247,7 @@ export async function findAsync(
       }
 
       // dive within the directory tree
-      if (deep.includes(itemType as any)) {
+      if (value !== false && deep.includes(itemType as any)) {
         // we recurse and continue mutating `found`
         await findAsync(
           itemPath,
