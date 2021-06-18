@@ -97,6 +97,7 @@ export class NAPIEngine implements Engine {
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
+    initHooks(this)
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -300,9 +301,8 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  private async runBeforeStop() {
-    await this.executingQueryPromise
-    debug('runBeforeStop')
+  async runBeforeExit() {
+    debug('runBeforeExit')
     if (this.beforeExitListener) {
       try {
         await this.beforeExitListener()
@@ -341,7 +341,6 @@ You may have to run ${chalk.greenBright(
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
-
     debug(`library stopping, this.libraryStarted: ${this.libraryStarted}`)
     if (this.libraryStoppingPromise) {
       debug('library is already disconnecting')
@@ -355,7 +354,6 @@ You may have to run ${chalk.greenBright(
     if (this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
       this.libraryStoppingPromise = new Promise(async (res) => {
-        await this.runBeforeStop()
         await new Promise((r) => setTimeout(r, 5))
         debug('library stopping')
         await this.engine?.disconnect()
@@ -644,4 +642,27 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
 
     return printGeneratorConfig(fixedGenerator)
   }
+}
+
+function hookProcess(engine: NAPIEngine, handler: string, exit = false) {
+  process.once(handler as any, async () => {
+    debug(`Received ${handler}`)
+    await engine.runBeforeExit()
+    await new Promise((res) => process.nextTick(res))
+    debug(`Received2 ${handler}`)
+    // only exit, if only we are listening
+    // if there is another listener, that other listener is responsible
+    if (exit && process.listenerCount(handler) === 0) {
+      process.exit()
+    }
+  })
+}
+
+function initHooks(engine: NAPIEngine) {
+  hookProcess(engine, 'beforeExit')
+  hookProcess(engine, 'exit')
+  hookProcess(engine, 'SIGINT', true)
+  hookProcess(engine, 'SIGUSR1', true)
+  hookProcess(engine, 'SIGUSR2', true)
+  hookProcess(engine, 'SIGTERM', true)
 }
