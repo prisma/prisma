@@ -107,7 +107,6 @@ export class NAPIEngine implements Engine {
 
     await isNodeAPISupported()
     this.platform = await this.getPlatform()
-    this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
     this.version()
   }
@@ -162,14 +161,12 @@ You may have to run ${chalk.greenBright(
   }
 
   private async loadEngine(): Promise<void> {
-    debug('loadEngine')
+    if (!this.libQueryEnginePath) {
+      this.libQueryEnginePath = await this.getLibQueryEnginePath()
+    }
+    debug(`loadEngine using ${this.libQueryEnginePath}`)
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
-        if (!this.libQueryEnginePath) {
-          // TODO Why is this executed twice
-          this.libQueryEnginePath = await this.getLibQueryEnginePath()
-          debug(`using ${this.libQueryEnginePath}`)
-        }
         try {
           // this require needs to be resolved at runtime, tell webpack to ignore it
           this.library = eval('require')(this.libQueryEnginePath) as NAPI
@@ -550,7 +547,7 @@ You may have to run ${chalk.greenBright(
     // TODO Document ENV VAR
     const libPath =
       process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
-    if (libPath && fs.existsSync(libPath)) {
+    if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
     }
     this.platform = this.platform ?? (await getPlatform())
