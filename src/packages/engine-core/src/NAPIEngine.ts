@@ -176,16 +176,24 @@ You may have to run ${chalk.greenBright(
           this.QueryEngineConstructor = this.library.QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
-            // TODO Check if this is tested
-            throw new PrismaClientInitializationError(
-              `Unable to load NAPI Library from ${chalk.dim(
-                this.libQueryEnginePath,
-              )}, Library may be corrupt`,
-              this.config.clientVersion!,
-            )
+            if (this.libQueryEnginePath.endsWith('.node')) {
+              throw new PrismaClientInitializationError(
+                `Unable to load Node-API Library from ${chalk.dim(
+                  this.libQueryEnginePath,
+                )}, Library may be corrupt`,
+                this.config.clientVersion!,
+              )
+            } else {
+              throw new PrismaClientInitializationError(
+                `Expected an Node-API Library but received ${chalk.dim(
+                  this.libQueryEnginePath,
+                )}`,
+                this.config.clientVersion!,
+              )
+            }
           } else {
             throw new PrismaClientInitializationError(
-              `Unable to load NAPI Library from ${chalk.dim(
+              `Unable to load Node-API Library from ${chalk.dim(
                 this.libQueryEnginePath,
               )}, It does not exist`,
               this.config.clientVersion!,
