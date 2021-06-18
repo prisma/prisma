@@ -266,7 +266,6 @@ You may have to run ${chalk.greenBright(
       title,
       version: this.config.clientVersion!,
       engineVersion: this.versionInfo?.version,
-      // TODO
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
@@ -436,7 +435,7 @@ You may have to run ${chalk.greenBright(
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
-      // TODO Implement Elapsed
+      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
     } catch (e) {
       const error = this.parseRequestError(e.message)
@@ -492,10 +491,9 @@ You may have to run ${chalk.greenBright(
             this.prismaGraphQLToJSError(result.errors[0])
           )
         }
-        console.warn(result)
         return {
           data: result,
-          elapsed: 0,
+          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
         }
       })
     } else {
@@ -559,8 +557,7 @@ You may have to run ${chalk.greenBright(
     const { enginePath, searchedLocations } = await this.resolveEnginePath()
     // If path to query engine doesn't exist, throw
     if (!fs.existsSync(enginePath)) {
-      // TODO Renamed Pinned
-      const pinnedStr = this.platform
+      const incorrectPinnedPlatformErrorStr = this.platform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
             `${this.platform}`,
           )}\n`
@@ -568,7 +565,7 @@ You may have to run ${chalk.greenBright(
       // TODO Improve search engine logic possibly using findSync
       let errorText = `Query engine library for current platform "${chalk.bold(
         this.platform,
-      )}" could not be found.${pinnedStr}
+      )}" could not be found.${incorrectPinnedPlatformErrorStr}
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in "${chalk.underline(enginePath)}")
 
