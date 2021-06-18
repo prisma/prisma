@@ -32,7 +32,7 @@ async function getPkgDir(
   const handler = (base: string, item: string) => {
     const itemPath = path.join(base, item)
 
-    // if the package.json name is equal to the `pkgName`, return `base`
+    // if the package.json name is equal to the `pkgName`
     if (load(itemPath)?.name === pkgName) {
       return base
     }
