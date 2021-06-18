@@ -29,32 +29,23 @@ async function resolvePackage(
   baseDir: string,
   pkgName: string,
 ): Promise<string | undefined> {
-  let foundModules = false
   const handler = (base: string, item: string, type: string) => {
-    // if it's the first node_modules we encounter, dive but don't keep
-    if (!foundModules && item === 'node_modules' && type === 'd') {
-      foundModules = true
-      return undefined
+    // if we are within or still looking for the node_modules
+    if (type === 'd' && base.split('node_modules').length <= 2) {
+      return undefined // don't keep this, but continue diving
     }
 
-    // if item is a child folder of the node_modules parent folder, dive
-    if (foundModules && base.endsWith('node_modules') && type === 'd') {
-      return undefined // don't keep
-    }
-
-    // if we found afile that is a package.json in the node_modules, check
-    if (foundModules && item === 'package.json' && type === 'f') {
-      if (load(path.join(base, item))?.name === pkgName) {
+    // if found a file that's a package.json in node_modules
+    if (type === 'f' && item === 'package.json') {
+      if (require(path.join(base, item))?.name === pkgName) {
         return base // keep if the package name is a match
       }
     }
 
-    return false // don't keep, don't dive
+    return false // anything else, don't keep, don't dive
   }
 
-  const found = await findUp(baseDir, [], ['d', 'f'], ['d', 'l'], 1, handler)
-
-  return found[0]
+  return (await findUp(baseDir, [], ['d', 'f'], ['d', 'l'], 1, handler))[0]
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
