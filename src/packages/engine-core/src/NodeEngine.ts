@@ -43,6 +43,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Undici } from './undici'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 
+
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
@@ -72,6 +73,7 @@ const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
+
 
 export class NodeEngine implements Engine {
   private logEmitter: EventEmitter
@@ -162,7 +164,10 @@ export class NodeEngine implements Engine {
     this.flags = flags ?? []
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
+    
     initHooks()
+    
+    // warn for removed preview feature flags
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -181,7 +186,6 @@ export class NodeEngine implements Engine {
     const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),
     )
-
     if (
       removedFlagsUsed.length > 0 &&
       !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
@@ -194,17 +198,18 @@ export class NodeEngine implements Engine {
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
     }
-
     this.previewFeatures = this.previewFeatures.filter(
       (e) => !removedFlags.includes(e),
     )
+    
+    // custom endpoint
     this.engineEndpoint = engineEndpoint
-
     if (engineEndpoint) {
       const url = new URL(engineEndpoint)
       this.port = Number(url.port)
     }
 
+    // TODO
     if (this.platform) {
       if (
         !knownPlatforms.includes(this.platform as Platform) &&
@@ -227,9 +232,11 @@ You may have to run ${chalk.greenBright(
     } else {
       void this.getPlatform()
     }
+    
     if (this.enableDebugLogs) {
       Debug.enable('*')
     }
+    
     engines.push(this)
     this.checkForTooManyEngines()
   }
@@ -281,7 +288,6 @@ You may have to run ${chalk.greenBright(
     if (cwd && fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
       return cwd
     }
-
     return process.cwd()
   }
 
@@ -340,21 +346,26 @@ You may have to run ${chalk.greenBright(
   }> {
     const searchedLocations: string[] = []
     let enginePath
+    
     if (this.prismaPath) {
       return { prismaPath: this.prismaPath, searchedLocations }
     }
 
     const platform = await this.getPlatform()
+    // TODO
     if (this.platform && this.platform !== platform) {
       this.incorrectlyPinnedBinaryTarget = this.platform
     }
 
+    // TODO
     this.platform = this.platform || platform
 
+    // TODO Special case for filename `NodeEngine` - Why?
     if (__filename.includes('NodeEngine')) {
       enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
       return { prismaPath: enginePath, searchedLocations }
     }
+
     const searchLocations: string[] = [
       eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
       this.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
@@ -364,18 +375,20 @@ You may have to run ${chalk.greenBright(
       '/tmp/prisma-engines',
     ]
 
+    // TODO Where do we use this and why?
     if (this.dirname) {
       searchLocations.push(this.dirname)
     }
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
-      debug(`Search for Query Engine in ${location}`)
+      debug(`Searching for Query Engine in ${location}`)
       enginePath = this.getQueryEnginePath(this.platform, location)
       if (fs.existsSync(enginePath)) {
         return { prismaPath: enginePath, searchedLocations }
       }
     }
+
     enginePath = this.getQueryEnginePath(this.platform)
 
     return { prismaPath: enginePath ?? '', searchedLocations }
@@ -385,6 +398,7 @@ You may have to run ${chalk.greenBright(
   private async getPrismaPath(): Promise<string> {
     const { prismaPath, searchedLocations } = await this.resolvePrismaPath()
     const platform = await this.getPlatform()
+    
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
@@ -471,6 +485,7 @@ This means you should very likely pin the platform ${chalk.greenBright(
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
+    // TODO What and why?
     if (process.platform !== 'win32') {
       plusX(prismaPath)
     }
@@ -478,6 +493,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return prismaPath
   }
 
+  // TODO
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator!,
@@ -490,6 +506,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return printGeneratorConfig(fixedGenerator)
   }
 
+  // TODO ??
   private printDatasources(): string {
     if (this.datasources) {
       return JSON.stringify(this.datasources)
@@ -510,6 +527,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return this.startPromise
   }
 
+  // collect env vars for engine
   private getEngineEnvVars() {
     const env: any = {
       PRISMA_DML_PATH: this.datamodelPath,
