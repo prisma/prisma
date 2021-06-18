@@ -98,6 +98,7 @@ export class NAPIEngine implements Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
   }
+
   private async instantiateLibrary(): Promise<void> {
     debug('internalSetup')
     if (this.libraryInstantiationPromise) {
@@ -110,6 +111,7 @@ export class NAPIEngine implements Engine {
     await this.loadEngine()
     this.version()
   }
+
   private async getPlatform() {
     if (this.platform) return this.platform
     const platform = await getPlatform()
@@ -130,6 +132,7 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
+
   private parseEngineResponse<T>(response?: string): T {
     if (!response) {
       throw new PrismaClientUnknownRequestError(
@@ -147,6 +150,7 @@ You may have to run ${chalk.greenBright(
       )
     }
   }
+
   private convertDatasources(
     datasources: DatasourceOverwrite[],
   ): Record<string, string> {
@@ -156,6 +160,7 @@ You may have to run ${chalk.greenBright(
     }
     return obj
   }
+
   private async loadEngine(): Promise<void> {
     debug('loadEngine')
     if (!this.engine) {
@@ -246,6 +251,7 @@ You may have to run ${chalk.greenBright(
       this.logEmitter.emit(event.level, event)
     }
   }
+
   private getErrorMessageWithLink(title: string) {
     return getErrorMessageWithLink({
       platform: this.platform,
@@ -257,6 +263,7 @@ You may have to run ${chalk.greenBright(
       query: this.lastQuery!,
     })
   }
+
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
@@ -268,6 +275,7 @@ You may have to run ${chalk.greenBright(
     }
     return str
   }
+
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
@@ -287,6 +295,7 @@ You may have to run ${chalk.greenBright(
       this.logEmitter.on(event, listener)
     }
   }
+
   private async runBeforeStop() {
     await this.executingQueryPromise
     debug('runBeforeStop')
@@ -298,6 +307,7 @@ You may have to run ${chalk.greenBright(
       }
     }
   }
+
   async start(): Promise<void> {
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
@@ -432,6 +442,7 @@ You may have to run ${chalk.greenBright(
       }
     }
   }
+
   async requestBatch(
     queries: string[],
     transaction = false,
@@ -528,6 +539,7 @@ You may have to run ${chalk.greenBright(
 
     return { enginePath: enginePath ?? '', searchedLocations }
   }
+
   private async getLibQueryEnginePath(): Promise<string> {
     // TODO Document ENV VAR
     const libPath =
@@ -618,6 +630,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     this.platform = this.platform ?? (await getPlatform())
     return enginePath
   }
+
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.config.generator!,
