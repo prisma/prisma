@@ -7,25 +7,25 @@ async function doWork(prisma) {
 
 test('exit-hook for sigint', async () => {
   expect.assertions(2)
-  
+
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
-  
+
   // setup beforeExit hook and make sure we have the result available outside
   let beforeExitResult
   prisma.$on('beforeExit', () => {
     beforeExitResult = doWork(prisma)
   })
-  
+
   // setup our own additional handler for SIGINT
   let processHookCalled = false
   process.on('SIGINT', () => {
     processHookCalled = true
   })
-  
+
   // trigger via: emit SIGINT
   process.emit('SIGINT', 'SIGINT')
-  
+
   // expectations
   expect(processHookCalled).toBe(true)
   beforeExitResult = await beforeExitResult
@@ -44,23 +44,23 @@ test('exit-hook for sigint', async () => {
 
 test('exit-hook for $disconnect', async () => {
   expect.assertions(2)
-  
+
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
-  
+
   let beforeExitResult
   prisma.$on('beforeExit', () => {
     beforeExitResult = doWork(prisma)
   })
-  
+
   let processHookCalled = false
   process.on('SIGINT', () => {
     processHookCalled = true
   })
-  
+
   // trigger via: $disconnect
   await prisma.$disconnect()
-  
+
   // expectations
   expect(processHookCalled).toBe(true)
   beforeExitResult = await beforeExitResult
