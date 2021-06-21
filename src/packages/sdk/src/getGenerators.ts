@@ -1,23 +1,23 @@
 import Debug from '@prisma/debug'
 import {
   fixBinaryTargets,
-  printGeneratorConfig,
   getOriginalBinaryTargetsValue,
+  printGeneratorConfig,
 } from '@prisma/engine-core'
 import { enginesVersion } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
+  BinaryType,
   download,
   DownloadOptions,
-  BinaryType,
 } from '@prisma/fetch-engine'
 import {
   BinaryPaths,
+  BinaryTargetsEnvValue,
   EngineType,
   GeneratorConfig,
   GeneratorManifest,
   GeneratorOptions,
-  BinaryTargetsEnvValue,
 } from '@prisma/generator-helper'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -40,8 +40,8 @@ import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
 import {
-  parseEnvValue,
   parseBinaryTargetsEnvValue,
+  parseEnvValue,
 } from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
@@ -93,11 +93,14 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  let prismaPath: string | undefined = binaryPathsOverride?.queryEngine
-  const engineType =
+  const queryEngineBinaryType =
     process.env.PRISMA_FORCE_NAPI === 'true'
       ? BinaryType.libqueryEngineNapi
       : BinaryType.queryEngine
+
+  const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
+  let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]
+
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
@@ -105,7 +108,7 @@ export async function getGenerators({
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
         binaries: {
-          [engineType]: potentialPath,
+          [queryEngineBinaryType]: potentialPath,
         },
         binaryTargets: [platform],
         showProgress: false,
@@ -114,7 +117,7 @@ export async function getGenerators({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType[engineType]![platform]
+      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
     }
   }
 
@@ -368,14 +371,14 @@ generator gen {
         if (
           engineVersion !== version &&
           generator.options &&
-          generator.manifest.requiresEngines.includes('queryEngine') &&
-          generatorBinaryPaths.queryEngine &&
-          generatorBinaryPaths.queryEngine[platform]
+          generator.manifest.requiresEngines.includes(queryEngineType) &&
+          generatorBinaryPaths[queryEngineType] &&
+          generatorBinaryPaths[queryEngineType]?.[platform]
         ) {
           const customDmmf = await getDMMF({
             datamodel,
             datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths.queryEngine[platform],
+            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
@@ -666,9 +669,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
   }
 }
 
-function engineTypeToBinaryType(
-  engineType: EngineType,
-): keyof BinaryDownloadConfiguration {
+function engineTypeToBinaryType(engineType: EngineType): BinaryType {
   if (engineType === 'introspectionEngine') {
     return BinaryType.introspectionEngine
   }
@@ -690,7 +691,7 @@ function engineTypeToBinaryType(
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
-function binaryTypeToEngineType(binaryType: string): string {
+function binaryTypeToEngineType(binaryType: string): EngineType {
   if (binaryType === BinaryType.introspectionEngine) {
     return 'introspectionEngine'
   }
