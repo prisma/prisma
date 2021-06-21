@@ -28,7 +28,7 @@
     "@typescript-eslint/parser": "4.27.0",
     "chalk": "4.1.1",
     "del": "6.0.0",
-    "eslint": "7.28.0",
+    "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
@@ -45,7 +45,7 @@
     "sqlite3": "5.0.2",
     "tempy": "1.0.1",
     "ts-jest": "27.0.3",
-    "typescript": "4.3.2"
+    "typescript": "4.3.4"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",

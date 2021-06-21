@@ -79,7 +79,7 @@
     "decimal.js": "10.2.1",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.28.0",
+    "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
@@ -104,7 +104,7 @@
     "prettier": "2.3.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.51.2",
+    "rollup": "2.52.2",
     "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
@@ -115,7 +115,7 @@
     "ts-jest": "27.0.3",
     "ts-node": "10.0.0",
     "tsd": "0.17.0",
-    "typescript": "4.3.2"
+    "typescript": "4.3.4"
   },
   "peerDependencies": {
     "prisma": "*"
