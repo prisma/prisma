@@ -5,7 +5,7 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import os from 'os'
 import path from 'path'
-import { EngineTypes } from './download'
+import { BinaryType } from './download'
 
 const debug = Debug('prisma:cache-dir')
 
@@ -63,10 +63,10 @@ export function getDownloadUrl(
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || 'https://binaries.prisma.sh'
   const finalExtension =
-    platform === 'windows' && EngineTypes.libqueryEngineNapi !== binaryName
+    platform === 'windows' && BinaryType.libqueryEngineNapi !== binaryName
       ? `.exe${extension}`
       : extension
-  if (binaryName === EngineTypes.libqueryEngineNapi) {
+  if (binaryName === BinaryType.libqueryEngineNapi) {
     binaryName = getNapiName(platform, 'url')
   }
 

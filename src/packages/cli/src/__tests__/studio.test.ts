@@ -22,7 +22,7 @@ const describeIf = (condition: boolean) =>
   condition ? describe : describe.skip
 
 describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
-  beforeEach(async () => {
+  beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rimraf.sync(
@@ -52,7 +52,7 @@ describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterEach(async () => {
+  afterAll(async () => {
     await studio.instance?.stop()
   })
 
@@ -90,7 +90,7 @@ describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
 
   it('can respond to `create` queries', async () => {
     const res = await sendRequest({
-      requestId: 1,
+      requestId: 2,
       channel: 'prisma',
       action: 'clientRequest',
       payload: {
@@ -134,7 +134,7 @@ describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
 
   it('can respond to `update` queries', async () => {
     const res = await sendRequest({
-      requestId: 1,
+      requestId: 3,
       channel: 'prisma',
       action: 'clientRequest',
       payload: {
@@ -180,7 +180,7 @@ describeIf(process.env.PRISMA_FORCE_NAPI !== 'true')('studio', () => {
 
   it('can respond to `delete` queries', async () => {
     const res = await sendRequest({
-      requestId: 1,
+      requestId: 4,
       channel: 'prisma',
       action: 'clientRequest',
       payload: {

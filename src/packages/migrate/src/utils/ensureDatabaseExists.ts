@@ -11,23 +11,35 @@ import prompt from 'prompts'
 import execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
-type dbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
+export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
 export async function getDbInfo(schemaPath?: string): Promise<{
   name: string
   url: string
   schemaWord: 'database'
   dbLocation?: string
-  dbType?: dbType
+  dbType?: DbType
   dbName?: string
   schema?: string
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
+  const url = activeDatasource.url.value
+
+  if (url.startsWith('sqlserver') || url.startsWith('jdbc:sqlserver')) {
+    return {
+      name: activeDatasource.name,
+      schemaWord: 'database',
+      dbType: 'SQL Server',
+      dbName: undefined,
+      dbLocation: undefined,
+      url: activeDatasource.url.value,
+    }
+  }
 
   try {
-    const credentials = uriToCredentials(activeDatasource.url.value)
+    const credentials = uriToCredentials(url)
     const dbLocation = getDbLocation(credentials)
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
@@ -35,7 +47,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
       name: activeDatasource.name,
       dbLocation,
       ...dbinfoFromCredentials,
-      url: activeDatasource.url.value,
+      url,
       schema: credentials.schema,
     }
   } catch (e) {
@@ -45,7 +57,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
       dbType: undefined,
       dbName: undefined,
       dbLocation: undefined,
-      url: activeDatasource.url.value,
+      url,
     }
   }
 }
@@ -126,7 +138,7 @@ export async function ensureDatabaseExists(
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } =
         getDbinfoFromCredentials(credentials)
-      if (dbType) {
+      if (dbType && dbType !== 'SQL Server') {
         return `${dbType} ${schemaWord} ${chalk.bold(
           dbName,
         )} created at ${chalk.bold(getDbLocation(credentials))}\n`
@@ -158,11 +170,18 @@ export async function askToCreateDb(
 ): Promise<execa.ExecaReturnValue | undefined | void> {
   const credentials = uriToCredentials(connectionString)
   const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
-  const message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
-    dbName,
-  )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(
-    getDbLocation(credentials),
-  )}\n`
+  const dbLocation = getDbLocation(credentials)
+  let message: string
+
+  if (dbName && dbLocation) {
+    message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
+      dbName,
+    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(
+      dbLocation,
+    )}.\n`
+  } else {
+    message = `You are trying to ${action} a migration for ${dbType} ${schemaWord}.\nThe ${schemaWord} doesn't exist.\n`
+  }
 
   // empty line
   console.info()
@@ -214,9 +233,9 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
-export function getDbinfoFromCredentials(credentials): {
-  dbName: string
-  dbType: dbType
+export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
+  dbName: string | undefined
+  dbType: DbType
   schemaWord: 'database'
 } {
   const dbName = credentials.database
@@ -233,7 +252,6 @@ export function getDbinfoFromCredentials(credentials): {
       dbType = `SQLite`
       break
     case 'sqlserver':
-    case 'mssql':
       dbType = `SQL Server`
       break
   }

@@ -16,8 +16,8 @@
   "devDependencies": {
     "@types/jest": "26.0.23",
     "@types/node": "12.20.15",
-    "@typescript-eslint/eslint-plugin": "4.26.1",
-    "@typescript-eslint/parser": "4.26.1",
+    "@typescript-eslint/eslint-plugin": "4.27.0",
+    "@typescript-eslint/parser": "4.27.0",
     "eslint": "7.28.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -41,7 +41,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.24.0-24.migration-engine-json-logging-a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15",
+    "@prisma/engines": "2.26.0-2.1f1c540f852d7fac2b533042b676c90abbed8c1b",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "chalk": "^4.0.0",

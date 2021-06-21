@@ -1,4 +1,4 @@
-import { EngineTypes } from '@prisma/fetch-engine'
+import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
@@ -210,7 +210,7 @@ export async function execaCommand({
     | 'can-connect-to-database'
 }) {
   migrationEnginePath =
-    migrationEnginePath || (await resolveBinary(EngineTypes.migrationEngine))
+    migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
 
   try {
     return await execa(

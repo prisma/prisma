@@ -29,7 +29,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=10.4"
+    "node": ">=12.2"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -68,12 +68,12 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.397.0",
+    "@prisma/studio-server": "0.402.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.23",
-    "@types/ws": "7.4.4",
-    "@typescript-eslint/eslint-plugin": "4.26.1",
-    "@typescript-eslint/parser": "4.26.1",
+    "@types/ws": "7.4.5",
+    "@typescript-eslint/eslint-plugin": "4.27.0",
+    "@typescript-eslint/parser": "4.27.0",
     "chalk": "4.1.1",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
@@ -110,7 +110,7 @@
     "typescript": "4.3.2"
   },
   "scripts": {
-    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
+    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1  --forceExit",
     "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.24.0-24.migration-engine-json-logging-a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"
+    "@prisma/engines": "2.26.0-2.1f1c540f852d7fac2b533042b676c90abbed8c1b"
   },
   "lint-staged": {
     "*.ts": [

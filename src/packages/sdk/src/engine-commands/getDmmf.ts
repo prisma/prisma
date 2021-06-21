@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { NApiEngineTypes } from '@prisma/engine-core'
-import { EngineTypes } from '@prisma/fetch-engine'
+import { BinaryType } from '@prisma/fetch-engine'
 import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa'
@@ -8,6 +8,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
+import { isNodeAPISupported } from '@prisma/get-platform'
 
 const debug = Debug('prisma:getDMMF')
 
@@ -46,9 +47,11 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 
 async function getDmmfNapi(options: GetDMMFOptions): Promise<DMMF.Document> {
   const queryEnginePath = await resolveBinary(
-    EngineTypes.libqueryEngineNapi,
+    BinaryType.libqueryEngineNapi,
     options.prismaPath,
   )
+  await isNodeAPISupported()
+
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
   const datamodel =
@@ -67,7 +70,7 @@ async function getDmmfNapi(options: GetDMMFOptions): Promise<DMMF.Document> {
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
   const queryEnginePath = await resolveBinary(
-    EngineTypes.queryEngine,
+    BinaryType.queryEngine,
     options.prismaPath,
   )
   debug(`Using Query Engine Binary at: ${queryEnginePath}`)
