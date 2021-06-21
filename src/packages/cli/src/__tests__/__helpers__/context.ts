@@ -81,13 +81,10 @@ export const Context = {
 /**
  * Factory for creating a context contributor possibly configured in some special way.
  */
-type ContextContributorFactory<
-  Settings,
-  Context,
-  NewContext
-> = Settings extends {}
-  ? () => ContextContributor<Context, NewContext>
-  : (settings: Settings) => ContextContributor<Context, NewContext>
+type ContextContributorFactory<Settings, Context, NewContext> =
+  Settings extends {}
+    ? () => ContextContributor<Context, NewContext>
+    : (settings: Settings) => ContextContributor<Context, NewContext>
 
 /**
  * A function that provides additonal test context.

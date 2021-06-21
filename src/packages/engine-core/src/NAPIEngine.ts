@@ -589,14 +589,18 @@ ${searchedLocations
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
         if (
-          this.config.generator.binaryTargets.includes(this.platform) ||
-          this.config.generator.binaryTargets.includes('native')
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
+          ) ||
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
             this.config.generator.binaryTargets.length > 1 ? 's' : ''
           } ${this.config.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
@@ -637,7 +641,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     const fixedGenerator = {
       ...this.config.generator!,
       binaryTargets: fixBinaryTargets(
-        this.config.generator!.binaryTargets as Platform[],
+        this.config.generator!.binaryTargets,
         this.platform!,
       ),
     }
