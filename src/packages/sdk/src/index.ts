@@ -53,7 +53,7 @@ export {
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'
 export { GeneratorPaths } from './predefinedGeneratorResolvers'
-export { engineEnvVarMap, resolveBinary, EngineTypes } from './resolveBinary'
+export { engineEnvVarMap, resolveBinary, BinaryType } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export { DatabaseCredentials } from './types'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
