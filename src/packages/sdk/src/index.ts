@@ -61,7 +61,10 @@ export { getEnvPaths } from './utils/getEnvPaths'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
-export { parseEnvValue } from './utils/parseEnvValue'
+export {
+  parseEnvValue,
+  parseBinaryTargetsEnvValue,
+} from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'
 export {
   Position,

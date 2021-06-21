@@ -3,9 +3,9 @@ datasource db {
   url      = "file:./dev.db"
 }
 
-generator gen {
+generator gen_env {
   provider      = "predefined-generator"
-  binaryTargets = ["darwin"]
+  binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
 }
 
 model User {

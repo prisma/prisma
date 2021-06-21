@@ -421,14 +421,18 @@ ${searchedLocations
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (
-          this.generator.binaryTargets.includes(this.platform!) ||
-          this.generator.binaryTargets.includes('native')
+          this.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
+          ) ||
+          this.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
             this.generator.binaryTargets.length > 1 ? 's' : ''
           } ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
@@ -482,7 +486,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     const fixedGenerator = {
       ...this.generator!,
       binaryTargets: fixBinaryTargets(
-        this.generator!.binaryTargets as Platform[],
+        this.generator!.binaryTargets,
         this.platform!,
       ),
     }

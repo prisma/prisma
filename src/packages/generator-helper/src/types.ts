@@ -36,11 +36,16 @@ export interface GeneratorConfig {
   isCustomOutput?: boolean
   provider: EnvValue
   config: Dictionary<string>
-  binaryTargets: string[] // check if new commit is there
+  binaryTargets: BinaryTargetsEnvValue[]
   previewFeatures: string[]
 }
 
 export interface EnvValue {
+  fromEnvVar: null | string
+  value: string
+}
+
+export interface BinaryTargetsEnvValue {
   fromEnvVar: null | string
   value: string
 }
