@@ -1,6 +1,6 @@
 {
   "name": "prisma2-dev-environment",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "main": "index.js",
   "private": true,
   "license": "MIT",
