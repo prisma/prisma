@@ -495,7 +495,6 @@ describe('getGenerators', () => {
 
     generators.forEach((g) => g.stop())
   })
-  /* eslint-enable jest/no-standalone-expect */
 
   test('inject engines', async () => {
     const aliases = {
