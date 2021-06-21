@@ -9,7 +9,7 @@ import {
   BinaryDownloadConfiguration,
   download,
   DownloadOptions,
-  EngineTypes,
+  BinaryType,
 } from '@prisma/fetch-engine'
 import {
   BinaryPaths,
@@ -96,8 +96,8 @@ export async function getGenerators({
   let prismaPath: string | undefined = binaryPathsOverride?.queryEngine
   const engineType =
     process.env.PRISMA_FORCE_NAPI === 'true'
-      ? EngineTypes.libqueryEngineNapi
-      : EngineTypes.queryEngine
+      ? BinaryType.libqueryEngineNapi
+      : BinaryType.queryEngine
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
@@ -670,42 +670,42 @@ function engineTypeToBinaryType(
   engineType: EngineType,
 ): keyof BinaryDownloadConfiguration {
   if (engineType === 'introspectionEngine') {
-    return EngineTypes.introspectionEngine
+    return BinaryType.introspectionEngine
   }
 
   if (engineType === 'migrationEngine') {
-    return EngineTypes.migrationEngine
+    return BinaryType.migrationEngine
   }
 
   if (engineType === 'queryEngine') {
-    return EngineTypes.queryEngine
+    return BinaryType.queryEngine
   }
   if (engineType === 'libqueryEngineNapi') {
-    return EngineTypes.libqueryEngineNapi
+    return BinaryType.libqueryEngineNapi
   }
   if (engineType === 'prismaFmt') {
-    return EngineTypes.prismaFmt
+    return BinaryType.prismaFmt
   }
 
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
 function binaryTypeToEngineType(binaryType: string): string {
-  if (binaryType === EngineTypes.introspectionEngine) {
+  if (binaryType === BinaryType.introspectionEngine) {
     return 'introspectionEngine'
   }
 
-  if (binaryType === EngineTypes.migrationEngine) {
+  if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }
-  if (binaryType === EngineTypes.libqueryEngineNapi) {
+  if (binaryType === BinaryType.libqueryEngineNapi) {
     return 'libqueryEngineNapi'
   }
-  if (binaryType === EngineTypes.queryEngine) {
+  if (binaryType === BinaryType.queryEngine) {
     return 'queryEngine'
   }
 
-  if (binaryType === EngineTypes.prismaFmt) {
+  if (binaryType === BinaryType.prismaFmt) {
     return 'prismaFmt'
   }
 
