@@ -63,7 +63,7 @@ test('exit-hook for $disconnect', async () => {
 
   // expectations
   expect(processHookCalled).toBe(true)
-  beforeExitResult = await beforeExitResult
+  // beforeExitResult = await beforeExitResult
   expect(beforeExitResult).toMatchInlineSnapshot(`
     Array [
       Object {
