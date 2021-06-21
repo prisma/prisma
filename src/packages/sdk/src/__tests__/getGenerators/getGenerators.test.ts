@@ -303,7 +303,7 @@ describe('getGenerators', () => {
   )
 
   it(process.env.PRISMA_FORCE_NAPI !== 'true')(
-    'basic - binaryTargets as env var - native',
+    'basic - binaryTargets as env var - native (in array)',
     async () => {
       process.env.BINARY_TARGETS_ENV_VAR_TEST = '["native"]'
 
