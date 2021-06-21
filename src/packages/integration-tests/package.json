@@ -22,7 +22,7 @@
     "@typescript-eslint/parser": "4.27.0",
     "decimal.js": "10.2.1",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.28.0",
+    "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
@@ -43,7 +43,7 @@
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
     "ts-jest": "27.0.3",
-    "typescript": "4.3.2",
+    "typescript": "4.3.4",
     "verror": "1.10.0"
   },
   "scripts": {
