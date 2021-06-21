@@ -28,7 +28,7 @@ test('exit-hook for sigint', async () => {
 
   // expectations
   expect(processHookCalled).toBe(true)
-  beforeExitResult = await beforeExitResult
+  //beforeExitResult = await beforeExitResult
   expect(beforeExitResult).toMatchInlineSnapshot(`
     Array [
       Object {
