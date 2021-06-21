@@ -32,7 +32,7 @@ const copyFile = promisify(fs.copyFile)
 const utimes = promisify(fs.utimes)
 
 const channel = 'master'
-export enum EngineTypes {
+export enum BinaryType {
   queryEngine = 'query-engine',
   libqueryEngineNapi = 'libquery-engine-napi',
   migrationEngine = 'migration-engine',
@@ -40,10 +40,10 @@ export enum EngineTypes {
   prismaFmt = 'prisma-fmt',
 }
 export type BinaryDownloadConfiguration = {
-  [binary in EngineTypes]?: string
+  [binary in BinaryType]?: string
 }
 export type BinaryPaths = {
-  [binary in EngineTypes]?: { [binaryTarget in Platform]: string } // key: target, value: path
+  [binary in BinaryType]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
@@ -58,11 +58,11 @@ export interface DownloadOptions {
 }
 
 const BINARY_TO_ENV_VAR = {
-  [EngineTypes.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [EngineTypes.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [EngineTypes.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [EngineTypes.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  [EngineTypes.prismaFmt]: 'PRISMA_FMT_BINARY',
+  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [BinaryType.libqueryEngineNapi]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {
@@ -93,7 +93,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled binaries are not available for ${platform}. Read more about building your own binaries at https://pris.ly/d/build-binaries`,
     )
-  } else if (EngineTypes.libqueryEngineNapi in options.binaries) {
+  } else if (BinaryType.libqueryEngineNapi in options.binaries) {
     await isNodeAPISupported()
   }
 
@@ -118,7 +118,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       opts.binaryTargets.map((binaryTarget) => {
         const fileName = getBinaryName(binaryName, binaryTarget)
         const targetFilePath =
-          binaryName === EngineTypes.libqueryEngineNapi
+          binaryName === BinaryType.libqueryEngineNapi
             ? path.join(targetFolder, getNapiName(binaryTarget, 'fs'))
             : path.join(targetFolder, fileName)
         return {
@@ -326,7 +326,7 @@ async function binaryNeedsToBeDownloaded(
   // 3. If same platform, always check --version
   if (
     job.binaryTarget === nativePlatform &&
-    job.binaryName !== EngineTypes.libqueryEngineNapi
+    job.binaryName !== BinaryType.libqueryEngineNapi
   ) {
     const works = await checkVersionCommand(binaryPath)
     return !works
@@ -354,7 +354,7 @@ export async function checkVersionCommand(
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
-  if (binaryName === EngineTypes.libqueryEngineNapi) {
+  if (binaryName === BinaryType.libqueryEngineNapi) {
     return `${getNapiName(platform, 'url')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''
@@ -509,8 +509,8 @@ function engineTypeToBinaryType(
   engineType: string,
   binaryTarget: string,
 ): string {
-  if (EngineTypes[engineType]) {
-    return EngineTypes[engineType]
+  if (BinaryType[engineType]) {
+    return BinaryType[engineType]
   }
   if (engineType === 'native') {
     return binaryTarget

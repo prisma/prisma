@@ -1,4 +1,4 @@
-import { EngineTypes } from '@prisma/fetch-engine'
+import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
@@ -520,11 +520,11 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(EngineTypes.migrationEngine)
+    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
     const queryEngine = await resolveBinary(
       process.env.PRISMA_FORCE_NAPI === 'true'
-        ? EngineTypes.libqueryEngineNapi
-        : EngineTypes.queryEngine,
+        ? BinaryType.libqueryEngineNapi
+        : BinaryType.queryEngine,
     )
 
     const generators = await getGenerators({
