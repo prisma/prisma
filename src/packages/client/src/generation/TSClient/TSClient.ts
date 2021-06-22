@@ -66,6 +66,8 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
     }
+
+    // Node-API env var
     if (
       process.env.PRISMA_FORCE_NAPI &&
       !config.generator?.previewFeatures.includes('nApi')
