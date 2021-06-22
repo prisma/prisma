@@ -650,10 +650,9 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
 
 function hookProcess(engine: NAPIEngine, handler: string, exit = false) {
   process.once(handler as any, async () => {
-    debug(`Received ${handler}`)
+    debug(`hookProcess received: ${handler}`)
     await engine.runBeforeExit()
     await new Promise((res) => process.nextTick(res))
-    debug(`Received2 ${handler}`)
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
