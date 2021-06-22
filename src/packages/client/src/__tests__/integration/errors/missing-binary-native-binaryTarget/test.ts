@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-binary-native', async () => {
+test('missing binary, native binaryTarget', async () => {
   expect.assertions(1)
   await generateTestClient()
 
