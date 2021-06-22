@@ -1,14 +1,13 @@
+import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
+import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-import { findUpAsync as findUp } from './utils/find'
-
-// hide require from bundlers
-const load = require
+const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
   outputPath: string
@@ -23,29 +22,6 @@ export type GeneratorResolver = (
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
-}
-
-async function resolvePackage(
-  baseDir: string,
-  pkgName: string,
-): Promise<string | undefined> {
-  const handler = (base: string, item: string, type: string) => {
-    // if we are within or still looking for the node_modules
-    if (type === 'd' && base.split('node_modules').length <= 2) {
-      return undefined // don't keep this, but continue diving
-    }
-
-    // if found a file that's a package.json in node_modules
-    if (type === 'f' && item === 'package.json') {
-      if (require(path.join(base, item))?.name === pkgName) {
-        return base // keep if the package name is a match
-      }
-    }
-
-    return false // anything else, don't keep, don't dive
-  }
-
-  return (await findUp(baseDir, [], ['d', 'f'], ['d', 'l'], 1, handler))[0]
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -66,10 +42,12 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = await resolvePackage(baseDir, '@prisma/client')
-
+    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
     checkTypeScriptVersion()
+    if (debugEnabled) {
+      console.log({ prismaClientDir })
+    }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -100,8 +78,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      // Try again to see if we installed the client
-      prismaClientDir = await resolvePackage(baseDir, '@prisma/client')
+      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
       if (!prismaClientDir) {
         throw new Error(
