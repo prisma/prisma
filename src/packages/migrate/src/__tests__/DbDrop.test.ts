@@ -49,7 +49,6 @@ describe('drop', () => {
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
 Migration engine error:
-Starting migration engine CLI
 Failed to delete SQLite database at \`dev.db\`.
 No such file or directory (os error 2)
 
