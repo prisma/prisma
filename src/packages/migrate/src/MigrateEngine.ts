@@ -1,5 +1,11 @@
 import Debug from '@prisma/debug'
-import { BinaryType, ErrorArea, resolveBinary, RustPanic } from '@prisma/sdk'
+import {
+  BinaryType,
+  ErrorArea,
+  resolveBinary,
+  RustPanic,
+  MigrateEngineLogLine,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
 import { EngineArgs, EngineResults } from './types'
@@ -257,14 +263,14 @@ export class MigrateEngine {
           debugStderr(data)
 
           try {
-            const json = JSON.parse(data)
+            const json: MigrateEngineLogLine = JSON.parse(data)
 
             this.messages.push(json.fields.message)
 
             if (json.fields.backtrace) {
               this.lastError = json.fields
             }
-            if (json.fields.level === 'ERRO') {
+            if (json.level === 'ERROR') {
               this.lastError = json.fields
             }
           } catch (e) {

@@ -75,16 +75,17 @@ describe('canConnectToDatabase', () => {
   test('postgresql - server does not exist', async () => {
     await expect(
       canConnectToDatabase(
-        'postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public',
+        'postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
         __dirname,
       ),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Migration engine error:
-            Starting migration engine CLI
-            Can't reach database server at \`localhost\`:\`5432\`
+    ).resolves.toMatchInlineSnapshot(`
+            Object {
+              "code": "P1001",
+              "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`localhost\`:\`5432\`.
-            "
+            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+            ",
+            }
           `)
   })
 })
@@ -111,16 +112,16 @@ describe('createDatabase', () => {
   test('postgresql - server does not exist', async () => {
     await expect(
       createDatabase(
-        'postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public',
+        'postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
         __dirname,
       ),
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
-            "Migration engine error:
-            Starting migration engine CLI
-            Can't reach database server at \`localhost\`:\`5432\`
+            "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`localhost\`:\`5432\`.
-            "
+            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+               0: sql_migration_connector::flavour::postgres::create_database
+                       with self=PostgresFlavour { url: \\"<REDACTED>\\" }
+                         at migration-engine/connectors/sql-migration-connector/src/flavour/postgres.rs:117"
           `)
   })
 

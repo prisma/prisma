@@ -49,6 +49,7 @@ export {
   canConnectToDatabase,
   createDatabase,
   dropDatabase,
+  MigrateEngineLogLine,
 } from './migrateEngineCommands'
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'

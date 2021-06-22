@@ -12,18 +12,32 @@ import { resolveBinary } from './resolveBinary'
 
 const exists = promisify(fs.exists)
 
-export type EngineLog = {
-  // {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"migration_engine::logger"}
-  // {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting migration engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"migration_engine"}
+// ### Exit codes
+// `0`: normal exit\
+// `1`: abnormal (error) exit\
+// `101`: panic
+// Non-zero exit codes should always be accompanied by a log message on stderr with
+// the `ERROR` level.
+//
+// Logging and crash reporting happens through JSON logs on the Migration Engine's
+// stderr. Every line contains a single JSON object conforming to the following
+// interface:
+// {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"migration_engine::logger"}
+// {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting migration engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"migration_engine"}
+export interface MigrateEngineLogLine {
   timestamp: string
-  level: 'INFO' | 'WARN' | 'ERROR'
-  fields: {
-    message: string
-    is_panic?: boolean
-    error_code?: string
-    git_hash?: string
-  }
+  level: LogLevel
+  fields: LogFields
   target: string
+}
+type LogLevel = 'INFO' | 'ERROR' | 'DEBUG' | 'WARN'
+interface LogFields {
+  message: string
+  git_hash?: string
+  // Only for ERROR level messages
+  is_panic?: boolean
+  error_code?: string
+  [key: string]: any
 }
 
 // https://github.com/prisma/specs/tree/master/errors#common
@@ -40,31 +54,24 @@ export type ConnectionResult = true | ConnectionError
 export interface ConnectionError {
   message: string
   code: DatabaseErrorCodes
-  meta?: any
 }
 
-interface CommandErrorJson {
-  message: string
-  meta?: any
-  error_code: DatabaseErrorCodes
-}
-
-function getMessageFromStderr(stderr: string) {
+function parseJsonFromStderr(stderr: string): MigrateEngineLogLine[] {
   // split by new line
-  const lines = stderr.split(/\r?\n/)
-  const messages: string[] = []
+  const lines = stderr.split(/\r?\n/).slice(1) // Remove first element
+  const logs: any = []
 
-  lines.forEach((line) => {
+  for (const line of lines) {
     const data = String(line)
     try {
-      const json: EngineLog = JSON.parse(data)
-      messages.push(json.fields.message)
+      const json: MigrateEngineLogLine = JSON.parse(data)
+      logs.push(json)
     } catch (e) {
-      messages.push(data)
+      throw new Error(`Could not parse migration engine response: ${e}`)
     }
-  })
+  }
 
-  return messages.join('\n')
+  return logs
 }
 
 export async function canConnectToDatabase(
@@ -102,27 +109,24 @@ export async function canConnectToDatabase(
       engineCommandName: 'can-connect-to-database',
     })
   } catch (e) {
-    if (e.stdout) {
-      let json: CommandErrorJson
-      try {
-        json = JSON.parse(e.stdout.trim())
-      } catch (e) {
-        throw new Error(`Can't parse migration engine response:\n${e.stdout}`)
-      }
-
-      return {
-        code: json.error_code,
-        message: json.message,
-        meta: json.meta,
-      }
-    }
-
     if (e.stderr) {
-      throw new Error(
-        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
-      )
+      const logs = parseJsonFromStderr(e.stderr)
+      const error = logs.find((it) => it.level === 'ERROR')
+
+      if (error && error.fields.error_code && error.fields.message) {
+        return {
+          code: error.fields.error_code as DatabaseErrorCodes,
+          message: error.fields.message,
+        }
+      } else {
+        throw new Error(
+          `Migration engine error:\n${logs
+            .map((log) => log.fields.message)
+            .join('\n')}`,
+        )
+      }
     } else {
-      throw new Error("Can't create database")
+      throw new Error(`Migration engine exited.`)
     }
   }
 
@@ -140,6 +144,7 @@ export async function createDatabase(
     migrationEnginePath,
   )
 
+  // If database is already created, stop here, don't create it
   if (dbExists === true) {
     return false
   }
@@ -154,22 +159,19 @@ export async function createDatabase(
 
     return true
   } catch (e) {
-    if (e.stdout) {
-      let error
-
-      try {
-        error = JSON.parse(e.stdout.trim())
-      } catch (e) {}
-
-      if (error?.message) {
-        throw new Error(error.message)
-      }
-    }
-
     if (e.stderr) {
-      throw new Error(
-        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
-      )
+      const logs = parseJsonFromStderr(e.stderr)
+      const error = logs.find((it) => it.level === 'ERROR')
+
+      if (error && error.fields.error_code && error.fields.message) {
+        throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
+      } else {
+        throw new Error(
+          `Migration engine error:\n${logs
+            .map((log) => log.fields.message)
+            .join('\n')}`,
+        )
+      }
     } else {
       throw new Error(`Migration engine exited.`)
     }
@@ -206,8 +208,12 @@ export async function dropDatabase(
     }
   } catch (e) {
     if (e.stderr) {
+      const logs = parseJsonFromStderr(e.stderr)
+
       throw new Error(
-        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
+        `Migration engine error:\n${logs
+          .map((log) => log.fields.message)
+          .join('\n')}`,
       )
     } else {
       throw new Error(`Migration engine exited.`)
