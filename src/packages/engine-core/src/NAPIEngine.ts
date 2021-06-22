@@ -652,7 +652,6 @@ function hookProcess(engine: NAPIEngine, handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
     await engine.runBeforeExit()
-    await new Promise((res) => process.nextTick(res))
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
