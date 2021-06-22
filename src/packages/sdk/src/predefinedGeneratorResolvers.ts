@@ -7,7 +7,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-const debugEnabled = Debug.enabled('generator')
+const debugEnabled = Debug.enabled('prisma:generator')
 
 export type GeneratorPaths = {
   outputPath: string
@@ -46,7 +46,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     checkYarnVersion()
     checkTypeScriptVersion()
     if (debugEnabled) {
-      console.log({ prismaClientDir })
+      console.debug({ prismaClientDir })
     }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
