@@ -1,14 +1,13 @@
+import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
+import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-import { findUpAsync as findUp } from './utils/find'
-
-// hide require from bundlers
-const load = require
+const debugEnabled = Debug.enabled('generator')
 
 export type GeneratorPaths = {
   outputPath: string
@@ -25,43 +24,6 @@ export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
 }
 
-async function getPkgDir(
-  baseDir: string,
-  pkgName: string,
-): Promise<string | undefined> {
-  const handler = (base: string, item: string) => {
-    const itemPath = path.join(base, item)
-
-    // if the package.json name is equal to the `pkgName`, return `base`
-    if (load(itemPath)?.name === pkgName) {
-      return base
-    }
-
-    return false
-  }
-
-  return (
-    await findUp(baseDir, ['package.json'], ['f'], ['d', 'l'], 1, handler)
-  )[0]
-}
-
-async function getPrismaClientDir(baseDir: string) {
-  // we check that the found client is not the one of the CLI
-  const clientDir = await getPkgDir(baseDir, '@prisma/client')
-  const cliDir = await getPkgDir(baseDir, 'prisma')
-
-  // During development we want to test using the bundled client
-  if (cliDir && process.cwd().includes(cliDir)) {
-    return clientDir
-  }
-
-  // Checks that the found client is not the bundled client in the cli
-  if (clientDir && !clientDir?.includes(cliDir!)) {
-    return clientDir
-  }
-
-  return undefined
-}
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
@@ -80,10 +42,12 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = await getPrismaClientDir(baseDir)
-
+    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
     checkTypeScriptVersion()
+    if (debugEnabled) {
+      console.log({ prismaClientDir })
+    }
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -114,8 +78,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      // Try again to see if we installed the client
-      prismaClientDir = await getPrismaClientDir(baseDir)
+      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
       if (!prismaClientDir) {
         throw new Error(
