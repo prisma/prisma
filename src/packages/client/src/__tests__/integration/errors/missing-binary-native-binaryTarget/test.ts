@@ -30,6 +30,8 @@ test('missing-binary-native', async () => {
       },
     ],
   })
+
+  
   if (process.env.PRISMA_FORCE_NAPI) {
     await expect(async () => {
       await prisma.user.findMany()
