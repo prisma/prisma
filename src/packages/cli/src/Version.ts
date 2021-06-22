@@ -71,6 +71,7 @@ export class Version implements Command {
       BinaryType.introspectionEngine,
     )
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
+    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
     const queryEngine = await this.resolveEngine(
       useNAPI ? BinaryType.libqueryEngineNapi : BinaryType.queryEngine,
     )
