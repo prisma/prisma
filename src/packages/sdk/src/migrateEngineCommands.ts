@@ -49,11 +49,35 @@ interface CommandErrorJson {
   error_code: DatabaseErrorCodes
 }
 
+function getMessageFromStderr(stderr: string) {
+  // split by new line
+  const lines = stderr.split(/\r?\n/)
+  const messages: string[] = []
+
+  lines.forEach((line) => {
+    const data = String(line)
+    try {
+      const json: EngineLog = JSON.parse(data)
+      messages.push(json.fields.message)
+    } catch (e) {
+      messages.push(data)
+    }
+  })
+
+  return messages.join('\n')
+}
+
 export async function canConnectToDatabase(
   connectionString: string,
   cwd = process.cwd(),
   migrationEnginePath?: string,
 ): Promise<ConnectionResult> {
+  if (!connectionString) {
+    throw new Error(
+      'Connection url is empty. See https://www.prisma.io/docs/reference/database-reference/connection-urls',
+    )
+  }
+
   const provider = databaseTypeToConnectorType(
     protocolToDatabaseType(`${connectionString.split(':')[0]}:`),
   )
@@ -94,7 +118,9 @@ export async function canConnectToDatabase(
     }
 
     if (e.stderr) {
-      throw new Error(`Migration engine error:\n${e.stderr}`)
+      throw new Error(
+        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
+      )
     } else {
       throw new Error("Can't create database")
     }
@@ -141,7 +167,9 @@ export async function createDatabase(
     }
 
     if (e.stderr) {
-      throw new Error(`Migration engine error:\n${e.stderr}`)
+      throw new Error(
+        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
+      )
     } else {
       throw new Error(`Migration engine exited.`)
     }
@@ -177,21 +205,13 @@ export async function dropDatabase(
       )
     }
   } catch (e) {
-    // split by new line
-    const lines = e.stderr.split(/\r?\n/)
-    const messages: string[] = []
-
-    lines.forEach((line) => {
-      const data = String(line)
-      try {
-        const json: EngineLog = JSON.parse(data)
-        messages.push(json.fields.message)
-      } catch (e) {
-        messages.push(data)
-      }
-    })
-
-    throw Error(messages.join('\n'))
+    if (e.stderr) {
+      throw new Error(
+        `Migration engine error:\n${getMessageFromStderr(e.stderr)}`,
+      )
+    } else {
+      throw new Error(`Migration engine exited.`)
+    }
   }
 }
 
@@ -238,7 +258,7 @@ export async function execaCommand({
   }
 }
 
-async function doesSqliteDbExist(
+export async function doesSqliteDbExist(
   connectionString: string,
   schemaDir?: string,
 ): Promise<boolean> {
