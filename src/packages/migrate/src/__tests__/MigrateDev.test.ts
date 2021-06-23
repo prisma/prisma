@@ -1530,7 +1530,7 @@ describe('SQL Server', () => {
 })
 
 describe('MongoDB', () => {
-  it.only('schema only - should fail with unsupported', async () => {
+  it('schema only - should fail with unsupported', async () => {
     ctx.fixture('schema-only-mongodb')
 
     const result = MigrateDev.new().parse([])
