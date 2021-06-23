@@ -542,6 +542,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
     }
 
+    // TODO What is this and why?
     if (this.datasources) {
       env.OVERWRITE_DATASOURCES = this.printDatasources()
     }
