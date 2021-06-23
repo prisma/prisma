@@ -13,12 +13,16 @@ import { resolveBinary } from './resolveBinary'
 const exists = promisify(fs.exists)
 
 // ### Exit codes
-// `0`: normal exit\
-// `1`: abnormal (error) exit\
+// `0`: normal exit
+// `1`: abnormal (error) exit
 // `101`: panic
-// Non-zero exit codes should always be accompanied by a log message on stderr with
-// the `ERROR` level.
-//
+// Non-zero exit codes should always be accompanied by a log message on stderr with the `ERROR` level.
+export enum MigrateEngineExitCode {
+  Success = 0,
+  Error = 1,
+  Panic = 101,
+}
+
 // Logging and crash reporting happens through JSON logs on the Migration Engine's
 // stderr. Every line contains a single JSON object conforming to the following
 // interface:

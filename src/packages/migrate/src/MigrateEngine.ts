@@ -5,6 +5,7 @@ import {
   resolveBinary,
   RustPanic,
   MigrateEngineLogLine,
+  MigrateEngineExitCode,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import { ChildProcess, spawn } from 'child_process'
@@ -227,10 +228,13 @@ export class MigrateEngine {
         this.child.on('exit', (code) => {
           const messages = this.messages.join('\n')
           let err: RustPanic | Error | undefined
-          if (code !== 0 || messages.includes('panicking')) {
+          if (
+            code !== MigrateEngineExitCode.Success ||
+            messages.includes('panicking')
+          ) {
             let errorMessage =
               chalk.red.bold('Error in migration engine: ') + messages
-            if (this.lastError && code === 101) {
+            if (this.lastError && code === MigrateEngineExitCode.Panic) {
               errorMessage = serializePanic(this.lastError)
               err = new RustPanic(
                 errorMessage,
@@ -239,7 +243,7 @@ export class MigrateEngine {
                 ErrorArea.LIFT_CLI,
                 this.schemaPath,
               )
-            } else if (code === 101) {
+            } else if (code === MigrateEngineExitCode.Panic) {
               err = new RustPanic(
                 errorMessage,
                 messages,

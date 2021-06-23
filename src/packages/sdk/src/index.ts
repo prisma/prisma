@@ -50,6 +50,7 @@ export {
   createDatabase,
   dropDatabase,
   MigrateEngineLogLine,
+  MigrateEngineExitCode,
 } from './migrateEngineCommands'
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'
