@@ -570,7 +570,7 @@ describe('mysql', () => {
   })
 })
 
-describe.only('SQL Server', () => {
+describe('SQL Server', () => {
   jest.setTimeout(20000)
 
   const connectionString =
