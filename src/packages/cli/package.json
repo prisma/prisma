@@ -68,7 +68,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.402.0",
+    "@prisma/studio-server": "0.403.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.23",
     "@types/ws": "7.4.5",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.26.0-6.70b89abdd1feb39892ef3c2acd3be5383a73a002"
+    "@prisma/engines": "2.26.0-13.a9966aa784861dee7e6b2a90950874cbaf7b4984"
   },
   "lint-staged": {
     "*.ts": [
