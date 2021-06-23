@@ -91,7 +91,7 @@
     "global-dirs": "3.0.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.0.4",
+    "jest": "27.0.5",
     "line-replace": "2.0.1",
     "lint-staged": "11.0.0",
     "log-update": "4.0.0",
