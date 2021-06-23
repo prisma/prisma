@@ -19,7 +19,7 @@
                        │                   │                       │                        │              │
                        │         ╔═════════╩════════╗    ╔═════════╩════════╗   ╔═══════════╩═══════════╗  │
                        │         ║                  ║◀ ─ ╣                  ║   ║                       ║  │
-                       │         ║  @prisma/photon  ║    ║   @prisma/migrate║   ║ @prisma/introspection ║  │
+                       │         ║  @prisma/photon  ║    ║  @prisma/migrate ║   ║ @prisma/introspection ║  │
                        │         ║                  ╠───▶║                  ║   ║                       ║  │
                        │         ╚══════════════════╝    ╚══════════════════╝   ╚═══════════════════════╝  │
                        │           prisma/photon-js          prisma/migrate        prisma/prisma2-cli      │

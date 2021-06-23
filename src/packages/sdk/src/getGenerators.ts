@@ -1,14 +1,19 @@
 import Debug from '@prisma/debug'
-import { fixBinaryTargets, printGeneratorConfig } from '@prisma/engine-core'
+import {
+  fixBinaryTargets,
+  getOriginalBinaryTargetsValue,
+  printGeneratorConfig,
+} from '@prisma/engine-core'
 import { enginesVersion } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
+  BinaryType,
   download,
   DownloadOptions,
-  EngineTypes,
 } from '@prisma/fetch-engine'
 import {
   BinaryPaths,
+  BinaryTargetsEnvValue,
   EngineType,
   GeneratorConfig,
   GeneratorManifest,
@@ -34,7 +39,10 @@ import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
 import { missingModelMessage } from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
-import { parseEnvValue } from './utils/parseEnvValue'
+import {
+  parseBinaryTargetsEnvValue,
+  parseEnvValue,
+} from './utils/parseEnvValue'
 import { printConfigWarnings } from './utils/printConfigWarnings'
 
 const debug = Debug('prisma:getGenerators')
@@ -85,11 +93,14 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  let prismaPath: string | undefined = binaryPathsOverride?.queryEngine
-  const engineType =
+  const queryEngineBinaryType =
     process.env.PRISMA_FORCE_NAPI === 'true'
-      ? EngineTypes.libqueryEngineNapi
-      : EngineTypes.queryEngine
+      ? BinaryType.libqueryEngineNapi
+      : BinaryType.queryEngine
+
+  const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
+  let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]
+
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
@@ -97,7 +108,7 @@ export async function getGenerators({
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
         binaries: {
-          [engineType]: potentialPath,
+          [queryEngineBinaryType]: potentialPath,
         },
         binaryTargets: [platform],
         showProgress: false,
@@ -106,7 +117,7 @@ export async function getGenerators({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType[engineType]![platform]
+      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
     }
   }
 
@@ -275,26 +286,54 @@ generator gen {
         g.manifest.requiresEngines.length > 0
       ) {
         const neededVersion = getEngineVersionForGenerator(g.manifest, version)
-
         if (!neededVersions[neededVersion]) {
           neededVersions[neededVersion] = { engines: [], binaryTargets: [] }
         }
+
         for (const engine of g.manifest?.requiresEngines) {
           if (!neededVersions[neededVersion].engines.includes(engine)) {
             neededVersions[neededVersion].engines.push(engine)
           }
         }
-        if (
-          g.options?.generator?.binaryTargets &&
-          g.options?.generator?.binaryTargets.length > 0
-        ) {
-          for (let binaryTarget of g.options?.generator?.binaryTargets) {
-            if (binaryTarget === 'native') {
-              binaryTarget = platform
+
+        const generatorBinaryTargets = g.options?.generator?.binaryTargets
+
+        if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
+          const binaryTarget0 = generatorBinaryTargets[0]
+          // If set from env var, there is only one item
+          // and we need to read the env var
+          if (binaryTarget0.fromEnvVar !== null) {
+            const parsedBinaryTargetsEnvValue =
+              parseBinaryTargetsEnvValue(binaryTarget0)
+
+            // remove item and replace with parsed values
+            // value is an array
+            // so we create one new iteam for each element in the array
+            generatorBinaryTargets.shift()
+
+            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
+              for (const platformName of parsedBinaryTargetsEnvValue) {
+                generatorBinaryTargets.push({
+                  fromEnvVar: binaryTarget0.fromEnvVar,
+                  value: platformName,
+                })
+              }
+            } else {
+              generatorBinaryTargets.push({
+                fromEnvVar: binaryTarget0.fromEnvVar,
+                value: parsedBinaryTargetsEnvValue,
+              })
             }
+          }
+
+          for (const binaryTarget of generatorBinaryTargets) {
+            if (binaryTarget.value === 'native') {
+              binaryTarget.value = platform
+            }
+
             if (
-              !neededVersions[neededVersion].binaryTargets.includes(
-                binaryTarget,
+              !neededVersions[neededVersion].binaryTargets.find(
+                (object) => object.value === binaryTarget.value,
               )
             ) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
@@ -303,7 +342,7 @@ generator gen {
         }
       }
     }
-    debug({ neededVersions })
+    debug('neededVersions', JSON.stringify(neededVersions, null, 2))
     const binaryPathsByVersion = await getBinaryPathsByVersion({
       neededVersions,
       platform,
@@ -332,19 +371,23 @@ generator gen {
         if (
           engineVersion !== version &&
           generator.options &&
-          generator.manifest.requiresEngines.includes('queryEngine') &&
-          generatorBinaryPaths.queryEngine &&
-          generatorBinaryPaths.queryEngine[platform]
+          generator.manifest.requiresEngines.includes(queryEngineType) &&
+          generatorBinaryPaths[queryEngineType] &&
+          generatorBinaryPaths[queryEngineType]?.[platform]
         ) {
           const customDmmf = await getDMMF({
             datamodel,
             datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths.queryEngine[platform],
+            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
-          debug(generator.manifest.prettyName)
-          debug(options)
+          debug('generator.manifest.prettyName', generator.manifest.prettyName)
+          debug('options', options)
+          debug(
+            'options.generator.binaryTargets',
+            options.generator.binaryTargets,
+          )
           generator.setOptions(options)
         }
       }
@@ -358,9 +401,16 @@ generator gen {
   }
 }
 
+type NeededVersions = {
+  [key: string]: {
+    engines: EngineType[]
+    binaryTargets: BinaryTargetsEnvValue[]
+  }
+}
+
 type GetBinaryPathsByVersionInput = {
-  neededVersions: Record<string, any>
-  platform: string
+  neededVersions: NeededVersions
+  platform: Platform
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
@@ -379,20 +429,25 @@ async function getBinaryPathsByVersion({
 
   // make sure, that at least the current platform is being fetched
   for (const currentVersion in neededVersions) {
+    binaryPathsByVersion[currentVersion] = {}
+
     // ensure binaryTargets are set correctly
     const neededVersion = neededVersions[currentVersion]
+
     if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets.push(platform)
-      if (neededVersion.binaryTargets.length === 0) {
-        neededVersion.binaryTargets = [platform]
-      }
+      neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
     }
 
     if (
       process.env.NETLIFY &&
-      !neededVersion.binaryTargets.includes('rhel-openssl-1.0.x')
+      !neededVersion.binaryTargets.find(
+        (object) => object.value === 'rhel-openssl-1.0.x',
+      )
     ) {
-      neededVersion.binaryTargets.push('rhel-openssl-1.0.x')
+      neededVersion.binaryTargets.push({
+        fromEnvVar: null,
+        value: 'rhel-openssl-1.0.x',
+      })
     }
 
     // download
@@ -415,12 +470,15 @@ async function getBinaryPathsByVersion({
         return acc
       }, Object.create(null))
 
-    binaryPathsByVersion[currentVersion] = {}
-
     if (Object.values(binariesConfig).length > 0) {
+      // Convert BinaryTargetsEnvValue[] to Platform[]
+      const platforms: Platform[] = neededVersion.binaryTargets.map(
+        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
+      )
+
       const downloadParams: DownloadOptions = {
         binaries: binariesConfig,
-        binaryTargets: neededVersion.binaryTargets,
+        binaryTargets: platforms,
         showProgress:
           typeof printDownloadProgress === 'boolean'
             ? printDownloadProgress
@@ -433,7 +491,7 @@ async function getBinaryPathsByVersion({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths = mapKeys(
+      const binaryPaths: BinaryPaths = mapKeys(
         binaryPathsWithEngineType,
         binaryTypeToEngineType,
       )
@@ -441,14 +499,15 @@ async function getBinaryPathsByVersion({
     }
 
     if (binaryPathsOverride) {
-      const overrideBinaries = Object.keys(binaryPathsOverride)
-      const binariesCoveredByOverride = neededVersion.engines.filter((e) =>
-        overrideBinaries.includes(e),
+      const overrideEngines = Object.keys(binaryPathsOverride)
+      const enginesCoveredByOverride = neededVersion.engines.filter((engine) =>
+        overrideEngines.includes(engine),
       )
-      if (binariesCoveredByOverride.length > 0) {
-        for (const bin of binariesCoveredByOverride) {
-          binaryPathsByVersion[currentVersion][bin] = {
-            [platform]: binaryPathsOverride[bin],
+      if (enginesCoveredByOverride.length > 0) {
+        for (const engine of enginesCoveredByOverride) {
+          const enginePath = binaryPathsOverride[engine]!
+          binaryPathsByVersion[currentVersion][engine] = {
+            [platform]: enginePath,
           }
         }
       }
@@ -529,59 +588,64 @@ async function validateGenerators(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
       )
     }
+
     if (generator.config.pinnedBinaryTargets) {
       throw new Error(
         `The \`pinnedBinaryTargets\` field on the generator definition is deprecated.
 Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary target.`,
       )
     }
+
     if (generator.binaryTargets) {
-      for (const binaryTarget of generator.binaryTargets) {
-        if (oldToNewBinaryTargetsMapping[binaryTarget]) {
+      const binaryTargets =
+        generator.binaryTargets && generator.binaryTargets.length > 0
+          ? generator.binaryTargets
+          : [{ fromEnvVar: null, value: 'native' }]
+
+      const resolvedBinaryTargets: string[] = binaryTargets
+        .flatMap((object) => parseBinaryTargetsEnvValue(object))
+        .map((p) => (p === 'native' ? platform : p))
+
+      for (const resolvedBinaryTarget of resolvedBinaryTargets) {
+        if (oldToNewBinaryTargetsMapping[resolvedBinaryTarget]) {
           throw new Error(
             `Binary target ${chalk.red.bold(
-              binaryTarget,
+              resolvedBinaryTarget,
             )} is deprecated. Please use ${chalk.green.bold(
-              oldToNewBinaryTargetsMapping[binaryTarget],
+              oldToNewBinaryTargetsMapping[resolvedBinaryTarget],
             )} instead.`,
           )
         }
-        if (!knownBinaryTargets.includes(binaryTarget as Platform)) {
+        if (!knownBinaryTargets.includes(resolvedBinaryTarget as Platform)) {
           throw new Error(
             `Unknown binary target ${chalk.red(
-              binaryTarget,
+              resolvedBinaryTarget,
             )} in generator ${chalk.bold(generator.name)}.
 Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           )
         }
       }
 
-      const binaryTargets =
-        generator.binaryTargets && generator.binaryTargets.length > 0
-          ? generator.binaryTargets
-          : ['native']
-
-      const resolvedBinaryTargets = binaryTargets.map((p) =>
-        p === 'native' ? platform : p,
-      )
-
+      // Only show warning if resolvedBinaryTargets
+      // is missing current platform
       if (!resolvedBinaryTargets.includes(platform)) {
+        const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(
+          generator.binaryTargets,
+        )
+
         if (generator) {
           console.log(`${chalk.yellow(
             'Warning:',
           )} Your current platform \`${chalk.bold(
             platform,
           )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            generator.binaryTargets,
+            originalBinaryTargetsConfig,
           )}.
     To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
     ${chalk.greenBright(
       printGeneratorConfig({
         ...generator,
-        binaryTargets: fixBinaryTargets(
-          generator.binaryTargets as any[],
-          platform,
-        ),
+        binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
       }),
     )}
     ${chalk.gray(
@@ -593,7 +657,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
         } else {
           console.log(
             `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
-              binaryTargets,
+              originalBinaryTargetsConfig,
             )} don't include your local platform ${platform}, which you can also point to with \`native\`.
     In case you want to fix this, you can provide ${chalk.greenBright(
       `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
@@ -605,46 +669,44 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
   }
 }
 
-function engineTypeToBinaryType(
-  engineType: EngineType,
-): keyof BinaryDownloadConfiguration {
+function engineTypeToBinaryType(engineType: EngineType): BinaryType {
   if (engineType === 'introspectionEngine') {
-    return EngineTypes.introspectionEngine
+    return BinaryType.introspectionEngine
   }
 
   if (engineType === 'migrationEngine') {
-    return EngineTypes.migrationEngine
+    return BinaryType.migrationEngine
   }
 
   if (engineType === 'queryEngine') {
-    return EngineTypes.queryEngine
+    return BinaryType.queryEngine
   }
   if (engineType === 'libqueryEngineNapi') {
-    return EngineTypes.libqueryEngineNapi
+    return BinaryType.libqueryEngineNapi
   }
   if (engineType === 'prismaFmt') {
-    return EngineTypes.prismaFmt
+    return BinaryType.prismaFmt
   }
 
   throw new Error(`Could not convert engine type ${engineType}`)
 }
 
-function binaryTypeToEngineType(binaryType: string): string {
-  if (binaryType === EngineTypes.introspectionEngine) {
+function binaryTypeToEngineType(binaryType: string): EngineType {
+  if (binaryType === BinaryType.introspectionEngine) {
     return 'introspectionEngine'
   }
 
-  if (binaryType === EngineTypes.migrationEngine) {
+  if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }
-  if (binaryType === EngineTypes.libqueryEngineNapi) {
+  if (binaryType === BinaryType.libqueryEngineNapi) {
     return 'libqueryEngineNapi'
   }
-  if (binaryType === EngineTypes.queryEngine) {
+  if (binaryType === BinaryType.queryEngine) {
     return 'queryEngine'
   }
 
-  if (binaryType === EngineTypes.prismaFmt) {
+  if (binaryType === BinaryType.prismaFmt) {
     return 'prismaFmt'
   }
 

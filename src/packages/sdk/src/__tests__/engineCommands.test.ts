@@ -2,7 +2,7 @@ import { enginesVersion } from '@prisma/engines'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
-import { EngineTypes } from '..'
+import { BinaryType } from '..'
 import { formatSchema, getConfig, getDMMF, getVersion } from '../'
 jest.setTimeout(15000)
 
@@ -425,7 +425,7 @@ describe('getVersion', () => {
   test('Introspection Engine', async () => {
     const introspectionEngineVersion = await getVersion(
       undefined,
-      EngineTypes.introspectionEngine,
+      BinaryType.introspectionEngine,
     )
     expect(introspectionEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
@@ -433,27 +433,27 @@ describe('getVersion', () => {
   test('Migration Engine', async () => {
     const migrationEngineVersion = await getVersion(
       undefined,
-      EngineTypes.migrationEngine,
+      BinaryType.migrationEngine,
     )
     expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
   test('Prisma Fmt', async () => {
-    const prismaFmtVersion = await getVersion(undefined, EngineTypes.prismaFmt)
+    const prismaFmtVersion = await getVersion(undefined, BinaryType.prismaFmt)
     expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
   testIf(process.env.PRISMA_FORCE_NAPI !== 'true')('Query Engine', async () => {
     const queryEngineVersion = await getVersion(
       undefined,
-      EngineTypes.queryEngine,
+      BinaryType.queryEngine,
     )
     expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
   testIf(process.env.PRISMA_FORCE_NAPI === 'true')('N-API Engine', async () => {
     const libqueryEngineNapiVersion = await getVersion(
       undefined,
-      EngineTypes.libqueryEngineNapi,
+      BinaryType.libqueryEngineNapi,
     )
     expect(libqueryEngineNapiVersion.split(' ')[1]).toMatch(enginesVersion)
   })
