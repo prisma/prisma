@@ -3765,7 +3765,7 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
+            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -3878,7 +3878,6 @@ Object {
             "name": "posts",
             "relationFromFields": Array [],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
             "relationToFields": Array [],
             "type": "Post",
           },
@@ -15852,7 +15851,7 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
+            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -15965,7 +15964,6 @@ Object {
             "name": "posts",
             "relationFromFields": Array [],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
             "relationToFields": Array [],
             "type": "Post",
           },
@@ -27901,9 +27899,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `119480158`;
 
-exports[`getDMMF chinook introspected schema 1`] = `842601`;
+exports[`getDMMF chinook introspected schema 1`] = `842348`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842601`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842348`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -28425,24 +28423,6 @@ Object {
                 Object {
                   "isList": false,
                   "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
                   "type": "String",
                 },
                 Object {
@@ -28492,24 +28472,6 @@ Object {
             "minNumFields": null,
           },
           "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
             Object {
               "inputTypes": Array [
                 Object {
@@ -29307,75 +29269,6 @@ Object {
             },
           ],
           "name": "StringFieldUpdateOperationsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "increment",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "decrement",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "multiply",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "divide",
-            },
-          ],
-          "name": "IntFieldUpdateOperationsInput",
         },
         Object {
           "constraints": Object {

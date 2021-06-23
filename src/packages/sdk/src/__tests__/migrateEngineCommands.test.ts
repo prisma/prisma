@@ -83,8 +83,7 @@ describe('canConnectToDatabase', () => {
               "code": "P1001",
               "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
-            ",
+            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
             }
           `)
   })
@@ -118,10 +117,7 @@ describe('createDatabase', () => {
     ).rejects.toThrowErrorMatchingInlineSnapshot(`
             "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
-               0: sql_migration_connector::flavour::postgres::create_database
-                       with self=PostgresFlavour { url: \\"<REDACTED>\\" }
-                         at migration-engine/connectors/sql-migration-connector/src/flavour/postgres.rs:117"
+            Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
           `)
   })
 
