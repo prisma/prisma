@@ -30,7 +30,7 @@
     "ts-node": "10.0.0",
     "execa": "5.1.1",
     "fs-jetpack": "4.1.0",
-    "jest": "27.0.4",
+    "jest": "27.0.5",
     "lint-staged": "11.0.0",
     "mariadb": "2.5.3",
     "mssql": "7.1.3",
