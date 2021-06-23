@@ -14,7 +14,7 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@prisma/engines-version": "2.26.0-14.583c4eea1cea3e1971499ab2c820190385a2a879",
+    "@prisma/engines-version": "2.26.0-15.923dbce3a082447f978977ed64b90ccc66ea031e",
     "@types/find-cache-dir": "3.2.0",
     "@types/jest": "26.0.23",
     "@types/node": "12.20.15",
