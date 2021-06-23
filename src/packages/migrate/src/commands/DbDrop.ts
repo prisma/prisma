@@ -11,7 +11,6 @@ import {
   link,
 } from '@prisma/sdk'
 import path from 'path'
-import execa from 'execa'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { getDbInfo } from '../utils/ensureDatabaseExists'
