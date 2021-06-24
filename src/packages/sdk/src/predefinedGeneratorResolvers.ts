@@ -165,24 +165,25 @@ function checkYarnVersion() {
  */
 function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
+  let output
   try {
-    const output = execa.sync('tsc', ['-v'], {
+    output = execa.sync('tsc', ['-v'], {
       preferLocal: true,
     })
-    if (output.stdout) {
-      const currentVersion = output.stdout.split(' ')[1]
-      if (semverLt(currentVersion, minVersion)) {
-        throw new Error(
-          `Your ${chalk.bold(
-            'typescript',
-          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
-            minVersion,
-          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
-        )
-      }
-    }
   } catch (e) {
     // They do not have TS installed, we ignore (example: JS project)
+  }
+  if (output?.stdout) {
+    const currentVersion = output.stdout.split(' ')[1]
+    if (semverLt(currentVersion, minVersion)) {
+      throw new Error(
+        `Your ${chalk.bold(
+          'typescript',
+        )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+          minVersion,
+        )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+      )
+    }
   }
 }
 /**
