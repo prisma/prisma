@@ -4,6 +4,8 @@ import stripAnsi from 'strip-ansi'
 import { getDMMF } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 
+jest.setTimeout(10_000)
+
 describe('getDMMF', () => {
   test('simple model', async () => {
     const dmmf = await getDMMF({
