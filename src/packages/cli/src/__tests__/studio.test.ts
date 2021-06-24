@@ -8,7 +8,7 @@ const STUDIO_TEST_PORT = 5678
 const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 async function sendRequest(message: any): Promise<any> {
-  return fetch(`http://127.0.0.1:${STUDIO_TEST_PORT}/api`, {
+  return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -46,20 +46,18 @@ describe('studio', () => {
 
     // Give Studio time to start
     await new Promise((r) => setTimeout(() => r(null), 2000))
-
-    await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
   afterAll(async () => {
-    await studio.instance?.stop()
+    await studio.instance!.stop()
   })
 
-  it('can start up correctly', async () => {
+  test('can start up correctly', async () => {
     const res = await fetch(`http://localhost:${STUDIO_TEST_PORT}`)
     expect(res.status).toEqual(200)
   })
 
-  it('can respond to `findMany` queries', async () => {
+  test('can respond to `findMany` queries', async () => {
     const res = await sendRequest({
       requestId: 1,
       channel: 'prisma',
@@ -86,7 +84,7 @@ describe('studio', () => {
     expect(res).toMatchSnapshot()
   })
 
-  it('can respond to `create` queries', async () => {
+  test('can respond to `create` queries', async () => {
     const res = await sendRequest({
       requestId: 2,
       channel: 'prisma',
@@ -130,7 +128,7 @@ describe('studio', () => {
     expect(res).toMatchSnapshot()
   })
 
-  it('can respond to `update` queries', async () => {
+  test('can respond to `update` queries', async () => {
     const res = await sendRequest({
       requestId: 3,
       channel: 'prisma',
@@ -176,7 +174,7 @@ describe('studio', () => {
     expect(res).toMatchSnapshot()
   })
 
-  it('can respond to `delete` queries', async () => {
+  test('can respond to `delete` queries', async () => {
     const res = await sendRequest({
       requestId: 4,
       channel: 'prisma',
