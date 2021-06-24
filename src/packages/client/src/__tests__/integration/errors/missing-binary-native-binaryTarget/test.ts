@@ -3,7 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('missing-binary-native', async () => {
+test('missing binary, native binaryTarget', async () => {
   expect.assertions(1)
   await generateTestClient()
 
@@ -30,6 +30,8 @@ test('missing-binary-native', async () => {
       },
     ],
   })
+
+  
   if (process.env.PRISMA_FORCE_NAPI) {
     await expect(async () => {
       await prisma.user.findMany()
@@ -42,17 +44,17 @@ test('missing-binary-native', async () => {
                                     You incorrectly pinned it to TEST_PLATFORM
 
                                     This probably happens, because you built Prisma Client on a different platform.
-                                    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime/libquery_engine_napi-TEST_PLATFORM.so.node")
+                                    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine_napi-TEST_PLATFORM.so.node")
 
                                     Searched Locations:
 
-                                      /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
-                                      /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime
-                                      /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client
-                                      /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
-                                      /client/src/__tests__/integration/errors/missing-binary-native
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget
                                       /tmp/prisma-engines
-                                      /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
+                                      /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
 
                                     You already added the platform "native" to the "generator" block
                                     in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
@@ -70,17 +72,17 @@ test('missing-binary-native', async () => {
 
               Query engine binary for current platform "TEST_PLATFORM" could not be found.
             This probably happens, because you built Prisma Client on a different platform.
-            (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
+            (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
             Searched Locations:
 
-              /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
-              /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client/runtime
-              /client/src/__tests__/integration/errors/missing-binary-native/node_modules/@prisma/client
-              /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
-              /client/src/__tests__/integration/errors/missing-binary-native
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget
               /tmp/prisma-engines
-              /client/src/__tests__/integration/errors/missing-binary-native/node_modules/.prisma/client
+              /client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/.prisma/client
 
             You already added the platform "native" to the "generator" block
             in the "schema.prisma" file as described in https://pris.ly/d/client-generator,

@@ -16,6 +16,7 @@ test('invalid-input', async () => {
       },
     })
   } catch (e) {
+    // TODO The error output should be identical for both Node-API libary and binary: https://github.com/prisma/prisma/issues/7811
     if (process.env.PRISMA_FORCE_NAPI) {
       expect(e).toMatchInlineSnapshot(`
 

@@ -39,7 +39,9 @@ export class GetConfigError extends Error {
 export async function getConfig(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
+
   const useNapi = process.env.PRISMA_FORCE_NAPI === 'true'
+
   let data: ConfigMetaFormat | undefined
   if (useNapi) {
     data = await getConfigNAPI(options)
@@ -48,6 +50,8 @@ export async function getConfig(
   }
 
   if (!data) throw new GetConfigError(`Failed to return any data`)
+
+  // TODO This has been outdated for ages and needs to be handled differently and/or removed
   if (
     data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
     data.generators.some((g) => g.previewFeatures.includes('createMany'))
