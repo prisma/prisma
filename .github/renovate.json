@@ -19,7 +19,7 @@
         "@prisma/studio-server",
         "checkpoint-client"
       ],
-      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "dependencies (non-major)",
@@ -30,7 +30,7 @@
         "@prisma/engines-version",
         "checkpoint-client"
       ],
-      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "definitelyTyped",
@@ -73,7 +73,7 @@
       "groupName": "react-prisma",
       "paths": ["src/packages/react-prisma/**"],
       "rangeStrategy": "replace",
-      "schedule": ["before 9am on Monday"]
+      "schedule": ["before 8am on Wednesday"]
     }
   ]
 }

@@ -30,6 +30,8 @@ test('missing-binary', async () => {
       },
     ],
   })
+  // TODO Error should not be as fundamentally different here as the test snapshots indicate
+  // TODO The error messages here are also not good (correct) and should be fixed
   if (process.env.PRISMA_FORCE_NAPI) {
     await expect(async () => {
       await prisma.user.findMany()
