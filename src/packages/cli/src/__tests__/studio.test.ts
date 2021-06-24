@@ -20,6 +20,8 @@ async function sendRequest(message: any): Promise<any> {
 let studio: Studio
 
 describe('studio', () => {
+  jest.setTimeout(20000)
+
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
