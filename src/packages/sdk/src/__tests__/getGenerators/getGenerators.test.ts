@@ -9,11 +9,13 @@ import { resolveBinary } from '../../resolveBinary'
 
 jest.setTimeout(20000)
 
+const generatorPath = path.join(__dirname, 'generator')
+
 describe('getGenerators', () => {
   test('basic', async () => {
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -104,7 +106,7 @@ describe('getGenerators', () => {
   it('basic - binaryTargets - native string', async () => {
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -200,7 +202,7 @@ describe('getGenerators', () => {
 
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -298,7 +300,7 @@ describe('getGenerators', () => {
 
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -397,7 +399,7 @@ describe('getGenerators', () => {
 
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -499,7 +501,7 @@ describe('getGenerators', () => {
   test('inject engines', async () => {
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -534,7 +536,7 @@ describe('getGenerators', () => {
   test('fail on platforms', async () => {
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -550,7 +552,7 @@ describe('getGenerators', () => {
   test('fail on invalid binaryTarget', async () => {
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
@@ -567,7 +569,7 @@ describe('getGenerators', () => {
     expect.assertions(1)
     const aliases = {
       'predefined-generator': {
-        generatorPath: path.join(__dirname, 'generator'),
+        generatorPath: generatorPath,
         outputPath: __dirname,
       },
     }
