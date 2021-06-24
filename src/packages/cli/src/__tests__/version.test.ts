@@ -9,12 +9,16 @@ const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
 const version = '4165db0d1bddd480461f721ad5447bb261727728'
+
 describe('version', () => {
+
   // N-API Tests
+
   testIf(useNAPI)('basic version (N-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
+
   testIf(useNAPI)(
     'version with custom binaries (N-API)',
     async () => {
@@ -54,6 +58,7 @@ describe('version', () => {
   )
 
   // Binary Tests
+
   testIf(!useNAPI)('basic version', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
