@@ -96,7 +96,7 @@ ${chalk.bold('Examples')}
           // This is an error received when the the client < 2.20 and the cli  >= 2.20, This was caused by a breaking change in the generators
           if (err.message.includes('outputDir.endsWith is not a function')) {
             message.push(
-              `Generating a client with \`@prisma/client\` < 2.20 and \`prisma\` >= 2.20 is not supported. Please update \`@prisma/client\` to ${pkg.version}   \n\n`,
+              `This combination of Prisma CLI (>= 2.20) and Prisma Client (< 2.20) is not supported. Please update \`@prisma/client\` to ${pkg.version}   \n\n`,
             )
           } else {
             message.push(`${err.message}\n\n`)
