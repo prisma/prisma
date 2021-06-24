@@ -202,7 +202,7 @@ export class NodeEngine implements Engine {
       (e) => !removedFlags.includes(e),
     )
     
-    // custom endpoint
+    // internal only: custom endpoint (see https://prisma-company.slack.com/archives/CEYCG2MCN/p1592992017273200?thread_ts=1592985426.262900&cid=CEYCG2MCN)
     this.engineEndpoint = engineEndpoint
     if (engineEndpoint) {
       const url = new URL(engineEndpoint)
