@@ -1,7 +1,6 @@
 import path from 'path'
 import { formatSchema } from '../..'
-
-const fixturesPath = path.join(__dirname, '..', 'fixtures')
+import { fixturesPath } from '../__utils__/fixtures'
 
 describe('format', () => {
   test('nothing', async () => {

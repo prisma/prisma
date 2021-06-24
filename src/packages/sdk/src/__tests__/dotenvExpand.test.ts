@@ -1,5 +1,6 @@
 import { dotenvExpand } from '../dotenvExpand'
 import path from 'path'
+import { fixturesPath } from './__utils__/fixtures'
 
 describe('dotenvExpand', () => {
   test('should not expand', () => {
@@ -232,7 +233,7 @@ describe('integration', function () {
 
   beforeEach(() => {
     dotenv = require('dotenv').config({
-      path: path.join(__dirname, './fixtures/dotenv/.env'),
+      path: path.join(fixturesPath, 'dotenv/.env'),
     })
   })
 

@@ -2,7 +2,8 @@ import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import { getDMMF } from '../..'
-const fixturesPath = path.join(__dirname, '../../../fixtures')
+import { fixturesPath } from '../__utils__/fixtures'
+
 describe('getDMMF', () => {
   test('simple model', async () => {
     const dmmf = await getDMMF({
