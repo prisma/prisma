@@ -33,7 +33,7 @@ async function main() {
   }
 
   const time = await generateInFolder({
-    projectDir,
+    projectDir: path.join(process.cwd(), projectDir),
     useLocalRuntime: args['--skip-transpile'],
     transpile: !args['--skip-transpile'],
     useBuiltRuntime: args['--built-runtime'],
