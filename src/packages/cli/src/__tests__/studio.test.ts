@@ -22,7 +22,7 @@ let studio: Studio
 describe('studio', () => {
   jest.setTimeout(20000)
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rimraf.sync(
@@ -50,7 +50,7 @@ describe('studio', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterEach(async () => {
+  afterAll(async () => {
     await studio.instance!.stop()
   })
 
