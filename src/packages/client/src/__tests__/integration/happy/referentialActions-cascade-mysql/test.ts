@@ -65,6 +65,6 @@ describe('referentialActions(mysql)', () => {
     expect(await prisma.profile.findMany()).toHaveLength(1)
     expect(await prisma.post.findMany()).toHaveLength(1)
 
-    console.debug({ deleteBob })
+    // console.debug({ deleteBob })
   })
 })
