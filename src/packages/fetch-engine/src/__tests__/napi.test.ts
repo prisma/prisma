@@ -50,39 +50,39 @@ describe('download', () => {
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-darwin.dylib.node",
+          "name": "libquery_engine-darwin.dylib.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-debian-openssl-1.0.x.so.node",
+          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-debian-openssl-1.1.x.so.node",
+          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-linux-arm-openssl-1.0.x.so.node",
+          "name": "libquery_engine-linux-arm-openssl-1.0.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-linux-arm-openssl-1.1.x.so.node",
+          "name": "libquery_engine-linux-arm-openssl-1.1.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-linux-musl.so.node",
+          "name": "libquery_engine-linux-musl.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-rhel-openssl-1.0.x.so.node",
+          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "libquery_engine_napi-rhel-openssl-1.1.x.so.node",
+          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
           "size": "X",
         },
         Object {
-          "name": "query_engine_napi-windows.dll.node",
+          "name": "query_engine-windows.dll.node",
           "size": "X",
         },
       ]
