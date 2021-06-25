@@ -175,7 +175,7 @@ function checkTypeScriptVersion() {
       if (semverLt(currentVersion, minVersion)) {
         logger.warn(
           `Prisma detected that your ${chalk.bold(
-            'typescript',
+            'TypeScript',
           )} version ${currentVersion} is outdated. If you want to use Prisma Client with typescript please update it to ${chalk.bold(
             minVersion,
           )} or ${chalk.bold('newer')}`,
