@@ -17,6 +17,8 @@ model Post {
   published Boolean  @default(false)
   author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId  Int
+
+  @@map("PostReferentialActions")
 }
 
 model Profile {
@@ -24,6 +26,8 @@ model Profile {
   bio    String?
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int     @unique
+
+  @@map("ProfileReferentialActions")
 }
 
 model User {
@@ -32,4 +36,6 @@ model User {
   name    String?
   posts   Post[]
   profile Profile?
+
+  @@map("UserReferentialActions")
 }

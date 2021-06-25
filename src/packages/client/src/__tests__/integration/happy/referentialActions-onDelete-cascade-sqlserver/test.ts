@@ -3,7 +3,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-describe('blog-env-mssql', () => {
+describe('referentialActions(postgresql)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,
