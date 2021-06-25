@@ -196,11 +196,11 @@ function checkTypeScriptVersion() {
       const currentVersion = pjson.version
       if (semverLt(currentVersion, minVersion)) {
         logger.warn(
-          `Your ${chalk.bold(
-            'typescript',
-          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+          `Prisma detected that your ${chalk.bold(
+            'TypeScript',
+          )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${chalk.bold(
             minVersion,
-          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+          )} or ${chalk.bold('newer')}`,
         )
       }
     }
