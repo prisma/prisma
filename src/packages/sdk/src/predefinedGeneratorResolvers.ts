@@ -163,7 +163,7 @@ function checkYarnVersion() {
  * Warn, if typescript is below `4.1.0` and is install locally
  * Because Template Literal Types are required for generating Prisma Client types.
  */
-export function checkTypeScriptVersion() {
+function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
   try {
     const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
@@ -186,7 +186,6 @@ export function checkTypeScriptVersion() {
     // They do not have TS installed, we ignore (example: JS project)
   }
 }
-
 
 /**
  * Returns true, if semver version `a` is lower than `b`
