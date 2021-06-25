@@ -22,7 +22,6 @@ import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { checkTypeScriptVersion } from './utils/checkTypescriptVersion'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 const pkg = eval(`require('../package.json')`)
@@ -154,7 +153,6 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         )} https://pris.ly/d/prisma-schema-location`,
       )
     }
-    checkTypeScriptVersion()
 
     logger.log(
       chalk.dim(

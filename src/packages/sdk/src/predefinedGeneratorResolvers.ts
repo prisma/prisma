@@ -7,7 +7,6 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-import { semverLt } from './utils/semverLt'
 const debugEnabled = Debug.enabled('prisma:generator')
 
 export type GeneratorPaths = {
@@ -45,6 +44,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
     checkYarnVersion()
+    checkTypeScriptVersion()
     if (debugEnabled) {
       console.debug({ prismaClientDir })
     }
@@ -157,6 +157,72 @@ function checkYarnVersion() {
       }
     }
   }
+}
+
+/**
+ * Warn, if typescript is below `4.1.0` and is install locally
+ * Because Template Literal Types are required for generating Prisma Client types.
+ */
+export function checkTypeScriptVersion() {
+  const minVersion = '4.1.0'
+  try {
+    const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
+    const typescriptPkg =
+      typescriptPath && path.join(typescriptPath, 'package.json')
+    if (typescriptPkg && fs.existsSync(typescriptPkg)) {
+      const pjson = require(typescriptPkg)
+      const currentVersion = pjson.version
+      if (semverLt(currentVersion, minVersion)) {
+        logger.warn(
+          `Your ${chalk.bold(
+            'typescript',
+          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+            minVersion,
+          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+        )
+      }
+    }
+  } catch (e) {
+    // They do not have TS installed, we ignore (example: JS project)
+  }
+}
+
+
+/**
+ * Returns true, if semver version `a` is lower than `b`
+ * Note: This obviously doesn't support the full semver spec.
+ * @param {string} a
+ * @param {string} b
+ */
+function semverLt(a, b) {
+  const [major1, minor1, patch1] = a.split('.')
+  const [major2, minor2, patch2] = b.split('.')
+
+  if (major1 < major2) {
+    return true
+  }
+
+  if (major1 > major2) {
+    return false
+  }
+
+  if (minor1 < minor2) {
+    return true
+  }
+
+  if (minor1 > minor2) {
+    return false
+  }
+
+  if (patch1 < patch2) {
+    return true
+  }
+
+  if (patch1 > patch2) {
+    return false
+  }
+
+  return false
 }
 
 function parseUserAgentString(str) {

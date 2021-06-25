@@ -68,7 +68,6 @@ export {
   parseEnvValue,
 } from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'
-export { semverLt } from './utils/semverLt'
 export {
   Position,
   trimBlocksFromSchema,
