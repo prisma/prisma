@@ -160,30 +160,45 @@ function checkYarnVersion() {
 }
 
 /**
- * Warn, if typescript is below `4.1.0` and is install locally
- * Because Template Literal Types are required for generating Prisma Client types.
+ * Throw, if local typescript is below `4.1.0` and warn if global.
+ * As the types for Prisma Client requires Template Literal Types.
  */
 function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
-  try {
-    const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
-    const typescriptPkg =
-      typescriptPath && path.join(typescriptPath, 'package.json')
-    if (typescriptPkg && fs.existsSync(typescriptPkg)) {
-      const pjson = require(typescriptPkg)
-      const currentVersion = pjson.version
-      if (semverLt(currentVersion, minVersion)) {
-        logger.warn(
-          `Your ${chalk.bold(
-            'typescript',
-          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
-            minVersion,
-          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
-        )
-      }
+  const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
+  const typescriptPkg =
+    typescriptPath && path.join(typescriptPath, 'package.json')
+  // Installed Locally
+  if (typescriptPkg && fs.existsSync(typescriptPkg)) {
+    const pjson = require(typescriptPkg)
+    const currentVersion = pjson.version
+    if (semverLt(currentVersion, minVersion)) {
+      throw new Error(
+        `Your ${chalk.bold(
+          'typescript',
+        )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+          minVersion,
+        )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+      )
     }
-  } catch (e) {
-    // They do not have TS installed, we ignore (example: JS project)
+  } else {
+    try {
+      const output = execa.sync('tsc', ['-v'])
+      if (output?.stdout) {
+        const currentVersion = output.stdout.split(' ')[1]
+        if (semverLt(currentVersion, minVersion)) {
+          logger.warn(
+            `Your ${chalk.bold(
+              'typescript',
+            )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+              minVersion,
+            )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+          )
+        }
+      }
+    } catch (e) {
+      // They do not have TS installed, we ignore (example: JS project)
+    }
   }
 }
 
