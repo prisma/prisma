@@ -56,7 +56,7 @@ export async function resolveBinary(
       debug('Downloading N-API Library')
       await download({
         binaries: {
-          'libquery-engine-napi': getEnginesPath(),
+          'libquery-engine': getEnginesPath(),
         },
         version: enginesVersion,
       })

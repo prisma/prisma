@@ -25,7 +25,7 @@ describe('download', () => {
 
     await download({
       binaries: {
-        'libquery-engine-napi': baseDir,
+        'libquery-engine': baseDir,
       },
       binaryTargets: [
         'darwin',
