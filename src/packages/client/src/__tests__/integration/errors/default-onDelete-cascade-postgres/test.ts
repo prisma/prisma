@@ -55,7 +55,7 @@ describe('default-onDelete-cascade(postgresql)', () => {
 Invalid \`prisma.user.delete()\` invocation:
 
 
-  Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
+  The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
 `)
     }
   })

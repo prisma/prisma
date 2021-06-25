@@ -49,8 +49,7 @@ describe('default-onDelete-cascade(sqlite)', () => {
 Invalid \`prisma.user.delete()\` invocation:
 
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(SqliteFailure(Error { code: ConstraintViolation, extended_code: 1811 }, Some("FOREIGN KEY constraint failed"))) })
+  The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
 `)
     }
   })
