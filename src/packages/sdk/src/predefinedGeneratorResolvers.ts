@@ -160,32 +160,33 @@ function checkYarnVersion() {
 }
 
 /**
- * Warn, if typescript is below `4.1.0` or if it is not install locally or globally
+ * Warn, if typescript is below `4.1.0` and is install locally
  * Because Template Literal Types are required for generating Prisma Client types.
  */
 function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
-  let output
   try {
-    output = execa.sync('tsc', ['-v'], {
-      preferLocal: true,
-    })
+    const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
+    const typescriptPkg =
+      typescriptPath && path.join(typescriptPath, 'package.json')
+    if (typescriptPkg && fs.existsSync(typescriptPkg)) {
+      const pjson = require(typescriptPkg)
+      const currentVersion = pjson.version
+      if (semverLt(currentVersion, minVersion)) {
+        logger.warn(
+          `Your ${chalk.bold(
+            'typescript',
+          )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
+            minVersion,
+          )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
+        )
+      }
+    }
   } catch (e) {
     // They do not have TS installed, we ignore (example: JS project)
   }
-  if (output?.stdout) {
-    const currentVersion = output.stdout.split(' ')[1]
-    if (semverLt(currentVersion, minVersion)) {
-      throw new Error(
-        `Your ${chalk.bold(
-          'typescript',
-        )} version is ${currentVersion}, which is outdated. Please update it to ${chalk.bold(
-          minVersion,
-        )} or ${chalk.bold('newer')} in order to use Prisma Client.`,
-      )
-    }
-  }
 }
+
 /**
  * Returns true, if semver version `a` is lower than `b`
  * Note: This obviously doesn't support the full semver spec.
