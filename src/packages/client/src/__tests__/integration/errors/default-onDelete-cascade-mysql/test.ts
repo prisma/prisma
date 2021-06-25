@@ -6,9 +6,9 @@ import { migrateDb } from '../../__helpers__/migrateDb'
 let prisma
 const baseUri = process.env.TEST_MYSQL_URI
 
-describe('referentialActions(mysql)', () => {
+describe('default-onDelete-cascade(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-Cascade'
+    process.env.TEST_MYSQL_URI += '-default-onDelete-Cascade'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
       connectionString: process.env.TEST_MYSQL_URI!,
@@ -20,24 +20,14 @@ describe('referentialActions(mysql)', () => {
   })
 
   afterAll(async () => {
+    await prisma.post.deleteMany()
+    await prisma.profile.deleteMany()
     await prisma.user.deleteMany()
     await prisma.$disconnect()
     process.env.TEST_MYSQL_URI = baseUri
   })
 
-  test('delete 1 user, should cascade', async () => {
-    await prisma.user.create({
-      data: {
-        name: 'Alice',
-        email: 'alice@prisma.io',
-        posts: {
-          create: { title: 'Hello World' },
-        },
-        profile: {
-          create: { bio: 'I like turtles' },
-        },
-      },
-    })
+  test('delete 1 user, should error', async () => {
     await prisma.user.create({
       data: {
         name: 'Bob',
@@ -51,20 +41,22 @@ describe('referentialActions(mysql)', () => {
       },
     })
 
-    expect(await prisma.user.findMany()).toHaveLength(2)
-    expect(await prisma.profile.findMany()).toHaveLength(2)
-    expect(await prisma.post.findMany()).toHaveLength(2)
-
-    const deleteBob = await prisma.user.delete({
-      where: {
-        email: 'bob@prisma.io',
-      },
-    })
-
     expect(await prisma.user.findMany()).toHaveLength(1)
-    expect(await prisma.profile.findMany()).toHaveLength(1)
-    expect(await prisma.post.findMany()).toHaveLength(1)
 
-    // console.debug({ deleteBob })
+    try {
+      await prisma.user.delete({
+        where: {
+          email: 'bob@prisma.io',
+        },
+      })
+    } catch (e) {
+      expect(e.message).toMatchInlineSnapshot(`
+
+Invalid \`prisma.user.delete()\` invocation:
+
+
+  Foreign key constraint failed on the field: \`authorId\`
+`)
+    }
   })
 })
