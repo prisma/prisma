@@ -93,7 +93,6 @@ export class Init implements Command {
   ${chalk.bold('Usage')}
 
     ${chalk.dim('$')} prisma init [options]
-        
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
