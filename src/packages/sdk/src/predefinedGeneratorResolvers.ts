@@ -7,7 +7,7 @@ import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
-const debugEnabled = Debug.enabled('prisma:generator')
+const debug = Debug('prisma:generator')
 
 export type GeneratorPaths = {
   outputPath: string
@@ -22,6 +22,26 @@ export type GeneratorResolver = (
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
+}
+
+/**
+ * Tries to find a `@prisma/client` that is next to the `prisma` CLI
+ * @param baseDir from where to start looking from
+ * @returns `@prisma/client` location
+ */
+function findPrismaClientDir(baseDir: string) {
+  const prismaCLIDir = resolvePkg('prisma', { cwd: baseDir })
+  const prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+
+  // If CLI not found, we can only continue forward (likely a test)
+  if (prismaCLIDir === undefined) return prismaClientDir
+
+  return (
+    // the client and the cli are a unit and should be found together
+    prismaClientDir === path.resolve(prismaCLIDir, '..', '@prisma/client')
+      ? prismaClientDir
+      : undefined
+  )
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -42,12 +62,13 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+    let prismaClientDir = findPrismaClientDir(baseDir)
+
     checkYarnVersion()
     checkTypeScriptVersion()
-    if (debugEnabled) {
-      console.debug({ prismaClientDir })
-    }
+
+    debug('baseDir', baseDir)
+    debug('prismaClientDir', prismaClientDir)
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -78,7 +99,8 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
-      prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+      // resolvePkg has caching, so we trick it not to do it 👇
+      prismaClientDir = findPrismaClientDir(path.join('.', baseDir))
 
       if (!prismaClientDir) {
         throw new Error(
