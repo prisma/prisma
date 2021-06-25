@@ -41,7 +41,7 @@ function retry {
   return 0
 }
 
-npm i --silent -g pnpm@5.15.1 --unsafe-perm
+npm i --silent -g pnpm@6 --unsafe-perm
 
 retry 6 pnpm i --no-prefer-frozen-lockfile
 

@@ -180,6 +180,7 @@ describe('generator', () => {
       ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
     }
   })
+  
   test('mongo', async () => {
     const prismaClientTarget = path.join(
       __dirname,

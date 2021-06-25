@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
+// Tests that no error is being thrown when the binary is manually set to chmod 644 because Client fixes that itself
 test('chmod', async () => {
   await generateTestClient()
   const platform = await getPlatform()
@@ -28,4 +29,6 @@ test('chmod', async () => {
   await prisma.user.findMany()
 
   await prisma.$disconnect()
+
+  // TODO expect that chmod is now not 644 any more
 })

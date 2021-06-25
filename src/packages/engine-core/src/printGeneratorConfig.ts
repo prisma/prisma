@@ -1,4 +1,7 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import {
+  GeneratorConfig,
+  BinaryTargetsEnvValue,
+} from '@prisma/generator-helper'
 import indent from 'indent-string'
 
 export function printGeneratorConfig(config: GeneratorConfig): string {
@@ -10,12 +13,15 @@ export class GeneratorConfigClass {
   toString(): string {
     const { config } = this
     // parse & stringify trims out all the undefined values
+
+    const provider = config.provider.fromEnvVar
+      ? `env("${config.provider.fromEnvVar}")`
+      : config.provider.value
+
     const obj = JSON.parse(
       JSON.stringify({
-        provider: config.provider.fromEnvVar
-          ? `env("${config.provider.fromEnvVar}")`
-          : config.provider.value,
-        binaryTargets: config.binaryTargets || undefined,
+        provider,
+        binaryTargets: getOriginalBinaryTargetsValue(config.binaryTargets),
       }),
     )
 
@@ -23,6 +29,26 @@ export class GeneratorConfigClass {
 ${indent(printDatamodelObject(obj), 2)}
 }`
   }
+}
+
+export function getOriginalBinaryTargetsValue(
+  binaryTargets: BinaryTargetsEnvValue[],
+) {
+  let value: string | string[] | undefined
+  if (binaryTargets.length > 0) {
+    const binaryTargetsFromEnvVar = binaryTargets.find(
+      (object) => object.fromEnvVar !== null,
+    )
+    if (binaryTargetsFromEnvVar) {
+      value = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
+    } else {
+      value = binaryTargets.map((object) => object.value)
+    }
+  } else {
+    value = undefined
+  }
+
+  return value
 }
 
 export function printDatamodelObject(obj): string {

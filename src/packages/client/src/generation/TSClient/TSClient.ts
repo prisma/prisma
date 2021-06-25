@@ -43,23 +43,17 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS(): string {
-    const {
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaDir,
-      projectRoot,
-    } = this.options
+    const { generator, sqliteDatasourceOverrides, outputDir, schemaDir } =
+      this.options
     const schemaPath = path.join(schemaDir, 'prisma.schema')
-    const envPaths = getEnvPaths(schemaPath, { cwd: projectRoot })
+    const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
       rootEnvPath:
-        envPaths.rootEnvPath &&
-        path.relative(projectRoot, envPaths.rootEnvPath),
+        envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
       schemaEnvPath:
         envPaths.schemaEnvPath &&
-        path.relative(projectRoot, envPaths.schemaEnvPath),
+        path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
     const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
@@ -72,6 +66,8 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
     }
+
+    // Node-API env var
     if (
       process.env.PRISMA_FORCE_NAPI &&
       !config.generator?.previewFeatures.includes('nApi')
@@ -148,8 +144,8 @@ config.dirname = dirname
  * loading of env variable occurs in getPrismaClient
  */
 const envPaths = {
-  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(process.cwd(), config.relativeEnvPaths.rootEnvPath),
-  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(process.cwd(), config.relativeEnvPaths.schemaEnvPath)
+  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
+  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
 }
 warnEnvConflicts(envPaths)
 

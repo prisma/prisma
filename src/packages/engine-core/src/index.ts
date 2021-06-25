@@ -7,6 +7,9 @@ export {
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'
 export { NAPIEngine } from './NAPIEngine'
 export { NodeEngine as Engine } from './NodeEngine'
-export { printGeneratorConfig } from './printGeneratorConfig'
+export {
+  printGeneratorConfig,
+  getOriginalBinaryTargetsValue,
+} from './printGeneratorConfig'
 export * as NApiEngineTypes from './napi-types'
 export { fixBinaryTargets } from './util'
