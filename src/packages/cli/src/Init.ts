@@ -106,10 +106,12 @@ export class Init implements Command {
     ${chalk.dim('$')} prisma init
 
   Setup a new Prisma project and specify MySQL as the datasource provider to use
-  ${chalk.dim('$')} prisma init --datasource-provider mysql
+    ${chalk.dim('$')} prisma init --datasource-provider mysql
   
   Setup a new Prisma project and specify the url that will be used
-  ${chalk.dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
+    ${chalk.dim(
+      '$',
+    )} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -238,7 +240,7 @@ export class Init implements Command {
         warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
           url,
           false,
-        )} but it already exists in ${chalk.bold(
+        )} but the variable already exists in ${chalk.bold(
           path.relative(outputDir, envPath),
         )}`
       } else {
@@ -283,7 +285,7 @@ export class Init implements Command {
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
+✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
 ${warning && logger.should.warn ? '\n' + warning + '\n' : ''}
 Next steps:
