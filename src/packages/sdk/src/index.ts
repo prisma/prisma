@@ -49,13 +49,13 @@ export {
   canConnectToDatabase,
   createDatabase,
   dropDatabase,
-  MigrateEngineLogLine,
   MigrateEngineExitCode,
+  MigrateEngineLogLine,
 } from './migrateEngineCommands'
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'
 export { GeneratorPaths } from './predefinedGeneratorResolvers'
-export { engineEnvVarMap, resolveBinary, BinaryType } from './resolveBinary'
+export { BinaryType, engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export { DatabaseCredentials } from './types'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
@@ -64,8 +64,8 @@ export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export {
-  parseEnvValue,
   parseBinaryTargetsEnvValue,
+  parseEnvValue,
 } from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'
 export {
