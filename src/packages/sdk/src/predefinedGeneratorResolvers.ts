@@ -37,14 +37,23 @@ function findPrismaClientDir(baseDir: string) {
   if (CLIDir === undefined) return clientDir
   if (clientDir === undefined) return clientDir
 
-  // for everything to work well we expect `../<client-directory>`
+  // for everything to work well we expect `../<client-dir>`
   const relDir = path.relative(CLIDir, clientDir).split(path.sep)
-  // we don't check the name of the folder as is can be local dev
 
-  return (
-    // the client and the cli are a unit and should be found together
-    relDir[0] === '..' && relDir.length === 2 ? clientDir : undefined
-  )
+  // if the client is not near `prisma`, in parent folder => fail
+  if (relDir[0] !== '..') return undefined
+
+  // we look if we found the client in its very standard location
+  if (relDir[1] === '@prisma' && relDir['client']) {
+    return clientDir
+  }
+
+  // if relDir === ['..', <client-dir>], it's a local installation
+  if (relDir.length === 2) {
+    return clientDir
+  }
+
+  return undefined
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
