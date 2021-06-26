@@ -424,7 +424,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        engine: ['binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
