@@ -873,7 +873,7 @@ async function testPackages(
       '@prisma/sdk',
       '@prisma/migrate',
       '@prisma/client',
-      //'prisma',
+      'prisma',
       '@prisma/integration-tests',
     ]
   }
