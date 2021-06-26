@@ -44,7 +44,7 @@ function findPrismaClientDir(baseDir: string) {
   if (relDir[0] !== '..') return undefined
 
   // we look if we found the client in its very standard location
-  if (relDir[1] === '@prisma' && relDir['client']) {
+  if (relDir[1] === '@prisma' && relDir[2] === 'client') {
     return clientDir
   }
 
