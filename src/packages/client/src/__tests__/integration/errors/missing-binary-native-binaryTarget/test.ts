@@ -44,7 +44,7 @@ test('missing binary, native binaryTarget', async () => {
                                     You incorrectly pinned it to TEST_PLATFORM
 
                                     This probably happens, because you built Prisma Client on a different platform.
-                                    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine_napi-TEST_PLATFORM.so.node")
+                                    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.so.node")
 
                                     Searched Locations:
 

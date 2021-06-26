@@ -107,7 +107,7 @@ export async function generateInFolder({
     // This is required as the NAPI library is not downloaded by default
     await download({
       binaries: {
-        'libquery-engine-napi': enginesPath,
+        'libquery-engine': enginesPath,
       },
       version: enginesVersion,
     })
