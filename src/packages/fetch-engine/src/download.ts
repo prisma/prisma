@@ -34,7 +34,7 @@ const utimes = promisify(fs.utimes)
 const channel = 'master'
 export enum BinaryType {
   queryEngine = 'query-engine',
-  libqueryEngineNapi = 'libquery-engine-napi',
+  libqueryEngineNapi = 'libquery-engine',
   migrationEngine = 'migration-engine',
   introspectionEngine = 'introspection-engine',
   prismaFmt = 'prisma-fmt',

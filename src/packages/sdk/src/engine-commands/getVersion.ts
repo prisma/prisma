@@ -18,7 +18,7 @@ export async function getVersion(
     await isNodeAPISupported()
 
     const QE = require(enginePath) as NApiEngineTypes.NAPI
-    return `libquery-engine-napi ${QE.version().commit}`
+    return `libquery-engine ${QE.version().commit}`
   } else {
     const result = await execa(enginePath, ['--version'], {
       maxBuffer: MAX_BUFFER,
