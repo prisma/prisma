@@ -86,7 +86,6 @@ function parseStack({
       t.methodName.split('.').length < 4
     )
   })
-  console.warn(stack, trace)
 
   if (
     process.env.NODE_ENV !== 'production' &&
