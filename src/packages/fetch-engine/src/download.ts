@@ -220,7 +220,7 @@ function getCollectiveBar(options: DownloadOptions): {
 } {
   const hasNodeAPI = 'libquery-engine' in options.binaries
   const bar = getBar(
-    `Downloading Prisma engines${
+    `Downloading${hasNodeAPI ? ' Node-API ' : ' '}Prisma engines${
       hasNodeAPI ? ' for Node-API' : ''
     } for ${options.binaryTargets?.map((p) => chalk.bold(p)).join(' and ')}`,
   )
