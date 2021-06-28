@@ -44,7 +44,8 @@ describe('default-onDelete-cascade(sqlite)', () => {
         },
       })
     } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`
+      if (process.env.PRISMA_FORCE_NAPI) {
+        expect(e.message).toMatchInlineSnapshot(`
 
 Invalid \`prisma.user.delete()\` invocation in
 /client/src/__tests__/integration/errors/default-onDelete-cascade-sqlite/test.ts:41:31
@@ -55,6 +56,15 @@ Invalid \`prisma.user.delete()\` invocation in
 → 41   await prisma.user.delete(
   The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
 `)
+      } else {
+        expect(e.message).toMatchInlineSnapshot(`
+
+Invalid \`prisma.user.delete()\` invocation:
+
+
+  The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
+`)
+      }
     }
   })
 })
