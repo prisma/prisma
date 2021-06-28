@@ -12,6 +12,7 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
+import { BinaryType } from '@prisma/fetch-engine'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { resolveDatasources } from '../utils/resolveDatasources'
@@ -279,11 +280,13 @@ export async function generateClient({
         await copyFile(filePath, target)
         continue
       }
-
+      const binaryName = useNAPI
+        ? BinaryType.libqueryEngineNapi
+        : BinaryType.queryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
-        getVersion(filePath).catch(() => null),
-        getVersion(target).catch(() => null),
+        getVersion(filePath, binaryName).catch(() => null),
+        getVersion(target, binaryName).catch(() => null),
       ])
 
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {

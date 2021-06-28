@@ -84,7 +84,7 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `${useNAPI ? 'N-API ' : ''}Query Engine`,
+        `Query Engine${useNAPI ? ' (Node-API)' : ''}`,
         this.printBinaryInfo(queryEngine),
       ],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],

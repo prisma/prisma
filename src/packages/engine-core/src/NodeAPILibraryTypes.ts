@@ -99,7 +99,7 @@ export type ConfigMetaFormat = {
   warnings: string[]
 }
 // Main
-export type NAPI = {
+export type Library = {
   QueryEngine: QueryEngineConstructor
   version: () => {
     commit: string

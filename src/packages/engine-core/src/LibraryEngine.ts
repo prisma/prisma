@@ -27,7 +27,7 @@ import {
 } from './errors'
 import {
   ConfigMetaFormat,
-  NAPI,
+  Library,
   QueryEngine,
   QueryEngineBatchRequest,
   QueryEngineConstructor,
@@ -39,7 +39,7 @@ import {
   QueryEngineRequestHeaders,
   RustRequestError,
   SyncRustError,
-} from './napi-types'
+} from './NodeAPILibraryTypes'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
 
@@ -53,7 +53,7 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-export class NAPIEngine implements Engine {
+export class LibraryEngine implements Engine {
   private engine?: QueryEngine
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
@@ -62,7 +62,7 @@ export class NAPIEngine implements Engine {
   private executingQueryPromise?: Promise<any>
   private config: EngineConfig
   private QueryEngineConstructor?: QueryEngineConstructor
-  private library?: NAPI
+  private library?: Library
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
@@ -170,7 +170,7 @@ You may have to run ${chalk.greenBright(
       if (!this.QueryEngineConstructor) {
         try {
           // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.library = eval('require')(this.libQueryEnginePath) as NAPI
+          this.library = eval('require')(this.libQueryEnginePath) as Library
           this.QueryEngineConstructor = this.library.QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
@@ -365,7 +365,7 @@ You may have to run ${chalk.greenBright(
     return this.libraryStoppingPromise
   }
 
-  async getConfig(): Promise<ConfigMetaFormat> {
+  getConfig(): Promise<ConfigMetaFormat> {
     return this.library!.getConfig({
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,
@@ -511,7 +511,7 @@ You may have to run ${chalk.greenBright(
 
     this.platform = this.platform ?? (await getPlatform())
 
-    if (__filename.includes('NAPIEngine')) {
+    if (__filename.includes('LibraryEngine')) {
       enginePath = path.join(getEnginesPath(), getNapiName(this.platform, 'fs'))
       return { enginePath, searchedLocations }
     }
@@ -648,7 +648,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   }
 }
 
-function hookProcess(engine: NAPIEngine, handler: string, exit = false) {
+function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
     await engine.runBeforeExit()
@@ -660,7 +660,7 @@ function hookProcess(engine: NAPIEngine, handler: string, exit = false) {
   })
 }
 
-function initHooks(engine: NAPIEngine) {
+function initHooks(engine: LibraryEngine) {
   hookProcess(engine, 'beforeExit')
   hookProcess(engine, 'exit')
   hookProcess(engine, 'SIGINT', true)

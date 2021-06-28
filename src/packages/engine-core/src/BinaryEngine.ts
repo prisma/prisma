@@ -67,13 +67,13 @@ export type StopDeferred = {
   reject: (err: Error) => void
 }
 
-const engines: NodeEngine[] = []
+const engines: BinaryEngine[] = []
 const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class NodeEngine implements Engine {
+export class BinaryEngine implements Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -351,7 +351,7 @@ You may have to run ${chalk.greenBright(
 
     this.platform = this.platform || platform
 
-    if (__filename.includes('NodeEngine')) {
+    if (__filename.includes('BinaryEngine')) {
       enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
       return { prismaPath: enginePath, searchedLocations }
     }
