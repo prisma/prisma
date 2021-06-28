@@ -11,8 +11,15 @@ const MAX_BUFFER = 1_000_000_000
 
 export async function getVersion(
   enginePath?: string,
-  binaryName: BinaryType = BinaryType.queryEngine,
+  binaryName?: BinaryType,
 ): Promise<string> {
+  const useNapi = process.env.PRISMA_FORCE_NAPI === 'true'
+
+  if (!binaryName) {
+    binaryName = useNapi
+      ? BinaryType.libqueryEngineNapi
+      : BinaryType.queryEngine
+  }
   enginePath = await resolveBinary(binaryName, enginePath)
   if (binaryName === BinaryType.libqueryEngineNapi) {
     await isNodeAPISupported()
