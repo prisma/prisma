@@ -74,10 +74,10 @@ function parseStack({
 
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
-  console.warn(stack)
   const trace = stack.reverse().find((t) => {
     return (
       t.file &&
+      t.file !== '<anonymous>' &&
       !t.file.includes('@prisma') &&
       !t.file.includes('getPrismaClient') &&
       !t.file.startsWith('internal/') &&
@@ -86,6 +86,8 @@ function parseStack({
       t.methodName.split('.').length < 4
     )
   })
+  console.warn(stack, trace)
+
   if (
     process.env.NODE_ENV !== 'production' &&
     trace &&
