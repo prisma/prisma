@@ -74,6 +74,7 @@ function parseStack({
 
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
+  console.warn(stack)
   const trace = stack.reverse().find((t) => {
     return (
       t.file &&
