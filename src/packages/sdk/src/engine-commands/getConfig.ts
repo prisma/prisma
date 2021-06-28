@@ -9,6 +9,7 @@ import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
 import { isNodeAPISupported } from '@prisma/get-platform'
+import { load } from '../utils/load'
 
 const debug = Debug('prisma:getConfig')
 
@@ -75,7 +76,7 @@ async function getConfigNAPI(
   await isNodeAPISupported()
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   try {
-    const NApiQueryEngine = require(queryEnginePath) as NodeAPILibraryTypes.Library
+    const NApiQueryEngine = load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NApiQueryEngine.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},

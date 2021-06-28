@@ -4,6 +4,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
 import { resolveBinary } from '../resolveBinary'
+import { load } from '../utils/load'
 
 const debug = Debug('prisma:getVersion')
 
@@ -24,7 +25,7 @@ export async function getVersion(
   if (binaryName === BinaryType.libqueryEngineNapi) {
     await isNodeAPISupported()
 
-    const QE = require(enginePath) as NodeAPILibraryTypes.Library
+    const QE = load<NodeAPILibraryTypes.Library>(enginePath)
     return `libquery-engine ${QE.version().commit}`
   } else {
     const result = await execa(enginePath, ['--version'], {

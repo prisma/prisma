@@ -68,6 +68,7 @@ export {
   parseEnvValue,
 } from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { load } from './utils/load'
 export {
   Position,
   trimBlocksFromSchema,
