@@ -213,7 +213,6 @@ describe('blog-env-mssql', () => {
     })
 
     test('$queryRaw`<SQL>` with join', async () => {
-      await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
       const users =
         await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE id IN (${PrismaHelpers.join(
           ['42', '333', '2048'],
