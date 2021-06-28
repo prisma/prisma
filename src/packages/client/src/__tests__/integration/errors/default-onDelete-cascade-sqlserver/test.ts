@@ -46,9 +46,13 @@ describe('referentialActions(postgresql)', () => {
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.delete()\` invocation:
+Invalid \`prisma.user.delete()\` invocation in
+/client/src/__tests__/integration/errors/default-onDelete-cascade-sqlserver/test.ts:41:31
 
-
+  38 expect(await prisma.user.findMany()).toHaveLength(1)
+  39 
+  40 try {
+→ 41   await prisma.user.delete(
   The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
 `)
     }
