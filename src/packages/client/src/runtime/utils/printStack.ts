@@ -79,6 +79,7 @@ function parseStack({
       t.file &&
       !t.file.includes('@prisma') &&
       !t.file.includes('getPrismaClient') &&
+      !t.file.startsWith('internal/') &&
       !t.methodName.includes('new ') &&
       !t.methodName.includes('_getCallsite') &&
       t.methodName.split('.').length < 4
