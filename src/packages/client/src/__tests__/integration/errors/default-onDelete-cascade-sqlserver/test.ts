@@ -3,7 +3,9 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-describe('referentialActions(postgresql)', () => {
+// skipped because flaky https://buildkite.com/prisma/prisma2-publish/builds/4902#c94c9d75-8d51-4abe-a875-13fd2a4ee6fe/179-1114
+// errors with: `The table `dbo.UserDefaultOnDelete` does not exist in the current database.`
+describe.skip('referentialActions(sqlserver)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,
