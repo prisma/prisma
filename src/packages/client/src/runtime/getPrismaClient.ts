@@ -5,7 +5,7 @@ import {
   EngineConfig,
   EngineEventType,
 } from '@prisma/engine-core/dist/Engine'
-import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
+import { LibraryEngine } from '@prisma/engine-core/dist/LibraryEngine'
 import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import {
   DataSource,
@@ -425,7 +425,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         this._previewFeatures.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
-        return new NAPIEngine(this._engineConfig)
+        return new LibraryEngine(this._engineConfig)
       } else {
         return new BinaryEngine(this._engineConfig)
       }

@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { NApiEngineTypes } from '@prisma/engine-core'
+import { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { BinaryType } from '@prisma/fetch-engine'
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
@@ -75,7 +75,7 @@ async function getConfigNAPI(
   await isNodeAPISupported()
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
   try {
-    const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
+    const NApiQueryEngine = require(queryEnginePath) as NodeAPILibraryTypes.Library
     data = await NApiQueryEngine.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},

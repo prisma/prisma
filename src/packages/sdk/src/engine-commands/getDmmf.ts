@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { NApiEngineTypes } from '@prisma/engine-core'
+import { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { BinaryType } from '@prisma/fetch-engine'
 import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
@@ -53,7 +53,7 @@ async function getDmmfNapi(options: GetDMMFOptions): Promise<DMMF.Document> {
   await isNodeAPISupported()
 
   debug(`Using N-API Query Engine at: ${queryEnginePath}`)
-  const NApiQueryEngine = require(queryEnginePath) as NApiEngineTypes.NAPI
+  const NApiQueryEngine = require(queryEnginePath) as NodeAPILibraryTypes.Library
   const datamodel =
     options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
   let dmmf: DMMF.Document | undefined
