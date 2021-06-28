@@ -8,10 +8,9 @@ import { consoleContext, Context } from './__helpers__/context'
 const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
-const version = '4165db0d1bddd480461f721ad5447bb261727728'
+const version = 'e6bd3dc12d849124a04c3a8e6bd9c194381afda3'
 
 describe('version', () => {
-
   // N-API Tests
 
   testIf(useNAPI)('basic version (N-API)', async () => {
@@ -29,7 +28,7 @@ describe('version', () => {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,
-          'libquery-engine-napi': enginesDir,
+          'libquery-engine': enginesDir,
         },
         version,
         failSilent: false,
@@ -81,7 +80,7 @@ describe('version', () => {
       })
 
       const platform = await getPlatform()
-      const { ['libquery-engine-napi']: qe, ...envVarMap } = engineEnvVarMap
+      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
         process.env[envVar] = binaryPaths[engine][platform]
