@@ -269,6 +269,10 @@ export class MigrateEngine {
           try {
             const json: MigrateEngineLogLine = JSON.parse(data)
 
+            if (json.fields?.migrate_action === 'log') {
+              console.log(json.fields.message)
+            }
+
             this.messages.push(json.fields.message)
 
             if (json.fields.backtrace) {
