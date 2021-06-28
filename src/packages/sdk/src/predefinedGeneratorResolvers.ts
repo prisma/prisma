@@ -30,18 +30,30 @@ export type PredefinedGeneratorResolvers = {
  * @returns `@prisma/client` location
  */
 function findPrismaClientDir(baseDir: string) {
-  const prismaCLIDir = resolvePkg('prisma', { cwd: baseDir })
-  const prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+  const CLIDir = resolvePkg('prisma', { cwd: baseDir })
+  const clientDir = resolvePkg('@prisma/client', { cwd: baseDir })
 
   // If CLI not found, we can only continue forward (likely a test)
-  if (prismaCLIDir === undefined) return prismaClientDir
+  if (CLIDir === undefined) return clientDir
+  if (clientDir === undefined) return clientDir
 
-  return (
-    // the client and the cli are a unit and should be found together
-    prismaClientDir === path.resolve(prismaCLIDir, '..', '@prisma/client')
-      ? prismaClientDir
-      : undefined
-  )
+  // for everything to work well we expect `../<client-dir>`
+  const relDir = path.relative(CLIDir, clientDir).split(path.sep)
+
+  // if the client is not near `prisma`, in parent folder => fail
+  if (relDir[0] !== '..') return undefined
+
+  // we look if we found the client in its very standard location
+  if (relDir[1] === '@prisma' && relDir[2] === 'client') {
+    return clientDir
+  }
+
+  // if relDir === ['..', <client-dir>], it's a local installation
+  if (relDir.length === 2) {
+    return clientDir
+  }
+
+  return undefined
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
