@@ -4,6 +4,7 @@ import { setupMSSQL, SetupParams } from '../../../../utils/setupMSSQL'
 
 describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
+  let PrismaHelpers: any = null
   const requests: any[] = []
 
   beforeAll(async () => {
@@ -18,8 +19,9 @@ describe('blog-env-mssql', () => {
     await setupMSSQL(setupParams)
 
     await generateTestClient()
-    const { PrismaClient } = require('./node_modules/@prisma/client')
+    const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
 
+    PrismaHelpers = Prisma
     prisma = new PrismaClient({
       errorFormat: 'colorless',
       __internal: {
@@ -208,6 +210,14 @@ describe('blog-env-mssql', () => {
       await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
       const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User]`
       expect(users).not.toHaveLength(0)
+    })
+
+    test('$queryRaw`<SQL>` with join', async () => {
+      const users =
+        await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE id IN (${PrismaHelpers.join(
+          ['42', '333', '2048'],
+        )})`
+      expect(users).toHaveLength(0)
     })
 
     test('$queryRaw`<SQL>` with params', async () => {

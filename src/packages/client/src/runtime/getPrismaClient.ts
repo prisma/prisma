@@ -702,6 +702,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
       } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
+        // Example: prisma.$queryRaw`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
@@ -733,16 +734,22 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'sqlserver': {
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            const queryInstance = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            )
+
+            query = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
-              values: serializeRawParameters(values),
+              values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
             }
             break
           }
         }
       } else {
-        // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
+        // If this was called as prisma.$queryRaw(Prisma.sql`<SQL>`), use prepared statements from sql-template-tag
+        // Example: prisma.$queryRaw(Prisma.sql`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`);
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql':
