@@ -6,7 +6,7 @@ export {
 } from './errors'
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'
 export { NAPIEngine } from './NAPIEngine'
-export { NodeEngine as Engine } from './NodeEngine'
+export { BinaryEngine as Engine } from './BinaryEngine'
 export {
   printGeneratorConfig,
   getOriginalBinaryTargetsValue,

@@ -1,7 +1,7 @@
-import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
+import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import path from 'path'
 
-describe('NodeEngine', () => {
+describe('BinaryEngine', () => {
   test('should error correctly with invalid flags', async () => {
     
     // Skip for Node-API library
@@ -11,7 +11,7 @@ describe('NodeEngine', () => {
     }
 
     try {
-      const engine = new NodeEngine({
+      const engine = new BinaryEngine({
         flags: ['--flag-that-does-not-exist'],
         datamodelPath: path.join(
           __dirname,

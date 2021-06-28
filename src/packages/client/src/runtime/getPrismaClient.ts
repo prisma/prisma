@@ -6,7 +6,7 @@ import {
   EngineEventType,
 } from '@prisma/engine-core/dist/Engine'
 import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
-import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
+import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import {
   DataSource,
   GeneratorConfig,
@@ -427,7 +427,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       ) {
         return new NAPIEngine(this._engineConfig)
       } else {
-        return new NodeEngine(this._engineConfig)
+        return new BinaryEngine(this._engineConfig)
       }
     }
 
