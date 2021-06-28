@@ -218,10 +218,11 @@ function getCollectiveBar(options: DownloadOptions): {
   finishBar: () => void
   setProgress: (sourcePath: string) => (progress: number) => void
 } {
+  const hasNodeAPI = 'libquery-engine' in options.binaries
   const bar = getBar(
-    `Downloading Prisma engines for ${options.binaryTargets
-      ?.map((p) => chalk.bold(p))
-      .join(' and ')}`,
+    `Downloading Prisma engines${
+      hasNodeAPI ? ' with Node-API' : ''
+    } for ${options.binaryTargets?.map((p) => chalk.bold(p)).join(' and ')}`,
   )
 
   const progressMap: { [key: string]: number } = {}
