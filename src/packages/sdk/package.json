@@ -29,6 +29,7 @@
   "devDependencies": {
     "@types/jest": "26.0.23",
     "@types/node": "12.20.15",
+    "@types/resolve": "^1.20.0",
     "@types/shell-quote": "1.7.0",
     "@types/tar": "4.0.4",
     "@typescript-eslint/eslint-plugin": "4.28.0",
@@ -69,7 +70,7 @@
     "node-fetch": "2.6.1",
     "p-map": "^4.0.0",
     "read-pkg-up": "^7.0.1",
-    "resolve-pkg": "^2.0.0",
+    "resolve": "^1.2.0",
     "rimraf": "^3.0.2",
     "shell-quote": "^1.7.2",
     "string-width": "^4.2.0",
