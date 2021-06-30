@@ -110,7 +110,7 @@
     "source-map-support": "0.5.19",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
-    "strip-ansi": "6.0.0",
+    "strip-ansi": "7.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "27.0.3",
     "ts-node": "10.0.0",
