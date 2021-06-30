@@ -38,6 +38,7 @@ async function findPrismaClientDir(baseDir: string) {
   const resolvedClientDir = clientDir && (await realPath(clientDir))
 
   debug('prismaCLIDir', CLIDir)
+  debug('prismaClientDir', clientDir)
 
   // If CLI not found, we can only continue forward, likely a test
   if (CLIDir === undefined) return resolvedClientDir
@@ -73,7 +74,6 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = await findPrismaClientDir(baseDir)
 
-    debug('prismaClientDir', prismaClientDir)
     debug('baseDir', baseDir)
 
     checkYarnVersion()
