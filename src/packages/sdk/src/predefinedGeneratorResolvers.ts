@@ -9,6 +9,8 @@ import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 const debug = Debug('prisma:generator')
 
+const realPath = fs.promises.realpath
+
 export type GeneratorPaths = {
   outputPath: string
   generatorPath: string
@@ -33,10 +35,13 @@ async function findPrismaClientDir(baseDir: string) {
   const resolveOpts = { basedir: baseDir, preserveSymlinks: true }
   const CLIDir = await resolvePkg('prisma', resolveOpts)
   const clientDir = await resolvePkg('@prisma/client', resolveOpts)
+  const resolvedClientDir = clientDir && (await realPath(clientDir))
+
+  debug('prismaCLIDir', CLIDir)
 
   // If CLI not found, we can only continue forward, likely a test
-  if (CLIDir === undefined) return clientDir
-  if (clientDir === undefined) return clientDir
+  if (CLIDir === undefined) return resolvedClientDir
+  if (clientDir === undefined) return resolvedClientDir
 
   // for everything to work well we expect `../<client-dir>`
   const relDir = path.relative(CLIDir, clientDir).split(path.sep)
@@ -45,7 +50,7 @@ async function findPrismaClientDir(baseDir: string) {
   if (relDir[0] !== '..' || relDir[1] === '..') return undefined
 
   // we return the resolved location as pnpm users will want that
-  return fs.promises.realpath(clientDir)
+  return resolvedClientDir
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -68,11 +73,11 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   'prisma-client-js': async (baseDir, version) => {
     let prismaClientDir = await findPrismaClientDir(baseDir)
 
+    debug('prismaClientDir', prismaClientDir)
+    debug('baseDir', baseDir)
+
     checkYarnVersion()
     await checkTypeScriptVersion()
-
-    debug('baseDir', baseDir)
-    debug('prismaClientDir', prismaClientDir)
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
