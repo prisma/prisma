@@ -26,7 +26,7 @@ async function main() {
       target: 'node12',
       outfile: 'build/index.js',
       entryPoints: ['src/bin.ts'],
-      external: ['@prisma/engines', '_http_common'],
+      external: ['@prisma/engines'],
     }),
     esbuild.build({
       platform: 'node',
@@ -65,6 +65,13 @@ async function main() {
       path.join(require.resolve('open/package.json'), '../xdg-open'),
       './build/xdg-open',
     ),
+    copy({
+      from: path.resolve(__dirname, '../prisma-client/runtime/llhttp'),
+      to: './build/llhttp',
+      recursive: true,
+      parallelJobs: process.platform === 'win32' ? 1 : 20,
+      overwrite: true,
+    }),
   ])
 
   await Promise.all([
