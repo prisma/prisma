@@ -123,21 +123,21 @@ export const consoleContext: ContextContributorFactory<
   }
 > = () => (ctx) => {
   beforeEach(() => {
-    // ctx.mocked['console.error'] = jest
-    //   .spyOn(console, 'error')
-    //   .mockImplementation(() => {})
-    // ctx.mocked['console.log'] = jest
-    //   .spyOn(console, 'log')
-    //   .mockImplementation(() => {})
-    // ctx.mocked['console.warn'] = jest
-    //   .spyOn(console, 'warn')
-    //   .mockImplementation(() => {})
+    ctx.mocked['console.error'] = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {})
+    ctx.mocked['console.log'] = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => {})
+    ctx.mocked['console.warn'] = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => {})
   })
 
   afterEach(() => {
-    // ctx.mocked['console.error'].mockRestore()
-    // ctx.mocked['console.log'].mockRestore()
-    // ctx.mocked['console.warn'].mockRestore()
+    ctx.mocked['console.error'].mockRestore()
+    ctx.mocked['console.log'].mockRestore()
+    ctx.mocked['console.warn'].mockRestore()
   })
 
   return null as any
