@@ -1,6 +1,7 @@
 const execa = require('execa')
-const fs = require('fs')
+const fs = require('fs-extra')
 const chalk = require('chalk')
+const path = require('path')
 const { promisify } = require('util')
 const esbuild = require('esbuild')
 const copyFile = promisify(fs.copyFile)
@@ -31,8 +32,15 @@ async function main() {
       target: 'node12',
       outfile: 'generator-build/index.js',
       entryPoints: ['src/generator.ts'],
-      external: ['_http_common']
     }),
+    // copy wasm files, etc necessary for undici
+    fs.copy(
+      path.resolve(
+        __dirname,
+        '../node_modules/@prisma/engine-core/node_modules/undici/lib/llhttp',
+      ),
+      path.resolve(__dirname, '../generator-build/llhttp'),
+    ),
   ])
 
   await Promise.all([
@@ -42,7 +50,6 @@ async function main() {
       target: 'node12',
       outdir: 'runtime',
       entryPoints: ['src/runtime/index.ts'],
-      external: ['_http_common']
     }),
     esbuild.build({
       platform: 'node',
@@ -51,9 +58,16 @@ async function main() {
       target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
       outdir: 'runtime',
       entryPoints: ['src/runtime/index-browser.ts'],
-      external: ['_http_common']
     }),
     run('rollup -c'),
+    // copy wasm files, etc necessary for undici
+    fs.copy(
+      path.resolve(
+        __dirname,
+        '../node_modules/@prisma/engine-core/node_modules/undici/lib/llhttp',
+      ),
+      path.resolve(__dirname, '../runtime/llhttp'),
+    ),
   ])
 
   await Promise.all([
