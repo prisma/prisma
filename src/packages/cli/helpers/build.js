@@ -1,5 +1,5 @@
 const execa = require('execa')
-const fs = require('fs')
+const fs = require('fs-extra')
 const chalk = require('chalk')
 const copy = require('@timsuchanek/copy')
 const makeDir = require('make-dir')
@@ -26,7 +26,7 @@ async function main() {
       target: 'node12',
       outfile: 'build/index.js',
       entryPoints: ['src/bin.ts'],
-      external: ['@prisma/engines'],
+      external: ['@prisma/engines', '_http_common'],
     }),
     esbuild.build({
       platform: 'node',
