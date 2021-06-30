@@ -1,5 +1,5 @@
 const execa = require('execa')
-const fs = require('fs-extra')
+const fs = require('fs')
 const chalk = require('chalk')
 const copy = require('@timsuchanek/copy')
 const makeDir = require('make-dir')
