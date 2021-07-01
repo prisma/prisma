@@ -43,9 +43,11 @@ jobs:
           title: "fix(deps): update engines to ${{ github.event.inputs.tag }}"
           body: |
             This automatic PR updates the engines to version `${{  github.event.inputs.tag }}`. This will get automatically merged if all the tests pass.
-            Packages:
-            @prisma/engines : https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.tag }}
-            @prisma/engines-version : https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.tag }}
+            ## Packages:
+            | Package | NPM URL |
+            |---------|---------|
+            |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.tag }}|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.tag }}|
       - name: PR url
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
