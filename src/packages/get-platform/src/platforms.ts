@@ -1,6 +1,7 @@
 export type Platform =
   | 'native'
   | 'darwin'
+  | 'darwin-arm64'
   | 'debian-openssl-1.0.x'
   | 'debian-openssl-1.1.x'
   | 'rhel-openssl-1.0.x'
@@ -18,6 +19,7 @@ export type Platform =
 
 export const platforms: Array<Platform> = [
   'darwin',
+  'darwin-arm64',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
   'rhel-openssl-1.0.x',

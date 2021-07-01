@@ -174,6 +174,11 @@ async function gracefulExec(cmd: string): Promise<string | undefined> {
 export async function getPlatform(): Promise<Platform> {
   const { platform, libssl, distro, arch } = await getos()
 
+  // Apple Silicon
+  if (platform === 'darwin' && arch === 'arm64') {
+    return 'darwin-arm64'
+  }
+
   if (platform === 'darwin') {
     return 'darwin'
   }
