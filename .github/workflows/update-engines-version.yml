@@ -23,8 +23,8 @@ jobs:
       - name: Check if version is available on npm
         run: |
           echo 'Checking @prisma/engines@${{ github.event.inputs.version }}'
-          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
-          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
+          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
+          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
        
       - name: Update the engines
