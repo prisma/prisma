@@ -2,13 +2,13 @@ name: Update Engines Version
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: "Tag to check and update the engines version"
+      version:
+        description: "Version to check and update the engines version"
         required: true
 
 jobs:
   update_engines:
-    name: "Check and update @prisma/engines@${{ github.event.inputs.tag }}"
+    name: "Check and update @prisma/engines@${{ github.event.inputs.version }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -18,36 +18,36 @@ jobs:
 
       - uses: pnpm/action-setup@v2.0.1
         with:
-          version: 5.15.1
+          version: 6.9.1 
 
-      - name: Check if tag is available on npm
+      - name: Check if version is available on npm
         run: |
-          echo 'Checking @prisma/engines@${{ github.event.inputs.tag }}'
-          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.tag }}
-          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.tag }}
+          echo 'Checking @prisma/engines@${{ github.event.inputs.version }}'
+          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
+          pnpx -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
        
       - name: Update the engines
         run: |
-          echo 'Updating @prisma/engines to ${{ github.event.inputs.tag }} using pnpm'
+          echo 'Updating @prisma/engines to ${{ github.event.inputs.version }} using pnpm'
           cd src
-          pnpm update -r @prisma/engines@${{ github.event.inputs.tag }} @prisma/engines-version@${{ github.event.inputs.tag  }}
+          pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version  }}
 
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v3
         with:
-          commit-message: "fix(deps): update engines to ${{ github.event.inputs.tag }}"
+          commit-message: "fix(deps): update engines to ${{ github.event.inputs.version }}"
           branch: deps/engines
           delete-branch: true
-          title: "fix(deps): update engines to ${{ github.event.inputs.tag }}"
+          title: "fix(deps): update engines to ${{ github.event.inputs.version }}"
           body: |
-            This automatic PR updates the engines to version `${{  github.event.inputs.tag }}`. This will get automatically merged if all the tests pass.
+            This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
             ## Packages:
             | Package | NPM URL |
             |---------|---------|
-            |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.tag }}|
-            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.tag }}|
+            |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.version }}|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.version }}|
       - name: PR url
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
