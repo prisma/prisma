@@ -1,0 +1,73 @@
+name: Update Engines Version
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to check and update the engines version"
+        required: true
+
+jobs:
+  update_engines:
+    name: "Check and update @prisma/engines@${{ github.event.inputs.version }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.9.1 
+          
+      # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
+      - name: Check if version is available on npm
+        run: |
+          echo 'Checking @prisma/engines@${{ github.event.inputs.version }} (and @prisma/engines-version)'
+          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
+          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
+          echo 'Awesome - proceeding to make the PR'
+       
+      - name: Update the engines dependencies
+        run: |
+          echo 'Updating @prisma/engines and @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
+          cd src
+          pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version  }}
+
+      - name: Create Pull Request
+        id: cpr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: "fix(deps): update engines to ${{ github.event.inputs.version }}"
+          branch: deps/engines
+          delete-branch: true
+          title: "fix(deps): update engines to ${{ github.event.inputs.version }}"
+          body: |
+            This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
+            ## Packages:
+            | Package | NPM URL |
+            |---------|---------|
+            |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.version }}|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.version }}|
+
+      - name: PR url
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+        
+      - name: Enable Pull Request Automerge
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: peter-evans/enable-pull-request-automerge@v1
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          merge-method: squash
+
+      - name: Auto approve Pull Request (to trigger automerge if tests passing)
+        if: steps.cpr.outputs.pull-request-operation == 'created'
+        uses: juliangruber/approve-pull-request-action@v1
+        with:
+          github-token: ${{ secrets.BOT_TOKEN }}
+          number: ${{ steps.cpr.outputs.pull-request-number }}
+
+
+        
