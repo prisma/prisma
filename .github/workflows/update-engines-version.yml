@@ -38,8 +38,11 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v3
         with:
+          token: ${{ secrets.BOT_TOKEN }}
           commit-message: "fix(deps): update engines to ${{ github.event.inputs.version }}"
-          branch: deps/engines
+          committer: "Prismo <prismabots@gmail.com>"
+          author: "Prismo <prismabots@gmail.com>"
+          branch: deps/engines-${{ github.event.inputs.version }}
           delete-branch: true
           title: "fix(deps): update engines to ${{ github.event.inputs.version }}"
           body: |
@@ -68,6 +71,3 @@ jobs:
         with:
           github-token: ${{ secrets.BOT_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
-
-
-        
