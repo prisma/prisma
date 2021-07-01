@@ -23,14 +23,14 @@ jobs:
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
-          echo 'Checking @prisma/engines@${{ github.event.inputs.version }}'
+          echo 'Checking @prisma/engines@${{ github.event.inputs.version }} (and @prisma/engines-version)'
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
        
       - name: Update the engines dependencies
         run: |
-          echo 'Updating @prisma/engines to ${{ github.event.inputs.version }} using pnpm'
+          echo 'Updating @prisma/engines and @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
           cd src
           pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version  }}
 
@@ -62,7 +62,7 @@ jobs:
           pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
           merge-method: squash
 
-      - name: Auto approve
+      - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v1
         with:
