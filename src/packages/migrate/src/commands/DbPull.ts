@@ -23,6 +23,8 @@ import {
 } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
+import { NoSchemaFoundError } from '../utils/errors'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbPull implements Command {
   public static new(): DbPull {
@@ -126,7 +128,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let schemaPath = await getSchemaPath(args['--schema'])
 
     if (schemaPath) {
-      console.log(
+      console.info(
         chalk.dim(
           `Prisma schema loaded from ${path.relative(
             process.cwd(),
@@ -134,18 +136,12 @@ Instead of saving the result to the filesystem, you can also print it to stdout
           )}`,
         ),
       )
+
+      await printDatasource(schemaPath)
     }
 
     if (!url && !schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
+      throw new NoSchemaFoundError()
     }
 
     let schema: string | null = null

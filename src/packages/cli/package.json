@@ -68,18 +68,18 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.399.0",
+    "@prisma/studio-server": "0.409.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.23",
-    "@types/ws": "7.4.4",
-    "@typescript-eslint/eslint-plugin": "4.26.1",
-    "@typescript-eslint/parser": "4.26.1",
+    "@types/ws": "7.4.5",
+    "@typescript-eslint/eslint-plugin": "4.28.1",
+    "@typescript-eslint/parser": "4.28.1",
     "chalk": "4.1.1",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.28.0",
+    "eslint": "7.29.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.3.6",
@@ -91,7 +91,7 @@
     "global-dirs": "3.0.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.0.4",
+    "jest": "27.0.6",
     "line-replace": "2.0.1",
     "lint-staged": "11.0.0",
     "log-update": "4.0.0",
@@ -100,14 +100,14 @@
     "open": "7.4.2",
     "pg": "8.6.0",
     "pkg-up": "3.1.0",
-    "prettier": "2.3.1",
+    "prettier": "2.3.2",
     "replace-string": "3.1.0",
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
     "ts-jest": "27.0.3",
-    "typescript": "4.3.2"
+    "typescript": "4.3.4"
   },
   "scripts": {
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.25.0-30.149261944d529dc4c506db7e017bb4dfd26ef398"
+    "@prisma/engines": "2.27.0-4.b86297c5276ff7ab1f13ebc76404775ce3107c8e"
   },
   "lint-staged": {
     "*.ts": [

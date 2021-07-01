@@ -48,11 +48,11 @@ describe('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Failed to delete SQLite database at \`dev.db\`.
-            No such file or directory (os error 2)
+Migration engine error:
+Failed to delete SQLite database at \`dev.db\`.
+No such file or directory (os error 2)
 
-
-          `)
+`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

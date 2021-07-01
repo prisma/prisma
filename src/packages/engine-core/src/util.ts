@@ -1,10 +1,12 @@
 import fs from 'fs'
 import { Platform } from '@prisma/get-platform'
+import { BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import terminalLink from 'terminal-link'
 import newGithubIssueUrl from 'new-github-issue-url'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 import crypto from 'crypto'
+
 const debug = Debug('plusX')
 
 export function plusX(file): void {
@@ -19,16 +21,23 @@ export function plusX(file): void {
   fs.chmodSync(file, base8)
 }
 
-export function fixBinaryTargets(
-  platforms: Array<Platform | string>,
+function transformPlatformToEnvValue(
   platform: Platform | string,
-): string[] {
-  platforms = platforms || []
-  if (!platforms.includes('native')) {
-    return ['native', ...platforms]
+): BinaryTargetsEnvValue {
+  return { fromEnvVar: null, value: platform }
+}
+
+export function fixBinaryTargets(
+  binaryTargets: BinaryTargetsEnvValue[],
+  platform: Platform | string,
+): BinaryTargetsEnvValue[] {
+  binaryTargets = binaryTargets || []
+
+  if (!binaryTargets.find((object) => object.value === 'native')) {
+    return [transformPlatformToEnvValue('native'), ...binaryTargets]
   }
 
-  return [...platforms, platform]
+  return [...binaryTargets, transformPlatformToEnvValue(platform)]
 }
 
 export function link(url: string): string {

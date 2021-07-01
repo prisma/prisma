@@ -604,14 +604,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                      `)
+                                                                                                                                                                                                                                                `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -667,10 +667,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                    ⚠️  Warnings:
+      ⚠️  Warnings for the current datasource:
 
-                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                        `)
+        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -691,10 +691,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                    ⚠️  Warnings:
+      ⚠️  Warnings for the current datasource:
 
-                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                        `)
+        • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+    `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -1361,7 +1361,7 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1383,7 +1383,7 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1403,7 +1403,7 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1489,10 +1489,10 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       The following migration(s) have been applied:
 
@@ -1514,7 +1514,7 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db" - SQL Server
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -1530,7 +1530,7 @@ describe('SQL Server', () => {
 })
 
 describe('MongoDB', () => {
-  it.only('schema only - should fail with unsupported', async () => {
+  it('schema only - should fail with unsupported', async () => {
     ctx.fixture('schema-only-mongodb')
 
     const result = MigrateDev.new().parse([])

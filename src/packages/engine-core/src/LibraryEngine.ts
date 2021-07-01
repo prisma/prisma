@@ -3,6 +3,7 @@ import { getEnginesPath } from '@prisma/engines'
 import {
   getNapiName,
   getPlatform,
+  isNodeAPISupported,
   Platform,
   platforms,
 } from '@prisma/get-platform'
@@ -26,7 +27,7 @@ import {
 } from './errors'
 import {
   ConfigMetaFormat,
-  NAPI,
+  Library,
   QueryEngine,
   QueryEngineBatchRequest,
   QueryEngineConstructor,
@@ -38,13 +39,11 @@ import {
   QueryEngineRequestHeaders,
   RustRequestError,
   SyncRustError,
-} from './napi-types'
+} from './NodeAPILibraryTypes'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
 
 const debug = Debug('prisma:client:napi')
-
-const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
@@ -54,15 +53,16 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-export class NAPIEngine implements Engine {
+export class LibraryEngine implements Engine {
   private engine?: QueryEngine
-  private setupPromise?: Promise<void>
-  private connectPromise?: Promise<void>
-  private disconnectPromise?: Promise<void>
-  private currentQuery?: Promise<any>
+  private libraryInstantiationPromise?: Promise<void>
+  private libraryStartingPromise?: Promise<void>
+  private libraryStoppingPromise?: Promise<void>
+  private libraryStarted: boolean
+  private executingQueryPromise?: Promise<any>
   private config: EngineConfig
-  private QueryEngine?: QueryEngineConstructor
-  private library?: NAPI
+  private QueryEngineConstructor?: QueryEngineConstructor
+  private library?: Library
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
@@ -71,9 +71,8 @@ export class NAPIEngine implements Engine {
   logQueries: boolean
   logLevel: QueryEngineLogLevel
   lastQuery?: string
-  lastError?: any
+  loggerRustPanic?: any
 
-  connected: boolean
   beforeExitListener?: (args?: any) => any
   versionInfo?: {
     commit: string
@@ -83,7 +82,7 @@ export class NAPIEngine implements Engine {
   constructor(config: EngineConfig) {
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
-    this.connected = false
+    this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.logEmitter = new EventEmitter()
@@ -97,16 +96,22 @@ export class NAPIEngine implements Engine {
       this.logLevel = 'debug'
       // Debug.enable('*')
     }
-    this.setupPromise = this.internalSetup()
+    this.libraryInstantiationPromise = this.instantiateLibrary()
+    initHooks(this)
   }
-  private async internalSetup(): Promise<void> {
+
+  private async instantiateLibrary(): Promise<void> {
     debug('internalSetup')
-    if (this.setupPromise) return this.setupPromise
+    if (this.libraryInstantiationPromise) {
+      return this.libraryInstantiationPromise
+    }
+
+    await isNodeAPISupported()
     this.platform = await this.getPlatform()
-    this.libQueryEnginePath = await this.getLibQueryEnginePath()
     await this.loadEngine()
     this.version()
   }
+
   private async getPlatform() {
     if (this.platform) return this.platform
     const platform = await getPlatform()
@@ -127,6 +132,7 @@ You may have to run ${chalk.greenBright(
     }
     return platform
   }
+
   private parseEngineResponse<T>(response?: string): T {
     if (!response) {
       throw new PrismaClientUnknownRequestError(
@@ -144,6 +150,7 @@ You may have to run ${chalk.greenBright(
       )
     }
   }
+
   private convertDatasources(
     datasources: DatasourceOverwrite[],
   ): Record<string, string> {
@@ -153,29 +160,38 @@ You may have to run ${chalk.greenBright(
     }
     return obj
   }
+
   private async loadEngine(): Promise<void> {
-    debug('loadEngine')
+    if (!this.libQueryEnginePath) {
+      this.libQueryEnginePath = await this.getLibQueryEnginePath()
+    }
+    debug(`loadEngine using ${this.libQueryEnginePath}`)
     if (!this.engine) {
-      if (!this.QueryEngine) {
-        if (!this.libQueryEnginePath) {
-          this.libQueryEnginePath = await this.getLibQueryEnginePath()
-          debug(`using ${this.libQueryEnginePath}`)
-        }
+      if (!this.QueryEngineConstructor) {
         try {
           // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.library = eval('require')(this.libQueryEnginePath) as NAPI
-          this.QueryEngine = this.library.QueryEngine
+          this.library = eval('require')(this.libQueryEnginePath) as Library
+          this.QueryEngineConstructor = this.library.QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
-            throw new PrismaClientInitializationError(
-              `Unable to load NAPI Library from ${chalk.dim(
-                this.libQueryEnginePath,
-              )}, Library may be corrupt`,
-              this.config.clientVersion!,
-            )
+            if (this.libQueryEnginePath.endsWith('.node')) {
+              throw new PrismaClientInitializationError(
+                `Unable to load Node-API Library from ${chalk.dim(
+                  this.libQueryEnginePath,
+                )}, Library may be corrupt`,
+                this.config.clientVersion!,
+              )
+            } else {
+              throw new PrismaClientInitializationError(
+                `Expected an Node-API Library but received ${chalk.dim(
+                  this.libQueryEnginePath,
+                )}`,
+                this.config.clientVersion!,
+              )
+            }
           } else {
             throw new PrismaClientInitializationError(
-              `Unable to load NAPI Library from ${chalk.dim(
+              `Unable to load Node-API Library from ${chalk.dim(
                 this.libQueryEnginePath,
               )}, It does not exist`,
               this.config.clientVersion!,
@@ -183,9 +199,9 @@ You may have to run ${chalk.greenBright(
           }
         }
       }
-      if (this.QueryEngine) {
+      if (this.QueryEngineConstructor) {
         try {
-          this.engine = new this.QueryEngine(
+          this.engine = new this.QueryEngineConstructor(
             {
               datamodel: this.datamodel,
               env: process.env,
@@ -230,28 +246,29 @@ You may have to run ${chalk.greenBright(
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
-      this.lastError = new PrismaClientRustPanicError(
+      this.loggerRustPanic = new PrismaClientRustPanicError(
         this.getErrorMessageWithLink(
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
       )
-      this.logEmitter.emit('error', this.lastError)
+      this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
       this.logEmitter.emit(event.level, event)
     }
   }
+
   private getErrorMessageWithLink(title: string) {
     return getErrorMessageWithLink({
       platform: this.platform,
       title,
       version: this.config.clientVersion!,
       engineVersion: this.versionInfo?.version,
-      // TODO
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
   }
+
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
@@ -263,6 +280,7 @@ You may have to run ${chalk.greenBright(
     }
     return str
   }
+
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
@@ -282,9 +300,9 @@ You may have to run ${chalk.greenBright(
       this.logEmitter.on(event, listener)
     }
   }
-  async emitExit() {
-    await this.currentQuery
-    debug('emitExit')
+
+  async runBeforeExit() {
+    debug('runBeforeExit')
     if (this.beforeExitListener) {
       try {
         await this.beforeExitListener()
@@ -293,69 +311,61 @@ You may have to run ${chalk.greenBright(
       }
     }
   }
+
   async start(): Promise<void> {
-    await this.setupPromise
-    await this.disconnectPromise
-    if (this.connectPromise) {
-      debug(`already starting: ${this.connected}`)
-      await this.connectPromise
-      if (this.connected) {
+    await this.libraryInstantiationPromise
+    await this.libraryStoppingPromise
+    if (this.libraryStartingPromise) {
+      debug(
+        `library already starting, this.libraryStarted: ${this.libraryStarted}`,
+      )
+      await this.libraryStartingPromise
+      if (this.libraryStarted) {
         return
       }
     }
-    if (!this.connected) {
+    if (!this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
-      this.connectPromise = new Promise(async (res) => {
-        debug('starting')
+      this.libraryStartingPromise = new Promise(async (res) => {
+        debug('library starting')
         await this.engine?.connect({ enableRawQueries: true })
-        this.connected = true
-        debug('started')
+        this.libraryStarted = true
+        debug('library started')
         res()
       })
-      return this.connectPromise
+      return this.libraryStartingPromise
     }
   }
 
+  // TODO Implement hookProcess to trigger stop
   async stop(): Promise<void> {
-    await this.connectPromise
-    await this.currentQuery
-    debug(`stop state ${this.connected}`)
-    if (this.disconnectPromise) {
-      debug('engine is already disconnecting')
-      await this.disconnectPromise
-      if (!this.connected) {
-        this.disconnectPromise = undefined
+    await this.libraryStartingPromise
+    await this.executingQueryPromise
+    debug(`library stopping, this.libraryStarted: ${this.libraryStarted}`)
+    if (this.libraryStoppingPromise) {
+      debug('library is already disconnecting')
+      await this.libraryStoppingPromise
+      if (!this.libraryStarted) {
+        this.libraryStoppingPromise = undefined
         return
       }
     }
-    if (this.connected) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.disconnectPromise = new Promise(async (res) => {
-        await this.emitExit()
-        debug('disconnect called')
-        await this.engine?.disconnect()
-        this.connected = false
-        debug('disconnect resolved')
 
-        res()
-      })
-    }
-    return this.disconnectPromise
-  }
-  kill(signal: string): void {
-    if (this.connected && !this.disconnectPromise) {
+    if (this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
-      this.disconnectPromise = new Promise(async (res) => {
-        await this.emitExit()
-        debug(`disconnect called with kill signal ${signal}`)
+      this.libraryStoppingPromise = new Promise(async (res) => {
+        await new Promise((r) => setTimeout(r, 5))
+        debug('library stopping')
         await this.engine?.disconnect()
-        this.connected = false
-        debug(`disconnect resolved`)
+        this.libraryStarted = false
+        debug('library stopped')
         res()
       })
     }
+    return this.libraryStoppingPromise
   }
-  async getConfig(): Promise<ConfigMetaFormat> {
+
+  getConfig(): Promise<ConfigMetaFormat> {
     return this.library!.getConfig({
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,
@@ -363,14 +373,17 @@ You may have to run ${chalk.greenBright(
       env: process.env,
     })
   }
-  version(forceRun?: boolean): string {
+
+  version(): string {
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
   }
-  private graphQLToJSError(
+
+  private prismaGraphQLToJSError(
     error: RequestError,
   ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
     debug('graphQLToJSError')
+
     if (error.user_facing_error.error_code) {
       return new PrismaClientKnownRequestError(
         error.user_facing_error.message,
@@ -379,35 +392,45 @@ You may have to run ${chalk.greenBright(
         error.user_facing_error.meta,
       )
     }
+
     return new PrismaClientUnknownRequestError(
       error.error,
       this.config.clientVersion!,
     )
   }
+
   async request<T>(
     query: string,
     headers: Record<string, string>,
     numTry: number,
   ): Promise<{ data: T; elapsed: number }> {
     try {
-      await this.start()
-      debug(`request state: ${this.connected}`)
+      debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
       const request: QueryEngineRequest = { query, variables: {} }
-      this.lastQuery = JSON.stringify(request)
-      this.currentQuery = this.engine!.query(this.lastQuery, JSON.stringify({}))
-      const data = this.parseEngineResponse<any>(await this.currentQuery)
+      const queryStr = JSON.stringify(request)
+      const headerStr = JSON.stringify({})
+
+      await this.start()
+      this.executingQueryPromise = this.engine?.query(queryStr, headerStr)
+
+      this.lastQuery = queryStr
+      const data = this.parseEngineResponse<any>(
+        await this.executingQueryPromise,
+      )
+
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.graphQLToJSError(data.errors[0])
+          throw this.prismaGraphQLToJSError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(
           JSON.stringify(data.errors),
           this.config.clientVersion!,
         )
-      } else if (this.lastError) {
-        throw this.lastError
+      } else if (this.loggerRustPanic) {
+        throw this.loggerRustPanic
       }
+      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
     } catch (e) {
       const error = this.parseRequestError(e.message)
@@ -421,29 +444,31 @@ You may have to run ${chalk.greenBright(
       }
     }
   }
+
   async requestBatch(
     queries: string[],
     transaction = false,
     numTry = 1,
   ): Promise<any> {
-    await this.start()
     debug('requestBatch')
     const headers: QueryEngineRequestHeaders = {}
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
+    await this.start()
+
     this.lastQuery = JSON.stringify(request)
-    this.currentQuery = this.engine!.query(
+    this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify(headers),
     )
-    const result = await this.currentQuery
+    const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw this.graphQLToJSError(data.errors[0])
+        throw this.prismaGraphQLToJSError(data.errors[0])
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(
@@ -451,31 +476,26 @@ You may have to run ${chalk.greenBright(
         this.config.clientVersion!,
       )
     }
-    try {
-      const { batchResult, errors } = data
-      if (Array.isArray(batchResult)) {
-        return batchResult.map((result) => {
-          if (result.errors) {
-            return this.lastError ?? this.graphQLToJSError(result.errors[0])
-          }
-          return {
-            data: result,
-            elapsed: 0,
-          }
-        })
-      } else {
-        if (errors && errors.length === 1) {
-          throw new Error(errors[0].error)
-        }
-        throw new Error(JSON.stringify(data))
-      }
-    } catch (e) {
-      // retry
-      if (numTry <= MAX_REQUEST_RETRIES) {
-        return this.requestBatch(queries, transaction, numTry + 1)
-      }
 
-      throw e
+    const { batchResult, errors } = data
+    if (Array.isArray(batchResult)) {
+      return batchResult.map((result) => {
+        if (result.errors) {
+          return (
+            this.loggerRustPanic ??
+            this.prismaGraphQLToJSError(result.errors[0])
+          )
+        }
+        return {
+          data: result,
+          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
+        }
+      })
+    } else {
+      if (errors && errors.length === 1) {
+        throw new Error(errors[0].error)
+      }
+      throw new Error(JSON.stringify(data))
     }
   }
 
@@ -491,7 +511,7 @@ You may have to run ${chalk.greenBright(
 
     this.platform = this.platform ?? (await getPlatform())
 
-    if (__filename.includes('NAPIEngine')) {
+    if (__filename.includes('LibraryEngine')) {
       enginePath = path.join(getEnginesPath(), getNapiName(this.platform, 'fs'))
       return { enginePath, searchedLocations }
     }
@@ -520,25 +540,27 @@ You may have to run ${chalk.greenBright(
 
     return { enginePath: enginePath ?? '', searchedLocations }
   }
+
   private async getLibQueryEnginePath(): Promise<string> {
+    // TODO Document ENV VAR
     const libPath =
       process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
-    if (libPath && fs.existsSync(libPath)) {
+    if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
     }
     this.platform = this.platform ?? (await getPlatform())
     const { enginePath, searchedLocations } = await this.resolveEnginePath()
     // If path to query engine doesn't exist, throw
     if (!fs.existsSync(enginePath)) {
-      const pinnedStr = this.platform
+      const incorrectPinnedPlatformErrorStr = this.platform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
             `${this.platform}`,
           )}\n`
         : ''
-
+      // TODO Improve search engine logic possibly using findSync
       let errorText = `Query engine library for current platform "${chalk.bold(
         this.platform,
-      )}" could not be found.${pinnedStr}
+      )}" could not be found.${incorrectPinnedPlatformErrorStr}
 This probably happens, because you built Prisma Client on a different platform.
 (Prisma Client looked in "${chalk.underline(enginePath)}")
 
@@ -565,14 +587,18 @@ ${searchedLocations
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
         if (
-          this.config.generator.binaryTargets.includes(this.platform) ||
-          this.config.generator.binaryTargets.includes('native')
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
+          ) ||
+          this.config.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
             this.config.generator.binaryTargets.length > 1 ? 's' : ''
           } ${this.config.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
@@ -608,15 +634,37 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     this.platform = this.platform ?? (await getPlatform())
     return enginePath
   }
+
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.config.generator!,
       binaryTargets: fixBinaryTargets(
-        this.config.generator!.binaryTargets as Platform[],
+        this.config.generator!.binaryTargets,
         this.platform!,
       ),
     }
 
     return printGeneratorConfig(fixedGenerator)
   }
+}
+
+function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
+  process.once(handler as any, async () => {
+    debug(`hookProcess received: ${handler}`)
+    await engine.runBeforeExit()
+    // only exit, if only we are listening
+    // if there is another listener, that other listener is responsible
+    if (exit && process.listenerCount(handler) === 0) {
+      process.exit()
+    }
+  })
+}
+
+function initHooks(engine: LibraryEngine) {
+  hookProcess(engine, 'beforeExit')
+  hookProcess(engine, 'exit')
+  hookProcess(engine, 'SIGINT', true)
+  hookProcess(engine, 'SIGUSR1', true)
+  hookProcess(engine, 'SIGUSR2', true)
+  hookProcess(engine, 'SIGTERM', true)
 }

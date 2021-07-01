@@ -67,13 +67,13 @@ export type StopDeferred = {
   reject: (err: Error) => void
 }
 
-const engines: NodeEngine[] = []
+const engines: BinaryEngine[] = []
 const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class NodeEngine implements Engine {
+export class BinaryEngine implements Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -351,7 +351,7 @@ You may have to run ${chalk.greenBright(
 
     this.platform = this.platform || platform
 
-    if (__filename.includes('NodeEngine')) {
+    if (__filename.includes('BinaryEngine')) {
       enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
       return { prismaPath: enginePath, searchedLocations }
     }
@@ -421,14 +421,18 @@ ${searchedLocations
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (
-          this.generator.binaryTargets.includes(this.platform!) ||
-          this.generator.binaryTargets.includes('native')
+          this.generator.binaryTargets.find(
+            (object) => object.value === this.platform!,
+          ) ||
+          this.generator.binaryTargets.find(
+            (object) => object.value === 'native',
+          )
         ) {
           errorText += `
 You already added the platform${
             this.generator.binaryTargets.length > 1 ? 's' : ''
           } ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t)}"`)
+            .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
@@ -482,7 +486,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     const fixedGenerator = {
       ...this.generator!,
       binaryTargets: fixBinaryTargets(
-        this.generator!.binaryTargets as Platform[],
+        this.generator!.binaryTargets,
         this.platform!,
       ),
     }
@@ -1214,14 +1218,12 @@ function hookProcess(handler: string, exit = false) {
 let hooksInitialized = false
 function initHooks() {
   if (!hooksInitialized) {
-    if (!process.env.PRISMA_FORCE_NAPI) {
-      hookProcess('beforeExit')
-      hookProcess('exit')
-      hookProcess('SIGINT', true)
-      hookProcess('SIGUSR1', true)
-      hookProcess('SIGUSR2', true)
-      hookProcess('SIGTERM', true)
-    }
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR1', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
 }

@@ -1,185 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`format nothing 1`] = `"Parameter schema or schemaPath must be passed."`;
-
-exports[`format valid blog schema 1`] = `
-"datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
-}
-
-generator client {
-  provider      = \\"prisma-client-js\\"
-  binaryTargets = [\\"native\\"]
-}
-
-model User {
-  id    String  @id @default(cuid())
-  email String  @unique
-  name  String?
-  posts Post[]
-  Like  Like[]
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  Like      Like[]
-}
-
-model Like {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
-  @@unique([userId, postId])
-}"
-`;
-
-exports[`format valid blog schemaPath 1`] = `
-"datasource db {
-  provider = \\"sqlite\\"
-  url      = \\"file:dev.db\\"
-}
-
-generator client {
-  provider      = \\"prisma-client-js\\"
-  binaryTargets = [\\"native\\"]
-}
-
-model User {
-  id    String  @id @default(cuid())
-  email String  @unique
-  name  String?
-  posts Post[]
-  Like  Like[]
-}
-
-model Post {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  published Boolean
-  title     String
-  content   String?
-  authorId  String?
-  author    User?    @relation(fields: [authorId], references: [id])
-  Like      Like[]
-}
-
-model Like {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  postId String
-  post   Post   @relation(fields: [postId], references: [id])
-
-  @@unique([userId, postId])
-}"
-`;
-
-exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "postgresql",
-      "name": "db",
-      "provider": Array [
-        "postgresql",
-      ],
-      "url": Object {
-        "fromEnvVar": "SOMETHING-SOMETHING-1234",
-        "value": null,
-      },
-    },
-  ],
-  "generators": Array [],
-  "warnings": Array [],
-}
-`;
-
-exports[`getConfig datasource with env var 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "postgresql",
-      "name": "db",
-      "provider": Array [
-        "postgresql",
-      ],
-      "url": Object {
-        "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
-        "value": "postgres://user:password@something:5432/db",
-      },
-    },
-  ],
-  "generators": Array [],
-  "warnings": Array [],
-}
-`;
-
-exports[`getConfig empty config 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
-      "name": "db",
-      "provider": Array [
-        "sqlite",
-      ],
-      "url": Object {
-        "fromEnvVar": null,
-        "value": "file:../hello.db",
-      },
-    },
-  ],
-  "generators": Array [],
-  "warnings": Array [],
-}
-`;
-
-exports[`getConfig with generator and datasource 1`] = `
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
-      "name": "db",
-      "provider": Array [
-        "sqlite",
-      ],
-      "url": Object {
-        "fromEnvVar": null,
-        "value": "file:dev.db",
-      },
-    },
-  ],
-  "generators": Array [
-    Object {
-      "binaryTargets": Array [
-        "native",
-      ],
-      "config": Object {},
-      "name": "gen",
-      "output": null,
-      "previewFeatures": Array [],
-      "provider": Object {
-        "fromEnvVar": null,
-        "value": "fancy-provider",
-      },
-    },
-  ],
-  "warnings": Array [],
-}
-`;
-
 exports[`getDMMF @@map model 1`] = `
 Object {
   "enums": Array [],
@@ -3762,7 +3582,7 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
+            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -3875,7 +3695,6 @@ Object {
             "name": "posts",
             "relationFromFields": Array [],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
             "relationToFields": Array [],
             "type": "Post",
           },
@@ -15849,7 +15668,7 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
+            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -15962,7 +15781,6 @@ Object {
             "name": "posts",
             "relationFromFields": Array [],
             "relationName": "PostToUser",
-            "relationOnDelete": "NONE",
             "relationToFields": Array [],
             "type": "Post",
           },
@@ -27898,9 +27716,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `119480158`;
 
-exports[`getDMMF chinook introspected schema 1`] = `842601`;
+exports[`getDMMF chinook introspected schema 1`] = `842348`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842601`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842348`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing
@@ -28422,24 +28240,6 @@ Object {
                 Object {
                   "isList": false,
                   "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
                   "type": "String",
                 },
                 Object {
@@ -28489,24 +28289,6 @@ Object {
             "minNumFields": null,
           },
           "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "IntFieldUpdateOperationsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "id",
-            },
             Object {
               "inputTypes": Array [
                 Object {
@@ -29304,75 +29086,6 @@ Object {
             },
           ],
           "name": "StringFieldUpdateOperationsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "increment",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "decrement",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "multiply",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Int",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "divide",
-            },
-          ],
-          "name": "IntFieldUpdateOperationsInput",
         },
         Object {
           "constraints": Object {

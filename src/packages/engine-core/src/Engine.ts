@@ -3,12 +3,11 @@ import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
 }
-
+// TODO Make in to abstract class
 export interface Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void
   start(): Promise<void>
   stop(): Promise<void>
-  kill(signal: string): void
   getConfig(): Promise<GetConfigResult>
   version(forceRun?: boolean): Promise<string> | string
   request<T>(

@@ -62,7 +62,7 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 2,
 }
 `;
 
@@ -108,7 +108,7 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 4,
 }
 `;
 
@@ -234,6 +234,6 @@ Object {
     },
     error: null,
   },
-  requestId: 1,
+  requestId: 3,
 }
 `;
