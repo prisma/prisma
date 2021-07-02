@@ -66,5 +66,5 @@ jobs:
         if: steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v1
         with:
-          github-token: ${{ secrets.GITHUB_SECRET }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
