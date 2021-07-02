@@ -10,39 +10,39 @@ on:
       # - `pull_request` see below
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".vscode/**"
-      - ".github/ISSUE_TEMPLATE/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
-      - ".github/CODEOWNERS"
-      - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "*.bench.ts"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - '*.md'
+      - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+      - 'src/.buildkite/**'
+      - 'src/.dockerignore'
+      - '*.bench.ts'
+      - 'src/scripts/ci/publish.ts'
+      - 'src/graphs/**'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
       # - `push`see before
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".vscode/**"
-      - ".github/ISSUE_TEMPLATE/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
-      - ".github/CODEOWNERS"
-      - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "*.bench.ts"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - '*.md'
+      - '.vscode/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+      - 'src/.buildkite/**'
+      - 'src/.dockerignore'
+      - '*.bench.ts'
+      - 'src/scripts/ci/publish.ts'
+      - 'src/graphs/**'
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma test.yml"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
   detect_jobs_to_run:
@@ -52,11 +52,11 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
       - id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2        
       - id: files
         uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
-          format: "json"
+          format: 'json'
       - id: detect
         run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
 
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-20.04
     # Ignore if renovate (dependency update)
     if: "!contains(github.actor, 'renovate')"
-
+    
     steps:
       - uses: actions/checkout@v2
 
@@ -91,7 +91,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: '12'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -101,6 +101,7 @@ jobs:
 
       - run: pnpm run lint
         working-directory: ./
+
 
   #
   # CLIENT (without types test)
@@ -115,7 +116,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ["napi", "binary"]
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -128,7 +129,7 @@ jobs:
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
-
+      
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -224,7 +225,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ["napi", "binary"]
+        engine: ['napi', 'binary']
         database:
           - sqlite
           - postgres
@@ -243,7 +244,7 @@ jobs:
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
-
+      
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -301,18 +302,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ["napi", "binary"]
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
-
+      
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
         run: |
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
-
+      
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -355,7 +356,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ["napi", "binary"]
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -363,7 +364,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
-
+      
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
         run: |
@@ -423,13 +424,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ["napi", "binary"]
+        engine: ['napi', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
-
+      
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
         run: |
@@ -500,7 +501,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        name: "debug"
+        name: 'debug'
         working-directory: src/packages/debug
         env:
           CI: true
@@ -514,7 +515,7 @@ jobs:
           name: debug-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "engine-core"
+        name: 'engine-core'
         working-directory: src/packages/engine-core
         env:
           CI: true
@@ -528,7 +529,7 @@ jobs:
           name: engine-core-${{ matrix.os }}
 
       - run: pnpm run test
-        name: "generator-helper"
+        name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
           CI: true
