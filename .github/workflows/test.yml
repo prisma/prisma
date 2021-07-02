@@ -107,7 +107,7 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 30
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
