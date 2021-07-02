@@ -75,22 +75,25 @@ function parseStack({
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
   const trace = stack.reverse().find((t) => {
+    // Here we are trying to find the location in the users code which caused the error
     return (
       t.file &&
+      t.file !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
       !t.file.includes('@prisma') &&
       !t.file.includes('getPrismaClient') &&
+      !t.file.startsWith('internal/') && // We don't want internal nodejs files
       !t.methodName.includes('new ') &&
       !t.methodName.includes('_getCallsite') &&
       t.methodName.split('.').length < 4
     )
   })
+
   if (
     process.env.NODE_ENV !== 'production' &&
     trace &&
     trace.file &&
     trace.lineNumber &&
-    trace.column &&
-    !trace.file.startsWith('internal/')
+    trace.column
   ) {
     const lineNumber = trace.lineNumber
     const printedFileName = renderPathRelative
