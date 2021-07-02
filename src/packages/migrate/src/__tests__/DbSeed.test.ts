@@ -35,7 +35,6 @@ describe('seed', () => {
     ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     ctx.fs.remove('prisma/seed.sh')
-    ctx.fs.remove('prisma/seed.go')
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -67,125 +66,132 @@ describe('seed', () => {
   })
 
   it('seed.js', async () => {
-    ctx.fixture('seed-sqlite')
-    // ctx.fs.remove('prisma/seed.js')
-    ctx.fs.remove('prisma/seed.ts')
-    ctx.fs.remove('prisma/seed.sh')
+    it('script', async () => {
+      ctx.fixture('seed-sqlite')
+      // ctx.fs.remove('prisma/seed.js')
+      ctx.fs.remove('prisma/seed.ts')
+      ctx.fs.remove('prisma/seed.sh')
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                                                                                                                                                    `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                                                                                                                                                      `)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
 
-  it('seed.js seed default export', async () => {
-    ctx.fixture('seed-sqlite-js-ts-default-export')
-    ctx.fs.remove('prisma/seed.ts')
+    it('default export', async () => {
+      ctx.fixture('seed-sqlite-js-ts-default-export')
+      // ctx.fs.remove('prisma/seed.js')
+      ctx.fs.remove('prisma/seed.ts')
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                                                          🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                              `)
 
-    expect(
-      ctx.mocked['console.log'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
+      expect(
+        ctx.mocked['console.log'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
 
-  it('seed.js seed named export', async () => {
-    ctx.fixture('seed-sqlite-js-ts-named-export')
-    ctx.fs.remove('prisma/seed.ts')
+    it('named export', async () => {
+      ctx.fixture('seed-sqlite-js-ts-named-export')
+      ctx.fs.remove('prisma/seed.ts')
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                                                                                          🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                              `)
 
-    expect(
-      ctx.mocked['console.log'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+      expect(
+        ctx.mocked['console.log'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
   })
 
   it('seed.ts', async () => {
-    ctx.fixture('seed-sqlite')
-    ctx.fs.remove('prisma/seed.js')
-    ctx.fs.remove('prisma/seed.sh')
+    it('script', async () => {
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+      ctx.fixture('seed-sqlite')
+      ctx.fs.remove('prisma/seed.js')
+      // ctx.fs.remove('prisma/seed.ts')
+      ctx.fs.remove('prisma/seed.sh')
 
-                                                                                                                                                                                                                                                                                                            🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                          `)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-  it('seed.ts seed default export', async () => {
-    ctx.fixture('seed-sqlite-js-ts-default-export')
-    ctx.fs.remove('prisma/seed.js')
+                                                                                                                                                                                                                                                                                                              🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                            `)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    it('default export', async () => {
+      ctx.fixture('seed-sqlite-js-ts-default-export')
+      ctx.fs.remove('prisma/seed.js')
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-    expect(
-      ctx.mocked['console.log'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
+                                                                                                                                                                                                                                                                                                                                                                          🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                              `)
 
-  it('seed.ts seed named export', async () => {
-    ctx.fixture('seed-sqlite-js-ts-named-export')
-    ctx.fs.remove('prisma/seed.js')
-    // ctx.fs.remove('prisma/seed.ts')
+      expect(
+        ctx.mocked['console.log'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
 
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
+    it('named export', async () => {
+      ctx.fixture('seed-sqlite-js-ts-named-export')
+      ctx.fs.remove('prisma/seed.js')
+      // ctx.fs.remove('prisma/seed.ts')
 
-                                                                                                                                                                                                                                                                                                                                                                        🌱  Your database has been seeded.
-                                                                                                                                                                                                                                                                                                            `)
+      const result = DbSeed.new().parse(['--preview-feature'])
+      await expect(result).resolves.toMatchInlineSnapshot(`
 
-    expect(
-      ctx.mocked['console.log'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+                                                                                                                                                                                                                                                                                                                                                                          🌱  Your database has been seeded.
+                                                                                                                                                                                                                                                                                                              `)
+
+      expect(
+        ctx.mocked['console.log'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Prisma schema loaded from prisma/schema.prisma`)
+      expect(
+        ctx.mocked['console.info'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      expect(
+        ctx.mocked['console.error'].mock.calls.join('\n'),
+      ).toMatchInlineSnapshot(``)
+    })
   })
 
   it('seed.sh', async () => {
@@ -224,7 +230,7 @@ describe('seed', () => {
     )
   })
 
-  it('Custom --schema', async () => {
+  it('Custom --schema via CLI', async () => {
     ctx.fixture('seed-sqlite')
 
     const result = DbSeed.new().parse([
