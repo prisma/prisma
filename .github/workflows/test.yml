@@ -430,8 +430,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
       
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
