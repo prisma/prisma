@@ -136,7 +136,6 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
         stdio: 'inherit',
       })
     } else if (detected.ts) {
-      // Necessary dependencies for TS script available?
       const hasTypescriptPkg =
         resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
       const hasTsNodePkg =
