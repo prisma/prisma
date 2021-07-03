@@ -65,7 +65,7 @@ describe('seed', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('seed.js', async () => {
+  describe('seed.js', () => {
     it('script', async () => {
       ctx.fixture('seed-sqlite')
       // ctx.fs.remove('prisma/seed.js')
@@ -129,7 +129,7 @@ describe('seed', () => {
     })
   })
 
-  it('seed.ts', async () => {
+  describe('seed.ts', () => {
     it('script', async () => {
 
       ctx.fixture('seed-sqlite')
@@ -265,7 +265,7 @@ describe('seed', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('custom ts-node with seed.ts', async () => {
+  it('Custom ts-node script via package.json with seed.ts', async () => {
     ctx.fixture('seed-sqlite-custom-ts-node')
 
     const result = DbSeed.new().parse(['--preview-feature'])
