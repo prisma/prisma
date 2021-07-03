@@ -97,6 +97,7 @@ runSeed()
   })
 `
 
+  // TODO Document why this is necessary for TS
   if (type === 'TS') {
     script = `
 // @ts-ignore
@@ -135,6 +136,7 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
         stdio: 'inherit',
       })
     } else if (detected.ts) {
+      // Necessary dependencies for TS script available?
       const hasTypescriptPkg =
         resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
       const hasTsNodePkg =
@@ -172,6 +174,7 @@ To install them run: ${chalk.green(
       // User can customize the `ts-node` command from the package script
       if (scripts?.['ts-node']) {
         tsNodeCommand = scripts['ts-node']
+        // TODO Why does this not need getSeedScript?
         tsNodeArgs = `"${detected.ts}"`
         console.info(
           `Running seed: ${chalk.bold(`${tsNodeCommand} ${tsNodeArgs}`)} ...`,
