@@ -80,6 +80,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -102,6 +103,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -123,6 +125,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -145,6 +148,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -166,6 +170,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -188,6 +193,7 @@ describe('seed', () => {
       expect(
         ctx.mocked['console.info'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
+      // TODO This needs to check that the actual seed output from inside the seed script is here
       expect(
         ctx.mocked['console.error'].mock.calls.join('\n'),
       ).toMatchInlineSnapshot(``)
@@ -208,6 +214,7 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed: sh "prisma/seed.sh" ...`)
+    // TODO This needs to check that the actual seed output from inside the seed script is here
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -244,6 +251,7 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from "some-folder/seed.js" ...`)
+    // TODO This needs to check that the actual seed output from inside the seed script is here
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -260,6 +268,7 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from "custom-folder/seed.js" ...`)
+    // TODO This needs to check that the actual seed output from inside the seed script is here
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -278,6 +287,7 @@ describe('seed', () => {
     ).toMatchInlineSnapshot(
       `Running seed: ts-node --compiler-options '{"module":"CommonJS"}' "prisma/seed.ts" ...`,
     )
+    // TODO This needs to check that the actual seed output from inside the seed script is here
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       ``,
     )
