@@ -135,34 +135,9 @@ This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
         stdio: 'inherit',
       })
     } else if (detected.ts) {
-      const hasTypescriptPkg =
-        resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
-      const hasTsNodePkg =
-        resolvePkg('ts-node') || isPackageInstalledGlobally('ts-node')
-      const hasTypesNodePkg = resolvePkg('@types/node')
-
-      const missingPkgs: string[] = []
-      if (!hasTypescriptPkg) {
-        missingPkgs.push('typescript')
-      }
-      if (!hasTsNodePkg) {
-        missingPkgs.push('ts-node')
-      }
-      if (!hasTypesNodePkg) {
-        missingPkgs.push('@types/node')
-      }
-
-      if (missingPkgs.length > 0) {
-        const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
-        console.info(`We detected a seed file at \`${
-          detected.ts
-        }\` but it seems that you do not have the following dependencies installed:
-${missingPkgs.map((name) => `- ${name}`).join('\n')}
-
-To install them run: ${chalk.green(
-          `${packageManager} ${missingPkgs.join(' ')}`,
-        )}\n`)
-      }
+      
+      // Necessary dependencies for TS script available?
+      handleMissingDependencies(detected.ts)
 
       // Check package.json for a "ts-node" script (so users can customize flags)
       const scripts = await getScriptsFromPackageJson()
@@ -191,6 +166,33 @@ To install them run: ${chalk.green(
         stdio: 'inherit',
       })
     }
+  }
+}
+
+function handleMissingDependencies(tsFilePath) {
+  const hasTypescriptPkg = resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
+  const hasTsNodePkg = resolvePkg('ts-node') || isPackageInstalledGlobally('ts-node')
+  const hasTypesNodePkg = resolvePkg('@types/node')
+
+  const missingPkgs: string[] = []
+  if (!hasTypescriptPkg) {
+    missingPkgs.push('typescript')
+  }
+  if (!hasTsNodePkg) {
+    missingPkgs.push('ts-node')
+  }
+  if (!hasTypesNodePkg) {
+    missingPkgs.push('@types/node')
+  }
+
+  if (missingPkgs.length > 0) {
+    const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
+    console.info(`We detected a seed file at \`${tsFilePath}\` but it seems that you do not have the following dependencies installed:
+${missingPkgs.map((name) => `- ${name}`).join('\n')}
+
+To install them run: ${chalk.green(
+      `${packageManager} ${missingPkgs.join(' ')}`
+    )}\n`)
   }
 }
 
