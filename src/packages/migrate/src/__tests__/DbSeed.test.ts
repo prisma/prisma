@@ -67,6 +67,7 @@ describe('seed', () => {
   })
 
   it('seed.js', async () => {
+
     ctx.fixture('seed-sqlite')
     // ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
@@ -75,14 +76,30 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
+    /*
+    Should be:
+    Result:
+    Hello from seed.js
+    
+    Because of:
+    $ npx prisma db seed --preview-feature
+    Prisma schema loaded from prisma/schema.prisma
+    Running seed from "prisma/seed.js" ...
+    Result:
+    Hello from seed.js
+
+    🌱  Your database has been seeded.
+    */
   })
 
   it('seed.js seed default export', async () => {
@@ -92,8 +109,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -104,6 +121,8 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('seed.js seed named export', async () => {
@@ -113,8 +132,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -125,6 +144,8 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('seed.ts', async () => {
@@ -135,14 +156,16 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from prisma/seed.ts ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('seed.ts seed default export', async () => {
@@ -152,8 +175,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -164,6 +187,8 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('seed.ts seed named export', async () => {
@@ -174,8 +199,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -186,6 +211,8 @@ describe('seed', () => {
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('seed.sh', async () => {
@@ -197,14 +224,16 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed: sh "prisma/seed.sh" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('one broken seed.js file', async () => {
@@ -222,6 +251,8 @@ describe('seed', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       ``,
     )
+
+    // TODO exepct fro actualy error being thrown
   })
 
   it('Custom --schema', async () => {
@@ -233,14 +264,16 @@ describe('seed', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from "some-folder/seed.js" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('Custom --schema from package.json', async () => {
@@ -249,14 +282,16 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed from "custom-folder/seed.js" ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+
+    // TODO Add expect for output of actual seed script execution
   })
 
   it('custom ts-node with seed.ts', async () => {
@@ -265,8 +300,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                      Your database has been seeded.
-                    `)
+                                  Your database has been seeded.
+                              `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -275,5 +310,7 @@ describe('seed', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       ``,
     )
+
+    // TODO Add expect for output of actual seed script execution
   })
 })
