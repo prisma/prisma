@@ -79,7 +79,7 @@ describe('seed', () => {
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(`Running seed from "prisma/seed.js" ...`)
+    ).toMatchSnapshot()
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
