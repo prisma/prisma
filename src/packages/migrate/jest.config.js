@@ -14,6 +14,5 @@ module.exports = {
     'test-handlePanic.ts',
     'test-interactivelyCreateDatabase.ts',
   ],
-  // todo duplicated serializer from client package, should share
-  snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
+  snapshotSerializers: ['./src/__tests__/__helpers__/migrateSnapshotSerializer.ts'],
 }
