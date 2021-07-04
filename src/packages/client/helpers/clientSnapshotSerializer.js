@@ -30,6 +30,8 @@ function normalizeGithubLinks(str) {
   )
 }
 
+// see other `snapshotSerializer` files for other useful functions to use here
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error

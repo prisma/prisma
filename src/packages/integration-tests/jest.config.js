@@ -6,6 +6,6 @@ module.exports = {
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  // todo duplicated serializer from client package, should share
-  snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
+  // TODO duplicated serializer from cli package, could share
+  snapshotSerializers: ['./src/__tests__/__helpers__/integrationTestSnapshotSerializer.ts'],
 }

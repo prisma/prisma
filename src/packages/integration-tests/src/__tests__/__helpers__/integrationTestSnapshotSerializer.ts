@@ -39,6 +39,9 @@ function normalizeRustError(str) {
 function normalizeTmpDir(str) {
   return str.replace(/\/tmp\/([a-z0-9]+)\//g, '/tmp/dir/')
 }
+
+// see other `snapshotSerializer` files for other useful functions to use here
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -67,7 +70,7 @@ const serializer = {
 }
 
 /**
- * Replace dynamic variable bits of Prisma schema with static strings.
+ * Replace dynamic variable bits of Prisma Schema with static strings.
  */
 export function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/
