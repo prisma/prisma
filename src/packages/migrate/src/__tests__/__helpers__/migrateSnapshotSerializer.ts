@@ -1,4 +1,6 @@
 const stripAnsi = require('strip-ansi')
+const replaceAll = require('replace-string') // sindre's replaceAll polyfill
+const path = require('path')
 
 function normalizeMigrateTimestamps(str) {
   return str.replace(/\d{14}/g, '20201231000000')
@@ -18,6 +20,10 @@ function normalizeMs(str) {
   return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
+function normalizeToUnixPaths(str) {
+  return replaceAll(str, path.sep, '/')
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -31,7 +37,11 @@ const serializer = {
         : ''
     return normalizeDbUrl(
       normalizeMs(
-        normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
+        normalizeRustError(
+          normalizeToUnixPaths(
+            normalizeMigrateTimestamps(stripAnsi(message))
+          ),
+        ),
       ),
     )
   },
