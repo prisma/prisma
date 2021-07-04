@@ -85,8 +85,9 @@ ${chalk.bold('Examples')}
 
     await tryToRunSeed(schemaPath)
 
+    // jest detection via https://stackoverflow.com/a/52231746
     return `\n${
-      process.platform === 'win32' ? '' : '🌱  '
+      (process.platform === 'win32' || process.env.JEST_WORKER_ID !== undefined) ? '' : '🌱  '
     }Your database has been seeded.`
   }
 

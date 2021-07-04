@@ -75,7 +75,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -92,7 +92,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
 
     expect(
@@ -113,7 +113,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
 
     expect(
@@ -135,7 +135,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -152,7 +152,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
 
     expect(
@@ -174,7 +174,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
 
     expect(
@@ -197,7 +197,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -233,7 +233,7 @@ describe('seed', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -249,7 +249,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -265,7 +265,7 @@ describe('seed', () => {
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-          🌱  Your database has been seeded.
+          Your database has been seeded.
           `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
