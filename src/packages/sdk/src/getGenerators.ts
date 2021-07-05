@@ -538,6 +538,7 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
 export const knownBinaryTargets: Platform[] = [
   'native',
   'darwin',
+  'darwin-arm64',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
   'linux-arm-openssl-1.0.x',
