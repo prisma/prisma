@@ -232,16 +232,13 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
+          const engineMessage =
+            this.lastError?.message || this.messages.join('\n')
           const handlePanic = () => {
             const stackTrace = this.messages.join('\n')
-            const errorMessage = serializePanic(
-              this.lastError
-                ? this.lastError.message
-                : this.messages.join('\n'),
-            )
             exitWithErr(
               new RustPanic(
-                errorMessage,
+                engineMessage,
                 stackTrace,
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
@@ -255,11 +252,7 @@ export class MigrateEngine {
               break
             case MigrateEngineExitCode.Error:
               exitWithErr(
-                new Error(
-                  `Error in migration engine: ${
-                    this.lastError?.message || this.messages.join('\n')
-                  }`,
-                ),
+                new Error(`Error in migration engine: ${engineMessage}`),
               )
               break
             case MigrateEngineExitCode.Panic:
