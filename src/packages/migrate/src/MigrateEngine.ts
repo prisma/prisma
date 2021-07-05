@@ -238,7 +238,7 @@ export class MigrateEngine {
             const stackTrace = this.messages.join('\n')
             exitWithErr(
               new RustPanic(
-                engineMessage,
+                serializePanic(engineMessage),
                 stackTrace,
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
