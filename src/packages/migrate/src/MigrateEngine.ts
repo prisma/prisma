@@ -228,18 +228,18 @@ export class MigrateEngine {
         })
 
         this.child.on('exit', (code: number | null): void => {
-          const err = (err: RustPanic | Error): void => {
+          const exitWithErr = (err: RustPanic | Error): void => {
             this.rejectAll(err)
             reject(err)
           }
-          const panic = () => {
+          const handlePanic = () => {
             const stackTrace = this.messages.join('\n')
             const errorMessage = serializePanic(
               this.lastError
                 ? this.lastError.message
                 : this.messages.join('\n'),
             )
-            err(
+            exitWithErr(
               new RustPanic(
                 errorMessage,
                 stackTrace,
@@ -254,7 +254,7 @@ export class MigrateEngine {
             case MigrateEngineExitCode.Success:
               break
             case MigrateEngineExitCode.Error:
-              err(
+              exitWithErr(
                 new Error(
                   `Error in migration engine: ${
                     this.lastError?.message || this.messages.join('\n')
@@ -263,11 +263,11 @@ export class MigrateEngine {
               )
               break
             case MigrateEngineExitCode.Panic:
-              panic()
+              handlePanic()
               break
             // treat unknown error codes as panics
             default:
-              panic()
+              handlePanic()
           }
         })
 
