@@ -1128,10 +1128,8 @@ async function publishPackages(
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
               '@prisma/debug',
-              '@prisma/get-platform',
               '@prisma/generator-helper',
               '@prisma/ink-components',
-              '@prisma/fetch-engine',
             ]
           : []
       if (!skipPackages.includes(pkgName)) {
