@@ -16,6 +16,8 @@
       "excludePackageNames": [
         "@prisma/engines",
         "@prisma/engines-version",
+        "@prisma/fetch-engine",
+        "@prisma/get-platform",
         "@prisma/studio-server",
         "checkpoint-client"
       ],
@@ -28,6 +30,8 @@
       "excludePackageNames": [
         "@prisma/engines",
         "@prisma/engines-version",
+        "@prisma/fetch-engine",
+        "@prisma/get-platform",
         "checkpoint-client"
       ],
       "schedule": ["before 8am on Wednesday"]
@@ -44,7 +48,12 @@
       "ignoreUnstable": false,
       "followTag": "latest",
       "reviewers": ["@jolg42", "@williamluke4", "millsp"],
-      "packageNames": ["@prisma/engines", "@prisma/engines-version", "@prisma/fetch-engine", "@prisma/get-platform"]
+      "packageNames": [
+        "@prisma/engines",
+        "@prisma/engines-version",
+        "@prisma/fetch-engine",
+        "@prisma/get-platform"
+      ]
     },
     {
       "groupName": "Studio",
