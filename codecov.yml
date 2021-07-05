@@ -3,14 +3,6 @@
 comment: false
 
 flags:
-  get-platform:
-    carryforward: true
-    paths:
-      - src/packages/get-platform/
-  fetch-engine:
-    carryforward: true
-    paths:
-      - src/packages/fetch-engine/
   client:
     carryforward: true
     paths:
