@@ -284,9 +284,6 @@ export class MigrateEngine {
 
             this.messages.push(json.fields.message)
 
-            if (json.fields.backtrace) {
-              this.lastError = json.fields
-            }
             if (json.level === 'ERROR') {
               this.lastError = json.fields
             }
