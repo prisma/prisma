@@ -509,7 +509,7 @@ describe('getGenerators', () => {
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
     const queryEngine = await resolveBinary(
       process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngineNapi
+        ? BinaryType.libqueryEngine
         : BinaryType.queryEngine,
     )
 

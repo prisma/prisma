@@ -1,3 +1,4 @@
+import { BinaryType } from '@prisma/fetch-engine'
 import {
   BinaryPaths,
   DataSource,
@@ -12,7 +13,6 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { BinaryType } from '@prisma/fetch-engine'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
 import { resolveDatasources } from '../utils/resolveDatasources'
@@ -76,7 +76,7 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-  const useNapi =
+  const useNodeAPI =
     generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   const client = new TSClient({
@@ -85,8 +85,8 @@ export async function buildClient({
     browser,
     datasources: resolveDatasources(datasources, schemaDir, outputDir),
     generator,
-    platforms: useNapi
-      ? Object.keys(binaryPaths.libqueryEngineNapi!)
+    platforms: useNodeAPI
+      ? Object.keys(binaryPaths.libqueryEngine!)
       : Object.keys(binaryPaths.queryEngine!),
     schemaDir,
     outputDir,
@@ -151,7 +151,7 @@ export async function generateClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
-  const useNAPI =
+  const useNodeAPI =
     generator?.previewFeatures?.includes('nApi') ||
     process.env.PRISMA_FORCE_NAPI === 'true'
   runtimePath =
@@ -234,14 +234,14 @@ export async function generateClient({
       })
     }
   }
-  const enginePath = useNAPI
-    ? binaryPaths.libqueryEngineNapi
+  const enginePath = useNodeAPI
+    ? binaryPaths.libqueryEngine
     : binaryPaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
       `Prisma Client needs \`${
-        useNAPI ? 'libqueryEngineNapi' : 'queryEngine'
+        useNodeAPI ? 'libqueryEngine' : 'queryEngine'
       }\` in the \`binaryPaths\` object.`,
     )
   }
@@ -280,8 +280,8 @@ export async function generateClient({
         await copyFile(filePath, target)
         continue
       }
-      const binaryName = useNAPI
-        ? BinaryType.libqueryEngineNapi
+      const binaryName = useNodeAPI
+        ? BinaryType.libqueryEngine
         : BinaryType.queryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
