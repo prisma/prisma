@@ -11,7 +11,7 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import type {
+import {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
@@ -42,6 +42,7 @@ import {
 } from './NodeAPILibraryTypes'
 import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
+import type * as Tx from './definitions/Transaction'
 
 const debug = Debug('prisma:client:napi')
 
@@ -53,7 +54,7 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-export class LibraryEngine implements Engine {
+export class LibraryEngine extends Engine {
   private engine?: QueryEngine
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
@@ -80,6 +81,8 @@ export class LibraryEngine implements Engine {
   }
 
   constructor(config: EngineConfig) {
+    super()
+
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.libraryStarted = false
@@ -98,6 +101,13 @@ export class LibraryEngine implements Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
     initHooks(this)
+  }
+
+  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', id: number): Promise<void>
+  async transaction(action: 'rollback', id: number): Promise<void>
+  async transaction(action: any, id?: any) {
+    return (await Promise.resolve()) as any
   }
 
   private async instantiateLibrary(): Promise<void> {

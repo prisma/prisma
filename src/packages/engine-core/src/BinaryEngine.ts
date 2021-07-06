@@ -40,8 +40,9 @@ import {
 } from './log'
 import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { Undici } from './undici'
+import { Connection } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
+import type * as Tx from './definitions/Transaction'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -73,7 +74,7 @@ const socketPaths: string[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class BinaryEngine implements Engine {
+export class BinaryEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -108,11 +109,11 @@ export class BinaryEngine implements Engine {
   private generator?: GeneratorConfig
   private incorrectlyPinnedBinaryTarget?: string
   private datasources?: DatasourceOverwrite[]
-  private startPromise?: Promise<any>
+  private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
   private engineStartDeferred?: Deferred
   private engineStopDeferred?: StopDeferred
-  private undici?: Undici
+  private connection: Connection
   private lastQuery?: string
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
@@ -141,6 +142,8 @@ export class BinaryEngine implements Engine {
     useUds,
     activeProvider,
   }: EngineConfig) {
+    super()
+
     this.dirname = dirname
     this.useUds = useUds ?? false // === undefined ? process.platform !== 'win32' : useUds
     this.env = env
@@ -162,6 +165,8 @@ export class BinaryEngine implements Engine {
     this.flags = flags ?? []
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
+    this.connection = new Connection()
+
     initHooks()
     const removedFlags = [
       'middlewares',
@@ -506,11 +511,24 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
    * Starts the engine, returns the url that it runs on
    */
   async start(): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    if (this.stopPromise) {
+      await this.stopPromise
+    }
+
     if (!this.startPromise) {
       this.startCount++
       this.startPromise = this.internalStart()
     }
+
+    await this.startPromise
+
+    if (!this.child && !this.engineEndpoint) {
+      throw new PrismaClientUnknownRequestError(
+        `Can't perform request, as the Engine has already been stopped`,
+        this.clientVersion!,
+      )
+    }
+
     return this.startPromise
   }
 
@@ -552,7 +570,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
       if (this.engineEndpoint) {
         try {
-          await pRetry(() => this.undici!.status(), {
+          await pRetry(() => this.connection.get('/'), {
             retries: 10,
           })
         } catch (e) {
@@ -642,11 +660,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
-                this.undici = new Undici('http://localhost', {
+                this.connection.open('http://localhost', {
                   socketPath: this.socketPath,
                 })
               } else {
-                this.undici = new Undici(`http://localhost:${this.port}`)
+                this.connection.open(`http://localhost:${this.port}`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
@@ -679,7 +697,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             this.engineStopDeferred.resolve(code)
             return
           }
-          this.undici?.close()
+          this.connection.close()
 
           // don't error in restarts
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
@@ -739,7 +757,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         this.child.on('close', (code, signal): void => {
-          this.undici?.close()
+          this.connection.close()
           if (code === null && signal === 'SIGABRT' && this.child) {
             const error = new PrismaClientRustPanicError(
               this.getErrorMessageWithLink(
@@ -849,7 +867,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       stopChildPromise = new Promise((resolve, reject) => {
         this.engineStopDeferred = { resolve, reject }
       })
-      this.undici?.close()
+      this.connection.close()
       this.child?.kill()
       this.child = undefined
     }
@@ -865,7 +883,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.child?.kill()
-    this.undici?.close()
+    this.connection.close()
   }
 
   /**
@@ -934,19 +952,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     headers: Record<string, string>,
     numTry = 1,
   ): Promise<T> {
-    if (this.stopPromise) {
-      await this.stopPromise
-    }
     await this.start()
 
-    if (!this.child && !this.engineEndpoint) {
-      throw new PrismaClientUnknownRequestError(
-        `Can't perform request, as the Engine has already been stopped`,
-        this.clientVersion!,
-      )
-    }
-
-    this.currentRequestPromise = this.undici!.request(
+    this.currentRequestPromise = this.connection.post(
+      '/',
       stringifyQuery(query),
       headers,
     )
@@ -999,13 +1008,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   ): Promise<T> {
     await this.start()
 
-    if (!this.child && !this.engineEndpoint) {
-      throw new PrismaClientUnknownRequestError(
-        `Can't perform request, as the Engine has already been stopped`,
-        this.clientVersion!,
-      )
-    }
-
     const variables = {}
     const body = {
       batch: queries.map((query) => ({ query, variables })),
@@ -1014,7 +1016,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     const stringifiedQuery = JSON.stringify(body)
 
-    this.currentRequestPromise = this.undici!.request(stringifiedQuery)
+    this.currentRequestPromise = this.connection.post('/', stringifiedQuery)
 
     this.lastQuery = stringifiedQuery
 
@@ -1051,6 +1053,31 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         throw isError
       })
+  }
+
+  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', id: number): Promise<undefined>
+  async transaction(action: 'rollback', id: number): Promise<undefined>
+  async transaction(action: any, arg?: any) {
+    await this.start()
+
+    if (action === 'start') {
+      const stringifiedOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.maxWait ?? 5000, // default
+      })
+
+      const res = await this.connection.post<Tx.Info>(
+        '/transaction/start',
+        stringifiedOptions,
+      )
+
+      return res.data
+    } else if (action === 'commit') {
+      await this.connection.post(`/transaction/${arg}/commit`)
+    } else if (action === 'rollback') {
+      await this.connection.post(`/transaction/${arg}/rollback`)
+    }
   }
 
   private get hasMaxRestarts() {
