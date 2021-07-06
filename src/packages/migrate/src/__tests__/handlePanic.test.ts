@@ -159,13 +159,13 @@ describe('handlePanic', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-        Error in migration engine.
-        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+Error in migration engine.
+Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-        Please create an issue with your \`schema.prisma\` at 
-        https://github.com/prisma/prisma/issues/new
+Please create an issue with your \`schema.prisma\` at
+https://github.com/prisma/prisma/issues/new
 
-      `)
+`)
     } else {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
