@@ -19,7 +19,7 @@ async function sendRequest(message: any): Promise<any> {
 
 let studio: Studio
 
-describe('studio', () => {
+describe.skip('studio', () => {
   jest.setTimeout(20000)
 
   beforeAll(async () => {

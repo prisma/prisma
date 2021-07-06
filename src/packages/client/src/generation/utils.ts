@@ -1,5 +1,5 @@
 import { Platform } from '@prisma/get-platform'
-import { getNapiName } from '@prisma/get-platform/dist/getNapiName'
+import { getNodeAPIName } from '@prisma/get-platform/dist/getNodeAPIName'
 import indent from 'indent-string'
 import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
@@ -366,7 +366,7 @@ export function unique<T>(arr: T[]): T[] {
   return result
 }
 export function buildNFTEngineAnnotations(
-  isNAPI: boolean,
+  isNodeAPI: boolean,
   platforms: Platform[],
   cwdDirname: string,
 ) {
@@ -375,7 +375,7 @@ export function buildNFTEngineAnnotations(
   }
 
   const getName = (p: Platform) =>
-    isNAPI ? getNapiName(p, 'fs') : `query-engine-${p}`
+  isNodeAPI ? getNodeAPIName(p, 'fs') : `query-engine-${p}`
   return `${
     platforms
       ? platforms

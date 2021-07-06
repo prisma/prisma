@@ -14,15 +14,13 @@ export async function getVersion(
   enginePath?: string,
   binaryName?: BinaryType,
 ): Promise<string> {
-  const useNapi = process.env.PRISMA_FORCE_NAPI === 'true'
+  const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
 
   if (!binaryName) {
-    binaryName = useNapi
-      ? BinaryType.libqueryEngineNapi
-      : BinaryType.queryEngine
+    binaryName = useNodeAPI ? BinaryType.libqueryEngine : BinaryType.queryEngine
   }
   enginePath = await resolveBinary(binaryName, enginePath)
-  if (binaryName === BinaryType.libqueryEngineNapi) {
+  if (binaryName === BinaryType.libqueryEngine) {
     await isNodeAPISupported()
 
     const QE = load<NodeAPILibraryTypes.Library>(enginePath)
