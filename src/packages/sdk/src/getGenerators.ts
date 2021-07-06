@@ -95,7 +95,7 @@ export async function getGenerators({
 
   const queryEngineBinaryType =
     process.env.PRISMA_FORCE_NAPI === 'true'
-      ? BinaryType.libqueryEngineNapi
+      ? BinaryType.libqueryEngine
       : BinaryType.queryEngine
 
   const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
@@ -682,8 +682,8 @@ function engineTypeToBinaryType(engineType: EngineType): BinaryType {
   if (engineType === 'queryEngine') {
     return BinaryType.queryEngine
   }
-  if (engineType === 'libqueryEngineNapi') {
-    return BinaryType.libqueryEngineNapi
+  if (engineType === 'libqueryEngine') {
+    return BinaryType.libqueryEngine
   }
   if (engineType === 'prismaFmt') {
     return BinaryType.prismaFmt
@@ -700,8 +700,8 @@ function binaryTypeToEngineType(binaryType: string): EngineType {
   if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }
-  if (binaryType === BinaryType.libqueryEngineNapi) {
-    return 'libqueryEngineNapi'
+  if (binaryType === BinaryType.libqueryEngine) {
+    return 'libqueryEngine'
   }
   if (binaryType === BinaryType.queryEngine) {
     return 'queryEngine'

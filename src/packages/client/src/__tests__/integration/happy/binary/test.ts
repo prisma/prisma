@@ -1,4 +1,4 @@
-import { getNapiName, getPlatform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
@@ -12,7 +12,7 @@ test('binary', async () => {
     ? path.join(
         __dirname,
         'node_modules/.prisma/client',
-        getNapiName(platform, 'fs'),
+        getNodeAPIName(platform, 'fs'),
       )
     : path.join(
         __dirname,

@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`version basic version (N-API) 1`] = `
+exports[`version basic version (Node-API) 1`] = `
 prisma                  : placeholder
 @prisma/client          : placeholder
 Current platform        : placeholder
@@ -24,7 +24,7 @@ Default Engines Hash : placeholder
 Studio               : placeholder
 `;
 
-exports[`version version with custom binaries (N-API) 1`] = `
+exports[`version version with custom binaries (Node-API) 1`] = `
 prisma                  : placeholder
 @prisma/client          : placeholder
 Current platform        : placeholder
