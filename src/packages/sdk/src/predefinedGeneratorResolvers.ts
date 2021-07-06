@@ -100,7 +100,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   "author": "",
   "license": "ISC"
 }
-        `
+`
         fs.writeFileSync(
           path.join(process.cwd(), 'package.json'),
           defaultPackageJson,
