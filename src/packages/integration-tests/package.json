@@ -48,7 +48,7 @@
   },
   "scripts": {
     "jest": "jest",
-    "test:integration": "jest integration --forceExit --maxConcurrency=8 --verbose",
+    "test:integration": "jest integration --maxConcurrency=8 --verbose",
     "test:sqlite": "jest integration.sqlite --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
     "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
