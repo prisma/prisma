@@ -281,9 +281,7 @@ List of packages:
 - client
 - debug
 - engine-core
-- fetch-engine
 - generator-helper
-- get-platform
 - migrate
 - react-prisma
 - sdk

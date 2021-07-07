@@ -1,4 +1,4 @@
-import { getNapiName, getPlatform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
@@ -13,7 +13,7 @@ test('corruption of query engine binary', async () => {
     __dirname,
     'node_modules/.prisma/client',
     process.env.PRISMA_FORCE_NAPI
-      ? getNapiName(platform, 'fs')
+      ? getNodeAPIName(platform, 'fs')
       : `query-engine-${platform}`,
   )
   fs.writeFileSync(binaryPath, 'hello world')
