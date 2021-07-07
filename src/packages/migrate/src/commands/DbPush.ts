@@ -111,8 +111,14 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     const migrate = new Migrate(schemaPath)
 
-    let wasDatabaseReset = false
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
+    }
 
+    let wasDatabaseReset = false
     if (args['--force-reset']) {
       console.info()
       await migrate.reset()
@@ -126,13 +132,6 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         )
       }
       wasDatabaseReset = true
-    }
-
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
-    if (wasDbCreated) {
-      console.info()
-      console.info(wasDbCreated)
     }
 
     const before = Date.now()
