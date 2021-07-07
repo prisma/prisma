@@ -104,7 +104,7 @@
     "prettier": "2.3.2",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.52.7",
+    "rollup": "2.52.8",
     "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
