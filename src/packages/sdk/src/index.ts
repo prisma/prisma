@@ -75,4 +75,4 @@ export {
   trimNewLine,
 } from './utils/trimBlocksFromSchema'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
-export * from '@prisma/get-platform'
+export { getPlatform, getNodeAPIName } from '@prisma/get-platform'
