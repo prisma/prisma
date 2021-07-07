@@ -5,7 +5,8 @@
     "lint": "ts-node scripts/lint.ts",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "precommit-all": "ts-node scripts/lint.ts --staged",
-    "eslint": "eslint"
+    "eslint": "eslint",
+    "prepare": "is-ci || husky install"
   },
   "devDependencies": {
     "@types/benchmark": "2.1.1",
@@ -22,16 +23,12 @@
     "eslint-plugin-prettier": "3.4.0",
     "execa": "5.1.1",
     "globby": "11.0.4",
-    "husky": "4.3.8",
+    "husky": "7.0.1",
+    "is-ci": "3.0.0",
     "p-map": "4.0.0",
     "prettier": "2.3.2",
     "staged-git-files": "1.2.0",
     "ts-node": "10.0.0",
     "typescript": "4.3.5"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "ts-node scripts/lint.ts --staged"
-    }
   }
 }
