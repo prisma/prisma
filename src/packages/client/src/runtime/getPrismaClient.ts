@@ -936,7 +936,7 @@ new PrismaClient({
      * @returns
      */
     $transaction(input: any, options?: any) {
-      if (!process.env.PRISMA_FORCE_LRT) {
+      if (process.env.PRISMA_FORCE_LRT !== 'true') {
         return this.$___transaction(input)
       }
 
@@ -955,12 +955,12 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private _transaction(input: any, options?: any) {
+    private async _transaction(input: any, options?: any) {
       if (typeof input === 'function') {
-        return this._transactionWithCallback(input, options)
+        return await this._transactionWithCallback(input, options)
       }
 
-      return this._transactionWithRequests(input, options)
+      return await this._transactionWithRequests(input, options)
     }
 
     /**
@@ -969,12 +969,12 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private _transactionWithCallback(
+    private async _transactionWithCallback(
       callback: (client: NewPrismaClient) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
       // transactions are inlined through their scheduler
-      return this._transactionScheduler.exec(async () => {
+      return await this._transactionScheduler.exec(async () => {
         // we ask the query engine to open a transaction
         const info = await this._engine.transaction('start', options)
 
@@ -991,7 +991,7 @@ new PrismaClient({
           throw e
         }
 
-        return result
+        return await result
       })
     }
 
@@ -1000,11 +1000,11 @@ new PrismaClient({
      * @param requests
      * @param options
      */
-    private _transactionWithRequests(
+    private async _transactionWithRequests(
       requests: Array<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
-      return this._transactionWithCallback(async () => {
+      return await this._transactionWithCallback(async () => {
         // we execute all of the requests one by one
         for (const request of requests) await request
 
