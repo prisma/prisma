@@ -104,23 +104,22 @@ ${chalk.bold('Examples')}
 
     await printDatasource(schemaPath)
 
-    console.info() // empty line
-
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
+      console.info() // empty line
       console.info(wasDbCreated)
     }
 
+    console.info() // empty line
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
         throw new MigrateResetEnvNonInteractiveError()
       }
 
-      console.info() // empty line
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
@@ -146,7 +145,7 @@ ${chalk.bold('Examples')}
     migrate.stop()
 
     if (migrationIds.length === 0) {
-      console.info(`${chalk.green('Database reset successful')}`)
+      console.info(`${chalk.green('Database reset successful\n')}`)
     } else {
       console.info(
         `${chalk.green('Database reset successful')}
@@ -172,6 +171,11 @@ The following migration(s) have been applied:\n\n${chalk(
 
       if (seedCommandFromPkgJson) {
         await executeSeedCommand(seedCommandFromPkgJson)
+        console.info(
+          `\n${
+            process.platform === 'win32' ? '' : '🌱  '
+          }The seed command has been executed.`,
+        )
       }
     }
 

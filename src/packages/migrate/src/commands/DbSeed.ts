@@ -101,7 +101,7 @@ ${chalk.bold('Options')}
 
     return `\n${
       process.platform === 'win32' ? '' : '🌱  '
-    }Your seed command has been executed.`
+    }The seed command has been executed.`
   }
 
   public help(error?: string): string | HelpError {

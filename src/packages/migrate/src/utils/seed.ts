@@ -123,36 +123,11 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 }
 
 export async function executeSeedCommand(command: string) {
-  // Execute user seed command
+  console.info(`Running seed command \`${chalk.italic(command)}\` ...`)
   return await execa(command, {
     shell: true,
     stdio: 'inherit',
   })
-}
-
-function isPackageInstalledGlobally(
-  packageName: string,
-): 'npm' | 'yarn' | false {
-  try {
-    const usingGlobalYarn = fs.existsSync(
-      path.join(globalDirectories.yarn.packages, packageName),
-    )
-    const usingGlobalNpm = fs.existsSync(
-      path.join(globalDirectories.npm.packages, packageName),
-    )
-
-    if (usingGlobalNpm) {
-      return 'npm'
-    }
-    if (usingGlobalYarn) {
-      return 'yarn'
-    } else {
-      false
-    }
-  } catch (e) {
-    //
-  }
-  return false
 }
 
 function detectSeedFiles(cwd, schemaPath) {

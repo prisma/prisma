@@ -207,8 +207,12 @@ ${chalk.bold('Examples')}
         )
 
         if (seedCommandFromPkgJson) {
-          console.info() // empty line
           await executeSeedCommand(seedCommandFromPkgJson)
+          console.info(
+            `\n${
+              process.platform === 'win32' ? '' : '🌱  '
+            }The seed command has been executed.\n`,
+          )
         }
       } catch (e) {
         console.error(e)

@@ -106,11 +106,11 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                            🌱  Your seed command has been executed.
-                                                                                                                                  `)
+🌱  The seed command has been executed.
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -124,7 +124,7 @@ Please provide the --preview-feature flag to use this command.
     await expect(result).rejects.toThrowError()
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
       ``,
     )
@@ -136,11 +136,13 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                🌱  Your seed command has been executed.
-                                                                                                                        `)
+🌱  The seed command has been executed.
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(
+      `Running seed command \`ts-node prisma/seed.ts\` ...`,
+    )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -152,11 +154,11 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                    🌱  Your seed command has been executed.
-                                                                                                              `)
+🌱  The seed command has been executed.
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -174,11 +176,11 @@ describe('seed - legacy', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                            🌱  Your seed command has been executed.
-                                                  `)
+🌱  The seed command has been executed.
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(
       ctx.mocked['console.warn'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
