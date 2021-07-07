@@ -1,7 +1,7 @@
 lockfileVersion: 5.3
 
 specifiers:
-  '@types/benchmark': 2.1.0
+  '@types/benchmark': 2.1.1
   '@types/node': 14.17.4
   '@typescript-eslint/eslint-plugin': 4.28.1
   '@typescript-eslint/parser': 4.28.1
@@ -23,7 +23,7 @@ specifiers:
   typescript: 4.3.4
 
 devDependencies:
-  '@types/benchmark': 2.1.0
+  '@types/benchmark': 2.1.1
   '@types/node': 14.17.4
   '@typescript-eslint/eslint-plugin': 4.28.1_20a3b80fca6a1319695de43eee7865f8
   '@typescript-eslint/parser': 4.28.1_eslint@7.29.0+typescript@4.3.4
@@ -124,8 +124,8 @@ packages:
     resolution: {integrity: sha512-FTgBI767POY/lKNDNbIzgAX6miIDBs6NTCbdlDb8TrWovHsSvaVIZDlTqym29C6UqhzwcJx4CYr+AlrMywA0cA==}
     dev: true
 
-  /@types/benchmark/2.1.0:
-    resolution: {integrity: sha512-wxT2/LZn4z0NvSfZirxmBx686CU7EXp299KHkIk79acXpQtgeYHrslFzDacPGXifC0Pe3CEaLup07bgY1PnuQw==}
+  /@types/benchmark/2.1.1:
+    resolution: {integrity: sha512-XmdNOarpSSxnb3DE2rRFOFsEyoqXLUL+7H8nSGS25vs+JS0018bd+cW5Ma9vdlkPmoTHSQ6e8EUFMFMxeE4l+g==}
     dev: true
 
   /@types/json-schema/7.0.7:
