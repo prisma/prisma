@@ -1,11 +1,8 @@
 {
-  "name": "seed-sqlite-js-ts-named-export",
+  "name": "seed-sqlite",
   "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^14.14.21"
-  },
-  "engines": {
-    "node": ">=10.4"
   }
 }

@@ -38,7 +38,10 @@ import {
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import {
+  executeSeedCommand,
+  getSeedCommandFromPackageJson,
+} from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -199,10 +202,13 @@ ${chalk.bold('Examples')}
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
-        const detected = detectSeedFiles(schemaPath)
-        if (detected.numberOfSeedFiles > 0) {
+        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
+          process.cwd(),
+        )
+
+        if (seedCommandFromPkgJson) {
           console.info() // empty line
-          await tryToRunSeed(schemaPath)
+          await executeSeedCommand(seedCommandFromPkgJson)
         }
       } catch (e) {
         console.error(e)

@@ -6,7 +6,6 @@ import {
   HelpError,
   isError,
   isCi,
-  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -24,7 +23,10 @@ import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
-import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import {
+  executeSeedCommand,
+  getSeedCommandFromPackageJson,
+} from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -164,10 +166,12 @@ The following migration(s) have been applied:\n\n${chalk(
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      // Run seed if 1 or more seed files are present
-      const detected = detectSeedFiles(schemaPath)
-      if (detected.numberOfSeedFiles > 0) {
-        await tryToRunSeed(schemaPath)
+      const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
+        process.cwd(),
+      )
+
+      if (seedCommandFromPkgJson) {
+        await executeSeedCommand(seedCommandFromPkgJson)
       }
     }
 

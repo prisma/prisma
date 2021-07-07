@@ -6,12 +6,16 @@ import {
   isError,
   link,
   getSchemaPath,
+  logger,
 } from '@prisma/sdk'
-import path from 'path'
 import chalk from 'chalk'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
-import { tryToRunSeed } from '../utils/seed'
+import {
+  getSeedCommandFromPackageJson,
+  executeSeedCommand,
+  verifySeedConfig,
+  legacyTsNodeScriptWarning,
+} from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -38,12 +42,6 @@ ${chalk.bold('Usage')}
 ${chalk.bold('Options')}
 
     -h, --help   Display this help message
-      --schema   Custom path to your Prisma schema
-
-${chalk.bold('Examples')}
-
-  Specify a schema
-  ${chalk.dim('$')} prisma db seed --preview-feature --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -71,23 +69,39 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
-
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
+    // Print warning if user is using --schema
+    if (args['--schema']) {
+      logger.warn(
+        chalk.yellow(
+          `The "--schema" parameter is not used anymore by "prisma db seed" since 2.27.0 and can now be removed.`,
+        ),
+      )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
+    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+    await legacyTsNodeScriptWarning()
+
+    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
+      process.cwd(),
     )
 
-    await tryToRunSeed(schemaPath)
+    if (!seedCommandFromPkgJson) {
+      // Only used to help users to setup their seeds from old way to new package.json config
+      const schemaPath = await getSchemaPath(args['--schema'])
+
+      // Error because setup of the feature needs to be done
+      await verifySeedConfig(schemaPath)
+
+      return ``
+    }
+
+    // Seed command is set
+    // Execute user seed command
+    await executeSeedCommand(seedCommandFromPkgJson)
 
     return `\n${
       process.platform === 'win32' ? '' : '🌱  '
-    }Your database has been seeded.`
+    }Your seed command has been executed.`
   }
 
   public help(error?: string): string | HelpError {

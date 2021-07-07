@@ -8,6 +8,7 @@ export {
   getSchemaPathFromPackageJsonSync,
   getSchemaPathSync,
   getSchemaSync,
+  getPrismaConfigFromPackageJson,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { HelpError, unknownCommand } from './cli/Help'

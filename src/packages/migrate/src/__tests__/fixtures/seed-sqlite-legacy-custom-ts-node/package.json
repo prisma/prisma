@@ -7,8 +7,5 @@
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^14.14.21"
-  },
-  "engines": {
-    "node": ">=10.4"
   }
 }
