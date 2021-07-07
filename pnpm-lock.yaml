@@ -16,6 +16,7 @@ specifiers:
   execa: 5.1.1
   globby: 11.0.4
   husky: 7.0.1
+  is-ci: 3.0.0
   p-map: 4.0.0
   prettier: 2.3.2
   staged-git-files: 1.2.0
@@ -38,6 +39,7 @@ devDependencies:
   execa: 5.1.1
   globby: 11.0.4
   husky: 7.0.1
+  is-ci: 3.0.0
   p-map: 4.0.0
   prettier: 2.3.2
   staged-git-files: 1.2.0
@@ -447,6 +449,10 @@ packages:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+    dev: true
+
+  /ci-info/3.2.0:
+    resolution: {integrity: sha512-dVqRX7fLUm8J6FgHJ418XuIgDLZDkYcDFTeL6TA2gt5WlIZUQrrH6EZrNClwT/H0FateUsZkGIOPRrLbP+PR9A==}
     dev: true
 
   /clean-stack/2.2.0:
@@ -926,6 +932,13 @@ packages:
 
   /inherits/2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
+    dev: true
+
+  /is-ci/3.0.0:
+    resolution: {integrity: sha512-kDXyttuLeslKAHYL/K28F2YkM3x5jvFPEw3yXbRptXydjD9rpLEz+C5K5iutY9ZiUu6AP41JdvRQwF4Iqs4ZCQ==}
+    hasBin: true
+    dependencies:
+      ci-info: 3.2.0
     dev: true
 
   /is-extglob/2.1.1:

@@ -6,7 +6,7 @@
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "precommit-all": "ts-node scripts/lint.ts --staged",
     "eslint": "eslint",
-    "prepare": "husky install"
+    "prepare": "is-ci || husky install"
   },
   "devDependencies": {
     "@types/benchmark": "2.1.1",
@@ -24,6 +24,7 @@
     "execa": "5.1.1",
     "globby": "11.0.4",
     "husky": "7.0.1",
+    "is-ci": "3.0.0",
     "p-map": "4.0.0",
     "prettier": "2.3.2",
     "staged-git-files": "1.2.0",
