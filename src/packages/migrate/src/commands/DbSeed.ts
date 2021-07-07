@@ -97,11 +97,16 @@ ${chalk.bold('Options')}
 
     // Seed command is set
     // Execute user seed command
-    await executeSeedCommand(seedCommandFromPkgJson)
-
-    return `\n${
-      process.platform === 'win32' ? '' : '🌱  '
-    }The seed command has been executed.`
+    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    if (successfulSeeding) {
+      return `\n${
+        process.platform === 'win32' ? '' : '🌱  '
+      }The seed command has been executed.`
+    } else {
+      process.exit(1)
+      // For snapshot test, because exit() is mocked
+      return ``
+    }
   }
 
   public help(error?: string): string | HelpError {

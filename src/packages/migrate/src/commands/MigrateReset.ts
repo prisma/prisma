@@ -170,12 +170,17 @@ The following migration(s) have been applied:\n\n${chalk(
       )
 
       if (seedCommandFromPkgJson) {
-        await executeSeedCommand(seedCommandFromPkgJson)
-        console.info(
-          `\n${
-            process.platform === 'win32' ? '' : '🌱  '
-          }The seed command has been executed.`,
+        console.info() // empty line
+        const successfulSeeding = await executeSeedCommand(
+          seedCommandFromPkgJson,
         )
+        if (successfulSeeding) {
+          console.info(
+            `\n${
+              process.platform === 'win32' ? '' : '🌱  '
+            }The seed command has been executed.`,
+          )
+        }
       }
     }
 

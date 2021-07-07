@@ -238,6 +238,7 @@ describe('reset', () => {
 
       Database reset successful
 
+
       Running seed command \`node prisma/seed.js\` ...
 
       🌱  The seed command has been executed.

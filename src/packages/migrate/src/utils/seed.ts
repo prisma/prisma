@@ -3,7 +3,6 @@ import path from 'path'
 import execa from 'execa'
 import hasYarn from 'has-yarn'
 import chalk from 'chalk'
-import globalDirectories from 'global-dirs'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { getPrismaConfigFromPackageJson, logger } from '@prisma/sdk'
@@ -124,10 +123,18 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 
 export async function executeSeedCommand(command: string) {
   console.info(`Running seed command \`${chalk.italic(command)}\` ...`)
-  return await execa(command, {
-    shell: true,
-    stdio: 'inherit',
-  })
+  try {
+    await execa(command, {
+      shell: true,
+      stdio: 'inherit',
+    })
+  } catch (e) {
+    console.error(chalk.bold.red(`\nError while running seed command:`))
+    console.error(chalk.red(e.message))
+    return false
+  }
+
+  return true
 }
 
 function detectSeedFiles(cwd, schemaPath) {

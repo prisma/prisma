@@ -106,8 +106,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-🌱  The seed command has been executed.
-`)
+                        🌱  The seed command has been executed.
+                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -117,17 +117,22 @@ Please provide the --preview-feature flag to use this command.
   })
 
   it('one broken seed.js file', async () => {
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
     ctx.fixture('seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
     const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).rejects.toThrowError()
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
-      ``,
-    )
+    expect(ctx.mocked['console.error'].mock.calls.join())
+      .toMatchInlineSnapshot(`
+
+      Error while running seed command:,Command failed with exit code 1: node prisma/seed.js
+    `)
+    expect(mockExit).toBeCalledWith(1)
   })
 
   it('seed.ts', async () => {
@@ -136,8 +141,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-🌱  The seed command has been executed.
-`)
+                                                🌱  The seed command has been executed.
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -154,8 +159,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-🌱  The seed command has been executed.
-`)
+                                                🌱  The seed command has been executed.
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
@@ -176,8 +181,8 @@ describe('seed - legacy', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-🌱  The seed command has been executed.
-`)
+                        🌱  The seed command has been executed.
+                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)

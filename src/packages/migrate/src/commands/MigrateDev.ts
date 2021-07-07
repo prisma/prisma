@@ -145,6 +145,7 @@ ${chalk.bold('Examples')}
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
       console.info(wasDbCreated)
+      console.info() // empty line
     }
 
     const migrate = new Migrate(schemaPath)
@@ -166,9 +167,9 @@ ${chalk.bold('Examples')}
           dbInfo,
           devDiagnostic.action.reason,
         )
-        console.info() // empty line
 
         if (!confirmedReset) {
+          console.info() // empty line
           console.info('Reset cancelled.')
           process.exit(0)
           // For snapshot test, because exit() is mocked
@@ -207,12 +208,19 @@ ${chalk.bold('Examples')}
         )
 
         if (seedCommandFromPkgJson) {
-          await executeSeedCommand(seedCommandFromPkgJson)
-          console.info(
-            `\n${
-              process.platform === 'win32' ? '' : '🌱  '
-            }The seed command has been executed.\n`,
+          console.info() // empty line
+          const successfulSeeding = await executeSeedCommand(
+            seedCommandFromPkgJson,
           )
+          if (successfulSeeding) {
+            console.info(
+              `\n${
+                process.platform === 'win32' ? '' : '🌱  '
+              }The seed command has been executed.\n`,
+            )
+          } else {
+            console.info() // empty line
+          }
         }
       } catch (e) {
         console.error(e)
