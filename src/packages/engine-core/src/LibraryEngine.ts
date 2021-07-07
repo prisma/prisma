@@ -104,8 +104,8 @@ export class LibraryEngine extends Engine {
   }
 
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', id: number): Promise<void>
-  async transaction(action: 'rollback', id: number): Promise<void>
+  async transaction(action: 'commit', info: Tx.Info): Promise<void>
+  async transaction(action: 'rollback', info: Tx.Info): Promise<void>
   async transaction(action: any, id?: any) {
     return (await Promise.resolve()) as any
   }

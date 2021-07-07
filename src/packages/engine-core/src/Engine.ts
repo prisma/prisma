@@ -23,8 +23,8 @@ export abstract class Engine {
     numTry?: number,
   ): Promise<{ data: T; elapsed: number }>
   abstract transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  abstract transaction(action: 'commit', id: number): Promise<void>
-  abstract transaction(action: 'rollback', id: number): Promise<void>
+  abstract transaction(action: 'commit', info: Tx.Info): Promise<void>
+  abstract transaction(action: 'rollback', info: Tx.Info): Promise<void>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

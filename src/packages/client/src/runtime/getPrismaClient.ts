@@ -43,6 +43,7 @@ import {
 } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+import { Scheduler } from './Scheduler'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -282,10 +283,13 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
+    private _transactionScheduler: Scheduler
+
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
+      this._transactionScheduler = new Scheduler()
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
@@ -859,11 +863,17 @@ new PrismaClient({
       })
     }
 
-    private getTransactionId() {
+    /**
+     * @deprecated
+     */
+    private ___getTransactionId() {
       return this._transactionId++
     }
 
-    private async $transactionInternal(promises: Array<any>): Promise<any> {
+    /**
+     * @deprecated
+     */
+    private async $___transactionInternal(promises: Array<any>): Promise<any> {
       for (const p of promises) {
         if (!p) {
           throw new Error(
@@ -882,7 +892,7 @@ new PrismaClient({
         }
       }
 
-      const transactionId = this.getTransactionId()
+      const transactionId = this.___getTransactionId()
 
       const requests = await Promise.all(
         promises.map((p) => {
@@ -907,13 +917,96 @@ new PrismaClient({
       )
     }
 
-    async $transaction(promises: Array<any>): Promise<any> {
+    /**
+     * @deprecated
+     */
+    async $___transaction(promises: Array<any>): Promise<any> {
       try {
-        return this.$transactionInternal(promises)
+        return this.$___transactionInternal(promises)
       } catch (e) {
         e.clientVersion = this._clientVersion
         throw e
       }
+    }
+
+    /**
+     * Execute queries within a transaction
+     * @param input a callback or a query list
+     * @param options to set timeouts
+     * @returns
+     */
+    async $transaction(input: any, options?: any) {
+      try {
+        return this._transaction(input, options)
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+
+        throw e
+      }
+    }
+
+    /**
+     * Decide upon which transaction logic to use
+     * @param input
+     * @param options
+     * @returns
+     */
+    private async _transaction(input: any, options?: any) {
+      if (typeof input === 'function') {
+        return this._transactionWithCallback(input, options)
+      }
+
+      return this._transactionWithRequests(input, options)
+    }
+
+    /**
+     * Perform a long-running transaction
+     * @param callback
+     * @param options
+     * @returns
+     */
+    private async _transactionWithCallback(
+      callback: (client: NewPrismaClient) => Promise<unknown>,
+      options?: { maxWait: number; timeout: number },
+    ) {
+      // transactions are inlined through their scheduler
+      return this._transactionScheduler.exec(async () => {
+        // we ask the query engine to open a transaction
+        const info = await this._engine.transaction('start', options)
+
+        let result: unknown
+        try {
+          result = await callback(this) // execute logic
+
+          // it went well then we commit the transaction
+          await this._engine.transaction('commit', info)
+        } catch (e) {
+          // it went bad then we rollback the transaction
+          await this._engine.transaction('rollback', info)
+
+          throw e
+        }
+
+        return result
+      })
+    }
+
+    /**
+     * Execute a batch of requests in a LRT
+     * @param requests
+     * @param options
+     */
+    private async _transactionWithRequests(
+      requests: Array<unknown>,
+      options?: { maxWait: number; timeout: number },
+    ) {
+      return this._transactionWithCallback(async () => {
+        // we execute all of the requests one by one
+        for (const request of requests) await request
+
+        // we return the result of the last request
+        return requests[requests.length - 1]
+      }, options)
     }
 
     /**

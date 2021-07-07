@@ -1056,8 +1056,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', id: number): Promise<undefined>
-  async transaction(action: 'rollback', id: number): Promise<undefined>
+  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
   async transaction(action: any, arg?: any) {
     await this.start()
 
