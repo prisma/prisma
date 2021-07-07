@@ -68,7 +68,7 @@ export interface DataSource {
 export type BinaryPaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
-  libqueryEngineNapi?: { [binaryTarget: string]: string }
+  libqueryEngine?: { [binaryTarget: string]: string }
   introspectionEngine?: { [binaryTarget: string]: string }
   prismaFmt?: { [binaryTarget: string]: string }
 }
@@ -86,7 +86,7 @@ export type GeneratorOptions = {
 
 export type EngineType =
   | 'queryEngine'
-  | 'libqueryEngineNapi'
+  | 'libqueryEngine'
   | 'migrationEngine'
   | 'introspectionEngine'
   | 'prismaFmt'

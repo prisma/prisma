@@ -33,11 +33,14 @@ describe('getVersion', () => {
     )
     expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
-  testIf(process.env.PRISMA_FORCE_NAPI === 'true')('N-API Engine', async () => {
-    const libqueryEngineNapiVersion = await getVersion(
-      undefined,
-      BinaryType.libqueryEngineNapi,
-    )
-    expect(libqueryEngineNapiVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
+  testIf(process.env.PRISMA_FORCE_NAPI === 'true')(
+    'Query Engine (Node-API)',
+    async () => {
+      const libqueryEngineVersion = await getVersion(
+        undefined,
+        BinaryType.libqueryEngine,
+      )
+      expect(libqueryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+    },
+  )
 })

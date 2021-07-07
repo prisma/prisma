@@ -865,7 +865,7 @@ async function testPackages(
     console.log('BUILDKITE_PARALLEL_JOB === 1 - running client only')
     order = ['@prisma/client']
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
-    // This is to test N-API
+    // This is to test Node-API
     console.log(
       'BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [sdk, migrate, client, cli, integration-tests]',
     )
@@ -1128,10 +1128,8 @@ async function publishPackages(
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
               '@prisma/debug',
-              '@prisma/get-platform',
               '@prisma/generator-helper',
               '@prisma/ink-components',
-              '@prisma/fetch-engine',
             ]
           : []
       if (!skipPackages.includes(pkgName)) {

@@ -50,7 +50,7 @@ describe('generator', () => {
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
-            libqueryEngineNapi,
+            libqueryEngine,
           ],
         }
       `)
@@ -180,7 +180,7 @@ describe('generator', () => {
       ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
     }
   })
-  
+
   test('mongo', async () => {
     const prismaClientTarget = path.join(
       __dirname,
@@ -221,7 +221,7 @@ describe('generator', () => {
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
-            libqueryEngineNapi,
+            libqueryEngine,
           ],
         }
       `)
