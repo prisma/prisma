@@ -935,7 +935,11 @@ new PrismaClient({
      * @param options to set timeouts
      * @returns
      */
-    async $transaction(input: any, options?: any) {
+    $transaction(input: any, options?: any) {
+      if (!process.env.PRISMA_FORCE_LRT) {
+        return this.$___transaction(input)
+      }
+
       try {
         return this._transaction(input, options)
       } catch (e) {
@@ -951,7 +955,7 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private async _transaction(input: any, options?: any) {
+    private _transaction(input: any, options?: any) {
       if (typeof input === 'function') {
         return this._transactionWithCallback(input, options)
       }
@@ -965,7 +969,7 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private async _transactionWithCallback(
+    private _transactionWithCallback(
       callback: (client: NewPrismaClient) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
@@ -996,7 +1000,7 @@ new PrismaClient({
      * @param requests
      * @param options
      */
-    private async _transactionWithRequests(
+    private _transactionWithRequests(
       requests: Array<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
