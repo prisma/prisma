@@ -22,7 +22,7 @@
     "eslint-plugin-prettier": "3.4.0",
     "execa": "5.1.1",
     "globby": "11.0.4",
-    "husky": "4.3.8",
+    "husky": "7.0.1",
     "p-map": "4.0.0",
     "prettier": "2.3.2",
     "staged-git-files": "1.2.0",
