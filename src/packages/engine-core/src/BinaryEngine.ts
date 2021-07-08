@@ -114,6 +114,7 @@ export class BinaryEngine extends Engine {
   private engineStartDeferred?: Deferred
   private engineStopDeferred?: StopDeferred
   private connection: Connection
+  private txConnection: Connection
   private lastQuery?: string
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
@@ -166,6 +167,7 @@ export class BinaryEngine extends Engine {
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
     this.connection = new Connection()
+    this.txConnection = new Connection()
 
     initHooks()
     const removedFlags = [
@@ -1061,22 +1063,24 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
+    this.txConnection.open('http://localhost:3000')
+
     if (action === 'start') {
       const stringifiedOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.maxWait ?? 5000, // default
+        timeout: arg?.timeout ?? 5000, // default
       })
 
-      const res = await this.connection.post<Tx.Info>(
+      const res = await this.txConnection.post<Tx.Info>(
         '/transaction/start',
         stringifiedOptions,
       )
 
       return res.data
     } else if (action === 'commit') {
-      await this.connection.post(`/transaction/${arg}/commit`)
+      await this.txConnection.post(`/transaction/${arg.id}/commit`)
     } else if (action === 'rollback') {
-      await this.connection.post(`/transaction/${arg}/rollback`)
+      await this.txConnection.post(`/transaction/${arg.id}/rollback`)
     }
   }
 
