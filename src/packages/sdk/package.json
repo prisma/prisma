@@ -29,7 +29,7 @@
   "devDependencies": {
     "@types/jest": "26.0.24",
     "@types/node": "12.20.15",
-    "@types/resolve": "^1.20.0",
+    "@types/resolve": "1.20.1",
     "@types/shell-quote": "1.7.1",
     "@types/tar": "4.0.5",
     "@typescript-eslint/eslint-plugin": "4.28.2",
