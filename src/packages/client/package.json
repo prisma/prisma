@@ -37,7 +37,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
     "build": "node helpers/build.js",
-    "test": "jest --forceExit",
+    "test": "jest",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
@@ -59,10 +59,10 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.27.0-34.339cec4d523bb71e89922ae4b96371395e0b8f2b",
-    "@prisma/fetch-engine": "2.27.0-34.339cec4d523bb71e89922ae4b96371395e0b8f2b",
+    "@prisma/engines": "2.27.0-40.3b1180d8caf2f6b7f976c748de27632c02864f29",
+    "@prisma/fetch-engine": "2.27.0-40.3b1180d8caf2f6b7f976c748de27632c02864f29",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.27.0-34.339cec4d523bb71e89922ae4b96371395e0b8f2b",
+    "@prisma/get-platform": "2.27.0-40.3b1180d8caf2f6b7f976c748de27632c02864f29",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -126,7 +126,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.27.0-34.339cec4d523bb71e89922ae4b96371395e0b8f2b"
+    "@prisma/engines-version": "2.27.0-40.3b1180d8caf2f6b7f976c748de27632c02864f29"
   },
   "lint-staged": {
     "*.ts": [
