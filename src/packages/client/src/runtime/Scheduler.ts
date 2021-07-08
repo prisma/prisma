@@ -1,4 +1,6 @@
 /* eslint-disable no-async-promise-executor */
+import Crypto from 'crypto'
+
 type Task<R> = () => R
 
 /**
@@ -6,13 +8,14 @@ type Task<R> = () => R
  * @returns taskId
  */
 function getTaskId() {
-  return Math.floor(Math.random() * Date.now()).toString()
+  return Crypto.randomBytes(10).toString('hex')
 }
 
 /**
  * Execute [[Task]]s one after another
  */
 class Scheduler {
+
   private _results: { [id: string]: Promise<unknown> }
 
   constructor() {
