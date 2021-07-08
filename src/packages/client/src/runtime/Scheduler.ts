@@ -15,7 +15,6 @@ function getTaskId() {
  * Execute [[Task]]s one after another
  */
 class Scheduler {
-
   private _results: { [id: string]: Promise<unknown> }
 
   constructor() {
@@ -31,21 +30,21 @@ class Scheduler {
     const taskId = getTaskId() // unique task id for management
 
     // this promise ensures that thing execute one after another
-    this._results[taskId] = new Promise(async (resolve, reject) => {
+    this._results[taskId] = (async () => {
       const taskIds = Object.keys(this._results)
 
-      if (taskIds.length > 0) {
-        // if we have a promise before us, we make sure to wait
-        await this._results[taskIds[taskIds.length - 1]]
+      try {
+        if (taskIds.length > 0) {
+          // if we have a promise before us, we make sure to wait
+          // this way, we are effectively pipelining our execution
+          await this._results[taskIds[taskIds.length - 1]]
+        }
+      } catch {
+        // we don't want to throw prev error onto the next promise
       }
 
-      // this way, we are effectively pipelining our execution
-      try {
-        resolve(task())
-      } catch (e) {
-        reject(e)
-      }
-    })
+      return task() // but we do want our current promise to throw
+    })()
 
     return taskId
   }
