@@ -6,7 +6,6 @@ test('long-running transaction', async () => {
 
   await prisma.user.deleteMany()
 
-
   const result = await prisma.$transaction([
     prisma.user.create({
       data: {
