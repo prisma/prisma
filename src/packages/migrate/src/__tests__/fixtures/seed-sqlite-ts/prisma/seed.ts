@@ -7,4 +7,5 @@ main()
   .then(() => console.log('Goodbye from seed.ts'))
   .catch((e) => {
     console.error(e)
+    process.exit(1)
   })

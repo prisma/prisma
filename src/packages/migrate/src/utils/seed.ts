@@ -6,7 +6,9 @@ import chalk from 'chalk'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { getPrismaConfigFromPackageJson, logger } from '@prisma/sdk'
+import Debug from '@prisma/debug'
 
+const debug = Debug('prisma:migrate:seed')
 const readFileAsync = promisify(fs.readFile)
 
 export async function verifySeedConfig(schemaPath: string | null) {
@@ -37,7 +39,7 @@ export async function verifySeedConfig(schemaPath: string | null) {
         message += `
 \`\`\`
 "prisma": {
-  "seed": "node ${detected.seedPath}js"
+  "seed": "node ${detected.js}"
 }
 \`\`\`
 `
@@ -45,7 +47,7 @@ export async function verifySeedConfig(schemaPath: string | null) {
         message += `
 \`\`\`
 "prisma": {
-  "seed": "ts-node ${detected.seedPath}ts"
+  "seed": "ts-node ${detected.ts}"
 }
 \`\`\`
 
@@ -56,9 +58,11 @@ ${chalk.green(`${packageManager} ts-node typescript @types/node`)}
         message += `
 \`\`\`
 "prisma": {
-  "seed": "${detected.seedPath}sh"
+  "seed": "${detected.sh}"
 }
-\`\`\``
+\`\`\`
+And run \`chmod +x ${detected.sh}\` to make it executable.
+`
       }
     } else {
       message += `2. Add one of the following example to your package.json:
@@ -84,7 +88,9 @@ ${chalk.bold('Bash:')}
 "prisma": {
   "seed": "./prisma/seed.sh"
 }
-\`\`\``
+\`\`\`
+And run \`chmod +x prisma/seed.sh\` to make it executable.
+`
     }
 
     throw new Error(message)
@@ -93,6 +99,9 @@ ${chalk.bold('Bash:')}
 
 export async function getSeedCommandFromPackageJson(cwd: string) {
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+
+  debug({ prismaConfig })
+
   if (!prismaConfig || !prismaConfig.data?.seed) {
     return null
   }
@@ -127,8 +136,9 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
     const result = await execa.command(command)
     console.info(result.stdout)
   } catch (e) {
+    debug({ e })
     console.error(chalk.bold.red(`\nError while running seed command:`))
-    console.error(chalk.red(e.stderr))
+    console.error(chalk.red(e.stderr || e))
     return false
   }
 
@@ -160,6 +170,8 @@ function detectSeedFiles(cwd, schemaPath) {
     detected[extension] = fullPath
     detected.numberOfSeedFiles++
   }
+
+  debug({ detected })
 
   return detected
 }
