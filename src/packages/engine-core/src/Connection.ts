@@ -2,6 +2,12 @@ import getStream = require('get-stream')
 import { Client, Pool } from 'undici'
 import { URL } from 'url'
 
+export type Result<R> = {
+  statusCode: Client.ResponseData['statusCode']
+  headers: Client.ResponseData['headers']
+  data: R
+}
+
 /**
  * Assertion function to make sure that we have a pool
  * @param pool
@@ -20,6 +26,32 @@ export class Connection {
 
   constructor() {}
 
+  /**
+   * Wrapper to handle HTTP error codes. HTTP errors don't trigger any
+   * execptions because it is optional to handle error status codes.
+   * @param response to handle
+   * @param handler to execute
+   * @returns
+   */
+  static async onHttpError<R, HR>(
+    response: Promise<Result<R>>,
+    handler: (result: Result<R>) => HR,
+  ) {
+    const _response = await response
+
+    if (_response.statusCode >= 400) {
+      return handler(_response)
+    }
+
+    return _response
+  }
+
+  /**
+   * Initiates a new connection pool
+   * @param url
+   * @param options
+   * @returns
+   */
   open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
@@ -48,7 +80,7 @@ export class Connection {
   ) {
     assertHasPool(this._pool)
 
-    const res = await this._pool.request({
+    const response = await this._pool.request({
       path: endpoint,
       method: method,
       headers: {
@@ -59,11 +91,13 @@ export class Connection {
       bodyTimeout: 0,
     })
 
-    return {
-      statusCode: res.statusCode,
-      headers: res.headers,
-      data: JSON.parse(await getStream(res.body)) as R,
+    const result: Result<R> = {
+      statusCode: response.statusCode,
+      headers: response.headers,
+      data: JSON.parse(await getStream(response.body)) as R,
     }
+
+    return result
   }
 
   /**

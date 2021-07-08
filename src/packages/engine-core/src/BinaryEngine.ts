@@ -40,7 +40,7 @@ import {
 } from './log'
 import { omit } from './omit'
 import { printGeneratorConfig } from './printGeneratorConfig'
-import { Connection } from './Connection'
+import { Connection, Result } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 import type * as Tx from './definitions/Transaction'
 
@@ -1057,6 +1057,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
   }
 
+  /**
+   * Send START, COMMIT, or ROLLBACK to the Query Engine
+   * @param action START, COMMIT, or ROLLBACK
+   * @param options to change the default timeouts
+   * @param info transaction information for the QE
+   */
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
@@ -1066,21 +1072,27 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.txConnection.open('http://localhost:3000')
 
     if (action === 'start') {
-      const stringifiedOptions = JSON.stringify({
+      const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      const res = await this.txConnection.post<Tx.Info>(
-        '/transaction/start',
-        stringifiedOptions,
+      const result = await Connection.onHttpError(
+        this.txConnection.post<Tx.Info>('/transaction/start', jsonOptions),
+        transactionHttpErrorHandler,
       )
 
-      return res.data
+      return result.data
     } else if (action === 'commit') {
-      await this.txConnection.post(`/transaction/${arg.id}/commit`)
+      await Connection.onHttpError(
+        this.txConnection.post(`/transaction/${arg.id}/commit`),
+        transactionHttpErrorHandler,
+      )
     } else if (action === 'rollback') {
-      await this.txConnection.post(`/transaction/${arg.id}/rollback`)
+      await Connection.onHttpError(
+        this.txConnection.post(`/transaction/${arg.id}/rollback`),
+        transactionHttpErrorHandler,
+      )
     }
   }
 
@@ -1257,4 +1269,12 @@ function initHooks() {
     hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
+}
+
+/**
+ * Decides how to handle error reponses for transactions
+ * @param result
+ */
+function transactionHttpErrorHandler<R>(result: Result<R>): never {
+  throw new Error(`Transaction error ${result.statusCode}`)
 }
