@@ -23,5 +23,5 @@ test('dmmf-types', async () => {
   const dmmf: DMMF.Document = ${JSON.stringify(dmmf, null, 2)}`,
   )
 
-  expect(() => compileFile(dmmfFile)).not.toThrow()
+  await expect(compileFile(dmmfFile)).resolves.not.toThrow()
 })
