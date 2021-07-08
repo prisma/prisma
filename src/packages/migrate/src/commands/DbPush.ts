@@ -21,6 +21,7 @@ import {
   NoSchemaFoundError,
 } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
+import { EngineResults } from '../types'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -135,9 +136,15 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     const before = Date.now()
-    const migration = await migrate.push({
-      force: args['--accept-data-loss'],
-    })
+    let migration: EngineResults.SchemaPush
+    try {
+      migration = await migrate.push({
+        force: args['--accept-data-loss'],
+      })
+    } catch (e) {
+      migrate.stop()
+      throw e
+    }
 
     if (migration.unexecutable && migration.unexecutable.length > 0) {
       const messages: string[] = []
