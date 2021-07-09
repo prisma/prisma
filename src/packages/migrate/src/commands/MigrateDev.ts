@@ -230,9 +230,9 @@ ${chalk.bold('Examples')}
           const message = await verifySeedConfigAndReturnMessage(schemaPath)
           // warn because setup of the feature needs to be done
           if (message) {
-            console.info() // empty line
+            console.warn() // empty line
             logger.warn(message)
-            console.info() // empty line
+            console.warn() // empty line
           }
         }
       } catch (e) {
@@ -284,7 +284,6 @@ ${chalk.bold('Examples')}
     if (args['--create-only']) {
       migrate.stop()
 
-      // console.info() // empty line
       return `Prisma Migrate created the following migration without applying it ${printMigrationId(
         createMigrationResult.generatedMigrationName!,
       )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(

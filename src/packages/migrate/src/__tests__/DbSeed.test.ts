@@ -51,7 +51,6 @@ Bash:
 }
 \`\`\`
 And run \`chmod +x prisma/seed.sh\` to make it executable.
-
 `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -94,7 +93,6 @@ Bash:
 }
 \`\`\`
 And run \`chmod +x prisma/seed.sh\` to make it executable.
-
 `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),

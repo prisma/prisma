@@ -327,6 +327,7 @@ describe('reset', () => {
         "seed": "./prisma/seed.sh"
       }
       \`\`\`
+      And run \`chmod +x prisma/seed.sh\` to make it executable.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),

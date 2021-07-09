@@ -71,8 +71,7 @@ ${chalk.green(`${packageManager} ts-node typescript @types/node`)}
   "seed": "${detected.sh}"
 }
 \`\`\`
-And run \`chmod +x ${detected.sh}\` to make it executable.
-`
+And run \`chmod +x ${detected.sh}\` to make it executable.`
     }
   } else {
     message += `2. Add one of the following example to your package.json:
@@ -99,8 +98,7 @@ ${chalk.bold('Bash:')}
   "seed": "./prisma/seed.sh"
 }
 \`\`\`
-And run \`chmod +x prisma/seed.sh\` to make it executable.
-`
+And run \`chmod +x prisma/seed.sh\` to make it executable.`
   }
 
   return message
