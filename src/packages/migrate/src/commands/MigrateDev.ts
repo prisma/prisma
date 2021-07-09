@@ -230,7 +230,9 @@ ${chalk.bold('Examples')}
           const message = await verifySeedConfigAndReturnMessage(schemaPath)
           // warn because setup of the feature needs to be done
           if (message) {
+            console.info() // empty line
             logger.warn(message)
+            console.info() // empty line
           }
         }
       } catch (e) {
