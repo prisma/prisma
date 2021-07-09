@@ -23,35 +23,35 @@ Please provide the --preview-feature flag to use this command.
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:
+            To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add one of the following example to your package.json:
+            1. Open the package.json of your project
+            2. Add one of the following example to your package.json:
 
-TypeScript:
-\`\`\`
-"prisma": {
-  "seed": "ts-node ./prisma/seed.ts"
-}
-\`\`\`
-And install the required dependencies by running:
-npm i -D ts-node typescript @types/node
+            TypeScript:
+            \`\`\`
+            "prisma": {
+              "seed": "ts-node ./prisma/seed.ts"
+            }
+            \`\`\`
+            And install the required dependencies by running:
+            npm i -D ts-node typescript @types/node
 
-JavaScript:
-\`\`\`
-"prisma": {
-  "seed": "node ./prisma/seed.js"
-}
-\`\`\`
+            JavaScript:
+            \`\`\`
+            "prisma": {
+              "seed": "node ./prisma/seed.js"
+            }
+            \`\`\`
 
-Bash:
-\`\`\`
-"prisma": {
-  "seed": "./prisma/seed.sh"
-}
-\`\`\`
-And run \`chmod +x prisma/seed.sh\` to make it executable.
-`)
+            Bash:
+            \`\`\`
+            "prisma": {
+              "seed": "./prisma/seed.sh"
+            }
+            \`\`\`
+            And run \`chmod +x prisma/seed.sh\` to make it executable.
+          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -65,35 +65,35 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
 
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:
+            To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add one of the following example to your package.json:
+            1. Open the package.json of your project
+            2. Add one of the following example to your package.json:
 
-TypeScript:
-\`\`\`
-"prisma": {
-  "seed": "ts-node ./prisma/seed.ts"
-}
-\`\`\`
-And install the required dependencies by running:
-npm i -D ts-node typescript @types/node
+            TypeScript:
+            \`\`\`
+            "prisma": {
+              "seed": "ts-node ./prisma/seed.ts"
+            }
+            \`\`\`
+            And install the required dependencies by running:
+            npm i -D ts-node typescript @types/node
 
-JavaScript:
-\`\`\`
-"prisma": {
-  "seed": "node ./prisma/seed.js"
-}
-\`\`\`
+            JavaScript:
+            \`\`\`
+            "prisma": {
+              "seed": "node ./prisma/seed.js"
+            }
+            \`\`\`
 
-Bash:
-\`\`\`
-"prisma": {
-  "seed": "./prisma/seed.sh"
-}
-\`\`\`
-And run \`chmod +x prisma/seed.sh\` to make it executable.
-`)
+            Bash:
+            \`\`\`
+            "prisma": {
+              "seed": "./prisma/seed.sh"
+            }
+            \`\`\`
+            And run \`chmod +x prisma/seed.sh\` to make it executable.
+          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -108,15 +108,12 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        🌱  The seed command has been executed.
-                                                            `)
+                                                                                    🌱  The seed command has been executed.
+                                                                      `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Running seed command \`node prisma/seed.js\` ...
-      Hello from seed.js
-      Goodbye from seed.js
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -137,7 +134,7 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
-      `Error while running seed command:`,
+      `ReferenceError: BROKEN_CODE_SHOULD_ERROR is not defined`,
     )
     expect(mockExit).toBeCalledWith(1)
   })
@@ -148,14 +145,13 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                🌱  The seed command has been executed.
-                                                                                `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Running seed command \`ts-node prisma/seed.ts\` ...
-      Hello from seed.ts
-      Goodbye from seed.ts
-    `)
+                                                                                                            🌱  The seed command has been executed.
+                                                                                          `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(
+      `Running seed command \`ts-node prisma/seed.ts\` ...`,
+    )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -167,13 +163,11 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                🌱  The seed command has been executed.
-                                                                                `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Running seed command \`./prisma/seed.sh\` ...
-      Hello from seed.sh
-    `)
+                                                                                                            🌱  The seed command has been executed.
+                                                                                          `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -191,14 +185,11 @@ describe('seed - legacy', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        🌱  The seed command has been executed.
-                                                            `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Running seed command \`node prisma/seed.js\` ...
-      Hello from seed.js
-      Goodbye from seed.js
-    `)
+                                                                                    🌱  The seed command has been executed.
+                                                                      `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(
       ctx.mocked['console.warn'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(

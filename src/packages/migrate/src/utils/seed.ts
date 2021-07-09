@@ -140,13 +140,15 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 export async function executeSeedCommand(command: string): Promise<boolean> {
   console.info(`Running seed command \`${chalk.italic(command)}\` ...`)
   try {
-    const result = await execa.command(command, {
-      // stdio: 'inherit',
+    await execa.command(command, {
+      stdout: 'inherit',
+      stderr: 'pipe',
     })
-    console.info(result.stdout)
   } catch (e) {
     debug({ e })
-    console.error(chalk.bold.red(`\nError while running seed command:`))
+    console.error(
+      chalk.bold.red(`\nAn error occured while running the seed command:`),
+    )
     console.error(chalk.red(e.stderr || e))
     return false
   }

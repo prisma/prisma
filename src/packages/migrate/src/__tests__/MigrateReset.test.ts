@@ -241,8 +241,6 @@ describe('reset', () => {
 
 
       Running seed command \`node prisma/seed.js\` ...
-      Hello from seed.js
-      Goodbye from seed.js
 
       🌱  The seed command has been executed.
     `)
@@ -270,8 +268,6 @@ describe('reset', () => {
 
 
       Running seed command \`ts-node prisma/seed.ts\` ...
-      Hello from seed.ts
-      Goodbye from seed.ts
 
       🌱  The seed command has been executed.
     `)
