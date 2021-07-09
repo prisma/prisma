@@ -6,6 +6,7 @@ import {
   HelpError,
   isError,
   isCi,
+  logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -25,6 +26,7 @@ import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
 import {
   executeSeedCommand,
+  verifySeedConfigAndReturnMessage,
   getSeedCommandFromPackageJson,
 } from '../utils/seed'
 
@@ -180,6 +182,15 @@ The following migration(s) have been applied:\n\n${chalk(
               process.platform === 'win32' ? '' : '🌱  '
             }The seed command has been executed.`,
           )
+        }
+      } else {
+        // Only used to help users to setup their seeds from old way to new package.json config
+        const schemaPath = await getSchemaPath(args['--schema'])
+
+        const message = await verifySeedConfigAndReturnMessage(schemaPath)
+        // warn because setup of the feature needs to be done
+        if (message) {
+          logger.warn(message)
         }
       }
     }

@@ -13,7 +13,7 @@ import { PreviewFlagError } from '../utils/flagErrors'
 import {
   getSeedCommandFromPackageJson,
   executeSeedCommand,
-  verifySeedConfig,
+  verifySeedConfigAndReturnMessage,
   legacyTsNodeScriptWarning,
 } from '../utils/seed'
 
@@ -89,8 +89,11 @@ ${chalk.bold('Options')}
       // Only used to help users to setup their seeds from old way to new package.json config
       const schemaPath = await getSchemaPath(args['--schema'])
 
+      const message = await verifySeedConfigAndReturnMessage(schemaPath)
       // Error because setup of the feature needs to be done
-      await verifySeedConfig(schemaPath)
+      if (message) {
+        throw new Error(message)
+      }
 
       return ``
     }

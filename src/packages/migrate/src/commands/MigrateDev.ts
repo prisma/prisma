@@ -7,6 +7,7 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
+  logger,
   getConfig,
   getDMMF,
 } from '@prisma/sdk'
@@ -40,6 +41,7 @@ import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import {
   executeSeedCommand,
+  verifySeedConfigAndReturnMessage,
   getSeedCommandFromPackageJson,
 } from '../utils/seed'
 
@@ -220,6 +222,15 @@ ${chalk.bold('Examples')}
             )
           } else {
             console.info() // empty line
+          }
+        } else {
+          // Only used to help users to setup their seeds from old way to new package.json config
+          const schemaPath = await getSchemaPath(args['--schema'])
+
+          const message = await verifySeedConfigAndReturnMessage(schemaPath)
+          // warn because setup of the feature needs to be done
+          if (message) {
+            logger.warn(message)
           }
         }
       } catch (e) {

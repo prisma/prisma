@@ -106,8 +106,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                🌱  The seed command has been executed.
-                                        `)
+                                                                        🌱  The seed command has been executed.
+                                                            `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
@@ -146,8 +146,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        🌱  The seed command has been executed.
-                                                            `)
+                                                                                                🌱  The seed command has been executed.
+                                                                                `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Running seed command \`ts-node prisma/seed.ts\` ...
@@ -165,8 +165,8 @@ Please provide the --preview-feature flag to use this command.
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                        🌱  The seed command has been executed.
-                                                            `)
+                                                                                                🌱  The seed command has been executed.
+                                                                                `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Running seed command \`./prisma/seed.sh\` ...
@@ -189,8 +189,8 @@ describe('seed - legacy', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                🌱  The seed command has been executed.
-                                        `)
+                                                                        🌱  The seed command has been executed.
+                                                            `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Running seed command \`node prisma/seed.js\` ...
