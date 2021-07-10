@@ -30,7 +30,7 @@ import {
   QueryMiddlewareParams,
 } from './MiddlewareHandler'
 import { PrismaClientFetcher } from './PrismaClientFetcher'
-import { Document, makeDocument, transformDocument } from './query'
+import { makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
@@ -139,6 +139,8 @@ export type HookParams = {
   args: any
 }
 
+
+// TODO: can we replace this with DMMF.ModelAction?
 export type Action =
   | 'findUnique'
   | 'findFirst'
@@ -260,25 +262,51 @@ const aggregateKeys = {
   max: true,
 }
 
-// TODO: We **may** be able to get real types. However, we have both a bootstrapping
-// problem here, that we want to return a type that's not yet defined
-// and we're typecasting this anyway later
-export function getPrismaClient(config: GetPrismaClientOptions): any {
-  class NewPrismaClient {
+export interface Client {
+  _dmmf: DMMFClass
+  _engine: Engine
+  _fetcher: PrismaClientFetcher
+  _connectionPromise?: Promise<any>
+  _disconnectionPromise?: Promise<any>
+  _engineConfig: EngineConfig
+  _clientVersion: string
+  _errorFormat: ErrorFormat
+  $use<T>(
+    arg0: Namespace | QueryMiddleware<T>,
+    arg1?: QueryMiddleware | EngineMiddleware<T>
+  );
+  $on(eventType: EngineEventType, callback: (event: any) => void)
+  $connect()
+  $disconnect()
+  _runDisconnect()
+  $executeRaw(
+    stringOrTemplateStringsArray:
+      | ReadonlyArray<string>
+      | string
+      | sqlTemplateTag.Sql
+  )
+  $queryRaw(stringOrTemplateStringsArray)
+  __internal_triggerPanic(fatal: boolean)
+  $___transaction(promises: Array<any>): Promise<any>
+  $transaction(input: any, options?: any)
+}
+
+export function getPrismaClient(config: GetPrismaClientOptions) {
+  class PrismaClient implements Client {
     _dmmf: DMMFClass
     _engine: Engine
     _fetcher: PrismaClientFetcher
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
-    private _errorFormat: ErrorFormat
+    _clientVersion: string
+    _errorFormat: ErrorFormat
     private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
     }>
     private _middlewares: Middlewares = new Middlewares()
-    private _clientVersion: string
     private _previewFeatures: string[]
     private _activeProvider: string
     private _transactionId = 1
@@ -970,7 +998,7 @@ new PrismaClient({
      * @returns
      */
     private async _transactionWithCallback(
-      callback: (client: NewPrismaClient) => Promise<unknown>,
+      callback: (client: PrismaClient) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
       // transactions are inlined through their scheduler
@@ -1471,25 +1499,7 @@ new PrismaClient({
     }
   }
 
-  return NewPrismaClient
-}
-
-export type RequestParams = {
-  document: Document
-  dataPath: string[]
-  rootField: string
-  typeName: string
-  isList: boolean
-  clientMethod: string
-  callsite?: string
-  rejectOnNotFound?: RejectOnNotFound
-  runInTransaction?: boolean
-  showColors?: boolean
-  engineHook?: EngineMiddleware
-  args: any
-  headers?: Record<string, string>
-  transactionId?: number
-  unpacker?: Unpacker
+  return PrismaClient as (new (optionsArg?: PrismaClientOptions) => Client)
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {

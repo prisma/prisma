@@ -7,53 +7,60 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { DataLoader } from './DataLoader'
-import { RequestParams, Unpacker } from './getPrismaClient'
-import { Args, Document, unpack } from './query'
+import { Client, Unpacker } from './getPrismaClient'
+import { EngineMiddleware } from './MiddlewareHandler'
+import { Document, unpack } from './query'
 import { printStack } from './utils/printStack'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:fetcher')
 
-export class RequestHandler {
-  prisma: any
-  hooks: any
-  dataLoader: DataLoader<{
-    document: Document
-    runInTransaction?: boolean
-    transactionId?: number
-    headers?: Record<string, string>
-  }>
+export type RequestParams = {
+  document: Document
+  dataPath: string[]
+  rootField: string
+  typeName: string
+  isList: boolean
+  clientMethod: string
+  callsite?: string
+  rejectOnNotFound?: RejectOnNotFound
+  runInTransaction?: boolean
+  showColors?: boolean
+  engineHook?: EngineMiddleware
+  args: any
+  headers?: Record<string, string>
+  transactionId?: string
+  unpacker?: Unpacker
+}
 
-  constructor(prisma, hooks?: any) {
-    this.prisma = prisma
+export type Request = {
+  document: Document
+  runInTransaction?: boolean
+  transactionId?: string
+  headers?: Record<string, string>
+}
+
+export class RequestHandler {
+  client: Client
+  hooks: any
+  dataloader: DataLoader<Request>
+
+  constructor(client: Client, hooks?: any) {
+    this.client = client
     this.hooks = hooks
-    this.dataLoader = new DataLoader({
+    this.dataloader = new DataLoader({
       batchLoader: (requests) => {
+        const headers = {transaction_id: requests[0].transactionId}
         const queries = requests.map((r) => String(r.document))
 
-        return this.prisma._engine.requestBatch(queries)
+        return this.client._engine.requestBatch(queries, headers)
       },
       singleLoader: (request) => {
         const query = String(request.document)
 
-        return this.prisma._engine.request(query, request.headers)
+        return this.client._engine.request(query, request.headers)
       },
       batchBy: (request) => {
-        if (!request.document.children[0].name.startsWith('findUnique')) {
-          return
-        }
-
-        const selectionSet = request.document.children[0].children!.join(',')
-
-        const args = request.document.children[0].args?.args
-          .map((a) => {
-            if (a.value instanceof Args) {
-              return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
-            }
-            return a.key
-          })
-          .join(',')
-
-        return `${request.document.children[0].name}|${args}|${selectionSet}`
+        return `${request.transactionId}` ?? 'batch'
       },
     })
   }
@@ -99,12 +106,12 @@ export class RequestHandler {
             document,
             runInTransaction,
           },
-          (params) => this.dataLoader.request(params),
+          (params) => this.dataloader.request(params),
         )
         data = result.data
         elapsed = result.elapsed
       } else {
-        const result = await this.dataLoader.request({
+        const result = await this.dataloader.request({
           document,
           runInTransaction,
           headers,
@@ -148,39 +155,39 @@ export class RequestHandler {
         throw new PrismaClientKnownRequestError(
           message,
           e.code,
-          this.prisma._clientVersion,
+          this.client._clientVersion,
           e.meta,
         )
       } else if (e.isPanic) {
         throw new PrismaClientRustPanicError(
           message,
-          this.prisma._clientVersion,
+          this.client._clientVersion,
         )
       } else if (e instanceof PrismaClientUnknownRequestError) {
         throw new PrismaClientUnknownRequestError(
           message,
-          this.prisma._clientVersion,
+          this.client._clientVersion,
         )
       } else if (e instanceof PrismaClientInitializationError) {
         throw new PrismaClientInitializationError(
           message,
-          this.prisma._clientVersion,
+          this.client._clientVersion,
         )
       } else if (e instanceof PrismaClientRustPanicError) {
         throw new PrismaClientRustPanicError(
           message,
-          this.prisma._clientVersion,
+          this.client._clientVersion,
         )
       }
 
-      e.clientVersion = this.prisma._clientVersion
+      e.clientVersion = this.client._clientVersion
 
       throw e
     }
   }
 
   sanitizeMessage(message) {
-    if (this.prisma._errorFormat && this.prisma._errorFormat !== 'pretty') {
+    if (this.client._errorFormat && this.client._errorFormat !== 'pretty') {
       return stripAnsi(message)
     }
     return message
@@ -203,6 +210,6 @@ export class RequestHandler {
   }
 
   get [Symbol.toStringTag]() {
-    return 'PrismaClientFetcher'
+    return 'RequestHandler'
   }
 }

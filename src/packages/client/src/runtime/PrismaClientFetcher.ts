@@ -7,17 +7,36 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { DataLoader } from './DataLoader'
-import { RequestParams, Unpacker } from './getPrismaClient'
+import { Unpacker } from './getPrismaClient'
+import { EngineMiddleware } from './MiddlewareHandler'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:fetcher')
+
+export type RequestParams = {
+  document: Document
+  dataPath: string[]
+  rootField: string
+  typeName: string
+  isList: boolean
+  clientMethod: string
+  callsite?: string
+  rejectOnNotFound?: RejectOnNotFound
+  runInTransaction?: boolean
+  showColors?: boolean
+  engineHook?: EngineMiddleware
+  args: any
+  headers?: Record<string, string>
+  transactionId?: number
+  unpacker?: Unpacker
+}
 
 export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataLoader: DataLoader<{
+  dataloader: DataLoader<{
     document: Document
     runInTransaction?: boolean
     transactionId?: number
@@ -28,7 +47,7 @@ export class PrismaClientFetcher {
     this.prisma = prisma
     this.debug = enableDebug
     this.hooks = hooks
-    this.dataLoader = new DataLoader({
+    this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
@@ -111,12 +130,12 @@ export class PrismaClientFetcher {
               document,
               runInTransaction,
             },
-            (params) => this.dataLoader.request(params),
+            (params) => this.dataloader.request(params),
           )
           data = result.data
           elapsed = result.elapsed
         } else {
-          const result = await this.dataLoader.request({
+          const result = await this.dataloader.request({
             document,
             runInTransaction,
             headers,
