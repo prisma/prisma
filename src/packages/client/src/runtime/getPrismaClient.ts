@@ -44,6 +44,7 @@ import {
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { Scheduler } from './Scheduler'
+import { RequestHandler } from './RequestHandler'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -422,7 +423,12 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
 
         this._engine = this.getEngine()
         void this._getActiveProvider()
-        this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
+
+        if (process.env.PRISMA_FORCE_LRT !== 'true') {
+          this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
+        } else {
+          this._fetcher = new RequestHandler(this, this._hooks) as any
+        }
 
         if (options.log) {
           for (const log of options.log) {
