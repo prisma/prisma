@@ -6,7 +6,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { Dataloader } from './Dataloader'
+import { DataLoader } from './DataLoader'
 import { RequestParams, Unpacker } from './getPrismaClient'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
@@ -16,7 +16,7 @@ const debug = Debug('prisma:client:fetcher')
 export class RequestHandler {
   prisma: any
   hooks: any
-  dataloader: Dataloader<{
+  dataloader: DataLoader<{
     document: Document
     runInTransaction?: boolean
     transactionId?: number

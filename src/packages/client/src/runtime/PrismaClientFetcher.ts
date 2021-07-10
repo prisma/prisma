@@ -6,7 +6,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { Dataloader } from './Dataloader'
+import { DataLoader } from './DataLoader'
 import { RequestParams, Unpacker } from './getPrismaClient'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
@@ -17,7 +17,7 @@ export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader<{
+  dataloader: DataLoader<{
     document: Document
     runInTransaction?: boolean
     transactionId?: number
@@ -28,7 +28,7 @@ export class PrismaClientFetcher {
     this.prisma = prisma
     this.debug = enableDebug
     this.hooks = hooks
-    this.dataloader = new Dataloader({
+    this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
@@ -47,7 +47,7 @@ export class PrismaClientFetcher {
         }
 
         if (!request.document.children[0].name.startsWith('findUnique')) {
-          return null
+          return undefined
         }
 
         const selectionSet = request.document.children[0].children!.join(',')

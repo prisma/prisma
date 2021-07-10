@@ -4,21 +4,19 @@ interface Job {
   request: any
 }
 
-export type DataloaderOptions<T> = {
+export type DataLoaderOptions<T> = {
   singleLoader: (request: T) => Promise<any>
   batchLoader: (request: T[]) => Promise<any[]>
   batchBy: (request: T) => string | undefined
 }
 
-export class Dataloader<T = any> {
+export class DataLoader<T = any> {
   batches: { [key: string]: Job[] }
   private tickActive = false
-  constructor(private options: DataloaderOptions<T>) {
+  constructor(private options: DataLoaderOptions<T>) {
     this.batches = {}
   }
-  get [Symbol.toStringTag]() {
-    return 'Dataloader'
-  }
+
   request(request: T): Promise<any> {
     const hash = this.options.batchBy(request)
     if (!hash) {
@@ -92,5 +90,9 @@ export class Dataloader<T = any> {
           })
       }
     }
+  }
+
+  get [Symbol.toStringTag]() {
+    return 'DataLoader'
   }
 }
