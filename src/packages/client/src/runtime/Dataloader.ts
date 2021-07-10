@@ -7,7 +7,7 @@ interface Job {
 export type DataloaderOptions<T> = {
   singleLoader: (request: T) => Promise<any>
   batchLoader: (request: T[]) => Promise<any[]>
-  batchBy: (request: T) => string | null
+  batchBy: (request: T) => string | undefined
 }
 
 export class Dataloader<T = any> {

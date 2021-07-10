@@ -440,7 +440,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * @param middleware to hook
      */
     $use<T>(middleware: QueryMiddleware<T>)
-    $use<T>(namespace: 'all', cb: QueryMiddleware<T>)
+    $use<T>(namespace: 'all', cb: QueryMiddleware<T>) // TODO: 'all' actually means 'query', to be changed
     $use<T>(namespace: 'engine', cb: EngineMiddleware<T>)
     $use<T>(
       arg0: Namespace | QueryMiddleware<T>,
@@ -1045,7 +1045,7 @@ new PrismaClient({
 
           const changedInternalParams = { ...internalParams, ...params }
 
-          // TODO remove this, because transactionId should be passed?
+          // TODO remove this once LRT is the default transaction mode
           if (index > 0) delete changedInternalParams['transactionId']
 
           // no middleware? then we just proceed with request execution

@@ -11,6 +11,12 @@ test('long-running transaction', async () => {
       data: {
         email: 'test@hey.com',
       },
+    }),
+    (new Promise((res) => setTimeout(res, 1000))) as any,
+    prisma.user.create({
+      data: {
+        email: 'test@hey.com',
+      },
     })
   ])
  
