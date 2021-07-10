@@ -17,7 +17,7 @@ export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: DataLoader<{
+  dataLoader: DataLoader<{
     document: Document
     runInTransaction?: boolean
     transactionId?: number
@@ -28,7 +28,7 @@ export class PrismaClientFetcher {
     this.prisma = prisma
     this.debug = enableDebug
     this.hooks = hooks
-    this.dataloader = new DataLoader({
+    this.dataLoader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
@@ -111,12 +111,12 @@ export class PrismaClientFetcher {
               document,
               runInTransaction,
             },
-            (params) => this.dataloader.request(params),
+            (params) => this.dataLoader.request(params),
           )
           data = result.data
           elapsed = result.elapsed
         } else {
-          const result = await this.dataloader.request({
+          const result = await this.dataLoader.request({
             document,
             runInTransaction,
             headers,
