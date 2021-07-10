@@ -59,8 +59,15 @@ export type QueryEngineRequest = {
   query: string
   variables: Object
 }
+
+export type QueryEngineResult<T> = {
+  data: T
+  elapsed: number
+}
+
 export type QueryEngineRequestHeaders = {
   traceparent?: string
+  transactionId?: string
 }
 
 export type QueryEngineBatchRequest = {

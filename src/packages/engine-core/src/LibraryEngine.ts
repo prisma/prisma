@@ -37,6 +37,7 @@ import {
   QueryEngineQueryEvent,
   QueryEngineRequest,
   QueryEngineRequestHeaders,
+  QueryEngineResult,
   RustRequestError,
   SyncRustError,
 } from './NodeAPILibraryTypes'
@@ -455,13 +456,13 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  async requestBatch(
+  async requestBatch<T>(
     queries: string[],
+    headers: QueryEngineRequestHeaders = {},
     transaction = false,
     numTry = 1,
-  ): Promise<any> {
+  ): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
-    const headers: QueryEngineRequestHeaders = {}
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction,

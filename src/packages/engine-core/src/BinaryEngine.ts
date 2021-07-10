@@ -43,6 +43,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Connection, Result } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 import type * as Tx from './definitions/Transaction'
+import { QueryEngineRequestHeaders, QueryEngineResult } from './NodeAPILibraryTypes'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -953,7 +954,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     query: string,
     headers: Record<string, string>,
     numTry = 1,
-  ): Promise<T> {
+  ): Promise<QueryEngineResult<T>> {
     await this.start()
 
     this.currentRequestPromise = this.connection.post(
@@ -1005,9 +1006,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
   async requestBatch<T>(
     queries: string[],
+    headers: QueryEngineRequestHeaders = {},
     transaction = false,
     numTry = 1,
-  ): Promise<T> {
+  ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
     const variables = {}
@@ -1049,7 +1051,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (!isError) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch(queries, transaction, numTry + 1)
+            return this.requestBatch(queries, headers, transaction, numTry + 1)
           }
         }
 

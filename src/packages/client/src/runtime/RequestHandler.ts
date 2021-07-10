@@ -49,7 +49,7 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const headers = {transaction_id: requests[0].transactionId}
+        const headers = {transactionId: requests[0].transactionId}
         const queries = requests.map((r) => String(r.document))
 
         return this.client._engine.requestBatch(queries, headers)
