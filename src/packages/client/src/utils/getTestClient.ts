@@ -1,6 +1,6 @@
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { getNapiName, getPlatform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -47,15 +47,18 @@ export async function getTestClient(
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const enginesPath = getEnginesPath()
   const platform = await getPlatform()
-  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  const nodeAPILibraryPath = path.join(
+    enginesPath,
+    getNodeAPIName(platform, 'fs'),
+  )
   if (
     (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) &&
-    !fs.existsSync(napiLibraryPath)
+    !fs.existsSync(nodeAPILibraryPath)
   ) {
-    // This is required as the NAPI library is not downloaded by default
+    // This is required as the Node-API library is not downloaded by default
     await download({
       binaries: {
-        'libquery-engine-napi': enginesPath,
+        'libquery-engine': enginesPath,
       },
       version: enginesVersion,
     })

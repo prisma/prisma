@@ -43,9 +43,9 @@ DATABASE_URL="file:dev.db"
 `)
 })
 
-test.skip('works with provider param - mysql', async () => {
+test('works with provider param - mysql', async () => {
   ctx.fixture('init')
-  const result = await ctx.cli('init', '--provider', 'mysql')
+  const result = await ctx.cli('init', '--datasource-provider', 'mysql')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(
@@ -66,9 +66,9 @@ DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
 `)
 })
 
-test.skip('works with provider param - SQLITE', async () => {
+test('works with provider param - SQLITE', async () => {
   ctx.fixture('init')
-  const result = await ctx.cli('init', '--provider', 'SQLITE')
+  const result = await ctx.cli('init', '--datasource-provider', 'SQLITE')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
   const schema = fs.readFileSync(
@@ -89,9 +89,9 @@ DATABASE_URL="file:./dev.db"
 `)
 })
 
-test.skip('errors with invalid provider param', async () => {
+test('errors with invalid provider param', async () => {
   ctx.fixture('init')
-  const result = ctx.cli('init', '--provider', 'INVALID')
+  const result = ctx.cli('init', '--datasource-provider', 'INVALID')
   await expect(result).rejects.toThrowError()
 })
 

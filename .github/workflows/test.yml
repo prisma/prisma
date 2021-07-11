@@ -269,7 +269,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
+      - run: pnpm run jest integration/${{ matrix.database }} -- --maxConcurrency=8
         working-directory: src/packages/integration-tests
         env:
           CI: true
@@ -529,20 +529,6 @@ jobs:
           name: engine-core-${{ matrix.os }}
 
       - run: pnpm run test
-        name: 'fetch-engine'
-        working-directory: src/packages/fetch-engine
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/fetch-engine/src/__tests__/coverage/clover.xml
-          flags: fetch-engine,${{ matrix.os }}
-          name: fetch-engine-${{ matrix.os }}
-
-      - run: pnpm run test
         name: 'generator-helper'
         working-directory: src/packages/generator-helper
         env:
@@ -555,17 +541,3 @@ jobs:
           files: ./src/packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }}
           name: generator-helper-${{ matrix.os }}
-
-      - run: pnpm run test
-        name: 'get-platform'
-        working-directory: src/packages/get-platform
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/get-platform/src/__tests__/coverage/clover.xml
-          flags: get-platform,${{ matrix.os }}
-          name: get-platform-${{ matrix.os }}

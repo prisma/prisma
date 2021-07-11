@@ -7,16 +7,19 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
-const version = '4165db0d1bddd480461f721ad5447bb261727728'
+const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+const version = 'e6bd3dc12d849124a04c3a8e6bd9c194381afda3'
+
 describe('version', () => {
-  // N-API Tests
-  testIf(useNAPI)('basic version (N-API)', async () => {
+  // Node-API Tests
+
+  testIf(useNodeAPI)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
-  testIf(useNAPI)(
-    'version with custom binaries (N-API)',
+
+  testIf(useNodeAPI)(
+    'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
@@ -25,7 +28,7 @@ describe('version', () => {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,
-          'libquery-engine-napi': enginesDir,
+          'libquery-engine': enginesDir,
         },
         version,
         failSilent: false,
@@ -54,12 +57,13 @@ describe('version', () => {
   )
 
   // Binary Tests
-  testIf(!useNAPI)('basic version', async () => {
+
+  testIf(!useNodeAPI)('basic version', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(!useNAPI)(
+  testIf(!useNodeAPI)(
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
@@ -76,7 +80,7 @@ describe('version', () => {
       })
 
       const platform = await getPlatform()
-      const { ['libquery-engine-napi']: qe, ...envVarMap } = engineEnvVarMap
+      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
         process.env[envVar] = binaryPaths[engine][platform]

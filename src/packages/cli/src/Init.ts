@@ -70,11 +70,11 @@ export const defaultURL = (
 ) => {
   switch (provider) {
     case 'postgresql':
-      return `${provider}://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
+      return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
     case 'mysql':
-      return `${provider}://johndoe:randompassword@localhost:${port}/mydb`
+      return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
-      return `${provider}://localhost:${port};database=mydb;user=SA;password=randompassword;`
+      return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb://johndoe:randompassword@localhost:${port}/mydb?authSource=admin`
     case 'sqlite':
@@ -87,13 +87,30 @@ export class Init implements Command {
     return new Init()
   }
 
-  // TODO add --provider & --url
   private static help = format(`
-    Setup a new Prisma project
+  Setup a new Prisma project
     
-    ${chalk.bold('Usage')}
+  ${chalk.bold('Usage')}
 
-      ${chalk.dim('$')} prisma init
+    ${chalk.dim('$')} prisma init [options]
+  ${chalk.bold('Options')}
+    
+             -h, --help   Display this help message
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLServer or SQLite
+                  --url   Define a custom datasource url
+
+  ${chalk.bold('Examples')}
+
+  Setup a new Prisma project with PostgreSQL (default)
+    ${chalk.dim('$')} prisma init
+
+  Setup a new Prisma project and specify MySQL as the datasource provider to use
+    ${chalk.dim('$')} prisma init --datasource-provider mysql
+  
+  Setup a new Prisma project and specify the url that will be used
+    ${chalk.dim(
+      '$',
+    )} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -102,7 +119,7 @@ export class Init implements Command {
       '--help': Boolean,
       '-h': '--help',
       '--url': String,
-      // '--provider': String,
+      '--datasource-provider': String,
     })
 
     if (isError(args) || args['--help']) {
@@ -176,15 +193,15 @@ export class Init implements Command {
         protocolToDatabaseType(`${args['--url'].split(':')[0]}:`),
       )
       url = args['--url']
-    } else if (args['--provider']) {
-      const providerLowercase = args['--provider'].toLowerCase()
+    } else if (args['--datasource-provider']) {
+      const providerLowercase = args['--datasource-provider'].toLowerCase()
       if (
         !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb'].includes(
           providerLowercase,
         )
       ) {
         throw new Error(
-          `Provider "${args['--provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlserver" or "sqlite".`,
+          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlserver" or "sqlite".`,
         )
       }
       provider = providerLowercase as ConnectorType
@@ -243,8 +260,8 @@ export class Init implements Command {
       )} to install Prisma Client. You can then start querying your database.`,
     ]
 
-    if (!url || args['--provider']) {
-      if (!args['--provider']) {
+    if (!url || args['--datasource-provider']) {
+      if (!args['--datasource-provider']) {
         steps.unshift(
           `Set the ${chalk.green('provider')} of the ${chalk.green(
             'datasource',
@@ -266,7 +283,7 @@ export class Init implements Command {
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}.
+✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
 ${warning && logger.should.warn ? '\n' + warning + '\n' : ''}
 Next steps:

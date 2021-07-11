@@ -50,7 +50,7 @@ export const Context = {
         // symlink to local client version in tmp dir
         c.fs.symlink(
           path.join(__dirname, '..', '..', '..', '..', 'client'),
-          path.join(c.fs.cwd(), 'client'),
+          path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'),
         )
       }
       c.mocked = c.mocked ?? {
@@ -81,13 +81,10 @@ export const Context = {
 /**
  * Factory for creating a context contributor possibly configured in some special way.
  */
-type ContextContributorFactory<
-  Settings,
-  Context,
-  NewContext
-> = Settings extends {}
-  ? () => ContextContributor<Context, NewContext>
-  : (settings: Settings) => ContextContributor<Context, NewContext>
+type ContextContributorFactory<Settings, Context, NewContext> =
+  Settings extends {}
+    ? () => ContextContributor<Context, NewContext>
+    : (settings: Settings) => ContextContributor<Context, NewContext>
 
 /**
  * A function that provides additonal test context.

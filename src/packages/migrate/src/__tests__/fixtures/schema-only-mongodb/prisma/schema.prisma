@@ -9,6 +9,6 @@ generator client {
 }
 
 model User {
-  id   Int    @unique
+  id   Int    @id @map("_id")
   name String
 }

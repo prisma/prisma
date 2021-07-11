@@ -169,12 +169,9 @@ type RawPackage = {
 type RawPackages = { [packageName: string]: RawPackage }
 
 export async function getPackages(): Promise<RawPackages> {
-  const packagePaths = await globby(
-    ['packages/*/package.json'],
-    {
-      ignore: ['**/node_modules/**', '**/examples/**', '**/fixtures/**'],
-    } as any, // TODO: Apparently upgrading to ts 3.7.2 broke this
-  )
+  const packagePaths = await globby(['packages/*/package.json'], {
+    ignore: ['**/node_modules/**', '**/examples/**', '**/fixtures/**'],
+  })
   const packages = await Promise.all(
     packagePaths.map(async (p) => ({
       path: p,
@@ -182,8 +179,7 @@ export async function getPackages(): Promise<RawPackages> {
     })),
   )
 
-  return packages.reduce<RawPackages>((acc, p: any) => {
-    // TODO: Apparently upgrading to ts 3.7.2 broke this
+  return packages.reduce<RawPackages>((acc, p) => {
     if (p.packageJson.name) {
       acc[p.packageJson.name] = p
     }
@@ -869,10 +865,13 @@ async function testPackages(
     console.log('BUILDKITE_PARALLEL_JOB === 1 - running client only')
     order = ['@prisma/client']
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
-    // This is to test N-API
-    console.log('BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [integration-tests, client, sdk, prisma (cli)]')
+    // This is to test Node-API
+    console.log(
+      'BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [sdk, migrate, client, cli, integration-tests]',
+    )
     order = [
       '@prisma/sdk',
+      '@prisma/migrate',
       '@prisma/client',
       'prisma',
       '@prisma/integration-tests',
@@ -1129,10 +1128,8 @@ async function publishPackages(
         process.env.BUILDKITE_TAG === '2.0.1'
           ? [
               '@prisma/debug',
-              '@prisma/get-platform',
               '@prisma/generator-helper',
               '@prisma/ink-components',
-              '@prisma/fetch-engine',
             ]
           : []
       if (!skipPackages.includes(pkgName)) {
