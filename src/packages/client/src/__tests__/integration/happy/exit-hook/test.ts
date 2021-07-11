@@ -33,8 +33,6 @@ test('exit-hook for sigint', async () => {
       },
     ]
   `)
-
-  await prisma.$disconnect()
 })
 
 async function doWork(prisma) {
