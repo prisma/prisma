@@ -5,8 +5,8 @@ import {
   EngineConfig,
   EngineEventType,
 } from '@prisma/engine-core/dist/Engine'
-import { NAPIEngine } from '@prisma/engine-core/dist/NAPIEngine'
-import { NodeEngine } from '@prisma/engine-core/dist/NodeEngine'
+import { LibraryEngine } from '@prisma/engine-core/dist/LibraryEngine'
+import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import {
   DataSource,
   GeneratorConfig,
@@ -425,9 +425,9 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         this._previewFeatures.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
       ) {
-        return new NAPIEngine(this._engineConfig)
+        return new LibraryEngine(this._engineConfig)
       } else {
-        return new NodeEngine(this._engineConfig)
+        return new BinaryEngine(this._engineConfig)
       }
     }
 
@@ -435,16 +435,16 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
      * Hook a middleware into the client
      * @param middleware to hook
      */
-    $use(middleware: QueryMiddleware)
-    $use(namespace: 'all', cb: QueryMiddleware)
-    $use(namespace: 'engine', cb: EngineMiddleware)
-    $use(
-      arg0: Namespace | QueryMiddleware,
-      arg1?: QueryMiddleware | EngineMiddleware,
+    $use<T>(middleware: QueryMiddleware<T>)
+    $use<T>(namespace: 'all', cb: QueryMiddleware<T>)
+    $use<T>(namespace: 'engine', cb: EngineMiddleware<T>)
+    $use<T>(
+      arg0: Namespace | QueryMiddleware<T>,
+      arg1?: QueryMiddleware | EngineMiddleware<T>,
     ) {
       // TODO use a mixin and move this into MiddlewareHandler
       if (typeof arg0 === 'function') {
-        this._middlewares.query.use(arg0)
+        this._middlewares.query.use(arg0 as QueryMiddleware)
       } else if (arg0 === 'all') {
         this._middlewares.query.use(arg1 as QueryMiddleware)
       } else if (arg0 === 'engine') {
@@ -702,6 +702,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
         }
       } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
+        // Example: prisma.$queryRaw`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
@@ -733,16 +734,22 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
           }
 
           case 'sqlserver': {
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            const queryInstance = sqlTemplateTag.sqltag(
+              stringOrTemplateStringsArray as any,
+              ...values,
+            )
+
+            query = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
-              values: serializeRawParameters(values),
+              values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
             }
             break
           }
         }
       } else {
-        // If this was called as prisma.raw(sql`<SQL>`), use prepared statements from sql-template-tag
+        // If this was called as prisma.$queryRaw(Prisma.sql`<SQL>`), use prepared statements from sql-template-tag
+        // Example: prisma.$queryRaw(Prisma.sql`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`);
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql':
@@ -915,45 +922,40 @@ new PrismaClient({
      * @param middlewareIndex
      * @returns
      */
-    private _request(
-      internalParams: InternalRequestParams,
-      middlewareIndex = 0,
-    ): Promise<any> {
+    private _request(internalParams: InternalRequestParams): Promise<any> {
       try {
-        // in this recursion, we check for our terminating condition
-        const middleware = this._middlewares.query.get(middlewareIndex)
+        let index = -1
         // async scope https://github.com/prisma/prisma/issues/3148
         const resource = new AsyncResource('prisma-client-request')
-
-        if (middleware) {
-          // make sure that we don't leak extra properties to users
-          const params: QueryMiddlewareParams = {
-            args: internalParams.args,
-            dataPath: internalParams.dataPath,
-            runInTransaction: internalParams.runInTransaction,
-            action: internalParams.action,
-            model: internalParams.model,
-          }
-
-          return resource.runInAsyncScope(() => {
-            // call the middleware of the user & get their changes
-            return middleware(params, (changedParams) => {
-              // this middleware returns the value of the next one 🐛
-              return this._request(
-                {
-                  ...internalParams,
-                  ...changedParams,
-                },
-                ++middlewareIndex,
-              ) // recursion happens over here
-            })
-          })
+        // make sure that we don't leak extra properties to users
+        const params: QueryMiddlewareParams = {
+          args: internalParams.args,
+          dataPath: internalParams.dataPath,
+          runInTransaction: internalParams.runInTransaction,
+          action: internalParams.action,
+          model: internalParams.model,
         }
 
-        // they're finished, or there's none, then execute request
-        return resource.runInAsyncScope(() => {
-          return this._executeRequest(internalParams)
-        })
+        // prepare recursive fn that will pipe params through middlewares
+        const consumer = (changedParams: QueryMiddlewareParams) => {
+          // if this `next` was called and there's some more middlewares
+          const nextMiddleware = this._middlewares.query.get(++index)
+
+          if (nextMiddleware) {
+            // we pass the modfied params down to the next one, & repeat
+            return nextMiddleware(changedParams, consumer)
+          }
+
+          const changedInternalParams = { ...internalParams, ...params }
+
+          // TODO remove this, because transactionId should be passed?
+          if (index > 0) delete changedInternalParams['transactionId']
+
+          // no middleware? then we just proceed with request execution
+          return this._executeRequest(changedInternalParams)
+        }
+
+        return resource.runInAsyncScope(() => consumer(params))
       } catch (e) {
         e.clientVersion = this._clientVersion
 

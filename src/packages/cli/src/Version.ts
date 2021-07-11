@@ -1,9 +1,9 @@
 import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
+  BinaryType,
   Command,
   engineEnvVarMap,
-  EngineTypes,
   format,
   getConfig,
   getSchema,
@@ -66,17 +66,16 @@ export class Version implements Command {
     }
 
     const platform = await getPlatform()
-    const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+    const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
     const introspectionEngine = await this.resolveEngine(
-      EngineTypes.introspectionEngine,
+      BinaryType.introspectionEngine,
     )
-    const migrationEngine = await this.resolveEngine(
-      EngineTypes.migrationEngine,
-    )
+    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
+    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
     const queryEngine = await this.resolveEngine(
-      useNAPI ? EngineTypes.libqueryEngineNapi : EngineTypes.queryEngine,
+      useNodeAPI ? BinaryType.libqueryEngine : BinaryType.queryEngine,
     )
-    const fmtBinary = await this.resolveEngine(EngineTypes.prismaFmt)
+    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -85,7 +84,7 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `${useNAPI ? 'N-API ' : ''}Query Engine`,
+        `Query Engine${useNodeAPI ? ' (Node-API)' : ''}`,
         this.printBinaryInfo(queryEngine),
       ],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
@@ -142,7 +141,7 @@ export class Version implements Command {
     )}${resolved})`
   }
 
-  private async resolveEngine(binaryName: EngineTypes): Promise<BinaryInfo> {
+  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
     const envVar = engineEnvVarMap[binaryName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {

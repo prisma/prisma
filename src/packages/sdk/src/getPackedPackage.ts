@@ -4,7 +4,7 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import readPkgUp from 'read-pkg-up'
-import resolvePkg from 'resolve-pkg'
+import { resolvePkg } from './utils/resolve'
 import rimraf from 'rimraf'
 import { quote } from 'shell-quote'
 import tar from 'tar'
@@ -24,8 +24,8 @@ export async function getPackedPackage(
 ): Promise<string | void> {
   packageDir =
     packageDir ||
-    resolvePkg(name, { cwd: process.cwd() }) ||
-    resolvePkg(name, { cwd: target })
+    (await resolvePkg(name, { basedir: process.cwd() })) ||
+    (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
     const pkg = await readPkgUp({

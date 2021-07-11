@@ -16,8 +16,7 @@ test('invalid-input', async () => {
       },
     })
   } catch (e) {
-    if (process.env.PRISMA_FORCE_NAPI) {
-      expect(e).toMatchInlineSnapshot(`
+    expect(e).toMatchInlineSnapshot(`
 
         Invalid \`prisma.user.create()\` invocation in
         /client/src/__tests__/integration/errors/invalid-input/test.ts:10:23
@@ -41,28 +40,6 @@ test('invalid-input', async () => {
 
 
       `)
-    } else {
-      expect(e).toMatchInlineSnapshot(`
-
-                Invalid \`prisma.user.create()\` invocation:
-
-                {
-                  data: {
-                    email: 'a@a.de',
-                    posts: {
-                      connect: {
-                        id: []
-                        ~~
-                      }
-                    }
-                  }
-                }
-
-                Argument id: Got invalid value [] on prisma.createOneUser. Provided List<>, expected String.
-
-
-            `)
-    }
   }
 
   await prisma.$disconnect()

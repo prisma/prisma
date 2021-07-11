@@ -3,10 +3,11 @@ import {
   getSchemaPathInternal,
   getSchemaPathSyncInternal,
 } from '../cli/getSchema'
+import { fixturesPath } from './__utils__/fixtures'
 
 process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
 
-const FIXTURE_CWD = path.resolve(__dirname, 'fixtures', 'getSchema')
+const FIXTURE_CWD = path.resolve(fixturesPath, 'getSchema')
 
 async function testSchemaPath(
   fixtureName: string,
@@ -76,11 +77,11 @@ it('reads from --schema args first even if package.json is provided', async () =
   )
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/pkg-json-with-schema-args/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/pkg-json-with-schema-args/schema.prisma",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-with-schema-args/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-with-schema-args/schema.prisma",
+}
+`)
 })
 
 it('throws if schema args path is invalid', async () => {
@@ -90,22 +91,22 @@ it('throws if schema args path is invalid', async () => {
   )
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": [Error: Provided --schema at ./fixtures/getSchema/wrong_path doesn't exist.],
-      "sync": [Error: Provided --schema at ./fixtures/getSchema/wrong_path doesn't exist.],
-    }
-  `)
+Object {
+  "async": [Error: Provided --schema at ./__fixtures__/getSchema/wrong_path doesn't exist.],
+  "sync": [Error: Provided --schema at ./__fixtures__/getSchema/wrong_path doesn't exist.],
+}
+`)
 })
 
 it('reads relative schema path from the nearest package.json', async () => {
   const res = await testSchemaPath('pkg-json-valid-relative-path')
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/pkg-json-valid-relative-path/db/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/pkg-json-valid-relative-path/db/schema.prisma",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-valid-relative-path/db/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-valid-relative-path/db/schema.prisma",
+}
+`)
 })
 
 it('reads schema path from the nearest package.json and throws if path does not exist', async () => {
@@ -134,42 +135,42 @@ it('reads from the nearest package.json of the cwd', async () => {
   const res = await testSchemaPath('pkg-json-nearest/packages/a')
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/pkg-json-nearest/packages/a/db/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/pkg-json-nearest/packages/a/db/schema.prisma",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages/a/db/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages/a/db/schema.prisma",
+}
+`)
 })
 
 it('finds the conventional prisma/schema path without configuration', async () => {
   const res = await testSchemaPath('conventional-path')
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/conventional-path/prisma/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/conventional-path/prisma/schema.prisma",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/conventional-path/prisma/schema.prisma",
+}
+`)
 })
 
 it('finds the schema path in the root package.json of a yarn workspace from a child package', async () => {
   const res = await testSchemaPath('pkg-json-workspace-parent/packages/a')
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/pkg-json-workspace-parent/db/prisma.schema",
-      "sync": "src/__tests__/fixtures/getSchema/pkg-json-workspace-parent/db/prisma.schema",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/prisma.schema",
+  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/prisma.schema",
+}
+`)
 })
 
 it('finds the conventional schema path with yarn workspaces', async () => {
   const res = await testSchemaPath('conventional-path-workspaces')
 
   expect(res).toMatchInlineSnapshot(`
-    Object {
-      "async": "src/__tests__/fixtures/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
-      "sync": "src/__tests__/fixtures/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
-    }
-  `)
+Object {
+  "async": "src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/b/schema.prisma",
+}
+`)
 })

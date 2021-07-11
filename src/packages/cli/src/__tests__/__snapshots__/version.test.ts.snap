@@ -1,15 +1,15 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`version basic version (N-API) 1`] = `
-prisma               : placeholder
-@prisma/client       : placeholder
-Current platform     : placeholder
-N-API Query Engine   : placeholder
-Migration Engine     : placeholder
-Introspection Engine : placeholder
-Format Binary        : placeholder
-Default Engines Hash : placeholder
-Studio               : placeholder
+exports[`version basic version (Node-API) 1`] = `
+prisma                  : placeholder
+@prisma/client          : placeholder
+Current platform        : placeholder
+Query Engine (Node-API) : placeholder
+Migration Engine        : placeholder
+Introspection Engine    : placeholder
+Format Binary           : placeholder
+Default Engines Hash    : placeholder
+Studio                  : placeholder
 `;
 
 exports[`version basic version 1`] = `
@@ -24,16 +24,16 @@ Default Engines Hash : placeholder
 Studio               : placeholder
 `;
 
-exports[`version version with custom binaries (N-API) 1`] = `
-prisma               : placeholder
-@prisma/client       : placeholder
-Current platform     : placeholder
-N-API Query Engine   : placeholder
-Migration Engine     : placeholder
-Introspection Engine : placeholder
-Format Binary        : placeholder
-Default Engines Hash : placeholder
-Studio               : placeholder
+exports[`version version with custom binaries (Node-API) 1`] = `
+prisma                  : placeholder
+@prisma/client          : placeholder
+Current platform        : placeholder
+Query Engine (Node-API) : placeholder
+Migration Engine        : placeholder
+Introspection Engine    : placeholder
+Format Binary           : placeholder
+Default Engines Hash    : placeholder
+Studio                  : placeholder
 `;
 
 exports[`version version with custom binaries 1`] = `

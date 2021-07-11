@@ -1,7 +1,7 @@
-import { parseEnvValue } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
+import { parseEnvValue } from '@prisma/sdk'
 import { generateClient } from './generation/generateClient'
 import { getDMMF } from './generation/getDMMF'
 import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
@@ -18,7 +18,7 @@ if (require.main === module) {
       const requiredEngine =
         config?.previewFeatures?.includes('nApi') ||
         process.env.PRISMA_FORCE_NAPI === 'true'
-          ? 'libqueryEngineNapi'
+          ? 'libqueryEngine'
           : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
       return {
