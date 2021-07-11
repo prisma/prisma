@@ -110,7 +110,7 @@
     "typescript": "4.3.2"
   },
   "scripts": {
-    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1  --forceExit",
+    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
     "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
     "jest": "jest",
