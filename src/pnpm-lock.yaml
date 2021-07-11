@@ -1717,6 +1717,7 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
