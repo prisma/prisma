@@ -24,7 +24,6 @@ test('exit-hook', async () => {
       },
     ]
   `)
-  await prisma.$disconnect()
 })
 
 async function doWork(prisma) {
