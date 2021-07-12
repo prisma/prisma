@@ -20,9 +20,25 @@ import path from 'path'
 import { isError } from 'util'
 import { printError } from './prompt/utils/print'
 
-export const defaultSchema = (
-  provider = 'postgresql',
-) => `// This is your Prisma schema file,
+export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
+  if (provider === 'sqlserver' || provider === 'mongodb') {
+    return `// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["${
+    provider === 'sqlserver' ? 'microsoftSqlServer' : 'mongodb'
+  }"]
+}
+`
+  } else {
+    return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
@@ -34,6 +50,8 @@ generator client {
   provider = "prisma-client-js"
 }
 `
+  }
+}
 
 export const defaultEnv = (
   url = 'postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public',
@@ -43,7 +61,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -76,7 +94,7 @@ export const defaultURL = (
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
-      return `mongodb://johndoe:randompassword@localhost:${port}/mydb?authSource=admin`
+      return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':
       return 'file:./dev.db'
   }
@@ -96,7 +114,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLServer or SQLite
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQLServer (Preview) or MongoDB (Preview)
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
@@ -201,7 +219,7 @@ export class Init implements Command {
         )
       ) {
         throw new Error(
-          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlserver" or "sqlite".`,
+          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver" or "mongodb".`,
         )
       }
       provider = providerLowercase as ConnectorType
@@ -251,14 +269,23 @@ export class Init implements Command {
       }
     }
 
-    const steps = [
-      `Run ${chalk.green(
-        getCommandWithExecutor('prisma db pull'),
-      )} to turn your database schema into a Prisma data model.`,
+    const steps: string[] = []
+
+    if (provider === 'mongodb') {
+      steps.push(`Define models in the prisma.schema file.`)
+    } else {
+      steps.push(
+        `Run ${chalk.green(
+          getCommandWithExecutor('prisma db pull'),
+        )} to turn your database schema into a Prisma schema.`,
+      )
+    }
+
+    steps.push(
       `Run ${chalk.green(
         getCommandWithExecutor('prisma generate'),
-      )} to install Prisma Client. You can then start querying your database.`,
-    ]
+      )} to generate the Prisma Client. You can then start querying your database.`,
+    )
 
     if (!url || args['--datasource-provider']) {
       if (!args['--datasource-provider']) {
@@ -269,9 +296,9 @@ export class Init implements Command {
             'schema.prisma',
           )} to match your database: ${chalk.green(
             'postgresql',
-          )}, ${chalk.green('mysql')}, ${chalk.green(
+          )}, ${chalk.green('mysql')}, ${chalk.green('sqlite')}, ${chalk.green(
             'sqlserver',
-          )} or ${chalk.green('sqlite')}.`,
+          )} (Preview) or ${chalk.green('mongodb')} (Preview).`,
         )
       }
 
