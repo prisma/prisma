@@ -150,7 +150,7 @@ export async function getGenerators({
   })
 
   if (dmmf.datamodel.models.length === 0) {
-    // Should have a condition if MongoDB datasource to have @id @map("_id")
+// MongoDB needs extras for @id: @map("_id") @db.ObjectId
     if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
       throw new Error(missingModelMessageMongoDB)
     }
