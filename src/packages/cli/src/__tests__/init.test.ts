@@ -130,7 +130,9 @@ test('appends when .env present', async () => {
 
 test('writes a minimal .gitignore file', async () => {
   ctx.fixture('init');
-  const result = await ctx.cli('init');
+  await ctx.cli('init');
   const gitignore = fs.readFileSync(join(ctx.tmpDir, '.gitignore'), 'utf-8');
   expect(gitignore).toMatch(defaultGitIgnore());
+
+  expect(gitignore).toMatchSnapshot();
 })

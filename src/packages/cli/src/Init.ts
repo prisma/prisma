@@ -85,8 +85,7 @@ export const defaultURL = (
 export const defaultGitIgnore = () => {
   return `node_modules
 # Keep environment variables out of version control
-.env
-`
+.env`
 }
 
 export class Init implements Command {
@@ -116,8 +115,8 @@ export class Init implements Command {
   
   Setup a new Prisma project and specify the url that will be used
     ${chalk.dim(
-      '$',
-    )} prisma init --url mysql://user:password@localhost:3306/mydb
+    '$',
+  )} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -253,8 +252,8 @@ export class Init implements Command {
         fs.appendFileSync(
           envPath,
           `\n\n` +
-            '# This text is inserted by `prisma init`:\n' +
-            defaultEnv(url),
+          '# This text is inserted by `prisma init`:\n' +
+          defaultEnv(url),
         )
       }
     }
