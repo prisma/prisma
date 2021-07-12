@@ -37,7 +37,10 @@ import { resolveOutput } from './resolveOutput'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
-import { missingModelMessage } from './utils/missingGeneratorMessage'
+import {
+  missingModelMessage,
+  missingModelMessageMongoDB,
+} from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
 import {
   parseBinaryTargetsEnvValue,
@@ -147,11 +150,16 @@ export async function getGenerators({
   })
 
   if (dmmf.datamodel.models.length === 0) {
+    // Should have a condition if MongoDB datasource to have @id @map("_id")
+    if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
+      throw new Error(missingModelMessageMongoDB)
+    }
+
     throw new Error(missingModelMessage)
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongoDb')) &&
+    config.datasources.some((d) => d.provider.includes('mongodb')) &&
     !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
