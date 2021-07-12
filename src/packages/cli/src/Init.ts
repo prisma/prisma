@@ -33,7 +33,7 @@ datasource db {
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["${
-    provider === 'sqlserver' ? 'microsoftSqlServer' : 'mongodb'
+    provider === 'sqlserver' ? 'microsoftSqlServer' : 'mongoDb'
   }"]
 }
 `
@@ -263,8 +263,7 @@ export class Init implements Command {
       } else {
         fs.appendFileSync(
           envPath,
-          `\n\n` + '# This was inserted by `prisma init`:\n' +
-            defaultEnv(url),
+          `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url),
         )
       }
     }
