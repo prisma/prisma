@@ -31,3 +31,20 @@ ${chalk.bold(
 More information in our documentation:
 ${link('https://pris.ly/d/prisma-schema')}
 `
+
+export const missingModelMessageMongoDB = `\nYou don't have any ${chalk.bold(
+  'models',
+)} defined in your ${chalk.bold('schema.prisma')}, so nothing will be generated.
+You can define a model like this:
+
+${chalk.bold(
+  highlightDatamodel(`model User {
+  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  email String  @unique
+  name  String?
+}`),
+)}
+
+More information in our documentation:
+${link('https://pris.ly/d/prisma-schema')}
+`
