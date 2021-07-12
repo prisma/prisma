@@ -239,14 +239,13 @@ export class Init implements Command {
         warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
           url,
           false,
-        )} but the variable already exists in ${chalk.bold(
+        )} but this environment variable already exists in ${chalk.bold(
           path.relative(outputDir, envPath),
         )}`
       } else {
         fs.appendFileSync(
           envPath,
-          `\n\n` +
-            '# This text is inserted by `prisma init`:\n' +
+          `\n\n` + '# This was inserted by `prisma init`:\n' +
             defaultEnv(url),
         )
       }
