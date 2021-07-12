@@ -139,8 +139,11 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
-  ${process.env.PRISMA_FORCE_LRT === 'true' ? longRunningTransactionDefinition(): ''}
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>${
+    process.env.PRISMA_FORCE_LRT === 'true'
+      ? longRunningTransactionDefinition()
+      : ''
+  }
 
     ${indent(
       dmmf.mappings.modelOperations
