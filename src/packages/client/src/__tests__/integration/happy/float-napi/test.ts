@@ -1,6 +1,6 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('float-napi', async () => {
+test('float-node-api', async () => {
   await generateTestClient()
   const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
 

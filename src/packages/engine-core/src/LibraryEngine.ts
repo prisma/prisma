@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import {
-  getNapiName,
+  getNodeAPIName,
   getPlatform,
   isNodeAPISupported,
   Platform,
@@ -45,7 +45,7 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { fixBinaryTargets } from './util'
 import type * as Tx from './definitions/Transaction'
 
-const debug = Debug('prisma:client:napi')
+const debug = Debug('prisma:client:libraryEngine')
 
 function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
@@ -348,7 +348,6 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  // TODO Implement hookProcess to trigger stop
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
@@ -523,7 +522,10 @@ You may have to run ${chalk.greenBright(
     this.platform = this.platform ?? (await getPlatform())
 
     if (__filename.includes('LibraryEngine')) {
-      enginePath = path.join(getEnginesPath(), getNapiName(this.platform, 'fs'))
+      enginePath = path.join(
+        getEnginesPath(),
+        getNodeAPIName(this.platform, 'fs'),
+      )
       return { enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
@@ -542,12 +544,12 @@ You may have to run ${chalk.greenBright(
     for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Search for Query Engine Library in ${location}`)
-      enginePath = path.join(location, getNapiName(this.platform, 'fs'))
+      enginePath = path.join(location, getNodeAPIName(this.platform, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
       }
     }
-    enginePath = path.join(__dirname, getNapiName(this.platform, 'fs'))
+    enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
 
     return { enginePath: enginePath ?? '', searchedLocations }
   }

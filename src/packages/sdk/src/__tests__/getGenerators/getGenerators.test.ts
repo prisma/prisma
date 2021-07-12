@@ -509,7 +509,7 @@ describe('getGenerators', () => {
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
     const queryEngine = await resolveBinary(
       process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngineNapi
+        ? BinaryType.libqueryEngine
         : BinaryType.queryEngine,
     )
 
@@ -594,6 +594,75 @@ describe('getGenerators', () => {
         https://pris.ly/d/prisma-schema
         "
       `)
+    }
+  })
+
+  test('fail if no model(s) found - sqlite', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
+        providerAliases: aliases,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+You don't have any models defined in your schema.prisma, so nothing will be generated.
+You can define a model like this:
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+}
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
+    }
+  })
+
+  test('fail if no model(s) found - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'missing-models-mongodb-schema.prisma',
+        ),
+        providerAliases: aliases,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+You don't have any models defined in your schema.prisma, so nothing will be generated.
+You can define a model like this:
+
+model User {
+  id    String  @id @default(dbgenerated()) @map(\\"_id\\") @db.ObjectId
+  email String  @unique
+  name  String?
+}
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
     }
   })
 })
