@@ -306,7 +306,7 @@ function zeroOutPatch(version: string): string {
 
 /**
  * Takes the max dev version + 1
- * For now supporting 2.Y.Z-dev.#
+ * For now supporting X.Y.Z-dev.#
  * @param packages Local package definitions
  */
 async function getNewDevVersion(packages: Packages): Promise<string> {
@@ -329,7 +329,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
 
 /**
  * Takes the max dev version + 1
- * For now supporting 2.Y.Z-dev.#
+ * For now supporting X.Y.Z-dev.#
  * @param packages Local package definitions
  */
 async function getNewIntegrationVersion(
@@ -407,10 +407,10 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const minor = getMinorFromPatchBranch(patchBranch)
+  const { minor, major } = getSemverFromPatchBranch(patchBranch)
   const currentPatch = await getCurrentPatchForMinor(minor)
   const newPatch = currentPatch + 1
-  const newVersion = `2.${minor}.${newPatch}`
+  const newVersion = `${major}.${minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
@@ -514,14 +514,18 @@ async function getNextMinorStable(): Promise<string | null> {
   return increaseMinor(remoteVersion)
 }
 
-// TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string): number | null {
-  const regex = /2\.(\d+)\.x/
+
+function getSemverFromPatchBranch(version: string): number | null {
+  const regex = /(\d+)\.(\d+)\.x/
   const match = regex.exec(version)
 
   if (match) {
-    return Number(match[1])
-  }
+    return  {
+      major: Number(match[0]),
+      minor: Number(match[1]),
+      patch: Number(match[2])
+    } 
+ }
 
   return null
 }
@@ -583,16 +587,13 @@ async function publish() {
         )} is not a valid semver version.`,
       )
     }
-    const releaseRegex = /2\.\d{1,2}\.\d{1,2}/
-    if (
-      !args['--release'].startsWith('2.') ||
-      !releaseRegex.test(args['--release'])
-    ) {
+    const releaseRegex = /\d{1,2}\.\d{1,2}\.\d{1,2}/
+    if (!releaseRegex.test(args['--release'])) {
       throw new Error(
         `New release version ${chalk.bold.underline(
           args['--release'],
         )} does not follow the stable naming scheme: ${chalk.bold.underline(
-          '2.x.y',
+          'x.y.z',
         )}`,
       )
     }
@@ -1080,12 +1081,6 @@ async function publishPackages(
       const pkgDir = path.dirname(pkg.path)
 
       let newVersion = prisma2Version
-      if (
-        pkgName === '@prisma/engine-core' &&
-        process.env.BUILDKITE_TAG === '2.0.1'
-      ) {
-        newVersion = '2.0.1-1'
-      }
 
       console.log(
         `\nPublishing ${chalk.magentaBright(
@@ -1124,14 +1119,8 @@ async function publishPackages(
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
-      const skipPackages =
-        process.env.BUILDKITE_TAG === '2.0.1'
-          ? [
-              '@prisma/debug',
-              '@prisma/generator-helper',
-              '@prisma/ink-components',
-            ]
-          : []
+      
+      const skipPackages = []
       if (!skipPackages.includes(pkgName)) {
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
       }
@@ -1299,7 +1288,7 @@ function getPatchBranch(): string | null {
   }
 
   if (process.env.BUILDKITE_BRANCH) {
-    const minor = getMinorFromPatchBranch(process.env.BUILDKITE_BRANCH)
+    const { minor } = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
     if (minor !== null) {
       return process.env.BUILDKITE_BRANCH
     }
