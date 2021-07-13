@@ -140,22 +140,7 @@ export type HookParams = {
   args: any
 }
 
-
-// TODO: can we replace this with DMMF.ModelAction?
-export type Action =
-  | 'findUnique'
-  | 'findFirst'
-  | 'findMany'
-  | 'create'
-  | 'createMany'
-  | 'update'
-  | 'updateMany'
-  | 'upsert'
-  | 'delete'
-  | 'deleteMany'
-  | 'executeRaw'
-  | 'queryRaw'
-  | 'aggregate'
+export type Action = DMMF.ModelAction | 'executeRaw' | 'queryRaw'
 
 export type InternalRequestParams = {
   /**
@@ -274,8 +259,8 @@ export interface Client {
   _errorFormat: ErrorFormat
   $use<T>(
     arg0: Namespace | QueryMiddleware<T>,
-    arg1?: QueryMiddleware | EngineMiddleware<T>
-  );
+    arg1?: QueryMiddleware | EngineMiddleware<T>,
+  )
   $on(eventType: EngineEventType, callback: (event: any) => void)
   $connect()
   $disconnect()
@@ -284,7 +269,7 @@ export interface Client {
     stringOrTemplateStringsArray:
       | ReadonlyArray<string>
       | string
-      | sqlTemplateTag.Sql
+      | sqlTemplateTag.Sql,
   )
   $queryRaw(stringOrTemplateStringsArray)
   __internal_triggerPanic(fatal: boolean)
@@ -991,10 +976,10 @@ new PrismaClient({
      */
     private async _transaction(input: any, options?: any) {
       if (typeof input === 'function') {
-        return await this._transactionWithCallback(input, options)
+        return this._transactionWithCallback(input, options)
       }
 
-      return await this._transactionWithRequests(input, options)
+      return this._transactionWithRequests(input, options)
     }
 
     /**
@@ -1004,46 +989,53 @@ new PrismaClient({
      * @returns
      */
     private async _transactionWithCallback(
-      callback: (client: PrismaClient) => Promise<unknown>,
+      callback: (client: Client) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
       // transactions are inlined through their scheduler
-      return await this._transactionScheduler.exec(async () => {
+      return this._transactionScheduler.exec(async () => {
         // we ask the query engine to open a transaction
         const info = await this._engine.transaction('start', options)
 
         let result: unknown
         try {
-          result = await callback(this) // execute logic
+          // execute user logic with a proxied the client
+          result = await callback(transactionProxy(this, info.id))
 
-          // it went well then we commit the transaction
+          // it went well, then we commit the transaction
           await this._engine.transaction('commit', info)
         } catch (e) {
-          // it went bad then we rollback the transaction
+          // it went bad, then we rollback the transaction
           await this._engine.transaction('rollback', info)
 
           throw e
         }
 
-        return await result
+        return result
       })
     }
 
     /**
-     * Execute a batch of requests in a LRT
+     * Execute a batch of requests in a transaction
      * @param requests
      * @param options
      */
     private async _transactionWithRequests(
-      requests: Array<unknown>,
+      requests: Array<Promise<unknown>>,
       options?: { maxWait: number; timeout: number },
     ) {
-      return await this._transactionWithCallback(async () => {
-        // we execute all of the requests one by one
-        for (const request of requests) await request
+      return this._transactionWithCallback(async (prisma) => {
+        const transactionId: string = prisma[TX_ID] // some proxy magic
 
-        // we return the result of the last request
-        return requests[requests.length - 1]
+        const _requests = requests.map((request) => {
+          return new Promise((resolve, reject) => {
+            // each request has already been called with `prisma.<call>`
+            // so we inject `transactionId` by intercepting that promise
+            ;(request as any).then(resolve, reject, transactionId)
+          })
+        })
+
+        return Promise.all(_requests) // get results from `BatchLoader`
       }, options)
     }
 
@@ -1239,7 +1231,7 @@ new PrismaClient({
             const requestModelName = modelName ?? model.name
 
             const clientImplementation = {
-              then: (onfulfilled, onrejected) => {
+              then: (onfulfilled, onrejected, transactionId?: number) => {
                 if (!requestPromise) {
                   requestPromise = this._request({
                     args,
@@ -1249,6 +1241,7 @@ new PrismaClient({
                     clientMethod,
                     callsite,
                     runInTransaction: false,
+                    transactionId: transactionId,
                     unpacker,
                   })
                 }
@@ -1272,38 +1265,8 @@ new PrismaClient({
 
                 return requestPromise
               },
-              catch: (onrejected) => {
-                if (!requestPromise) {
-                  requestPromise = this._request({
-                    args,
-                    dataPath,
-                    action: actionName,
-                    model: requestModelName,
-                    clientMethod,
-                    callsite,
-                    runInTransaction: false,
-                    unpacker,
-                  })
-                }
-
-                return requestPromise.catch(onrejected)
-              },
-              finally: (onfinally) => {
-                if (!requestPromise) {
-                  requestPromise = this._request({
-                    args,
-                    dataPath,
-                    action: actionName,
-                    model: requestModelName,
-                    clientMethod,
-                    callsite,
-                    runInTransaction: false,
-                    unpacker,
-                  })
-                }
-
-                return requestPromise.finally(onfinally)
-              },
+              catch: (onrejected) => requestPromise?.catch(onrejected),
+              finally: (onfinally) => requestPromise?.finally(onfinally),
             }
 
             // add relation fields
@@ -1505,8 +1468,45 @@ new PrismaClient({
     }
   }
 
-  return PrismaClient as (new (optionsArg?: PrismaClientOptions) => Client)
+  return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
+
+/**
+ * Proxy that takes over client promises to pass `transactionId`
+ * @param thing to be proxied
+ * @param transactionId to be passed down to `_query`
+ * @returns
+ */
+function transactionProxy<T>(thing: T, transactionId: string): T {
+  // we only wrap within a proxy if it's posible, if it's an object
+  if (typeof thing !== 'object') return thing
+
+  return new Proxy(thing as any as object, {
+    get: (target, prop) => {
+      // secret accessor to get the `transactionId` in a transaction
+      if (prop === TX_ID) return transactionId
+
+      if (typeof target[prop] === 'function') {
+        // we override & handle every function call within the proxy
+        return (...args: unknown[]) => {
+          if (prop === 'then') {
+            // this is our promise, we pass it an extra info argument
+            // this will call "our" `then` which will call `_request`
+            return target[prop](...args, transactionId)
+          }
+
+          // if it's not the end promise, continue wrapping as it goes
+          return transactionProxy(target[prop](...args), transactionId)
+        }
+      }
+
+      // probably an object, not the end, continue wrapping as it goes
+      return transactionProxy(target[prop], transactionId)
+    },
+  }) as any as T
+}
+
+const TX_ID = Symbol.for('prisma.client.tx_id')
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (

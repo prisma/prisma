@@ -9,7 +9,7 @@ import {
 import { DataLoader } from './DataLoader'
 import { Client, Unpacker } from './getPrismaClient'
 import { EngineMiddleware } from './MiddlewareHandler'
-import { Document, unpack } from './query'
+import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
 import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:fetcher')
@@ -49,7 +49,7 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const headers = {transactionId: requests[0].transactionId}
+        const headers = { transactionId: requests[0].transactionId }
         const queries = requests.map((r) => String(r.document))
 
         return this.client._engine.requestBatch(queries, headers)
@@ -60,7 +60,11 @@ export class RequestHandler {
         return this.client._engine.request(query, request.headers)
       },
       batchBy: (request) => {
-        return `${request.transactionId}` ?? 'batch'
+        if (request.transactionId) {
+          return `transaction-${request.transactionId}`
+        }
+
+        return batchFindUniqueBy(request)
       },
     })
   }
@@ -212,4 +216,38 @@ export class RequestHandler {
   get [Symbol.toStringTag]() {
     return 'RequestHandler'
   }
+}
+
+/**
+ * Determines which `findUnique` queries can be batched together so that the
+ * query engine can collapse/optimize the queries into a single one. This is
+ * especially useful for GQL to generate more efficient queries.
+ *
+ * @see https://www.prisma.io/docs/guides/performance-and-optimization/query-optimization-performance
+ * @param request
+ * @returns
+ */
+function batchFindUniqueBy(request: Request) {
+  // if it's not a findUnique query then we don't attempt optimizing
+  if (!request.document.children[0].name.startsWith('findUnique')) {
+    return undefined
+  }
+
+  // we generate a string for the fields we have used in the `where`
+  const args = request.document.children[0].args?.args
+    .map((a) => {
+      if (a.value instanceof Args) {
+        return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
+      }
+      return a.key
+    })
+    .join(',')
+
+  // we generate a string for the fields we have used in the `includes`
+  const selectionSet = request.document.children[0].children!.join(',')
+
+  // queries that share this token will be batched and collapsed alltogether
+  return `${request.document.children[0].name}|${args}|${selectionSet}`
+  // this way, the query engine will be able to collapse into a single call
+  // and that is because all the queries share their `where` and `includes`
 }

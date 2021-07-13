@@ -43,7 +43,10 @@ import { printGeneratorConfig } from './printGeneratorConfig'
 import { Connection, Result } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from './util'
 import type * as Tx from './definitions/Transaction'
-import { QueryEngineRequestHeaders, QueryEngineResult } from './NodeAPILibraryTypes'
+import {
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from './NodeAPILibraryTypes'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)

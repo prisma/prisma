@@ -54,8 +54,8 @@ class Scheduler {
    * @param taskId taskId from [[queue]]
    * @returns task return value
    */
-  async wait(taskId: string): Promise<unknown> {
-    const result = await this._results[taskId]
+  wait(taskId: string): Promise<unknown> {
+    const result = this._results[taskId]
 
     // a result can only be retrieved once
     delete this._results[taskId]
@@ -64,15 +64,14 @@ class Scheduler {
   }
 
   /**
-   * Queue and wait for task
+   * Queue and wait for a [[Task]]
    * @param task to execute
    * @returns task return value
    */
   async exec<R>(task: Task<R>): Promise<R> {
     const taskId = this.queue(task)
-    const result = await this.wait(taskId)
 
-    return result as R
+    return this.wait(taskId) as Promise<R>
   }
 }
 
