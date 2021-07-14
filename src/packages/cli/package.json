@@ -63,17 +63,17 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "2.27.0-43.cdba6ec525e0213cce26f8e4bb23cf556d1479bb",
+    "@prisma/fetch-engine": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.27.0-43.cdba6ec525e0213cce26f8e4bb23cf556d1479bb",
+    "@prisma/get-platform": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio-server": "0.410.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.24",
     "@types/ws": "7.4.6",
-    "@typescript-eslint/eslint-plugin": "4.28.2",
-    "@typescript-eslint/parser": "4.28.2",
+    "@typescript-eslint/eslint-plugin": "4.28.3",
+    "@typescript-eslint/parser": "4.28.3",
     "chalk": "4.1.1",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
@@ -93,7 +93,7 @@
     "is-installed-globally": "0.4.0",
     "jest": "27.0.6",
     "line-replace": "2.0.1",
-    "lint-staged": "11.0.0",
+    "lint-staged": "11.0.1",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.1",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.27.0-43.cdba6ec525e0213cce26f8e4bb23cf556d1479bb"
+    "@prisma/engines": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5"
   },
   "lint-staged": {
     "*.ts": [
