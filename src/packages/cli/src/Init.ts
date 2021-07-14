@@ -85,7 +85,8 @@ export const defaultURL = (
 export const defaultGitIgnore = () => {
   return `node_modules
 # Keep environment variables out of version control
-.env`
+.env
+`
 }
 
 export class Init implements Command {
@@ -258,11 +259,15 @@ export class Init implements Command {
       }
     }
 
-    fs.writeFileSync(
-      path.join(outputDir, ".gitignore"),
-      defaultGitIgnore()
-    );
-
+    try {
+        fs.writeFileSync(
+        path.join(outputDir, ".gitignore"),
+        defaultGitIgnore()
+      );
+    } catch (error) {
+      console.error("Failed to write .gitignore file, reason: ", error);
+    }
+    
     const steps = [
       `Run ${chalk.green(
         getCommandWithExecutor('prisma db pull'),

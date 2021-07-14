@@ -113,4 +113,5 @@ exports[`writes a minimal .gitignore file 1`] = `
 node_modules
 # Keep environment variables out of version control
 .env
+
 `;
