@@ -824,7 +824,7 @@ export const scenarios = [
     name: 'findMany where contains',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -852,7 +852,7 @@ export const scenarios = [
     name: 'findMany where startsWith',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -880,7 +880,7 @@ export const scenarios = [
     name: 'findMany where endsWith',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -908,7 +908,7 @@ export const scenarios = [
     name: 'findMany where in[string]',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -937,7 +937,7 @@ export const scenarios = [
     todo: true,
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -1097,7 +1097,7 @@ export const scenarios = [
     name: 'findMany where datetime exact',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1118,7 +1118,7 @@ export const scenarios = [
     name: 'findMany where datetime gt',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1134,7 +1134,7 @@ export const scenarios = [
     name: 'findMany where datetime gte',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1155,7 +1155,7 @@ export const scenarios = [
     name: 'findMany where datetime lt',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1171,7 +1171,7 @@ export const scenarios = [
     name: 'findMany where datetime lte',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1192,7 +1192,7 @@ export const scenarios = [
     name: 'findMany where datetime not',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1208,7 +1208,7 @@ export const scenarios = [
     name: 'findMany where null',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values (NULL);

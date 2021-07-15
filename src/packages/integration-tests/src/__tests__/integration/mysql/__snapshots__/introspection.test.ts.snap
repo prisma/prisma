@@ -340,7 +340,7 @@ datasource mysql {
 }
 
 model crons {
-  id        BigInt  @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
   job       String  @unique @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
@@ -361,7 +361,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -381,7 +381,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -401,7 +401,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -421,7 +421,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -462,7 +462,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -482,7 +482,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -564,7 +564,7 @@ datasource mysql {
 }
 
 model crons {
-  id        BigInt  @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
   job       String  @unique @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
@@ -627,7 +627,7 @@ datasource mysql {
 }
 
 model crons {
-  id        BigInt  @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
   job       String  @unique @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
@@ -669,7 +669,7 @@ datasource mysql {
 }
 
 model events {
-  id   BigInt    @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id   BigInt    @id @default(autoincrement()) @mysql.UnsignedBigInt
   time DateTime? @mysql.DateTime(0)
 }
 
@@ -689,7 +689,7 @@ datasource mysql {
 }
 
 model crons {
-  id        BigInt  @id @unique @default(autoincrement()) @mysql.UnsignedBigInt
+  id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
   job       String  @unique @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
