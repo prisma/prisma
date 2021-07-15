@@ -49,10 +49,10 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5",
-    "@prisma/fetch-engine": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5",
+    "@prisma/engines": "2.28.0-6.38dace040e942464c85ed344b6fb75031ee28ed8",
+    "@prisma/fetch-engine": "2.28.0-6.38dace040e942464c85ed344b6fb75031ee28ed8",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.28.0-1.cf7c128233ec6c3ae31012228f18d4e43b6140c5",
+    "@prisma/get-platform": "2.28.0-6.38dace040e942464c85ed344b6fb75031ee28ed8",
     "@timsuchanek/copy": "^1.4.5",
     "archiver": "^4.0.0",
     "arg": "^5.0.0",
