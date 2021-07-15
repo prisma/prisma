@@ -5,11 +5,12 @@ export {
   PrismaClientUnknownRequestError,
 } from './errors'
 export { getInternalDatamodelJson } from './getInternalDatamodelJson'
-export { NAPIEngine } from './NAPIEngine'
-export { NodeEngine as Engine } from './NodeEngine'
+export { LibraryEngine } from './LibraryEngine'
+export { BinaryEngine } from './BinaryEngine'
+export { Engine } from './Engine'
 export {
   printGeneratorConfig,
   getOriginalBinaryTargetsValue,
 } from './printGeneratorConfig'
-export * as NApiEngineTypes from './napi-types'
+export * as NodeAPILibraryTypes from './NodeAPILibraryTypes'
 export { fixBinaryTargets } from './util'

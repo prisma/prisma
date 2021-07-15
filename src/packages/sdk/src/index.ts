@@ -68,9 +68,11 @@ export {
   parseEnvValue,
 } from './utils/parseEnvValue'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { load } from './utils/load'
 export {
   Position,
   trimBlocksFromSchema,
   trimNewLine,
 } from './utils/trimBlocksFromSchema'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
+export { Platform, getPlatform, getNodeAPIName } from '@prisma/get-platform'

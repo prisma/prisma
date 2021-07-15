@@ -46,9 +46,11 @@ export class MigrateEngine {
   private child?: ChildProcess
   private schemaPath: string
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
+  /**  _All_ the logs from the engine process. */
   private messages: string[] = []
   private lastRequest?: any
-  private lastError?: any
+  /** The fields of the last engine log event with an `ERROR` level. */
+  private lastError: MigrateEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
   constructor({
@@ -221,40 +223,44 @@ export class MigrateEngine {
 
         this.child.on('error', (err) => {
           console.error('[migration-engine] error: %s', err)
-          reject(err)
           this.rejectAll(err)
+          reject(err)
         })
 
-        this.child.on('exit', (code) => {
-          const messages = this.messages.join('\n')
-          let err: RustPanic | Error | undefined
-          if (
-            code !== MigrateEngineExitCode.Success ||
-            messages.includes('panicking')
-          ) {
-            let errorMessage =
-              chalk.red.bold('Error in migration engine: ') + messages
-            if (this.lastError && code === MigrateEngineExitCode.Panic) {
-              errorMessage = serializePanic(this.lastError)
-              err = new RustPanic(
-                errorMessage,
-                this.lastError.message,
-                this.lastRequest,
-                ErrorArea.LIFT_CLI,
-                this.schemaPath,
-              )
-            } else if (code === MigrateEngineExitCode.Panic) {
-              err = new RustPanic(
-                errorMessage,
-                messages,
-                this.lastRequest,
-                ErrorArea.LIFT_CLI,
-                this.schemaPath,
-              )
-            }
-            err = err || new Error(errorMessage)
+        this.child.on('exit', (code: number | null): void => {
+          const exitWithErr = (err: RustPanic | Error): void => {
             this.rejectAll(err)
             reject(err)
+          }
+          const engineMessage =
+            this.lastError?.message || this.messages.join('\n')
+          const handlePanic = () => {
+            const stackTrace = this.messages.join('\n')
+            exitWithErr(
+              new RustPanic(
+                serializePanic(engineMessage),
+                stackTrace,
+                this.lastRequest,
+                ErrorArea.LIFT_CLI,
+                this.schemaPath,
+              ),
+            )
+          }
+
+          switch (code) {
+            case MigrateEngineExitCode.Success:
+              break
+            case MigrateEngineExitCode.Error:
+              exitWithErr(
+                new Error(`Error in migration engine: ${engineMessage}`),
+              )
+              break
+            case MigrateEngineExitCode.Panic:
+              handlePanic()
+              break
+            // treat unknown error codes as panics
+            default:
+              handlePanic()
           }
         })
 
@@ -275,9 +281,6 @@ export class MigrateEngine {
 
             this.messages.push(json.fields.message)
 
-            if (json.fields.backtrace) {
-              this.lastError = json.fields
-            }
             if (json.level === 'ERROR') {
               this.lastError = json.fields
             }
@@ -398,11 +401,12 @@ export class MigrateEngine {
   }
 }
 
-function serializePanic(log): string {
+/** The full message with context we return to the user in case of engine panic. */
+function serializePanic(log: string): string {
   return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
-    `${log.message}`,
+    `${log}`,
   )}
 
-Please create an issue with your \`schema.prisma\` at 
+Please create an issue with your \`schema.prisma\` at
 ${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
 }

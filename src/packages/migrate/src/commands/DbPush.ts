@@ -21,6 +21,7 @@ import {
   NoSchemaFoundError,
 } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
+import { EngineResults } from '../types'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -111,8 +112,14 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     const migrate = new Migrate(schemaPath)
 
-    let wasDatabaseReset = false
+    // Automatically create the database if it doesn't exist
+    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+    if (wasDbCreated) {
+      console.info()
+      console.info(wasDbCreated)
+    }
 
+    let wasDatabaseReset = false
     if (args['--force-reset']) {
       console.info()
       await migrate.reset()
@@ -128,17 +135,16 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       wasDatabaseReset = true
     }
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
-    if (wasDbCreated) {
-      console.info()
-      console.info(wasDbCreated)
-    }
-
     const before = Date.now()
-    const migration = await migrate.push({
-      force: args['--accept-data-loss'],
-    })
+    let migration: EngineResults.SchemaPush
+    try {
+      migration = await migrate.push({
+        force: args['--accept-data-loss'],
+      })
+    } catch (e) {
+      migrate.stop()
+      throw e
+    }
 
     if (migration.unexecutable && migration.unexecutable.length > 0) {
       const messages: string[] = []

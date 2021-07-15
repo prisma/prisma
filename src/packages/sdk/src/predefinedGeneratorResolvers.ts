@@ -4,10 +4,12 @@ import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
-import resolvePkg from 'resolve-pkg'
+import { resolvePkg } from './utils/resolve'
 import { logger } from '.'
 import { getCommandWithExecutor } from './getCommandWithExecutor'
 const debug = Debug('prisma:generator')
+
+const realPath = fs.promises.realpath
 
 export type GeneratorPaths = {
   outputPath: string
@@ -29,19 +31,27 @@ export type PredefinedGeneratorResolvers = {
  * @param baseDir from where to start looking from
  * @returns `@prisma/client` location
  */
-function findPrismaClientDir(baseDir: string) {
-  const prismaCLIDir = resolvePkg('prisma', { cwd: baseDir })
-  const prismaClientDir = resolvePkg('@prisma/client', { cwd: baseDir })
+async function findPrismaClientDir(baseDir: string) {
+  const resolveOpts = { basedir: baseDir, preserveSymlinks: true }
+  const CLIDir = await resolvePkg('prisma', resolveOpts)
+  const clientDir = await resolvePkg('@prisma/client', resolveOpts)
+  const resolvedClientDir = clientDir && (await realPath(clientDir))
 
-  // If CLI not found, we can only continue forward (likely a test)
-  if (prismaCLIDir === undefined) return prismaClientDir
+  debug('prismaCLIDir', CLIDir)
+  debug('prismaClientDir', clientDir)
 
-  return (
-    // the client and the cli are a unit and should be found together
-    prismaClientDir === path.resolve(prismaCLIDir, '..', '@prisma/client')
-      ? prismaClientDir
-      : undefined
-  )
+  // If CLI not found, we can only continue forward, likely a test
+  if (CLIDir === undefined) return resolvedClientDir
+  if (clientDir === undefined) return resolvedClientDir
+
+  // for everything to work well we expect `../<client-dir>`
+  const relDir = path.relative(CLIDir, clientDir).split(path.sep)
+
+  // if the client is not near `prisma`, in parent folder => fail
+  if (relDir[0] !== '..' || relDir[1] === '..') return undefined
+
+  // we return the resolved location as pnpm users will want that
+  return resolvedClientDir
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
@@ -62,13 +72,12 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       `)
   },
   'prisma-client-js': async (baseDir, version) => {
-    let prismaClientDir = findPrismaClientDir(baseDir)
-
-    checkYarnVersion()
-    checkTypeScriptVersion()
+    let prismaClientDir = await findPrismaClientDir(baseDir)
 
     debug('baseDir', baseDir)
-    debug('prismaClientDir', prismaClientDir)
+
+    checkYarnVersion()
+    await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       if (
@@ -88,7 +97,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   "author": "",
   "license": "ISC"
 }
-        `
+`
         fs.writeFileSync(
           path.join(process.cwd(), 'package.json'),
           defaultPackageJson,
@@ -100,7 +109,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       // resolvePkg has caching, so we trick it not to do it 👇
-      prismaClientDir = findPrismaClientDir(path.join('.', baseDir))
+      prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))
 
       if (!prismaClientDir) {
         throw new Error(
@@ -185,10 +194,12 @@ function checkYarnVersion() {
  * Warn, if typescript is below `4.1.0` and is install locally
  * Because Template Literal Types are required for generating Prisma Client types.
  */
-function checkTypeScriptVersion() {
+async function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
   try {
-    const typescriptPath = resolvePkg('typescript', { cwd: process.cwd() })
+    const typescriptPath = await resolvePkg('typescript', {
+      basedir: process.cwd(),
+    })
     const typescriptPkg =
       typescriptPath && path.join(typescriptPath, 'package.json')
     if (typescriptPkg && fs.existsSync(typescriptPkg)) {

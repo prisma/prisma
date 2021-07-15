@@ -37,7 +37,10 @@ import { resolveOutput } from './resolveOutput'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 import { missingDatasource } from './utils/missingDatasource'
-import { missingModelMessage } from './utils/missingGeneratorMessage'
+import {
+  missingModelMessage,
+  missingModelMessageMongoDB,
+} from './utils/missingGeneratorMessage'
 import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
 import {
   parseBinaryTargetsEnvValue,
@@ -95,7 +98,7 @@ export async function getGenerators({
 
   const queryEngineBinaryType =
     process.env.PRISMA_FORCE_NAPI === 'true'
-      ? BinaryType.libqueryEngineNapi
+      ? BinaryType.libqueryEngine
       : BinaryType.queryEngine
 
   const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
@@ -147,11 +150,16 @@ export async function getGenerators({
   })
 
   if (dmmf.datamodel.models.length === 0) {
+// MongoDB needs extras for @id: @map("_id") @db.ObjectId
+    if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
+      throw new Error(missingModelMessageMongoDB)
+    }
+
     throw new Error(missingModelMessage)
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongoDb')) &&
+    config.datasources.some((d) => d.provider.includes('mongodb')) &&
     !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
@@ -538,6 +546,7 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
 export const knownBinaryTargets: Platform[] = [
   'native',
   'darwin',
+  'darwin-arm64',
   'debian-openssl-1.0.x',
   'debian-openssl-1.1.x',
   'linux-arm-openssl-1.0.x',
@@ -681,8 +690,8 @@ function engineTypeToBinaryType(engineType: EngineType): BinaryType {
   if (engineType === 'queryEngine') {
     return BinaryType.queryEngine
   }
-  if (engineType === 'libqueryEngineNapi') {
-    return BinaryType.libqueryEngineNapi
+  if (engineType === 'libqueryEngine') {
+    return BinaryType.libqueryEngine
   }
   if (engineType === 'prismaFmt') {
     return BinaryType.prismaFmt
@@ -699,8 +708,8 @@ function binaryTypeToEngineType(binaryType: string): EngineType {
   if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }
-  if (binaryType === BinaryType.libqueryEngineNapi) {
-    return 'libqueryEngineNapi'
+  if (binaryType === BinaryType.libqueryEngine) {
+    return 'libqueryEngine'
   }
   if (binaryType === BinaryType.queryEngine) {
     return 'queryEngine'

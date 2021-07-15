@@ -3,14 +3,14 @@
 exports[`appends when .env present 1`] = `
 Environment variables loaded from .env
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlserver or sqlite.
-3. Run prisma db pull to turn your database schema into a Prisma data model.
-4. Run prisma generate to install Prisma Client. You can then start querying your database.
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver (Preview) or mongodb (Preview).
+3. Run prisma db pull to turn your database schema into a Prisma schema.
+4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -20,11 +20,11 @@ https://pris.ly/d/getting-started
 exports[`appends when .env present 2`] = `
 SOMTHING="is here"
 
-# This text is inserted by \`prisma init\`:
+# This was inserted by \`prisma init\`:
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQL Server and SQLite.
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
@@ -32,14 +32,14 @@ DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=pub
 
 exports[`is schema and env written on disk replace 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlserver or sqlite.
-3. Run prisma db pull to turn your database schema into a Prisma data model.
-4. Run prisma generate to install Prisma Client. You can then start querying your database.
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver (Preview) or mongodb (Preview).
+3. Run prisma db pull to turn your database schema into a Prisma schema.
+4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -49,16 +49,31 @@ https://pris.ly/d/getting-started
 exports[`warns when DATABASE_URL present in .env  1`] = `
 Environment variables loaded from .env
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
-warn Prisma would have added DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public" but it already exists in .env
+warn Prisma would have added DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public" but this environment variable already exists in .env
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlserver or sqlite.
-3. Run prisma db pull to turn your database schema into a Prisma data model.
-4. Run prisma generate to install Prisma Client. You can then start querying your database.
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver (Preview) or mongodb (Preview).
+3. Run prisma db pull to turn your database schema into a Prisma schema.
+4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`works with provider param - MongoDB 1`] = `
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Define models in the prisma.schema file.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -67,13 +82,28 @@ https://pris.ly/d/getting-started
 
 exports[`works with provider param - SQLITE 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Run prisma db pull to turn your database schema into a Prisma data model.
-3. Run prisma generate to install Prisma Client. You can then start querying your database.
+2. Run prisma db pull to turn your database schema into a Prisma schema.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`works with provider param - SqlServer 1`] = `
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Run prisma db pull to turn your database schema into a Prisma schema.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -82,13 +112,28 @@ https://pris.ly/d/getting-started
 
 exports[`works with provider param - mysql 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Run prisma db pull to turn your database schema into a Prisma data model.
-3. Run prisma generate to install Prisma Client. You can then start querying your database.
+2. Run prisma db pull to turn your database schema into a Prisma schema.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+
+More information in our documentation:
+https://pris.ly/d/getting-started
+    
+`;
+
+exports[`works with provider param - postgresql 1`] = `
+
+✔ Your Prisma schema was created at prisma/schema.prisma
+  You can now open it in your favorite editor.
+
+Next steps:
+1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+2. Run prisma db pull to turn your database schema into a Prisma schema.
+3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -97,12 +142,12 @@ https://pris.ly/d/getting-started
 
 exports[`works with url param 1`] = `
 
-✔ Your Prisma schema was created at prisma/schema.prisma.
+✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
 
 Next steps:
-1. Run prisma db pull to turn your database schema into a Prisma data model.
-2. Run prisma generate to install Prisma Client. You can then start querying your database.
+1. Run prisma db pull to turn your database schema into a Prisma schema.
+2. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started

@@ -7,19 +7,19 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
 const version = 'e6bd3dc12d849124a04c3a8e6bd9c194381afda3'
 
 describe('version', () => {
-  // N-API Tests
+  // Node-API Tests
 
-  testIf(useNAPI)('basic version (N-API)', async () => {
+  testIf(useNodeAPI)('basic version (Node-API)', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(useNAPI)(
-    'version with custom binaries (N-API)',
+  testIf(useNodeAPI)(
+    'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
@@ -58,12 +58,12 @@ describe('version', () => {
 
   // Binary Tests
 
-  testIf(!useNAPI)('basic version', async () => {
+  testIf(!useNodeAPI)('basic version', async () => {
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(!useNAPI)(
+  testIf(!useNodeAPI)(
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')

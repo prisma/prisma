@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { getNapiName, getPlatform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -49,7 +49,7 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNapi =
+  const useNodeAPI =
     previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
 
   const dmmf = await getDMMF({
@@ -99,12 +99,15 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  const napiLibraryPath = path.join(enginesPath, getNapiName(platform, 'fs'))
+  const nodeAPILibraryPath = path.join(
+    enginesPath,
+    getNodeAPIName(platform, 'fs'),
+  )
   if (
-    (useNapi || process.env.PRISMA_FORCE_NAPI) &&
-    !fs.existsSync(napiLibraryPath)
+    (useNodeAPI || process.env.PRISMA_FORCE_NAPI) &&
+    !fs.existsSync(nodeAPILibraryPath)
   ) {
-    // This is required as the NAPI library is not downloaded by default
+    // This is required as the Node-API library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine': enginesPath,
@@ -112,10 +115,10 @@ export async function generateInFolder({
       version: enginesVersion,
     })
   }
-  const binaryPaths = useNapi
+  const binaryPaths = useNodeAPI
     ? {
-        libqueryEngineNapi: {
-          [platform]: napiLibraryPath,
+        libqueryEngine: {
+          [platform]: nodeAPILibraryPath,
         },
       }
     : {
