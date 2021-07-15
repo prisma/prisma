@@ -28,7 +28,7 @@ test('introspection basic', async () => {
       published Boolean  @default(false)
       title     String   @default(\\"\\")
       updatedAt DateTime @default(dbgenerated(\\"'1970-01-01 00:00:00'\\"))
-      uuid      String   @id
+      uuid      String   @id @unique
       User      User     @relation(fields: [author], references: [id])
     }
 
@@ -37,7 +37,7 @@ test('introspection basic', async () => {
       amount  Float   @default(0)
       balance Float   @default(0)
       email   String  @unique @default(\\"\\")
-      id      Int     @id @default(autoincrement())
+      id      Int     @id @unique @default(autoincrement())
       name    String?
       role    String  @default(\\"USER\\")
       Post    Post[]
