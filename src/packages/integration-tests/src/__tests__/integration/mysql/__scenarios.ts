@@ -45,11 +45,11 @@ export const scenarios = [
     name: 'findUnique where PK with include',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique
         );
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           user_id bigint unsigned not null,
           title varchar(50) not null
         );
@@ -87,7 +87,7 @@ export const scenarios = [
     name: 'create with data',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null unique
         );
       `,
@@ -103,7 +103,7 @@ export const scenarios = [
     name: 'create with empty data and SQL default',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null default 'alice'
         );
       `,
@@ -135,7 +135,7 @@ export const scenarios = [
     name: 'update where with numeric data',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null unique
         );
         insert into teams (name) values ('c');
@@ -155,7 +155,7 @@ export const scenarios = [
     name: 'update where with boolean data',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null unique,
           active boolean not null default true
         );
@@ -177,7 +177,7 @@ export const scenarios = [
     name: 'update where with boolean data and select',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null unique,
           active boolean not null default true
         );
@@ -198,7 +198,7 @@ export const scenarios = [
     name: 'update where with string data',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null unique
         );
         insert into teams (name) values ('c');
@@ -218,7 +218,7 @@ export const scenarios = [
     name: 'updateMany where with string data - check returned count',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null
         );
         insert into teams (name) values ('c');
@@ -238,7 +238,7 @@ export const scenarios = [
     name: 'updateMany where with string data - check findMany',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null
         );
         insert into teams (name) values ('c');
@@ -266,7 +266,7 @@ export const scenarios = [
     name: 'findUnique where unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique
         );
         insert into users (email) values ('ada@prisma.io');
@@ -283,7 +283,7 @@ export const scenarios = [
     name: 'findUnique where composite unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null,
           name varchar(50) not null,
           unique key users_email_name_key(email, name)
@@ -307,7 +307,7 @@ export const scenarios = [
     name: 'update where composite unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null,
           name varchar(50) not null,
           unique key users_email_name_key(email, name)
@@ -332,7 +332,7 @@ export const scenarios = [
     name: 'delete where composite unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null,
           name varchar(50) not null,
           unique key users_email_name_key(email, name)
@@ -356,7 +356,7 @@ export const scenarios = [
     name: 'findMany - email text',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email text
         );
         insert into users (email) values ('ada@prisma.io');
@@ -380,7 +380,7 @@ export const scenarios = [
     name: 'findMany where unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique
         );
         insert into users (email) values ('ada@prisma.io');
@@ -399,7 +399,7 @@ export const scenarios = [
     name: 'findMany - email varchar(50) not null unique',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique
         );
         insert into users (email) values ('ada@prisma.io');
@@ -423,11 +423,11 @@ export const scenarios = [
     name: 'findUnique where unique with foreign key and unpack',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique
         );
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           user_id bigint unsigned not null,
           title varchar(50) not null
         );
@@ -460,7 +460,7 @@ export const scenarios = [
     name: 'findMany where contains and boolean',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -488,7 +488,7 @@ export const scenarios = [
     name: 'findMany where OR[contains, contains] ',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -521,7 +521,7 @@ export const scenarios = [
     name: 'upsert (update)',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -546,7 +546,7 @@ export const scenarios = [
     name: 'upsert (create)',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -571,7 +571,7 @@ export const scenarios = [
     name: 'findMany orderBy asc',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -608,7 +608,7 @@ export const scenarios = [
     name: 'findMany orderBy desc',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published boolean not null default false
         );
@@ -645,7 +645,7 @@ export const scenarios = [
     name: 'findMany - default enum',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -679,7 +679,7 @@ export const scenarios = [
     name: 'create with data - not null enum',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -696,7 +696,7 @@ export const scenarios = [
     name: 'update with data - not null enum',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -720,7 +720,7 @@ export const scenarios = [
     name: 'updateMany with data - not null enum - check count',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -741,7 +741,7 @@ export const scenarios = [
     name: 'update with data - not null enum - check findMany',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -777,7 +777,7 @@ export const scenarios = [
     name: 'deleteMany where enum - check count',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -798,7 +798,7 @@ export const scenarios = [
     name: 'deleteMany where enum - check findMany',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           published enum ('DRAFT','PUBLISHED') not null default 'DRAFT'
         );
@@ -824,7 +824,7 @@ export const scenarios = [
     name: 'findMany where contains',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -852,7 +852,7 @@ export const scenarios = [
     name: 'findMany where startsWith',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -880,7 +880,7 @@ export const scenarios = [
     name: 'findMany where endsWith',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -908,7 +908,7 @@ export const scenarios = [
     name: 'findMany where in[string]',
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -937,7 +937,7 @@ export const scenarios = [
     todo: true,
     up: `
         create table crons (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
         );
@@ -965,7 +965,7 @@ export const scenarios = [
     name: 'findMany where datetime lte - check instanceof Date',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
@@ -1002,7 +1002,7 @@ export const scenarios = [
     name: 'findMany where timestamp gte than now',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
@@ -1021,7 +1021,7 @@ export const scenarios = [
     name: 'findMany where timestamp gt than now',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
@@ -1040,7 +1040,7 @@ export const scenarios = [
     name: 'findMany where timestamp lt than now',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           created_at timestamp not null default now()
         );
@@ -1077,7 +1077,7 @@ export const scenarios = [
     name: 'update where integer data',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null
         );
         insert into teams (token) values (11);
@@ -1097,7 +1097,7 @@ export const scenarios = [
     name: 'findMany where datetime exact',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1118,7 +1118,7 @@ export const scenarios = [
     name: 'findMany where datetime gt',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1134,7 +1134,7 @@ export const scenarios = [
     name: 'findMany where datetime gte',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1155,7 +1155,7 @@ export const scenarios = [
     name: 'findMany where datetime lt',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1171,7 +1171,7 @@ export const scenarios = [
     name: 'findMany where datetime lte',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1192,7 +1192,7 @@ export const scenarios = [
     name: 'findMany where datetime not',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values ('2018-09-04 00:00:00');
@@ -1208,7 +1208,7 @@ export const scenarios = [
     name: 'findMany where null',
     up: `
         create table events (
-          id serial not null primary key,
+          id bigint unsigned primary key auto_increment,
           time datetime
         );
         insert into events (time) values (NULL);
@@ -1237,7 +1237,7 @@ export const scenarios = [
     name: 'findMany where empty in[]',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
@@ -1253,7 +1253,7 @@ export const scenarios = [
     name: 'findMany where id empty in[] and token in[]',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
@@ -1271,7 +1271,7 @@ export const scenarios = [
     name: 'findMany where in[integer]',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
@@ -1298,7 +1298,7 @@ export const scenarios = [
     name: 'findMany where notIn[]',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
@@ -1314,7 +1314,7 @@ export const scenarios = [
     name: 'findMany where empty notIn[]',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
@@ -1342,12 +1342,12 @@ export const scenarios = [
     name: 'findMany where null',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           token integer unique not null,
           name varchar(50) not null
         );
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique,
           team_id int references teams (id)
         );
@@ -1369,7 +1369,7 @@ export const scenarios = [
     name: 'findMany where - case insensitive field',
     up: `
         create table users (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           email varchar(50) not null unique COLLATE utf8mb4_unicode_ci 
         );
         insert into users (email) values ('max@prisma.io');
@@ -1388,7 +1388,7 @@ export const scenarios = [
     name: 'findMany where decimal',
     up: `
         create table exercises (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           distance decimal(5, 3) not null
         );
         insert into exercises (distance) values (12.213);
@@ -1407,7 +1407,7 @@ export const scenarios = [
     name: 'findUnique where decimal',
     up: `
         create table exercises (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           distance decimal(5, 3) not null unique
         );
         insert into exercises (distance) values (12.213);
@@ -1426,7 +1426,7 @@ export const scenarios = [
     name: 'findUnique where decimal - default value',
     up: `
         create table exercises (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           distance decimal(5, 3) not null unique default (12.3)
         );
         insert into exercises (distance) values (12.213);
@@ -1583,7 +1583,7 @@ export const scenarios = [
     name: 'findUnique where unique composite',
     up: `
         create table variables (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name varchar(50) not null,
           \`key\` varchar(50) not null,
           value varchar(50) not null,
@@ -1639,7 +1639,7 @@ export const scenarios = [
             primary key (one, two)
           );
           create table b (
-            id serial primary key not null,
+            id bigint unsigned primary key auto_increment not null,
             one integer not null,
             two integer not null
           );
@@ -1678,7 +1678,7 @@ export const scenarios = [
     name: 'updateMany where null - check findMany',
     up: `
         create table teams (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           name text
         );
         insert into teams (name) values ('a');
@@ -1746,7 +1746,7 @@ export const scenarios = [
     name: 'findUnique - check typeof js object is object for Json field',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           data JSON
         );
@@ -1784,7 +1784,7 @@ export const scenarios = [
     name: 'findUnique - check typeof Date is string for Json field',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           data JSON 
         );
@@ -1822,7 +1822,7 @@ export const scenarios = [
     name: 'findUnique - check typeof array for Json field with array',
     up: `
         create table posts (
-          id serial primary key not null,
+          id bigint unsigned primary key auto_increment not null,
           title varchar(50) not null,
           data JSON not null
         );

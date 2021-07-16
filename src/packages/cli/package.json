@@ -68,7 +68,7 @@
     "@prisma/get-platform": "2.28.0-4.ee139726aff97c3928c1f02e844fe2ee4880552f",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.411.0",
+    "@prisma/studio-server": "0.416.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.24",
     "@types/ws": "7.4.6",
