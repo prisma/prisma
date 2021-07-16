@@ -27753,7 +27753,7 @@ error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default v
 Validation Error Count: 2"
 `;
 
-exports[`getDMMF simple model 1`] = `
+exports[`getDMMF simple model, no datasource 1`] = `
 Object {
   "enums": Array [],
   "models": Array [
@@ -27798,7 +27798,7 @@ Object {
 }
 `;
 
-exports[`getDMMF simple model 2`] = `
+exports[`getDMMF simple model, no datasource 2`] = `
 Object {
   "datamodel": Object {
     "enums": Array [],
@@ -27861,10 +27861,7 @@ Object {
     ],
     "otherOperations": Object {
       "read": Array [],
-      "write": Array [
-        "executeRaw",
-        "queryRaw",
-      ],
+      "write": Array [],
     },
   },
   "schema": Object {
@@ -30616,76 +30613,6 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "String",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "query",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Json",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "parameters",
-                },
-              ],
-              "isNullable": false,
-              "name": "executeRaw",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Json",
-              },
-            },
-            Object {
-              "args": Array [
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "String",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": true,
-                  "name": "query",
-                },
-                Object {
-                  "inputTypes": Array [
-                    Object {
-                      "isList": false,
-                      "location": "scalar",
-                      "type": "Json",
-                    },
-                  ],
-                  "isNullable": false,
-                  "isRequired": false,
-                  "name": "parameters",
-                },
-              ],
-              "isNullable": false,
-              "name": "queryRaw",
-              "outputType": Object {
-                "isList": false,
-                "location": "scalar",
-                "type": "Json",
               },
             },
           ],

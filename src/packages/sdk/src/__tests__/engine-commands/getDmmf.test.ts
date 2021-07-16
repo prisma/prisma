@@ -7,7 +7,8 @@ import { fixturesPath } from '../__utils__/fixtures'
 jest.setTimeout(10_000)
 
 describe('getDMMF', () => {
-  test('simple model', async () => {
+
+  test('simple model, no datasource', async () => {
     const dmmf = await getDMMF({
       datamodel: `model A {
         id Int @id
@@ -18,6 +19,76 @@ describe('getDMMF', () => {
     expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
   })
+
+  /*
+  test('simple model, sqlite', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(dmmf.datamodel).toMatchSnapshot()
+    expect(dmmf).toMatchSnapshot()
+  })
+
+  test('simple model, postgresql', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "postgresql"
+        url      = env("MY_POSTGRESQL_DB")
+      }
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(dmmf.datamodel).toMatchSnapshot()
+    expect(dmmf).toMatchSnapshot()
+  })
+
+  test('simple model, mysql', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "mysql"
+        url      = env("MY_MYSQL_DB")
+      }
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(dmmf.datamodel).toMatchSnapshot()
+    expect(dmmf).toMatchSnapshot()
+  })
+
+  test('simple model, mongodb', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "mongodb"
+        url      = "MY_MONGODB_DB"
+      }
+      model A {
+        id Int @id @map("_id")
+        name String
+      }`,
+    })
+
+    expect(dmmf.datamodel).toMatchSnapshot()
+    expect(dmmf).toMatchSnapshot()
+  })
+*/
 
   test('@@map model', async () => {
     const dmmf = await getDMMF({
