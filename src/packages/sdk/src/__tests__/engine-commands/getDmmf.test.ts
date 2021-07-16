@@ -20,7 +20,6 @@ describe('getDMMF', () => {
     expect(dmmf).toMatchSnapshot()
   })
 
-  /*
   test('simple model, sqlite', async () => {
     const dmmf = await getDMMF({
       datamodel: `
@@ -72,6 +71,23 @@ describe('getDMMF', () => {
     expect(dmmf).toMatchSnapshot()
   })
 
+  test('simple model, sql server', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "sqlserver"
+        url      = env("MY_SQLSERVER_DB")
+      }
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(dmmf.datamodel).toMatchSnapshot()
+    expect(dmmf).toMatchSnapshot()
+  })
+
   test('simple model, mongodb', async () => {
     const dmmf = await getDMMF({
       datamodel: `
@@ -88,7 +104,6 @@ describe('getDMMF', () => {
     expect(dmmf.datamodel).toMatchSnapshot()
     expect(dmmf).toMatchSnapshot()
   })
-*/
 
   test('@@map model', async () => {
     const dmmf = await getDMMF({
