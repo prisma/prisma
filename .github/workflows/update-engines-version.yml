@@ -47,7 +47,7 @@ jobs:
           branch: deps/engines-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
-          title: "fix(deps): update engines to ${{ github.event.inputs.version }}"
+          title: "chore(deps): update engines to ${{ github.event.inputs.version }}"
           body: |
             This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
             ## Packages:
