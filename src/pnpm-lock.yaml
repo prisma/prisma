@@ -61,7 +61,7 @@ importers:
       '@prisma/engines': 2.28.0-2.5405d37ef7945674519c43a464ac161307063ceb
       '@prisma/fetch-engine': 2.28.0-2.5405d37ef7945674519c43a464ac161307063ceb
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 2.28.0-2.5405d37ef7945674519c43a464ac161307063ceb
+      '@prisma/get-platform': 2.28.0-5.3ad63ffd44ce536517c94f79cd16f538173d24b1
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
       '@prisma/studio-server': 0.414.0
