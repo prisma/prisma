@@ -41,13 +41,13 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.BOT_TOKEN }}
-          commit-message: "fix(deps): update engines to ${{ github.event.inputs.version }}"
+          commit-message: "chore(deps): update engines to ${{ github.event.inputs.version }}"
           committer: "Prismo <prismabots@gmail.com>"
           author: "Prismo <prismabots@gmail.com>"
           branch: deps/engines-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
-          title: "fix(deps): update engines to ${{ github.event.inputs.version }}"
+          title: "chore(deps): update engines to ${{ github.event.inputs.version }}"
           body: |
             This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
             ## Packages:
