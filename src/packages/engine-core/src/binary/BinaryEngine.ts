@@ -13,23 +13,21 @@ import path from 'path'
 import { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
-import byline from './byline'
+import byline from '../tools/byline'
 import {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
-} from './Engine'
-import {
-  getErrorMessageWithLink,
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  RequestError,
-} from './errors'
+} from '../common/Engine'
+import { RequestError } from '../common/errors/types/RequestError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
+import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
+import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
+import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import {
   convertLog,
   getMessage,
@@ -37,16 +35,16 @@ import {
   isRustErrorLog,
   RustError,
   RustLog,
-} from './log'
-import { omit } from './omit'
-import { printGeneratorConfig } from './printGeneratorConfig'
+} from '../common/errors/utils/log'
+import { omit } from '../tools/omit'
+import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { Connection, Result } from './Connection'
-import { fixBinaryTargets, getRandomString, plusX } from './util'
-import type * as Tx from './definitions/Transaction'
+import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
+import type * as Tx from '../common/types/Transaction'
 import {
   QueryEngineRequestHeaders,
   QueryEngineResult,
-} from './NodeAPILibraryTypes'
+} from '../common/types/QueryEngine'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)

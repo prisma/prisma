@@ -16,21 +16,16 @@ import {
   Engine,
   EngineConfig,
   EngineEventType,
-} from './Engine'
-import {
-  getErrorMessageWithLink,
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  RequestError,
-} from './errors'
+} from '../common/Engine'
+import { RequestError } from '../common/errors/types/RequestError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
+import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
+import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import {
   ConfigMetaFormat,
-  Library,
-  QueryEngine,
   QueryEngineBatchRequest,
-  QueryEngineConstructor,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
@@ -40,10 +35,12 @@ import {
   QueryEngineResult,
   RustRequestError,
   SyncRustError,
-} from './NodeAPILibraryTypes'
-import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixBinaryTargets } from './util'
-import type * as Tx from './definitions/Transaction'
+} from '../common/types/QueryEngine'
+import { QueryEngineInstance, QueryEngineConstructor } from './types/Library'
+import { Library } from './types/Library'
+import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
+import { fixBinaryTargets } from '../common/utils/util'
+import type * as Tx from '../common/types/Transaction'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -56,7 +53,7 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
 export class LibraryEngine extends Engine {
-  private engine?: QueryEngine
+  private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
   private libraryStoppingPromise?: Promise<void>

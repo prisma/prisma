@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { plusX } from '@prisma/engine-core/dist/util'
+import { plusX } from '@prisma/engine-core'
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'

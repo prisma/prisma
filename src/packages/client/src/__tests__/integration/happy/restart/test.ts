@@ -3,7 +3,7 @@ import { getTestClient } from '../../../../utils/getTestClient'
 // Does Prisma Client restart the QE when it is killed for some reason?
 test('restart', async () => {
   // No child process for Node-API, so nothing that can be killed or tested
-  if(process.env.PRISMA_FORCE_NAPI === 'true') {
+  if (process.env.PRISMA_FORCE_NAPI === 'true') {
     return
   }
 
@@ -25,7 +25,7 @@ test('restart', async () => {
     db._engine.child.kill()
     await new Promise((r) => setTimeout(r, 200))
   }
-  
+
   const result2 = await db.user.findMany()
   expect(result2).toMatchInlineSnapshot(`
     Array [

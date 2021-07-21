@@ -4,9 +4,9 @@ import {
   Engine,
   EngineConfig,
   EngineEventType,
-} from '@prisma/engine-core/dist/Engine'
-import { LibraryEngine } from '@prisma/engine-core/dist/LibraryEngine'
-import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
+} from '@prisma/engine-core'
+import { LibraryEngine } from '@prisma/engine-core'
+import { BinaryEngine } from '@prisma/engine-core'
 import {
   DataSource,
   GeneratorConfig,

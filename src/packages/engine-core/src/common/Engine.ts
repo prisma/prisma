@@ -1,6 +1,9 @@
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import type * as Transaction from './definitions/Transaction'
-import { QueryEngineRequestHeaders, QueryEngineResult } from './NodeAPILibraryTypes'
+import type * as Transaction from './types/Transaction'
+import {
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from './types/QueryEngine'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
@@ -24,9 +27,15 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
+  abstract transaction(
+    action: 'start',
+    options?: Transaction.Options,
+  ): Promise<Transaction.Info>
   abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
-  abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'rollback',
+    info: Transaction.Info,
+  ): Promise<void>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

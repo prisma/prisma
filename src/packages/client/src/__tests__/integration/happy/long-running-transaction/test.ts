@@ -12,14 +12,14 @@ test('long-running transaction', async () => {
         email: 'test@hey.com',
       },
     }),
-    (new Promise((res) => setTimeout(res, 1000))) as any,
+    new Promise((res) => setTimeout(res, 1000)) as any,
     prisma.user.create({
       data: {
         email: 'test@hey.com',
       },
-    })
+    }),
   ])
- 
+
   console.log(result)
 
   await prisma.$disconnect()
