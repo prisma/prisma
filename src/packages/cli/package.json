@@ -71,7 +71,7 @@
     "@prisma/studio-server": "0.416.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "26.0.24",
-    "@types/ws": "7.4.6",
+    "@types/ws": "7.4.7",
     "@typescript-eslint/eslint-plugin": "4.28.3",
     "@typescript-eslint/parser": "4.28.3",
     "chalk": "4.1.1",
