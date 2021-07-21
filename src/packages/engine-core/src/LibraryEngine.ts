@@ -337,7 +337,6 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  // TODO Implement hookProcess to trigger stop
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
