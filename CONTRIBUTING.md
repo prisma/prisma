@@ -26,6 +26,7 @@ To setup and build the packages, follow these steps:
 git clone https://github.com/prisma/prisma.git
 npm i -g pnpm@6 --unsafe-perm
 cd prisma/src
+pnpm i
 pnpm run setup
 ```
 
