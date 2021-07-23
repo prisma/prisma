@@ -100,6 +100,13 @@ export const defaultURL = (
   }
 }
 
+export const defaultGitIgnore = () => {
+  return `node_modules
+# Keep environment variables out of version control
+.env
+`
+}
+
 export class Init implements Command {
   static new(): Init {
     return new Init()
@@ -266,6 +273,15 @@ export class Init implements Command {
           `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url),
         )
       }
+    }
+
+    try {
+      fs.writeFileSync(
+      path.join(outputDir, ".gitignore"),
+      defaultGitIgnore()
+      );
+    } catch (error) {
+      console.error("Failed to write .gitignore file, reason: ", error);
     }
 
     const steps: string[] = []
