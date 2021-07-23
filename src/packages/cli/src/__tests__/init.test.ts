@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
-import { defaultEnv, defaultSchema } from '../Init'
+import { defaultEnv, defaultGitIgnore, defaultSchema } from '../Init'
 import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
@@ -195,4 +195,13 @@ test('appends when .env present', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchSnapshot()
+})
+
+test('writes a minimal .gitignore file', async () => {
+  ctx.fixture('init');
+  await ctx.cli('init');
+  const gitignore = fs.readFileSync(join(ctx.tmpDir, '.gitignore'), 'utf-8');
+  expect(gitignore).toMatch(defaultGitIgnore());
+
+  expect(gitignore).toMatchSnapshot();
 })
