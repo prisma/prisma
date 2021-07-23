@@ -9,7 +9,9 @@ import { Datasources } from './Datasources'
 import { Generatable } from './Generatable'
 
 function longRunningTransactionDefinition() {
-  return `$transaction<R>(fn: (prisma: PrismaClient) => Promise<R>): Promise<R>`
+  const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
+
+  return `$transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>): Promise<R>`
 }
 
 export class PrismaClientClass implements Generatable {

@@ -1072,7 +1072,9 @@ new PrismaClient({
           const changedInternalParams = { ...internalParams, ...params }
 
           // TODO remove this once LRT is the default transaction mode
-          if (index > 0) delete changedInternalParams['transactionId']
+          if (index > 0 && process.env.PRISMA_FORCE_LRT === undefined) {
+            delete changedInternalParams['transactionId']
+          }
 
           // no middleware? then we just proceed with request execution
           return this._executeRequest(changedInternalParams)
@@ -1471,6 +1473,8 @@ new PrismaClient({
   return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
+const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+
 /**
  * Proxy that takes over client promises to pass `transactionId`
  * @param thing to be proxied
@@ -1483,6 +1487,9 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
 
   return new Proxy(thing as any as object, {
     get: (target, prop) => {
+      // we don't want to allow any calls to our `forbidden` methods
+      if (forbidden.includes(prop as string)) return undefined
+
       // secret accessor to get the `transactionId` in a transaction
       if (prop === TX_ID) return transactionId
 
@@ -1506,7 +1513,7 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
   }) as any as T
 }
 
-const TX_ID = Symbol.for('prisma.client.tx_id')
+const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
