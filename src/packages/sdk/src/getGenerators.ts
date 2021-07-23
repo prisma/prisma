@@ -19,7 +19,7 @@ import {
   GeneratorManifest,
   GeneratorOptions,
 } from '@prisma/generator-helper'
-import { getPlatform, Platform } from '@prisma/get-platform'
+import { getPlatform, Platform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
 import makeDir from 'make-dir'
@@ -150,7 +150,7 @@ export async function getGenerators({
   })
 
   if (dmmf.datamodel.models.length === 0) {
-// MongoDB needs extras for @id: @map("_id") @db.ObjectId
+    // MongoDB needs extras for @id: @map("_id") @db.ObjectId
     if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
       throw new Error(missingModelMessageMongoDB)
     }
@@ -543,25 +543,7 @@ export function skipIndex<T = any>(arr: T[], index: number): T[] {
   return [...arr.slice(0, index), ...arr.slice(index + 1)]
 }
 
-export const knownBinaryTargets: Platform[] = [
-  'native',
-  'darwin',
-  'darwin-arm64',
-  'debian-openssl-1.0.x',
-  'debian-openssl-1.1.x',
-  'linux-arm-openssl-1.0.x',
-  'linux-arm-openssl-1.1.x',
-  'rhel-openssl-1.0.x',
-  'rhel-openssl-1.1.x',
-  'linux-musl',
-  'linux-nixos',
-  'windows',
-  'freebsd11',
-  'freebsd12',
-  'openbsd',
-  'netbsd',
-  'arm',
-]
+export const knownBinaryTargets: Platform[] = [...platforms, 'native']
 
 const oldToNewBinaryTargetsMapping = {
   'linux-glibc-libssl1.0.1': 'debian-openssl-1.0.x',
