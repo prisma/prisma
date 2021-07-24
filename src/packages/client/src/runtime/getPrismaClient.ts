@@ -43,7 +43,6 @@ import {
 } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
-import { Scheduler } from './Scheduler'
 import { RequestHandler } from './RequestHandler'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -297,13 +296,12 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
-    private _transactionScheduler: Scheduler
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
-      this._transactionScheduler = new Scheduler()
+
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
@@ -992,27 +990,24 @@ new PrismaClient({
       callback: (client: Client) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
-      // transactions are inlined through their scheduler
-      return this._transactionScheduler.exec(async () => {
-        // we ask the query engine to open a transaction
-        const info = await this._engine.transaction('start', options)
+      // we ask the query engine to open a transaction
+      const info = await this._engine.transaction('start', options)
 
-        let result: unknown
-        try {
-          // execute user logic with a proxied the client
-          result = await callback(transactionProxy(this, info.id))
+      let result: unknown
+      try {
+        // execute user logic with a proxied the client
+        result = await callback(transactionProxy(this, info.id))
 
-          // it went well, then we commit the transaction
-          await this._engine.transaction('commit', info)
-        } catch (e) {
-          // it went bad, then we rollback the transaction
-          await this._engine.transaction('rollback', info)
+        // it went well, then we commit the transaction
+        await this._engine.transaction('commit', info)
+      } catch (e) {
+        // it went bad, then we rollback the transaction
+        await this._engine.transaction('rollback', info)
 
-          throw e
-        }
+        throw e
+      }
 
-        return result
-      })
+      return result
     }
 
     /**
