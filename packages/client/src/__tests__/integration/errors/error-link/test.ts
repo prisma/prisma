@@ -1,7 +1,15 @@
-import { ClientEngineType } from '../../../../runtime/utils/getClientEngineType'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
+  // TODO triggerPanic has not been implemented for Node-API: https://github.com/prisma/prisma/issues/7810
+  if (getClientEngineType() === ClientEngineType.NodeAPI) {
+    return
+  }
+
   expect.assertions(1)
 
   const PrismaClient = await getTestClient()
@@ -13,10 +21,7 @@ test('error-link', async () => {
     },
     errorFormat: 'minimal',
   })
-  // TODO triggerPanic has not been implemented for Node-API: https://github.com/prisma/prisma/issues/7810
-  if (db._clientEngineType === ClientEngineType.NodeAPI) {
-    return
-  }
+
   await expect(db.__internal_triggerPanic(true)).rejects
     .toThrowErrorMatchingInlineSnapshot(`
           Query engine debug fatal error, shutting down.
