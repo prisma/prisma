@@ -1,10 +1,11 @@
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import {
   ClientEngineType,
   DEFAULT_CLIENT_ENGINE_TYPE,
 } from '../../../../../runtime/utils/getClientEngineType'
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../../utils/getTestClient'
 
 const buildSchema = (engineType?: string) => `
 datasource db {
@@ -75,10 +76,26 @@ function buildTests() {
         test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
           expect.assertions(2)
           const schema = buildSchema(engineType)
-          // console.log(schema)
-          fs.writeFileSync(path.join(__dirname, 'schema.prisma'), schema)
+
+          // Setup Project in tmp dir
+          const projectDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`)
+          fs.copyFileSync(
+            path.join(__dirname, './dev.db'),
+            path.join(projectDir, 'dev.db'),
+          )
+          fs.writeFileSync(path.join(projectDir, 'schema.prisma'), schema)
+
+          // Set ENV VAR
           process.env[envVar] = value
-          const PrismaClient = await getTestClient()
+
+          // Generate Client to tmp dir
+          await generateTestClient(projectDir)
+
+          // Run Tests
+          const { PrismaClient } = require(path.join(
+            projectDir,
+            'node_modules/@prisma/client',
+          ))
           const prisma = new PrismaClient()
           const users = await prisma.user.findMany()
           expect(users).toMatchInlineSnapshot(`
@@ -99,8 +116,5 @@ function buildTests() {
   })
 }
 describe('client engine', () => {
-  afterEach(() => {
-    fs.unlinkSync(path.join(__dirname, './schema.prisma'))
-  })
   buildTests()
 })
