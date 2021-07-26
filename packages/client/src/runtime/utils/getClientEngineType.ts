@@ -8,15 +8,11 @@ export enum ClientEngineType {
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
 
 export function getClientEngineType(
-  generator: GeneratorConfig,
+  generator?: GeneratorConfig,
 ): ClientEngineType {
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
-  if (
-    generator?.previewFeatures.includes('nApi') ||
-    process.env.PRISMA_FORCE_NAPI === 'true' ||
-    generator?.config.engineType === ClientEngineType.NodeAPI
-  ) {
+  if (generator?.config.engineType === ClientEngineType.NodeAPI) {
     return ClientEngineType.NodeAPI
   } else if (generator?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
