@@ -75,7 +75,8 @@ async function getConfigNodeAPI(
   await isNodeAPISupported()
   debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
   try {
-    const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
+    const NodeAPIQueryEngineLibrary =
+      load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NodeAPIQueryEngineLibrary.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},

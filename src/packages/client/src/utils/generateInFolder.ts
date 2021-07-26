@@ -99,7 +99,10 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  const nodeAPILibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
+  const nodeAPILibraryPath = path.join(
+    enginesPath,
+    getNodeAPIName(platform, 'fs'),
+  )
   if (
     (useNodeAPI || process.env.PRISMA_FORCE_NAPI) &&
     !fs.existsSync(nodeAPILibraryPath)

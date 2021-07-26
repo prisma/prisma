@@ -16,6 +16,8 @@ test('missing-relation', async () => {
       'Inconsistent query result: Field author is required to return data, got `null` instead.',
     )
   }
+
+  await prisma.$disconnect()
 })
 
 // Please don't remove, this is used to debug this test

@@ -375,7 +375,7 @@ export function buildNFTEngineAnnotations(
   }
 
   const getName = (p: Platform) =>
-  isNodeAPI ? getNodeAPIName(p, 'fs') : `query-engine-${p}`
+    isNodeAPI ? getNodeAPIName(p, 'fs') : `query-engine-${p}`
   return `${
     platforms
       ? platforms
