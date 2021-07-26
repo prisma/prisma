@@ -27,6 +27,7 @@ import {
 
 const readFile = promisify(fs.readFile)
 
+//TODO Rename to generateTestClientInMemory
 /**
  * Returns an in-memory client for testing
  */

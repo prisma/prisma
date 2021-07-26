@@ -116,7 +116,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        engineType: ['node-api', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -124,9 +124,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set Engine Type
-        if: ${{ matrix.engine == 'napi' }}
         run: |
-          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+          echo "PRISMA_CLIENT_ENGINE_TYPE={{ matrix.engine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
       
@@ -225,7 +224,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        engineType: ['node-api', 'binary']
         database:
           - sqlite
           - postgres
@@ -238,9 +237,8 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set Engine Type
-        if: ${{ matrix.engine == 'napi' }}
         run: |
-          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.engine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
