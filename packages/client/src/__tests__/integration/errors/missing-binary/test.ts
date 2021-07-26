@@ -1,6 +1,10 @@
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-binary', async () => {
@@ -10,17 +14,18 @@ test('missing-binary', async () => {
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
   const platform = await getPlatform()
-  const binaryPath = process.env.PRISMA_FORCE_NAPI
-    ? path.join(
-        __dirname,
-        'node_modules/.prisma/client',
-        getNodeAPIName(platform, 'fs'),
-      )
-    : path.join(
-        __dirname,
-        'node_modules/.prisma/client',
-        `query-engine-${platform}`,
-      )
+  const binaryPath =
+    getClientEngineType() === ClientEngineType.NodeAPI
+      ? path.join(
+          __dirname,
+          'node_modules/.prisma/client',
+          getNodeAPIName(platform, 'fs'),
+        )
+      : path.join(
+          __dirname,
+          'node_modules/.prisma/client',
+          `query-engine-${platform}`,
+        )
   fs.unlinkSync(binaryPath)
   const prisma = new PrismaClient({
     log: [
@@ -32,7 +37,7 @@ test('missing-binary', async () => {
   })
   // TODO Error should not be as fundamentally different here as the test snapshots indicate
   // TODO The error messages here are also not good (correct) and should be fixed
-  if (process.env.PRISMA_FORCE_NAPI) {
+  if (getClientEngineType() === ClientEngineType.NodeAPI) {
     await expect(async () => {
       await prisma.user.findMany()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`

@@ -1,3 +1,7 @@
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('raw-transaction: queryRaw', async () => {
@@ -18,7 +22,7 @@ test('raw-transaction: queryRaw', async () => {
   for (const client of clients) {
     client.$disconnect()
   }
-  if (process.env.PRISMA_FORCE_NAPI) {
+  if (getClientEngineType() === ClientEngineType.NodeAPI) {
     // TODO Should this really not be implemented? https://github.com/prisma/prisma/issues/7814
     expect(warnings).toMatchInlineSnapshot(`Array []`)
   } else {

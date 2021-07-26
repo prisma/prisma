@@ -3,10 +3,10 @@ import path from 'path'
 import {
   ClientEngineType,
   DEFAULT_CLIENT_ENGINE_TYPE,
-} from '../../../../runtime/utils/getClientEngineType'
+} from '../../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
-const buildSchema = (previewFeature?: string, engineType?: string) => `
+const buildSchema = (engineType?: string) => `
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
@@ -15,7 +15,6 @@ datasource db {
 generator client {
   provider = "prisma-client-js"
   ${engineType ? `engineType="${engineType}"` : ''}
-  ${previewFeature ? `previewFeatures=["${previewFeature}"]` : ''}
 }
 
 // / User model comment
@@ -46,19 +45,12 @@ model Post {
   author    User?    @relation(fields: [authorId], references: [id])
 }
 `
-function getExpectedEngine(engineType, envVar, envVarValue, previewFeature) {
-  if (envVar === 'PRISMA_FORCE_NAPI' && envVarValue === 'true') {
-    // ENV VAR TAKES PRECEDENCE
-    return ClientEngineType.NodeAPI
-  }
+function getExpectedEngine(engineType, envVar, envVarValue) {
   if (envVar === 'PRISMA_CLIENT_ENGINE_TYPE' && envVarValue) {
     return envVarValue
   }
   if (engineType) {
     return engineType
-  }
-  if (previewFeature === 'nApi') {
-    return ClientEngineType.NodeAPI
   }
 
   return DEFAULT_CLIENT_ENGINE_TYPE
@@ -69,31 +61,27 @@ function buildTests() {
     ClientEngineType.NodeAPI,
     undefined,
   ]
-  const previewFeatures = ['nApi', undefined]
   const envVars = {
-    PRISMA_FORCE_NAPI: ['true', undefined],
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
   engineTypes.forEach((engineType) => {
-    previewFeatures.forEach((previewFeature) => {
-      for (const envVar in envVars) {
-        envVars[envVar].forEach((value) => {
-          const expectedClientEngine = getExpectedEngine(
-            engineType,
-            envVar,
-            value,
-            previewFeature,
-          )
-          test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType} | previewFeature=${previewFeature}`, async () => {
-            expect.assertions(2)
-            const schema = buildSchema(previewFeature, engineType)
-            // console.log(schema)
-            fs.writeFileSync(path.join(__dirname, 'schema.prisma'), schema)
-            process.env[envVar] = value
-            const PrismaClient = await getTestClient()
-            const prisma = new PrismaClient()
-            const users = await prisma.user.findMany()
-            expect(users).toMatchInlineSnapshot(`
+    for (const envVar in envVars) {
+      envVars[envVar].forEach((value) => {
+        const expectedClientEngine = getExpectedEngine(
+          engineType,
+          envVar,
+          value,
+        )
+        test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
+          expect.assertions(2)
+          const schema = buildSchema(engineType)
+          // console.log(schema)
+          fs.writeFileSync(path.join(__dirname, 'schema.prisma'), schema)
+          process.env[envVar] = value
+          const PrismaClient = await getTestClient()
+          const prisma = new PrismaClient()
+          const users = await prisma.user.findMany()
+          expect(users).toMatchInlineSnapshot(`
             Array [
               Object {
                 email: a@a.de,
@@ -103,12 +91,11 @@ function buildTests() {
             ]
             `)
 
-            expect(prisma._clientEngineType).toMatch(expectedClientEngine)
-            await prisma.$disconnect()
-          })
+          expect(prisma._clientEngineType).toMatch(expectedClientEngine)
+          await prisma.$disconnect()
         })
-      }
-    })
+      })
+    }
   })
 }
 describe('client engine', () => {
