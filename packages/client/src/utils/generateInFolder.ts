@@ -16,6 +16,10 @@ import { performance } from 'perf_hooks'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import { generateClient } from '../generation/generateClient'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
 const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
@@ -49,8 +53,8 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNodeAPI =
-    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
+  const clientGenerator = config.generators[0]
+  const clientEngineType = getClientEngineType(clientGenerator)
 
   const dmmf = await getDMMF({
     datamodel,
@@ -104,7 +108,7 @@ export async function generateInFolder({
     getNodeAPIName(platform, 'fs'),
   )
   if (
-    (useNodeAPI || process.env.PRISMA_FORCE_NAPI) &&
+    clientEngineType === ClientEngineType.NodeAPI &&
     !fs.existsSync(nodeAPILibraryPath)
   ) {
     // This is required as the Node-API library is not downloaded by default
@@ -115,20 +119,21 @@ export async function generateInFolder({
       version: enginesVersion,
     })
   }
-  const binaryPaths = useNodeAPI
-    ? {
-        libqueryEngine: {
-          [platform]: nodeAPILibraryPath,
-        },
-      }
-    : {
-        queryEngine: {
-          [platform]: path.join(
-            enginesPath,
-            `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-          ),
-        },
-      }
+  const binaryPaths =
+    clientEngineType === ClientEngineType.NodeAPI
+      ? {
+          libqueryEngine: {
+            [platform]: nodeAPILibraryPath,
+          },
+        }
+      : {
+          queryEngine: {
+            [platform]: path.join(
+              enginesPath,
+              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+            ),
+          },
+        }
 
   // we make sure that we are in the project root
   // this only applies to generated test clients

@@ -20,6 +20,10 @@ import {
   GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
 import { generateInFolder } from './generateInFolder'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
 
 const readFile = promisify(fs.readFile)
 
@@ -47,21 +51,22 @@ export async function getTestClient(
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const enginesPath = getEnginesPath()
   const platform = await getPlatform()
-  const nodeAPILibraryPath = path.join(
-    enginesPath,
-    getNodeAPIName(platform, 'fs'),
-  )
-  if (
-    (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) &&
-    !fs.existsSync(nodeAPILibraryPath)
-  ) {
-    // This is required as the Node-API library is not downloaded by default
-    await download({
-      binaries: {
-        'libquery-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
+  const clientEngineType = getClientEngineType(generator!)
+
+  // This is required as the Node-API library is not downloaded by default
+  if (clientEngineType === ClientEngineType.NodeAPI) {
+    const nodeAPILibraryPath = path.join(
+      enginesPath,
+      getNodeAPIName(platform, 'fs'),
+    )
+    if (!fs.existsSync(nodeAPILibraryPath)) {
+      await download({
+        binaries: {
+          'libquery-engine': enginesPath,
+        },
+        version: enginesVersion,
+      })
+    }
   }
   const document = await getDMMF({
     datamodel,

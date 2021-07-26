@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import {
   DatasourceOverwrite,
   Engine,
@@ -6,7 +7,6 @@ import {
   EngineEventType,
 } from '@prisma/engine-core/dist/Engine'
 import { LibraryEngine } from '@prisma/engine-core/dist/LibraryEngine'
-import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
 import {
   DataSource,
   GeneratorConfig,
@@ -18,6 +18,10 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from './utils/getClientEngineType'
 import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
@@ -270,6 +274,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
+    _clientEngineType: ClientEngineType
     private _errorFormat: ErrorFormat
     private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
@@ -289,6 +294,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath &&
@@ -421,13 +427,10 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
       return 'PrismaClient'
     }
     private getEngine() {
-      if (
-        this._previewFeatures.includes('nApi') ||
-        process.env.PRISMA_FORCE_NAPI === 'true'
-      ) {
-        return new LibraryEngine(this._engineConfig)
-      } else {
+      if (this._clientEngineType === ClientEngineType.Binary) {
         return new BinaryEngine(this._engineConfig)
+      } else {
+        return new LibraryEngine(this._engineConfig)
       }
     }
 
