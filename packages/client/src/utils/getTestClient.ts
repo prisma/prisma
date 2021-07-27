@@ -54,21 +54,37 @@ export async function getTestClient(
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
 
-  // This is required as the Node-API library is not downloaded by default
-  if (clientEngineType === ClientEngineType.NodeAPI) {
-    const nodeAPILibraryPath = path.join(
-      enginesPath,
-      getNodeAPIName(platform, 'fs'),
-    )
-    if (!fs.existsSync(nodeAPILibraryPath)) {
-      await download({
-        binaries: {
-          'libquery-engine': enginesPath,
-        },
-        version: enginesVersion,
-      })
-    }
+  // TMP
+  const nodeAPILibraryPath = path.join(
+    enginesPath,
+    getNodeAPIName(platform, 'fs'),
+  )
+  const queryEngineBinaryPath = path.join(
+    enginesPath,
+    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+  )
+  if (
+    clientEngineType === ClientEngineType.NodeAPI &&
+    !fs.existsSync(nodeAPILibraryPath)
+  ) {
+    await download({
+      binaries: {
+        'libquery-engine': enginesPath,
+      },
+      version: enginesVersion,
+    })
+  } else if (
+    clientEngineType === ClientEngineType.Binary &&
+    !fs.existsSync(queryEngineBinaryPath)
+  ) {
+    await download({
+      binaries: {
+        'query-engine': enginesPath,
+      },
+      version: enginesVersion,
+    })
   }
+
   const document = await getDMMF({
     datamodel,
     previewFeatures,
