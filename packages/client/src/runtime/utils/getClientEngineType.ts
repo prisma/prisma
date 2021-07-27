@@ -5,7 +5,7 @@ export enum ClientEngineType {
   Binary = 'binary',
   Proxy = 'proxy',
 }
-export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
+export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.NodeAPI
 
 export function getClientEngineType(
   generator?: GeneratorConfig,
