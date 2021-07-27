@@ -497,11 +497,7 @@ describe('getGenerators', () => {
     }
 
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
-    const queryEngine = await resolveBinary(
-      process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngine
-        : BinaryType.queryEngine,
-    )
+    const queryEngine = await resolveBinary(BinaryType.queryEngine)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
