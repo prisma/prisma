@@ -25,7 +25,7 @@ export class PrismaClientClass implements Generatable {
     return `/**
  * ##  Prisma Client ʲˢ
  * 
- * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
  * const prisma = new PrismaClient()
