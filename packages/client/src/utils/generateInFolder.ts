@@ -103,27 +103,43 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  const nodeAPILibraryPath = path.join(
+  const queryEngineLibraryPath = path.join(
     enginesPath,
     getNodeAPIName(platform, 'fs'),
   )
+  const queryEngineBinaryPath = path.join(
+    enginesPath,
+    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+  )
+
+  // TMP
   if (
     clientEngineType === ClientEngineType.NodeAPI &&
-    !fs.existsSync(nodeAPILibraryPath)
+    !fs.existsSync(queryEngineLibraryPath)
   ) {
-    // This is required as the Node-API library is not downloaded by default
     await download({
       binaries: {
         'libquery-engine': enginesPath,
       },
       version: enginesVersion,
     })
+  } else if (
+    clientEngineType === ClientEngineType.Binary &&
+    !fs.existsSync(queryEngineBinaryPath)
+  ) {
+    await download({
+      binaries: {
+        'query-engine': enginesPath,
+      },
+      version: enginesVersion,
+    })
   }
+
   const binaryPaths =
     clientEngineType === ClientEngineType.NodeAPI
       ? {
           libqueryEngine: {
-            [platform]: nodeAPILibraryPath,
+            [platform]: queryEngineLibraryPath,
           },
         }
       : {
