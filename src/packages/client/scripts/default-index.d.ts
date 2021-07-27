@@ -1,7 +1,7 @@
 /**
  * ##  Prisma Client ʲˢ
  *
- * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
  * const prisma = new Prisma()
@@ -16,7 +16,7 @@ export declare const PrismaClient: any
 /**
  * ##  Prisma Client ʲˢ
  *
- * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
  * const prisma = new Prisma()
