@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.runtime.json",
+  "compilerOptions": {
+    "outDir": "declaration",
+    "emitDeclarationOnly": true
+  },
+}

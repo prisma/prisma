@@ -15,7 +15,7 @@
     "incremental": true,
     "noUncheckedIndexedAccess": false, // TODO Can't let TS shoot itself on the foot
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
   },
   "exclude": [
     "dist",

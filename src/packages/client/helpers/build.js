@@ -1,66 +1,42 @@
 const execa = require('execa')
-const fs = require('fs')
 const chalk = require('chalk')
-const { promisify } = require('util')
 const esbuild = require('esbuild')
-const copyFile = promisify(fs.copyFile)
 
-async function main() {
+const ESBUILD_DEFAULT = {
+  bundle: true,
+  platform: 'node',
+  target: 'node12',
+  external: ['_http_common']
+}
+
+async function build() {
   const before = Date.now()
 
-  // do the job for typescript
-  if (
-    !fs.existsSync('./runtime-dist') &&
-    fs.existsSync('./tsconfig.runtime.tsbuildinfo')
-  ) {
-    try {
-      console.log('unlinking')
-      fs.unlinkSync('./tsconfig.tsbuildinfo')
-    } catch (e) {
-      console.error(e)
-      //
-    }
-  }
-
   await Promise.all([
-    run('tsc --build tsconfig.runtime.json', true),
-    run('tsc --build tsconfig.json', true),
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      target: 'node12',
+      ...ESBUILD_DEFAULT,
+      entryPoints: ['src/generation/generator.ts'],
       outfile: 'generator-build/index.js',
-      entryPoints: ['src/generator.ts'],
-      external: ['_http_common']
+      tsconfig: 'tsconfig.generator.json'
     }),
-  ])
-
-  await Promise.all([
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      target: 'node12',
-      outdir: 'runtime',
+      ...ESBUILD_DEFAULT,
       entryPoints: ['src/runtime/index.ts'],
-      external: ['_http_common']
+      outfile: 'runtime/index.js',
+      tsconfig: 'tsconfig.runtime.json'
     }),
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      format: 'cjs',
-      target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
-      outdir: 'runtime',
+      ...ESBUILD_DEFAULT,
       entryPoints: ['src/runtime/index-browser.ts'],
-      external: ['_http_common']
+      outfile: 'runtime/index-browser.js',
+      tsconfig: 'tsconfig.runtime.json',
+      target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
+      format: 'cjs',
     }),
-    run('rollup -c'),
   ])
 
-  await Promise.all([
-    copyFile('./scripts/backup-index.js', 'index.js'),
-    copyFile('./scripts/backup-index-browser.js', 'index-browser.js'),
-    copyFile('./scripts/backup-index.d.ts', 'index.d.ts'),
-  ])
+  await run('tsc --build tsconfig.declaration.json')
+  await run('rollup -c')
 
   const after = Date.now()
   console.log(
@@ -76,7 +52,7 @@ function run(command, preferLocal = true) {
   return execa.command(command, { preferLocal, shell: true, stdio: 'inherit' })
 }
 
-main().catch((e) => {
+build().catch((e) => {
   console.error(e)
   process.exit(1)
 })

@@ -7,13 +7,11 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "noImplicitAny": false,
-    "outDir": "runtime",
-    "rootDir": "src/runtime",
+    "outDir": "generator-build",
+    "rootDir": "src/generation",
     "declaration": true,
-    "incremental": true,
-    "skipDefaultLibCheck": true,
-    "tsBuildInfoFile": ".tsbuildinfo"
+    "skipDefaultLibCheck": true
   },
-  "include": ["src/runtime"],
+  "include": ["src/generation"],
   "exclude": []
 }

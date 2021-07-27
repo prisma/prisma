@@ -2,14 +2,14 @@ import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
 import { parseEnvValue } from '@prisma/sdk'
-import { generateClient } from './generation/generateClient'
-import { getDMMF } from './generation/getDMMF'
-import { externalToInternalDmmf } from './runtime/externalToInternalDmmf'
+import { generateClient } from './generateClient'
+import { getDMMF } from './getDMMF'
+import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 const debug = Debug('prisma:client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
 
-const pkg = require('../package.json')
+const pkg = require('../../package.json')
 const clientVersion = pkg.version
 
 if (require.main === module) {
