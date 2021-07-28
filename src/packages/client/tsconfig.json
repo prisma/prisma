@@ -1,6 +1,7 @@
 {
   "extends": "../../../tsconfig.json",
   "exclude": [
+    "node_modules",
     "declaration",
     "generator-build",
     "runtime"

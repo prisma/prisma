@@ -1,19 +1,10 @@
 {
+  "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "target": "es2018",
-    "module": "commonjs",
-    "lib": ["esnext"],
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "declaration": true,
-    "incremental": true,
-
-    "strict": true,
-    "noImplicitAny": false, // TODO Can't let TS shoot itself on the foot
-    "noUncheckedIndexedAccess": false, // TODO Can't let TS shoot itself on the foot
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "skipDefaultLibCheck": true
+    "baseUrl": "./src/packages",
+    "paths": {
+      "@prisma/client": ["client/src/runtime"]
+    }
   },
   "include": ["**/*"]
 }

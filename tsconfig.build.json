@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "lib": ["esnext"],
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "declaration": true,
+    "incremental": true,
+    "outDir": "dist",
+
+    "strict": true,
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipDefaultLibCheck": true
+  },
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}
