@@ -17,25 +17,22 @@ async function build() {
       ...ESBUILD_DEFAULT,
       entryPoints: ['src/generation/generator.ts'],
       outfile: 'generator-build/index.js',
-      tsconfig: 'tsconfig.generator.json'
     }),
     esbuild.build({
       ...ESBUILD_DEFAULT,
       entryPoints: ['src/runtime/index.ts'],
       outfile: 'runtime/index.js',
-      tsconfig: 'tsconfig.runtime.json'
     }),
     esbuild.build({
       ...ESBUILD_DEFAULT,
       entryPoints: ['src/runtime/index-browser.ts'],
       outfile: 'runtime/index-browser.js',
-      tsconfig: 'tsconfig.runtime.json',
       target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
       format: 'cjs',
     }),
   ])
 
-  await run('tsc --build tsconfig.declaration.json')
+  await run('tsc --build tsconfig.build.json')
   await run('rollup -c')
 
   const after = Date.now()

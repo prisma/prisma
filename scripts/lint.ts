@@ -19,7 +19,7 @@ async function main() {
     }
   }
 
-  let packages = []
+  let packages = [] as string[]
   if (args['--staged']) {
     packages = await getStagedPackages()
   } else {

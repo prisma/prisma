@@ -1,7 +1,9 @@
 {
-  "extends": "./tsconfig.runtime.json",
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "declaration",
     "emitDeclarationOnly": true
   },
+  "include": ["src/runtime"],
+  "exclude": []
 }

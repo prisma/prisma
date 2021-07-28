@@ -1,8 +1,7 @@
 /node_modules
-/dist
-/runtime
-/generator-build
 /declaration
+/generator-build
+/runtime
 
 pnpm-lock.yaml
 *.tsbuildinfo
