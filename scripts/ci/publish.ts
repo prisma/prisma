@@ -858,32 +858,17 @@ async function testPackages(
 ): Promise<void> {
   let order = flatten(publishOrder)
 
-  // If paralelism is set in builkite we split the testing
-  // Job 0 all but client
-  // Job 1 only client
+  // If parallelism is set in build-kite we split the testing
+  //  Job 0 all with default (node-api)
+  //  Job 1 all with
+  //    PRISMA_CLIENT_ENGINE_TYPE="binary" // Default is node-api
+  //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary" // Default is node-api
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
     console.log(
-      'BUILDKITE_PARALLEL_JOB === 0 - running all tests excluding client',
+      'BUILDKITE_PARALLEL_JOB === 0 - running all tests with the default/node-api',
     )
-    const index = order.indexOf('@prisma/client')
-    if (index > -1) {
-      order.splice(index, 1)
-    }
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-    console.log('BUILDKITE_PARALLEL_JOB === 1 - running client only')
-    order = ['@prisma/client']
-  } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
-    // This is to test Node-API
-    console.log(
-      'BUILDKITE_PARALLEL_JOB === 2 - running Node API tests for [sdk, migrate, client, cli, integration-tests]',
-    )
-    order = [
-      '@prisma/sdk',
-      '@prisma/migrate',
-      '@prisma/client',
-      'prisma',
-      '@prisma/integration-tests',
-    ]
+    console.log('BUILDKITE_PARALLEL_JOB === 1 - running all tests with binary')
   }
 
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
@@ -893,10 +878,11 @@ async function testPackages(
     const pkg = packages[pkgName]
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${chalk.magentaBright(pkg.name)}`)
-      if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
+      // Sets ENV to override engines
+      if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" pnpm run test', // # Default is 'node-api' 
+          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test', // # Default is 'node-api'
         )
       } else {
         await run(path.dirname(pkg.path), 'pnpm run test')
