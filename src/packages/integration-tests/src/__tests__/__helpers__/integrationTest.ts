@@ -5,7 +5,7 @@ import { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
-import { getTestClient } from '@prisma/client/dist/utils/getTestClient'
+import { getTestClient } from '../../../../client/src/utils/getTestClient'
 
 process.setMaxListeners(200)
 
