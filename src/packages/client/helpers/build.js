@@ -1,5 +1,4 @@
 const execa = require('execa')
-const chalk = require('chalk')
 const esbuild = require('esbuild')
 
 const ESBUILD_DEFAULT = {
@@ -10,8 +9,6 @@ const ESBUILD_DEFAULT = {
 }
 
 async function build() {
-  const before = Date.now()
-
   await Promise.all([
     esbuild.build({
       ...ESBUILD_DEFAULT,
@@ -34,15 +31,6 @@ async function build() {
 
   await run('tsc --build tsconfig.build.json')
   await run('rollup -c')
-
-  const after = Date.now()
-  console.log(
-    chalk.blueBright(
-      `\nDone with client build in ${chalk.bold(
-        ((after - before) / 1000).toFixed(1),
-      )}s`,
-    ),
-  )
 }
 
 function run(command, preferLocal = true) {
