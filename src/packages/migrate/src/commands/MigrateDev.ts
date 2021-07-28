@@ -39,6 +39,7 @@ import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -173,21 +174,32 @@ ${chalk.bold('Examples')}
         }
       }
 
-      // Do the reset
-      await migrate.reset()
+      try {
+        // Do the reset
+        await migrate.reset()
+      } catch (e) {
+        migrate.stop()
+        throw e
+      }
     }
 
-    const { appliedMigrationNames } = await migrate.applyMigrations()
-    migrationIdsApplied.push(...appliedMigrationNames)
-    // Inform user about applied migrations now
-    if (appliedMigrationNames.length > 0) {
-      console.info(
-        `The following migration(s) have been applied:\n\n${chalk(
-          printFilesFromMigrationIds('migrations', appliedMigrationNames, {
-            'migration.sql': '',
-          }),
-        )}`,
-      )
+    try {
+      const { appliedMigrationNames } = await migrate.applyMigrations()
+      migrationIdsApplied.push(...appliedMigrationNames)
+
+      // Inform user about applied migrations now
+      if (appliedMigrationNames.length > 0) {
+        console.info(
+          `The following migration(s) have been applied:\n\n${chalk(
+            printFilesFromMigrationIds('migrations', appliedMigrationNames, {
+              'migration.sql': '',
+            }),
+          )}`,
+        )
+      }
+    } catch (e) {
+      migrate.stop()
+      throw e
     }
 
     // If database was reset we want to run the seed if not skipped
@@ -209,8 +221,14 @@ ${chalk.bold('Examples')}
       }
     }
 
-    const evaluateDataLossResult = await migrate.evaluateDataLoss()
-    debug({ evaluateDataLossResult })
+    let evaluateDataLossResult: EngineResults.EvaluateDataLossOutput
+    try {
+      evaluateDataLossResult = await migrate.evaluateDataLoss()
+      debug({ evaluateDataLossResult })
+    } catch (e) {
+      migrate.stop()
+      throw e
+    }
 
     // display unexecutableSteps
     // throws error if not create-only
@@ -242,29 +260,31 @@ ${chalk.bold('Examples')}
       }
     }
 
-    const createMigrationResult = await migrate.createMigration({
-      migrationsDirectoryPath: migrate.migrationsDirectoryPath,
-      migrationName: migrationName || '',
-      draft: args['--create-only'] ? true : false,
-      prismaSchema: migrate.getDatamodel(),
-    })
-    debug({ createMigrationResult })
+    let migrationIds: string[]
+    try {
+      const createMigrationResult = await migrate.createMigration({
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationName: migrationName || '',
+        draft: args['--create-only'] ? true : false,
+        prismaSchema: migrate.getDatamodel(),
+      })
+      debug({ createMigrationResult })
 
-    if (args['--create-only']) {
+      if (args['--create-only']) {
+        migrate.stop()
+
+        return `Prisma Migrate created the following migration without applying it ${printMigrationId(
+          createMigrationResult.generatedMigrationName!,
+        )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
+          getCommandWithExecutor('prisma migrate dev'),
+        )}.`
+      }
+
+      const { appliedMigrationNames } = await migrate.applyMigrations()
+      migrationIds = appliedMigrationNames
+    } finally {
       migrate.stop()
-
-      // console.info() // empty line
-      return `Prisma Migrate created the following migration without applying it ${printMigrationId(
-        createMigrationResult.generatedMigrationName!,
-      )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
-        getCommandWithExecutor('prisma migrate dev'),
-      )}.`
     }
-
-    const { appliedMigrationNames: migrationIds } =
-      await migrate.applyMigrations()
-
-    migrate.stop()
 
     // For display only, empty line
     migrationIdsApplied.length > 0 && console.info()

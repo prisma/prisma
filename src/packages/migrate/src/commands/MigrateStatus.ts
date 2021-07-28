@@ -6,7 +6,6 @@ import {
   HelpError,
   isError,
   getCommandWithExecutor,
-  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -20,6 +19,7 @@ import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
+import { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:status')
 
@@ -113,14 +113,20 @@ ${e.message}`)
     //         - Pending migrations (those in the migrations folder that haven't been applied yet)
     //         - If there are no pending migrations, tell the user everything looks OK and up to date.
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory({
-      optInToShadowDatabase: false,
-    })
-    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
-    const listMigrationDirectoriesResult =
-      await migrate.listMigrationDirectories()
-    debug({ listMigrationDirectoriesResult })
-    migrate.stop()
+    let diagnoseResult: EngineResults.DiagnoseMigrationHistoryOutput
+    let listMigrationDirectoriesResult: EngineResults.ListMigrationDirectoriesOutput
+
+    try {
+      diagnoseResult = await migrate.diagnoseMigrationHistory({
+        optInToShadowDatabase: false,
+      })
+      debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
+
+      listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
+      debug({ listMigrationDirectoriesResult })
+    } finally {
+      migrate.stop()
+    }
 
     console.log() // empty line
 
