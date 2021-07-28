@@ -869,6 +869,10 @@ async function testPackages(
     )
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
     console.log('BUILDKITE_PARALLEL_JOB === 1 - running all tests with binary')
+  } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
+    // This is a tmp workaround
+    console.log('SKIPPING')
+    order = []
   }
 
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
