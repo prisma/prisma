@@ -3,7 +3,6 @@ import { GeneratorConfig } from '@prisma/generator-helper'
 export enum ClientEngineType {
   NodeAPI = 'node-api',
   Binary = 'binary',
-  Proxy = 'proxy',
 }
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.NodeAPI
 
