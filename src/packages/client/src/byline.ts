@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 // Copyright (C) 2011-2015 John Hewson
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
