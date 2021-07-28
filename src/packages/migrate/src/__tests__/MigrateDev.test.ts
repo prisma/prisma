@@ -228,7 +228,7 @@ describe('sqlite', () => {
       migrationDirList![0],
       'migration.sql',
     )
-    const migrationFile = await fs.read(migrationFilePath)
+    const migrationFile = fs.read(migrationFilePath)
     expect(migrationFile).toMatchInlineSnapshot(`
       -- CreateTable
       CREATE TABLE "Blog" (

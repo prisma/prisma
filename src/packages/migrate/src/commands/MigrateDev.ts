@@ -31,10 +31,7 @@ import {
 } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
-import {
-  handleUnexecutableSteps,
-  handleWarnings,
-} from '../utils/handleEvaluateDataloss'
+import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
@@ -147,8 +144,14 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    const devDiagnostic = await migrate.devDiagnostic()
-    debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
+    let devDiagnostic: EngineResults.DevDiagnosticOutput
+    try {
+      devDiagnostic = await migrate.devDiagnostic()
+      debug({ devDiagnostic: JSON.stringify(devDiagnostic, null, 2) })
+    } catch (e) {
+      migrate.stop()
+      throw e
+    }
 
     const migrationIdsApplied: string[] = []
 
@@ -156,6 +159,7 @@ ${chalk.bold('Examples')}
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
         if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+          migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
 
@@ -168,6 +172,7 @@ ${chalk.bold('Examples')}
 
         if (!confirmedReset) {
           console.info('Reset cancelled.')
+          migrate.stop()
           process.exit(0)
           // For snapshot test, because exit() is mocked
           return ``
@@ -232,20 +237,47 @@ ${chalk.bold('Examples')}
 
     // display unexecutableSteps
     // throws error if not create-only
-    handleUnexecutableSteps(
+    const unexecutableStepsError = handleUnexecutableSteps(
       evaluateDataLossResult.unexecutableSteps,
       args['--create-only'],
     )
+    if (unexecutableStepsError) {
+      migrate.stop()
+      throw new Error(unexecutableStepsError)
+    }
 
     // log warnings and prompt user to continue if needed
-    const userCancelled = await handleWarnings(
-      evaluateDataLossResult.warnings,
-      args['--force'],
-      args['--create-only'],
-    )
-    if (userCancelled) {
-      migrate.stop()
-      return `Migration cancelled.`
+    if (
+      evaluateDataLossResult.warnings &&
+      evaluateDataLossResult.warnings.length > 0
+    ) {
+      console.log(chalk.bold(`\n⚠️  Warnings for the current datasource:\n`))
+      for (const warning of evaluateDataLossResult.warnings) {
+        console.log(chalk(`  • ${warning.message}`))
+      }
+      console.info() // empty line
+
+      if (!args['--force']) {
+        // We use prompts.inject() for testing in our CI
+        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+          migrate.stop()
+          throw new MigrateDevEnvNonInteractiveError()
+        }
+
+        const message = args['--create-only']
+          ? 'Are you sure you want create this migration?'
+          : 'Are you sure you want create and apply this migration?'
+        const confirmation = await prompt({
+          type: 'confirm',
+          name: 'value',
+          message,
+        })
+
+        if (!confirmation.value) {
+          migrate.stop()
+          return `Migration cancelled.`
+        }
+      }
     }
 
     let migrationName: undefined | string = undefined
