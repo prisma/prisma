@@ -896,7 +896,7 @@ async function testPackages(
       if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="node-api" PRISMA_FORCE_NAPI=true pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="binary" pnpm run test', // # Default is 'node-api' 
         )
       } else {
         await run(path.dirname(pkg.path), 'pnpm run test')
