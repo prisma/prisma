@@ -74,7 +74,7 @@ ${chalk.green(`${packageManager} ts-node typescript @types/node`)}
 And run \`chmod +x ${detected.sh}\` to make it executable.`
     }
   } else {
-    message += `2. Add one of the following example to your package.json:
+    message += `2. Add one of the following examples to your package.json:
 
 ${chalk.bold('TypeScript:')}
 \`\`\`
