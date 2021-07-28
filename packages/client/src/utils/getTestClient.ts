@@ -1,6 +1,4 @@
-import { enginesVersion, getEnginesPath } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -19,11 +17,9 @@ import {
   getPrismaClient,
   GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
+import { getClientEngineType } from '../runtime/utils/getClientEngineType'
+import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../runtime/utils/getClientEngineType'
 
 const readFile = promisify(fs.readFile)
 
@@ -50,40 +46,10 @@ export async function getTestClient(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  const enginesPath = getEnginesPath()
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
 
-  // TMP
-  const nodeAPILibraryPath = path.join(
-    enginesPath,
-    getNodeAPIName(platform, 'fs'),
-  )
-  const queryEngineBinaryPath = path.join(
-    enginesPath,
-    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  )
-  if (
-    clientEngineType === ClientEngineType.NodeAPI &&
-    !fs.existsSync(nodeAPILibraryPath)
-  ) {
-    await download({
-      binaries: {
-        'libquery-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  } else if (
-    clientEngineType === ClientEngineType.Binary &&
-    !fs.existsSync(queryEngineBinaryPath)
-  ) {
-    await download({
-      binaries: {
-        'query-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  }
+  await ensureTestClientQueryEngine(clientEngineType, platform)
 
   const document = await getDMMF({
     datamodel,
