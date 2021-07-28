@@ -4,12 +4,6 @@
 /generator-build
 /declaration
 
-*-dmmf.json
-*-dmmf-raw.json
-prisma-client-*.tgz
-*.zip
-
-yarn-error.log
 pnpm-lock.yaml
 *.tsbuildinfo
 .DS_Store
