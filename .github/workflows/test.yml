@@ -300,17 +300,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        cliQueryEngine: ['node-api', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
       
-      - name: Set Engine Type
-        if: ${{ matrix.engine == 'napi' }}
+      - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
       
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -354,7 +353,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        cliQueryEngine: ['node-api', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -363,10 +362,9 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
       
-      - name: Set Engine Type
-        if: ${{ matrix.engine == 'napi' }}
+      - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -422,17 +420,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engine: ['napi', 'binary']
+        cliQueryEngine: ['node-api', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
       
-      - name: Set Engine Type
-        if: ${{ matrix.engine == 'napi' }}
+      - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
