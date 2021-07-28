@@ -35,7 +35,7 @@ export async function verifySeedConfigAndReturnMessage(
 
   // TODO link to docs
   let message = `${chalk.red(
-    'To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:',
+    'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
   )}
 
 1. Open the package.json of your project
