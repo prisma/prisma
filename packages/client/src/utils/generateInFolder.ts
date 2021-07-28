@@ -20,6 +20,7 @@ import {
   ClientEngineType,
   getClientEngineType,
 } from '../runtime/utils/getClientEngineType'
+import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
@@ -112,28 +113,7 @@ export async function generateInFolder({
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
   )
 
-  // TMP
-  if (
-    clientEngineType === ClientEngineType.NodeAPI &&
-    !fs.existsSync(queryEngineLibraryPath)
-  ) {
-    await download({
-      binaries: {
-        'libquery-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  } else if (
-    clientEngineType === ClientEngineType.Binary &&
-    !fs.existsSync(queryEngineBinaryPath)
-  ) {
-    await download({
-      binaries: {
-        'query-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  }
+  await ensureTestClientQueryEngine(clientEngineType, platform)
 
   const binaryPaths =
     clientEngineType === ClientEngineType.NodeAPI
@@ -144,10 +124,7 @@ export async function generateInFolder({
         }
       : {
           queryEngine: {
-            [platform]: path.join(
-              enginesPath,
-              `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-            ),
+            [platform]: queryEngineBinaryPath,
           },
         }
 
