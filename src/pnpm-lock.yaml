@@ -380,19 +380,21 @@ importers:
       '@types/cross-spawn': ^6.0.1
       '@types/jest': 26.0.24
       '@types/node': 12.20.17
-      '@typescript-eslint/eslint-plugin': 4.28.4
-      '@typescript-eslint/parser': 4.28.4
+      '@typescript-eslint/eslint-plugin': 4.28.5
+      '@typescript-eslint/parser': 4.28.5
       chalk: ^4.0.0
       cross-spawn: ^7.0.2
+      esbuild: ^0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.4.0
       eslint-plugin-prettier: 3.4.0
+      glob: ^7.1.7
       jest: 27.0.6
-      lint-staged: 11.1.0
+      lint-staged: 11.1.1
       prettier: 2.3.2
-      ts-jest: 27.0.3
+      ts-jest: 27.0.4
       ts-node: 10.1.0
       typescript: 4.3.5
     dependencies:
@@ -403,17 +405,19 @@ importers:
     devDependencies:
       '@types/jest': 26.0.24
       '@types/node': 12.20.17
-      '@typescript-eslint/eslint-plugin': 4.28.4_b1648df9f9ba40bdeef3710a5a5af353
-      '@typescript-eslint/parser': 4.28.4_eslint@7.31.0+typescript@4.3.5
+      '@typescript-eslint/eslint-plugin': 4.28.5_514553717ff968e20f6d1c6e521f8616
+      '@typescript-eslint/parser': 4.28.5_eslint@7.31.0+typescript@4.3.5
+      esbuild: 0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0_eslint@7.31.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.31.0
-      eslint-plugin-jest: 24.4.0_fc5326c9e782cff3be563ae5197052dc
+      eslint-plugin-jest: 24.4.0_ac7033cc4dfbdac1051fc5c687b09618
       eslint-plugin-prettier: 3.4.0_19f511d6aa08b367b6cb59e8f50291ca
+      glob: 7.1.7
       jest: 27.0.6_ts-node@10.1.0
-      lint-staged: 11.1.0
+      lint-staged: 11.1.1
       prettier: 2.3.2
-      ts-jest: 27.0.3_jest@27.0.6+typescript@4.3.5
+      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
       ts-node: 10.1.0_6a5e1f2f9646ad83684ea4da8a674e6d
       typescript: 4.3.5
 
@@ -3659,7 +3663,7 @@ packages:
       cross-spawn: 7.0.3
       get-stream: 6.0.1
       human-signals: 2.1.0
-      is-stream: 2.0.0
+      is-stream: 2.0.1
       merge-stream: 2.0.0
       npm-run-path: 4.0.1
       onetime: 5.1.2
@@ -4408,6 +4412,10 @@ packages:
     resolution: {integrity: sha512-XCoy+WlUr7d1+Z8GgSuXmpuUFC9fOhRXglJMx+dwLKTkL44Cjd4W1Z5P+BQZpr+cR93aGP4S/s7Ftw6Nd/kiEw==}
     engines: {node: '>=8'}
 
+  /is-stream/2.0.1:
+    resolution: {integrity: sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg==}
+    engines: {node: '>=8'}
+
   /is-typedarray/1.0.0:
     resolution: {integrity: sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=}
     dev: true
@@ -4970,7 +4978,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': 27.0.6
-      '@types/node': 14.17.5
+      '@types/node': 12.20.17
       chalk: 4.1.1
       graceful-fs: 4.2.6
       is-ci: 3.0.0
@@ -7288,7 +7296,7 @@ packages:
       bs-logger: 0.2.6
       buffer-from: 1.1.1
       fast-json-stable-stringify: 2.1.0
-      jest: 27.0.6
+      jest: 27.0.6_ts-node@10.1.0
       jest-util: 27.0.6
       json5: 2.2.0
       lodash: 4.17.21
