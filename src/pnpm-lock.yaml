@@ -622,16 +622,18 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@types/jest': 26.0.24
-      '@types/node': 14.17.5
-      '@typescript-eslint/eslint-plugin': 4.28.4
-      '@typescript-eslint/parser': 4.28.4
+      '@types/node': 14.17.6
+      '@typescript-eslint/eslint-plugin': 4.28.5
+      '@typescript-eslint/parser': 4.28.5
+      esbuild: ^0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.4.0
       eslint-plugin-prettier: 3.4.0
+      glob: ^7.1.7
       jest: 27.0.6
-      lint-staged: 11.1.0
+      lint-staged: 11.1.1
       prettier: 2.3.2
       react: ^17.0.0
       strip-ansi: 7.0.0
@@ -640,16 +642,18 @@ importers:
     devDependencies:
       '@prisma/client': link:../client
       '@types/jest': 26.0.24
-      '@types/node': 14.17.5
-      '@typescript-eslint/eslint-plugin': 4.28.4_b1648df9f9ba40bdeef3710a5a5af353
-      '@typescript-eslint/parser': 4.28.4_eslint@7.31.0+typescript@4.3.5
+      '@types/node': 14.17.6
+      '@typescript-eslint/eslint-plugin': 4.28.5_514553717ff968e20f6d1c6e521f8616
+      '@typescript-eslint/parser': 4.28.5_eslint@7.31.0+typescript@4.3.5
+      esbuild: 0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0_eslint@7.31.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.31.0
-      eslint-plugin-jest: 24.4.0_fc5326c9e782cff3be563ae5197052dc
+      eslint-plugin-jest: 24.4.0_ac7033cc4dfbdac1051fc5c687b09618
       eslint-plugin-prettier: 3.4.0_19f511d6aa08b367b6cb59e8f50291ca
-      jest: 27.0.6_ts-node@10.1.0
-      lint-staged: 11.1.0
+      glob: 7.1.7
+      jest: 27.0.6
+      lint-staged: 11.1.1
       prettier: 2.3.2
       react: 17.0.2
       strip-ansi: 7.0.0
@@ -2097,6 +2101,10 @@ packages:
 
   /@types/node/14.17.5:
     resolution: {integrity: sha512-bjqH2cX/O33jXT/UmReo2pM7DIJREPMnarixbQ57DOOzzFaI6D2+IcwaJQaJpv0M1E9TIhPCYVxrkcityLjlqA==}
+    dev: true
+
+  /@types/node/14.17.6:
+    resolution: {integrity: sha512-iBxsxU7eswQDGhlr3AiamBxOssaYxbM+NKXVil8jg9yFXvrfEFbDumLD/2dMTB+zYyg7w+Xjt8yuxfdbUHAtcQ==}
     dev: true
 
   /@types/node/16.4.1:
