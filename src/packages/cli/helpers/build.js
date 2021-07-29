@@ -14,10 +14,7 @@ async function main() {
 
   await makeDir('./build')
 
-  await Promise.all([
-    run('node ./helpers/copy-prisma-client.js'),
-    run('tsc --build tsconfig.build.json', true),
-  ])
+  await run('node ./helpers/copy-prisma-client.js')
 
   await Promise.all([
     esbuild.build({

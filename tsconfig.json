@@ -9,7 +9,7 @@
       "@prisma/generator-helper": ["generator-helper/src"],
       "@prisma/engine-core": ["engine-core/src"],
       "@prisma/debug": ["debug/src"],
-      "@prisma/cli": ["debug/cli"],
+      "@prisma/cli": ["cli/src"],
     }
   },
   "include": ["**/*"],
