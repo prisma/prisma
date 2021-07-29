@@ -4,19 +4,19 @@
 
    brew install mongodb-community
 
-2. Create a location for your data _(from `src/packages/client/fixtures/mongo`)_
+2. Create a location for your data _(from `packages/client/fixtures/mongo`)_
 
    mkdir -a ./data/db
 
-3. Run a mongod server _(from `src/packages/client/fixtures/mongo`)_
+3. Run a mongod server _(from `packages/client/fixtures/mongo`)_
 
    mongod --dbpath data/db
 
-4. Generate a client _(from `src/packages/client`)_
+4. Generate a client _(from `packages/client`)_
 
    ts-node fixtures/generate.ts ./fixtures/mongo/ --skip-transpile
 
-5. Run the `main.ts` _(from `src/packages/client/fixtures/mongo`)_
+5. Run the `main.ts` _(from `packages/client/fixtures/mongo`)_
 
    ts-node main.ts
 

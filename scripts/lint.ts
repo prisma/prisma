@@ -65,7 +65,7 @@ main().catch((e) => {
 })
 
 async function getAllPackages(): Promise<string[]> {
-  const packages = await globby('./src/packages/*/package.json')
+  const packages = await globby('./packages/*/package.json')
   return packages.map((p) => path.basename(path.dirname(p)))
 }
 
@@ -78,7 +78,7 @@ async function lintPackage(
     const command = `pnpm run ${stagedOnly ? 'precommit' : lint}`
     console.log(`${pkg}: running ${command}`)
     await execa.command(command, {
-      cwd: path.join(__dirname, `../src/packages/${pkg}`),
+      cwd: path.join(__dirname, `../packages/${pkg}`),
       stdio: 'pipe',
       env: {
         ...process.env,
@@ -113,8 +113,8 @@ async function getStagedPackages(): Promise<string[]> {
   const files: Array<{ filename: string; status: string }> = await staged()
   return Object.keys(
     files.reduce((acc, { filename }) => {
-      if (filename.startsWith('src/packages')) {
-        // "src/packages/".length === 13
+      if (filename.startsWith('packages')) {
+        // "packages/".length === 13
         let packageName = filename.slice(13)
         packageName = packageName.slice(0, packageName.indexOf('/'))
         if (!acc[packageName]) {

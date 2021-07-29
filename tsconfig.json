@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.build.json",
   "compilerOptions": {
-    "baseUrl": "./src/packages",
+    "baseUrl": "./packages",
     "paths": {
       "@prisma/client": ["client/src/runtime"],
       "@prisma/sdk": ["sdk/src"],
