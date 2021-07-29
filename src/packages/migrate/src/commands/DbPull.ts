@@ -303,6 +303,8 @@ Or run this command with the ${chalk.green(
         }
         return message
       }
+
+      return undefined
     }
 
     const introspectionWarningsMessage =

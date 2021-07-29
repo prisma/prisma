@@ -192,6 +192,8 @@ To install them run: ${chalk.green(
       })
     }
   }
+
+  return undefined
 }
 
 export async function getScriptsFromPackageJson(cwd: string = process.cwd()) {

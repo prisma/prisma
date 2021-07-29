@@ -153,6 +153,8 @@ export async function ensureDatabaseExists(
       schemaDir,
     )
   }
+
+  return undefined
 }
 
 export async function interactivelyCreateDatabase(
