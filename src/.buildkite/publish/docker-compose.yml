@@ -1,11 +1,11 @@
 version: '3.7'
 services:
   app:
-    image: node:14-buster
+    image: node:12-buster
     volumes:
       - ../../../:/app
     working_dir: /app
-    command: /app/.buildkite/test/run.sh
+    command: /app/src/.buildkite/publish/run.sh
     environment:
       # PostgreSQL
       - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres:5432/tests-migrate
@@ -28,20 +28,29 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
       # Other vars
+      - NPM_TOKEN
+      - GITHUB_TOKEN
+      - UPDATE_STUDIO
       - BUILDKITE
-      - BUILDKITE_PARALLEL_JOB
-      - BUILDKITE_PARALLEL_JOB_COUNT
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
+      - RELEASE_PROMOTE_DEV
+      - PUBLISH_BUILD=true
+      - REDIS_URL
+      - MIGRATE_COMMIT
+      - PRISMA_CLIENT_JS_COMMIT
+      - PRISMA2_COMMIT
+      - DEVELOPMENT_ENVIRONMENT_COMMIT
       - PATCH_BRANCH
+      - DRY_RUN
       - CI
-      - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
+      - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
       - SKIP_E2E_CHECK
+      - SLACK_RELEASE_FEED_WEBHOOK
     depends_on:
       - postgres
       - postgres_isolated
       - mysql
-      - mysql_isolated
       - mariadb
       - mssql
 

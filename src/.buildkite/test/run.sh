@@ -58,8 +58,6 @@ fi
 node -v
 npm -v
 
-retry 6 pnpm i --no-prefer-frozen-lockfile
-
 pnpm run setup
 
 pnpm run test
