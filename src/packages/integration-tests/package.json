@@ -50,6 +50,8 @@
     "verror": "1.10.0"
   },
   "scripts": {
+    "dev": "DEV=true node helpers/build.js",
+    "build": "node helpers/build.js",
     "jest": "jest",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
     "test:sqlite": "jest integration.sqlite --verbose",
@@ -57,7 +59,6 @@
     "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
     "test:mssql": "jest integration.mssql --maxConcurrency=8 --verbose",
-    "build": "node helpers/build.js",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",

@@ -71,6 +71,7 @@
     "strip-indent": "^3.0.0"
   },
   "scripts": {
+    "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
     "run": "node dist/bin.js",
     "precommit": "lint-staged",

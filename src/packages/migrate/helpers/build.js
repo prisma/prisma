@@ -5,7 +5,9 @@ const glob = require('glob')
 const ESBUILD_DEFAULT = {
   platform: 'node',
   target: 'node12',
-  sourcemap: 'external'
+  sourcemap: 'external',
+  format: 'cjs',
+  outdir: 'dist'
 }
 
 async function build() {
@@ -14,13 +16,13 @@ async function build() {
       ...ESBUILD_DEFAULT,
       entryPoints: glob.sync('./src/**/*.{j,t}s', {
         ignore: './src/__tests__/**/*.{j,t}s'
-      }),
-      outdir: 'dist',
-      format: 'cjs',
+      })
     }),
   ])
 
-  await run('tsc --build tsconfig.build.json')
+  if (process.env.DEV !== 'true') {
+    await run('tsc --build tsconfig.build.json')
+  }
 }
 
 function run(command, preferLocal = true) {

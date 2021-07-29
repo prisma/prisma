@@ -29,8 +29,10 @@ async function build() {
     }),
   ])
 
-  await run('tsc --build tsconfig.build.json')
-  await run('rollup -c')
+  if (process.env.DEV !== 'true') {
+    await run('tsc --build tsconfig.build.json')
+    await run('rollup -c')
+  }
 }
 
 function run(command, preferLocal = true) {

@@ -14,6 +14,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "scripts": {
+    "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",

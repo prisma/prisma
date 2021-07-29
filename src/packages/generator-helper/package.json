@@ -21,6 +21,7 @@
     "cross-spawn": "^7.0.2"
   },
   "scripts": {
+    "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",

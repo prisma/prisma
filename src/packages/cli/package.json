@@ -111,6 +111,8 @@
     "typescript": "4.3.5"
   },
   "scripts": {
+    "dev": "DEV=true node helpers/build.js",
+    "build": "node helpers/build.js",
     "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
     "test-update": "pnpm run test:commands -- -u",
     "test": "pnpm run test:commands",
@@ -120,7 +122,6 @@
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
-    "build": "node helpers/build.js",
     "prepublishOnly": "pnpm run build",
     "preinstall": "node scripts/preinstall-entry.js",
     "precommit": "lint-staged"
