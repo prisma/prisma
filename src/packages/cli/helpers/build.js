@@ -9,6 +9,13 @@ const { promisify } = require('util')
 const copyFile = promisify(fs.copyFile)
 const lineReplace = require('line-replace')
 
+const ESBUILD_DEFAULT = {
+  platform: 'node',
+  target: 'node12',
+  bundle: true,
+  tsconfig: 'tsconfig.build.json'
+}
+
 async function main() {
   const before = Date.now()
 
@@ -18,28 +25,21 @@ async function main() {
 
   await Promise.all([
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      target: 'node12',
-      outfile: 'build/index.js',
+      ...ESBUILD_DEFAULT,
       entryPoints: ['src/bin.ts'],
+      outfile: 'build/index.js',
       external: ['@prisma/engines', '_http_common'],
     }),
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      minify: true,
-      target: ['node12'],
-      outfile: 'preinstall/index.js',
+      ...ESBUILD_DEFAULT,
       entryPoints: ['scripts/preinstall.js'],
+      outfile: 'preinstall/index.js',
     }),
     esbuild.build({
-      platform: 'node',
-      bundle: true,
-      minify: true,
-      target: ['node12'],
-      outfile: 'install/index.js',
+      ...ESBUILD_DEFAULT,
       entryPoints: ['scripts/install.js'],
+      outfile: 'install/index.js',
+      minify: true,
     }),
     copy({
       from: path.join(

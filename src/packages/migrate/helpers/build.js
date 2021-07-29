@@ -7,7 +7,8 @@ const ESBUILD_DEFAULT = {
   target: 'node12',
   sourcemap: 'external',
   format: 'cjs',
-  outdir: 'dist'
+  outdir: 'dist',
+  tsconfig: 'tsconfig.build.json'
 }
 
 async function build() {

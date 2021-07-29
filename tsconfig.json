@@ -10,10 +10,10 @@
       "@prisma/engine-core": ["engine-core/src"],
       "@prisma/debug": ["debug/src"],
       "@prisma/cli": ["cli/src"],
-      // "@prisma/get-platform": ["../../../engines-wrapper/packages/get-platform/src"],
-      // "@prisma/fetch-engine": ["../../../engines-wrapper/packages/fetch-engine/src"],
-      // "@prisma/engines": ["../../../engines-wrapper/packages/engines/src"],
-      // "@prisma/engines-version": ["../../../engines-wrapper/packages/engines-version/src"]
+      "@prisma/get-platform": ["../../../engines-wrapper/packages/get-platform/src"],
+      "@prisma/fetch-engine": ["../../../engines-wrapper/packages/fetch-engine/src"],
+      "@prisma/engines": ["../../../engines-wrapper/packages/engines/src"],
+      "@prisma/engines-version": ["../../../engines-wrapper/packages/engines-version/src"]
     }
   },
   "include": ["**/*"],

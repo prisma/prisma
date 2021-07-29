@@ -5,7 +5,8 @@ const ESBUILD_DEFAULT = {
   bundle: true,
   platform: 'node',
   target: 'node12',
-  external: ['_http_common']
+  external: ['_http_common'],
+  tsconfig: 'tsconfig.build.json',
 }
 
 async function build() {
