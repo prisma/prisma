@@ -4,7 +4,8 @@
     "baseUrl": "./src/packages",
     "paths": {
       "@prisma/client": ["client/src/runtime"],
-      "@prisma/sdk": ["sdk/src"]
+      "@prisma/sdk": ["sdk/src"],
+      "@prisma/migrate": ["migrate/src"],
     }
   },
   "include": ["**/*"],

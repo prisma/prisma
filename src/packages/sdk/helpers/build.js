@@ -16,6 +16,7 @@ async function build() {
       }),
       outdir: 'dist',
       format: 'cjs',
+      sourcemap: 'external'
     }),
   ])
 
