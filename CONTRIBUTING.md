@@ -68,7 +68,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 2. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 3. `cd fixtures/blog`
 4. `export DB_URL=YOUR_DATABASE_URL`  
-   For this step you might find our [docker-compose setup](./src/docker) helpful
+   For this step you might find our [docker-compose setup](./docker) helpful
 5. `npx prisma db push --skip-generate`
 6. `ts-node main`
 
@@ -118,9 +118,9 @@ We have two kinds of integration tests:
 1. Testing basic query functionality - located in [`src/integration-tests/src/__tests__/integration`](./src/packages/integration-tests/src/__tests__/integration)
 2. Testing the client in mini projects - located in [`src/client/src/__tests__/integration`](./src/packages/client/src/__tests__/integration)
 
-To run any of these, start the test databases (see [readme](./src/docker) for various ways to run these)
+To run any of these, start the test databases (see [readme](./docker) for various ways to run these)
 
-1. `cd src/docker`
+1. `cd docker`
 1. `docker-compose up -d`
 
 #### General client integration tests (`./integration-tests`)
@@ -241,7 +241,7 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 ## Running the Databases locally with Docker Compose
 
 ```bash
-cd src/docker
+cd docker
 docker-compose up -d
 docker-compose logs -f app
 ```

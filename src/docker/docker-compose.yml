@@ -1,4 +1,3 @@
-# From https://github.com/prisma/prisma/blob/975f2309ec2a6bec4d67d1c243131d7077884b8f/src/docker/docker-compose.yml
 version: '3.7'
 services:
   # In Docker

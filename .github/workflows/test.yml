@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
       
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -242,7 +242,7 @@ jobs:
         run: |
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
+      - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
       
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
@@ -363,7 +363,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
       
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
