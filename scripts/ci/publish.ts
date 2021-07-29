@@ -315,7 +315,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   // Why are we calling zeroOutPatch?
   // Because here we're only interested in the 2.5.0 <- the next minor stable version
   // If the current version would be 2.4.7, we would end up with 2.5.7
-  const nextStable = zeroOutPatch(await getNextMinorStable())
+  const nextStable = zeroOutPatch((await getNextMinorStable())!)
 
   console.log(`getNewDevVersion: Next minor stable: ${nextStable}`)
 
@@ -341,7 +341,7 @@ async function getNewIntegrationVersion(
   // Why are we calling zeroOutPatch?
   // Because here we're only interested in the 2.5.0 <- the next minor stable version
   // If the current version would be 2.4.7, we would end up with 2.5.7
-  const nextStable = zeroOutPatch(await getNextMinorStable())
+  const nextStable = zeroOutPatch((await getNextMinorStable())!)
 
   console.log(`getNewIntegrationVersion: Next minor stable: ${nextStable}`)
 
@@ -407,7 +407,7 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const minor = getMinorFromPatchBranch(patchBranch)
+  const minor = getMinorFromPatchBranch(patchBranch)!
   const currentPatch = await getCurrentPatchForMinor(minor)
   const newPatch = currentPatch + 1
   const newVersion = `2.${minor}.${newPatch}`
@@ -515,7 +515,7 @@ async function getNextMinorStable() {
 }
 
 // TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string): number {
+function getMinorFromPatchBranch(version: string) {
   const regex = /2\.(\d+)\.x/
   const match = regex.exec(version)
 
@@ -523,7 +523,7 @@ function getMinorFromPatchBranch(version: string): number {
     return Number(match[1])
   }
 
-  throw new Error(`invalid version ${version}`)
+  return undefined
 }
 
 async function publish() {
@@ -632,7 +632,7 @@ async function publish() {
     let tagForE2ECheck: undefined | string
     const patchBranch = getPatchBranch()
     const branch = await getPrismaBranch()
-    if (branch.startsWith('integration/')) {
+    if (branch && branch.startsWith('integration/')) {
       prisma2Version = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     } else if (patchBranch) {
@@ -922,7 +922,7 @@ async function newVersion(pkg: Package, prisma2Version: string) {
 const semverRegex =
   /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-function patchVersion(version: string): string {
+function patchVersion(version: string) {
   // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
 
   const match = semverRegex.exec(version)
@@ -932,10 +932,10 @@ function patchVersion(version: string): string {
     }`
   }
 
-  throw new Error(`invalid version ${version}`)
+  return undefined
 }
 
-function increaseMinor(version: string): string {
+function increaseMinor(version: string) {
   const match = semverRegex.exec(version)
   if (match?.groups) {
     return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
@@ -943,10 +943,10 @@ function increaseMinor(version: string): string {
     }`
   }
 
-  throw new Error(`invalid version ${version}`)
+  return undefined
 }
 
-async function patch(pkg: Package): Promise<string> {
+async function patch(pkg: Package) {
   // if done locally, no need to get the latest version from npm (saves time)
   // if done in buildkite, we definitely want to check, if there's a newer version on npm
   // in buildkite, saving a few sec is not worth it
@@ -1267,7 +1267,7 @@ async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
 }
 
-async function getPrismaBranch(): Promise<string> {
+async function getPrismaBranch(): Promise<string | undefined> {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
   }
@@ -1278,7 +1278,7 @@ async function getPrismaBranch(): Promise<string> {
     )
   } catch (e) {}
 
-  throw new Error(`cannot get prisma branch`)
+  return undefined
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
@@ -1295,7 +1295,7 @@ async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
   return res.includes('passing')
 }
 
-function getPatchBranch(): string {
+function getPatchBranch(): string | undefined {
   if (process.env.PATCH_BRANCH) {
     return process.env.PATCH_BRANCH
   }
@@ -1307,7 +1307,7 @@ function getPatchBranch(): string {
     }
   }
 
-  throw new Error('cannot get patch branch')
+  return undefined
 }
 
 type CommitInfo = {
