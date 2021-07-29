@@ -4,7 +4,7 @@ steps:
     timeout_in_minutes: 25
     plugins:
       - docker-compose#v3.8.0:
-          config: src/.buildkite/test/docker-compose.14.yml
+          config: .buildkite/test/docker-compose.14.yml
           run: app
 
   - wait
