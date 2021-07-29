@@ -79,6 +79,8 @@ export const defaultPort = (provider: ConnectorType) => {
     case 'postgresql':
       return 5432
   }
+
+  return undefined
 }
 
 export const defaultURL = (
@@ -276,12 +278,9 @@ export class Init implements Command {
     }
 
     try {
-      fs.writeFileSync(
-      path.join(outputDir, ".gitignore"),
-      defaultGitIgnore()
-      );
+      fs.writeFileSync(path.join(outputDir, '.gitignore'), defaultGitIgnore())
     } catch (error) {
-      console.error("Failed to write .gitignore file, reason: ", error);
+      console.error('Failed to write .gitignore file, reason: ', error)
     }
 
     const steps: string[] = []
