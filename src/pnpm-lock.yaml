@@ -323,9 +323,10 @@ importers:
       '@prisma/get-platform': 2.28.0-17.89facabd0366f63911d089156a7a70125bfbcd27
       '@types/jest': 26.0.24
       '@types/node': 12.20.17
-      '@typescript-eslint/eslint-plugin': 4.28.4
-      '@typescript-eslint/parser': 4.28.4
+      '@typescript-eslint/eslint-plugin': 4.28.5
+      '@typescript-eslint/parser': 4.28.5
       chalk: ^4.0.0
+      esbuild: ^0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -333,15 +334,16 @@ importers:
       eslint-plugin-prettier: 3.4.0
       execa: ^5.0.0
       get-stream: ^6.0.0
+      glob: ^7.1.7
       indent-string: ^4.0.0
       jest: 27.0.6
-      lint-staged: 11.1.0
+      lint-staged: 11.1.1
       new-github-issue-url: ^0.2.1
       p-retry: ^4.2.0
       prettier: 2.3.2
       strip-ansi: 6.0.0
       terminal-link: ^2.1.1
-      ts-jest: 27.0.3
+      ts-jest: 27.0.4
       typescript: 4.3.5
       undici: 3.3.6
     dependencies:
@@ -360,18 +362,20 @@ importers:
     devDependencies:
       '@types/jest': 26.0.24
       '@types/node': 12.20.17
-      '@typescript-eslint/eslint-plugin': 4.28.4_b1648df9f9ba40bdeef3710a5a5af353
-      '@typescript-eslint/parser': 4.28.4_eslint@7.31.0+typescript@4.3.5
+      '@typescript-eslint/eslint-plugin': 4.28.5_514553717ff968e20f6d1c6e521f8616
+      '@typescript-eslint/parser': 4.28.5_eslint@7.31.0+typescript@4.3.5
+      esbuild: 0.12.16
       eslint: 7.31.0
       eslint-config-prettier: 8.3.0_eslint@7.31.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.31.0
-      eslint-plugin-jest: 24.4.0_fc5326c9e782cff3be563ae5197052dc
+      eslint-plugin-jest: 24.4.0_ac7033cc4dfbdac1051fc5c687b09618
       eslint-plugin-prettier: 3.4.0_19f511d6aa08b367b6cb59e8f50291ca
-      jest: 27.0.6_ts-node@10.1.0
-      lint-staged: 11.1.0
+      glob: 7.1.7
+      jest: 27.0.6
+      lint-staged: 11.1.1
       prettier: 2.3.2
       strip-ansi: 6.0.0
-      ts-jest: 27.0.3_jest@27.0.6+typescript@4.3.5
+      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
       typescript: 4.3.5
 
   packages/generator-helper:
@@ -7296,7 +7300,7 @@ packages:
       bs-logger: 0.2.6
       buffer-from: 1.1.1
       fast-json-stable-stringify: 2.1.0
-      jest: 27.0.6_ts-node@10.1.0
+      jest: 27.0.6
       jest-util: 27.0.6
       json5: 2.2.0
       lodash: 4.17.21

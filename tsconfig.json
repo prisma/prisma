@@ -6,6 +6,8 @@
       "@prisma/client": ["client/src/runtime"],
       "@prisma/sdk": ["sdk/src"],
       "@prisma/migrate": ["migrate/src"],
+      "@prisma/generator-helper": ["generator-helper/src"],
+      "@prisma/engine-core": ["engine-core/src"],
     }
   },
   "include": ["**/*"],
