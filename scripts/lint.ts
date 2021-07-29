@@ -69,10 +69,7 @@ async function getAllPackages(): Promise<string[]> {
   return packages.map((p) => path.basename(path.dirname(p)))
 }
 
-async function lintPackage(
-  pkg: string,
-  stagedOnly: boolean = false,
-): Promise<boolean> {
+async function lintPackage(pkg: string, stagedOnly = false): Promise<boolean> {
   try {
     const lint = process.env.CI ? 'lint-ci' : 'lint'
     const command = `pnpm run ${stagedOnly ? 'precommit' : lint}`
@@ -111,11 +108,11 @@ function printPkg(msg: string, pkg: string) {
 
 async function getStagedPackages(): Promise<string[]> {
   const files: Array<{ filename: string; status: string }> = await staged()
+
   return Object.keys(
-    files.reduce((acc, { filename }) => {
-      if (filename.startsWith('packages')) {
-        // "packages/".length === 13
-        let packageName = filename.slice(13)
+    files.reduce((acc, { filename, status }) => {
+      if (status !== 'Deleted' && /packages\/.*?\/src\//.exec(filename)) {
+        let packageName = filename.slice('packages/'.length)
         packageName = packageName.slice(0, packageName.indexOf('/'))
         if (!acc[packageName]) {
           acc[packageName] = true
