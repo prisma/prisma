@@ -58,4 +58,4 @@ async function all() {
   await run(`prisma-client-js`, command)
 }
 
-all()
+void all()

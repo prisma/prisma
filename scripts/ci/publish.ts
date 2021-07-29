@@ -129,8 +129,8 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
 async function run(
   cwd: string,
   cmd: string,
-  dry: boolean = false,
-  hidden: boolean = false,
+  dry = false,
+  hidden = false,
 ): Promise<void> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
@@ -208,7 +208,7 @@ type PackagesWithNewVersions = { [packageName: string]: PackageWithNewVersion }
 export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>(
     (acc, [name, pkg]) => {
-      let usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
+      const usesDev = getPrismaDependencies(pkg.packageJson.devDependencies)
       acc[name] = {
         version: pkg.packageJson.version,
         name,
@@ -256,7 +256,7 @@ function getPrismaDependencies(dependencies?: {
 }
 
 function getCircularDependencies(packages: Packages): string[][] {
-  const circularDeps = []
+  const circularDeps = [] as string[][]
   for (const pkg of Object.values(packages)) {
     const uses = [...pkg.uses, ...pkg.usesDev]
     const usedBy = [...pkg.usedBy, ...pkg.usedByDev]
@@ -380,7 +380,7 @@ async function getCurrentPatchForMinor(minor: number): Promise<number> {
   }> = versions
     .map((v) => {
       const match = semverRegex.exec(v)
-      if (match) {
+      if (match?.groups) {
         return {
           major: Number(match.groups.major),
           minor: Number(match.groups.minor),
@@ -426,7 +426,7 @@ function getMaxDevVersionIncrement(versions: string[]): number {
       if (match) {
         return Number(match[1])
       }
-      return null
+      return 0
     })
     .filter((v) => v)
   return Math.max(...increments, 0)
@@ -441,7 +441,7 @@ function getMaxIntegrationVersionIncrement(versions: string[]): number {
       if (match) {
         return Number(match[1])
       }
-      return null
+      return 0
     })
     .filter((v) => v)
 
@@ -458,7 +458,7 @@ function getMaxPatchVersionIncrement(versions: string[]): number {
       if (match && match[1]) {
         return Number(match[1])
       }
-      return null
+      return 0
     })
     .filter((v) => v)
 
@@ -480,7 +480,7 @@ async function getAllVersions(
           if (pkg.name === '@prisma/integration-tests') {
             return []
           }
-          const pkgVersions = []
+          const pkgVersions = [] as string[]
           if (pkg.version.startsWith(prefix)) {
             pkgVersions.push(pkg.version)
           }
@@ -508,14 +508,14 @@ async function getAllVersions(
   )
 }
 
-async function getNextMinorStable(): Promise<string | null> {
+async function getNextMinorStable() {
   const remoteVersion = await runResult('.', `npm info prisma version`)
 
   return increaseMinor(remoteVersion)
 }
 
 // TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string): number | null {
+function getMinorFromPatchBranch(version: string): number {
   const regex = /2\.(\d+)\.x/
   const match = regex.exec(version)
 
@@ -523,7 +523,7 @@ function getMinorFromPatchBranch(version: string): number | null {
     return Number(match[1])
   }
 
-  return null
+  throw new Error(`invalid version ${version}`)
 }
 
 async function publish() {
@@ -550,7 +550,7 @@ async function publish() {
     args['--dry-run'] = true
   }
 
-  const dryRun = args['--dry-run']
+  const dryRun = args['--dry-run'] ?? false
 
   if (args['--publish'] && process.env.BUILDKITE_TAG) {
     if (args['--release']) {
@@ -922,28 +922,28 @@ async function newVersion(pkg: Package, prisma2Version: string) {
 const semverRegex =
   /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
-function patchVersion(version: string): string | null {
+function patchVersion(version: string): string {
   // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
 
   const match = semverRegex.exec(version)
-  if (match) {
+  if (match?.groups) {
     return `${match.groups.major}.${match.groups.minor}.${
       Number(match.groups.patch) + 1
     }`
   }
 
-  return null
+  throw new Error(`invalid version ${version}`)
 }
 
-function increaseMinor(version: string): string | null {
+function increaseMinor(version: string): string {
   const match = semverRegex.exec(version)
-  if (match) {
+  if (match?.groups) {
     return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
       match.groups.patch
     }`
   }
 
-  return null
+  throw new Error(`invalid version ${version}`)
 }
 
 async function patch(pkg: Package): Promise<string> {
@@ -1267,7 +1267,7 @@ async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
 }
 
-async function getPrismaBranch(): Promise<string | undefined> {
+async function getPrismaBranch(): Promise<string> {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
   }
@@ -1277,6 +1277,8 @@ async function getPrismaBranch(): Promise<string | undefined> {
       'git rev-parse --symbolic-full-name --abbrev-ref HEAD',
     )
   } catch (e) {}
+
+  throw new Error(`cannot get prisma branch`)
 }
 
 async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
@@ -1293,7 +1295,7 @@ async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
   return res.includes('passing')
 }
 
-function getPatchBranch(): string | null {
+function getPatchBranch(): string {
   if (process.env.PATCH_BRANCH) {
     return process.env.PATCH_BRANCH
   }
@@ -1305,7 +1307,7 @@ function getPatchBranch(): string | null {
     }
   }
 
-  return null
+  throw new Error('cannot get patch branch')
 }
 
 type CommitInfo = {
@@ -1327,7 +1329,7 @@ async function sendSlackMessage({
   prismaCommit,
   dryRun,
 }: SlackMessageArgs) {
-  const webhook = new IncomingWebhook(process.env.SLACK_RELEASE_FEED_WEBHOOK)
+  const webhook = new IncomingWebhook(process.env.SLACK_RELEASE_FEED_WEBHOOK!)
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
   const prismaLines = getLines(prismaCommit.message)
   const enginesLines = getLines(enginesCommit.message)

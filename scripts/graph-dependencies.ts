@@ -2,7 +2,7 @@ import { readdirSync, statSync } from 'fs'
 import { digraph } from 'graphviz'
 import { join } from 'path'
 
-const getDirectories = async (path: string) => {
+const getDirectories = (path: string) => {
   const packages = readdirSync(path).filter((any) =>
     statSync(join(path, any)).isDirectory(),
   )
@@ -31,25 +31,23 @@ function generateGraph(
   const g = digraph('G')
   g.set('splines', 'ortho')
   packages?.forEach((pkg) => {
-    try{
+    try {
       const json = require(pkg.jsonPath)
       g.addNode(json.name, { shape: 'box' })
       const keys = getKeys(json, type)
       const depNodes = keys.map((key) => {
         g.addEdge(json.name, key, {})
       })
-    } catch {
-      
-    }
+    } catch {}
   })
   g.output('png', `./graphs/${type}.png`, (err, stdout, stderr) => {
     console.log(stderr)
   })
 }
-async function main() {
-  const packages = await getDirectories('./packages')
+function main() {
+  const packages = getDirectories('./packages')
   generateGraph(packages, 'dependencies')
   generateGraph(packages, 'devDependencies')
   generateGraph(packages, 'peerDependencies')
 }
-main()
+void main()

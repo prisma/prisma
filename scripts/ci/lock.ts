@@ -10,10 +10,10 @@ async function main() {
   const unlock = await lock('lockString2', 1000 * 1000)
   console.log('got lock')
   // Perform your task;
-  await new Promise(r => setTimeout(r, 1000 * 1000))
+  await new Promise((r) => setTimeout(r, 1000 * 1000))
   console.log('released lock')
   console.log(new Date())
   unlock()
 }
 
-main()
+void main()

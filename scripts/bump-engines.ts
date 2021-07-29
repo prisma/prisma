@@ -24,7 +24,7 @@ async function main() {
   )
 }
 
-main()
+void main()
 
 async function run(cwd: string, cmd: string): Promise<void> {
   console.log(chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd))

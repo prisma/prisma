@@ -117,7 +117,7 @@ async function main() {
   }
 }
 
-main()
+void main()
 
 async function runResult(cwd: string, cmd: string): Promise<string> {
   try {
