@@ -6,5 +6,9 @@
       "@prisma/client": ["client/src/runtime"]
     }
   },
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "exclude": [
+    "**/dist",
+    "**/node_modules"
+  ]
 }

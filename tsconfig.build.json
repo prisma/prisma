@@ -7,7 +7,6 @@
     "sourceMap": true,
     "declaration": true,
     "incremental": true,
-    "outDir": "dist",
 
     "strict": true,
     "noImplicitAny": false,
@@ -17,7 +16,8 @@
     "skipDefaultLibCheck": true
   },
   "exclude": [
-    "dist",
-    "node_modules"
+    "**/dist",
+    "**/node_modules",
+    "**/src/__tests__"
   ]
 }

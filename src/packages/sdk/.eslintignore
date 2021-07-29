@@ -1,4 +1,4 @@
 node_modules
-dist
+/dist
 src/utils/byline.ts
 src/highlight/prism.ts

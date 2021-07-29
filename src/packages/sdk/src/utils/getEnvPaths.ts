@@ -59,6 +59,8 @@ function getProjectRootEnvPath(
         debug(`skipping package.json at ${pkgPath}`)
       }
     }
+
+    return undefined
   }, opts)
 
   if (!pkgJsonPath) {
