@@ -84,7 +84,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
           if (
             ['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)
           ) {
-            run(pkgDir, 'pnpm rebuild')
+            await run(pkgDir, 'pnpm rebuild')
           }
         }
 
@@ -141,17 +141,19 @@ export async function cloneOrPull(repo: string, dryRun = false) {
       await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
     }
   }
+
+  return undefined
 }
 
-function repoUrl(repo: string, org: string = 'prisma') {
+function repoUrl(repo: string, org = 'prisma') {
   return `https://github.com/${org}/${repo}.git`
 }
 
 export async function run(
   cwd: string,
   cmd: string,
-  dry: boolean = false,
-): Promise<execa.ExecaReturnValue<string>> {
+  dry = false,
+): Promise<execa.ExecaReturnValue<string> | undefined> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
     args.push(chalk.dim('(dry)'))
