@@ -33,7 +33,6 @@ jobs:
       - name: Update the engines dependencies
         run: |
           echo 'Updating @prisma/engines, @prisma/engines-version, @prisma/fetch-engine and @prisma/get-platform to ${{ github.event.inputs.version }} using pnpm'
-          cd src
           pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version  }} @prisma/fetch-engine@${{ github.event.inputs.version  }} @prisma/get-platform@${{ github.event.inputs.version  }}
 
       - name: Create Pull Request

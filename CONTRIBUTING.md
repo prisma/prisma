@@ -292,7 +292,6 @@ List of packages:
 To Generate/Update install [GraphViz](http://graphviz.org/download/)
 
 ```
-cd src
 ts-node scripts/graph-dependencies.ts
 ```
 
