@@ -21,7 +21,7 @@ on:
       - 'src/.dockerignore'
       - '*.bench.ts'
       - 'src/scripts/ci/publish.ts'
-      - 'src/graphs/**'
+      - 'graphs/**'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
@@ -39,7 +39,7 @@ on:
       - 'src/.dockerignore'
       - '*.bench.ts'
       - 'src/scripts/ci/publish.ts'
-      - 'src/graphs/**'
+      - 'graphs/**'
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
