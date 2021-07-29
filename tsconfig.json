@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": "./src/packages",
     "paths": {
-      "@prisma/client": ["client/src/runtime"]
+      "@prisma/client": ["client/src/runtime"],
+      "@prisma/sdk": ["sdk/src"]
     }
   },
   "include": ["**/*"],
