@@ -1,12 +1,12 @@
-import DebugLib from 'debug'
+import 'debug'
 import DebugNode from './node'
 
 const cache: any[] = []
 
 const MAX_LOGS = 100
 
-export default function Debug(namespace: string): DebugLib.Debugger {
-  const debug: DebugLib.Debugger = DebugNode(namespace, (...args) => {
+export default function Debug(namespace: string): debug.Debugger {
+  const debug: debug.Debugger = DebugNode(namespace, (...args) => {
     cache.push(args)
     // keeping 100 logs is just a heuristic. The real truncating comes later
     if (cache.length > MAX_LOGS) {
@@ -23,8 +23,6 @@ Debug.enable = (namespace: string): void => {
 }
 
 Debug.enabled = (namespace: string): boolean => DebugNode.enabled(namespace)
-
-export declare type Debugger = DebugLib.Debugger
 
 // https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 // we need some space for other characters, so we go for 30k here
