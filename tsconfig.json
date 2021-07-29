@@ -8,11 +8,14 @@
       "@prisma/migrate": ["migrate/src"],
       "@prisma/generator-helper": ["generator-helper/src"],
       "@prisma/engine-core": ["engine-core/src"],
+      "@prisma/debug": ["debug/src"],
+      "@prisma/cli": ["debug/cli"],
     }
   },
   "include": ["**/*"],
   "exclude": [
     "**/dist",
+    "**/build",
     "**/node_modules"
   ]
 }

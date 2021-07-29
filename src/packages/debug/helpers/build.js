@@ -15,7 +15,7 @@ async function build() {
       entryPoints: glob.sync('./src/**/*.{j,t}s', {
         ignore: './src/__tests__/**/*.{j,t}s'
       }),
-      outdir: 'disto',
+      outdir: 'dist',
       format: 'cjs',
     }),
   ])
