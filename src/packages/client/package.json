@@ -59,7 +59,7 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.28.0-15.d616ac2e761de0623c4f0494620b4199161d9019",
+    "@prisma/engines": "2.29.0-1.query-engine-lrts-37fb47056c32c040fec460847488dbafbfe2fa00",
     "@prisma/fetch-engine": "2.28.0-15.d616ac2e761de0623c4f0494620b4199161d9019",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "2.28.0-15.d616ac2e761de0623c4f0494620b4199161d9019",
@@ -126,7 +126,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.28.0-15.d616ac2e761de0623c4f0494620b4199161d9019"
+    "@prisma/engines-version": "2.29.0-1.query-engine-lrts-37fb47056c32c040fec460847488dbafbfe2fa00"
   },
   "lint-staged": {
     "*.ts": [
