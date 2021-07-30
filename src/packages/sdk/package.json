@@ -76,7 +76,7 @@
     "string-width": "^4.2.0",
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
-    "tar": "^6.0.1",
+    "tar": "^6.1.2",
     "temp-dir": "^2.0.0",
     "temp-write": "^4.0.0",
     "tempy": "^1.0.0",
