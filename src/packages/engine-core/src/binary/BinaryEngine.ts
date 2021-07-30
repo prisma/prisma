@@ -116,7 +116,6 @@ export class BinaryEngine extends Engine {
   private engineStartDeferred?: Deferred
   private engineStopDeferred?: StopDeferred
   private connection: Connection
-  private txConnection: Connection
   private lastQuery?: string
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
@@ -169,7 +168,6 @@ export class BinaryEngine extends Engine {
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
     this.connection = new Connection()
-    this.txConnection = new Connection()
 
     initHooks()
     const removedFlags = [
@@ -1072,30 +1070,40 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    this.txConnection.open('http://localhost:3000')
-
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
+        max_wait: arg?.maxWait ?? 2, // default
+        timeout: arg?.timeout ?? 5, // default
       })
 
+      console.log(jsonOptions)
+
       const result = await Connection.onHttpError(
-        this.txConnection.post<Tx.Info>('/transaction/start', jsonOptions),
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
         transactionHttpErrorHandler,
       )
+
+      console.log('started', result.data)
 
       return result.data
     } else if (action === 'commit') {
+      console.log('commit', arg.id)
+
       await Connection.onHttpError(
-        this.txConnection.post(`/transaction/${arg.id}/commit`),
+        this.connection.post(`/transaction/${arg.id}/commit`),
         transactionHttpErrorHandler,
       )
+
+      console.log('committed', arg.id)
     } else if (action === 'rollback') {
+      console.log('rollback', arg.id)
+
       await Connection.onHttpError(
-        this.txConnection.post(`/transaction/${arg.id}/rollback`),
+        this.connection.post(`/transaction/${arg.id}/rollback`),
         transactionHttpErrorHandler,
       )
+
+      console.log('rolledback', arg.id)
     }
   }
 
@@ -1279,5 +1287,7 @@ function initHooks() {
  * @param result
  */
 function transactionHttpErrorHandler<R>(result: Result<R>): never {
-  throw new Error(`Transaction error ${result.statusCode}`)
+  throw new Error(
+    `Transaction error ${result.statusCode} ${JSON.stringify(result.data)}`,
+  )
 }
