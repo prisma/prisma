@@ -2,14 +2,14 @@ import stripAnsi from 'strip-ansi'
 import { getConfig } from '../..'
 
 describe('getConfig', () => {
-  test.skip('empty config', async () => {
+  test('empty config', async () => {
     const config = await getConfig({
       datamodel: `
       datasource db {
         provider = "sqlite"
         url      = "file:../hello.db"
       }
-
+      
       model A {
         id Int @id
         name String
