@@ -17,10 +17,10 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - '.buildkite/**'
-      - 'src/.dockerignore'
+      - 'src/.buildkite/**'
+      - '.dockerignore'
       - '*.bench.ts'
-      - 'src/scripts/ci/publish.ts'
+      - 'scripts/ci/publish.ts'
       - 'graphs/**'
   pull_request:
     paths-ignore:
@@ -35,10 +35,10 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - '.buildkite/**'
-      - 'src/.dockerignore'
+      - 'src/.buildkite/**'
+      - '.dockerignore'
       - '*.bench.ts'
-      - 'src/scripts/ci/publish.ts'
+      - 'scripts/ci/publish.ts'
       - 'graphs/**'
 
 env:

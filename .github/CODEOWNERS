@@ -12,7 +12,7 @@
 
 # src
 /.buildkite/                     @Jolg42 @williamluke4 @millsp
-/src/scripts/                    @Jolg42 
+/scripts/                        @Jolg42 
 
 # packages
 /packages/cli/                   @Jolg42 @williamluke4 @millsp

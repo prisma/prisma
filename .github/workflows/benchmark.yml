@@ -15,9 +15,9 @@ on:
       - "examples/**"
       - "LICENSE"
       - '.github/CODEOWNERS'
-      - ".buildkite/**"
-      - "src/.dockerignore"
-      - "src/scripts/ci/publish.ts"
+      - "src/.buildkite/**"
+      - ".dockerignore"
+      - "scripts/ci/publish.ts"
       - "graphs/**"
 
 env:
