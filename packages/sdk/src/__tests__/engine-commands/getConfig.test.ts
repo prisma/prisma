@@ -2,22 +2,22 @@ import stripAnsi from 'strip-ansi'
 import { getConfig } from '../..'
 
 describe('getConfig', () => {
-  // test('empty config', async () => {
-  //   const config = await getConfig({
-  //     datamodel: `
-  //     datasource db {
-  //       provider = "sqlite"
-  //       url      = "file:../hello.db"
-  //     }
+  test.skip('empty config', async () => {
+    const config = await getConfig({
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
 
-  //     model A {
-  //       id Int @id
-  //       name String
-  //     }`,
-  //   })
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
 
-  //   expect(config).toMatchSnapshot()
-  // })
+    expect(config).toMatchSnapshot()
+  })
 
   test('sqlite and createMany', async () => {
     expect.assertions(1)
