@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "2.29.0-3.validate-node-api-download-d616ac2e761de0623c4f0494620b4199161d9019",
+    "@prisma/engines-version": "2.28.0-17.89facabd0366f63911d089156a7a70125bfbcd27",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "26.0.24",
