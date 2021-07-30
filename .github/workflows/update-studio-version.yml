@@ -42,7 +42,7 @@ jobs:
           commit-message: "chore(deps): update studio to ${{ github.event.inputs.version }}"
           committer: "Prismo <prismabots@gmail.com>"
           author: "Prismo <prismabots@gmail.com>"
-          branch: deps/studio${{ github.event.inputs.version }}
+          branch: deps/studio-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
           title: "chore(deps): update studio to ${{ github.event.inputs.version }}"
