@@ -4,7 +4,7 @@ const esbuild = require('esbuild')
 const ESBUILD_DEFAULT = {
   bundle: true,
   platform: 'node',
-  target: 'node12',
+  target: 'es2018',
   external: ['_http_common'],
   tsconfig: 'tsconfig.build.json',
 }

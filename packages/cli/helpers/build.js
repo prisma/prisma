@@ -11,7 +11,7 @@ const lineReplace = require('line-replace')
 
 const ESBUILD_DEFAULT = {
   platform: 'node',
-  target: 'node12',
+  target: 'es2018',
   bundle: true,
   tsconfig: 'tsconfig.build.json'
 }

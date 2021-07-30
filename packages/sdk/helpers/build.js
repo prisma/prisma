@@ -4,7 +4,7 @@ const glob = require('glob')
 
 const ESBUILD_DEFAULT = {
   platform: 'node',
-  target: 'node12',
+  target: 'es2018',
   sourcemap: 'external',
   format: 'cjs',
   outdir: 'dist',
