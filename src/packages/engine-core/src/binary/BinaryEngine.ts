@@ -667,7 +667,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                   socketPath: this.socketPath,
                 })
               } else {
-                this.connection.open(`http://localhost:4466`)
+                this.connection.open(`http://localhost:${this.port}`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
@@ -1032,7 +1032,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors) {
-              return this.graphQLToJSError(result.errors[0])
+              throw this.graphQLToJSError(result.errors[0])
             }
             return {
               data: result,
@@ -1040,10 +1040,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          if (errors && errors.length === 1) {
-            throw new Error(errors[0].error)
-          }
-          throw new Error(JSON.stringify(data))
+          throw this.graphQLToJSError(errors[0])
         }
       })
       .catch(async (e) => {
@@ -1071,28 +1068,32 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    if (action === 'start') {
-      const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-      })
+    try {
+      if (action === 'start') {
+        const jsonOptions = JSON.stringify({
+          max_wait: arg?.maxWait ?? 2000, // default
+          timeout: arg?.timeout ?? 5000, // default
+        })
 
-      const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-        transactionHttpErrorHandler,
-      )
+        const result = await Connection.onHttpError(
+          this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+          transactionHttpErrorHandler,
+        )
 
-      return result.data
-    } else if (action === 'commit') {
-      await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/commit`),
-        transactionHttpErrorHandler,
-      )
-    } else if (action === 'rollback') {
-      await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/rollback`),
-        transactionHttpErrorHandler,
-      )
+        return result.data
+      } else if (action === 'commit') {
+        await Connection.onHttpError(
+          this.connection.post(`/transaction/${arg.id}/commit`),
+          transactionHttpErrorHandler,
+        )
+      } else if (action === 'rollback') {
+        await Connection.onHttpError(
+          this.connection.post(`/transaction/${arg.id}/rollback`),
+          transactionHttpErrorHandler,
+        )
+      }
+    } catch (error) {
+      this.setError(error)
     }
   }
 
@@ -1276,9 +1277,7 @@ function initHooks() {
  * @param result
  */
 function transactionHttpErrorHandler<R>(result: Result<R>): never {
-  throw new Error(
-    `Transaction error ${result.statusCode} ${JSON.stringify(result.data)}`,
-  )
+  throw result.data
 }
 
 /**

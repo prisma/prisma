@@ -42,7 +42,13 @@ describe('long-running transaction', () => {
       return prisma.user.findMany()
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.findMany()\` invocation:
+
+
+              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+          `)
   })
 
   /**
@@ -67,7 +73,13 @@ describe('long-running transaction', () => {
       },
     )
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.findMany()\` invocation:
+
+
+              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+          `)
   })
 
   /**
@@ -84,7 +96,9 @@ describe('long-running transaction', () => {
       throw new Error('you better rollback now')
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `you better rollback now`,
+    )
 
     const users = await prisma.user.findMany()
 
@@ -113,7 +127,13 @@ describe('long-running transaction', () => {
       return tx.user.findMany()
     })
 
-    await expect(result).rejects.toThrow()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.findMany()\` invocation:
+
+
+              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -152,7 +172,13 @@ describe('long-running transaction', () => {
       })
     })
 
-    await expect(result).rejects.toThrow()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.create()\` invocation:
+
+
+              Unique constraint failed on the fields: (\`email\`)
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -176,7 +202,13 @@ describe('long-running transaction', () => {
       })
     })
 
-    await expect(result).rejects.toThrow()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.create()\` invocation:
+
+
+              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -222,7 +254,13 @@ describe('long-running transaction', () => {
       }),
     ])
 
-    await expect(result).rejects.toThrow()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+Invalid \`prisma.user.create()\` invocation:
+
+
+  Unique constraint failed on the fields: (\`email\`)
+`)
 
     const users = await prisma.user.findMany()
 
@@ -280,7 +318,13 @@ describe('long-running transaction', () => {
       }),
     ])
 
-    await expect(result).rejects.toThrow()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+Invalid \`prisma.user.create()\` invocation:
+
+
+  Unique constraint failed on the fields: (\`email\`)
+`)
 
     const users = await prisma.user.findMany()
 
