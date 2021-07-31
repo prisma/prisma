@@ -548,7 +548,7 @@ export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum
 /**
  * ##  Prisma Client ʲˢ
  * 
- * Type-safe database client for TypeScript & Node.js (ORM replacement)
+ * Type-safe database client for TypeScript & Node.js
  * @example
  * \`\`\`
  * const prisma = new PrismaClient()
@@ -594,7 +594,7 @@ export class PrismaClient<
     /**
    * ##  Prisma Client ʲˢ
    * 
-   * Type-safe database client for TypeScript & Node.js (ORM replacement)
+   * Type-safe database client for TypeScript & Node.js
    * @example
    * \`\`\`
    * const prisma = new PrismaClient()
