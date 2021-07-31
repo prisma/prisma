@@ -10,7 +10,7 @@ export type DataLoaderOptions<T> = {
   batchBy: (request: T) => string | undefined
 }
 
-export class DataLoader<T = any> {
+export class DataLoader<T = unknown> {
   batches: { [key: string]: Job[] }
   private tickActive = false
   constructor(private options: DataLoaderOptions<T>) {

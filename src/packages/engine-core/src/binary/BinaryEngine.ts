@@ -45,6 +45,7 @@ import {
   QueryEngineRequestHeaders,
   QueryEngineResult,
 } from '../common/types/QueryEngine'
+import type { IncomingHttpHeaders } from 'http'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -666,7 +667,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                   socketPath: this.socketPath,
                 })
               } else {
-                this.connection.open(`http://localhost:${this.port}`)
+                this.connection.open(`http://localhost:4466`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
@@ -951,7 +952,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
   async request<T>(
     query: string,
-    headers: Record<string, string>,
+    headers: QueryEngineRequestHeaders = {},
     numTry = 1,
   ): Promise<QueryEngineResult<T>> {
     await this.start()
@@ -959,7 +960,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.currentRequestPromise = this.connection.post(
       '/',
       stringifyQuery(query),
-      headers,
+      runtimeHeadersToHttpHeaders(headers),
     )
     this.lastQuery = query
 
@@ -1011,17 +1012,17 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
-    const variables = {}
-    const body = {
-      batch: queries.map((query) => ({ query, variables })),
+    const request = {
+      batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
 
-    const stringifiedQuery = JSON.stringify(body)
-
-    this.currentRequestPromise = this.connection.post('/', stringifiedQuery)
-
-    this.lastQuery = stringifiedQuery
+    this.lastQuery = JSON.stringify(request)
+    this.currentRequestPromise = this.connection.post(
+      '/',
+      this.lastQuery,
+      runtimeHeadersToHttpHeaders(headers),
+    )
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -1072,38 +1073,26 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2, // default
-        timeout: arg?.timeout ?? 5, // default
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
       })
-
-      console.log(jsonOptions)
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
         transactionHttpErrorHandler,
       )
 
-      console.log('started', result.data)
-
       return result.data
     } else if (action === 'commit') {
-      console.log('commit', arg.id)
-
       await Connection.onHttpError(
         this.connection.post(`/transaction/${arg.id}/commit`),
         transactionHttpErrorHandler,
       )
-
-      console.log('committed', arg.id)
     } else if (action === 'rollback') {
-      console.log('rollback', arg.id)
-
       await Connection.onHttpError(
         this.connection.post(`/transaction/${arg.id}/rollback`),
         transactionHttpErrorHandler,
       )
-
-      console.log('rolledback', arg.id)
     }
   }
 
@@ -1290,4 +1279,26 @@ function transactionHttpErrorHandler<R>(result: Result<R>): never {
   throw new Error(
     `Transaction error ${result.statusCode} ${JSON.stringify(result.data)}`,
   )
+}
+
+/**
+ * Takes runtime data headers and turns it into QE HTTP headers
+ * @param headers to transform
+ * @returns
+ */
+function runtimeHeadersToHttpHeaders(
+  headers: QueryEngineRequestHeaders,
+): IncomingHttpHeaders {
+  return Object.keys(headers).reduce((acc, runtimeHeaderKey) => {
+    let httpHeaderKey = runtimeHeaderKey
+
+    if (runtimeHeaderKey === 'transactionId') {
+      httpHeaderKey = 'X-transaction-id'
+    }
+    // if header key isn't changed, a copy happens
+
+    acc[httpHeaderKey] = headers[runtimeHeaderKey]
+
+    return acc
+  }, {} as IncomingHttpHeaders)
 }

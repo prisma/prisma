@@ -860,8 +860,8 @@ new PrismaClient({
 })`)
       }
 
-      const query = 'SELECT 1'
-
+      // TODO: make a `fatal` boolean instead & let be handled in `engine-core`
+      // in `runtimeHeadersToHttpHeaders` maybe add a shared in `Engine`
       const headers: Record<string, string> = fatal
         ? { 'X-DEBUG-FATAL': '1' }
         : { 'X-DEBUG-NON-FATAL': '1' }
@@ -869,7 +869,7 @@ new PrismaClient({
       return this._request({
         action: 'queryRaw',
         args: {
-          query,
+          query: 'SELECT 1',
           parameters: undefined,
         },
         clientMethod: 'queryRaw',

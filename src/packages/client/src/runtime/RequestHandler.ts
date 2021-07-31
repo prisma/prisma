@@ -12,7 +12,7 @@ import { EngineMiddleware } from './MiddlewareHandler'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
 import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
-const debug = Debug('prisma:client:fetcher')
+const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
   document: Document
@@ -49,15 +49,19 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const headers = { transactionId: requests[0].transactionId }
         const queries = requests.map((r) => String(r.document))
 
-        return this.client._engine.requestBatch(queries, headers)
+        return this.client._engine.requestBatch(queries, {
+          transactionId: requests[0].transactionId,
+        })
       },
       singleLoader: (request) => {
         const query = String(request.document)
 
-        return this.client._engine.request(query, request.headers)
+        return this.client._engine.request(query, {
+          transactionId: request.transactionId,
+          ...request.headers,
+        })
       },
       batchBy: (request) => {
         if (request.transactionId) {

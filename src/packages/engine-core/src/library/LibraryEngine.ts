@@ -408,8 +408,8 @@ You may have to run ${chalk.greenBright(
 
   async request<T>(
     query: string,
-    headers: Record<string, string>,
-    numTry: number,
+    headers: QueryEngineRequestHeaders = {},
+    numTry = 1,
   ): Promise<{ data: T; elapsed: number }> {
     try {
       debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
