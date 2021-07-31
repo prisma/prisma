@@ -319,12 +319,12 @@ afterAll(() => {
   delete process.env.PRISMA_FORCE_LRT
 })
 
-beforeEach(() => {
+beforeEach(async () => {
   prisma = new PrismaClient()
+
+  await prisma.user.deleteMany()
 })
 
 afterEach(async () => {
-  await prisma.user.deleteMany()
-
   await prisma.$disconnect()
 })

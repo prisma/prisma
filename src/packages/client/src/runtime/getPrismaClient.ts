@@ -407,7 +407,8 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        if (process.env.PRISMA_FORCE_LRT !== 'true') {
+        // eslint-disable-next-line prettier/prettier
+        if (!this._hasPreviewFlag('longRunningTransactions')) {
           this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
         } else {
           this._fetcher = new RequestHandler(this, this._hooks) as any
@@ -953,7 +954,8 @@ new PrismaClient({
      * @returns
      */
     $transaction(input: any, options?: any) {
-      if (process.env.PRISMA_FORCE_LRT !== 'true') {
+      // eslint-disable-next-line prettier/prettier
+      if (!this._hasPreviewFlag('longRunningTransactions')) {
         return this.$___transaction(input)
       }
 
@@ -1067,7 +1069,12 @@ new PrismaClient({
           const changedInternalParams = { ...internalParams, ...params }
 
           // TODO remove this once LRT is the default transaction mode
-          if (index > 0 && process.env.PRISMA_FORCE_LRT === undefined) {
+          // eslint-disable-next-line prettier/prettier
+          if (
+            !this._engineConfig.previewFeatures?.includes(
+              'longRunningTransactions',
+            )
+          ) {
             delete changedInternalParams['transactionId']
           }
 
@@ -1462,6 +1469,15 @@ new PrismaClient({
 
         this[lowerCaseModel] = delegate
       }
+    }
+
+    /**
+     * Shortcut for checking a preview flag
+     * @param feature preview flag
+     * @returns
+     */
+    private _hasPreviewFlag(feature: string) {
+      return !!this._engineConfig.previewFeatures?.includes(feature)
     }
   }
 
