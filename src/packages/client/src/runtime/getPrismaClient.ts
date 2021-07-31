@@ -1069,12 +1069,7 @@ new PrismaClient({
           const changedInternalParams = { ...internalParams, ...params }
 
           // TODO remove this once LRT is the default transaction mode
-          // eslint-disable-next-line prettier/prettier
-          if (
-            !this._engineConfig.previewFeatures?.includes(
-              'longRunningTransactions',
-            )
-          ) {
+          if (index > 0 && !this._hasPreviewFlag('longRunningTransactions')) {
             delete changedInternalParams['transactionId']
           }
 
