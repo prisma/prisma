@@ -41,6 +41,11 @@ function retry {
   return 0
 }
 
+# Only for job 2 = Node-API
+if [ "$BUILDKITE_PARALLEL_JOB" = "2" ]; then
+  export PRISMA_FORCE_NAPI=true
+fi
+
 npm i --silent -g pnpm@6 --unsafe-perm
 
 retry 6 pnpm i --no-prefer-frozen-lockfile
@@ -50,17 +55,8 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
     pnpm run lint
 fi
 
-# Only for job 2 = Node-API
-if [ "$BUILDKITE_PARALLEL_JOB" = "2" ]; then
-  export PRISMA_FORCE_NAPI=true
-fi
-
 node -v
 npm -v
-
-cd src
-
-retry 6 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 

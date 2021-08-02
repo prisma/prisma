@@ -25,7 +25,7 @@ To setup and build the packages, follow these steps:
 ```bash
 git clone https://github.com/prisma/prisma.git
 npm i -g pnpm@6 --unsafe-perm
-cd prisma/src
+cd prisma
 pnpm i
 pnpm run setup
 ```
@@ -64,11 +64,11 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ## Developing Prisma Client JS
 
-1. `cd src/packages/client`
+1. `cd packages/client`
 2. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 3. `cd fixtures/blog`
 4. `export DB_URL=YOUR_DATABASE_URL`  
-   For this step you might find our [docker-compose setup](./src/docker) helpful
+   For this step you might find our [docker-compose setup](./docker) helpful
 5. `npx prisma db push --skip-generate`
 6. `ts-node main`
 
@@ -85,7 +85,7 @@ Let's say you determined, that you want to upgrade to `2.20.0-14.f461292a2242db5
 pnpm update -r @prisma/engines@2.20.0-14.f461292a2242db52d9f4c87995f0237aacd300d2 @prisma/engines-version@2.20.0-14.f461292a2242db52d9f4c87995f0237aacd300d2
 ```
 
-In the `./src/packages/client` dir, now open [sandbox/dmmf.ts](./src/packages/client/sandbox/dmmf.ts) in your VSCode editor.
+In the `./packages/client` dir, now open [sandbox/dmmf.ts](./packages/client/sandbox/dmmf.ts) in your VSCode editor.
 **Either** run `ndb` in your terminal to debug the file: `ndb -r ts-node/register ./sandbox/dmmf.ts`
 **Or**
 
@@ -104,7 +104,7 @@ pnpm run test exhaustive
 Usually, dmmf changes are also visible in the tests of the sdk:
 
 ```bash
-cd ./src/packages/sdk
+cd ./packages/sdk
 pnpm run test
 ```
 
@@ -115,30 +115,30 @@ If not, please always ping the Rust team, if this is an intended change.
 
 We have two kinds of integration tests:
 
-1. Testing basic query functionality - located in [`src/integration-tests/src/__tests__/integration`](./src/packages/integration-tests/src/__tests__/integration)
-2. Testing the client in mini projects - located in [`src/client/src/__tests__/integration`](./src/packages/client/src/__tests__/integration)
+1. Testing basic query functionality - located in [`src/integration-tests/src/__tests__/integration`](./packages/integration-tests/src/__tests__/integration)
+2. Testing the client in mini projects - located in [`src/client/src/__tests__/integration`](./packages/client/src/__tests__/integration)
 
-To run any of these, start the test databases (see [readme](./src/docker) for various ways to run these)
+To run any of these, start the test databases (see [readme](./docker) for various ways to run these)
 
-1. `cd src/docker`
+1. `cd docker`
 1. `docker-compose up -d`
 
 #### General client integration tests (`./integration-tests`)
 
-The integration tests consisting of mini project are located in [`src/integration-tests/src/__tests__/integration`](./src/packages/integration-tests/src/__tests__/integration)
+The integration tests consisting of mini project are located in [`src/integration-tests/src/__tests__/integration`](./packages/integration-tests/src/__tests__/integration)
 
 Start the tests
 
-1. `cd src/packages/integration-tests`
+1. `cd packages/integration-tests`
 2. `pnpm run test`
 
 #### Prisma Client folder-based integration tests (`./client`)
 
-The integration tests consisting of mini project are located in [`src/client/src/__tests__/integration`](./src/packages/client/src/__tests__/integration)
+The integration tests consisting of mini project are located in [`src/client/src/__tests__/integration`](./packages/client/src/__tests__/integration)
 
 Start the tests
 
-1. `cd src/packages/client`
+1. `cd packages/client`
 2. `pnpm run test integration`
 
 Notes:
@@ -148,11 +148,11 @@ Notes:
 
 #### Creating a new integration test
 
-Prisma Client JS integration tests are located in https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration
-If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
-It will give you an in-memory Prisma Client instance to use in the test. It utilizes the [`getTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/src/packages/client/src/utils/getTestClient.ts#L23) helper method.
+Prisma Client JS integration tests are located in https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration
+If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
+It will give you an in-memory Prisma Client instance to use in the test. It utilizes the [`getTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/packages/client/src/utils/getTestClient.ts#L23) helper method.
 
-Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case your friend is [`generatedTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/src/packages/client/src/utils/getTestClient.ts#L59). An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/master/src/packages/client/src/__tests__/integration/happy/blog)
+Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case your friend is [`generatedTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/packages/client/src/utils/getTestClient.ts#L59). An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration/happy/blog)
 
 ### Debugging a local project with your custom Prisma Client (aka `yarn link`)
 
@@ -164,7 +164,7 @@ The Prisma Client JS core authors need this all the time to debug projects, espe
 
 Let's say your project that uses Prisma Client is located in `~/reproduction/repro1`. We got this fresh reproduction from a support engineer or a Prisma user.
 
-1. If you did not already, please go into `./src/packages/client` in your terminal.
+1. If you did not already, please go into `./packages/client` in your terminal.
 2. The magic script is located in `fixtures/generate.ts`. It has a couple of different modes in which it can run, depending on your needs.
 
 #### Basic Usage: `ts-node fixtures/generate.ts ~/reproduction/repro1`
@@ -178,7 +178,7 @@ Although `yarn build` is already quite quick, we might even have something faste
 In this case, we're not generating the Prisma Client as usual into `./project/node_modules/@prisma/client` but just to `./project/@prisma/client`.
 That means in your project you need to change the import. What is the advantage of this approach? You don't need to run `yarn build` every time you have a change.
 Note however, that this **just works with TypeScript**, as that client in `./@prisma/client` directly imports the runtime from the `./src/runtime/` dir in your local client code.
-You will need to have a `tsconfig.json` in that project, with strict mode disabled. You can [use the one of the blog fixture project](./src/packages/client/fixtures/blog/tsconfig.json).
+You will need to have a `tsconfig.json` in that project, with strict mode disabled. You can [use the one of the blog fixture project](./packages/client/fixtures/blog/tsconfig.json).
 
 #### Faster iterations (also JS): `ts-node fixtures/generate.ts ~/reproduction/repro1 --skip-transpile --built-runtime`
 
@@ -187,7 +187,7 @@ In this case, you can still do `yarn build`, but you don't need to rerun `ts-nod
 It will be a client, that again gets generated to `./project/@prisma/client` (note that the node_modules is intentionally missing here) and points to the already built runtime dir in `./runtime` in the client code.
 
 With these 3 options you should be able to tackle any bug in any reproduction you get :)
-Note, that sometimes you need to debug bugs in the [`engine-core`](./src/packages/engine-core/) package.
+Note, that sometimes you need to debug bugs in the [`engine-core`](./packages/engine-core/) package.
 You'll need to build `engine-core` with `yarn build` if you want that change to end up in the reproduction project.
 
 </details>
@@ -223,25 +223,25 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 
 ### Developing Prisma Migrate
 
-1. `cd src/packages/migrate/fixtures/blog`
+1. `cd packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts dev`
 
 ### Developing `prisma init` Command
 
-1. `cd src/packages/introspection`
+1. `cd packages/introspection`
 1. `mkdir test && cd test`
 1. `ts-node ../src/bin.ts`
 
 ### Developing `prisma` CLI
 
-1. `cd src/packages/cli`
+1. `cd packages/cli`
 1. `mkdir test && cd test`
 1. `ts-node ../src/bin.ts generate`
 
 ## Running the Databases locally with Docker Compose
 
 ```bash
-cd src/docker
+cd docker
 docker-compose up -d
 docker-compose logs -f app
 ```
@@ -292,21 +292,20 @@ List of packages:
 To Generate/Update install [GraphViz](http://graphviz.org/download/)
 
 ```
-cd src
 ts-node scripts/graph-dependencies.ts
 ```
 
 ### Dependencies
 
-<img src="./src/graphs/dependencies.png">
+<img src="./graphs/dependencies.png">
 
 ### Dev Dependencies
 
-<img src="./src/graphs/devDependencies.png">
+<img src="./graphs/devDependencies.png">
 
 ### Peer Dependencies
 
-<img src="./src/graphs/peerDependencies.png">
+<img src="./graphs/peerDependencies.png">
 
 ## Legal
 
