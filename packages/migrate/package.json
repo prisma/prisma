@@ -79,7 +79,6 @@
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
     "test": "jest --verbose",
-    "build": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
