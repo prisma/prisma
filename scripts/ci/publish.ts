@@ -407,7 +407,7 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const { minor, major } = getSemverFromPatchBranch(patchBranch)
+  const { minor, major } = getSemverFromPatchBranch(patchBranch)!
   const currentPatch = await getCurrentPatchForMinor(minor)
   const newPatch = currentPatch + 1
   const newVersion = `${major}.${minor}.${newPatch}`
@@ -1120,8 +1120,8 @@ async function publishPackages(
       if (process.env.BUILDKITE) {
         await run(pkgDir, `pnpm run build`, dryRun)
       }
-      
-      const skipPackages = []
+
+      const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
       }
@@ -1291,8 +1291,8 @@ function getPatchBranch(): string | undefined {
   }
 
   if (process.env.BUILDKITE_BRANCH) {
-    const { minor } = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
-    if (minor !== null) {
+    const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
+    if (versions?.minor !== null) {
       return process.env.BUILDKITE_BRANCH
     }
   }
