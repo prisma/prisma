@@ -38,6 +38,8 @@ type LogLevel = 'INFO' | 'ERROR' | 'DEBUG' | 'WARN'
 interface LogFields {
   message: string
   git_hash?: string
+  /// Hint from the engine to the CLI to log this line.
+  migrate_action?: 'log'
   // Only for ERROR level messages
   is_panic?: boolean
   error_code?: string
