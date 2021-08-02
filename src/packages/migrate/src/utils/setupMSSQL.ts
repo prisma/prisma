@@ -47,7 +47,7 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
     await connection.query(schema)
   }
 
-  void connection.close()
+  await connection.close()
 }
 
 export async function tearDownMSSQL(options: SetupParams) {
@@ -60,5 +60,5 @@ export async function tearDownMSSQL(options: SetupParams) {
     DROP DATABASE IF EXISTS "tests-migrate-shadowdb";
     DROP DATABASE IF EXISTS "tests-migrate";
 `)
-  void connection.close()
+  await connection.close()
 }
