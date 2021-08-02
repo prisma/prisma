@@ -46,8 +46,6 @@ npm i --silent -g pnpm@6 --unsafe-perm
 retry 6 pnpm i --no-prefer-frozen-lockfile
 pnpm run lint
 
-cd src
-
 if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git stash
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
@@ -55,8 +53,6 @@ fi
 
 node -v
 npm -v
-
-retry 6 pnpm i --no-prefer-frozen-lockfile
 
 pnpm run setup
 
