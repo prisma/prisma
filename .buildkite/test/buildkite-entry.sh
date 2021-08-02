@@ -13,19 +13,18 @@ cd ..
 
 # Any update here needs to be done for 
 # - https://github.com/prisma/prisma/blob/master/.github/workflows/test.yml#L8 GitHub Actions
-# - https://github.com/prisma/prisma/blob/master/.buildkite/test/buildkite-entry.sh
-EXCLUDE_LIST="*.bench.ts,docs,.vscode,examples,graphs,README.md,LICENSE,CONTRIBUTING.md,.github"
+# - https://github.com/prisma/prisma/blob/master/.buildkite/publish/buildkite-entry.sh
+EXCLUDE_LIST="*.bench.ts,docs,.vscode,examples,scripts/ci/publish.ts,graphs,README.md,LICENSE,CONTRIBUTING.md,.github"
 echo $EXCLUDE_LIST
 node last-git-changes/bin.js --exclude="$EXCLUDE_LIST"
 export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude="$EXCLUDE_LIST" | wc -l)
 
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
-echo $BUILDKITE_SOURCE
-echo $UPDATE_STUDIO
 
-if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
-  buildkite-agent pipeline upload src/.buildkite/publish/publish.yml
+if [ $CHANGED_COUNT -gt 0 ]; then
+  buildkite-agent pipeline upload .buildkite/test/test.yml
 else
   echo "Nothing changed"
 fi
+
