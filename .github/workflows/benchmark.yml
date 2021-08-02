@@ -7,8 +7,8 @@ on:
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/master/.buildkite/publish/buildkite-entry.sh
       - "*.md"
       - ".vscode/**"
       - "docs/**"
@@ -16,9 +16,9 @@ on:
       - "LICENSE"
       - '.github/CODEOWNERS'
       - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - ".dockerignore"
+      - "scripts/ci/publish.ts"
+      - "graphs/**"
 
 env:
   PRISMA_TELEMETRY_INFORMATION: "prisma benchmark.yml"
@@ -47,7 +47,6 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f src/pnpm-lock.yaml
       - run: rm -f ./pnpm-lock.yaml
 
       - name: Run benchmarks

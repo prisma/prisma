@@ -3,7 +3,7 @@ import globby from "globby";
 import path from "path";
 
 async function main() {
-  const benchmarks = await globby("./src/packages/**/*.bench.ts", {
+  const benchmarks = await globby("./packages/**/*.bench.ts", {
     gitignore: true,
   });
   await run(benchmarks);
