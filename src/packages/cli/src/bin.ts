@@ -189,14 +189,26 @@ async function main(): Promise<number> {
     let schemaProvider: string | undefined
     let schemaPreviewFeatures: string[] | undefined
     let schemaGeneratorsProviders: string[] | undefined
+
     try {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
         datamodel: schema,
       })
+
+      // There is a datasource let's see if it has a provider
       if (config.datasources.length > 0) {
-        schemaProvider = config.datasources[0].provider
+        if (
+          Array.isArray(config.datasources[0].provider) &&
+          config.datasources[0].provider[0]
+        ) {
+          // It shouldn't be an array but it is. See https://github.com/prisma/prisma/issues/8467
+          schemaProvider = config.datasources[0].provider[0]
+        } else {
+          schemaProvider = config.datasources[0].provider
+        }
       }
+
       const generator = config.generators.find(
         (gen) => gen.previewFeatures.length > 0,
       )
