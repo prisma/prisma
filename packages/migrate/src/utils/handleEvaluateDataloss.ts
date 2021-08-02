@@ -19,7 +19,7 @@ export function handleUnexecutableSteps(
     // If create only, allow to continue
     if (createOnly) {
       console.error(`${messages.join('\n')}\n`)
-      return
+      return undefined
     } else {
       return `${messages.join('\n')}
 
@@ -31,4 +31,6 @@ Then run ${getCommandWithExecutor(
       )} to apply it and verify it works.\n`
     }
   }
+
+  return undefined
 }
