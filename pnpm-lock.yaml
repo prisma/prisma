@@ -1732,6 +1732,7 @@ packages:
       tempy: 1.0.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@prisma/generator-helper/2.29.0-dev.31:
     resolution: {integrity: sha512-9rheOMF8CV3R7YlfRvX6zFTHTNIJpMDVjFTxumCGT/szNUDcjGuW5d/KaENGvGtqbElGq68hIiUolNEBRN4xlg==}
