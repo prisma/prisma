@@ -23,7 +23,7 @@ echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
 
 if [ $CHANGED_COUNT -gt 0 ]; then
-  buildkite-agent pipeline upload src/.buildkite/test/test.yml
+  buildkite-agent pipeline upload .buildkite/test/test.yml
 else
   echo "Nothing changed"
 fi
