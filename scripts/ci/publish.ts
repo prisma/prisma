@@ -515,7 +515,7 @@ async function getNextMinorStable() {
 }
 
 // TODO: Adjust this for stable release
-function getMinorFromPatchBranch(version: string) {
+function getMinorFromPatchBranch(version: string): number | null {
   const regex = /2\.(\d+)\.x/
   const match = regex.exec(version)
 
@@ -523,7 +523,7 @@ function getMinorFromPatchBranch(version: string) {
     return Number(match[1])
   }
 
-  return undefined
+  return null
 }
 
 async function publish() {
