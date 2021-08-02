@@ -16,9 +16,9 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@types/cross-spawn": "^6.0.1",
-    "chalk": "^4.0.0",
-    "cross-spawn": "^7.0.2"
+    "@types/cross-spawn": "6.0.1",
+    "chalk": "4.1.2",
+    "cross-spawn": "7.0.3"
   },
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
