@@ -82,7 +82,12 @@ describe('sqlite', () => {
   it("--applied should fail if migration doesn't exist", async () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--applied=does_not_exist'])
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+P3017
+
+The migration does_not_exist could not be found. Please make sure that the migration exists, and that you included the whole name of the directory. (example: "20201231000000_initial_migration")
+
+`)
   })
 
   it('--applied should fail if migration is already applied', async () => {

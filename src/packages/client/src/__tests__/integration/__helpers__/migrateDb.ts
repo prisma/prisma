@@ -13,9 +13,11 @@ export async function migrateDb({
   await createDatabase(connectionString)
   const migrate = new Migrate(schemaPath)
 
-  await migrate.push({
-    force: true,
-  })
-
-  migrate.stop()
+  try {
+    await migrate.push({
+      force: true,
+    })
+  } finally {
+    migrate.stop()
+  }
 }

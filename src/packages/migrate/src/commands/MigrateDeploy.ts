@@ -136,10 +136,13 @@ ${editedMigrationNames.join('\n')}`,
       )
     }
 
-    const { appliedMigrationNames: migrationIds } =
-      await migrate.applyMigrations()
-
-    migrate.stop()
+    let migrationIds: string[]
+    try {
+      const { appliedMigrationNames } = await migrate.applyMigrations()
+      migrationIds = appliedMigrationNames
+    } finally {
+      migrate.stop()
+    }
 
     console.info() // empty line
     if (migrationIds.length === 0) {
