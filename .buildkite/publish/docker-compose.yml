@@ -3,9 +3,9 @@ services:
   app:
     image: node:12-buster
     volumes:
-      - ../../../:/app
+      - ../../:/app
     working_dir: /app
-    command: /app/src/.buildkite/publish/run.sh
+    command: /app/.buildkite/publish/run.sh
     environment:
       # PostgreSQL
       - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres:5432/tests-migrate
