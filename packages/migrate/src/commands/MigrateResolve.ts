@@ -151,11 +151,13 @@ ${chalk.bold.green(
       await ensureCanConnectToDatabase(schemaPath)
 
       const migrate = new Migrate(schemaPath)
-
-      await migrate.markMigrationApplied({
-        migrationId: args['--applied'],
-      })
-      migrate.stop()
+      try {
+        await migrate.markMigrationApplied({
+          migrationId: args['--applied'],
+        })
+      } finally {
+        migrate.stop()
+      }
 
       return `Migration ${args['--applied']} marked as applied.`
     } else {
@@ -175,11 +177,13 @@ ${chalk.bold.green(
       await ensureCanConnectToDatabase(schemaPath)
 
       const migrate = new Migrate(schemaPath)
-
-      await migrate.markMigrationRolledBack({
-        migrationId: args['--rolled-back'],
-      })
-      migrate.stop()
+      try {
+        await migrate.markMigrationRolledBack({
+          migrationId: args['--rolled-back'],
+        })
+      } finally {
+        migrate.stop()
+      }
 
       return `Migration ${args['--rolled-back']} marked as rolled back.`
     }

@@ -137,11 +137,15 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    await migrate.reset()
+    let migrationIds: string[]
+    try {
+      await migrate.reset()
 
-    const { appliedMigrationNames: migrationIds } =
-      await migrate.applyMigrations()
-    migrate.stop()
+      const { appliedMigrationNames } = await migrate.applyMigrations()
+      migrationIds = appliedMigrationNames
+    } finally {
+      migrate.stop()
+    }
 
     if (migrationIds.length === 0) {
       console.info(`${chalk.green('Database reset successful')}`)

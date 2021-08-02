@@ -186,7 +186,13 @@ ${chalk.bold.redBright('All data will be lost.')}
         return ``
       }
 
-      await migrate.reset()
+      try {
+        await migrate.reset()
+      } catch (e) {
+        migrate.stop()
+        throw e
+      }
+
       if (dbInfo.dbName && dbInfo.dbLocation) {
         console.info(
           `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
@@ -233,9 +239,14 @@ ${chalk.bold.redBright('All data will be lost.')}
           return ``
         }
 
-        await migrate.push({
-          force: true,
-        })
+        try {
+          await migrate.push({
+            force: true,
+          })
+        } catch (e) {
+          migrate.stop()
+          throw e
+        }
       }
     }
 
