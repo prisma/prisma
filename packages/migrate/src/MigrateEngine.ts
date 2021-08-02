@@ -276,7 +276,8 @@ export class MigrateEngine {
             const json: MigrateEngineLogLine = JSON.parse(data)
 
             if (json.fields?.migrate_action === 'log') {
-              console.info(json.fields.message)
+              // TODO uncomment in a separate PR and update snapshots
+              //console.info(json.fields.message)
             }
 
             this.messages.push(json.fields.message)
