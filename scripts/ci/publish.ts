@@ -536,7 +536,7 @@ async function publish() {
     '--publish': Boolean,
     '--repo': String,
     '--dry-run': Boolean,
-    '--release': String,
+    '--release': String, // TODO What does that do?
     '--test': Boolean,
   })
 
@@ -634,10 +634,14 @@ async function publish() {
     let tagForE2ECheck: undefined | string
     const patchBranch = getPatchBranch()
     const branch = await getPrismaBranch()
+
+    // For branches that are named "integration/" we publish to the integration npm tag
     if (branch && branch.startsWith('integration/')) {
       prisma2Version = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
-    } else if (patchBranch) {
+    }
+    // Is it a patch branch? (Like 2.20.x)
+    else if (patchBranch) {
       prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
       if (args['--release']) {
@@ -1285,7 +1289,7 @@ async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
   return res.includes('passing')
 }
 
-function getPatchBranch(): string | undefined {
+function getPatchBranch(): string | null {
   if (process.env.PATCH_BRANCH) {
     return process.env.PATCH_BRANCH
   }
@@ -1297,7 +1301,7 @@ function getPatchBranch(): string | undefined {
     }
   }
 
-  return undefined
+  return null
 }
 
 type CommitInfo = {
