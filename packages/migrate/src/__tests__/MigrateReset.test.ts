@@ -296,10 +296,10 @@ describe('reset', () => {
     `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      prisma:warn To configure seeding in your project you need to add a "seed" property in your package.json with the command to execute it:
+      prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
       1. Open the package.json of your project
-      2. Add one of the following example to your package.json:
+      2. Add one of the following examples to your package.json:
 
       TypeScript:
       \`\`\`
