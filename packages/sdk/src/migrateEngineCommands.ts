@@ -4,10 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import { getSchemaDir } from './cli/getSchema'
-import {
-  databaseTypeToConnectorType,
-  protocolToDatabaseType,
-} from './convertCredentials'
+import { protocolToConnectorType } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
 
 const exists = promisify(fs.exists)
@@ -91,9 +88,7 @@ export async function canConnectToDatabase(
     )
   }
 
-  const provider = databaseTypeToConnectorType(
-    protocolToDatabaseType(`${connectionString.split(':')[0]}:`),
-  )
+  const provider = protocolToConnectorType(`${connectionString.split(':')[0]}:`)
 
   if (provider === 'sqlite') {
     const sqliteExists = await doesSqliteDbExist(connectionString, cwd)

@@ -17,10 +17,7 @@ import {
 } from '@prisma/sdk'
 import { formatms } from '../utils/formatms'
 import fs from 'fs'
-import {
-  protocolToDatabaseType,
-  databaseTypeToConnectorType,
-} from '@prisma/sdk/dist/convertCredentials'
+import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 import { NoSchemaFoundError } from '../utils/errors'
@@ -59,9 +56,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 `)
 
   private printUrlAsDatasource(url: string): string {
-    const provider = databaseTypeToConnectorType(
-      protocolToDatabaseType(`${url.split(':')[0]}:`),
-    )
+    const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
 
     return printDatasources([
       {
