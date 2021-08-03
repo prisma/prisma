@@ -88,7 +88,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
     const log = (...messages): void => {
       if (!args['--print']) {
-        console.log(...messages)
+        console.info(...messages)
       }
     }
 
@@ -127,7 +127,8 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     const url: string | undefined = args['--url']
     let schemaPath = await getSchemaPath(args['--schema'])
 
-    if (schemaPath) {
+    // Do not print if --print is passed to only have the schema in stdout
+    if (schemaPath && !args['--print']) {
       console.info(
         chalk.dim(
           `Prisma schema loaded from ${path.relative(
@@ -214,7 +215,7 @@ Then you can run ${chalk.green(
         }
       } else if (e.code === 'P1012') {
         // Schema Parsing Error
-        console.log() // empty line
+        console.info() // empty line
         throw new Error(`${chalk.red(
           `${e.code} Introspection failed as your current Prisma schema file is invalid`,
         )}\n
