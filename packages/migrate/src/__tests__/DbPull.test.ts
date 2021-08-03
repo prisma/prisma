@@ -17,11 +17,9 @@ describe('common/sqlite', () => {
     const introspect = new DbPull()
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:dev.db"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -32,11 +30,9 @@ describe('common/sqlite', () => {
     const introspect = new DbPull()
     await introspect.parse(['--print', '--force'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:dev.db"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -48,11 +44,9 @@ describe('common/sqlite', () => {
     const result = introspect.parse(['--print', '--url', 'file:dev.db'])
     await expect(result).resolves.toBe('')
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:dev.db"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -66,11 +60,9 @@ describe('common/sqlite', () => {
       `Unknown database type invalidstring:`,
     )
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": SQLite database "dev.db" at "file:dev.db"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -85,18 +77,17 @@ describe('common/sqlite', () => {
       ctx.mocked['console.log'].mock.calls
         .join('\n')
         .replace(/\d{2,3}ms/, 'XXms'),
-    ).toMatchInlineSnapshot(`
-
-            Introspecting based on datasource defined in schema.prisma …
-
-            ✔ Introspected 3 models and wrote them into schema.prisma in XXms
-                  
-            Run prisma generate to generate Prisma Client.
-        `)
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in schema.prisma …
+
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -112,18 +103,17 @@ describe('common/sqlite', () => {
       ctx.mocked['console.log'].mock.calls
         .join('\n')
         .replace(/\d{2,3}ms/, 'XXms'),
-    ).toMatchInlineSnapshot(`
-
-            Introspecting …
-
-            ✔ Introspected 3 models and wrote them into schema.prisma in XXms
-                  
-            Run prisma generate to generate Prisma Client.
-        `)
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting …
+
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -161,25 +151,24 @@ describe('common/sqlite', () => {
       ctx.mocked['console.log'].mock.calls
         .join('\n')
         .replace(/\d{2,3}ms/, 'in XXms'),
-    ).toMatchInlineSnapshot(`
-
-                  Introspecting based on datasource defined in prisma/reintrospection.prisma …
-
-                  ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in in XXms
-                        
-                  *** WARNING ***
-
-                  These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                  - Model "AwesomeNewPost"
-                  - Model "AwesomeProfile"
-                  - Model "AwesomeUser"
-
-                  Run prisma generate to generate Prisma Client.
-            `)
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/reintrospection.prisma
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/reintrospection.prisma …
+
+      ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXms
+            
+      *** WARNING ***
+
+      These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+      - Model "AwesomeNewPost"
+      - Model "AwesomeProfile"
+      - Model "AwesomeUser"
+
+      Run prisma generate to generate Prisma Client.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -244,22 +233,20 @@ describe('common/sqlite', () => {
         .join('\n')
         .replace(/\d{2,3}ms/, 'in XXms'),
     ).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/reintrospection.prisma
-      Datasource "db": SQLite database "dev.db" at "file:dev.db"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                            // *** WARNING ***
-                                            // 
-                                            // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                            // - Model "AwesomeNewPost"
-                                            // - Model "AwesomeProfile"
-                                            // - Model "AwesomeUser"
-                                            // 
-                            `)
+                                                                    // *** WARNING ***
+                                                                    // 
+                                                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                    // - Model "AwesomeNewPost"
+                                                                    // - Model "AwesomeProfile"
+                                                                    // - Model "AwesomeUser"
+                                                                    // 
+                                            `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
       originalSchema,
@@ -275,18 +262,17 @@ describe('common/sqlite', () => {
       ctx.mocked['console.log'].mock.calls
         .join('\n')
         .replace(/\d{2,3}ms/, 'in XXms'),
-    ).toMatchInlineSnapshot(`
-
-                  Introspecting based on datasource defined in prisma/schema.prisma …
-
-                  ✔ Introspected 3 models and wrote them into prisma/schema.prisma in in XXms
-                        
-                  Run prisma generate to generate Prisma Client.
-            `)
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
+
+      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -311,15 +297,15 @@ describe('common/sqlite', () => {
 
                                                     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-
-            Introspecting based on datasource defined in prisma/schema.prisma …
-        `)
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -345,15 +331,15 @@ describe('common/sqlite', () => {
 
                                                     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-
-            Introspecting based on datasource defined in prisma/schema.prisma …
-        `)
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -389,16 +375,16 @@ describe('common/sqlite', () => {
 
                   `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-
-            Introspecting based on datasource defined in prisma/invalid.prisma …
-
-        `)
+    expect(
+      ctx.mocked['console.log'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/invalid.prisma
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/invalid.prisma …
+
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -418,18 +404,17 @@ describe('common/sqlite', () => {
       ctx.mocked['console.log'].mock.calls
         .join('\n')
         .replace(/\d{2,3}ms/, 'in XXms'),
-    ).toMatchInlineSnapshot(`
-
-                  Introspecting based on datasource defined in prisma/invalid.prisma …
-
-                  ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in in XXms
-                        
-                  Run prisma generate to generate Prisma Client.
-            `)
+    ).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/invalid.prisma
       Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+      Introspecting based on datasource defined in prisma/invalid.prisma …
+
+      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -477,11 +462,9 @@ describe('postgresql', () => {
     const introspect = new DbPull()
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -542,11 +525,9 @@ describe('mysql', () => {
     const introspect = new DbPull()
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db": MySQL database "tests" at "localhost:5432"
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -614,11 +595,9 @@ describe('SQL Server', () => {
     const introspect = new DbPull()
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "db" - SQL Server
-    `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
