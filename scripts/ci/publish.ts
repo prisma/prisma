@@ -407,10 +407,13 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const { minor, major } = getSemverFromPatchBranch(patchBranch)!
-  const currentPatch = await getCurrentPatchForMinor(minor)
+  const patchVersions = getSemverFromPatchBranch(patchBranch)
+  if (!patchVersions) {
+    throw new Error(`Could not get versions for ${patchBranch}`)
+  }
+  const currentPatch = await getCurrentPatchForMinor(patchVersions.minor)
   const newPatch = currentPatch + 1
-  const newVersion = `${major}.${minor}.${newPatch}`
+  const newVersion = `${patchVersions.major}.${patchVersions.minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
@@ -514,9 +517,7 @@ async function getNextMinorStable() {
   return increaseMinor(remoteVersion)
 }
 
-function getSemverFromPatchBranch(
-  version: string,
-): { major: number; minor: number } | null {
+function getSemverFromPatchBranch(version: string) {
   const regex = /(\d+)\.(\d+)\.x/
   const match = regex.exec(version)
 
@@ -631,8 +632,12 @@ async function publish() {
     let prisma2Version
     let tag: undefined | string
     let tagForE2ECheck: undefined | string
+
     const patchBranch = getPatchBranch()
+    console.log({ patchBranch })
+
     const branch = await getPrismaBranch()
+    console.log({ branch })
 
     // For branches that are named "integration/" we publish to the integration npm tag
     if (branch && branch.startsWith('integration/')) {
