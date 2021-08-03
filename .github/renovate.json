@@ -59,7 +59,7 @@
     },
     {
       "groupName": "react-prisma",
-      "paths": ["src/packages/react-prisma/**"],
+      "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
     }

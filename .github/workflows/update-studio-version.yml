@@ -1,5 +1,5 @@
 
-name: update-studio-version
+name: Update Studio Version
 on:
   workflow_dispatch:
     inputs:
@@ -31,7 +31,6 @@ jobs:
       - name: Update the studio dependencies
         run: |
           echo 'Updating @prisma/studio-server to ${{ github.event.inputs.version }} using pnpm'
-          cd src
           pnpm update -r @prisma/studio-server@${{ github.event.inputs.version }}
 
       - name: Create Pull Request
