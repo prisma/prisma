@@ -528,7 +528,7 @@ function getSemverFromPatchBranch(version: string) {
     }
   }
 
-  return null
+  return undefined
 }
 
 async function publish() {
@@ -1297,7 +1297,9 @@ function getPatchBranch() {
 
   if (process.env.BUILDKITE_BRANCH) {
     const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
-    if (versions?.minor !== null) {
+    console.debug('versions from patch branch:', versions)
+
+    if (versions?.minor) {
       return process.env.BUILDKITE_BRANCH
     }
   }
