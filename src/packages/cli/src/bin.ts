@@ -194,6 +194,7 @@ async function main(): Promise<number> {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
         datamodel: schema,
+        ignoreEnvVarErrors: true,
       })
 
       // There is a datasource let's see if it has a provider
