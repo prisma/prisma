@@ -516,7 +516,7 @@ async function getNextMinorStable() {
 
 function getSemverFromPatchBranch(
   version: string,
-): { major: number; minor: number; patch: number } | null {
+): { major: number; minor: number } | null {
   const regex = /(\d+)\.(\d+)\.x/
   const match = regex.exec(version)
 
@@ -524,7 +524,6 @@ function getSemverFromPatchBranch(
     return {
       major: Number(match[0]),
       minor: Number(match[1]),
-      patch: Number(match[2]),
     }
   }
 
@@ -1289,7 +1288,7 @@ async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
   return res.includes('passing')
 }
 
-function getPatchBranch(): string | null {
+function getPatchBranch() {
   if (process.env.PATCH_BRANCH) {
     return process.env.PATCH_BRANCH
   }
