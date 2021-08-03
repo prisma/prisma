@@ -722,7 +722,6 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
           prisma2Version,
           tag,
           args['--release'],
-          patchBranch,
         )
         console.log(`Waiting 5 sec so you can check it out first...`)
         await new Promise((r) => setTimeout(r, 5000))
@@ -736,7 +735,6 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         prisma2Version,
         tag,
         args['--release'],
-        patchBranch,
       )
 
       const enginesCommit = await getEnginesCommit()
@@ -999,7 +997,6 @@ async function publishPackages(
   prisma2Version: string,
   tag: string,
   releaseVersion?: string,
-  patchBranch?: string,
 ): Promise<void> {
   // we need to release a new `prisma` CLI in all cases.
   // if there is a change in prisma-client-js, it will also use this new version
@@ -1084,7 +1081,7 @@ async function publishPackages(
 
       const pkgDir = path.dirname(pkg.path)
 
-      let newVersion = prisma2Version
+      const newVersion = prisma2Version
 
       console.log(
         `\nPublishing ${chalk.magentaBright(
