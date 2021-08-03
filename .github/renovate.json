@@ -6,7 +6,7 @@
   "dependencyDashboard": true,
   "reviewers": ["@jolg42", "@williamluke4", "millsp"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": ["esbuild", "sqlite3"],
+  "ignoreDeps": ["esbuild", "sqlite3", "@prisma/engines", "@prisma/engines-version", "@prisma/fetch-engine", "@prisma/get-platform"],
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -14,10 +14,6 @@
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "@prisma/fetch-engine",
-        "@prisma/get-platform",
         "@prisma/studio-server",
         "checkpoint-client"
       ],
@@ -28,10 +24,6 @@
       "depTypeList": ["dependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "@prisma/fetch-engine",
-        "@prisma/get-platform",
         "checkpoint-client"
       ],
       "schedule": ["before 8am on Wednesday"]
@@ -43,30 +35,17 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "engines",
-      "automerge": "true",
-      "ignoreUnstable": false,
-      "followTag": "latest",
-      "reviewers": ["@jolg42", "@williamluke4", "millsp"],
-      "packageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "@prisma/fetch-engine",
-        "@prisma/get-platform"
-      ]
-    },
-    {
       "groupName": "Studio",
       "automerge": "true",
       "packageNames": ["@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@madebysid", "@jolg42"]
+      "reviewers": ["@madebysid", "@jolg42", "millsp"]
     },
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@Weakky", "jolg42"]
+      "reviewers": ["@Weakky", "jolg42", "millsp"]
     },
     {
       "groupName": "jest",
@@ -80,7 +59,7 @@
     },
     {
       "groupName": "react-prisma",
-      "paths": ["src/packages/react-prisma/**"],
+      "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
     }

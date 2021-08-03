@@ -22,3 +22,10 @@ dist/
 coverage
 
 .eslintcache
+
+node_modules
+.pnpm-store/
+.env*
+yarn-error.log
+.DS_Store
+pnpm-debug.log
