@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1628050627160,
+  "lastUpdate": 1628067469363,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -44132,6 +44132,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
             "range": "±5.04%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 7.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7fd184017ee900a7578bba3c2f4d90ad6a89d12d",
+          "message": "chore(deps): update engines to 2.29.0-14.7a25b4cea9ebc8ffbbe419dbe66a06590f514fe4 (#8556)\n\n* chore(deps): update engines to 2.29.0-14.7a25b4cea9ebc8ffbbe419dbe66a06590f514fe4\n\n* fix: getConfig provider is now a string\n\n* update lockfile\n\n* test(sdk): update getConfig snapshots\n\n* refactor: remove useless resolveDatasources function\n\n* test(sdk): update getGenerators snapshots\n\n* fix weird type\n\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-08-04T08:54:40Z",
+          "tree_id": "c917bc3aab9a4f03ac166143b2ca50a7e9a2be91",
+          "url": "https://github.com/prisma/prisma/commit/7fd184017ee900a7578bba3c2f4d90ad6a89d12d"
+        },
+        "date": 1628067467358,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.5,
+            "range": "±6.00%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±5.37%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
