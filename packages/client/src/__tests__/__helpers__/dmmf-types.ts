@@ -37,7 +37,7 @@ const dmmf: DMMF.Document = {
             name: 'author',
             relationFromFields: ['authorId'],
             relationName: 'PostToUser',
-            relationOnDelete: 'Cascade',
+            relationOnDelete: 'NONE',
             relationToFields: ['id'],
             type: 'User',
           },
