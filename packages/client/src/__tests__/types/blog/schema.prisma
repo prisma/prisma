@@ -55,3 +55,11 @@ model Like {
 
   @@unique([userId, postId])
 }
+
+
+model AtAtId {
+  key1 String
+  key2 Int
+
+  @@id([key1, key2])
+}

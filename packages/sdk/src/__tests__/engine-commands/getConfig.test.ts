@@ -16,6 +16,10 @@ describe('getConfig', () => {
       }`,
     })
 
+    expect(config.datasources).toHaveLength(1)
+    expect(config.datasources[0].provider).toEqual('sqlite')
+    expect(config.generators).toHaveLength(0)
+    expect(config.warnings).toHaveLength(0)
     expect(config).toMatchSnapshot()
   })
 
@@ -66,6 +70,9 @@ describe('getConfig', () => {
     }`,
     })
 
+    expect(config.datasources).toHaveLength(1)
+    expect(config.generators).toHaveLength(1)
+    expect(config.warnings).toHaveLength(0)
     expect(config).toMatchSnapshot()
   })
 

@@ -15,7 +15,6 @@ import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
-import { resolveDatasources } from '../utils/resolveDatasources'
 import { getPrismaClientDMMF } from './getDMMF'
 import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
@@ -83,7 +82,7 @@ export async function buildClient({
     document,
     runtimePath,
     browser,
-    datasources: resolveDatasources(datasources, schemaDir, outputDir),
+    datasources: datasources,
     generator,
     platforms: useNodeAPI
       ? Object.keys(binaryPaths.libqueryEngine!)
