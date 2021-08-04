@@ -264,6 +264,15 @@ async function main() {
       },
     },
   })
+
+  await prisma.atAtId.findUnique({
+    where: {
+      key1_key2: {
+        key1: 'hmm',
+        key2: 1,
+      },
+    },
+  })
 }
 
 main().catch((e) => {
