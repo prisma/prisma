@@ -151,7 +151,7 @@ export async function getGenerators({
 
   if (dmmf.datamodel.models.length === 0) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId
-    if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
+    if (config.datasources.some((d) => d.provider === 'mongodb')) {
       throw new Error(missingModelMessageMongoDB)
     }
 
@@ -159,7 +159,7 @@ export async function getGenerators({
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongodb')) &&
+    config.datasources.some((d) => d.provider === 'mongodb') &&
     !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
