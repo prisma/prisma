@@ -1,16 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
 import path from 'path'
-
-export function resolveDatasources(
-  datasources: DataSource[],
-  cwd: string,
-  outputDir: string,
-  absolutePaths?: boolean,
-): DataSource[] {
-  return datasources.map((datasource) => {
-    return datasource
-  })
-}
 
 export function absolutizeRelativePath(
   url: string,
