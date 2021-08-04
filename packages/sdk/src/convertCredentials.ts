@@ -82,7 +82,7 @@ export function uriToCredentials(
     )
   }
 
-  const type = protocolToDatabaseType(uri.protocol)
+  const type = protocolToConnectorType(uri.protocol)
 
   // needed, as the URL implementation adds empty strings
   const exists = (str): boolean => str && str.length > 0
@@ -161,7 +161,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
   }
 }
 
-export function protocolToDatabaseType(protocol: string): ConnectorType {
+export function protocolToConnectorType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':
     case 'postgres:':
@@ -179,21 +179,4 @@ export function protocolToDatabaseType(protocol: string): ConnectorType {
   }
 
   throw new Error(`Unknown database type ${protocol}`)
-}
-
-export function databaseTypeToConnectorType(
-  databaseType: ConnectorType,
-): ConnectorType {
-  switch (databaseType) {
-    case 'postgresql':
-      return 'postgresql'
-    case 'mysql':
-      return 'mysql'
-    case 'sqlite':
-      return 'sqlite'
-    case 'sqlserver':
-      return 'sqlserver'
-  }
-
-  throw new Error(`Mongo is not yet supported`)
 }
