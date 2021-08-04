@@ -3,10 +3,7 @@ import {
   datasourceToDatasourceOverwrite,
   serializeDatasources,
 } from '../generation/serializeDatasources'
-import {
-  absolutizeRelativePath,
-  resolveDatasources,
-} from '../utils/resolveDatasources'
+import { absolutizeRelativePath } from '../utils/resolveDatasources'
 
 const cwd = '/Users/tim/project/prisma'
 const outputDir = '/Users/tim/project/node_modules/@prisma/client/runtime'
@@ -89,62 +86,9 @@ const datasources: DataSource[] = [
   },
 ]
 
-test('resolveDatasources', () => {
-  expect(resolveDatasources(datasources, cwd, outputDir))
-    .toMatchInlineSnapshot(`
-    Array [
-      Object {
-        activeProvider: sqlite,
-        config: Object {},
-        name: db,
-        provider: sqlite,
-        url: Object {
-          fromEnvVar: null,
-          value: file:db.db,
-        },
-      },
-      Object {
-        activeProvider: sqlite,
-        config: Object {},
-        name: db2,
-        provider: sqlite,
-        url: Object {
-          fromEnvVar: null,
-          value: file:./some-dir/db.db,
-        },
-      },
-      Object {
-        activeProvider: mysql,
-        config: Object {},
-        name: db3,
-        provider: mysql,
-        url: Object {
-          fromEnvVar: null,
-          value: mysql:localhost,
-        },
-      },
-      Object {
-        activeProvider: postgresql,
-        config: Object {},
-        name: db4,
-        provider: postgresql,
-        url: Object {
-          fromEnvVar: null,
-          value: postgresql://,
-        },
-      },
-    ]
-  `)
-})
-
 test('serializeDatasources', () => {
-  expect(
-    serializeDatasources(
-      resolveDatasources(datasources, cwd, outputDir).map(
-        datasourceToDatasourceOverwrite,
-      ),
-    ),
-  ).toMatchInlineSnapshot(`
+  expect(serializeDatasources(datasources.map(datasourceToDatasourceOverwrite)))
+    .toMatchInlineSnapshot(`
     [
       {
         "name": "db",

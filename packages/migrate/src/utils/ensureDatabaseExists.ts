@@ -73,7 +73,7 @@ export async function ensureCanConnectToDatabase(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  if (activeDatasource.provider[0] === 'mongodb') {
+  if (activeDatasource.provider === 'mongodb') {
     throw new Error(
       `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
     )
@@ -107,7 +107,7 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  if (activeDatasource.provider[0] === 'mongodb') {
+  if (activeDatasource.provider === 'mongodb') {
     throw new Error(
       `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
     )
