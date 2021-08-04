@@ -17,7 +17,7 @@
   "devDependencies": {
     "@types/debug": "4.1.7",
     "@types/jest": "26.0.24",
-    "@types/node": "12.20.17",
+    "@types/node": "12.20.18",
     "@typescript-eslint/eslint-plugin": "4.28.5",
     "@typescript-eslint/parser": "4.28.5",
     "esbuild": "0.12.16",

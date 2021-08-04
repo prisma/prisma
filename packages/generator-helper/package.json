@@ -16,7 +16,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@types/cross-spawn": "6.0.1",
+    "@types/cross-spawn": "6.0.2",
     "chalk": "4.1.2",
     "cross-spawn": "7.0.3"
   },
@@ -32,7 +32,7 @@
   },
   "devDependencies": {
     "@types/jest": "26.0.24",
-    "@types/node": "12.20.17",
+    "@types/node": "12.20.18",
     "@typescript-eslint/eslint-plugin": "4.28.5",
     "@typescript-eslint/parser": "4.28.5",
     "esbuild": "0.12.16",
