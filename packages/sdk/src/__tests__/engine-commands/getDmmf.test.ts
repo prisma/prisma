@@ -210,7 +210,7 @@ describe('getDMMF', () => {
 
     expect(dmmf).toMatchSnapshot()
   })
-  test('@@id model', async () => {
+  test('@@id model previewFeature="namedConstraints"', async () => {
     const dmmf = await getDMMF({
       datamodel: `
       datasource db {
@@ -219,24 +219,9 @@ describe('getDMMF', () => {
       }
       generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["NamedConstraints"]
+        previewFeatures = ["namedConstraints"]
       }
-      model Post {
-        id        Int     @default(autoincrement())
-        author    User    @relation(fields: [authorId], references: [id])
-        authorId  Int
-        title     String
-        published Boolean @default(false)
-        
-        @@id([authorId, title])
-      }
-      model User {
-        id    Int    @id @default(autoincrement())
-        email String @unique
-        posts Post[]
-      }
-
-      // Specify a multi-field id attribute on two String fields
+      
       model User1 {
         id        Int     @default(autoincrement())
         firstName String
@@ -254,7 +239,31 @@ describe('getDMMF', () => {
         @@id([firstName, lastName, isAdmin])
       }
   `,
-      previewFeatures: ['NamedConstraints'],
+    })
+
+    expect(dmmf).toMatchSnapshot()
+  })
+  test('@@id model', async () => {
+    const dmmf = await getDMMF({
+      datamodel: `
+      datasource db {
+        provider = "postgres"
+        url      = env("MY_POSTGRES_DB")
+      }
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["namedConstraints"]
+      }
+
+      // Specify a multi-field id attribute on two String fields and one Boolean field
+      model User2 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@id([firstName, lastName, isAdmin])
+      }
+  `,
     })
 
     expect(dmmf).toMatchSnapshot()
