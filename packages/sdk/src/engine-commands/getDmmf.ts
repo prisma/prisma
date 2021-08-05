@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { DMMF } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa'
@@ -14,12 +14,6 @@ import { load } from '../utils/load'
 const debug = Debug('prisma:getDMMF')
 
 const MAX_BUFFER = 1_000_000_000
-
-export interface ConfigMetaFormat {
-  datasources: DataSource[]
-  generators: GeneratorConfig[]
-  warnings: string[]
-}
 
 // TODO Why are none of these required
 export type GetDMMFOptions = {
