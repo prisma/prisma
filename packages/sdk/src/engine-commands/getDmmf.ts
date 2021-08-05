@@ -21,6 +21,7 @@ export interface ConfigMetaFormat {
   warnings: string[]
 }
 
+// TODO Why are none of these required
 export type GetDMMFOptions = {
   schema?: string
   schemaPath?: string
