@@ -148,11 +148,11 @@ Notes:
 
 #### Creating a new integration test
 
-Prisma Client JS integration tests are located in https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration
-If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
+Prisma Client JS integration tests are located in https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration
+If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
 It will give you an in-memory Prisma Client instance to use in the test. It utilizes the [`getTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/packages/client/src/utils/getTestClient.ts#L23) helper method.
 
-Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case your friend is [`generatedTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/packages/client/src/utils/getTestClient.ts#L59). An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/master/packages/client/src/__tests__/integration/happy/blog)
+Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case your friend is [`generatedTestClient`](https://github.com/prisma/prisma/blob/f1c2c5d4c02fcd2cba9e10eaa0a5bbde371818ca/packages/client/src/utils/getTestClient.ts#L59). An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/blog)
 
 ### Debugging a local project with your custom Prisma Client (aka `yarn link`)
 

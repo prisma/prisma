@@ -39,4 +39,4 @@ You can find more info about Prisma Migrate in the [Prisma documentation](https:
 
 ## Contributing
 
-Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
+Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/main/CODE_OF_CONDUCT.md).
