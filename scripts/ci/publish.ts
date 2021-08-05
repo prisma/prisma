@@ -688,8 +688,8 @@ async function publish() {
       )
       console.log(`Active branch`)
       await run('.', 'git branch')
-      console.log(`Let's check out master!`)
-      await run('.', 'git checkout master')
+      console.log(`Let's check out main!`)
+      await run('.', 'git checkout main')
       await run(
         '.',
         `pnpm update  -r @prisma/studio-server@${latestStudioVersion}`,
@@ -1143,7 +1143,7 @@ async function publishPackages(
 
   if (process.env.UPDATE_STUDIO) {
     await run('.', `git stash`, dryRun)
-    await run('.', `git checkout master`, dryRun)
+    await run('.', `git checkout main`, dryRun)
     await run('.', `git stash pop`, dryRun)
   }
 
