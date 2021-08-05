@@ -41,15 +41,17 @@ function retry {
   return 0
 }
 
-# JOB 0 - Tests all with the default configuration
-# JOB 1 - Tests all with:
-#   PRISMA_CLIENT_ENGINE_TYPE="binary" // Default is node-api
-#   PRISMA_CLI_QUERY_ENGINE_TYPE="binary" // Default is node-api
+# The below is required as during install required engines are download, to this makes sure the the engines being tested are already present 
 
-# Only for job 1 = Node-API
+# JOB 0 - Node-API
+if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
+  export PRISMA_CLIENT_ENGINE_TYPE='node-api'
+  export PRISMA_CLI_QUERY_ENGINE_TYPE='node-api'
+fi
+# JOB 1 - Binary
 if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
-  export PRISMA_CLIENT_ENGINE_TYPE='binary' # Default is 'node-api' 
-  export PRISMA_CLI_QUERY_ENGINE_TYPE='binary' # Default is 'node-api' 
+  export PRISMA_CLIENT_ENGINE_TYPE='binary'
+  export PRISMA_CLI_QUERY_ENGINE_TYPE='binary'
 fi
 
 npm i --silent -g pnpm@6 --unsafe-perm
