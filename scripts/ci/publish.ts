@@ -859,16 +859,16 @@ async function testPackages(
   let order = flatten(publishOrder)
 
   // If parallelism is set in build-kite we split the testing
-  //  Job 0 all with default (node-api)
-  //  Job 1 all with
-  //    PRISMA_CLIENT_ENGINE_TYPE="binary" // Default is node-api
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary" // Default is node-api
+  //  Job 0 - Node-API
+  //    PRISMA_CLIENT_ENGINE_TYPE="node-api"
+  //    PRISMA_CLI_QUERY_ENGINE_TYPE="node-api"
+  //  Job 1 - Binary
+  //    PRISMA_CLIENT_ENGINE_TYPE="binary"
+  //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary"
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-    console.log(
-      'BUILDKITE_PARALLEL_JOB === 0 - running all tests with the default/node-api',
-    )
+    console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
-    console.log('BUILDKITE_PARALLEL_JOB === 1 - running all tests with binary')
+    console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
     // This is a tmp workaround
     console.log('SKIPPING')
@@ -883,10 +883,15 @@ async function testPackages(
     if (pkg.packageJson.scripts.test) {
       console.log(`\nTesting ${chalk.magentaBright(pkg.name)}`)
       // Sets ENV to override engines
-      if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
+      if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test', // # Default is 'node-api'
+          'PRISMA_CLIENT_ENGINE_TYPE="node-api" PRISMA_CLI_QUERY_ENGINE_TYPE="node-api" pnpm run test',
+        )
+      } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
+        await run(
+          path.dirname(pkg.path),
+          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test',
         )
       } else {
         await run(path.dirname(pkg.path), 'pnpm run test')
