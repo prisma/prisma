@@ -7,7 +7,7 @@ chalk.level = 0
 describe('relation where transformation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: chinook }))
+    dmmf = new DMMFClass(await getDMMF({ schema: chinook }))
   })
 
   test('transform correctly', () => {

@@ -52,13 +52,16 @@ export async function generateInFolder({
   const schemaPath = getSchemaPath(projectDir)
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
-  const config = await getConfig({ schemaContent: datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({
+    schema: datamodel,
+    ignoreEnvVarErrors: true,
+  })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const clientGenerator = config.generators[0]
   const clientEngineType = getClientEngineType(clientGenerator)
 
   const dmmf = await getDMMF({
-    datamodel,
+    schema: datamodel,
     previewFeatures,
   })
 

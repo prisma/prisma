@@ -7,7 +7,7 @@ chalk.level = 0
 describe('scalar where transformation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: enums }))
+    dmmf = new DMMFClass(await getDMMF({ schema: enums }))
   })
 
   test('allow providing Int and Float scalar list in set', () => {

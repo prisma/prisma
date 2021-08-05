@@ -85,7 +85,7 @@ Or specify a Prisma schema path
     })
 
     await getDMMF({
-      datamodel: output,
+      schema: output,
     })
 
     output = output.trimEnd() + os.EOL

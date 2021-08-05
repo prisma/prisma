@@ -5,7 +5,7 @@ import { DMMFClass, makeDocument } from '../runtime'
 let dmmf
 describe('no args', () => {
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: recommender }))
+    dmmf = new DMMFClass(await getDMMF({ schema: recommender }))
   })
 
   test('findUnique', () => {

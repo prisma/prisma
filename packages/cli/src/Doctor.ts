@@ -88,8 +88,8 @@ ${chalk.bold('Examples')}
     )
 
     const schema = await readFile(schemaPath, 'utf-8')
-    const localDmmf = await getDMMF({ datamodel: schema })
-    const config = await getConfig({ schemaContent: schema })
+    const localDmmf = await getDMMF({ schema: schema })
+    const config = await getConfig({ schema: schema })
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
@@ -114,7 +114,7 @@ ${chalk.bold('Examples')}
       engine.stop()
     }
 
-    const remoteDmmf = await getDMMF({ datamodel })
+    const remoteDmmf = await getDMMF({ schema: datamodel })
 
     const remoteModels = keyBy(
       remoteDmmf.datamodel.models,

@@ -6,7 +6,7 @@ import { makeDocument } from '../runtime/query'
 
 let dmmf
 beforeAll(async () => {
-  const dmmfDocument = await getDMMF({ datamodel: blog })
+  const dmmfDocument = await getDMMF({ schema: blog })
   dmmf = new DMMFClass(dmmfDocument)
 })
 

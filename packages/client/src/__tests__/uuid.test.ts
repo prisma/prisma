@@ -16,7 +16,7 @@ model User {
 describe('at least one validation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel }))
+    dmmf = new DMMFClass(await getDMMF({ schema: datamodel }))
   })
   test('string first', () => {
     const select = {

@@ -7,7 +7,7 @@ chalk.level = 0
 let dmmf
 describe('minimal where transformation', () => {
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: singularRelation }))
+    dmmf = new DMMFClass(await getDMMF({ schema: singularRelation }))
   })
 
   test('where null', () => {

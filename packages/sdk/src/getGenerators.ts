@@ -124,7 +124,7 @@ export async function getGenerators({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({
-    schemaContent: datamodel,
+    schema: datamodel,
     schemaPath: schemaPath,
     enginePath: prismaPath,
     ignoreEnvVarErrors: true,
@@ -140,9 +140,9 @@ export async function getGenerators({
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
 
   const dmmf = await getDMMF({
-    datamodel,
-    datamodelPath: schemaPath,
-    prismaPath,
+    schema: datamodel,
+    schemaPath: schemaPath,
+    enginePath: prismaPath,
     previewFeatures,
   })
 
@@ -381,9 +381,9 @@ generator gen {
           generatorBinaryPaths[queryEngineType]?.[platform]
         ) {
           const customDmmf = await getDMMF({
-            datamodel,
-            datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
+            schema: datamodel,
+            schemaPath: schemaPath,
+            enginePath: generatorBinaryPaths[queryEngineType]?.[platform],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }

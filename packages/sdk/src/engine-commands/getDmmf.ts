@@ -8,13 +8,10 @@ import chalk from 'chalk'
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa'
 import fs from 'fs'
 import tmpWrite from 'temp-write'
-import { promisify } from 'util'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getDMMF')
-
-const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
@@ -25,16 +22,15 @@ export interface ConfigMetaFormat {
 }
 
 export type GetDMMFOptions = {
-  datamodel?: string
+  schema?: string
+  schemaPath?: string
   cwd?: string
-  prismaPath?: string
-  datamodelPath?: string
-  retry?: number
+  enginePath?: string
   previewFeatures?: string[]
 }
-// TODO add error handling functions
+
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
-  warnOnDeprecatedFeatureFlag(options.previewFeatures)
+  warnOnDeprecatedFeatureFlag(options.previewFeatures) // TODO Why are we doing this for getDmmf but in getConfig the engines return the errors??
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let dmmf: DMMF.Document | undefined
   if (cliEngineBinaryType === BinaryType.libqueryEngine) {
@@ -48,7 +44,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   const queryEnginePath = await resolveBinary(
     BinaryType.libqueryEngine,
-    options.prismaPath,
+    options.enginePath,
   )
   await isNodeAPISupported()
 
@@ -56,7 +52,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   const NodeAPIQueryEngineLibrary =
     load<NodeAPILibraryTypes.Library>(queryEnginePath)
   const datamodel =
-    options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
+    options.schema ?? fs.readFileSync(options.schemaPath!, 'utf-8')
   let dmmf: DMMF.Document | undefined
   try {
     dmmf = JSON.parse(
@@ -74,15 +70,15 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
   const queryEnginePath = await resolveBinary(
     BinaryType.queryEngine,
-    options.prismaPath,
+    options.enginePath,
   )
   debug(`Using Query Engine Binary at: ${queryEnginePath}`)
 
   try {
-    let tempDatamodelPath: string | undefined = options.datamodelPath
-    if (!tempDatamodelPath) {
+    let tmpSchemaPath: string | undefined = options.schemaPath
+    if (!tmpSchemaPath) {
       try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
+        tmpSchemaPath = await tmpWrite(options.schema!)
       } catch (err) {
         throw new Error(
           chalk.redBright.bold('Get DMMF ') +
@@ -93,7 +89,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const execaOptions = {
       cwd: options.cwd,
       env: {
-        PRISMA_DML_PATH: tempDatamodelPath,
+        PRISMA_DML_PATH: tmpSchemaPath,
         RUST_BACKTRACE: '1',
         ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
       },
@@ -103,21 +99,8 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const args = ['--enable-raw-queries', 'cli', 'dmmf']
     result = await execa(queryEnginePath, args, execaOptions)
 
-    if (!options.datamodelPath) {
-      await unlink(tempDatamodelPath)
-    }
-
-    if (
-      result.stdout.includes('Please wait until the') &&
-      options.retry &&
-      options.retry > 0
-    ) {
-      debug('Retrying after "Please wait until"')
-      await new Promise((r) => setTimeout(r, 5000))
-      return getDMMF({
-        ...options,
-        retry: options.retry - 1,
-      })
+    if (!options.schemaPath) {
+      await fs.promises.unlink(tmpSchemaPath)
     }
 
     // necessary, as sometimes the query engine prints some other stuff
@@ -127,19 +110,6 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     return JSON.parse(stdout)
   } catch (e) {
     debug('getDMMF failed', e)
-    // If this unlikely event happens, try it at least once more
-    if (
-      e.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
-      options.retry &&
-      options.retry > 0
-    ) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      debug('Retrying after ETXTBSY')
-      return getDMMF({
-        ...options,
-        retry: options.retry - 1,
-      })
-    }
     const output = e.stderr || e.stdout
     if (output) {
       let json

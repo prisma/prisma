@@ -21,7 +21,7 @@ describe('dmmf', () => {
         AWESOME
       }`
 
-    const dmmf = await getDMMF({ datamodel })
+    const dmmf = await getDMMF({ schema: datamodel })
     expect(
       dmmf.schema.inputObjectTypes.prisma.find(
         (i) => i.name === 'NestedEnumPostKindFilter',
@@ -189,7 +189,7 @@ describe('dmmf', () => {
         AWESOME
       }`
 
-    const dmmf = await getDMMF({ datamodel })
+    const dmmf = await getDMMF({ schema: datamodel })
     expect(
       dmmf.schema.inputObjectTypes.prisma.find(
         (i) => i.name === 'NestedEnumPostKindFilter',
@@ -359,7 +359,7 @@ describe('dmmf', () => {
 
     /* eslint-disable jest/no-try-expect */
     try {
-      await getDMMF({ datamodel })
+      await getDMMF({ schema: datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         Schema parsing

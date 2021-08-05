@@ -130,10 +130,10 @@ ${chalk.bold('Examples')}
     // Validate schema (same as prisma validate)
     const schema = fs.readFileSync(schemaPath, 'utf-8')
     await getDMMF({
-      datamodel: schema,
+      schema: schema,
     })
     await getConfig({
-      schemaContent: schema,
+      schema: schema,
     })
 
     // Automatically create the database if it doesn't exist

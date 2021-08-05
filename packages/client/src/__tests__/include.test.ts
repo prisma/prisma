@@ -6,7 +6,7 @@ import { getDMMF } from '../generation/getDMMF'
 
 let dmmf
 beforeAll(async () => {
-  const dmmfDocument = await getDMMF({ datamodel: blog })
+  const dmmfDocument = await getDMMF({ schema: blog })
   dmmf = new DMMFClass(dmmfDocument)
 })
 

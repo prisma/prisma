@@ -192,7 +192,7 @@ async function main(): Promise<number> {
     try {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
-        schemaContent: schema,
+        schema: schema,
         ignoreEnvVarErrors: true,
       })
       if (config.datasources.length > 0) {

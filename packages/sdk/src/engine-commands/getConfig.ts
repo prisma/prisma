@@ -25,11 +25,11 @@ const MAX_BUFFER = 1_000_000_000
 export interface ConfigMetaFormat {
   datasources: DataSource[]
   generators: GeneratorConfig[]
-  warnings: string[] // TODO Figure out what this is used for 
+  warnings: string[] // TODO Figure out what this is used for
 }
 
 export type GetConfigOptions = {
-  schemaContent: string
+  schema: string
   schemaPath?: string // TODO Why does this exist?
   enginePath?: string
   cwd?: string
@@ -82,7 +82,7 @@ async function getConfigLibrary(
     const NodeAPIQueryEngineLibrary =
       load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NodeAPIQueryEngineLibrary.getConfig({
-      datamodel: options.schemaContent,
+      datamodel: options.schema,
       datasourceOverrides: {},
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
       env: process.env,
@@ -123,7 +123,7 @@ async function getConfigBinary(
     let tempDatamodelPath: string | undefined = options.schemaPath
     if (!tempDatamodelPath) {
       try {
-        tempDatamodelPath = await tmpWrite(options.schemaContent!)
+        tempDatamodelPath = await tmpWrite(options.schema!)
       } catch (err) {
         throw new GetConfigError('Unable to write temp data model path')
       }

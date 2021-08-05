@@ -6,7 +6,7 @@ import { getDMMF } from '../generation/getDMMF'
 describe('at least one validation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: enums }))
+    dmmf = new DMMFClass(await getDMMF({ schema: enums }))
   })
 
   test('invalid or query', () => {

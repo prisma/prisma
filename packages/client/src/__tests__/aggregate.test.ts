@@ -47,7 +47,7 @@ describe('aggregate', () => {
   beforeAll(async () => {
     dmmf = new DMMFClass(
       await getDMMF({
-        datamodel: recommender,
+        schema: recommender,
       }),
     )
   })

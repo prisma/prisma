@@ -23,7 +23,7 @@ model User {
 `
 
 test('dmmf types', async () => {
-  const dmmf = await getDMMF({ datamodel: blog })
+  const dmmf = await getDMMF({ schema: blog })
   const file = `import { DMMF } from '@prisma/generator-helper'
 
 const dmmf: DMMF.Document = ${JSON.stringify(

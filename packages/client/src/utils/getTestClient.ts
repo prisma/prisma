@@ -37,7 +37,10 @@ export async function getTestClient(
   }
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
-  const config = await getConfig({ schemaContent: datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({
+    schema: datamodel,
+    ignoreEnvVarErrors: true,
+  })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
   }
@@ -52,7 +55,7 @@ export async function getTestClient(
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
   const document = await getDMMF({
-    datamodel,
+    schema: datamodel,
     previewFeatures,
   })
   const outputDir = schemaDir

@@ -30,7 +30,7 @@ model OptionalUser {
 
 let dmmf
 beforeAll(async () => {
-  const dmmfDocument = await getDMMF({ datamodel })
+  const dmmfDocument = await getDMMF({ schema: datamodel })
   dmmf = new DMMFClass(dmmfDocument)
 })
 

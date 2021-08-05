@@ -5,7 +5,7 @@ import { DMMFClass, makeDocument } from '../runtime'
 
 describe('batching', () => {
   test('basic batching', async () => {
-    const dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    const dmmf = new DMMFClass(await getDMMF({ schema: blog }))
     const batches: any[] = []
     const requests: any[] = []
 
@@ -120,7 +120,7 @@ describe('batching', () => {
   })
 
   test('dont batch different models', async () => {
-    const dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    const dmmf = new DMMFClass(await getDMMF({ schema: blog }))
     const batches: any[] = []
     const requests: any[] = []
 
@@ -224,7 +224,7 @@ describe('batching', () => {
   })
 
   test('dont batch different wheres', async () => {
-    const dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    const dmmf = new DMMFClass(await getDMMF({ schema: blog }))
     const batches: any[] = []
     const requests: any[] = []
 

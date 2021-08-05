@@ -4,7 +4,7 @@ import { getConfig } from '../..'
 describe('getConfig', () => {
   test('empty config', async () => {
     const config = await getConfig({
-      schemaContent: `
+      schema: `
       datasource db {
         provider = "sqlite"
         url      = "file:../hello.db"
@@ -27,7 +27,7 @@ describe('getConfig', () => {
     expect.assertions(1)
     try {
       await getConfig({
-        schemaContent: `
+        schema: `
       datasource db {
         provider = "sqlite"
         url      = "file:../hello.db"
@@ -53,7 +53,7 @@ describe('getConfig', () => {
 
   test('with generator and datasource', async () => {
     const config = await getConfig({
-      schemaContent: `
+      schema: `
     datasource db {
       url = "file:dev.db"
       provider = "sqlite"
@@ -81,7 +81,7 @@ describe('getConfig', () => {
       'postgres://user:password@something:5432/db'
 
     const config = await getConfig({
-      schemaContent: `
+      schema: `
       datasource db {
         provider = "postgresql"
         url      = env("TEST_POSTGRES_URI_FOR_DATASOURCE")
@@ -95,7 +95,7 @@ describe('getConfig', () => {
   test('datasource with env var - ignoreEnvVarErrors', async () => {
     const config = await getConfig({
       ignoreEnvVarErrors: true,
-      schemaContent: `
+      schema: `
       datasource db {
         provider = "postgresql"
         url      = env("SOMETHING-SOMETHING-1234")

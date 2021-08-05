@@ -12,7 +12,7 @@ test('dmmf-types', async () => {
     'utf-8',
   )
   const dmmf = await getDMMF({
-    datamodel,
+    schema: datamodel,
   })
   const dmmfFile = path.join(__dirname, 'generated-dmmf.ts')
 

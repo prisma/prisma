@@ -80,11 +80,11 @@ ${chalk.bold('Examples')}
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
     await getDMMF({
-      datamodel: schema,
+      schema: schema,
     })
 
     await getConfig({
-      schemaContent: schema,
+      schema: schema,
     })
 
     return `The schema at ${chalk.underline(schemaPath)} is valid 🚀`

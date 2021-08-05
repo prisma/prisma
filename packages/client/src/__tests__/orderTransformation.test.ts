@@ -6,7 +6,7 @@ import { getDMMF } from '../generation/getDMMF'
 describe('where transformation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: enums }))
+    dmmf = new DMMFClass(await getDMMF({ schema: enums }))
   })
 
   test('transform correctly', () => {

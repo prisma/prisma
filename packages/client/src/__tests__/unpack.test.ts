@@ -7,7 +7,7 @@ let dmmf
 
 beforeAll(async () => {
   const dmmfObj = await getDMMF({
-    datamodel: blog,
+    schema: blog,
   })
   dmmf = new DMMFClass(dmmfObj)
 })

@@ -32,7 +32,7 @@ model Employee {
 describe('date where filter', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel }))
+    dmmf = new DMMFClass(await getDMMF({ schema: datamodel }))
   })
 
   test('generate correct query', () => {

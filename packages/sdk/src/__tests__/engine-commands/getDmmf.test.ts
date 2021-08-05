@@ -9,7 +9,7 @@ jest.setTimeout(10_000)
 describe('getDMMF', () => {
   test('simple model, no datasource', async () => {
     const dmmf = await getDMMF({
-      datamodel: `model A {
+      schema: `model A {
         id Int @id
         name String
       }`,
@@ -21,7 +21,7 @@ describe('getDMMF', () => {
 
   test('simple model, sqlite', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "sqlite"
         url      = "file:dev.db"
@@ -38,7 +38,7 @@ describe('getDMMF', () => {
 
   test('simple model, postgresql', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgresql"
         url      = env("MY_POSTGRESQL_DB")
@@ -55,7 +55,7 @@ describe('getDMMF', () => {
 
   test('simple model, mysql', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "mysql"
         url      = env("MY_MYSQL_DB")
@@ -72,7 +72,7 @@ describe('getDMMF', () => {
 
   test('simple model, sql server', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "sqlserver"
         url      = env("MY_SQLSERVER_DB")
@@ -89,7 +89,7 @@ describe('getDMMF', () => {
 
   test('simple model, mongodb', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "mongodb"
         url      = "MY_MONGODB_DB"
@@ -106,7 +106,7 @@ describe('getDMMF', () => {
 
   test('@@map model', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgresql"
         url      = env("MY_POSTGRESQL_DB")
@@ -135,7 +135,7 @@ describe('getDMMF', () => {
 
     /* eslint-disable jest/no-try-expect */
     try {
-      await getDMMF({ datamodel })
+      await getDMMF({ schema: datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
@@ -156,7 +156,7 @@ describe('getDMMF', () => {
 
     /* eslint-disable jest/no-try-expect */
     try {
-      await getDMMF({ datamodel })
+      await getDMMF({ schema: datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
@@ -165,7 +165,7 @@ describe('getDMMF', () => {
 
   test('@@unique model', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgres"
         url      = env("MY_POSTGRES_DB")
@@ -212,7 +212,7 @@ describe('getDMMF', () => {
   })
   test('@@id model previewFeature="namedConstraints"', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgres"
         url      = env("MY_POSTGRES_DB")
@@ -245,7 +245,7 @@ describe('getDMMF', () => {
   })
   test('@@id model', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgres"
         url      = env("MY_POSTGRES_DB")
@@ -270,7 +270,7 @@ describe('getDMMF', () => {
   })
   test('@@unique model connectOrCreate', async () => {
     const dmmf = await getDMMF({
-      datamodel: `
+      schema: `
       datasource db {
         provider = "postgresql"
         url      = env("MY_POSTGRES_DB")
@@ -322,7 +322,7 @@ describe('getDMMF', () => {
       'utf-8',
     )
     const dmmf = await getDMMF({
-      datamodel: file,
+      schema: file,
     })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchSnapshot()
@@ -334,7 +334,7 @@ describe('getDMMF', () => {
       'utf-8',
     )
     const dmmf = await getDMMF({
-      datamodel: file,
+      schema: file,
     })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchSnapshot()
@@ -346,7 +346,7 @@ describe('getDMMF', () => {
       'utf-8',
     )
     const dmmf = await getDMMF({
-      datamodel: file,
+      schema: file,
     })
     const str = JSON.stringify(dmmf)
     expect(str.length).toMatchSnapshot()
@@ -391,7 +391,7 @@ describe('getDMMF', () => {
     `
     /* eslint-disable jest/no-try-expect */
     try {
-      await getDMMF({ datamodel })
+      await getDMMF({ schema: datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }

@@ -7,7 +7,7 @@ chalk.level = 0
 describe('optional to one relation', () => {
   let dmmf
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    dmmf = new DMMFClass(await getDMMF({ schema: blog }))
   })
 
   test('null query', () => {

@@ -7,7 +7,7 @@ chalk.level = 0
 let dmmf
 describe('minimal where transformation', () => {
   beforeAll(async () => {
-    dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
+    dmmf = new DMMFClass(await getDMMF({ schema: blog }))
   })
 
   test('OR posts some id in', () => {
