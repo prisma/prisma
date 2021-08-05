@@ -37,7 +37,7 @@ export async function getTestClient(
   }
   const schemaPath = await getRelativeSchemaPath(schemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
+  const config = await getConfig({ schemaContent: datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
   }

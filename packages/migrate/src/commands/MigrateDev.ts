@@ -133,7 +133,7 @@ ${chalk.bold('Examples')}
       datamodel: schema,
     })
     await getConfig({
-      datamodel: schema,
+      schemaContent: schema,
     })
 
     // Automatically create the database if it doesn't exist

@@ -124,8 +124,8 @@ export async function getGenerators({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({
-    datamodel,
-    datamodelPath: schemaPath,
+    schemaContent: datamodel,
+    schemaPath: schemaPath,
     enginePath: prismaPath,
     ignoreEnvVarErrors: true,
   })

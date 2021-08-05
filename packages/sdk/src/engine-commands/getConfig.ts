@@ -29,10 +29,10 @@ export interface ConfigMetaFormat {
 }
 
 export type GetConfigOptions = {
-  datamodel: string
-  cwd?: string
+  schemaContent: string
+  schemaPath?: string // TODO Why does this exist?
   enginePath?: string
-  datamodelPath?: string
+  cwd?: string
   retry?: number
   ignoreEnvVarErrors?: boolean
 }
@@ -82,7 +82,7 @@ async function getConfigLibrary(
     const NodeAPIQueryEngineLibrary =
       load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NodeAPIQueryEngineLibrary.getConfig({
-      datamodel: options.datamodel,
+      datamodel: options.schemaContent,
       datasourceOverrides: {},
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
       env: process.env,
@@ -120,10 +120,10 @@ async function getConfigBinary(
   debug(`Using Query Engine Binary at: ${queryEnginePath}`)
 
   try {
-    let tempDatamodelPath: string | undefined = options.datamodelPath
+    let tempDatamodelPath: string | undefined = options.schemaPath
     if (!tempDatamodelPath) {
       try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
+        tempDatamodelPath = await tmpWrite(options.schemaContent!)
       } catch (err) {
         throw new GetConfigError('Unable to write temp data model path')
       }
@@ -145,7 +145,7 @@ async function getConfigBinary(
       },
     )
 
-    if (!options.datamodelPath) {
+    if (!options.schemaPath) {
       await unlink(tempDatamodelPath)
     }
 

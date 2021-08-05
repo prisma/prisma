@@ -23,7 +23,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   schema?: string
 }> {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ schemaContent: datamodel })
   const activeDatasource = config.datasources[0]
   const url = activeDatasource.url.value
 
@@ -66,7 +66,7 @@ export async function ensureCanConnectToDatabase(
   schemaPath?: string,
 ): Promise<Boolean | Error> {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ schemaContent: datamodel })
   const activeDatasource = config.datasources[0]
 
   if (!activeDatasource) {
@@ -100,7 +100,7 @@ export async function ensureDatabaseExists(
   schemaPath?: string,
 ) {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ schemaContent: datamodel })
   const activeDatasource = config.datasources[0]
 
   if (!activeDatasource) {

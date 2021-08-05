@@ -84,7 +84,7 @@ ${chalk.bold('Examples')}
     })
 
     await getConfig({
-      datamodel: schema,
+      schemaContent: schema,
     })
 
     return `The schema at ${chalk.underline(schemaPath)} is valid 🚀`

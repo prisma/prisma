@@ -89,7 +89,7 @@ ${chalk.bold('Examples')}
 
     const schema = await readFile(schemaPath, 'utf-8')
     const localDmmf = await getDMMF({ datamodel: schema })
-    const config = await getConfig({ datamodel: schema })
+    const config = await getConfig({ schemaContent: schema })
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
