@@ -4,7 +4,7 @@ export enum ClientEngineType {
   NodeAPI = 'node-api',
   Binary = 'binary',
 }
-export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.NodeAPI
+export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
 
 export function getClientEngineType(
   generator?: GeneratorConfig,

@@ -4,8 +4,8 @@ import path from 'path'
 import {
   ClientEngineType,
   DEFAULT_CLIENT_ENGINE_TYPE,
-} from '../../../../../runtime/utils/getClientEngineType'
-import { generateTestClient } from '../../../../../utils/getTestClient'
+} from '../../../../runtime/utils/getClientEngineType'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 const buildSchema = (engineType?: string) => `
 datasource db {
