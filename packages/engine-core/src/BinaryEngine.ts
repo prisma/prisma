@@ -892,7 +892,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  async getConfig(): Promise<GetConfigResult> {
+  async getConfigForClient(): Promise<GetConfigResult> {
     if (!this.getConfigPromise) {
       this.getConfigPromise = this._getConfig()
     }

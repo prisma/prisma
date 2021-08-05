@@ -364,7 +364,7 @@ You may have to run ${chalk.greenBright(
     return this.libraryStoppingPromise
   }
 
-  getConfig(): Promise<ConfigMetaFormat> {
+  getConfigForClient(): Promise<ConfigMetaFormat> {
     return this.library!.getConfig({
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,

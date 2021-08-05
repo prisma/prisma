@@ -32,7 +32,7 @@ In the `prisma/prisma` repository we have a few places where you can write tests
 - **`sdk`**
   - Convert credentials to connection string and back
   - Dotenv expansion
-  - Engine commands (`getDMMF`, `getConfig`) (snapshots)
+  - Engine commands (`getDMMF`, `getConfig`, `getVersion`) (snapshots)
   - getGenerators (central function for generation)
   - introspection (snapshots)
 - **`integration-tests`**

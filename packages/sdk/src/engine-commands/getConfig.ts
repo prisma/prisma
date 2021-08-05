@@ -18,16 +18,20 @@ const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
+/**
+ * This takes the Prisma schema, and returns the "config" part of it: datasources, generators
+ */
+
 export interface ConfigMetaFormat {
   datasources: DataSource[]
   generators: GeneratorConfig[]
-  warnings: string[]
+  warnings: string[] // TODO Figure out what this is used for 
 }
 
 export type GetConfigOptions = {
   datamodel: string
   cwd?: string
-  prismaPath?: string
+  enginePath?: string
   datamodelPath?: string
   retry?: number
   ignoreEnvVarErrors?: boolean
@@ -38,13 +42,13 @@ export class GetConfigError extends Error {
   }
 }
 // TODO add error handling functions
-export async function getConfig(
+export async function getConfigForCLI(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let data: ConfigMetaFormat | undefined
   if (cliEngineBinaryType === BinaryType.libqueryEngine) {
-    data = await getConfigNodeAPI(options)
+    data = await getConfigLibrary(options)
   } else {
     data = await getConfigBinary(options)
   }
@@ -64,13 +68,13 @@ export async function getConfig(
   return data
 }
 
-async function getConfigNodeAPI(
+async function getConfigLibrary(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
   let data: ConfigMetaFormat | undefined
   const queryEnginePath = await resolveBinary(
     BinaryType.libqueryEngine,
-    options.prismaPath,
+    options.enginePath,
   )
   await isNodeAPISupported()
   debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
@@ -111,7 +115,7 @@ async function getConfigBinary(
 
   const queryEnginePath = await resolveBinary(
     BinaryType.queryEngine,
-    options.prismaPath,
+    options.enginePath,
   )
   debug(`Using Query Engine Binary at: ${queryEnginePath}`)
 

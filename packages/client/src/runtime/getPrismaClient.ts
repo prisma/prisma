@@ -516,7 +516,7 @@ export function getPrismaClient(config: GetPrismaClientOptions): any {
 
     private async _getActiveProvider(): Promise<void> {
       try {
-        const configResult = await this._engine.getConfig()
+        const configResult = await this._engine.getConfigForClient()
         this._activeProvider = configResult.datasources[0].activeProvider
       } catch (e) {
         // it's ok to silently fail

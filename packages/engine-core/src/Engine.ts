@@ -8,7 +8,7 @@ export interface Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void
   start(): Promise<void>
   stop(): Promise<void>
-  getConfig(): Promise<GetConfigResult>
+  getConfigForClient(): Promise<GetConfigResult>
   version(forceRun?: boolean): Promise<string> | string
   request<T>(
     query: string,
