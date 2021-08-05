@@ -11,7 +11,10 @@ export function getClientEngineType(
 ): ClientEngineType {
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
-  if (generator?.config.engineType === ClientEngineType.NodeAPI) {
+  if (
+    generator?.config.engineType === ClientEngineType.NodeAPI ||
+    generator?.previewFeatures.includes('nApi')
+  ) {
     return ClientEngineType.NodeAPI
   } else if (generator?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
