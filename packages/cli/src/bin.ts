@@ -229,7 +229,7 @@ async function checkForPackageUpdate(args) {
       if (config.datasources.length > 0) {
         schemaProvider = config.datasources[0].provider
       }
-      // TODO Only works if Prisma Client generator is the first one?
+      // TODO This should just get the `prisma-client-js` generator, not the first with previewFeatures
       const generator = config.generators.find(
         (gen) => gen.previewFeatures.length > 0
       )
