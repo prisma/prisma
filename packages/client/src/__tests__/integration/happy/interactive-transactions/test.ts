@@ -2,9 +2,9 @@ import { getTestClient } from '../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-describe('long-running transaction', () => {
+describe('interactive transaction', () => {
   /**
-   * Minimal example of a long-running transaction
+   * Minimal example of a interactive transaction
    */
   test('basic', async () => {
     const result = await prisma.$transaction(async (prisma) => {
@@ -332,7 +332,7 @@ Invalid \`prisma.user.create()\` invocation:
   })
 
   /**
-   * Minimal example of a long-running transaction & middleware
+   * Minimal example of a interactive transaction & middleware
    */
   test('middleware basic', async () => {
     prisma.$use(async (params, next) => {
