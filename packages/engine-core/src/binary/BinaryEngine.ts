@@ -1095,6 +1095,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     } catch (error) {
       this.setError(error)
     }
+
+    return undefined
   }
 
   private get hasMaxRestarts() {
