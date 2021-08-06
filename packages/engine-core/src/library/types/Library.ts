@@ -17,11 +17,15 @@ export type QueryEngineInstance = {
    *
    * @param headers JSON.stringified `QueryEngineRequestHeaders`
    */
-  query(request: string, headers: string): Promise<string>
+  query(
+    request: string,
+    headers: string,
+    transactionId?: string,
+  ): Promise<string>
   sdlSchema(): Promise<string>
-  startTransaction(options: string): Promise<string>
-  commitTransaction(id: string): Promise<string>
-  rollbackTransaction(id: string): Promise<string>
+  startTransaction(options: string, trace: string): Promise<string>
+  commitTransaction(id: string, trace: string): Promise<string>
+  rollbackTransaction(id: string, trace: string): Promise<string>
 }
 
 export interface QueryEngineConstructor {

@@ -113,12 +113,12 @@ export class LibraryEngine extends Engine {
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      const result = await this.engine?.startTransaction(jsonOptions)
+      const result = await this.engine?.startTransaction(jsonOptions, '{}')
       return this.parseEngineResponse<Tx.Info>(result)
     } else if (action === 'commit') {
-      await this.engine?.commitTransaction(arg.id)
+      await this.engine?.commitTransaction(arg.id, '{}')
     } else if (action === 'rollback') {
-      await this.engine?.rollbackTransaction(arg.id)
+      await this.engine?.rollbackTransaction(arg.id, '{}')
     }
 
     return undefined
@@ -431,10 +431,14 @@ You may have to run ${chalk.greenBright(
       debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
       const request: QueryEngineRequest = { query, variables: {} }
       const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify({})
+      const headerStr = JSON.stringify(headers)
 
       await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr)
+      this.executingQueryPromise = this.engine?.query(
+        queryStr,
+        headerStr,
+        headers.transactionId,
+      )
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(
@@ -485,6 +489,7 @@ You may have to run ${chalk.greenBright(
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify(headers),
+      headers.transactionId,
     )
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
