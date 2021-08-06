@@ -180,67 +180,7 @@ async function main(): Promise<number> {
   }
   console.log(result)
 
-  try {
-    // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash()
-    // SHA256 of the cli path
-    const cliPathHash = getCLIPathHash()
-
-    let schemaProvider: string | undefined
-    let schemaPreviewFeatures: string[] | undefined
-    let schemaGeneratorsProviders: string[] | undefined
-    try {
-      const schema = await getSchema(args['--schema'])
-      const config = await getConfig({
-        schema: schema,
-        ignoreEnvVarErrors: true,
-      })
-      if (config.datasources.length > 0) {
-        schemaProvider = config.datasources[0].provider
-      }
-      const generator = config.generators.find(
-        (gen) => gen.previewFeatures.length > 0,
-      )
-      if (generator) {
-        schemaPreviewFeatures = generator.previewFeatures
-      }
-      // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) =>
-        parseEnvValue(gen.provider),
-      )
-    } catch (e) {
-      debug('Error from cli/src/bin.ts')
-      debug(e)
-    }
-
-    // check prisma for updates
-    const checkResult = await checkpoint.check({
-      product: 'prisma',
-      cli_path_hash: cliPathHash,
-      project_hash: projectPathHash,
-      version: packageJson.version,
-      schema_providers: schemaProvider ? [schemaProvider] : undefined,
-      schema_preview_features: schemaPreviewFeatures,
-      schema_generators_providers: schemaGeneratorsProviders,
-      cli_path: process.argv[1],
-      cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
-      command: commandArray.join(' '),
-      information:
-        args['--telemetry-information'] ||
-        process.env.PRISMA_TELEMETRY_INFORMATION,
-    })
-    // if the result is cached and we're outdated, show this prompt
-    const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
-    if (
-      checkResult.status === 'ok' &&
-      checkResult.data.outdated &&
-      !shouldHide
-    ) {
-      printUpdateMessage(checkResult)
-    }
-  } catch (e) {
-    debug(e)
-  }
+  await checkForPackageUpdate(args)
 
   return 0
 }
@@ -269,6 +209,67 @@ if (require.main === module) {
         handleIndividualError(err)
       }
     })
+}
+
+async function checkForPackageUpdate(args) {
+  try {
+    const projectPathHash = await getProjectHash()
+    // SHA256 of the cli path
+    const cliPathHash = getCLIPathHash()
+
+    let schemaProvider: string | undefined
+    let schemaPreviewFeatures: string[] | undefined
+    let schemaGeneratorsProviders: string[] | undefined
+    try {
+      const schema = await getSchema(args['--schema'])
+      const config = await getConfig({
+        schema: schema,
+        ignoreEnvVarErrors: true,
+      })
+      if (config.datasources.length > 0) {
+        schemaProvider = config.datasources[0].provider
+      }
+      // TODO Only works if Prisma Client generator is the first one?
+      const generator = config.generators.find(
+        (gen) => gen.previewFeatures.length > 0
+      )
+      if (generator) {
+        schemaPreviewFeatures = generator.previewFeatures
+      }
+      // Example 'prisma-client-js'
+      schemaGeneratorsProviders = config.generators.map((gen) => parseEnvValue(gen.provider)
+      )
+    } catch (e) {
+      debug('Error from cli/src/bin.ts, checkForUpdateAndDoTelemetry, schema details')
+      debug(e)
+    }
+
+    // check prisma for updates
+    const checkResult = await checkpoint.check({
+      product: 'prisma',
+      cli_path_hash: cliPathHash,
+      project_hash: projectPathHash,
+      version: packageJson.version,
+      schema_providers: schemaProvider ? [schemaProvider] : undefined,
+      schema_preview_features: schemaPreviewFeatures,
+      schema_generators_providers: schemaGeneratorsProviders,
+      cli_path: process.argv[1],
+      cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
+      command: commandArray.join(' '),
+      information: args['--telemetry-information'] ||
+        process.env.PRISMA_TELEMETRY_INFORMATION,
+    })
+
+    // if the result is cached and we're outdated, show update prompt
+    const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+    if (checkResult.status === 'ok' &&
+      checkResult.data.outdated &&
+      !shouldHide) {
+      printUpdateMessage(checkResult)
+    }
+  } catch (e) {
+    debug(e)
+  }
 }
 
 function handleIndividualError(error): void {
