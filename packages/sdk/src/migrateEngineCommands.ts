@@ -5,7 +5,7 @@ import path from 'path'
 import { promisify } from 'util'
 import { getSchemaDir } from './cli/getSchema'
 import { protocolToConnectorType } from './convertCredentials'
-import { resolveBinary } from './resolveBinary'
+import { resolveEngine } from './resolveEngine'
 
 const exists = promisify(fs.exists)
 
@@ -237,7 +237,7 @@ export async function execaCommand({
     | 'can-connect-to-database'
 }) {
   migrationEnginePath =
-    migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
+    migrationEnginePath || (await resolveEngine(BinaryType.migrationEngine))
 
   try {
     return await execa(

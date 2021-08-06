@@ -9,7 +9,7 @@ import execa from 'execa'
 import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
-import { resolveBinary } from '../resolveBinary'
+import { resolveEngine } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getConfig')
@@ -72,7 +72,7 @@ async function getConfigLibrary(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
   let data: ConfigMetaFormat | undefined
-  const queryEnginePath = await resolveBinary(
+  const queryEnginePath = await resolveEngine(
     BinaryType.libqueryEngine,
     options.enginePath,
   )
@@ -113,7 +113,7 @@ async function getConfigBinary(
 ): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
 
-  const queryEnginePath = await resolveBinary(
+  const queryEnginePath = await resolveEngine(
     BinaryType.queryEngine,
     options.enginePath,
   )

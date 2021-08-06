@@ -8,7 +8,7 @@ import chalk from 'chalk'
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa'
 import fs from 'fs'
 import tmpWrite from 'temp-write'
-import { resolveBinary } from '../resolveBinary'
+import { resolveEngine } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getDMMF')
@@ -26,6 +26,7 @@ export type GetDMMFOptions = {
 
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures) // TODO Why are we doing this for getDmmf but in getConfig the engines return the errors??
+
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let dmmf: DMMF.Document | undefined
   if (cliEngineBinaryType === BinaryType.libqueryEngine) {
@@ -37,7 +38,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const queryEnginePath = await resolveBinary(
+  const queryEnginePath = await resolveEngine(
     BinaryType.libqueryEngine,
     options.enginePath,
   )
@@ -63,7 +64,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
-  const queryEnginePath = await resolveBinary(
+  const queryEnginePath = await resolveEngine(
     BinaryType.queryEngine,
     options.enginePath,
   )
@@ -141,6 +142,7 @@ function addMissingOpenSSLInfo(message: string) {
   }
   return message
 }
+
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   const getMessage = (flag: string) =>
     `${chalk.blueBright(

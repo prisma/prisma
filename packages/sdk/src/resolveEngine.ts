@@ -11,7 +11,7 @@ import { promisify } from 'util'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-const debug = Debug('prisma:resolveBinary')
+const debug = Debug('prisma:resolveEngine')
 
 export const engineEnvVarMap = {
   [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
@@ -21,7 +21,7 @@ export const engineEnvVarMap = {
   [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 export { BinaryType }
-export async function resolveBinary(
+export async function resolveEngine(
   name: BinaryType,
   proposedPath?: string,
 ): Promise<string> {

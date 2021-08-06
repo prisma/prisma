@@ -6,7 +6,7 @@ import stripAnsi from 'strip-ansi'
 import { getGenerators } from '../../getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
-import { resolveBinary } from '../../resolveBinary'
+import { resolveEngine } from '../../resolveEngine'
 
 jest.setTimeout(20000)
 
@@ -497,10 +497,10 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveEngine(BinaryType.migrationEngine)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
+    const queryEnginePath = await resolveEngine(queryEngineBinaryType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
