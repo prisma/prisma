@@ -31,11 +31,14 @@ export abstract class Engine {
     action: 'start',
     options?: Transaction.Options,
   ): Promise<Transaction.Info>
-  abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'commit',
+    info: Transaction.Info,
+  ): Promise<undefined>
   abstract transaction(
     action: 'rollback',
     info: Transaction.Info,
-  ): Promise<void>
+  ): Promise<undefined>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

@@ -102,10 +102,26 @@ export class LibraryEngine extends Engine {
   }
 
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<void>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<void>
-  async transaction(action: any, id?: any) {
-    return (await Promise.resolve()) as any
+  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
+  async transaction(action: any, arg?: any) {
+    await this.start()
+
+    if (action === 'start') {
+      const jsonOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+      })
+
+      const result = await this.engine?.startTransaction(jsonOptions, '{}')
+      return this.parseEngineResponse<Tx.Info>(result)
+    } else if (action === 'commit') {
+      await this.engine?.commitTransaction(arg.id, '{}')
+    } else if (action === 'rollback') {
+      await this.engine?.rollbackTransaction(arg.id, '{}')
+    }
+
+    return undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -415,10 +431,14 @@ You may have to run ${chalk.greenBright(
       debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
       const request: QueryEngineRequest = { query, variables: {} }
       const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify({})
+      const headerStr = JSON.stringify(headers)
 
       await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr)
+      this.executingQueryPromise = this.engine?.query(
+        queryStr,
+        headerStr,
+        headers.transactionId,
+      )
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(
@@ -469,6 +489,7 @@ You may have to run ${chalk.greenBright(
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
       JSON.stringify(headers),
+      headers.transactionId,
     )
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
