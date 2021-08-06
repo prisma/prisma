@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
-import { enginesVersion, getEnginesPath } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
+import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
