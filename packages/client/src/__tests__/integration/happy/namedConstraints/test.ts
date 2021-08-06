@@ -3,7 +3,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-describe('namedConstraint(sqlite)', () => {
+describe('namedConstraints(sqlite)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: `file:./dev.db`,
@@ -14,27 +14,102 @@ describe('namedConstraint(sqlite)', () => {
     prisma = new PrismaClient()
   })
 
-  afterEach(async () => {
-    await prisma.user1.deleteMany()
+  beforeEach(async () => {
+    await prisma.atAtId.deleteMany()
+    await prisma.atAtIdNamed.deleteMany()
+    await prisma.atAtUnique.deleteMany()
+    await prisma.atAtUniqueNamed.deleteMany()
   })
+
   afterAll(async () => {
     await prisma.$disconnect()
   })
-  test('findUnique using namedConstraint', async () => {
-    await prisma.user1.create({
+
+  test('findUnique using @@id by default name', async () => {
+    await prisma.atAtId.create({
       data: {
-        firstName: 'Alice',
-        lastName: 'Ball',
+        key1: 'data',
+        key2: 2,
       },
     })
-    const user = await prisma.user1.findUnique({
-      where: {
-        customName: {
-          firstName: 'Alice',
-          lastName: 'Ball',
+    const result: { key1: string; key2: number } | null =
+      await prisma.atAtId.findUnique({
+        where: {
+          key1_key2: {
+            key1: 'data',
+            key2: 2,
+          },
         },
+      })
+    expect(result).toEqual({
+      key1: 'data',
+      key2: 2,
+    })
+  })
+
+  test('findUnique using @@id by custom name', async () => {
+    await prisma.atAtIdNamed.create({
+      data: {
+        key1: 'data',
+        key2: 2,
       },
     })
-    expect(user.firstName).toEqual('Alice')
+    const result: { key1: string; key2: number } | null =
+      await prisma.atAtIdNamed.findUnique({
+        where: {
+          namedConstraintId: {
+            key1: 'data',
+            key2: 2,
+          },
+        },
+      })
+    expect(result).toEqual({
+      key1: 'data',
+      key2: 2,
+    })
+  })
+
+  test('findUnique using @@unique by default name', async () => {
+    await prisma.atAtUnique.create({
+      data: {
+        key1: 'data',
+        key2: 2,
+      },
+    })
+    const result: { key1: string; key2: number } | null =
+      await prisma.atAtUnique.findUnique({
+        where: {
+          key1_key2: {
+            key1: 'data',
+            key2: 2,
+          },
+        },
+      })
+    expect(result).toEqual({
+      key1: 'data',
+      key2: 2,
+    })
+  })
+
+  test('findUnique using @@unique by custom name', async () => {
+    await prisma.atAtUniqueNamed.create({
+      data: {
+        key1: 'data',
+        key2: 2,
+      },
+    })
+    const result: { key1: string; key2: number } | null =
+      await prisma.atAtUniqueNamed.findUnique({
+        where: {
+          namedConstraintUnique: {
+            key1: 'data',
+            key2: 2,
+          },
+        },
+      })
+    expect(result).toEqual({
+      key1: 'data',
+      key2: 2,
+    })
   })
 })
