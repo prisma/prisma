@@ -57,6 +57,8 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
+    // TODO Next 20 lines are duplicated (minus console log) in getSchema 
+
     const schemaPath = await getSchemaPath(args['--schema'])
 
     if (!schemaPath) {
