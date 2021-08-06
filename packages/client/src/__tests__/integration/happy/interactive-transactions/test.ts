@@ -190,7 +190,7 @@ describe('interactive transaction', () => {
    */
   test('already committed', async () => {
     let transactionBoundPrisma
-    prisma.$transaction((prisma) => {
+    await prisma.$transaction((prisma) => {
       transactionBoundPrisma = prisma
     })
 
