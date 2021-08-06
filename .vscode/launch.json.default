@@ -9,39 +9,39 @@
       "args": ["${workspaceFolder}/${relativeFile}"],
       "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
-        "TS_NODE_PROJECT": "${workspaceFolder}/src/packages/client/tsconfig.json"
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/client/tsconfig.json"
       }
     },
     {
       "name": "Debug Blog",
       "type": "node",
       "request": "launch",
-      "args": ["${workspaceFolder}/src/packages/client/fixtures/blog/main.ts"],
+      "args": ["${workspaceFolder}/packages/client/fixtures/blog/main.ts"],
       "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
-        "TS_NODE_PROJECT": "${workspaceFolder}/src/packages/client/tsconfig.json"
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/client/tsconfig.json"
       }
     },
     {
       "name": "Build Blog",
       "type": "node",
       "request": "launch",
-      "args": ["${workspaceFolder}/src/packages/client/fixtures/generate.ts", "${workspaceFolder}/src/packages/client/fixtures/blog/", "--skip-transpile"],
+      "args": ["${workspaceFolder}/packages/client/fixtures/generate.ts", "${workspaceFolder}/packages/client/fixtures/blog/", "--skip-transpile"],
       "runtimeArgs": ["-r", "ts-node/register"],
       "env": {
-        "TS_NODE_PROJECT": "${workspaceFolder}/src/packages/client/tsconfig.json"
+        "TS_NODE_PROJECT": "${workspaceFolder}/packages/client/tsconfig.json"
       }
     },
     {
       "type": "node",
       "request": "launch",
       "name": "Client - Jest Current File",
-      "program": "${workspaceFolder}/src/packages/client/node_modules/jest/bin/jest.js",
+      "program": "${workspaceFolder}/packages/client/node_modules/jest/bin/jest.js",
       "args": [
         "--runTestsByPath",
         "${workspaceFolder}/${relativeFile}",
         "--config",
-        "${workspaceFolder}/src/packages/client/jest.config.js"
+        "${workspaceFolder}/packages/client/jest.config.js"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",

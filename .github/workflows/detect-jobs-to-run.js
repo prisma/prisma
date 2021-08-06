@@ -35,13 +35,13 @@ async function main() {
   // If changes are located only in one of the paths below
   if (
     filesChanged.every((fileChanged) =>
-      fileChanged.startsWith("src/packages/cli/")
+      fileChanged.startsWith("packages/cli/")
     )
   ) {
     jobsToRun.push("-cli-");
   } else if (
     filesChanged.every((fileChanged) =>
-      fileChanged.startsWith("src/packages/client/")
+      fileChanged.startsWith("packages/client/")
     )
   ) {
     jobsToRun.push("-client-");
@@ -49,13 +49,13 @@ async function main() {
     jobsToRun.push("-cli-");
   } else if (
     filesChanged.every((fileChanged) =>
-      fileChanged.startsWith("src/packages/integration-tests/")
+      fileChanged.startsWith("packages/integration-tests/")
     )
   ) {
     jobsToRun.push("-integration-tests-");
   } else if (
     filesChanged.every((fileChanged) =>
-      fileChanged.startsWith("src/packages/migrate/")
+      fileChanged.startsWith("packages/migrate/")
     )
   ) {
     jobsToRun.push("-migrate-");
