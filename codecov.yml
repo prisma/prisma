@@ -3,35 +3,27 @@
 comment: false
 
 flags:
-  get-platform:
-    carryforward: true
-    paths:
-      - src/packages/get-platform/
-  fetch-engine:
-    carryforward: true
-    paths:
-      - src/packages/fetch-engine/
   client:
     carryforward: true
     paths:
-      - src/packages/client/
+      - packages/client/
   debug:
     carryforward: true
     paths:
-      - src/packages/debug/
+      - packages/debug/
   engine-core:
     carryforward: true
     paths:
-      - src/packages/engine-core/
+      - packages/engine-core/
   generator-helper:
     carryforward: true
     paths:
-      - src/packages/generator-helper/
+      - packages/generator-helper/
   sdk:
     carryforward: true
     paths:
-      - src/packages/sdk/
+      - packages/sdk/
   introspection:
     carryforward: true
     paths:
-      - src/packages/introspection/
+      - packages/introspection/

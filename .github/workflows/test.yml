@@ -1,15 +1,15 @@
 name: CI
 
-# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
+# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
@@ -18,16 +18,16 @@ on:
       - 'LICENSE'
       - '.github/CODEOWNERS'
       - 'src/.buildkite/**'
-      - 'src/.dockerignore'
+      - '.dockerignore'
       - '*.bench.ts'
-      - 'src/scripts/ci/publish.ts'
-      - 'src/graphs/**'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
   pull_request:
     paths-ignore:
       # Any update here needs to be done for
       # - `push`see before
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
@@ -36,15 +36,30 @@ on:
       - 'LICENSE'
       - '.github/CODEOWNERS'
       - 'src/.buildkite/**'
-      - 'src/.dockerignore'
+      - '.dockerignore'
       - '*.bench.ts'
-      - 'src/scripts/ci/publish.ts'
-      - 'src/graphs/**'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
+  detect_jobs_to_run:
+    name: Detect jobs to run
+    runs-on: ubuntu-latest
+    outputs:
+      jobs: ${{ steps.detect.outputs.jobs }}
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2        
+      - id: files
+        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
+        with:
+          format: 'json'
+      - id: detect
+        run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+
   # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
   # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
@@ -52,9 +67,9 @@ jobs:
   cleanup-runs:
     continue-on-error: true
     runs-on: ubuntu-20.04
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
-      - uses: fkirc/skip-duplicate-actions@v3.4.0
+      - uses: fkirc/skip-duplicate-actions@v3.4.1
 
   #
   # Linting
@@ -62,7 +77,9 @@ jobs:
   lint:
     timeout-minutes: 7
     runs-on: ubuntu-20.04
-
+    # Ignore if renovate (dependency update)
+    if: "!contains(github.actor, 'renovate')"
+    
     steps:
       - uses: actions/checkout@v2
 
@@ -93,6 +110,9 @@ jobs:
     timeout-minutes: 20
     runs-on: ${{ matrix.os }}
 
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -108,7 +128,7 @@ jobs:
         run: |
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
       
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -127,7 +147,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts --verbose
-        working-directory: src/packages/client
+        working-directory: packages/client
         env:
           CI: true
           SKIP_GIT: true
@@ -139,9 +159,9 @@ jobs:
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }}
           name: client-${{ matrix.os }}
 
@@ -151,6 +171,10 @@ jobs:
   client-types:
     timeout-minutes: 10
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -176,15 +200,15 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test src/__tests__/types/types.test.ts
-        working-directory: src/packages/client
+        working-directory: packages/client
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/client/src/__tests__/coverage/clover.xml
+          files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client-types,${{ matrix.os }}
           name: client-types-${{ matrix.os }}
 
@@ -194,6 +218,10 @@ jobs:
   integration-tests:
     timeout-minutes: 20
     runs-on: ubuntu-20.04
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
+
     strategy:
       fail-fast: false
       matrix:
@@ -214,7 +242,7 @@ jobs:
         run: |
           echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach ${{matrix.database}}
+      - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
       
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
@@ -235,14 +263,14 @@ jobs:
 
       - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
         if: ${{ matrix.database == 'sqlite' }}
-        working-directory: src/packages/integration-tests
+        working-directory: packages/integration-tests
 
       # temp
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - run: pnpm run jest integration/${{ matrix.database }} -- --forceExit --maxConcurrency=8
-        working-directory: src/packages/integration-tests
+      - run: pnpm run jest integration/${{ matrix.database }} -- --maxConcurrency=8
+        working-directory: packages/integration-tests
         env:
           CI: true
           SKIP_GIT: true
@@ -255,9 +283,9 @@ jobs:
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/integration-tests/src/__tests__/coverage/clover.xml
+          files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
           flags: integration-tests,${{ matrix.database }},${{ matrix.engine }}
           name: integration-tests-${{ matrix.database }}-${{ matrix.engine }}
 
@@ -267,6 +295,9 @@ jobs:
   sdk:
     timeout-minutes: 5
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
 
     strategy:
       fail-fast: false
@@ -300,15 +331,15 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        working-directory: src/packages/sdk
+        working-directory: packages/sdk
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/sdk/src/__tests__/coverage/clover.xml
+          files: ./packages/sdk/src/__tests__/coverage/clover.xml
           flags: sdk,${{ matrix.os }}
           name: sdk-${{ matrix.os }}
 
@@ -318,6 +349,9 @@ jobs:
   migrate:
     timeout-minutes: 7
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
 
     strategy:
       fail-fast: false
@@ -329,7 +363,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f src/docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
       
       - name: Set Engine Type
         if: ${{ matrix.engine == 'napi' }}
@@ -353,10 +387,10 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        working-directory: src/packages/cli
+        working-directory: packages/cli
 
       - run: pnpm run test
-        working-directory: src/packages/migrate
+        working-directory: packages/migrate
         env:
           CI: true
           SKIP_GIT: true
@@ -371,9 +405,9 @@ jobs:
           TEST_MSSQL_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
           TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/migrate/src/__tests__/coverage/clover.xml
+          files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }}
           name: migrate-${{ matrix.os }}
 
@@ -383,6 +417,9 @@ jobs:
   cli-commands:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
 
     strategy:
       fail-fast: false
@@ -416,15 +453,15 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        working-directory: src/packages/cli
+        working-directory: packages/cli
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/cli/src/__tests__/coverage/clover.xml
+          files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }}
           name: cli-${{ matrix.os }}
 
@@ -434,6 +471,9 @@ jobs:
   others:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
 
     strategy:
       fail-fast: false
@@ -462,70 +502,42 @@ jobs:
 
       - run: pnpm run test
         name: 'debug'
-        working-directory: src/packages/debug
+        working-directory: packages/debug
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/debug/src/__tests__/coverage/clover.xml
+          files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }}
           name: debug-${{ matrix.os }}
 
       - run: pnpm run test
         name: 'engine-core'
-        working-directory: src/packages/engine-core
+        working-directory: packages/engine-core
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/engine-core/src/__tests__/coverage/clover.xml
+          files: ./packages/engine-core/src/__tests__/coverage/clover.xml
           flags: engine-core,${{ matrix.os }}
           name: engine-core-${{ matrix.os }}
 
       - run: pnpm run test
-        name: 'fetch-engine'
-        working-directory: src/packages/fetch-engine
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/fetch-engine/src/__tests__/coverage/clover.xml
-          flags: fetch-engine,${{ matrix.os }}
-          name: fetch-engine-${{ matrix.os }}
-
-      - run: pnpm run test
         name: 'generator-helper'
-        working-directory: src/packages/generator-helper
+        working-directory: packages/generator-helper
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v2
         with:
-          files: ./src/packages/generator-helper/src/__tests__/coverage/clover.xml
+          files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }}
           name: generator-helper-${{ matrix.os }}
-
-      - run: pnpm run test
-        name: 'get-platform'
-        working-directory: src/packages/get-platform
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v1
-        with:
-          files: ./src/packages/get-platform/src/__tests__/coverage/clover.xml
-          flags: get-platform,${{ matrix.os }}
-          name: get-platform-${{ matrix.os }}

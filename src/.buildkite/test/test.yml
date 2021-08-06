@@ -1,9 +1,0 @@
-steps:
-  - label: ':coverage: Test %n - Node 14'
-    parallelism: 2
-    plugins:
-      - docker-compose#v3.7.0:
-          config: src/.buildkite/test/docker-compose.14.yml
-          run: app
-
-  - wait

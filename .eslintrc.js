@@ -2,7 +2,7 @@ const globby = require("globby");
 const fs = require("fs");
 const path = require("path");
 
-const ignoreFiles = globby.sync("src/packages/*/.eslintignore");
+const ignoreFiles = globby.sync("packages/*/.eslintignore");
 
 const ignorePatterns = flatten(
   flatten(
@@ -33,7 +33,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: "module",
-    project: ["./src/packages/*/tsconfig.eslint.json"],
+    project: ["./packages/*/tsconfig.eslint.json"],
     // debugLevel: true,
   },
   ignorePatterns,
@@ -49,6 +49,7 @@ module.exports = {
         "plugin:jest/recommended",
       ],
       rules: {
+        "prettier/prettier": "warn",
         "@typescript-eslint/no-use-before-define": "off",
         "@typescript-eslint/no-non-null-assertion": "off",
         "no-useless-escape": "off",

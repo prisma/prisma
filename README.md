@@ -3,8 +3,8 @@
 <div align="center">
   <h1>Prisma</h1>
   <a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?style=flat" /></a>
-  <a href="https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
-  <a href="https://github.com/prisma/prisma/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
+  <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
   <br />
   <br />
@@ -35,7 +35,7 @@ Prisma is a **next-generation ORM** that consists of these tools:
 - [**Prisma Migrate**](https://www.prisma.io/docs/concepts/components/prisma-migrate): Declarative data modeling & migration system
 - [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
-Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API or anything else that needs a database.
+Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API, or anything else that needs a database.
 
 > **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma1)**.
 
@@ -138,7 +138,7 @@ Refer to the documentation for more information about ["generating the Prisma cl
 
 #### Using Prisma Client to send queries to your database
 
-Once Prisma Client was generated, you can import in your code and send queries to your database. This is what the setup code looks like.
+Once the Prisma Client is generated, you can import it in your code and send queries to your database. This is what the setup code looks like.
 
 ##### Import and instantiate Prisma Client
 
@@ -253,11 +253,11 @@ If the feature on the roadmap is linked to a GitHub issue, please make sure to l
 
 ## Contributing
 
-Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/master/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/master/CODE_OF_CONDUCT.md).
+Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/main/CODE_OF_CONDUCT.md).
 
 ## Build Status
 
 - Prisma Tests Status:  
-  [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=master)](https://buildkite.com/prisma/prisma2-test)
+  [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=main)](https://buildkite.com/prisma/prisma2-test)
 - E2E Tests Status:  
   [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
