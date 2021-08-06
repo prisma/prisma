@@ -106,9 +106,9 @@ describe('interactive transaction', () => {
   })
 
   /**
-   * A transaction should fail if it's called inside another transaction
+   * A transaction might fail if it's called inside another transaction
    */
-  test('nested', async () => {
+  test('nested create', async () => {
     const result = prisma.$transaction(async (tx) => {
       await tx.user.create({
         data: {
@@ -116,13 +116,18 @@ describe('interactive transaction', () => {
         },
       })
 
-      await prisma.$transaction(async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        })
-      })
+      await prisma.$transaction(
+        async (prisma) => {
+          await prisma.user.create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          })
+        },
+        {
+          timeout: 1000,
+        },
+      )
 
       return tx.user.findMany()
     })
