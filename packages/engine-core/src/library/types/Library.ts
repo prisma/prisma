@@ -19,6 +19,9 @@ export type QueryEngineInstance = {
    */
   query(request: string, headers: string): Promise<string>
   sdlSchema(): Promise<string>
+  startTransaction(options: string): Promise<string>
+  commitTransaction(id: string): Promise<string>
+  rollbackTransaction(id: string): Promise<string>
 }
 
 export interface QueryEngineConstructor {
