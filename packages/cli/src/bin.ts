@@ -101,7 +101,7 @@ import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import {
-  printPrismaCliUpdateWarning,
+  printPrismaCliPackageUpdateWarning,
   printUpdateMessage,
 } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
@@ -122,7 +122,7 @@ async function main(): Promise<number> {
   // create a new CLI with our subcommands
 
   if (__dirname.includes(`@prisma${path.sep}cli`)) {
-    printPrismaCliUpdateWarning()
+    printPrismaCliPackageUpdateWarning()
   }
 
   detectPrisma1()

@@ -66,7 +66,7 @@ export function makeUninstallCommand(
 /**
  * Users of `@prisma/cli` will be pointed to `prisma`
  */
-export function printPrismaCliUpdateWarning() {
+export function printPrismaCliPackageUpdateWarning() {
   logger.error(`${chalk.bold(
     '@prisma/cli',
   )} package has been renamed to ${chalk.bold('prisma')}.
