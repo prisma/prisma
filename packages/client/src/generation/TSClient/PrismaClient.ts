@@ -8,7 +8,7 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import { Generatable } from './Generatable'
 
-function longRunningTransactionDefinition() {
+function interactiveTransactionDefinition() {
   const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
 
   return `$transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>): Promise<R>`
@@ -142,8 +142,8 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>${
-    this.generator?.previewFeatures.includes('longRunningTransactions')
-      ? longRunningTransactionDefinition()
+    this.generator?.previewFeatures.includes('interactiveTransactions')
+      ? interactiveTransactionDefinition()
       : ''
   }
 
