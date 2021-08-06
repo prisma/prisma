@@ -27,7 +27,7 @@ async function main() {
     })
 
   // @@unique
-  const result3 = await prisma.atAtUnique.findUnique({
+  const result3 = await prisma.AtAtUniqueNamed.findUnique({
     where: {
       namedConstraintUnique: {
         key1: 'data',
