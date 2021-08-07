@@ -10,8 +10,9 @@ import { Generatable } from './Generatable'
 
 function interactiveTransactionDefinition() {
   const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
+  const txOptions = `{ maxWait?: number, timeout?: number }`
 
-  return `$transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>): Promise<R>`
+  return `$transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>`
 }
 
 export class PrismaClientClass implements Generatable {
