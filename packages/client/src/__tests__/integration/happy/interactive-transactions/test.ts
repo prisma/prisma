@@ -52,7 +52,7 @@ describe('interactive transaction', () => {
   })
 
   /**
-   * Transactions should fail after the changed timeout
+   * Transactions should fail if they time out on `timeout`
    */
   test('timeout override', async () => {
     const result = prisma.$transaction(
@@ -80,6 +80,36 @@ describe('interactive transaction', () => {
 
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
           `)
+  })
+
+  /**
+   * Transactions should fail if they time out on `maxWait`
+   */
+  test.skip('maxWait override', async () => {
+    const result = prisma.$transaction(
+      async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+
+        await new Promise((res) => setTimeout(res, 5))
+
+        return prisma.user.findMany()
+      },
+      {
+        maxWait: 0,
+      },
+    )
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+  
+              Invalid \`prisma.user.findMany()\` invocation:
+  
+  
+                Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+            `)
   })
 
   /**
