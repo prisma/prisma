@@ -107,8 +107,9 @@ describe('interactive transaction', () => {
 
   /**
    * A transaction might fail if it's called inside another transaction
+   * // TODO this does not behave the same for all dbs (sqlite)
    */
-  test('nested create', async () => {
+  test.skip('nested create', async () => {
     const result = prisma.$transaction(async (tx) => {
       await tx.user.create({
         data: {
