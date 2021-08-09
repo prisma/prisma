@@ -12,10 +12,8 @@ export type QueryEngineInstance = {
   connect(connectArgs: ConnectArgs): Promise<void>
   disconnect(): Promise<void>
   /**
-   *
-   * @param request JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
-   *
-   * @param headers JSON.stringified `QueryEngineRequestHeaders`
+   * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
+   * @param headersStr JSON.stringified `QueryEngineRequestHeaders`
    */
   query(
     requestStr: string,
