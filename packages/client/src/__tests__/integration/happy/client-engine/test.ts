@@ -111,7 +111,7 @@ function buildTests() {
           expect(prisma._clientEngineType).toMatch(expectedClientEngine)
           await prisma.$disconnect()
 
-          fs.unlinkSync(projectDir)
+          fs.rmdirSync(projectDir, { recursive: true })
         })
       }
     }
