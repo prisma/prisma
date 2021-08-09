@@ -1,0 +1,23 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// named @@unique was possible before namedConstraints but we still want to test it
+model AtAtUnique {
+  key1 String
+  key2 Int
+
+  @@unique([key1, key2])
+}
+
+model AtAtUniqueNamed {
+  key1 String
+  key2 Int
+
+  @@unique(fields: [key1, key2], name: "namedConstraintUnique")
+}
