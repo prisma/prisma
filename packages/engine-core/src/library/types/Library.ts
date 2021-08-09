@@ -18,8 +18,8 @@ export type QueryEngineInstance = {
    * @param headers JSON.stringified `QueryEngineRequestHeaders`
    */
   query(
-    request: string,
-    headers: string,
+    requestStr: string,
+    headersStr: string,
     transactionId?: string,
   ): Promise<string>
   sdlSchema(): Promise<string>

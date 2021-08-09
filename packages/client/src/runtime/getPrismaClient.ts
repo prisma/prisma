@@ -247,6 +247,8 @@ const aggregateKeys = {
   max: true,
 }
 
+// TODO improve all these types, need a common place to share them between type
+// gen and this. This will be relevant relevant for type gen tech debt refactor
 export interface Client {
   _dmmf: DMMFClass
   _engine: Engine
@@ -272,7 +274,6 @@ export interface Client {
   )
   $queryRaw(stringOrTemplateStringsArray)
   __internal_triggerPanic(fatal: boolean)
-  $___transaction(promises: Array<any>): Promise<any>
   $transaction(input: any, options?: any)
 }
 
@@ -938,7 +939,7 @@ new PrismaClient({
     /**
      * @deprecated
      */
-    async $___transaction(promises: Array<any>): Promise<any> {
+    private async $___transaction(promises: Array<any>): Promise<any> {
       try {
         return this.$___transactionInternal(promises)
       } catch (e) {
@@ -1488,7 +1489,7 @@ const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
  * @returns
  */
 function transactionProxy<T>(thing: T, transactionId: string): T {
-  // we only wrap within a proxy if it's posible, if it's an object
+  // we only wrap within a proxy if it's possible: if it's an object
   if (typeof thing !== 'object') return thing
 
   return new Proxy(thing as any as object, {

@@ -488,7 +488,7 @@ You may have to run ${chalk.greenBright(
     this.lastQuery = JSON.stringify(request)
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
-      JSON.stringify(headers),
+      JSON.stringify(headers), // TODO these aren't headers on the engine side
       headers.transactionId,
     )
     const result = await this.executingQueryPromise

@@ -391,12 +391,6 @@ Invalid \`prisma.user.create()\` invocation:
 
 beforeAll(async () => {
   PrismaClient = await getTestClient()
-
-  process.env.PRISMA_FORCE_LRT = 'true'
-})
-
-afterAll(() => {
-  delete process.env.PRISMA_FORCE_LRT
 })
 
 beforeEach(async () => {
