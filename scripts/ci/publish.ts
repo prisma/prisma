@@ -869,11 +869,7 @@ async function testPackages(
     console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API Library')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
     console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
-  } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
-    // This is a tmp workaround
-    console.log('SKIPPING')
-    order = []
-  }
+  } 
 
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
   console.log(order)
