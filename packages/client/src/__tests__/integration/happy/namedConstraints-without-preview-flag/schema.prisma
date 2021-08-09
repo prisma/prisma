@@ -7,7 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// named @@unique was possible before namedConstraints flag
 model AtAtUnique {
   key1 String
   key2 Int
@@ -15,6 +14,7 @@ model AtAtUnique {
   @@unique([key1, key2])
 }
 
+// named @@unique was possible before namedConstraints flag
 model AtAtUniqueNamed {
   key1 String
   key2 Int
