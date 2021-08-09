@@ -86,7 +86,7 @@ export class Version implements Command {
         `Query Engine${
           cliQueryEngineBinaryType === BinaryType.libqueryEngine
             ? ' (Node-API)'
-            : ''
+            : ' (Binary)'
         }`,
         this.printBinaryInfo(queryEngine),
       ],
