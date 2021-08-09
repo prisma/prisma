@@ -112,7 +112,10 @@ export async function canConnectToDatabase(
   } catch (e) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR')
+      const error = logs.find(
+        (it) =>
+          it.level === 'ERROR' && it.target === 'migration_engine::logger',
+      )
 
       if (error && error.fields.error_code && error.fields.message) {
         return {
@@ -162,7 +165,10 @@ export async function createDatabase(
   } catch (e) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR')
+      const error = logs.find(
+        (it) =>
+          it.level === 'ERROR' && it.target === 'migration_engine::logger',
+      )
 
       if (error && error.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
