@@ -859,14 +859,14 @@ async function testPackages(
   let order = flatten(publishOrder)
 
   // If parallelism is set in build-kite we split the testing
-  //  Job 0 - Node-API
-  //    PRISMA_CLIENT_ENGINE_TYPE="node-api"
-  //    PRISMA_CLI_QUERY_ENGINE_TYPE="node-api"
+  //  Job 0 - Node-API Library
+  //    PRISMA_CLIENT_ENGINE_TYPE="library"
+  //    PRISMA_CLI_QUERY_ENGINE_TYPE="library"
   //  Job 1 - Binary
   //    PRISMA_CLIENT_ENGINE_TYPE="binary"
   //    PRISMA_CLI_QUERY_ENGINE_TYPE="binary"
   if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
-    console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API')
+    console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API Library')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
     console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '2') {
@@ -886,7 +886,7 @@ async function testPackages(
       if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="node-api" PRISMA_CLI_QUERY_ENGINE_TYPE="node-api" pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test',
         )
       } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
         await run(

@@ -43,10 +43,10 @@ function retry {
 
 # The below is required as during install required engines are download, to this makes sure the the engines being tested are already present 
 
-# JOB 0 - Node-API
+# JOB 0 - Node-API Library
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
-  export PRISMA_CLIENT_ENGINE_TYPE='node-api'
-  export PRISMA_CLI_QUERY_ENGINE_TYPE='node-api'
+  export PRISMA_CLIENT_ENGINE_TYPE='library'
+  export PRISMA_CLI_QUERY_ENGINE_TYPE='library'
 fi
 # JOB 1 - Binary
 if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then

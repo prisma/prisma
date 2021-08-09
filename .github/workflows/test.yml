@@ -116,7 +116,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engineType: ['node-api', 'binary']
+        engineType: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -224,7 +224,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engineType: ['node-api', 'binary']
+        engineType: ['library', 'binary']
         database:
           - sqlite
           - postgres
@@ -300,7 +300,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['node-api', 'binary']
+        cliQueryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -353,7 +353,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['node-api', 'binary']
+        cliQueryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -420,7 +420,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['node-api', 'binary']
+        cliQueryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
