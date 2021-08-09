@@ -8,6 +8,14 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import { Generatable } from './Generatable'
 
+function interactiveTransactionDefinition() {
+  const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
+  const txOptions = `{ maxWait?: number, timeout?: number }`
+
+  return `
+  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>`
+}
+
 export class PrismaClientClass implements Generatable {
   constructor(
     protected readonly dmmf: DMMFClass,
@@ -135,7 +143,11 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>${
+    this.generator?.previewFeatures.includes('interactiveTransactions')
+      ? interactiveTransactionDefinition()
+      : ''
+  }
 
     ${indent(
       dmmf.mappings.modelOperations

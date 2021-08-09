@@ -11,6 +11,7 @@ export type QueryEngineLogEvent = {
   module_path: string
   message: string
 }
+
 export type QueryEngineQueryEvent = {
   level: 'info'
   module_path: string
@@ -20,6 +21,7 @@ export type QueryEngineQueryEvent = {
   duration_ms: string
   result: string
 }
+
 export type QueryEnginePanicEvent = {
   level: 'error'
   module_path: string
@@ -29,6 +31,7 @@ export type QueryEnginePanicEvent = {
   line: string
   column: string
 }
+
 // Configuration
 export type QueryEngineLogLevel =
   | 'trace'
@@ -37,6 +40,7 @@ export type QueryEngineLogLevel =
   | 'warn'
   | 'error'
   | 'off'
+
 export type QueryEngineConfig = {
   datamodel: string
   configDir: string
@@ -47,36 +51,45 @@ export type QueryEngineConfig = {
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
 }
+
 export type QueryEngineTelemetry = {
   enabled: Boolean
   endpoint: string
-}
-export type ConnectArgs = {
-  enableRawQueries: boolean
 }
 
 export type QueryEngineRequest = {
   query: string
   variables: Object
 }
+
+export type QueryEngineResult<T> = {
+  data: T
+  elapsed: number
+}
+
 export type QueryEngineRequestHeaders = {
   traceparent?: string
+  transactionId?: string
+  fatal?: string // TODO
 }
 
 export type QueryEngineBatchRequest = {
   batch: QueryEngineRequest[]
   transaction: boolean
 }
+
 export type GetConfigOptions = {
   datamodel: string
   ignoreEnvVarErrors: boolean
   datasourceOverrides: Record<string, string>
   env: NodeJS.ProcessEnv | Record<string, string>
 }
+
 export type GetDMMFOptions = {
   datamodel: string
   enableRawQueries: boolean
 }
+
 // Errors
 export type SyncRustError = {
   is_panic: boolean
@@ -92,44 +105,12 @@ export type RustRequestError = {
   message: string
   backtrace: string
 }
+
 // Responses
 export type ConfigMetaFormat = {
   datasources: DataSource[]
   generators: GeneratorConfig[]
   warnings: string[]
-}
-// Main
-export type Library = {
-  QueryEngine: QueryEngineConstructor
-  version: () => {
-    commit: string
-    version: string
-  }
-  getConfig: (options: GetConfigOptions) => Promise<ConfigMetaFormat>
-  /**
-   * This returns a string representation of `DMMF.Document`
-   */
-  dmmf: (datamodel: string) => Promise<string>
-}
-
-export interface QueryEngineConstructor {
-  new (
-    config: QueryEngineConfig,
-    logger: (err: string, log: string) => void,
-  ): QueryEngine
-}
-
-export type QueryEngine = {
-  connect(connectArgs: ConnectArgs): Promise<void>
-  disconnect(): Promise<void>
-  /**
-   *
-   * @param request JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
-   *
-   * @param headers JSON.stringified `QueryEngineRequestHeaders`
-   */
-  query(request: string, headers: string): Promise<string>
-  sdlSchema(): Promise<string>
 }
 
 export type ServerInfo = {

@@ -18,7 +18,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-var stream = require('stream'),
+const stream = require('stream'),
   util = require('util')
 
 // convinience API
@@ -42,7 +42,7 @@ export function createLineStream(readStream, options) {
   if (!readStream.readable) {
     throw new Error('readStream must be readable')
   }
-  var ls = new LineStream(options)
+  const ls = new LineStream(options)
   readStream.pipe(ls)
   return ls
 }
@@ -90,7 +90,7 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
   }
   this._chunkEncoding = encoding
 
-  var lines = chunk.split(/\r\n|\r|\n/g)
+  const lines = chunk.split(/\r\n|\r|\n/g)
 
   // don't split CRLF which spans chunks
   if (this._lastChunkEndedWithCR && chunk[0] == '\n') {
@@ -110,12 +110,13 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
 LineStream.prototype._pushBuffer = function (encoding, keep, done) {
   // always buffer the last (possibly partial) line
   while (this._lineBuffer.length > keep) {
-    var line = this._lineBuffer.shift()
+    const line = this._lineBuffer.shift()
     // skip empty lines
     if (this._keepEmptyLines || line.length > 0) {
       if (!this.push(this._reencode(line, encoding))) {
         // when the high-water mark is reached, defer pushes until the next tick
-        var self = this
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this
         setImmediate(function () {
           self._pushBuffer(encoding, keep, done)
         })

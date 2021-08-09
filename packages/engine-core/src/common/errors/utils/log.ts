@@ -14,10 +14,11 @@ export interface RustLog {
   fields: LogFields
 }
 
+// TODO #debt check if this is up to date
 export interface RustError {
   is_panic: boolean
   message: string
-  backtrace: string
+  backtrace?: string
 }
 
 export function getMessage(log: string | RustLog | RustError | any): string {
