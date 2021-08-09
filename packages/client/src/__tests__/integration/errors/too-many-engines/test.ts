@@ -22,7 +22,7 @@ test('raw-transaction: queryRaw', async () => {
   for (const client of clients) {
     client.$disconnect()
   }
-  if (getClientEngineType() === ClientEngineType.NodeAPI) {
+  if (getClientEngineType() === ClientEngineType.Library) {
     // TODO Should this really not be implemented? https://github.com/prisma/prisma/issues/7814
     expect(warnings).toMatchInlineSnapshot(`Array []`)
   } else {

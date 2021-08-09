@@ -1,7 +1,7 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 
 export enum ClientEngineType {
-  NodeAPI = 'node-api',
+  Library = 'library',
   Binary = 'binary',
 }
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
@@ -12,10 +12,10 @@ export function getClientEngineType(
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
   if (
-    generator?.config.engineType === ClientEngineType.NodeAPI ||
+    generator?.config.engineType === ClientEngineType.Library ||
     generator?.previewFeatures.includes('nApi')
   ) {
-    return ClientEngineType.NodeAPI
+    return ClientEngineType.Library
   } else if (generator?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
   }
@@ -25,8 +25,8 @@ export function getClientEngineType(
 function getEngineTypeFromEnvVar() {
   const engineType = process.env.PRISMA_CLIENT_ENGINE_TYPE
   if (engineType) {
-    if (engineType === ClientEngineType.NodeAPI) {
-      return ClientEngineType.NodeAPI
+    if (engineType === ClientEngineType.Library) {
+      return ClientEngineType.Library
     } else if (engineType === ClientEngineType.Binary) {
       return ClientEngineType.Binary
     }

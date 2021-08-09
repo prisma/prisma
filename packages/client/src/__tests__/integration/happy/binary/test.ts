@@ -13,7 +13,7 @@ test('binary', async () => {
 
   const platform = await getPlatform()
   const binaryPath =
-    getClientEngineType() === ClientEngineType.NodeAPI
+    getClientEngineType() === ClientEngineType.Library
       ? path.join(
           __dirname,
           'node_modules/.prisma/client',

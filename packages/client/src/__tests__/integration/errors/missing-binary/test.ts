@@ -15,7 +15,7 @@ test('missing-binary', async () => {
 
   const platform = await getPlatform()
   const binaryPath =
-    getClientEngineType() === ClientEngineType.NodeAPI
+    getClientEngineType() === ClientEngineType.Library
       ? path.join(
           __dirname,
           'node_modules/.prisma/client',
@@ -37,7 +37,7 @@ test('missing-binary', async () => {
   })
   // TODO Error should not be as fundamentally different here as the test snapshots indicate
   // TODO The error messages here are also not good (correct) and should be fixed
-  if (getClientEngineType() === ClientEngineType.NodeAPI) {
+  if (getClientEngineType() === ClientEngineType.Library) {
     await expect(async () => {
       await prisma.user.findMany()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`

@@ -59,7 +59,7 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
 function buildTests() {
   const engineTypes = [
     ClientEngineType.Binary,
-    ClientEngineType.NodeAPI,
+    ClientEngineType.Library,
     undefined,
   ]
   const envVars = {

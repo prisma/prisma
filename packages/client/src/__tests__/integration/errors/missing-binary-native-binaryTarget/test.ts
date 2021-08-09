@@ -15,7 +15,7 @@ test('missing binary, native binaryTarget', async () => {
 
   const platform = await getPlatform()
   const binaryPath =
-    getClientEngineType() === ClientEngineType.NodeAPI
+    getClientEngineType() === ClientEngineType.Library
       ? path.join(
           __dirname,
           'node_modules/.prisma/client',
@@ -36,7 +36,7 @@ test('missing binary, native binaryTarget', async () => {
     ],
   })
 
-  if (getClientEngineType() === ClientEngineType.NodeAPI) {
+  if (getClientEngineType() === ClientEngineType.Library) {
     await expect(async () => {
       await prisma.user.findMany()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`

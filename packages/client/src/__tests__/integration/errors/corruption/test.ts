@@ -16,7 +16,7 @@ test('corruption of query engine binary', async () => {
   const binaryPath = path.join(
     __dirname,
     'node_modules/.prisma/client',
-    getClientEngineType() === ClientEngineType.NodeAPI
+    getClientEngineType() === ClientEngineType.Library
       ? getNodeAPIName(platform, 'fs')
       : `query-engine-${platform}`,
   )

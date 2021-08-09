@@ -116,7 +116,7 @@ export async function generateInFolder({
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
   const binaryPaths =
-    clientEngineType === ClientEngineType.NodeAPI
+    clientEngineType === ClientEngineType.Library
       ? {
           libqueryEngine: {
             [platform]: queryEngineLibraryPath,

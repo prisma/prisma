@@ -25,9 +25,8 @@ export async function ensureTestClientQueryEngine(
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
   )
 
-  // TMP
   if (
-    clientEngineType === ClientEngineType.NodeAPI &&
+    clientEngineType === ClientEngineType.Library &&
     !fs.existsSync(queryEngineLibraryPath)
   ) {
     await download({

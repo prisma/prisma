@@ -20,7 +20,7 @@ if (require.main === module) {
   generatorHandler({
     onManifest(config) {
       const requiredEngine =
-        getClientEngineType(config) === ClientEngineType.NodeAPI
+        getClientEngineType(config) === ClientEngineType.Library
           ? 'libqueryEngine'
           : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
