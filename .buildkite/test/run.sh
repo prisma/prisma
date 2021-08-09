@@ -41,7 +41,7 @@ function retry {
   return 0
 }
 
-# The below is required as during install required engines are download, to this makes sure the the engines being tested are already present 
+# The below is required as during install required engines are downloaded, so this makes sure the engines being tested are already present 
 
 # JOB 0 - Node-API Library
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then

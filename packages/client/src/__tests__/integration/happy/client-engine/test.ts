@@ -65,9 +65,9 @@ function buildTests() {
   const envVars = {
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
-  engineTypes.forEach((engineType) => {
+  for (const engineType of engineTypes) {
     for (const envVar in envVars) {
-      envVars[envVar].forEach((value) => {
+      for (const value of envVars[envVar]) {
         const expectedClientEngine = getExpectedEngine(
           engineType,
           envVar,
@@ -110,10 +110,12 @@ function buildTests() {
 
           expect(prisma._clientEngineType).toMatch(expectedClientEngine)
           await prisma.$disconnect()
+
+          fs.unlinkSync(projectDir)
         })
-      })
+      }
     }
-  })
+  }
 }
 describe('client engine', () => {
   buildTests()

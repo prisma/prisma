@@ -11,7 +11,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 test('chmod', async () => {
   await generateTestClient()
   const platform = await getPlatform()
-  if (!(getClientEngineType() === ClientEngineType.Library)) {
+  if (getClientEngineType() !== ClientEngineType.Library) {
     const binaryPath = path.join(
       __dirname,
       'node_modules/.prisma/client',

@@ -7,16 +7,16 @@ export enum ClientEngineType {
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
 
 export function getClientEngineType(
-  generator?: GeneratorConfig,
+  generatorConfig?: GeneratorConfig,
 ): ClientEngineType {
   const engineTypeFromEnvVar = getEngineTypeFromEnvVar()
   if (engineTypeFromEnvVar) return engineTypeFromEnvVar
   if (
-    generator?.config.engineType === ClientEngineType.Library ||
-    generator?.previewFeatures.includes('nApi')
+    generatorConfig?.config.engineType === ClientEngineType.Library ||
+    generatorConfig?.previewFeatures.includes('nApi')
   ) {
     return ClientEngineType.Library
-  } else if (generator?.config.engineType === ClientEngineType.Binary) {
+  } else if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
   }
   return DEFAULT_CLIENT_ENGINE_TYPE
@@ -24,12 +24,11 @@ export function getClientEngineType(
 
 function getEngineTypeFromEnvVar() {
   const engineType = process.env.PRISMA_CLIENT_ENGINE_TYPE
-  if (engineType) {
-    if (engineType === ClientEngineType.Library) {
-      return ClientEngineType.Library
-    } else if (engineType === ClientEngineType.Binary) {
-      return ClientEngineType.Binary
-    }
+  if (engineType === ClientEngineType.Library) {
+    return ClientEngineType.Library
+  } else if (engineType === ClientEngineType.Binary) {
+    return ClientEngineType.Binary
+  } else {
+    return undefined
   }
-  return undefined
 }

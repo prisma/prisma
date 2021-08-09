@@ -47,7 +47,7 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
+    if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
         Object {
           defaultOutput: .prisma/client,
