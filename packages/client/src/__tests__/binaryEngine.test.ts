@@ -1,4 +1,4 @@
-import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
+import { BinaryEngine } from '@prisma/engine-core'
 import path from 'path'
 
 describe('BinaryEngine', () => {

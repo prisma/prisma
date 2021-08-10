@@ -1,15 +1,15 @@
 name: CI
 
-# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
+# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
@@ -26,8 +26,8 @@ on:
     paths-ignore:
       # Any update here needs to be done for
       # - `push`see before
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
@@ -67,7 +67,7 @@ jobs:
   cleanup-runs:
     continue-on-error: true
     runs-on: ubuntu-20.04
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && !contains(github.actor, 'renovate')"
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.1
 

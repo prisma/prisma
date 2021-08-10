@@ -53,7 +53,7 @@ export async function getConfig(
 
   // TODO This has been outdated for ages and needs to be handled differently and/or removed
   if (
-    data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
+    data.datasources?.[0]?.provider === 'sqlite' &&
     data.generators.some((g) => g.previewFeatures.includes('createMany'))
   ) {
     const message = `Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.

@@ -151,7 +151,7 @@ export async function getGenerators({
 
   if (dmmf.datamodel.models.length === 0) {
     // MongoDB needs extras for @id: @map("_id") @db.ObjectId
-    if (config.datasources.some((d) => d.provider.includes('mongodb'))) {
+    if (config.datasources.some((d) => d.provider === 'mongodb')) {
       throw new Error(missingModelMessageMongoDB)
     }
 
@@ -159,7 +159,7 @@ export async function getGenerators({
   }
 
   if (
-    config.datasources.some((d) => d.provider.includes('mongodb')) &&
+    config.datasources.some((d) => d.provider === 'mongodb') &&
     !previewFeatures.includes('mongoDb')
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
@@ -642,7 +642,7 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
     ${chalk.gray(
       `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
     Read more about deploying Prisma Client: ${chalk.underline(
-      'https://github.com/prisma/prisma/blob/master/docs/core/generators/prisma-client-js.md',
+      'https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md',
     )}`,
     )}\n`)
         } else {
