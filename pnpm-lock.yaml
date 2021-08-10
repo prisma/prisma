@@ -90,7 +90,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@prisma/studio-server': 0.419.0
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/rimraf': 3.0.1
       '@types/ws': 7.4.7
       '@typescript-eslint/eslint-plugin': 4.29.0
@@ -141,7 +141,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@prisma/studio-server': 0.419.0
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/rimraf': 3.0.1
       '@types/ws': 7.4.7
       '@typescript-eslint/eslint-plugin': 4.29.0_48ea228fa0647506aa803d17f48b59f7
@@ -178,7 +178,7 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.0
       tempy: 1.0.1
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       typescript: 4.3.5
 
   packages/client:
@@ -194,7 +194,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
       '@types/node': 12.20.18
@@ -256,7 +256,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
       '@types/node': 12.20.18
@@ -301,7 +301,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       ts-node: 10.1.0_620c6be159ae5abe9d22c4491af881d8
       tsd: 0.17.0
       typescript: 4.3.5
@@ -309,7 +309,7 @@ importers:
   packages/debug:
     specifiers:
       '@types/debug': 4.1.7
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0
       '@typescript-eslint/parser': 4.29.0
@@ -334,7 +334,7 @@ importers:
       ms: 2.1.3
     devDependencies:
       '@types/debug': 4.1.7
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0_48ea228fa0647506aa803d17f48b59f7
       '@typescript-eslint/parser': 4.29.0_eslint@7.32.0+typescript@4.3.5
@@ -350,7 +350,7 @@ importers:
       lint-staged: 11.1.1
       prettier: 2.3.2
       strip-ansi: 6.0.0
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       typescript: 4.3.5
 
   packages/engine-core:
@@ -359,7 +359,7 @@ importers:
       '@prisma/engines': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0
       '@typescript-eslint/parser': 4.29.0
@@ -398,7 +398,7 @@ importers:
       terminal-link: 2.1.1
       undici: 3.3.6
     devDependencies:
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0_48ea228fa0647506aa803d17f48b59f7
       '@typescript-eslint/parser': 4.29.0_eslint@7.32.0+typescript@4.3.5
@@ -413,14 +413,14 @@ importers:
       lint-staged: 11.1.1
       prettier: 2.3.2
       strip-ansi: 6.0.0
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       typescript: 4.3.5
 
   packages/generator-helper:
     specifiers:
       '@prisma/debug': workspace:*
       '@types/cross-spawn': 6.0.2
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0
       '@typescript-eslint/parser': 4.29.0
@@ -445,7 +445,7 @@ importers:
       chalk: 4.1.2
       cross-spawn: 7.0.3
     devDependencies:
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@typescript-eslint/eslint-plugin': 4.29.0_48ea228fa0647506aa803d17f48b59f7
       '@typescript-eslint/parser': 4.29.0_eslint@7.32.0+typescript@4.3.5
@@ -459,7 +459,7 @@ importers:
       jest: 27.0.6_ts-node@10.1.0
       lint-staged: 11.1.1
       prettier: 2.3.2
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       ts-node: 10.1.0_620c6be159ae5abe9d22c4491af881d8
       typescript: 4.3.5
 
@@ -470,7 +470,7 @@ importers:
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/mssql': 6.0.8
       '@types/node': 12.20.18
       '@types/pg': 8.6.1
@@ -511,7 +511,7 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@sindresorhus/slugify': 1.1.2
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/mssql': 6.0.8
       '@types/node': 12.20.18
       '@types/pg': 8.6.1
@@ -542,7 +542,7 @@ importers:
       string-hash: 1.1.3
       strip-ansi: 6.0.0
       tempy: 1.0.1
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       ts-node: 10.1.0_620c6be159ae5abe9d22c4491af881d8
       typescript: 4.3.5
       verror: 1.10.0
@@ -555,7 +555,7 @@ importers:
       '@prisma/get-platform': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
@@ -616,7 +616,7 @@ importers:
       '@prisma/engines-version': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
@@ -643,7 +643,7 @@ importers:
       sqlite-async: 1.1.1
       sqlite3: 5.0.2
       tempy: 1.0.1
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       typescript: 4.3.5
 
   packages/react-prisma:
@@ -697,7 +697,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
@@ -782,7 +782,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.2.1
     devDependencies:
-      '@types/jest': 26.0.24
+      '@types/jest': 27.0.0
       '@types/node': 12.20.18
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
@@ -799,7 +799,7 @@ importers:
       jest: 27.0.6_ts-node@10.1.0
       lint-staged: 11.1.1
       prettier: 2.3.2
-      ts-jest: 27.0.4_52cc4273aa16028085013af47e479e10
+      ts-jest: 27.0.4_442e9978f2a8aee0556473dbeff50cf9
       ts-node: 10.1.0_620c6be159ae5abe9d22c4491af881d8
       typescript: 4.3.5
 
@@ -1585,9 +1585,9 @@ packages:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.3
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 14.17.6
+      '@types/node': 14.17.7
       '@types/yargs': 15.0.14
-      chalk: 4.1.1
+      chalk: 4.1.2
     dev: true
 
   /@jest/types/27.0.6:
@@ -1646,8 +1646,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/debug/2.29.0-dev.47:
-    resolution: {integrity: sha512-SNCSDhCYZRM2PegzYXqLUQDDwBHIMY4waKayYTdoSf8mdgx2CayACAi4Oif4ws4s1OddH1MgXMIpSiA9//QWrg==}
+  /@prisma/debug/2.29.0-dev.49:
+    resolution: {integrity: sha512-bXRSVAeba5laYC5USArS7jE3zwq7dGRIg3WTOxs4JFFC4Z8TQK+uqelHenOmGBvjGy/gw2q7Hpr9PnkJtHUx5A==}
     dependencies:
       debug: 4.3.2
       ms: 2.1.3
@@ -1655,13 +1655,13 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/engine-core/2.29.0-dev.47:
-    resolution: {integrity: sha512-1dl2Iz/ExjQ5ia0bDSq3O4TZONDIsflPRIOJASS7Agcq95Br3zJjTKj8pm6/ExHv+Vfk+m1nbuG6vZ3QC03Mzw==}
+  /@prisma/engine-core/2.29.0-dev.49:
+    resolution: {integrity: sha512-J9SiFpr3zjI1ehSxO8WEgq7HkBBU8Lu1r5fFudwaot5b5Byz86Kax2wwpFmKpbW2F6Q96CfOBN0nmE5WiMNzJw==}
     dependencies:
-      '@prisma/debug': 2.29.0-dev.47
-      '@prisma/engines': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
-      '@prisma/generator-helper': 2.29.0-dev.47
-      '@prisma/get-platform': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
+      '@prisma/debug': 2.29.0-dev.49
+      '@prisma/engines': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
+      '@prisma/generator-helper': 2.29.0-dev.49
+      '@prisma/get-platform': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       chalk: 4.1.2
       execa: 5.1.1
       get-stream: 6.0.1
@@ -1677,38 +1677,9 @@ packages:
   /@prisma/engines-version/2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a:
     resolution: {integrity: sha512-BU1DNNDhdzqjHtycpUzDrU8+jf6ZY+fbXvCV/rbqG+0JifljlIo4vbkHDMg97gBi1Do8pTLZGlTH16FlniKgAg==}
 
-  /@prisma/engines/2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2:
-    resolution: {integrity: sha512-jZQYTB9Bv9Ufjvwlw5bH5MnOa3dtJ0TXTLbcx3Zi4QmsevdKxvkGJVgthufb6b8vJ+aMwSBq7xDwsjrNRcBMCg==}
-    requiresBuild: true
-    dev: true
-
   /@prisma/engines/2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a:
     resolution: {integrity: sha512-cgEoGK3dmKZkMp/sRbL8TsuVS50rHXYBHk2NY18DPUGr5//4ICno46EjzlayqAFVak8J6RtWZEs+8tE8j8frAQ==}
     requiresBuild: true
-
-  /@prisma/fetch-engine/2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2:
-    resolution: {integrity: sha512-peIOpYPGXjZ+suCsLeeV5Ou15x+rh6FsGjawYJWpfS5ROt5vEfPdQ9gbD6rPlAdurA1lI+ShIWsRMH4G6W4u7Q==}
-    dependencies:
-      '@prisma/debug': 2.28.0
-      '@prisma/get-platform': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
-      chalk: 4.1.2
-      execa: 5.1.1
-      find-cache-dir: 3.3.1
-      hasha: 5.2.2
-      http-proxy-agent: 4.0.1
-      https-proxy-agent: 5.0.0
-      make-dir: 3.1.0
-      node-fetch: 2.6.1
-      p-filter: 2.1.0
-      p-map: 4.0.0
-      p-retry: 4.6.1
-      progress: 2.0.3
-      rimraf: 3.0.2
-      temp-dir: 2.0.0
-      tempy: 1.0.1
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
 
   /@prisma/fetch-engine/2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a:
     resolution: {integrity: sha512-HsTHffo2xg0rZchdqWJHDvl7JaOi2U1rDockKYAYPf3grGZ14AnJ/ZVP292xMm0IiGLkb5YE3qkI5SKoGEUqMw==}
@@ -1733,21 +1704,13 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/generator-helper/2.29.0-dev.47:
-    resolution: {integrity: sha512-eSqu8rn5sBoPtY/doA2EA8Wge02v1U534avDSXwLOaGAfzjOIAubsRoecDy6Pzp8nn5m6Rj/ZfWtWIQy+Ms6Pg==}
+  /@prisma/generator-helper/2.29.0-dev.49:
+    resolution: {integrity: sha512-PX9Xu9VK/QVIuY9dAfnauB0H+G5QehJhCb7cK2cx1uDArNjiiaGg7680WYECWL6oXxaz5UA2rtmrWRmHKtG+4Q==}
     dependencies:
-      '@prisma/debug': 2.29.0-dev.47
+      '@prisma/debug': 2.29.0-dev.49
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.2
       cross-spawn: 7.0.3
-    transitivePeerDependencies:
-      - supports-color
-    dev: true
-
-  /@prisma/get-platform/2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2:
-    resolution: {integrity: sha512-MjnA+AsIsGe6L4Ebl5FNrqBhf0bxbfTnaefrVFzJcQZhnvWzbjZD0KWZoYjGpARKHLYTkG6RW0uuhCv5V5m/Ow==}
-    dependencies:
-      '@prisma/debug': 2.28.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -1759,15 +1722,15 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/sdk/2.29.0-dev.47:
-    resolution: {integrity: sha512-KBWxzL1KIgtZCOX1tvzvF/F/i/KKd3nBSsJcQYxV+tugUrpilH4cnPsifIG1XkY2duXJgJ4EIlIpm558tBD7Og==}
+  /@prisma/sdk/2.29.0-dev.49:
+    resolution: {integrity: sha512-T4w1ySAj4NMnPNG1F7u1YW3CO4Um4e6/gNUNU0C4r7xv3xkLQ8cugkZcQl7jiAKH/01yUQ82pFdRWEi2nX3Bxw==}
     dependencies:
-      '@prisma/debug': 2.29.0-dev.47
-      '@prisma/engine-core': 2.29.0-dev.47
-      '@prisma/engines': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
-      '@prisma/fetch-engine': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
-      '@prisma/generator-helper': 2.29.0-dev.47
-      '@prisma/get-platform': 2.29.0-33.3e95e2ce1b5d175188d62c5e4b51db471bb004d2
+      '@prisma/debug': 2.29.0-dev.49
+      '@prisma/engine-core': 2.29.0-dev.49
+      '@prisma/engines': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
+      '@prisma/fetch-engine': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
+      '@prisma/generator-helper': 2.29.0-dev.49
+      '@prisma/get-platform': 2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a
       '@timsuchanek/copy': 1.4.5
       archiver: 4.0.2
       arg: 5.0.0
@@ -1801,13 +1764,13 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-pcw/0.419.0_@prisma+sdk@2.29.0-dev.47:
+  /@prisma/studio-pcw/0.419.0_@prisma+sdk@2.29.0-dev.49:
     resolution: {integrity: sha512-74YPH6COysslPnmt/qq12A4iJCgUur1fXilmmD2s71s/iJrkmZ9h5Z6BQe9LjMW9K3Byz99G7xD6vVMajYjSWA==}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': 2.29.0-dev.47
+      '@prisma/sdk': 2.29.0-dev.49
       debug: 4.3.1
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -1817,8 +1780,8 @@ packages:
   /@prisma/studio-server/0.419.0:
     resolution: {integrity: sha512-b6zY2PV/4fyfTi7VlMYPrB+nJUH94IIQb42z1uYHPTJhEZy1NrjZr3pmTVcyMUS2KR+04ySJ85fol/lOodS5qQ==}
     dependencies:
-      '@prisma/sdk': 2.29.0-dev.47
-      '@prisma/studio-pcw': 0.419.0_@prisma+sdk@2.29.0-dev.47
+      '@prisma/sdk': 2.29.0-dev.49
+      '@prisma/studio-pcw': 0.419.0_@prisma+sdk@2.29.0-dev.49
       '@prisma/studio-transports': 0.419.0
       '@sentry/node': 6.2.5
       checkpoint-client: 1.1.20
@@ -2082,6 +2045,13 @@ packages:
 
   /@types/jest/26.0.24:
     resolution: {integrity: sha512-E/X5Vib8BWqZNRlDxj9vYXhsDwPYbPINqKF9BsnSoon4RQ0D9moEuLD8txgyypFLH7J4+Lho9Nr/c8H0Fi+17w==}
+    dependencies:
+      jest-diff: 26.6.2
+      pretty-format: 26.6.2
+    dev: true
+
+  /@types/jest/27.0.0:
+    resolution: {integrity: sha512-IlpQZVpxufe+3qPaAqEoSPHVSxnJh1cf0BqqWHJeKiAUbwnHdmNzjP3ZCWSZSTbmAGXQPNk9QmM3Bif0pR54rg==}
     dependencies:
       jest-diff: 26.6.2
       pretty-format: 26.6.2
@@ -4642,7 +4612,7 @@ packages:
     resolution: {integrity: sha512-6m+9Z3Gv9wN0WFVasqjCL/06+EFCMTqDEUl/b87HYK2rAPTyfz4ZIuSlPhY51PIQRWx5TaxeF1qmXKe9gfN3sA==}
     engines: {node: '>= 10.14.2'}
     dependencies:
-      chalk: 4.1.1
+      chalk: 4.1.2
       diff-sequences: 26.6.2
       jest-get-type: 26.3.0
       pretty-format: 26.6.2
@@ -7169,6 +7139,39 @@ packages:
   /trim-newlines/3.0.1:
     resolution: {integrity: sha512-c1PTsA3tYrIsLGkJkzHF+w9F2EyxfXGo4UyJc4pFL++FMjnq0HJS69T3M7d//gKrFKwy429bouPescbjecU+Zw==}
     engines: {node: '>=8'}
+    dev: true
+
+  /ts-jest/27.0.4_442e9978f2a8aee0556473dbeff50cf9:
+    resolution: {integrity: sha512-c4E1ECy9Xz2WGfTMyHbSaArlIva7Wi2p43QOMmCqjSSjHP06KXv+aT+eSY+yZMuqsMi3k7pyGsGj2q5oSl5WfQ==}
+    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
+    peerDependencies:
+      '@babel/core': '>=7.0.0-beta.0 <8'
+      '@types/jest': ^26.0.0
+      babel-jest: '>=27.0.0 <28'
+      jest: ^27.0.0
+      typescript: '>=3.8 <5.0'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@types/jest':
+        optional: true
+      babel-jest:
+        optional: true
+    dependencies:
+      '@types/jest': 27.0.0
+      bs-logger: 0.2.6
+      buffer-from: 1.1.1
+      fast-json-stable-stringify: 2.1.0
+      jest: 27.0.6_ts-node@10.1.0
+      jest-util: 27.0.6
+      json5: 2.2.0
+      lodash: 4.17.21
+      make-error: 1.3.6
+      mkdirp: 1.0.4
+      semver: 7.3.5
+      typescript: 4.3.5
+      yargs-parser: 20.2.9
     dev: true
 
   /ts-jest/27.0.4_52cc4273aa16028085013af47e479e10:
