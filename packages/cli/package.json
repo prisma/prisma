@@ -102,7 +102,7 @@
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
     "prettier": "2.3.2",
-    "replace-string": "3.1.0",
+    "replace-string": "4.0.0",
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
