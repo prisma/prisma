@@ -1,3 +1,4 @@
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
@@ -497,17 +498,15 @@ describe('getGenerators', () => {
     }
 
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
-    const queryEngine = await resolveBinary(
-      process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngine
-        : BinaryType.queryEngine,
-    )
+
+    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
       binaryPathsOverride: {
-        queryEngine,
+        queryEngine: queryEnginePath,
       },
     })
 
@@ -516,7 +515,7 @@ describe('getGenerators', () => {
     const platform = await getPlatform()
 
     // we override queryEngine, so its paths should be equal to the one of the generator
-    expect(options[0]?.queryEngine?.[platform]).toBe(queryEngine)
+    expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
     // we did not override the migrationEngine, so their paths should not be equal
     expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
 
