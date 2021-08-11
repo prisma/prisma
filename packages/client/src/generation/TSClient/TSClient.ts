@@ -90,8 +90,8 @@ export class TSClient implements Generatable {
 
 // folder where the generated client is found
 const dirname = findSync(process.cwd(), [
-  '${JSON.stringify(relativeOutputDir)}',
-  '${JSON.stringify(slsRelativeOutputDir)}',
+  '${relativeOutputDir}',
+  '${slsRelativeOutputDir}',
 ], ['d'], ['d'], 1)[0] || __dirname
 
 /**
