@@ -29,8 +29,8 @@
     "@types/graphviz": "0.0.33",
     "@types/node": "14.17.9",
     "@types/redis": "2.8.31",
-    "@typescript-eslint/eslint-plugin": "4.29.0",
-    "@typescript-eslint/parser": "4.29.0",
+    "@typescript-eslint/eslint-plugin": "4.29.1",
+    "@typescript-eslint/parser": "4.29.1",
     "arg": "5.0.0",
     "batching-toposort": "1.2.0",
     "benchmark": "2.1.4",
@@ -56,7 +56,7 @@
     "redis-lock": "0.1.4",
     "semver": "7.3.5",
     "staged-git-files": "1.2.0",
-    "ts-node": "10.1.0",
+    "ts-node": "10.2.0",
     "typescript": "4.3.5"
   }
 }
