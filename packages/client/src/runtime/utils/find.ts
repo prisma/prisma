@@ -92,7 +92,7 @@ export function findSync(
     // we list the items in the current root
     const items = readdirSync(root, { withFileTypes: true })
 
-    //seen[realRoot] = true
+    seen[realRoot] = true
     for (const item of items) {
       // we get the file info for each item
       const itemName = item.name
@@ -116,8 +116,8 @@ export function findSync(
         }
       }
 
+      // dive within the directory tree
       if (deep.includes(itemType as any)) {
-        // dive within the directory tree
         // we recurse and continue mutating `found`
         findSync(itemPath, match, types, deep, limit, handler, found, seen)
       }
