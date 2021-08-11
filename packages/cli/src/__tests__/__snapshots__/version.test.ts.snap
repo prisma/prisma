@@ -13,15 +13,15 @@ Studio                  : placeholder
 `;
 
 exports[`version basic version 1`] = `
-prisma               : placeholder
-@prisma/client       : placeholder
-Current platform     : placeholder
-Query Engine         : placeholder
-Migration Engine     : placeholder
-Introspection Engine : placeholder
-Format Binary        : placeholder
-Default Engines Hash : placeholder
-Studio               : placeholder
+prisma                : placeholder
+@prisma/client        : placeholder
+Current platform      : placeholder
+Query Engine (Binary) : placeholder
+Migration Engine      : placeholder
+Introspection Engine  : placeholder
+Format Binary         : placeholder
+Default Engines Hash  : placeholder
+Studio                : placeholder
 `;
 
 exports[`version version with custom binaries (Node-API) 1`] = `
@@ -37,13 +37,13 @@ Studio                  : placeholder
 `;
 
 exports[`version version with custom binaries 1`] = `
-prisma               : placeholder
-@prisma/client       : placeholder
-Current platform     : placeholder
-Query Engine         : placeholder
-Migration Engine     : placeholder
-Introspection Engine : placeholder
-Format Binary        : placeholder
-Default Engines Hash : placeholder
-Studio               : placeholder
+prisma                : placeholder
+@prisma/client        : placeholder
+Current platform      : placeholder
+Query Engine (Binary) : placeholder
+Migration Engine      : placeholder
+Introspection Engine  : placeholder
+Format Binary         : placeholder
+Default Engines Hash  : placeholder
+Studio                : placeholder
 `;

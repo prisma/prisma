@@ -1,4 +1,5 @@
-import { download } from '@prisma/fetch-engine'
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { BinaryType, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/sdk'
 import makeDir from 'make-dir'
@@ -7,7 +8,7 @@ import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
 const version = 'e6bd3dc12d849124a04c3a8e6bd9c194381afda3'
 
 describe('version', () => {

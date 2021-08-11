@@ -1,9 +1,13 @@
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 // Does Prisma Client restart the QE when it is killed for some reason?
 test('restart', async () => {
   // No child process for Node-API, so nothing that can be killed or tested
-  if (process.env.PRISMA_FORCE_NAPI === 'true') {
+  if (getClientEngineType() === ClientEngineType.Library) {
     return
   }
 
