@@ -6,14 +6,14 @@ describe('prisma promises', () => {
   test('catch', async () => {
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient()
-    const catcher = (e) => Promise.reject(e)
+    const handler = (e) => Promise.reject(e)
 
-    const remove = await prisma.user.deleteMany().catch(catcher)
-    const queryRaw = await prisma.$queryRaw('SELECT 1').catch(catcher)
+    const remove = await prisma.user.deleteMany().catch(handler)
+    const queryRaw = await prisma.$queryRaw('SELECT 1').catch(handler)
     const executeRaw = await prisma
       .$executeRaw('DELETE FROM User')
-      .catch(catcher)
-    const findMany = await prisma.user.findMany().catch(catcher)
+      .catch(handler)
+    const findMany = await prisma.user.findMany().catch(handler)
 
     expect(remove).toMatchInlineSnapshot(`
       Object {
@@ -39,14 +39,14 @@ describe('prisma promises', () => {
   test('finally', async () => {
     const PrismaClient = await getTestClient()
     const prisma = new PrismaClient()
-    const catcher = (e) => Promise.reject(e)
+    const handler = () => {}
 
-    const remove = await prisma.user.deleteMany().finally(catcher)
-    const queryRaw = await prisma.$queryRaw('SELECT 1').finally(catcher)
+    const remove = await prisma.user.deleteMany().finally(handler)
+    const queryRaw = await prisma.$queryRaw('SELECT 1').finally(handler)
     const executeRaw = await prisma
       .$executeRaw('DELETE FROM User')
-      .finally(catcher)
-    const findMany = await prisma.user.findMany().finally(catcher)
+      .finally(handler)
+    const findMany = await prisma.user.findMany().finally(handler)
 
     expect(remove).toMatchInlineSnapshot(`
         Object {
