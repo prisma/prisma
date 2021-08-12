@@ -1310,7 +1310,6 @@ new PrismaClient({
           plural: true,
           aggregate: true,
           groupBy: true,
-          count: true,
         }
 
         // here we call the `modelClientBuilder` inside of each delegate function
