@@ -52,6 +52,8 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
+const engines: LibraryEngine[] = []
+
 export class LibraryEngine extends Engine {
   private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
@@ -98,9 +100,23 @@ export class LibraryEngine extends Engine {
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
-    initHooks(this)
-  }
 
+    initHooks()
+    engines.push(this)
+    this.checkForTooManyEngines()
+  }
+  private checkForTooManyEngines() {
+    if (engines.length >= 10) {
+      const runningEngines = engines.filter((e) => e.engine)
+      if (runningEngines.length === 10) {
+        console.warn(
+          `${chalk.yellow(
+            'warn(prisma-client)',
+          )} Already 10 Prisma Clients are actively running.`,
+        )
+      }
+    }
+  }
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
@@ -679,10 +695,13 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   }
 }
 
-function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
+function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
-    await engine.runBeforeExit()
+    for (const engine of engines) {
+      await engine.runBeforeExit()
+    }
+    engines.splice(0, engines.length)
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
@@ -690,12 +709,15 @@ function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
     }
   })
 }
-
-function initHooks(engine: LibraryEngine) {
-  hookProcess(engine, 'beforeExit')
-  hookProcess(engine, 'exit')
-  hookProcess(engine, 'SIGINT', true)
-  hookProcess(engine, 'SIGUSR1', true)
-  hookProcess(engine, 'SIGUSR2', true)
-  hookProcess(engine, 'SIGTERM', true)
+let hooksInitialized = false
+function initHooks() {
+  if (!hooksInitialized) {
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR1', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
+    hooksInitialized = true
+  }
 }
