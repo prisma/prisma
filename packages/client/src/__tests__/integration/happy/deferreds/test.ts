@@ -1,5 +1,5 @@
 import { getTestClient } from '../../../../utils/getTestClient'
-describe('deferreds', () => {
+describe('prisma promises', () => {
   /**
    * Requests must get sent if we call `.catch`
    */
@@ -41,12 +41,12 @@ describe('deferreds', () => {
     const prisma = new PrismaClient()
     const catcher = (e) => Promise.reject(e)
 
-    const remove = await prisma.user.deleteMany().catch(catcher)
-    const queryRaw = await prisma.$queryRaw('SELECT 1').catch(catcher)
+    const remove = await prisma.user.deleteMany().finally(catcher)
+    const queryRaw = await prisma.$queryRaw('SELECT 1').finally(catcher)
     const executeRaw = await prisma
       .$executeRaw('DELETE FROM User')
-      .catch(catcher)
-    const findMany = await prisma.user.findMany().catch(catcher)
+      .finally(catcher)
+    const findMany = await prisma.user.findMany().finally(catcher)
 
     expect(remove).toMatchInlineSnapshot(`
         Object {
