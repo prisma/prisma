@@ -307,15 +307,22 @@ Invalid \`prisma.user.create()\` invocation:
    * A bad batch should rollback using the interactive transaction logic
    */
   test('batching raw rollback', async () => {
+    await prisma.user.create({
+      data: {
+        email: 'user_1@website.com',
+      },
+    })
+
     const result = prisma.$transaction([
+      prisma.$executeRaw(
+        'INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")',
+      ),
+      prisma.$queryRaw('DELETE FROM User'),
       prisma.$executeRaw(
         'INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")',
       ),
       prisma.$executeRaw(
-        'INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")',
-      ),
-      prisma.$executeRaw(
-        'INSERT INTO User (id, email) VALUES ("3", "user_1@website.com")',
+        'INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")',
       ),
     ])
 
@@ -329,7 +336,7 @@ Invalid \`prisma.executeRaw()\` invocation:
 
     const users = await prisma.user.findMany()
 
-    expect(users.length).toBe(0)
+    expect(users.length).toBe(1)
   })
 
   /**
