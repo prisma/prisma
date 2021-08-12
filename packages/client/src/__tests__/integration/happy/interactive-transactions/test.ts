@@ -304,6 +304,35 @@ Invalid \`prisma.user.create()\` invocation:
   })
 
   /**
+   * A bad batch should rollback using the interactive transaction logic
+   */
+  test('batching raw rollback', async () => {
+    const result = prisma.$transaction([
+      prisma.$executeRaw(
+        'INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")',
+      ),
+      prisma.$executeRaw(
+        'INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")',
+      ),
+      prisma.$executeRaw(
+        'INSERT INTO User (id, email) VALUES ("3", "user_1@website.com")',
+      ),
+    ])
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+Invalid \`prisma.executeRaw()\` invocation:
+
+
+  Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
    * Middlewares should work normally on batches
    */
   test('middlewares batching', async () => {
