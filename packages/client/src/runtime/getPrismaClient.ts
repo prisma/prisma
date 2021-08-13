@@ -697,6 +697,24 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
       }
     }
 
+    /**
+     * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param stringOrTemplateStringsArray
+     * @param values
+     * @returns
+     */
+    $executeRawUnsafe(
+      stringOrTemplateStringsArray:
+        | ReadonlyArray<string>
+        | string
+        | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
+    ) {
+      return this.$executeRaw(stringOrTemplateStringsArray, ...values)
+    }
+
     private _getCallsite() {
       if (this._errorFormat !== 'minimal') {
         return new Error().stack
@@ -851,6 +869,24 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           return doRequest().finally(onfinally)
         },
       }
+    }
+
+    /**
+     * Unsafe counterpart of `$queryRaw` that is susceptible to SQL injections
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param stringOrTemplateStringsArray
+     * @param values
+     * @returns
+     */
+    $queryRawUnsafe(
+      stringOrTemplateStringsArray:
+        | ReadonlyArray<string>
+        | string
+        | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
+    ) {
+      return this.$queryRaw(stringOrTemplateStringsArray, ...values)
     }
 
     __internal_triggerPanic(fatal: boolean) {
