@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { NodeAPILibraryTypes } from '@prisma/engine-core'
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
@@ -40,10 +41,9 @@ export class GetConfigError extends Error {
 export async function getConfig(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
-  const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
-
+  const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let data: ConfigMetaFormat | undefined
-  if (useNodeAPI) {
+  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
     data = await getConfigNodeAPI(options)
   } else {
     data = await getConfigBinary(options)
@@ -53,7 +53,7 @@ export async function getConfig(
 
   // TODO This has been outdated for ages and needs to be handled differently and/or removed
   if (
-    data.datasources?.[0]?.provider?.[0] === 'sqlite' &&
+    data.datasources?.[0]?.provider === 'sqlite' &&
     data.generators.some((g) => g.previewFeatures.includes('createMany'))
   ) {
     const message = `Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.

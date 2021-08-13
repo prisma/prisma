@@ -193,6 +193,7 @@ async function main(): Promise<number> {
       const schema = await getSchema(args['--schema'])
       const config = await getConfig({
         datamodel: schema,
+        ignoreEnvVarErrors: true,
       })
       if (config.datasources.length > 0) {
         schemaProvider = config.datasources[0].provider

@@ -11,37 +11,36 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import type {
+import {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
   EngineEventType,
-} from './Engine'
-import {
-  getErrorMessageWithLink,
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-  RequestError,
-} from './errors'
+} from '../common/Engine'
+import { RequestError } from '../common/errors/types/RequestError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
+import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
+import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import {
   ConfigMetaFormat,
-  Library,
-  QueryEngine,
   QueryEngineBatchRequest,
-  QueryEngineConstructor,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   QueryEngineRequest,
   QueryEngineRequestHeaders,
+  QueryEngineResult,
   RustRequestError,
   SyncRustError,
-} from './NodeAPILibraryTypes'
-import { printGeneratorConfig } from './printGeneratorConfig'
-import { fixBinaryTargets } from './util'
+} from '../common/types/QueryEngine'
+import { QueryEngineInstance, QueryEngineConstructor } from './types/Library'
+import { Library } from './types/Library'
+import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
+import { fixBinaryTargets } from '../common/utils/util'
+import type * as Tx from '../common/types/Transaction'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -53,8 +52,10 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-export class LibraryEngine implements Engine {
-  private engine?: QueryEngine
+const engines: LibraryEngine[] = []
+
+export class LibraryEngine extends Engine {
+  private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
   private libraryStoppingPromise?: Promise<void>
@@ -80,6 +81,8 @@ export class LibraryEngine implements Engine {
   }
 
   constructor(config: EngineConfig) {
+    super()
+
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.libraryStarted = false
@@ -97,7 +100,44 @@ export class LibraryEngine implements Engine {
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
-    initHooks(this)
+
+    initHooks()
+    engines.push(this)
+    this.checkForTooManyEngines()
+  }
+  private checkForTooManyEngines() {
+    if (engines.length >= 10) {
+      const runningEngines = engines.filter((e) => e.engine)
+      if (runningEngines.length === 10) {
+        console.warn(
+          `${chalk.yellow(
+            'warn(prisma-client)',
+          )} Already 10 Prisma Clients are actively running.`,
+        )
+      }
+    }
+  }
+  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
+  async transaction(action: any, arg?: any) {
+    await this.start()
+
+    if (action === 'start') {
+      const jsonOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+      })
+
+      const result = await this.engine?.startTransaction(jsonOptions, '{}')
+      return this.parseEngineResponse<Tx.Info>(result)
+    } else if (action === 'commit') {
+      await this.engine?.commitTransaction(arg.id, '{}')
+    } else if (action === 'rollback') {
+      await this.engine?.rollbackTransaction(arg.id, '{}')
+    }
+
+    return undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -400,17 +440,21 @@ You may have to run ${chalk.greenBright(
 
   async request<T>(
     query: string,
-    headers: Record<string, string>,
-    numTry: number,
+    headers: QueryEngineRequestHeaders = {},
+    numTry = 1,
   ): Promise<{ data: T; elapsed: number }> {
     try {
       debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
       const request: QueryEngineRequest = { query, variables: {} }
       const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify({})
+      const headerStr = JSON.stringify(headers)
 
       await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr)
+      this.executingQueryPromise = this.engine?.query(
+        queryStr,
+        headerStr,
+        headers.transactionId,
+      )
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(
@@ -444,13 +488,13 @@ You may have to run ${chalk.greenBright(
     }
   }
 
-  async requestBatch(
+  async requestBatch<T>(
     queries: string[],
+    headers: QueryEngineRequestHeaders = {},
     transaction = false,
     numTry = 1,
-  ): Promise<any> {
+  ): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
-    const headers: QueryEngineRequestHeaders = {}
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
@@ -460,7 +504,8 @@ You may have to run ${chalk.greenBright(
     this.lastQuery = JSON.stringify(request)
     this.executingQueryPromise = this.engine!.query(
       this.lastQuery,
-      JSON.stringify(headers),
+      JSON.stringify(headers), // TODO these aren't headers on the engine side
+      headers.transactionId,
     )
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
@@ -650,10 +695,13 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   }
 }
 
-function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
+function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
-    await engine.runBeforeExit()
+    for (const engine of engines) {
+      await engine.runBeforeExit()
+    }
+    engines.splice(0, engines.length)
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
@@ -661,12 +709,15 @@ function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
     }
   })
 }
-
-function initHooks(engine: LibraryEngine) {
-  hookProcess(engine, 'beforeExit')
-  hookProcess(engine, 'exit')
-  hookProcess(engine, 'SIGINT', true)
-  hookProcess(engine, 'SIGUSR1', true)
-  hookProcess(engine, 'SIGUSR2', true)
-  hookProcess(engine, 'SIGTERM', true)
+let hooksInitialized = false
+function initHooks() {
+  if (!hooksInitialized) {
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR1', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
+    hooksInitialized = true
+  }
 }

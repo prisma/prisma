@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { NodeAPILibraryTypes } from '@prisma/engine-core'
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
@@ -14,10 +15,8 @@ export async function getVersion(
   enginePath?: string,
   binaryName?: BinaryType,
 ): Promise<string> {
-  const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
-
   if (!binaryName) {
-    binaryName = useNodeAPI ? BinaryType.libqueryEngine : BinaryType.queryEngine
+    binaryName = getCliQueryEngineBinaryType()
   }
   enginePath = await resolveBinary(binaryName, enginePath)
   if (binaryName === BinaryType.libqueryEngine) {

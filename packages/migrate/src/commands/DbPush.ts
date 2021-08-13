@@ -122,7 +122,12 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     let wasDatabaseReset = false
     if (args['--force-reset']) {
       console.info()
-      await migrate.reset()
+      try {
+        await migrate.reset()
+      } catch (e) {
+        migrate.stop()
+        throw e
+      }
       if (dbInfo.dbName && dbInfo.dbLocation) {
         console.info(
           `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
@@ -187,22 +192,25 @@ ${chalk.bold.redBright('All data will be lost.')}
       }
 
       try {
+        // Reset first to remove all structure and data
         await migrate.reset()
+        if (dbInfo.dbName && dbInfo.dbLocation) {
+          console.info(
+            `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+          )
+        } else {
+          console.info(
+            `The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`,
+          )
+        }
+        wasDatabaseReset = true
+
+        // And now we can db push
+        await migrate.push({})
       } catch (e) {
         migrate.stop()
         throw e
       }
-
-      if (dbInfo.dbName && dbInfo.dbLocation) {
-        console.info(
-          `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
-        )
-      } else {
-        console.info(
-          `The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`,
-        )
-      }
-      wasDatabaseReset = true
     }
 
     if (migration.warnings && migration.warnings.length > 0) {

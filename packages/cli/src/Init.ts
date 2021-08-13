@@ -8,10 +8,7 @@ import {
   link,
   logger,
 } from '@prisma/sdk'
-import {
-  protocolToDatabaseType,
-  databaseTypeToConnectorType,
-} from '@prisma/sdk/dist/convertCredentials'
+import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { ConnectorType } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
@@ -216,9 +213,7 @@ export class Init implements Command {
         }
       }
 
-      provider = databaseTypeToConnectorType(
-        protocolToDatabaseType(`${args['--url'].split(':')[0]}:`),
-      )
+      provider = protocolToConnectorType(`${args['--url'].split(':')[0]}:`)
       url = args['--url']
     } else if (args['--datasource-provider']) {
       const providerLowercase = args['--datasource-provider'].toLowerCase()

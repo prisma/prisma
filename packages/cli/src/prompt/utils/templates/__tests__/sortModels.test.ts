@@ -10,7 +10,7 @@ test('sortModels', () => {
       uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
-      idFields: [],
+      primaryKey: null,
       isGenerated: false,
     },
     {
@@ -20,7 +20,7 @@ test('sortModels', () => {
       uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
-      idFields: [],
+      primaryKey: null,
       isGenerated: false,
     },
     {
@@ -30,7 +30,7 @@ test('sortModels', () => {
       uniqueIndexes: [],
       isEmbedded: false,
       dbName: null,
-      idFields: [],
+      primaryKey: null,
       isGenerated: false,
     },
     {
@@ -40,7 +40,7 @@ test('sortModels', () => {
       fields: [],
       isEmbedded: false,
       dbName: null,
-      idFields: [],
+      primaryKey: null,
       isGenerated: false,
     },
   ]

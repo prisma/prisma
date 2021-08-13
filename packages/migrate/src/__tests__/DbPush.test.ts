@@ -192,7 +192,17 @@ describe('push', () => {
     prompt.inject(['y'])
 
     const result = DbPush.new().parse([])
+
+    const sqliteDbSizeBefore = ctx.fs.inspect('prisma/dev.db')!.size
+
     await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    const sqliteDbSizeAfter = ctx.fs.inspect('prisma/dev.db')!.size
+
+    expect(sqliteDbSizeBefore).toBeGreaterThan(10000)
+    expect(sqliteDbSizeAfter).toBeGreaterThan(10000)
+    expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
+
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma

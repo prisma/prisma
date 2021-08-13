@@ -1,3 +1,4 @@
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
@@ -68,9 +69,7 @@ describe('getGenerators', () => {
           Object {
             "activeProvider": "sqlite",
             "name": "db",
-            "provider": Array [
-              "sqlite",
-            ],
+            "provider": "sqlite",
             "url": Object {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -162,9 +161,7 @@ describe('getGenerators', () => {
           Object {
             "activeProvider": "sqlite",
             "name": "db",
-            "provider": Array [
-              "sqlite",
-            ],
+            "provider": "sqlite",
             "url": Object {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -258,9 +255,7 @@ describe('getGenerators', () => {
           Object {
             "activeProvider": "sqlite",
             "name": "db",
-            "provider": Array [
-              "sqlite",
-            ],
+            "provider": "sqlite",
             "url": Object {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -336,38 +331,36 @@ describe('getGenerators', () => {
         'otherGenerators',
       ]),
     ).toMatchInlineSnapshot(`
-              Object {
-                "datamodel": "datasource db {
-                provider = \\"sqlite\\"
-                url      = \\"file:./dev.db\\"
-              }
+      Object {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
 
-              generator gen_env {
-                provider      = \\"predefined-generator\\"
-                binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
-              }
+      generator gen_env {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+      }
 
-              model User {
-                id   Int    @id
-                name String
-              }
-              ",
-                "datasources": Array [
-                  Object {
-                    "activeProvider": "sqlite",
-                    "name": "db",
-                    "provider": Array [
-                      "sqlite",
-                    ],
-                    "url": Object {
-                      "fromEnvVar": null,
-                      "value": "file:./dev.db",
-                    },
-                  },
-                ],
-                "otherGenerators": Array [],
-              }
-          `)
+      model User {
+        id   Int    @id
+        name String
+      }
+      ",
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": "sqlite",
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "file:./dev.db",
+            },
+          },
+        ],
+        "otherGenerators": Array [],
+      }
+    `)
 
     const generator = omit(generators[0].options!.generator, ['output'])
     const platform = await getPlatform()
@@ -435,38 +428,36 @@ describe('getGenerators', () => {
         'otherGenerators',
       ]),
     ).toMatchInlineSnapshot(`
-              Object {
-                "datamodel": "datasource db {
-                provider = \\"sqlite\\"
-                url      = \\"file:./dev.db\\"
-              }
+      Object {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
 
-              generator gen_env {
-                provider      = \\"predefined-generator\\"
-                binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
-              }
+      generator gen_env {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+      }
 
-              model User {
-                id   Int    @id
-                name String
-              }
-              ",
-                "datasources": Array [
-                  Object {
-                    "activeProvider": "sqlite",
-                    "name": "db",
-                    "provider": Array [
-                      "sqlite",
-                    ],
-                    "url": Object {
-                      "fromEnvVar": null,
-                      "value": "file:./dev.db",
-                    },
-                  },
-                ],
-                "otherGenerators": Array [],
-              }
-          `)
+      model User {
+        id   Int    @id
+        name String
+      }
+      ",
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": "sqlite",
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "file:./dev.db",
+            },
+          },
+        ],
+        "otherGenerators": Array [],
+      }
+    `)
 
     expect(omit(generators[0].options!.generator, ['output']))
       .toMatchInlineSnapshot(`
@@ -507,17 +498,15 @@ describe('getGenerators', () => {
     }
 
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
-    const queryEngine = await resolveBinary(
-      process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngine
-        : BinaryType.queryEngine,
-    )
+
+    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
       binaryPathsOverride: {
-        queryEngine,
+        queryEngine: queryEnginePath,
       },
     })
 
@@ -526,7 +515,7 @@ describe('getGenerators', () => {
     const platform = await getPlatform()
 
     // we override queryEngine, so its paths should be equal to the one of the generator
-    expect(options[0]?.queryEngine?.[platform]).toBe(queryEngine)
+    expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
     // we did not override the migrationEngine, so their paths should not be equal
     expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
 
@@ -613,20 +602,20 @@ describe('getGenerators', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-You don't have any models defined in your schema.prisma, so nothing will be generated.
-You can define a model like this:
+        "
+        You don't have any models defined in your schema.prisma, so nothing will be generated.
+        You can define a model like this:
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-}
+        model User {
+          id    Int     @id @default(autoincrement())
+          email String  @unique
+          name  String?
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
     }
   })
 
@@ -649,20 +638,20 @@ https://pris.ly/d/prisma-schema
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-You don't have any models defined in your schema.prisma, so nothing will be generated.
-You can define a model like this:
+        "
+        You don't have any models defined in your schema.prisma, so nothing will be generated.
+        You can define a model like this:
 
-model User {
-  id    String  @id @default(dbgenerated()) @map(\\"_id\\") @db.ObjectId
-  email String  @unique
-  name  String?
-}
+        model User {
+          id    String  @id @default(dbgenerated()) @map(\\"_id\\") @db.ObjectId
+          email String  @unique
+          name  String?
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
     }
   })
 })

@@ -1,25 +1,41 @@
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type * as Transaction from './types/Transaction'
+import {
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from './types/QueryEngine'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
 }
-// TODO Make in to abstract class
-export interface Engine {
-  on(event: EngineEventType, listener: (args?: any) => any): void
-  start(): Promise<void>
-  stop(): Promise<void>
-  getConfig(): Promise<GetConfigResult>
-  version(forceRun?: boolean): Promise<string> | string
-  request<T>(
+
+// TODO Move shared logic in here
+export abstract class Engine {
+  abstract on(event: EngineEventType, listener: (args?: any) => any): void
+  abstract start(): Promise<void>
+  abstract stop(): Promise<void>
+  abstract getConfig(): Promise<GetConfigResult>
+  abstract version(forceRun?: boolean): Promise<string> | string
+  abstract request<T>(
     query: string,
-    headers: Record<string, string>,
-    numTry: number,
-  ): Promise<{ data: T; elapsed: number }>
-  requestBatch<T>(
+    headers?: QueryEngineRequestHeaders,
+    numTry?: number,
+  ): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(
     queries: string[],
+    headers?: QueryEngineRequestHeaders,
     transaction?: boolean,
     numTry?: number,
-  ): Promise<{ data: T; elapsed: number }>
+  ): Promise<QueryEngineResult<T>[]>
+  abstract transaction(
+    action: 'start',
+    options?: Transaction.Options,
+  ): Promise<Transaction.Info>
+  abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'rollback',
+    info: Transaction.Info,
+  ): Promise<void>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

@@ -24,7 +24,10 @@ async function main() {
     _count: true,
   })
   const count = await prisma.user.count()
+
   console.log({
+    //@ts-ignore
+    engineType: prisma._clientEngineType,
     aggregate,
     groupBy,
     count,
@@ -32,6 +35,6 @@ async function main() {
   })
 }
 
-main().finally(() => {
-  prisma.$disconnect()
+main().finally(async () => {
+  await prisma.$disconnect()
 })
