@@ -11,6 +11,7 @@ on:
       # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
+      - '.devcontainer/**'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
@@ -29,6 +30,7 @@ on:
       # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
+      - '.devcontainer/**'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
       - 'docs/**'
@@ -52,7 +54,7 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
       - id: checkout
-        uses: actions/checkout@v2        
+        uses: actions/checkout@v2
       - id: files
         uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
@@ -79,7 +81,7 @@ jobs:
     runs-on: ubuntu-20.04
     # Ignore if renovate (dependency update)
     if: "!contains(github.actor, 'renovate')"
-    
+
     steps:
       - uses: actions/checkout@v2
 
@@ -101,7 +103,6 @@ jobs:
 
       - run: pnpm run lint
         working-directory: ./
-
 
   #
   # CLIENT (without types test)
@@ -128,7 +129,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE={{ matrix.engine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
-      
+
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -242,7 +243,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
-      
+
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -306,11 +307,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
-      
+
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
         with:
@@ -361,7 +362,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
-      
+
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
@@ -398,8 +399,8 @@ jobs:
           TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate
           TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
-          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: "sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
+          TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
+          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
 
       - uses: codecov/codecov-action@v2
         with:
@@ -426,7 +427,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
