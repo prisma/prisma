@@ -21,6 +21,11 @@
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "prepare": "is-ci || husky install"
   },
+  "pnpm": {
+    "overrides": {
+      "@prisma/sdk": "2.29.0"
+    }
+  },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
     "@slack/webhook": "6.0.0",
