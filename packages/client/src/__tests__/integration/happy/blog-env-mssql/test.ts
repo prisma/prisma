@@ -228,16 +228,16 @@ describe('blog-env-mssql', () => {
     })
   })
 
-  describe('$executeRaw', () => {
+  describe('$executeRawUnsafe', () => {
     test('$executeRaw(string)', async () => {
       await prisma.user.create({ data: { email: 'a@b.de', name: 'A' } })
-      const users = await prisma.$executeRaw('SELECT * FROM [dbo].[User]')
+      const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User]')
       expect(users).not.toBe(0)
     })
 
     test('$executeRaw(string) with params', async () => {
       await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
-      const users = await prisma.$executeRaw(
+      const users = await prisma.$executeRawUnsafe(
         'SELECT * FROM [dbo].[User] WHERE name = @P1',
         'B',
       )
