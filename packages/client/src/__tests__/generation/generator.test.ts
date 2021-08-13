@@ -5,6 +5,10 @@ import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
 import { omit } from '../../omit'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../runtime/utils/getClientEngineType'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
@@ -43,7 +47,7 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (process.env.PRISMA_FORCE_NAPI) {
+    if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
         Object {
           defaultOutput: .prisma/client,
@@ -214,7 +218,7 @@ describe('generator', () => {
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
-    if (process.env.PRISMA_FORCE_NAPI) {
+    if (getClientEngineType(generator.config) === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
         Object {
           defaultOutput: .prisma/client,

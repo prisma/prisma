@@ -1,8 +1,9 @@
-import { enginesVersion } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, getVersion } from '../..'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 /* eslint-disable jest/no-standalone-expect */
+const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
 
 describe('getVersion', () => {
   test('Introspection Engine', async () => {
@@ -26,21 +27,18 @@ describe('getVersion', () => {
     expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
-  testIf(process.env.PRISMA_FORCE_NAPI !== 'true')('Query Engine', async () => {
+  testIf(!useNodeAPI)('Query Engine', async () => {
     const queryEngineVersion = await getVersion(
       undefined,
       BinaryType.queryEngine,
     )
     expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
-  testIf(process.env.PRISMA_FORCE_NAPI === 'true')(
-    'Query Engine (Node-API)',
-    async () => {
-      const libqueryEngineVersion = await getVersion(
-        undefined,
-        BinaryType.libqueryEngine,
-      )
-      expect(libqueryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
-    },
-  )
+  testIf(useNodeAPI)('Query Engine (Node-API)', async () => {
+    const libqueryEngineVersion = await getVersion(
+      undefined,
+      BinaryType.libqueryEngine,
+    )
+    expect(libqueryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+  })
 })

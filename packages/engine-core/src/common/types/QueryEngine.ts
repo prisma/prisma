@@ -42,6 +42,7 @@ export type QueryEngineLogLevel =
   | 'off'
 
 export type QueryEngineConfig = {
+  // TODO rename datamodel here and other places
   datamodel: string
   configDir: string
   logQueries: boolean

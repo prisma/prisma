@@ -61,21 +61,21 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a",
-    "@prisma/fetch-engine": "2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a",
+    "@prisma/engines": "2.30.0-6.6a90cd8ab569d4e90b1df610be610094bafc1fdf",
+    "@prisma/fetch-engine": "2.30.0-6.6a90cd8ab569d4e90b1df610be610094bafc1fdf",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a",
+    "@prisma/get-platform": "2.30.0-6.6a90cd8ab569d4e90b1df610be610094bafc1fdf",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "26.0.24",
+    "@types/jest": "27.0.0",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
-    "@types/node": "12.20.18",
+    "@types/node": "12.20.19",
     "@types/pg": "8.6.1",
-    "@typescript-eslint/eslint-plugin": "4.29.0",
-    "@typescript-eslint/parser": "4.29.0",
+    "@typescript-eslint/eslint-plugin": "4.29.1",
+    "@typescript-eslint/parser": "4.29.1",
     "arg": "5.0.0",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
@@ -96,7 +96,7 @@
     "jest": "27.0.6",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
-    "lint-staged": "11.1.1",
+    "lint-staged": "11.1.2",
     "make-dir": "3.1.0",
     "mariadb": "2.5.4",
     "mssql": "7.2.0",
@@ -106,7 +106,7 @@
     "prettier": "2.3.2",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.55.1",
+    "rollup": "2.56.2",
     "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
@@ -115,7 +115,7 @@
     "strip-ansi": "6.0.0",
     "strip-indent": "3.0.0",
     "ts-jest": "27.0.4",
-    "ts-node": "10.1.0",
+    "ts-node": "10.2.0",
     "tsd": "0.17.0",
     "typescript": "4.3.5"
   },
@@ -128,7 +128,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.29.0-34.1be4cd60b89afa04b192acb1ef47758a39810f3a"
+    "@prisma/engines-version": "2.30.0-6.6a90cd8ab569d4e90b1df610be610094bafc1fdf"
   },
   "lint-staged": {
     "*.ts": [
