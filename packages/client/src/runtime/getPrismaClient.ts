@@ -18,6 +18,10 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from './utils/getClientEngineType'
 import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
@@ -287,6 +291,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     _engineConfig: EngineConfig
     _clientVersion: string
     _errorFormat: ErrorFormat
+    _clientEngineType: ClientEngineType
     private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
@@ -306,6 +311,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath &&
@@ -444,13 +450,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
       return 'PrismaClient'
     }
     private getEngine() {
-      if (
-        this._previewFeatures.includes('nApi') ||
-        process.env.PRISMA_FORCE_NAPI === 'true'
-      ) {
-        return new LibraryEngine(this._engineConfig)
-      } else {
+      if (this._clientEngineType === ClientEngineType.Binary) {
         return new BinaryEngine(this._engineConfig)
+      } else {
+        return new LibraryEngine(this._engineConfig)
       }
     }
 

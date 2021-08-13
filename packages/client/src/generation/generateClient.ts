@@ -15,6 +15,10 @@ import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { Dictionary } from '../runtime/utils/common'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
 import { getPrismaClientDMMF } from './getDMMF'
 import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
@@ -75,18 +79,18 @@ export async function buildClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
-  const useNodeAPI =
-    generator?.previewFeatures?.includes('nApi') ||
-    process.env.PRISMA_FORCE_NAPI === 'true'
+  const clientEngineType = getClientEngineType(generator!)
+
   const client = new TSClient({
     document,
     runtimePath,
     browser,
     datasources: datasources,
     generator,
-    platforms: useNodeAPI
-      ? Object.keys(binaryPaths.libqueryEngine!)
-      : Object.keys(binaryPaths.queryEngine!),
+    platforms:
+      clientEngineType === ClientEngineType.Library
+        ? Object.keys(binaryPaths.libqueryEngine!)
+        : Object.keys(binaryPaths.queryEngine!),
     schemaDir,
     outputDir,
     clientVersion,
@@ -150,9 +154,7 @@ export async function generateClient({
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
   const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
-  const useNodeAPI =
-    generator?.previewFeatures?.includes('nApi') ||
-    process.env.PRISMA_FORCE_NAPI === 'true'
+  const clientEngineType = getClientEngineType(generator!)
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
@@ -233,14 +235,17 @@ export async function generateClient({
       })
     }
   }
-  const enginePath = useNodeAPI
-    ? binaryPaths.libqueryEngine
-    : binaryPaths.queryEngine
+  const enginePath =
+    clientEngineType === ClientEngineType.Library
+      ? binaryPaths.libqueryEngine
+      : binaryPaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
       `Prisma Client needs \`${
-        useNodeAPI ? 'libqueryEngine' : 'queryEngine'
+        clientEngineType === ClientEngineType.Library
+          ? 'libqueryEngine'
+          : 'queryEngine'
       }\` in the \`binaryPaths\` object.`,
     )
   }
@@ -279,9 +284,10 @@ export async function generateClient({
         await copyFile(filePath, target)
         continue
       }
-      const binaryName = useNodeAPI
-        ? BinaryType.libqueryEngine
-        : BinaryType.queryEngine
+      const binaryName =
+        clientEngineType === ClientEngineType.Binary
+          ? BinaryType.queryEngine
+          : BinaryType.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getVersion(filePath, binaryName).catch(() => null),

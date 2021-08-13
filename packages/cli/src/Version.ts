@@ -1,3 +1,4 @@
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import {
   arg,
@@ -66,15 +67,13 @@ export class Version implements Command {
     }
 
     const platform = await getPlatform()
-    const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
+    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
     const introspectionEngine = await this.resolveEngine(
       BinaryType.introspectionEngine,
     )
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(
-      useNodeAPI ? BinaryType.libqueryEngine : BinaryType.queryEngine,
-    )
+    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
     const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
@@ -84,7 +83,11 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `Query Engine${useNodeAPI ? ' (Node-API)' : ''}`,
+        `Query Engine${
+          cliQueryEngineBinaryType === BinaryType.libqueryEngine
+            ? ' (Node-API)'
+            : ' (Binary)'
+        }`,
         this.printBinaryInfo(queryEngine),
       ],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],

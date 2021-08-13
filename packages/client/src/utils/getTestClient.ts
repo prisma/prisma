@@ -1,6 +1,4 @@
-import { enginesVersion, getEnginesPath } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
-import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
   getConfig,
@@ -19,10 +17,13 @@ import {
   getPrismaClient,
   GetPrismaClientOptions,
 } from '../runtime/getPrismaClient'
+import { getClientEngineType } from '../runtime/utils/getClientEngineType'
+import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
 
 const readFile = promisify(fs.readFile)
 
+//TODO Rename to generateTestClientInMemory
 /**
  * Returns an in-memory client for testing
  */
@@ -45,24 +46,11 @@ export async function getTestClient(
     (g) => parseEnvValue(g.provider) === 'prisma-client-js',
   )
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  const enginesPath = getEnginesPath()
   const platform = await getPlatform()
-  const nodeAPILibraryPath = path.join(
-    enginesPath,
-    getNodeAPIName(platform, 'fs'),
-  )
-  if (
-    (previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI) &&
-    !fs.existsSync(nodeAPILibraryPath)
-  ) {
-    // This is required as the Node-API library is not downloaded by default
-    await download({
-      binaries: {
-        'libquery-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  }
+  const clientEngineType = getClientEngineType(generator!)
+
+  await ensureTestClientQueryEngine(clientEngineType, platform)
+
   const document = await getDMMF({
     datamodel,
     previewFeatures,
