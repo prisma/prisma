@@ -523,8 +523,8 @@ function getSemverFromPatchBranch(version: string) {
 
   if (match) {
     return {
-      major: Number(match[0]),
-      minor: Number(match[1]),
+      major: Number(match[1]),
+      minor: Number(match[2]),
     }
   }
 
