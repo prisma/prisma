@@ -55,12 +55,13 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
 
+// TODO also check/disallow for CREATE, DROP
 function checkAlter(
   query: string,
   values: sqlTemplateTag.Value[],
   invalidCall:
     | 'prisma.$executeRaw`<SQL>`'
-    | 'prisma.$executeRaw(<SQL>, [...values])'
+    | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
     | 'prisma.$executeRaw(sql`<SQL>`)',
 ) {
   if (values.length > 0 && ALTER_RE.exec(query)) {
@@ -69,7 +70,7 @@ function checkAlter(
 Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
 Example:
-  await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+  await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
 More Information: https://pris.ly/d/execute-raw
 `)
@@ -568,7 +569,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         checkAlter(
           queryString,
           values,
-          'prisma.$executeRaw(<SQL>, [...values])',
+          'prisma.$executeRawUnsafe(<SQL>, [...values])',
         )
       } else if (isReadonlyArray(query)) {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement

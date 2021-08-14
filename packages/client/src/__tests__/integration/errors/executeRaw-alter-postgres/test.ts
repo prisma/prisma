@@ -33,7 +33,7 @@ test('executeRaw-alter-postgres', async () => {
       Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
-        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+        await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
 
