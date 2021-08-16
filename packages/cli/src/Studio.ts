@@ -120,7 +120,7 @@ ${chalk.bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(
             __dirname,
-            '../../prisma-client/index.js',
+            '../prisma-client/index.js',
           ),
           '@prisma/engines': require.resolve('@prisma/engines'),
         },
