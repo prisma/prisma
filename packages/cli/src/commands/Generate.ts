@@ -24,7 +24,7 @@ import resolvePkg from 'resolve-pkg'
 import { breakingChangesMessage } from '../utils/breakingChanges'
 import { formatms } from '../utils/formatms'
 import { simpleDebounce } from '../utils/simpleDebounce'
-const pkg = eval(`require('../../package.json')`)
+const pkg = eval(`require('../package.json')`)
 
 /**
  * $ prisma generate
