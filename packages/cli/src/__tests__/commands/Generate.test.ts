@@ -33,9 +33,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    expect(cleanSnapshot(data.stdout)).toContain(
-      `✔ Generated I am a minimal generator to`,
-    )
+    expect(cleanSnapshot(data.stdout)).toContain(`I am a minimal generator`)
   }, 30000) // timeout
 })
 
@@ -45,13 +43,13 @@ describe('--schema from project directory', () => {
     const result = Generate.new().parse(['--schema=./schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            ✔ Generated Prisma Client (0.0.0) to ./@prisma/client in 133ms
-            You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-            \`\`\`
-            import { PrismaClient } from './@prisma/client'
-            const prisma = new PrismaClient()
-            \`\`\`
-          `)
+✔ Generated Prisma Client (0.0.0) to ./@prisma/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './@prisma/client'
+const prisma = new PrismaClient()
+\`\`\`
+`)
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -68,13 +66,13 @@ describe('--schema from project directory', () => {
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            ✔ Generated Prisma Client (0.0.0) to ./@prisma/client in 144ms
-            You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-            \`\`\`
-            import { PrismaClient } from './@prisma/client'
-            const prisma = new PrismaClient()
-            \`\`\`
-          `)
+✔ Generated Prisma Client (0.0.0) to ./@prisma/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './@prisma/client'
+const prisma = new PrismaClient()
+\`\`\`
+`)
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
@@ -95,13 +93,13 @@ describe('--schema from parent directory', () => {
     ])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            ✔ Generated Prisma Client (0.0.0) to ./subdirectory/@prisma/client in 147ms
-            You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-            \`\`\`
-            import { PrismaClient } from './subdirectory/@prisma/client'
-            const prisma = new PrismaClient()
-            \`\`\`
-          `)
+✔ Generated Prisma Client (0.0.0) to ./subdirectory/@prisma/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './subdirectory/@prisma/client'
+const prisma = new PrismaClient()
+\`\`\`
+`)
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -122,13 +120,13 @@ describe('--schema from parent directory', () => {
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            ✔ Generated Prisma Client (0.0.0) to ./subdirectory/@prisma/client in 131ms
-            You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-            \`\`\`
-            import { PrismaClient } from './subdirectory/@prisma/client'
-            const prisma = new PrismaClient()
-            \`\`\`
-          `)
+✔ Generated Prisma Client (0.0.0) to ./subdirectory/@prisma/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './subdirectory/@prisma/client'
+const prisma = new PrismaClient()
+\`\`\`
+`)
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
