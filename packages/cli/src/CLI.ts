@@ -7,6 +7,7 @@ import {
   format,
   HelpError,
   unknownCommand,
+  logger,
 } from '@prisma/sdk'
 import { Version } from './Version'
 import { link } from '@prisma/sdk'
@@ -59,7 +60,16 @@ export class CLI implements Command {
           'prisma migrate',
         )}`,
       )
+    } else if (cmdName === 'introspect') {
+      logger.warn(
+        `${chalk.underline(
+          'prisma introspect',
+        )} command is deprecated. It has been renamed to ${chalk.green(
+          'prisma db pull',
+        )}`,
+      )
     }
+
     const cmd = this.cmds[cmdName]
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it

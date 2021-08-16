@@ -143,6 +143,9 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
+      /**
+       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
+       */
       introspect: DbPull.new(),
       dev: Dev.new(),
       studio: Studio.new(),
