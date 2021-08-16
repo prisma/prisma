@@ -49,7 +49,7 @@ export class CLI implements Command {
 
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
-      return CLI.help
+      return this.help()
     }
 
     // check if we have that subcommand
@@ -107,10 +107,10 @@ export class CLI implements Command {
       return cmd.parse(argsForCmd)
     }
     // unknown command
-    return unknownCommand(CLI.help, args._[0])
+    return unknownCommand(this.help() as string, args._[0])
   }
 
-  private help(error?: string): string | HelpError {
+  public help(error?: string) {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
     }

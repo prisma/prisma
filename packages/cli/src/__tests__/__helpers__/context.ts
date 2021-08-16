@@ -118,6 +118,7 @@ export const consoleContext: ContextContributorFactory<
     mocked: {
       'console.error': jest.SpyInstance
       'console.log': jest.SpyInstance
+      'console.info': jest.SpyInstance
       'console.warn': jest.SpyInstance
     }
   }
@@ -129,6 +130,9 @@ export const consoleContext: ContextContributorFactory<
     ctx.mocked['console.log'] = jest
       .spyOn(console, 'log')
       .mockImplementation(() => {})
+    ctx.mocked['console.info'] = jest
+      .spyOn(console, 'info')
+      .mockImplementation(() => {})
     ctx.mocked['console.warn'] = jest
       .spyOn(console, 'warn')
       .mockImplementation(() => {})
@@ -137,6 +141,7 @@ export const consoleContext: ContextContributorFactory<
   afterEach(() => {
     ctx.mocked['console.error'].mockRestore()
     ctx.mocked['console.log'].mockRestore()
+    ctx.mocked['console.info'].mockRestore()
     ctx.mocked['console.warn'].mockRestore()
   })
 
