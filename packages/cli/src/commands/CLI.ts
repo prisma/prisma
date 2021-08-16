@@ -54,20 +54,27 @@ export class CLI implements Command {
 
     // check if we have that subcommand
     const cmdName = args._[0]
+    // Throw if "lift"
     if (cmdName === 'lift') {
       throw new Error(
         `${chalk.red('prisma lift')} has been renamed to ${chalk.green(
           'prisma migrate',
         )}`,
       )
-    } else if (cmdName === 'introspect') {
+    }
+    // warn if "introspect"
+    else if (cmdName === 'introspect') {
+      logger.warn('')
       logger.warn(
-        `${chalk.underline(
-          'prisma introspect',
-        )} command is deprecated. It has been renamed to ${chalk.green(
-          'prisma db pull',
+        `${chalk.bold(
+          `${chalk.underline(
+            'prisma introspect',
+          )} command is deprecated. It has been renamed to ${chalk.green(
+            'prisma db pull',
+          )}`,
         )}`,
       )
+      logger.warn('')
     }
 
     const cmd = this.cmds[cmdName]

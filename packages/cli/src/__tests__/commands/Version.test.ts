@@ -4,7 +4,7 @@ import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/sdk'
 import makeDir from 'make-dir'
 import path from 'path'
-import { consoleContext, Context } from './__helpers__/context'
+import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)

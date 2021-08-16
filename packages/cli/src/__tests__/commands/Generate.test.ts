@@ -1,5 +1,5 @@
 import 'ts-node/register'
-import { consoleContext, Context } from './__helpers__/context'
+import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 

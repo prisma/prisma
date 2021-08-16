@@ -89,15 +89,15 @@ import {
   handlePanic,
 } from '@prisma/migrate'
 
-import { CLI } from './CLI'
+import { CLI } from './commands/CLI'
 import { Init } from './Init'
-import { Dev } from './Dev'
+import { Dev } from './commands/Dev'
 import { Version } from './Version'
 import { Generate } from './Generate'
 import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
 import { Validate } from './Validate'
 import { Format } from './Format'
-import { Doctor } from './Doctor'
+import { Doctor } from './commands/Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import {
@@ -106,7 +106,7 @@ import {
 } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
-import { detectPrisma1 } from './detectPrisma1'
+import { detectPrisma1 } from './utils/detectPrisma1'
 
 // because chalk ...
 if (process.env.NO_COLOR) {
