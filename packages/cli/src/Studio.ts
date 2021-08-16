@@ -13,7 +13,7 @@ import getPort from 'get-port'
 import open from 'open'
 import path from 'path'
 
-const packageJson = require('../../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 export class Studio implements Command {
   public instance?: StudioServer
