@@ -17,7 +17,7 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
-import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+import { getInstalledPrismaClientVersion } from '../utils/getClientVersion'
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface BinaryInfo {

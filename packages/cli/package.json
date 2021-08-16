@@ -113,10 +113,7 @@
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
-    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u",
-    "test": "pnpm run test:commands",
-    "jest": "jest",
+    "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
