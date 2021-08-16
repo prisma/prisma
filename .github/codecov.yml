@@ -1,8 +1,14 @@
-# Disable PR comments until we are proud and willing to have
-# the results be more public
+# Disable PR comments for now
 comment: false
 
+# About `carryforward: true`
+# https://docs.codecov.com/docs/carryforward-flags
+
 flags:
+  cli:
+    carryforward: true
+    paths:
+      - packages/cli/
   client:
     carryforward: true
     paths:
@@ -19,11 +25,15 @@ flags:
     carryforward: true
     paths:
       - packages/generator-helper/
+  integration-tests:
+    carryforward: true
+    paths:
+      - packages/integration-tests/
+  migrate:
+    carryforward: true
+    paths:
+      - packages/migrate/
   sdk:
     carryforward: true
     paths:
       - packages/sdk/
-  introspection:
-    carryforward: true
-    paths:
-      - packages/introspection/
