@@ -1,5 +1,5 @@
 import fs from 'fs-jetpack'
-import { Format } from '../../commands/Format'
+import { Format } from '../../Format'
 import { Context } from '../__helpers__/context'
 
 const ctx = Context.new().assemble()

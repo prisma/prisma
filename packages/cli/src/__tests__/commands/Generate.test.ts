@@ -1,5 +1,5 @@
 const path = require('path')
-import { Generate } from '../../commands/Generate'
+import { Generate } from '../../Generate'
 import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()

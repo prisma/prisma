@@ -1,4 +1,4 @@
-import { Doctor } from '../../commands/Doctor'
+import { Doctor } from '../../Doctor'
 import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()

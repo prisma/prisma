@@ -1,11 +1,7 @@
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
-import {
-  defaultEnv,
-  defaultGitIgnore,
-  defaultSchema,
-} from '../../commands/Init'
+import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
 import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()

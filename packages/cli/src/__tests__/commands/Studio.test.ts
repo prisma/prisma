@@ -2,7 +2,7 @@ import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
-import { Studio } from '../../commands/Studio'
+import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
 const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'

@@ -89,17 +89,17 @@ import {
   handlePanic,
 } from '@prisma/migrate'
 
-import { CLI } from './commands/CLI'
-import { Init } from './commands/Init'
-import { Dev } from './commands/Dev'
-import { Version } from './commands/Version'
-import { Generate } from './commands/Generate'
+import { CLI } from './CLI'
+import { Init } from './Init'
+import { Dev } from './Dev'
+import { Version } from './Version'
+import { Generate } from './Generate'
 import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
-import { Validate } from './commands/Validate'
-import { Format } from './commands/Format'
-import { Doctor } from './commands/Doctor'
-import { Studio } from './commands/Studio'
-import { Telemetry } from './commands/Telemetry'
+import { Validate } from './Validate'
+import { Format } from './Format'
+import { Doctor } from './Doctor'
+import { Studio } from './Studio'
+import { Telemetry } from './Telemetry'
 import {
   printPrismaCliUpdateWarning,
   printUpdateMessage,
