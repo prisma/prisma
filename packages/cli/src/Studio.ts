@@ -109,7 +109,7 @@ ${chalk.bold('Examples')}
       args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
 
-    const staticAssetDir = path.resolve(__dirname, '../../build/public')
+    const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const studio = new StudioServer({
       schemaPath,
@@ -120,7 +120,7 @@ ${chalk.bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(
             __dirname,
-            '../../prisma-client/index.js',
+            '../prisma-client/index.js',
           ),
           '@prisma/engines': require.resolve('@prisma/engines'),
         },
