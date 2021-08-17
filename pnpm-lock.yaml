@@ -88,7 +88,7 @@ importers:
       '@prisma/get-platform': 2.30.0-10.0210b3de5042a714f8838a59f9edcb28b11ab97d
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
-      '@prisma/studio-server': 0.419.0
+      '@prisma/studio-server': 0.422.0
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.0
       '@types/rimraf': 3.0.1
@@ -139,7 +139,7 @@ importers:
       '@prisma/get-platform': 2.30.0-10.0210b3de5042a714f8838a59f9edcb28b11ab97d
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
-      '@prisma/studio-server': 0.419.0
+      '@prisma/studio-server': 0.422.0
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.0
       '@types/rimraf': 3.0.1
@@ -163,7 +163,7 @@ importers:
       global-dirs: 3.0.0
       indent-string: 4.0.0
       is-installed-globally: 0.4.0
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       line-replace: 2.0.1
       lint-staged: 11.1.2
       log-update: 4.0.0
@@ -346,7 +346,7 @@ importers:
       eslint-plugin-prettier: 3.4.0_5a48a349ffec60f5257b5f148f5199c3
       execa: 5.1.1
       glob: 7.1.7
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       lint-staged: 11.1.2
       prettier: 2.3.2
       strip-ansi: 6.0.0
@@ -409,7 +409,7 @@ importers:
       eslint-plugin-jest: 24.4.0_f4d5ebf74e0ec1069e4c71ab7b88d1dd
       eslint-plugin-prettier: 3.4.0_5a48a349ffec60f5257b5f148f5199c3
       glob: 7.1.7
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       lint-staged: 11.1.2
       prettier: 2.3.2
       strip-ansi: 6.0.0
@@ -633,7 +633,7 @@ importers:
       eslint-plugin-prettier: 3.4.0_5a48a349ffec60f5257b5f148f5199c3
       fs-jetpack: 4.1.1
       glob: 7.1.7
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       lint-staged: 11.1.2
       make-dir: 3.1.0
       mariadb: 2.5.4
@@ -680,7 +680,7 @@ importers:
       eslint-plugin-jest: 24.4.0_f4d5ebf74e0ec1069e4c71ab7b88d1dd
       eslint-plugin-prettier: 3.4.0_5a48a349ffec60f5257b5f148f5199c3
       glob: 7.1.7
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       lint-staged: 11.1.2
       prettier: 2.3.2
       react: 17.0.2
@@ -1423,6 +1423,52 @@ packages:
       slash: 3.0.0
     dev: true
 
+  /@jest/core/27.0.6:
+    resolution: {integrity: sha512-SsYBm3yhqOn5ZLJCtccaBcvD/ccTLCeuDv8U41WJH/V1MW5eKUkeMHT9U+Pw/v1m1AIWlnIW/eM2XzQr0rEmow==}
+    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/console': 27.0.6
+      '@jest/reporters': 27.0.6
+      '@jest/test-result': 27.0.6
+      '@jest/transform': 27.0.6
+      '@jest/types': 27.0.6
+      '@types/node': 14.17.6
+      ansi-escapes: 4.3.2
+      chalk: 4.1.1
+      emittery: 0.8.1
+      exit: 0.1.2
+      graceful-fs: 4.2.6
+      jest-changed-files: 27.0.6
+      jest-config: 27.0.6
+      jest-haste-map: 27.0.6
+      jest-message-util: 27.0.6
+      jest-regex-util: 27.0.6
+      jest-resolve: 27.0.6
+      jest-resolve-dependencies: 27.0.6
+      jest-runner: 27.0.6
+      jest-runtime: 27.0.6
+      jest-snapshot: 27.0.6
+      jest-util: 27.0.6
+      jest-validate: 27.0.6
+      jest-watcher: 27.0.6
+      micromatch: 4.0.4
+      p-each-series: 2.2.0
+      rimraf: 3.0.2
+      slash: 3.0.0
+      strip-ansi: 6.0.0
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - ts-node
+      - utf-8-validate
+    dev: true
+
   /@jest/core/27.0.6_ts-node@10.2.0:
     resolution: {integrity: sha512-SsYBm3yhqOn5ZLJCtccaBcvD/ccTLCeuDv8U41WJH/V1MW5eKUkeMHT9U+Pw/v1m1AIWlnIW/eM2XzQr0rEmow==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -1815,8 +1861,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-pcw/0.419.0_@prisma+sdk@2.30.0-dev.17:
-    resolution: {integrity: sha512-74YPH6COysslPnmt/qq12A4iJCgUur1fXilmmD2s71s/iJrkmZ9h5Z6BQe9LjMW9K3Byz99G7xD6vVMajYjSWA==}
+  /@prisma/studio-pcw/0.422.0_@prisma+sdk@2.30.0-dev.17:
+    resolution: {integrity: sha512-82VESX2oeh6DwggY6B9Cblaz2xeaJfj0a+LRvUJve8NDShkarhLHMFh9auO8AWa3cCN1gWxEF/DUfnLNL35BrA==}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
@@ -1828,12 +1874,12 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.419.0:
-    resolution: {integrity: sha512-b6zY2PV/4fyfTi7VlMYPrB+nJUH94IIQb42z1uYHPTJhEZy1NrjZr3pmTVcyMUS2KR+04ySJ85fol/lOodS5qQ==}
+  /@prisma/studio-server/0.422.0:
+    resolution: {integrity: sha512-VLDIsIDzklsFJB4AUyluZq9QiKQkz/nI9Hrj7Pp7Mb1rm3S0x8fsf4W3jYqibqqqz8rgg+5ztc4EjkCgpCa4sA==}
     dependencies:
       '@prisma/sdk': 2.30.0-dev.17
-      '@prisma/studio-pcw': 0.419.0_@prisma+sdk@2.30.0-dev.17
-      '@prisma/studio-transports': 0.419.0
+      '@prisma/studio-pcw': 0.422.0_@prisma+sdk@2.30.0-dev.17
+      '@prisma/studio-transports': 0.422.0
       '@sentry/node': 6.2.5
       checkpoint-client: 1.1.20
       cors: 2.8.5
@@ -1841,12 +1887,11 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
-  /@prisma/studio-transports/0.419.0:
-    resolution: {integrity: sha512-FPDFR+tDyibMY/hM46Oi0XXOJSDsyBDZ24fI2vAUfEzBEAoGGPzlAic3QRDf4oy/xk0Azr8qw9bbDA6K5MPYAw==}
+  /@prisma/studio-transports/0.422.0:
+    resolution: {integrity: sha512-w+I/iobFxjVoxy2dcb0/SPslgU/leyKyFWSR2oB+SYduYOC14GEsic2+SpfnJUWIpRTFtqDMyio5ExYpc/Q2DQ==}
     dev: true
 
   /@sentry/core/6.2.5:
@@ -4591,6 +4636,36 @@ packages:
       - supports-color
     dev: true
 
+  /jest-cli/27.0.6:
+    resolution: {integrity: sha512-qUUVlGb9fdKir3RDE+B10ULI+LQrz+MCflEH2UJyoUjoHHCbxDrMxSzjQAPUMsic4SncI62ofYCcAvW6+6rhhg==}
+    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 27.0.6
+      '@jest/test-result': 27.0.6
+      '@jest/types': 27.0.6
+      chalk: 4.1.1
+      exit: 0.1.2
+      graceful-fs: 4.2.6
+      import-local: 3.0.2
+      jest-config: 27.0.6
+      jest-util: 27.0.6
+      jest-validate: 27.0.6
+      prompts: 2.4.1
+      yargs: 16.2.0
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - ts-node
+      - utf-8-validate
+    dev: true
+
   /jest-cli/27.0.6_ts-node@10.2.0:
     resolution: {integrity: sha512-qUUVlGb9fdKir3RDE+B10ULI+LQrz+MCflEH2UJyoUjoHHCbxDrMxSzjQAPUMsic4SncI62ofYCcAvW6+6rhhg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
@@ -4618,6 +4693,43 @@ packages:
       - canvas
       - supports-color
       - ts-node
+      - utf-8-validate
+    dev: true
+
+  /jest-config/27.0.6:
+    resolution: {integrity: sha512-JZRR3I1Plr2YxPBhgqRspDE2S5zprbga3swYNrvY3HfQGu7p/GjyLOqwrYad97tX3U3mzT53TPHVmozacfP/3w==}
+    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    peerDependencies:
+      ts-node: '>=9.0.0'
+    peerDependenciesMeta:
+      ts-node:
+        optional: true
+    dependencies:
+      '@babel/core': 7.14.8
+      '@jest/test-sequencer': 27.0.6
+      '@jest/types': 27.0.6
+      babel-jest: 27.0.6_@babel+core@7.14.8
+      chalk: 4.1.1
+      deepmerge: 4.2.2
+      glob: 7.1.7
+      graceful-fs: 4.2.6
+      is-ci: 3.0.0
+      jest-circus: 27.0.6
+      jest-environment-jsdom: 27.0.6
+      jest-environment-node: 27.0.6
+      jest-get-type: 27.0.6
+      jest-jasmine2: 27.0.6
+      jest-regex-util: 27.0.6
+      jest-resolve: 27.0.6
+      jest-runner: 27.0.6
+      jest-util: 27.0.6
+      jest-validate: 27.0.6
+      micromatch: 4.0.4
+      pretty-format: 27.0.6
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
       - utf-8-validate
     dev: true
 
@@ -4651,7 +4763,7 @@ packages:
       jest-validate: 27.0.6
       micromatch: 4.0.4
       pretty-format: 27.0.6
-      ts-node: 10.2.0_3cddbd81c3a53971a7cbc3c93cba6165
+      ts-node: 10.2.0_1be1d6e448db6d942ef39e7e14f59568
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -5018,6 +5130,27 @@ packages:
       '@types/node': 14.17.6
       merge-stream: 2.0.0
       supports-color: 8.1.1
+    dev: true
+
+  /jest/27.0.6:
+    resolution: {integrity: sha512-EjV8aETrsD0wHl7CKMibKwQNQc3gIRBXlTikBmmHUeVMKaPFxdcUIBfoDqTSXDoGJIivAYGqCWVlzCSaVjPQsA==}
+    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
+    peerDependencies:
+      node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+    peerDependenciesMeta:
+      node-notifier:
+        optional: true
+    dependencies:
+      '@jest/core': 27.0.6
+      import-local: 3.0.2
+      jest-cli: 27.0.6
+    transitivePeerDependencies:
+      - bufferutil
+      - canvas
+      - supports-color
+      - ts-node
+      - utf-8-validate
     dev: true
 
   /jest/27.0.6_ts-node@10.2.0:
@@ -7213,7 +7346,7 @@ packages:
       bs-logger: 0.2.6
       buffer-from: 1.1.1
       fast-json-stable-stringify: 2.1.0
-      jest: 27.0.6_ts-node@10.2.0
+      jest: 27.0.6
       jest-util: 27.0.6
       json5: 2.2.0
       lodash: 4.17.21
