@@ -551,7 +551,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      */
     private $executeRawInternal(
       runInTransaction: boolean,
-      transactionId: number | null,
+      transactionId: number | undefined,
       stringOrTemplateStringsArray:
         | ReadonlyArray<string>
         | string
@@ -652,7 +652,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         action: 'executeRaw',
         callsite: this._getCallsite(),
         runInTransaction,
-        transactionId: transactionId ?? undefined,
+        transactionId: transactionId,
       })
     }
 
@@ -666,11 +666,11 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const doRequest = (runInTransaction = false, transactionId?: number) => {
+      const request = (transactionId?: number, runInTransaction?: boolean) => {
         try {
           const promise = this.$executeRawInternal(
-            runInTransaction,
-            transactionId ?? null,
+            runInTransaction ?? false,
+            transactionId,
             stringOrTemplateStringsArray,
             ...values,
           )
@@ -682,17 +682,17 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         }
       }
       return {
-        then(onfulfilled, onrejected) {
-          return doRequest().then(onfulfilled, onrejected)
+        then(onFulfilled, onRejected, transactionId?: number) {
+          return request(transactionId).then(onFulfilled, onRejected)
         },
         requestTransaction(transactionId: number) {
-          return doRequest(true, transactionId)
+          return request(transactionId, true)
         },
-        catch(onrejected) {
-          return doRequest().catch(onrejected)
+        catch(onRejected) {
+          return request().catch(onRejected)
         },
-        finally(onfinally) {
-          return doRequest().finally(onfinally)
+        finally(onFinally) {
+          return request().finally(onFinally)
         },
       }
     }
@@ -709,7 +709,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      */
     private $queryRawInternal(
       runInTransaction: boolean,
-      transactionId: number | null,
+      transactionId: number | undefined,
       stringOrTemplateStringsArray:
         | ReadonlyArray<string>
         | TemplateStringsArray
@@ -811,7 +811,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         action: 'queryRaw',
         callsite: this._getCallsite(),
         runInTransaction,
-        transactionId: transactionId ?? undefined,
+        transactionId: transactionId,
       })
     }
 
@@ -822,11 +822,11 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
       stringOrTemplateStringsArray,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const doRequest = (runInTransaction = false, transactionId?: number) => {
+      const request = (transactionId?: number, runInTransaction?: boolean) => {
         try {
           const promise = this.$queryRawInternal(
-            runInTransaction,
-            transactionId ?? null,
+            runInTransaction ?? false,
+            transactionId,
             stringOrTemplateStringsArray,
             ...values,
           )
@@ -838,17 +838,17 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         }
       }
       return {
-        then(onfulfilled, onrejected) {
-          return doRequest().then(onfulfilled, onrejected)
+        then(onFulfilled, onRejected, transactionId?: number) {
+          return request(transactionId).then(onFulfilled, onRejected)
         },
         requestTransaction(transactionId: number) {
-          return doRequest(true, transactionId)
+          return request(transactionId, true)
         },
-        catch(onrejected) {
-          return doRequest().catch(onrejected)
+        catch(onRejected) {
+          return request().catch(onRejected)
         },
-        finally(onfinally) {
-          return doRequest().finally(onfinally)
+        finally(onFinally) {
+          return request().finally(onFinally)
         },
       }
     }
@@ -1197,19 +1197,20 @@ new PrismaClient({
     }
 
     private _bootstrapClient() {
-      const clients = this._dmmf.mappings.modelOperations.reduce(
-        (acc, mapping) => {
-          const lowerCaseModel = lowerCase(mapping.model)
-          const model = this._dmmf.modelMap[mapping.model]
+      const modelClientBuilders = this._dmmf.mappings.modelOperations.reduce(
+        (modelClientBuilders, modelMapping) => {
+          const lowerCaseModel = lowerCase(modelMapping.model)
+          const model = this._dmmf.modelMap[modelMapping.model]
 
           if (!model) {
             throw new Error(
-              `Invalid mapping ${mapping.model}, can't find model`,
+              `Invalid mapping ${modelMapping.model}, can't find model`,
             )
           }
 
-          // TODO: add types
-          const prismaClient = ({
+          // creates a builder for `prisma...<function>` in the runtime so that
+          // all models will get their own sub-"client" for query execution
+          const ModelClientBuilder = ({
             operation,
             actionName,
             args,
@@ -1224,59 +1225,54 @@ new PrismaClient({
             modelName: string
             unpacker?: Unpacker
           }) => {
-            dataPath = dataPath ?? []
+            let requestPromise: Promise<unknown> | undefined
 
-            const clientMethod = `${lowerCaseModel}.${actionName}`
-
-            let requestPromise: Promise<any>
+            // prepare a request with current context & prevent multi-calls we
+            // save it into `requestPromise` to allow one request per promise
             const callsite = this._getCallsite()
+            const request = (
+              transactionId?: number,
+              runInTransaction?: boolean,
+            ) => {
+              requestPromise =
+                requestPromise ??
+                this._request({
+                  args,
+                  model: modelName ?? model.name,
+                  action: actionName,
+                  clientMethod: `${lowerCaseModel}.${actionName}`,
+                  dataPath: dataPath,
+                  callsite: callsite,
+                  runInTransaction: runInTransaction ?? false,
+                  transactionId: transactionId,
+                  unpacker,
+                })
 
-            const requestModelName = modelName ?? model.name
+              return requestPromise
+            }
 
-            const clientImplementation = {
-              then: (onfulfilled, onrejected, transactionId?: number) => {
-                if (!requestPromise) {
-                  requestPromise = this._request({
-                    args,
-                    dataPath,
-                    action: actionName,
-                    model: requestModelName,
-                    clientMethod,
-                    callsite,
-                    runInTransaction: false,
-                    transactionId: transactionId,
-                    unpacker,
-                  })
-                }
-
-                return requestPromise.then(onfulfilled, onrejected)
+            // `modelClient` implements promises to have deferred actions that
+            // will be called later on through model delegated functions
+            const modelClient = {
+              then: (onFulfilled, onRejected, transactionId?: number) => {
+                return request(transactionId).then(onFulfilled, onRejected)
               },
               requestTransaction: (transactionId: number) => {
-                if (!requestPromise) {
-                  requestPromise = this._request({
-                    args,
-                    dataPath,
-                    action: actionName,
-                    model: requestModelName,
-                    clientMethod,
-                    callsite,
-                    runInTransaction: true,
-                    transactionId,
-                    unpacker,
-                  })
-                }
-
-                return requestPromise
+                return request(transactionId, true)
               },
-              catch: (onrejected) => requestPromise?.catch(onrejected),
-              finally: (onfinally) => requestPromise?.finally(onfinally),
+              catch: (onRejected) => {
+                return request().catch(onRejected)
+              },
+              finally: (onFinally) => {
+                return request().finally(onFinally)
+              },
             }
 
             // add relation fields
             for (const field of model.fields.filter(
               (f) => f.kind === 'object',
             )) {
-              clientImplementation[field.name] = (fieldArgs) => {
+              modelClient[field.name] = (fieldArgs) => {
                 const prefix = dataPath.includes('select')
                   ? 'select'
                   : dataPath.includes('include')
@@ -1285,7 +1281,7 @@ new PrismaClient({
                 const newDataPath = [...dataPath, prefix, field.name]
                 const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
-                return clients[field.type]({
+                return modelClientBuilders[field.type]({
                   operation,
                   actionName,
                   args: newArgs,
@@ -1299,12 +1295,12 @@ new PrismaClient({
               }
             }
 
-            return clientImplementation
+            return modelClient
           }
 
-          acc[model.name] = prismaClient
+          modelClientBuilders[model.name] = ModelClientBuilder
 
-          return acc
+          return modelClientBuilders
         },
         {},
       )
@@ -1319,13 +1315,16 @@ new PrismaClient({
           groupBy: true,
         }
 
+        // here we call the `modelClientBuilder` inside of each delegate function
+        // once triggered, the function will return the `modelClient` from above
         const delegate: any = Object.keys(mapping).reduce((acc, actionName) => {
           if (!filteredActionsList[actionName]) {
             const operation = getOperation(actionName as any)
             acc[actionName] = (args) =>
-              clients[mapping.model]({
+              modelClientBuilders[mapping.model]({
                 operation,
                 actionName,
+                dataPath: [],
                 args,
               })
           }
@@ -1346,7 +1345,7 @@ new PrismaClient({
             }
           }
 
-          return clients[mapping.model]({
+          return modelClientBuilders[mapping.model]({
             operation: 'query',
             actionName: `aggregate`,
             args: {
@@ -1394,7 +1393,7 @@ new PrismaClient({
             return acc
           }, {} as any)
 
-          return clients[mapping.model]({
+          return modelClientBuilders[mapping.model]({
             operation: 'query',
             actionName: 'aggregate', // actionName is just cosmetics 💅🏽
             rootField: mapping.aggregate,
@@ -1456,7 +1455,7 @@ new PrismaClient({
             return acc
           }, {} as any)
 
-          return clients[mapping.model]({
+          return modelClientBuilders[mapping.model]({
             operation: 'query',
             actionName: 'groupBy', // actionName is just cosmetics 💅🏽
             rootField: mapping.groupBy,

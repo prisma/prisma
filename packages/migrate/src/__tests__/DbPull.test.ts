@@ -570,7 +570,7 @@ describe('SQL Server', () => {
   }
   const JDBC_URI =
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-    'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
+    'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams).catch((e) => {
