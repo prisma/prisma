@@ -23,18 +23,21 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;`
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
+  `
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
-  if (!this.generator?.previewFeatures.includes('interactiveTransactions'))
+  if (!this.generator?.previewFeatures.includes('interactiveTransactions')) {
     return ''
+  }
 
   const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
   const txOptions = `{ maxWait?: number, timeout?: number }`
 
   return `
-  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>;`
+  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>;
+  `
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -60,7 +63,8 @@ function queryRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
+  `
 }
 
 function executeRawDefinition(this: PrismaClientClass) {
@@ -86,7 +90,8 @@ function executeRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
+  `
 }
 
 export class PrismaClientClass implements Generatable {
@@ -174,12 +179,11 @@ export class PrismaClient<
    * Add a middleware
    */
   $use(cb: Prisma.Middleware): void
-
-  ${executeRawDefinition.bind(this)()}
-  ${queryRawDefinition.bind(this)()}
-  ${batchingTransactionDefinition.bind(this)()}
-  ${interactiveTransactionDefinition.bind(this)()}
-
+  ${executeRawDefinition.bind(this)()}${queryRawDefinition.bind(
+      this,
+    )()}${batchingTransactionDefinition.bind(
+      this,
+    )()}${interactiveTransactionDefinition.bind(this)()}
     ${indent(
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
