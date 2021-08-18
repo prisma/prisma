@@ -108,7 +108,7 @@ it('introspect should include deprecation warning', async () => {
   expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
     .toMatchInlineSnapshot(`
     prisma:warn 
-    prisma:warn The introspect command is deprecated. Please use db pull instead.
+    prisma:warn The prisma introspect command is deprecated. Please use prisma db pull instead.
     prisma:warn 
   `)
   expect(ctx.mocked['console.error'].mock.calls).toHaveLength(0)
