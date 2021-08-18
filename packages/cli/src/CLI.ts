@@ -67,11 +67,11 @@ export class CLI implements Command {
       logger.warn('')
       logger.warn(
         `${chalk.bold(
-          `${chalk.underline(
+          `The ${chalk.underline(
             'prisma introspect',
-          )} command is deprecated. It has been renamed to ${chalk.green(
+          )} command is deprecated. Please use ${chalk.green(
             'prisma db pull',
-          )}`,
+          )} instead.`,
         )}`,
       )
       logger.warn('')
