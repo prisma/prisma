@@ -179,11 +179,12 @@ export class PrismaClient<
    * Add a middleware
    */
   $use(cb: Prisma.Middleware): void
-  ${executeRawDefinition.bind(this)()}${queryRawDefinition.bind(
-      this,
-    )()}${batchingTransactionDefinition.bind(
-      this,
-    )()}${interactiveTransactionDefinition.bind(this)()}
+  ${[
+    executeRawDefinition.bind(this)(),
+    queryRawDefinition.bind(this)(),
+    batchingTransactionDefinition.bind(this)(),
+    interactiveTransactionDefinition.bind(this)(),
+  ].join('')}
     ${indent(
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
